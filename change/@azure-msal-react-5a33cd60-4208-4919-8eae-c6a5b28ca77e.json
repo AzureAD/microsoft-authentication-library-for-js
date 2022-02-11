@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix: update package-lock files",
-  "packageName": "@azure/msal-react",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}

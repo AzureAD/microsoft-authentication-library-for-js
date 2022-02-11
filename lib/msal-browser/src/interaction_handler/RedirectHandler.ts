@@ -42,7 +42,6 @@ export class RedirectHandler extends InteractionHandler {
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setInteractionInProgress(true);
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.authCodeRequest.correlationId, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
             this.browserRequestLogger.infoPii(`RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`);

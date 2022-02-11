@@ -37,8 +37,6 @@ export class PopupHandler extends InteractionHandler {
     initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
-            // Set interaction status in the library.
-            this.browserStorage.setInteractionInProgress(true);
             this.browserRequestLogger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
             return this.popupUtils.openPopup(requestUrl, params);
