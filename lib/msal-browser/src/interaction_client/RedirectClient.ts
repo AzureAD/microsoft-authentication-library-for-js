@@ -41,6 +41,14 @@ export class RedirectClient extends StandardInteractionClient {
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
+            window.addEventListener("pageshow", (event) => {
+                // Clear temporary cache if the back button is clicked during the redirect flow.
+                if (event.persisted) {
+                    this.logger.verbose("Page was restored from back/forward cache. Clearing temporary cache.");
+                    this.browserStorage.cleanRequestByState(validRequest.state);
+                }
+            });
+
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return await interactionHandler.initiateAuthRequest(navigateUrl, {
                 navigationClient: this.navigationClient,
