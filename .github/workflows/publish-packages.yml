@@ -196,6 +196,7 @@ jobs:
         # Setup node with version 12.x
       - uses: actions/setup-node@v1
 
+      # Save CDN hashes
       - name: Download msal-core Artifacts
         if: needs.publish-msal-core.result == 'success'
         uses: actions/download-artifact@v2
@@ -225,19 +226,67 @@ jobs:
       - name: Remove artifacts working-directory
         run: rm -rf artifacts
 
-      - name: Update package-locks
+      # Update package-lock files
+      - name: Update msal-core package-lock
+        if: needs.publish-msal-core.result == 'success'
+        working-directory: lib/msal-core
+        continue-on-error: true
         run: npm install
+
+      - name: Update msal-common package-lock
+        if: needs.publish-msal-common.result == 'success'
+        working-directory: lib/msal-common
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-browser package-lock
+        if: needs.publish-msal-browser.result == 'success'
+        working-directory: lib/msal-browser
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-node package-lock
+        if: needs.publish-msal-node.result == 'success'
+        working-directory: lib/msal-node
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-angular package-lock
+        if: needs.publish-msal-angular.result == 'success'
+        working-directory: lib/msal-angular
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-react package-lock
+        if: needs.publish-msal-react.result == 'success'
+        working-directory: lib/msal-react
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-node-extensions package-lock
+        if: needs.publish-msal-node-extensions.result == 'success'
+        working-directory: extensions/msal-node-extensions
+        continue-on-error: true
+        run: npm install
+
+      # Create Pull Request from post-release-month-year to dev 
+      - name: Install Release Scripts Dependencies
+        working-directory: ./release-scripts
+        run: npm ci
+
+      - name: Set Timezone
+        run: sudo timedatectl set-timezone America/Los_Angeles
 
       - name: Get release date
         id: release-date
-        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
+        working-directory: ./release-scripts
+        run: echo "::set-output name=date::$(node getReleaseDate.js)"
 
       - name: Get branch
         id: get-branch
-        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js -branch)"
+        working-directory: ./release-scripts
+        run: echo "::set-output name=date::$(node getReleaseDate.js -branch)"
 
-
-      # Create Pull Request from post-release-month-year to dev
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
