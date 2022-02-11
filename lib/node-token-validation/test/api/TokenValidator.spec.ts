@@ -6,7 +6,7 @@ import { ValidationConfigurationError, ValidationConfigurationErrorMessage } fro
 import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
 import { mocked } from 'jest-mock';
 import { TokenType } from '../../src/utils/Constants';
-import { ValidationParameters } from '../../src/config/TokenValidationParameters';
+import { BaseValidationParameters } from '../../src/config/TokenValidationParameters';
 import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
 import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
 import 'regenerator-runtime';
@@ -37,7 +37,7 @@ describe("TokenValidator", () => {
         validAudiences: ["audiences"]
     };
 
-    let defaultValidationParams: ValidationParameters = {
+    let defaultValidationParams: BaseValidationParameters = {
         validIssuers: ["issuer"],
         validAudiences: ["audiences"],
         validAlgorithms: [TEST_CONSTANTS.DEFAULT_ALGORITHM],
@@ -106,7 +106,7 @@ describe("TokenValidator", () => {
     describe("getJWKS", () => {
         
         it("calls createLocalJWKSet with issuerSigningKeys if provided in params", async () => {
-            const testParams: ValidationParameters = {
+            const testParams: BaseValidationParameters = {
                 ...defaultValidationParams,
                 issuerSigningKeys: TEST_CONSTANTS.ISSUER_SIGNING_KEYS,
                 issuerSigningJwksUri: TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC
@@ -124,7 +124,7 @@ describe("TokenValidator", () => {
         });
         
         it("calls createRemoteJWKSet with issuerSigningJwksUri if provided in params, and no issuerSigningKeys are provided", async () => {
-            const testParams: ValidationParameters = {
+            const testParams: BaseValidationParameters = {
                 ...defaultValidationParams,
                 issuerSigningJwksUri: TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD
             };
@@ -161,7 +161,7 @@ describe("TokenValidator", () => {
         });
 
         it("throw error if validIssuers is empty array", async () => {
-            const testValidationParams: ValidationParameters = {
+            const testValidationParams: BaseValidationParameters = {
                 ...defaultValidationParams,
                 validIssuers: []
             };
@@ -178,7 +178,7 @@ describe("TokenValidator", () => {
         });
 
         it("throw error if validIssuers array contains empty string", async () => {
-            const testValidationParams: ValidationParameters = {
+            const testValidationParams: BaseValidationParameters = {
                 ...defaultValidationParams,
                 validIssuers: [""]
             };
@@ -206,7 +206,7 @@ describe("TokenValidator", () => {
         });
 
         it("throw error if validAudiences is empty array", () => {
-            const testValidationParams: ValidationParameters = {
+            const testValidationParams: BaseValidationParameters = {
                 ...defaultValidationParams,
                 validAudiences: []
             };
@@ -223,7 +223,7 @@ describe("TokenValidator", () => {
         });
 
         it("throw error if validAudiences array contains empty string", () => {
-            const testValidationParams: ValidationParameters = {
+            const testValidationParams: BaseValidationParameters = {
                 ...defaultValidationParams,
                 validAudiences: [""]
             };
@@ -263,7 +263,7 @@ describe("TokenValidator", () => {
                 ...defaultPayload,
                 nonce: TEST_CONSTANTS.NONCE
             };
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 nonce: "12345"
             };
@@ -277,7 +277,7 @@ describe("TokenValidator", () => {
         });
         
         it("does not check hash value if c_hash is not in token", async () => {
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 code: TEST_HASH_CONSTANTS.CODE
             };
@@ -306,7 +306,7 @@ describe("TokenValidator", () => {
                 ...defaultPayload,
                 c_hash: TEST_HASH_CONSTANTS.C_HASH
             };
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 code: TEST_HASH_CONSTANTS.CODE
             };
@@ -323,7 +323,7 @@ describe("TokenValidator", () => {
                 ...defaultPayload,
                 c_hash: TEST_HASH_CONSTANTS.C_HASH
             };
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 code: TEST_HASH_CONSTANTS.INVALID_CODE
             };
@@ -341,7 +341,7 @@ describe("TokenValidator", () => {
         });
         
         it("does not check hash value if at_hash is not in token", async () => {
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 accessTokenForAtHash: TEST_HASH_CONSTANTS.ACCESS_TOKEN_FOR_AT_HASH
             };
@@ -370,7 +370,7 @@ describe("TokenValidator", () => {
                 ...defaultPayload,
                 at_hash: TEST_HASH_CONSTANTS.AT_HASH
             };
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 accessTokenForAtHash: TEST_HASH_CONSTANTS.ACCESS_TOKEN_FOR_AT_HASH
             };
@@ -387,7 +387,7 @@ describe("TokenValidator", () => {
                 ...defaultPayload,
                 at_hash: TEST_HASH_CONSTANTS.AT_HASH
             };
-            const testOptions: ValidationParameters = {
+            const testOptions: BaseValidationParameters = {
                 ...defaultValidationParams,
                 accessTokenForAtHash: TEST_HASH_CONSTANTS.INVALID_ACCESS_TOKEN_FOR_AT_HASH
             };
