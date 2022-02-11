@@ -8,6 +8,7 @@ import { JWK } from "jose";
 
 /**
  * Validation parameters object set by the user that contains options for the token to be validated against. 
+ * All claims are optional except for validIssuers and validAudiences, which are required.
  * 
  * - validIssuers: Valid issuers used to check against the token's issuer. 
  * - validAudiences: Valid audiences used to check against the token's audience.
@@ -23,19 +24,9 @@ import { JWK } from "jose";
  * - accessTokenForAtHash: Access token used to check against an id token's at_hash.
  * @public
  */
-export type TokenValidationParameters = {
-    validIssuers: Array<string>,
-    validAudiences: Array<string>,
-    validAlgorithms?: Array<string>,
-    validTypes?: Array<string>,
-    issuerSigningKeys?: Array<JWK>,
-    issuerSigningJwksUri?: string,
-    requireExpirationTime?: Boolean,
-    requireSignedTokens?: Boolean,
-    subject?: string
-    nonce?: string,
-    code?: string,
-    accessTokenForAtHash?: string,
+export type TokenValidationParameters = Partial<BaseValidationParameters> & {
+    validIssuers: Required<Array<string>>,
+    validAudiences: Required<Array<string>>
 };
 
 /**
@@ -55,22 +46,22 @@ export type TokenValidationParameters = {
  * - accessTokenForAtHash: Access token used to check against an id token's at_hash.
  * @public
  */
-export type ValidationParameters = {
-    validAlgorithms: Required<Array<string>>,
+export type BaseValidationParameters = {
+    validAlgorithms: Array<string>,
     validIssuers: Array<string>,
-    validAudiences: Required<Array<string>>,
+    validAudiences: Array<string>,
     validTypes: Array<string>,
     issuerSigningKeys?: Array<JWK>,
     issuerSigningJwksUri?: string,
-    requireExpirationTime: Required<Boolean>,
-    requireSignedTokens: Required<Boolean>,
+    requireExpirationTime: Boolean,
+    requireSignedTokens: Boolean,
     subject?: string
     nonce?: string,
     code?: string,
     accessTokenForAtHash?: string,
 };
 
-export function buildTokenValidationParameters(params: TokenValidationParameters): ValidationParameters {
+export function buildTokenValidationParameters(params: TokenValidationParameters): BaseValidationParameters {
     const DEFAULT_VALIDATION_PARAMS = {
         validAlgorithms: [JwtConstants.RSA_256],
         validTypes: [TokenType.JWT],
@@ -78,7 +69,7 @@ export function buildTokenValidationParameters(params: TokenValidationParameters
         requireSignedTokens: true,
     };
 
-    const overlaidParams: ValidationParameters = {
+    const overlaidParams: BaseValidationParameters = {
         ...DEFAULT_VALIDATION_PARAMS,
         ...params
     };
