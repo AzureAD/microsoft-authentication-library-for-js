@@ -7,7 +7,7 @@ import { INetworkModule, Logger } from "@azure/msal-common";
 import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
 import crypto from "crypto";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
-import { buildTokenValidationParameters, TokenValidationParameters, ValidationParameters } from "../config/TokenValidationParameters";
+import { buildTokenValidationParameters, TokenValidationParameters, BaseValidationParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { name, version } from "../packageMetadata";
@@ -34,7 +34,7 @@ export class TokenValidator {
             throw ValidationConfigurationError.createMissingTokenError();
         }
 
-        const validationParams: ValidationParameters = await buildTokenValidationParameters(options);
+        const validationParams: BaseValidationParameters = await buildTokenValidationParameters(options);
         this.logger.verbose("TokenValidator - ValidationParams built");
             
         const jwks = await this.getJWKS(validationParams);
@@ -60,7 +60,7 @@ export class TokenValidator {
     }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async getJWKS(validationParams: ValidationParameters): Promise<any> {
+    async getJWKS(validationParams: BaseValidationParameters): Promise<any> {
         this.logger.trace("TokenValidator.getJWKS called");
         
         // Prioritize keystore or jwksUri if provided
@@ -104,7 +104,7 @@ export class TokenValidator {
         return options.validAudiences;
     }
  
-    async validateClaims(payload: JWTPayload, validationParams: ValidationParameters): Promise<void> {
+    async validateClaims(payload: JWTPayload, validationParams: BaseValidationParameters): Promise<void> {
         this.logger.trace("TokenValidator.validateClaims called");
 
         // Validate nonce
