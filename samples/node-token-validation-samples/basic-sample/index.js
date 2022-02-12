@@ -30,6 +30,7 @@ const getTokenAuthCode = function (port) {
     }
 
     const config = {
+        clientId: "client-id-here",
         authority: "https://login.microsoftonline.com/common/",
         system: {
             loggerOptions: loggerOptions
@@ -40,16 +41,12 @@ const getTokenAuthCode = function (port) {
         const tokenValidator = new nodeTokenValidation.TokenValidator(config);
 
         // Instead of raw tokens and claims, will write a function to populate this from header or body of request/response
-        const rawToken = "token-here";
+        const token = "token-here";
         const tokenValidationParams = {
-            rawTokenString: rawToken,
-            audience: "audience-here",
-            algorithm: ["algorithm-here"],
-            subject: "subject-here",
-            scopes: ["scopes-here"]
+            validIssuers: ["issuer-here"],
+            validAudiences: ["audience-here"]
         };
-        tokenValidator.validateToken(tokenValidationParams).then((response) => {
-            // Check that token is valid
+        tokenValidator.validateToken(token, tokenValidationParams).then((response) => {
             console.log("Token was validated");
             console.log(response);
             res.sendStatus(200);
