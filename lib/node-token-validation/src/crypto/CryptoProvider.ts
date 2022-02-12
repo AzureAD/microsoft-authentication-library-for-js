@@ -7,9 +7,8 @@ import { ICrypto, PkceCodes } from "@azure/msal-common";
 
 export class CryptoProvider implements ICrypto {
 
-    constructor() {
-
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    constructor() { }
 
     /**
      * Creates a new random GUID - used to populate state and nonce.
