@@ -28,6 +28,7 @@ import {
     AzureRegionConfiguration,
     AuthError,
     AzureCloudOptions,
+    AuthorizationCodePayload,
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -127,7 +128,7 @@ export abstract class ClientApplication {
      * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
      * AuthorizationCodeRequest are the same.
      */
-    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByCode called", request.correlationId);
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -147,7 +148,7 @@ export abstract class ClientApplication {
                 authClientConfig
             );
             this.logger.verbose("Auth code client created", validRequest.correlationId);
-            return authorizationCodeClient.acquireToken(validRequest);
+            return authorizationCodeClient.acquireToken(validRequest, authCodePayLoad);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
