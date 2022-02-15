@@ -12,7 +12,7 @@
     },
     "devDependencies": {
         "@azure/identity": "^1.5.2",
-        "@types/jest": "^26.0.19",
+        "@types/jest": "^27.4.0",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4",
         "jest": "^27.1.1",

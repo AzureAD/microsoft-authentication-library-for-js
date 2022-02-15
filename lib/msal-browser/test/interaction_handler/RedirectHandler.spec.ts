@@ -176,7 +176,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             navigationClient.navigateExternal = (requestUrl: string, options: NavigationOptions): Promise<boolean> => {
                 expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 expect(options.timeout).toEqual(3000);
-                expect(browserStorage.isInteractionInProgress(true)).toBe(true);
                 done();
                 return Promise.resolve(true);
             };
