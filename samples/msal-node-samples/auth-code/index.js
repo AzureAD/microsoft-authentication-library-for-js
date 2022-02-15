@@ -61,7 +61,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             if(req.query.state) authCodeUrlParameters.state = req.query.state;
             // Check for nonce parameter
             /**
-             * MSAL node provides for the use of OIDC nonce feature which is used to protect against token replay.
+             * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
              * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
              * used to populate the nonce value if none is provided.
              * 
