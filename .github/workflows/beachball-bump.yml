@@ -36,6 +36,9 @@ jobs:
       - name: bump package versions
         run: npm run beachball:bump
 
+      - name: Set Timezone
+        run: sudo timedatectl set-timezone America/Los_Angeles
+
       - name: Get release date
         id: release-date
         run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
