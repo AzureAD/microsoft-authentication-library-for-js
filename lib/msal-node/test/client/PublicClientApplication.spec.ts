@@ -5,6 +5,7 @@ import {
     ClientConfiguration, AuthenticationResult,
     AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, ProtocolMode, Logger, LogLevel
 } from '@azure/msal-common';
+import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
 import { AuthorizationCodeRequest } from '../../src/request/AuthorizationCodeRequest';
 import { RefreshTokenRequest } from '../../src/request/RefreshTokenRequest';
@@ -104,6 +105,34 @@ describe('PublicClientApplication', () => {
     });
 
 
+    test("acquireTokenByAuthorizationCode with nonce", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        };
+
+        const cryptoProvider = new CryptoProvider();
+        const authCodePayLoad = {
+            nonce: cryptoProvider.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        }
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
 
 
     test('acquireTokenByRefreshToken', async () => {
