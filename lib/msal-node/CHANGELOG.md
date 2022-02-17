@@ -1,8 +1,36 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 01 Nov 2021 23:53:22 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.6.0
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Minor changes
+
+- feat: add the redis distributed cache layer (kamausamuel11@gmail.com)
+- Add AzureCloudInstance to JS libraries (sameera.gajjarapu@microsoft.com)
+- Support proxy in msal-node(#4447) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v6.1.0
+
+## 1.5.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Bump @azure/msal-common to v6.0.0
+
+## 1.4.0
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Minor changes
+
+- Add support for hybrid spa flow #3478 (janutter@microsoft.com)
+- Bump @azure/msal-common to v5.2.0
 
 ## 1.3.3
 

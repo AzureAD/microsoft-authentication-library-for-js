@@ -69,11 +69,11 @@ export class DeviceCodeClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
 
@@ -106,7 +106,8 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers
+                headers: headers,
+                proxyUrl: this.config.systemOptions.proxyUrl
             });
 
         return {
@@ -188,11 +189,11 @@ export class DeviceCodeClient extends BaseClient {
                 clientId: this.config.authOptions.clientId,
                 authority: request.authority,
                 scopes: request.scopes,
+                claims: request.claims,
                 authenticationScheme: request.authenticationScheme,
                 resourceRequestMethod: request.resourceRequestMethod,
                 resourceRequestUri: request.resourceRequestUri,
                 shrClaims: request.shrClaims,
-                sshJwk: request.sshJwk,
                 sshKid: request.sshKid
             };
             const response = await this.executePostToTokenEndpoint(

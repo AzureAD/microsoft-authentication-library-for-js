@@ -15,7 +15,8 @@ import {
     Logger,
     ValidCacheType,
     ICrypto,
-    AuthorityMetadataEntity
+    AuthorityMetadataEntity,
+    ValidCredentialType
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -428,5 +429,26 @@ export class NodeStorage extends CacheManager {
      */
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
         return Serializer.serializeAllCache(inMemoryCache);
+    }
+
+    /**
+     * Updates a credential's cache key if the current cache key is outdated
+     */
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.getItem(currentCacheKey);
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.setItem(updatedCacheKey, cacheItem);
+                this.logger.verbose(`Updated an outdated ${credential.credentialType} cache key`);
+                return updatedCacheKey;
+            } else {
+                this.logger.error(`Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`);
+            }
+        }
+
+        return currentCacheKey;
     }
 }

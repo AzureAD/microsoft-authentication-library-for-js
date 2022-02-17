@@ -23,13 +23,13 @@ MSAL for JavaScript enables client-side JavaScript web applications, running in 
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.15/js/msal.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/lib/1.4.16/js/msal.min.js"></script>
 ```
 
-[Complete details and best practices](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/cdn.md) for CDN usage are available in our documentation.
+[Complete details and best practices](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/cdn-usage.md) for CDN usage are available in our documentation.
 
 ## What To Expect From This Library
-Msal support on Javascript is a collection of libraries. `msal-core` or just simply `msal`, is the framework agnostic core library. Once our core 1.x+ is stabilized, we are going to bring our `msal-angular` library with the latest 1.x improvements.  We are planning to deprecate support for `msal-angularjs` based on usage trends of the framework and the library indicating increased adoption of Angular 2+ instead of Angular 1x. After our current libraries are up to standards, we will begin balancing new feature requests, with new platforms such as `react` and `node.js`.
+Msal support on JavaScript is a collection of libraries. `msal-core` or just simply `msal`, is the framework agnostic core library. Once our core 1.x+ is stabilized, we are going to bring our `msal-angular` library with the latest 1.x improvements.  We are planning to deprecate support for `msal-angularjs` based on usage trends of the framework and the library indicating increased adoption of Angular 2+ instead of Angular 1x. After our current libraries are up to standards, we will begin balancing new feature requests, with new platforms such as `react` and `node.js`.
 
 Our goal is to communicate extremely well with the community and to take their opinions into account. We would like to get to a monthly minor release schedule, with patches coming as often as needed.  The level of communication, planning, and granularity we want to get to will be a work in progress.
 

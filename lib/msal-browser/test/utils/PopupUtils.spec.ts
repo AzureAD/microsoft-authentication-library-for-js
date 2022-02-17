@@ -225,16 +225,7 @@ describe("PopupUtils Tests", () => {
 
     describe("Static functions", () => {
         it("generatePopupName generates expected name", () => {
-            const popupName = PopupUtils.generatePopupName("client-id", {
-                scopes: [ "scope1", "scope2"],
-                authority: "https://login.microsoftonline.com/common",
-                correlationId: "correlation-id",
-                redirectUri: "/home",
-                authenticationScheme: AuthenticationScheme.BEARER,
-                responseMode: ResponseMode.FRAGMENT,
-                state: "state",
-                nonce: "nonce"
-            });
+            const popupName = PopupUtils.generatePopupName("client-id", [ "scope1", "scope2"], "https://login.microsoftonline.com/common", "correlation-id");
 
             expect(popupName).toEqual("msal.client-id.scope1-scope2.https://login.microsoftonline.com/common.correlation-id");
         });

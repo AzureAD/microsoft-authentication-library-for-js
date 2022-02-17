@@ -8,7 +8,10 @@ import {
     INetworkModule,
     LogLevel,
     ProtocolMode,
-    ICachePlugin, Constants
+    ICachePlugin,
+    Constants,
+    AzureCloudInstance,
+    AzureCloudOptions
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -34,9 +37,10 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    authorityMetadata?: string,
+    authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
@@ -59,6 +63,7 @@ export type CacheOptions = {
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
+    proxyUrl?: string;
 };
 
 /**
@@ -89,7 +94,11 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     cloudDiscoveryMetadata: "",
     authorityMetadata: "",
     clientCapabilities: [],
-    protocolMode: ProtocolMode.AAD
+    protocolMode: ProtocolMode.AAD,
+    azureCloudOptions: {
+        azureCloudInstance: AzureCloudInstance.None,
+        tenant: ""
+    }
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
@@ -105,6 +114,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),
+    proxyUrl: "",
 };
 
 export type NodeConfiguration = {
@@ -128,6 +138,7 @@ export function buildAppConfiguration({
     cache,
     system,
 }: Configuration): NodeConfiguration {
+
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },

@@ -4,7 +4,6 @@ import ApiEvent, {
     EVENT_KEYS
 } from "../../src/telemetry/ApiEvent";
 import { Logger } from "../../src";
-import { expect } from "chai";
 import { TELEMETRY_BLOB_EVENT_NAMES } from "../../src/telemetry/TelemetryConstants";
 import { hashPersonalIdentifier } from "../../src/telemetry/TelemetryUtils";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
@@ -12,12 +11,12 @@ import sinon from "sinon";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 
 describe("ApiEvent", () => {
-    before(function() {
+    beforeAll(function() {
         // Ensure TrustedHostList is set
         sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
     });
 
-    after(function() {
+    afterAll(function() {
         sinon.restore();
     });
     
@@ -27,8 +26,8 @@ describe("ApiEvent", () => {
 
         const event = new ApiEvent(correlationId, logger.isPiiLoggingEnabled()).get();
 
-        expect(event["msal.event_name"]).to.eq("msal.api_event");
-        expect(event["msal.elapsed_time"]).to.eq(-1);
+        expect(event["msal.event_name"]).toBe("msal.api_event");
+        expect(event["msal.elapsed_time"]).toBe(-1);
     });
 
     it("sets simple values on event", () => {
@@ -51,12 +50,12 @@ describe("ApiEvent", () => {
 
         const event = apiEvent.get();
 
-        expect(event[TELEMETRY_BLOB_EVENT_NAMES.ApiTelemIdConstStrKey]).to.eq(API_EVENT_IDENTIFIER.AcquireTokenPopup);
-        expect(event[TELEMETRY_BLOB_EVENT_NAMES.ApiIdConstStrKey]).to.eq(API_CODE.AcquireTokenPopup);
-        expect(event[EVENT_KEYS.API_ERROR_CODE]).to.eq(fakeErrorCode);
-        expect(event[EVENT_KEYS.WAS_SUCESSFUL]).to.eq(fakeWasSuccessful);
-        expect(event[EVENT_KEYS.AUTHORITY_TYPE]).to.eq(fakeAuthorityType.toLowerCase());
-        expect(event[EVENT_KEYS.PROMPT]).to.eq(fakePromptType.toLowerCase());
+        expect(event[TELEMETRY_BLOB_EVENT_NAMES.ApiTelemIdConstStrKey]).toBe(API_EVENT_IDENTIFIER.AcquireTokenPopup);
+        expect(event[TELEMETRY_BLOB_EVENT_NAMES.ApiIdConstStrKey]).toBe(API_CODE.AcquireTokenPopup);
+        expect(event[EVENT_KEYS.API_ERROR_CODE]).toBe(fakeErrorCode);
+        expect(event[EVENT_KEYS.WAS_SUCESSFUL]).toBe(fakeWasSuccessful);
+        expect(event[EVENT_KEYS.AUTHORITY_TYPE]).toBe(fakeAuthorityType.toLowerCase());
+        expect(event[EVENT_KEYS.PROMPT]).toBe(fakePromptType.toLowerCase());
     });
 
     it("sets values on event that are scrubbed or altered", () => {
@@ -72,7 +71,7 @@ describe("ApiEvent", () => {
 
         const event = apiEvent.get();
 
-        expect(event[EVENT_KEYS.AUTHORITY]).to.eq(expectedFakeAuthority);
+        expect(event[EVENT_KEYS.AUTHORITY]).toBe(expectedFakeAuthority);
     });
 
     it("doesn't set private alues on event if pii is not enabled", () => {
@@ -93,9 +92,9 @@ describe("ApiEvent", () => {
 
         const event = apiEvent.get();
 
-        expect(event[EVENT_KEYS.TENANT_ID]).to.eq(null);
-        expect(event[EVENT_KEYS.USER_ID]).to.eq(null);
-        expect(event[EVENT_KEYS.LOGIN_HINT]).to.eq(null);
+        expect(event[EVENT_KEYS.TENANT_ID]).toBe(null);
+        expect(event[EVENT_KEYS.USER_ID]).toBe(null);
+        expect(event[EVENT_KEYS.LOGIN_HINT]).toBe(null);
     });
 
     it("sets and hashes private values on event if pii is enabled", () => {
@@ -119,9 +118,9 @@ describe("ApiEvent", () => {
 
         const event = apiEvent.get();
 
-        expect(event[EVENT_KEYS.TENANT_ID]).to.eq(fakeExpectedTenantId);
-        expect(event[EVENT_KEYS.USER_ID]).to.eq(fakeExpectedAccountId);
-        expect(event[EVENT_KEYS.LOGIN_HINT]).to.eq(fakeExpectedHint);
+        expect(event[EVENT_KEYS.TENANT_ID]).toBe(fakeExpectedTenantId);
+        expect(event[EVENT_KEYS.USER_ID]).toBe(fakeExpectedAccountId);
+        expect(event[EVENT_KEYS.LOGIN_HINT]).toBe(fakeExpectedHint);
     });
 
 });
