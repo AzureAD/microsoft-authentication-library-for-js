@@ -7,15 +7,13 @@ import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES } from "../utils/StringConstants";
 import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError } from "@azure/msal-common";
-import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
-import { PopupRequest } from "../../src/request/PopupRequest";
 
 describe("PopupClient", () => {
     let popupClient: PopupClient;
@@ -50,12 +48,6 @@ describe("PopupClient", () => {
             window.localStorage.clear();
             window.sessionStorage.clear();
             sinon.restore();
-        });
-
-        it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
-
-            await expect(popupClient.acquireToken({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
@@ -204,7 +196,7 @@ describe("PopupClient", () => {
                 return window;
             });
             sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
-            sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+            sinon.stub(PopupHandler.prototype, "handleCodeResponseFromHash").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
@@ -261,12 +253,6 @@ describe("PopupClient", () => {
             window.localStorage.clear();
             window.sessionStorage.clear();
             sinon.restore();
-        });
-
-        it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
-
-            await expect(popupClient.logout()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
         it("opens popup window before network request by default", async () => {
@@ -391,6 +377,125 @@ describe("PopupClient", () => {
             });
 
             popupClient.logout().catch(() => {});
+        });
+
+        it("includes logoutHint if it is set on request", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            const logoutHint = "test@user.com";
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            popupClient.logout({
+                logoutHint
+            }).catch(() => {});
+        });
+
+        it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            
+            const logoutHint = "test@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                "login_hint": logoutHint
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            popupClient.logout({
+                account: testAccountInfo
+            }).catch(() => {});
+        });
+
+        it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            const logoutHint = "test@user.com";
+            const loginHint = "anothertest@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                "login_hint": loginHint
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            popupClient.logout({
+                account: testAccountInfo,
+                logoutHint
+            }).catch(() => {});
         });
 
         it("redirects main window when logout is complete", (done) => {

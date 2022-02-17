@@ -23,6 +23,9 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     TEST_END_SESSION_ENDPOINT: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+    TEST_AZURE_CHINA_INSTANCE: "https://login.chinacloudapi.cn/",
+    TEST_AZURE_GERMANY_INSTANCE: "https://login.microsoftonline.de/",
+    TEST_AZURE_USGOV_INSTANCE: "https://login.microsoftonline.us/"
 };
 
 // Test MSAL config params
@@ -32,6 +35,9 @@ export const TEST_CONFIG = {
     MSAL_CLIENT_SECRET: "ThisIsASecret",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common/",
+    chinaAuthority: TEST_URIS.TEST_AZURE_CHINA_INSTANCE + "common/",
+    germanyAuthority: TEST_URIS.TEST_AZURE_GERMANY_INSTANCE + "common/",
+    usGovAuthority: TEST_URIS.TEST_AZURE_USGOV_INSTANCE + "common/",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common/",
     ADFS_AUTHORITY: "https://authority.com/adfs",
     applicationName: "msal.js-tests",
@@ -47,6 +53,7 @@ export const TEST_CONFIG = {
     OID: "test-oid",
     SUB: "test-sub",
     RESPONSE_MODE: "fragment",
+
 };
 
 // Test Tokens
@@ -144,6 +151,11 @@ export const TEST_HASHES = {
     TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
     TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
 };
+
+// Test Crypto Values
+export const TEST_CRYPTO_VALUES = {
+    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
+}
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {

@@ -13,6 +13,7 @@ import { CommonEndSessionRequest } from "@azure/msal-common";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - idTokenHint            - ID Token used by B2C to validate logout if required by the policy
  * - onRedirectNavigate     - Callback that will be passed the url that MSAL will navigate to. Returning false in the callback will stop navigation.
+ * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
  */
 export type EndSessionRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
