@@ -119,7 +119,8 @@ export enum ApiId {
 export enum InteractionType {
     Redirect = "redirect",
     Popup = "popup",
-    Silent = "silent"
+    Silent = "silent",
+    None = "none"
 }
 
 /**

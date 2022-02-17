@@ -11,6 +11,7 @@ import { RequestUtils } from "../utils/RequestUtils";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { StringUtils } from "../utils/StringUtils";
 import { IdToken } from "../IdToken";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * @hidden
@@ -331,9 +332,13 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param isInProgress 
      */
     setInteractionInProgress(newInProgressValue: boolean): void {
-        if (newInProgressValue && !this.isInteractionInProgress(false)) {
-            // Ensure we don't overwrite interaction in progress for a different clientId
-            this.setTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false), this.clientId);
+        if (newInProgressValue) {
+            if (this.isInteractionInProgress(false)) {
+                throw ClientAuthError.createAcquireTokenInProgressError();
+            } else {
+                // Ensure we don't overwrite interaction in progress for a different clientId
+                this.setTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false), this.clientId);
+            }
         } else if (!newInProgressValue && this.isInteractionInProgress(true)) {
             // Only remove if the current in progress interaction is for this clientId
             this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));

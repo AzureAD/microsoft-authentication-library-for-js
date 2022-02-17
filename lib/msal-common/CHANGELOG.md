@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 6.1.0
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Minor changes
+
+- Support proxy in msal-node(#4447) (sameera.gajjarapu@microsoft.com)
+- Add support for logout_hint #4450 (hemoral@microsoft.com)
+
+### Patches
+
+- Add AzureCloudInstance to JS libraries (sameera.gajjarapu@microsoft.com)
 
 ## 6.0.0
 

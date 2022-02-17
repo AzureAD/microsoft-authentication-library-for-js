@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -47,7 +47,7 @@
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
-    "@microsoft/api-extractor": "^7.13.0",
+    "@microsoft/api-extractor": "^7.19.4",
     "@types/jest": "^25.2.3",
     "@types/jsonwebtoken": "^8.5.5",
     "@types/node": "^13.13.4",
@@ -58,8 +58,9 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^6.0.0",
+    "@azure/msal-common": "^6.1.0",
     "axios": "^0.21.4",
+    "https-proxy-agent": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"
   },

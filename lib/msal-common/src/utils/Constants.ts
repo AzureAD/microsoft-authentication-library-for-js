@@ -11,6 +11,7 @@ export const Constants = {
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
+    DEFAULT_COMMON_TENANT: "common",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
@@ -138,7 +139,8 @@ export enum AADServerParamKeys {
     FOCI = "foci",
     CCS_HEADER = "X-AnchorMailbox",
     RETURN_SPA_CODE = "return_spa_code",
-    NATIVE_BRIDGE = "nativebridge"
+    NATIVE_BRIDGE = "nativebridge",
+    LOGOUT_HINT = "logout_hint"
 }
 
 /**

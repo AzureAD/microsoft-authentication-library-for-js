@@ -1,4 +1,4 @@
-import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthorityMetadataEntity } from '@azure/msal-common';
+import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthorityMetadataEntity, IdTokenEntity, RefreshTokenEntity } from '@azure/msal-common';
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { NodeStorage } from '../../src/cache/NodeStorage';
@@ -27,7 +27,7 @@ describe("Storage tests for msal-node: ", () => {
 
         const loggerOptions = {
             loggerCallback: () => {
-               // allow user to not set a loggerCallback
+                // allow user to not set a loggerCallback
             },
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,
@@ -49,6 +49,16 @@ describe("Storage tests for msal-node: ", () => {
         const inMemoryCache = nodeStorage.getInMemoryCache();
         expect(Object.keys(inMemoryCache.accessTokens).length).toBe(0);
     });
+
+    it('emits a change event when changeEmitter is registered', () => {
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const changeEmitter = jest.fn();
+
+        nodeStorage.registerChangeEmitter(changeEmitter);
+        nodeStorage.setInMemoryCache(inMemoryCache);
+
+        expect(changeEmitter).toHaveBeenCalledTimes(2);
+    })
 
     it('setInMemoryCache() and getInMemoryCache() tests - tests for an account', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
@@ -98,8 +108,12 @@ describe("Storage tests for msal-node: ", () => {
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
         const fetchedAccount = nodeStorage.getAccount(accountKey);
 
+        const invalidAccountKey = 'uid.utid-login.microsoftonline.com-invalid';
+        const invalidAccount = nodeStorage.getAccount(invalidAccountKey);
+
         expect(fetchedAccount).toBeInstanceOf(AccountEntity);
         expect(fetchedAccount).toEqual(inMemoryCache.accounts[accountKey]);
+        expect(invalidAccount).toBeNull();
 
         const mockAccountData = {
             username: 'Jane Doe',
@@ -147,10 +161,12 @@ describe("Storage tests for msal-node: ", () => {
         expect(readCache[accessTokenKey]).toEqual(accessToken);
     });
 
+
     it('setAccessTokenCredential() and getAccessTokenCredential() tests', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
         const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite--';
+        const invalidAccessTokenKey = 'uid1.utid1-login.windows.net-accesstoken_invalid-mock_client_id-samplerealm-scoperead scopewrite';
         const newMockATData = {
             homeAccountId: 'uid1.utid1',
             environment: 'login.windows.net',
@@ -169,8 +185,64 @@ describe("Storage tests for msal-node: ", () => {
 
         nodeStorage.setAccessTokenCredential(accessToken);
         const fetchedAccessToken = nodeStorage.getAccessTokenCredential(accessTokenKey);
+        const invalidAccessToken = nodeStorage.getAccessTokenCredential(invalidAccessTokenKey);
+
         expect(fetchedAccessToken).toEqual(accessToken);
+        expect(invalidAccessToken).toBeNull();
     });
+
+    it('setIdTokenCredential() and getIdTokenCredential() tests', () => {
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+
+        const idTokenKey = 'uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm---';
+        const invalidIdTokenKey = 'uid1.utid1-login.windows.net-idtoken_invalid-mock_client_id-samplerealm-';
+        const newMockEntityData = {
+            homeAccountId: 'uid1.utid1',
+            environment: 'login.windows.net',
+            credentialType: 'IdToken',
+            clientId: 'mock_client_id',
+            secret: 'an access token',
+            realm: 'samplerealm',
+        };
+
+        // <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
+        const idToken = CacheManager.toObject(new IdTokenEntity(), newMockEntityData);
+
+        nodeStorage.setIdTokenCredential(idToken);
+
+        const fetchedIdToken = nodeStorage.getIdTokenCredential(idTokenKey);
+        const invalidIdToken = nodeStorage.getIdTokenCredential(invalidIdTokenKey);
+
+        expect(fetchedIdToken).toEqual(idToken);
+        expect(invalidIdToken).toBeNull();
+    });
+
+    it('setRefreshTokenCredential() and getRefreshTokenCredential() tests', () => {
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+
+        const refreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm---';
+        const invalidRefreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken_invalid-mock_client_id-samplerealm-';
+        const newMockEntityData = {
+            homeAccountId: 'uid1.utid1',
+            environment: 'login.windows.net',
+            credentialType: 'RefreshToken',
+            clientId: 'mock_client_id',
+            secret: 'a refresh token',
+            realm: 'samplerealm',
+        };
+
+        // <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
+        const refreshToken = CacheManager.toObject(new RefreshTokenEntity(), newMockEntityData);
+
+        nodeStorage.setRefreshTokenCredential(refreshToken);
+
+        const fetchedRefreshToken = nodeStorage.getRefreshTokenCredential(refreshTokenKey);
+        const invalidRefreshToken = nodeStorage.getRefreshTokenCredential(invalidRefreshTokenKey);
+
+        expect(fetchedRefreshToken).toEqual(refreshToken);
+        expect(invalidRefreshToken).toBeNull();
+    });
+
 
     it('containsKey() tests - tests for an accountKey', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
@@ -200,8 +272,25 @@ describe("Storage tests for msal-node: ", () => {
         expect(newInMemoryCache.accounts[accountKey]).toBeUndefined;
     });
 
+    it('should remove all keys from the cache when clear() is called', () => {
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        nodeStorage.setInMemoryCache(inMemoryCache);
+
+        const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
+
+        nodeStorage.clear();
+
+        expect(nodeStorage.getAccount(accountKey)).toBeNull();
+
+        const newInMemoryCache = nodeStorage.getInMemoryCache();
+        Object.values(newInMemoryCache).forEach(cacheSection => {
+            expect(cacheSection).toEqual({});
+        })
+
+    })
+
     describe("Getters and Setters", () => {
-        describe("AuthorityMetadata", () =>{
+        describe("AuthorityMetadata", () => {
             const host = "login.microsoftonline.com";
             const key = `authority-metadata-${clientId}-${host}`;
             const testObj: AuthorityMetadataEntity = new AuthorityMetadataEntity();

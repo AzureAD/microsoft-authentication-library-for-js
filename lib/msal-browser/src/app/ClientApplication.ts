@@ -64,7 +64,7 @@ export abstract class ClientApplication {
     protected eventHandler: EventHandler;
 
     // Redirect Response Object
-    private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+    protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
     // WAM Extension Provider
     protected wamExtensionProvider: WamMessageHandler | undefined;
@@ -220,11 +220,8 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        if (this.browserStorage.isInteractionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
         this.logger.verbose("acquireTokenRedirect called");
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -275,8 +272,8 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -624,6 +621,24 @@ export abstract class ClientApplication {
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
+
+        if (interactionType === InteractionType.Redirect || interactionType === InteractionType.Popup) {
+            this.preflightInteractiveRequest();
+        }
+    }
+
+    /**
+     * Helper to validate app environment before making a request.
+     * @param request
+     * @param interactionType
+     */
+    protected preflightInteractiveRequest(): void {
+        this.logger.verbose("preflightInteractiveRequest called, validating app environment");
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
+        // Set interaction in progress temporary cache or throw if alread set.
+        this.browserStorage.setInteractionInProgress(true);
     }
 
     /**
