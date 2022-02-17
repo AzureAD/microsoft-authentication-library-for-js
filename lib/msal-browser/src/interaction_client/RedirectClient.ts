@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, ServerAuthorizationCodeResponse } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, ServerAuthorizationCodeResponse, ThrottlingUtils, PromptValue } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -13,6 +13,7 @@ import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
+import { WamInteractionClient } from "./WamInteractionClient";
 
 export class RedirectClient extends StandardInteractionClient {
     /**
@@ -38,7 +39,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBridge: this.config.system.platformSSO
+                nativeBridge: this.isNativeAvailable()
             });
 
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
@@ -193,6 +194,20 @@ export class RedirectClient extends StandardInteractionClient {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
         this.logger.verbose("handleHash called, retrieved cached request");
 
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+
+        if (serverParams.accountId) {
+            this.logger.verbose("Account id found in hash, calling WAM for token");
+            if (!this.wamMessageHandler) {
+                throw new Error("Call and await initialize function before invoking this API");
+            }
+            const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.wamMessageHandler, cachedRequest.correlationId);
+            return wamInteractionClient.acquireToken({
+                ...cachedRequest,
+                prompt: PromptValue.NONE
+            }, serverParams.accountId);
+        }
+
         // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority(state);
         if (!currentAuthority) {
@@ -201,6 +216,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
+        ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, cachedRequest);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
         return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
     }

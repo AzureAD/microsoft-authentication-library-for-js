@@ -155,10 +155,10 @@ export class WamMessageHandler {
                 this.logger.trace("WamMessageHandler - Received response from browser extension");
                 this.logger.tracePii(`WamMessageHandler - Received response from browser extension: ${JSON.stringify(response)}`);
                 if (response.status !== "Success") {
-                    this.resolvers[request.responseId].reject(new WamAuthError(response.code, response.description, response.ext));
+                    this.resolvers[request.responseId].reject(WamAuthError.createError(response.code, response.description, response.ext));
                 } else if (response.result) {
                     if (response.result["code"] && response.result["description"]) {
-                        this.resolvers[request.responseId].reject(new WamAuthError(response.result["code"], response.result["description"], response.result["ext"]));
+                        this.resolvers[request.responseId].reject(WamAuthError.createError(response.result["code"], response.result["description"], response.result["ext"]));
                     } else {
                         this.resolvers[request.responseId].resolve(response.result);
                     }

@@ -135,6 +135,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         let result: Promise<AuthenticationResult>;
         if (this.isNativeAvailable(request.authenticationScheme) && account.nativeAccountId) {
+            this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
             const silentRequest = {
                 ...request,
                 account,
@@ -143,15 +144,17 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof WamAuthError && e.isFatal()) {
+                    this.logger.verbose("acquireTokenSilent - native platform unavailable, falling back to web flow");
                     this.wamExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
 
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
-                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
+                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.wamExtensionProvider, request.correlationId);
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
             });     
         } else {
+            this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
             result = silentCacheClient.acquireToken(silentRequest).catch(async () => {

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, PromptValue, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -13,6 +13,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
+import { WamInteractionClient } from "./WamInteractionClient";
 
 export class PopupClient extends StandardInteractionClient {
     /**
@@ -97,7 +98,7 @@ export class PopupClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBridge: this.config.system.platformSSO
+                nativeBridge: this.isNativeAvailable()
             });
 
             // Create popup interaction handler.
@@ -117,9 +118,20 @@ export class PopupClient extends StandardInteractionClient {
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
             const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Popup, validRequest.correlationId);
-
             // Remove throttle if it exists
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);
+
+            if (serverParams.accountId) {
+                this.logger.verbose("Account id found in hash, calling WAM for token");
+                if (!this.wamMessageHandler) {
+                    throw new Error("Call and await initialize function before invoking this API");
+                }
+                const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.wamMessageHandler, validRequest.correlationId);
+                return wamInteractionClient.acquireToken({
+                    ...validRequest,
+                    prompt: PromptValue.NONE
+                }, serverParams.accountId);
+            }
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);

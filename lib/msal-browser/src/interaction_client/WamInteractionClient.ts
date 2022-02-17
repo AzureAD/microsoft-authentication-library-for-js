@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, AuthorityFactory } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -35,9 +35,9 @@ export class WamInteractionClient extends BaseInteractionClient {
      * Acquire token from WAM via browser extension
      * @param request 
      */
-    async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest, accountId?: string): Promise<AuthenticationResult> {
         this.logger.trace("WamInteractionClient - acquireToken called.");
-        const wamRequest = this.initializeWamRequest(request);
+        const wamRequest = this.initializeWamRequest(request, accountId);
 
         const messageBody: WamExtensionRequestBody = {
             method: WamExtensionMethod.GetToken,
@@ -72,8 +72,6 @@ export class WamInteractionClient extends BaseInteractionClient {
                 throw e;
             }
         }
-
-        this.browserStorage.setInteractionInProgress(true);
         this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.correlationId, true);
         this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(wamRequest), true);
 
@@ -90,6 +88,7 @@ export class WamInteractionClient extends BaseInteractionClient {
      * If the previous page called WAM for a token using redirect APIs, send the same request again and return the response
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+        this.logger.trace("WamInteractionClient - handleRedirectPromise called.");
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
@@ -97,8 +96,11 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         const cachedRequest = this.browserStorage.getCachedNativeRequest();
         if (!cachedRequest) {
+            this.logger.verbose("WamInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
             return null;
         }
+        
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
         const request = {
             ...cachedRequest,
@@ -113,6 +115,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
 
         try {
+            this.logger.verbose("WamInteractionClient - handleRedirectPromise sending message to native broker.");
             const response: object = await this.wamMessageHandler.sendMessage(messageBody);
             this.validateWamResponse(response);
             const result = this.handleWamResponse(response as WamResponse, request, reqTimestamp);
@@ -139,14 +142,18 @@ export class WamInteractionClient extends BaseInteractionClient {
      * @param request 
      * @param reqTimestamp 
      */
-    protected handleWamResponse(response: WamResponse, request: WamTokenRequest, reqTimestamp: number): AuthenticationResult {
+    protected async handleWamResponse(response: WamResponse, request: WamTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("WamInteractionClient - handleWamResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
 
+        // Get the preferred_cache domain for the given authority
+        const authority = await this.getDiscoveredAuthority(request.authority);
+        const authorityPreferredCache = authority.getPreferredCache();
+
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
-        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, undefined, request.authority, response.account.id);
+        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, undefined, authorityPreferredCache, response.account.id);
         this.browserStorage.setAccount(accountEntity);
 
         // If scopes not returned in server response, use request scopes
@@ -156,7 +163,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         const tid = response.account.properties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
         const result: AuthenticationResult = {
-            authority: request.authority,
+            authority: authorityPreferredCache,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes.asArray(),
@@ -170,6 +177,11 @@ export class WamInteractionClient extends BaseInteractionClient {
             correlationId: this.correlationId,
             state: response.state
         };
+
+        // Remove any existing cached tokens for this account
+        this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
+            this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
+        });
 
         return result;
     }
@@ -197,7 +209,7 @@ export class WamInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into WamRequest object
      * @param request 
      */
-    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest): WamTokenRequest {
+    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): WamTokenRequest {
         this.logger.trace("WamInteractionClient - initializeWamRequest called");
 
         const authority = request.authority || this.config.auth.authority;
@@ -208,6 +220,8 @@ export class WamInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
+        const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
+
         const validatedRequest: WamTokenRequest = {
             ...request,
             clientId: this.config.auth.clientId,
@@ -215,7 +229,7 @@ export class WamInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            instanceAware: false,
+            instanceAware: instanceAware,
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
@@ -227,22 +241,23 @@ export class WamInteractionClient extends BaseInteractionClient {
             validatedRequest.prompt = PromptValue.NONE;
         }
 
-        let account = request.account || this.browserStorage.getActiveAccount();
-        if (!account && (request.loginHint || request.sid)) {
-            account = this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid);
-        }
-
-        if (account) {
-            validatedRequest.accountId = account.nativeAccountId;
-            if (!validatedRequest.accountId) {
-                validatedRequest.sid = account.idTokenClaims && account.idTokenClaims["sid"];
-                validatedRequest.loginHint = account.username;
-            }
+        if (accountId) {
+            validatedRequest.accountId = accountId;
         } else {
-            // Check for ADAL/MSAL v1 SSO
-            const loginHint = this.browserStorage.getLegacyLoginHint();
-            if (loginHint) {
-                validatedRequest.loginHint = loginHint;
+            const account = request.account || this.browserStorage.getAccountInfoByHints(validatedRequest.loginHint, validatedRequest.sid) || this.browserStorage.getActiveAccount();
+    
+            if (account) {
+                validatedRequest.accountId = account.nativeAccountId;
+                if (!validatedRequest.accountId) {
+                    validatedRequest.sid = account.idTokenClaims && account.idTokenClaims["sid"];
+                    validatedRequest.loginHint = account.idTokenClaims && (account.idTokenClaims["login_hint"] || account.idTokenClaims["preferred_username"]);
+                }
+            } else {
+                // Check for ADAL/MSAL v1 SSO
+                const loginHint = this.browserStorage.getLegacyLoginHint();
+                if (loginHint) {
+                    validatedRequest.loginHint = loginHint;
+                }
             }
         }
 

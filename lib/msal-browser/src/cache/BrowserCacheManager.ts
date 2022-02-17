@@ -926,17 +926,18 @@ export class BrowserCacheManager extends CacheManager {
      * Gets cached native request for redirect flows
      */
     getCachedNativeRequest(): WamTokenRequest | null {
+        this.logger.trace("BrowserCacheManager.getCachedNativeRequest called");
         const cachedRequest = this.getTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, true);
         if (!cachedRequest) {
+            this.logger.trace("BrowserCacheManager.getCachedNativeRequest: No cached native request found");
             return null;
         }
 
         const parsedRequest = this.validateAndParseJson(cachedRequest) as WamTokenRequest;
         if (!parsedRequest) {
+            this.logger.error("BrowserCacheManager.getCachedNativeRequest: Unable to parse native request");
             return null;
         }
-
-        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
         return parsedRequest;
     }

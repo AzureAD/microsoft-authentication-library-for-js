@@ -15,6 +15,7 @@ import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
+import { WamInteractionClient } from "./WamInteractionClient";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
@@ -50,20 +51,11 @@ export class SilentIframeClient extends StandardInteractionClient {
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
         try {
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
-            // Create authorize request url
-            const navigateUrl = await authClient.getAuthCodeUrl({
-                ...silentRequest,
-                nativeBridge: this.config.system.platformSSO
-            });
-
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger);
+            return await this.silentTokenHelper(authClient, silentRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
@@ -88,9 +80,16 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    protected async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient, browserRequestLogger: Logger): Promise<AuthenticationResult> {
+    protected async silentTokenHelper(authClient: AuthorizationCodeClient, silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+        // Create auth code request and generate PKCE params
+        const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
+        // Create authorize request url
+        const navigateUrl = await authClient.getAuthCodeUrl({
+            ...silentRequest,
+            nativeBridge: this.isNativeAvailable()
+        });
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, browserRequestLogger, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -98,6 +97,18 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Silent, authCodeRequest.correlationId);
+
+        if (serverParams.accountId) {
+            this.logger.verbose("Account id found in hash, calling WAM for token");
+            if (!this.wamMessageHandler) {
+                throw new Error("Call and await initialize function before invoking this API");
+            }
+            const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.wamMessageHandler, this.correlationId);
+            return wamInteractionClient.acquireToken({
+                ...silentRequest,
+                prompt: PromptValue.NONE
+            }, serverParams.accountId);
+        }
 
         // Handle response from hash string
         return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);

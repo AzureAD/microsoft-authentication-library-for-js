@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -143,5 +143,52 @@ export abstract class BaseInteractionClient {
         };
 
         return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
+    }
+
+    /**
+     * Returns boolean indicating whether or not the request should attempt to use native broker
+     * @param account 
+     * @param authenticationScheme 
+     */
+    protected isNativeAvailable(authenticationScheme?: AuthenticationScheme): boolean {
+        if (!this.config.system.platformSSO) {
+            // Developer disabled WAM
+            return false;
+        }
+
+        if (!this.wamMessageHandler) {
+            // Extension is not available
+            return false;
+        }
+
+        if (AuthenticationScheme && authenticationScheme !== AuthenticationScheme.BEARER) {
+            // Only Bearer is supported right now. Remove when AT POP is supported by WAM
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Used to get a discovered version of the default authority.
+     * @param requestAuthority
+     * @param requestCorrelationId
+     */
+    protected async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        this.logger.verbose("getDiscoveredAuthority called");
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: this.config.auth.protocolMode,
+            knownAuthorities: this.config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+            authorityMetadata: this.config.auth.authorityMetadata
+        };
+
+        if (requestAuthority) {
+            this.logger.verbose("Creating discovered authority with request authority");
+            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        }
+
+        this.logger.verbose("Creating discovered authority with configured authority");
+        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 }

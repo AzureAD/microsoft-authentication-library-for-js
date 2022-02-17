@@ -153,9 +153,17 @@ export const BrowserAuthErrorMessage = {
         code: "auth_code_required",
         desc: "An authorization code must be provided (as the `code` property on the request) to this flow."
     },
+    authCodeOrNativeAccountRequired: {
+        code: "auth_code_or_nativeAccountId_required",
+        desc: "An authorization code or nativeAccountId must be provided to this flow."
+    },
     databaseUnavailable: {
         code: "database_unavailable",
         desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
+    },
+    unableToAcquireTokenFromNativePlatform: {
+        code: "unable_to_acquire_token_from_native_platform",
+        desc: "Unable to acquire token from native platform. For a list of possible reasons visit aka.ms/msaljs/browser-errors."
     },
     wamHandshakeTimeout: {
         code: "wam_handshake_timeout",
@@ -459,10 +467,24 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Create an error when an authorization code or native account ID is required but not provided
+     */
+    static createAuthCodeOrNativeAccountIdRequiredError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.authCodeOrNativeAccountRequired.code, BrowserAuthErrorMessage.authCodeOrNativeAccountRequired.desc);
+    }
+
+    /**
      * Create an error when IndexedDB is unavailable
      */
     static createDatabaseUnavailableError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.databaseUnavailable.code, BrowserAuthErrorMessage.databaseUnavailable.desc);
+    }
+
+    /**
+     * Create an error when native token acquisition is not possible
+     */
+    static createUnableToAcquireTokenFromNativePlatformError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToAcquireTokenFromNativePlatform.code, BrowserAuthErrorMessage.unableToAcquireTokenFromNativePlatform.desc);
     }
 
     /**
