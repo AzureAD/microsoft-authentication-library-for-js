@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -82,7 +82,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         this.browserRequestLogger.verbose("RedirectHandler.handleCodeResponse called");
 
         // Check that location hash isn't empty.

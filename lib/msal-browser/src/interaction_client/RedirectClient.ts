@@ -218,7 +218,7 @@ export class RedirectClient extends StandardInteractionClient {
         this.logger.verbose("Auth code client created");
         ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, cachedRequest);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
-        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
+        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
     }
 
     /**

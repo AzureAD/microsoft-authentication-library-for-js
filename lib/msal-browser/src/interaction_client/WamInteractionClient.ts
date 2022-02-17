@@ -3,12 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, AuthorityFactory } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
-import { EndSessionRequest } from "../request/EndSessionRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -131,7 +130,7 @@ export class WamInteractionClient extends BaseInteractionClient {
      * Logout from WAM via browser extension
      * @param request 
      */
-    logout(request?: EndSessionRequest): Promise<void> {
+    logout(): Promise<void> {
         this.logger.trace("WamInteractionClient - logout called.");
         return Promise.reject("Logout not implemented yet");
     }
