@@ -5,7 +5,6 @@
 
 import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -15,13 +14,14 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 
-export class RedirectClient extends StandardInteractionClient {   
+export class RedirectClient extends StandardInteractionClient {
     /**
      * Redirects the page to the /authorize endpoint of the IDP
-     * @param request 
+     * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
         try {
@@ -29,7 +29,7 @@ export class RedirectClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
             // Create redirect interaction handler.
@@ -83,7 +83,6 @@ export class RedirectClient extends StandardInteractionClient {
             let state: string;
             try {
                 state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
-                BrowserUtils.clearHash(window);
                 this.logger.verbose("State extracted from hash");
             } catch (e) {
                 this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
@@ -123,9 +122,9 @@ export class RedirectClient extends StandardInteractionClient {
                 };
 
                 /**
-                 * Default behavior is to redirect to the start page and not process the hash now. 
+                 * Default behavior is to redirect to the start page and not process the hash now.
                  * The start page is expected to also call handleRedirectPromise which will process the hash in one of the checks above.
-                 */  
+                 */
                 let processHashOnRedirect: boolean = true;
                 if (!loginRequestUrl || loginRequestUrl === "null") {
                     // Redirect to home page if login request url is null (real null or the string null)
@@ -162,17 +161,19 @@ export class RedirectClient extends StandardInteractionClient {
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
      * @param hash
      */
-    private getRedirectResponseHash(hash: string): string | null {
+    protected getRedirectResponseHash(hash: string): string | null {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         if (isResponseHash) {
+            BrowserUtils.clearHash(window);
             this.logger.verbose("Hash contains known properties, returning response hash");
             return hash;
         }
+
+        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         this.logger.verbose("Hash does not contain known properties, returning cached hash");
         return cachedHash;
@@ -183,7 +184,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param hash
      * @param state
      */
-    private async handleHash(hash: string, state: string, serverTelemetryManager: ServerTelemetryManager): Promise<AuthenticationResult> {
+    protected async handleHash(hash: string, state: string, serverTelemetryManager: ServerTelemetryManager): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
         this.logger.verbose("handleHash called, retrieved cached request");
 
@@ -196,7 +197,7 @@ export class RedirectClient extends StandardInteractionClient {
         const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
-        return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
+        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
     }
 
     /**
@@ -211,10 +212,10 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-                        
+
             // Clear cache on logout
             await this.clearCacheOnLogout(validLogoutRequest.account);
-            
+
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
@@ -225,7 +226,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            
+
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {

@@ -21,7 +21,6 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { EventHandler } from "../../src/event/EventHandler";
 import { EventType } from "../../src/event/EventType";
-import { CacheOptions } from "../../src";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -766,6 +765,24 @@ describe("RedirectClient", () => {
             });
         });
 
+        it("Does not clear custom hash if response hash is retrieved from temporary cache", () => {
+            browserStorage.setInteractionInProgress(true);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, window.location.href);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+
+            window.location.hash = "testHash";
+            const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
+            
+            sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+            });
+
+            redirectClient.handleRedirectPromise().then(() => {
+                expect(clearHashSpy.notCalled).toBe(true);
+                expect(window.location.hash).toEqual("#testHash");
+            });
+        });
+
         it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
             browserStorage.setInteractionInProgress(true);
             const loginRequestUrl = window.location.href.endsWith("/") ? window.location.href.slice(0, -1) : window.location.href + "/";
@@ -815,26 +832,6 @@ describe("RedirectClient", () => {
     });
 
     describe("acquireToken", () => {
-        it("throws if interaction is currently in progress", async () => {
-            browserStorage.setInteractionInProgress(true);
-            // @ts-ignore
-            await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
-        });
-
-        it("throws if interaction is currently in progress for a different clientId", async () => {
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const logger = new Logger({});
-            const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
-            secondInstanceStorage.setInteractionInProgress(true);
-
-            expect(browserStorage.isInteractionInProgress(true)).toBe(false);
-            expect(browserStorage.isInteractionInProgress(false)).toBe(true);
-            expect(secondInstanceStorage.isInteractionInProgress(true)).toBe(true);
-            expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(true);
-            // @ts-ignore
-            await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
-        });
-
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -1716,6 +1713,80 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
             redirectClient.logout();
+        });
+
+        it("includes logoutHint if it is set on request", (done) => {
+            const logoutHint = "test@user.com";
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            redirectClient.logout({ logoutHint: logoutHint });
+        });
+
+        it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
+            const logoutHint = "test@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                "login_hint": logoutHint
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            redirectClient.logout({ account: testAccountInfo });
+        });
+
+        it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
+            const logoutHint = "test@user.com";
+            const loginHint = "anothertest@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                "login_hint": loginHint
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            redirectClient.logout({ account: testAccountInfo, logoutHint: logoutHint });
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {

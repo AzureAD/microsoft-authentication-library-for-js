@@ -5,6 +5,7 @@
 
 import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
+import { TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -90,6 +91,26 @@ export class MockCache {
         };
         const atTwo = CacheManager.toObject(new AccessTokenEntity(), atTwoData);
         this.cacheManager.setAccessTokenCredential(atTwo);
+
+        // With requested claims
+        const atThreeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope4 scope5",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "Bearer",
+            "requestedClaims": JSON.stringify({ claim: "claim" }),
+            "requestedClaimsHash": TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+        };
+        
+        const atThree = CacheManager.toObject(new AccessTokenEntity(), atThreeData);
+        this.cacheManager.setAccessTokenCredential(atThree);
 
         // POP Token
         const popAtWithAuthSchemeData = {

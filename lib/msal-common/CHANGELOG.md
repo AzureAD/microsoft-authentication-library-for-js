@@ -1,8 +1,45 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 Nov 2021 23:53:21 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 6.1.0
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Minor changes
+
+- Support proxy in msal-node(#4447) (sameera.gajjarapu@microsoft.com)
+- Add support for logout_hint #4450 (hemoral@microsoft.com)
+
+### Patches
+
+- Add AzureCloudInstance to JS libraries (sameera.gajjarapu@microsoft.com)
+
+## 6.0.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Major changes
+
+- Add support for requested claims in silent token acquisition #4296 (hemoral@microsoft.com)
+
+### Minor changes
+
+- Gracefully handle tokenType set as bearer for ADFS #4318 (janutter@microsoft.com)
+
+## 5.2.0
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Minor changes
+
+- Add APIs needed for hybrid spa flow #3978 (janutter@microsoft.com)
+
+### Patches
+
+- Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235 (hemoral@microsoft.com)
 
 ## 5.1.0
 

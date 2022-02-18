@@ -10,6 +10,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../packageMetadata";
 import { Authority } from "../authority/Authority";
+import { AzureCloudInstance } from "../authority/AuthorityOptions";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
@@ -73,6 +74,7 @@ export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
@@ -83,6 +85,7 @@ export type AuthOptions = {
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
+    proxyUrl?: string;
 };
 
 /**
@@ -121,9 +124,21 @@ export type ClientCredentials = {
     };
 };
 
+/**
+ * AzureCloudInstance specific options
+ *
+ * - azureCloudInstance             - string enum providing short notation for soverign and public cloud authorities
+ * - tenant                         - provision to provide the tenant info
+ */
+export type AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance;
+    tenant?: string,
+};
+
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false
+    preventCorsPreflight: false,
+    proxyUrl: "",
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -158,6 +173,11 @@ const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
     clientAssertion: undefined
 };
 
+const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance.None,
+    tenant: `${Constants.DEFAULT_COMMON_TENANT}`
+};
+
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
@@ -179,9 +199,9 @@ export function buildClientConfiguration(
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
     }: ClientConfiguration): CommonClientConfiguration {
-    
+
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
-    
+
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
@@ -204,6 +224,7 @@ export function buildClientConfiguration(
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
+        azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         ...authOptions
     };
 }

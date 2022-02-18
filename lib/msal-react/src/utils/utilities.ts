@@ -4,6 +4,7 @@
  */
 
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
+import { AccountInfo } from "@azure/msal-browser";
 
 type FaaCFunction = <T>(args: T) => React.ReactNode;
 
@@ -48,4 +49,26 @@ export function accountArraysAreEqual(arrayA: Array<AccountIdentifiers>, arrayB:
                (elementA.localAccountId === elementB.localAccountId) &&
                (elementA.username === elementB.username);
     });
+}
+
+export function getAccountByIdentifiers(allAccounts: AccountInfo[], accountIdentifiers: AccountIdentifiers): AccountInfo | null {
+    if (allAccounts.length > 0 && (accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId || accountIdentifiers.username)) {
+        const matchedAccounts = allAccounts.filter(accountObj => {
+            if (accountIdentifiers.username && accountIdentifiers.username.toLowerCase() !== accountObj.username.toLowerCase()) {
+                return false;
+            }
+            if (accountIdentifiers.homeAccountId && accountIdentifiers.homeAccountId.toLowerCase() !== accountObj.homeAccountId.toLowerCase()) {
+                return false;
+            }
+            if (accountIdentifiers.localAccountId && accountIdentifiers.localAccountId.toLowerCase() !== accountObj.localAccountId.toLowerCase()) {
+                return false;
+            }
+
+            return true;
+        });
+
+        return matchedAccounts[0] || null;
+    } else {
+        return null;
+    }
 }

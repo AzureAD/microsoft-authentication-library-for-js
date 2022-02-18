@@ -1,0 +1,13 @@
+<script src="/auth/lib/msal-browser.js"></script>
+<script type="text/javascript">
+    const msalInstance = new msal.PublicClientApplication({
+        auth: {
+            clientId: "{{clientId}}",
+            redirectUri: "http://localhost:3000/auth/client-redirect",
+            authority: "https://login.microsoftonline.com/common"
+        }
+    })
+
+    msalInstance.logoutRedirect();
+
+</script>
