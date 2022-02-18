@@ -46,6 +46,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param configuration object for the MSAL PublicClientApplication instance
      */
     constructor(configuration: Configuration) {
+        console.log("Hello World!!");
         super(configuration);
 
         this.activeSilentTokenRequests = new Map();
