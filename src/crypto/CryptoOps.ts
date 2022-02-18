@@ -109,8 +109,7 @@ export class CryptoOps implements ICrypto {
         };
 
         const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
-        const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
-        const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+        const publicJwkHash = await this.hashString(publicJwkString);
 
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
@@ -188,5 +187,15 @@ export class CryptoOps implements ICrypto {
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;
+    }
+
+    /**
+     * Returns the SHA-256 hash of an input string
+     * @param plainText
+     */
+    async hashString(plainText: string): Promise<string> {
+        const hashBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(plainText);
+        const hashBytes = new Uint8Array(hashBuffer);
+        return this.b64Encode.urlEncodeArr(hashBytes);
     }
 }

@@ -16,16 +16,16 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 export class SilentIframeClient extends StandardInteractionClient {
-    private apiId: ApiId;
+    protected apiId: ApiId;
 
     constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, correlationId?: string) {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, correlationId);
         this.apiId = apiId;
     }
-    
+
     /**
      * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none
-     * @param request 
+     * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
@@ -40,10 +40,11 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
+        this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || "", silentRequest.account || null);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
@@ -52,7 +53,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
             // Create authorize request url
@@ -83,7 +84,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient, browserRequestLogger: Logger): Promise<AuthenticationResult> {
+    protected async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient, browserRequestLogger: Logger): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, browserRequestLogger, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
@@ -93,6 +94,6 @@ export class SilentIframeClient extends StandardInteractionClient {
         const state = this.validateAndExtractStateFromHash(hash, InteractionType.Silent, authCodeRequest.correlationId);
 
         // Handle response from hash string
-        return silentHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
+        return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
     }
 }

@@ -27,6 +27,9 @@ import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
 import { PerformanceCallbackFunction, PerformanceManager } from "../telemetry/PerformanceManager";
+import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
+import { BrowserAuthError  } from "../error/BrowserAuthError";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 
 export abstract class ClientApplication {
 
@@ -57,7 +60,10 @@ export abstract class ClientApplication {
     protected eventHandler: EventHandler;
 
     // Redirect Response Object
-    private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+    protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+
+    // Hybrid auth code responses
+    private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
     protected performanceManager: PerformanceManager;
 
@@ -103,6 +109,9 @@ export abstract class ClientApplication {
         
         // Initialize redirectResponse Map
         this.redirectResponse = new Map();
+
+        // Initial hybrid spa map
+        this.hybridAuthCodeResponses = new Map();
         
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger) : DEFAULT_CRYPTO_IMPLEMENTATION;
@@ -306,6 +315,64 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             throw e;
         }
+    }
+
+    /**
+     * This function redeems an authorization code (passed as code) from the eSTS token endpoint.
+     * This authorization code should be acquired server-side using a confidential client to acquire a spa_code.
+     * This API is not indended for normal authorization code acquisition and redemption.
+     * 
+     * Redemption of this authorization code will not require PKCE, as it was acquired by a confidential client.
+     * 
+     * @param request {@link AuthorizationCodeRequest}
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.trace("acquireTokenByCode called", request.correlationId);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
+
+        try {
+            if (!request.code) {
+                throw BrowserAuthError.createAuthCodeRequiredError();
+            }
+
+            let response = this.hybridAuthCodeResponses.get(request.code);
+            if (!response) {
+                this.logger.verbose("Initiating new acquireTokenByCode request", request.correlationId);
+                response = this.acquireTokenByCodeAsync(request)
+                    .then((result: AuthenticationResult) => {
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
+                        this.hybridAuthCodeResponses.delete(request.code);
+                        return result;
+                    })
+                    .catch((error: Error) => {
+                        this.hybridAuthCodeResponses.delete(request.code);
+                        throw error;
+                    });
+
+                this.hybridAuthCodeResponses.set(request.code, response);
+            } else {
+                this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
+            }
+            
+            return response;
+        } catch (e) {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Creates a SilentAuthCodeClient to redeem an authorization code.
+     * @param request 
+     * @returns Result of the operation to redeem the authorization code
+     */
+    private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
+        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, request.correlationId);
+        const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+        return silentTokenResult;
     }
 
     /**
@@ -531,6 +598,24 @@ export abstract class ClientApplication {
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
+
+        if (interactionType === InteractionType.Redirect || interactionType === InteractionType.Popup) {
+            this.preflightInteractiveRequest();
+        }
+    }
+
+    /**
+     * Helper to validate app environment before making a request.
+     * @param request
+     * @param interactionType
+     */
+    protected preflightInteractiveRequest(): void {
+        this.logger.verbose("preflightInteractiveRequest called, validating app environment");
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
+        // Set interaction in progress temporary cache or throw if alread set.
+        this.browserStorage.setInteractionInProgress(true);
     }
 
     /**
