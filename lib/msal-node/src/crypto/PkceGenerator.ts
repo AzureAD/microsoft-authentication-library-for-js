@@ -4,8 +4,9 @@
  */
 
 import { PkceCodes } from "@azure/msal-common";
-import { CharSet, Hash, RANDOM_OCTET_SIZE } from "../utils/Constants";
+import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants";
 import { EncodingUtils } from "../utils/EncodingUtils";
+import { HashUtils } from "./HashUtils";
 import crypto from "crypto";
 
 /**
@@ -50,19 +51,9 @@ export class PkceGenerator {
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
         return EncodingUtils.base64EncodeUrl(
-            this.sha256(codeVerifier).toString("base64"), 
-            "base64"
+            HashUtils.sha256(codeVerifier).toString("base64"), 
+            "base64" 
         );
     }
 
-    /**
-     * generate 'SHA256' hash
-     * @param buffer
-     */
-    private sha256(buffer: string): Buffer {
-        return crypto
-            .createHash(Hash.SHA256)
-            .update(buffer)
-            .digest();
-    }
 }
