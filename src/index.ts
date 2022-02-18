@@ -98,6 +98,4 @@ export {
     OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 
-// Telemetry
-export { PerformanceTelemetryReporter } from "./telemetry/1ds";
 export { version } from "./packageMetadata";
