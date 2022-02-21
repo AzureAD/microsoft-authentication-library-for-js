@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add resiliency for querying authority metadata",
+  "packageName": "@azure/msal-common",
+  "email": "kamausamuel11@gmail.com",
+  "dependentChangeType": "patch"
+}
