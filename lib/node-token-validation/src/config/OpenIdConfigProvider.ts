@@ -19,6 +19,10 @@ export class OpenIdConfigProvider {
         this.logger = logger;
     }
 
+    /**
+     * Function to fetch JWKS uri from metadata endpoint.
+     * @returns - A promise that is fulfilled when this function has completed. Returns the jwks_uri string.
+     */
     async fetchJwksUriFromEndpoint(): Promise<string> {
         this.logger.trace("OpenIdConfigProvider.fetchJwksUriFromEndpoint called");
 
@@ -26,6 +30,10 @@ export class OpenIdConfigProvider {
         return endpointMetadata.body.jwks_uri;
     }
 
+    /**
+     * Function to fetch metadata from OpenId endpoint.
+     * @returns - Endpoint metadata
+     */
     async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
         this.logger.trace("OpenIdConfigProvider.getMetadata called");
 
@@ -40,6 +48,12 @@ export class OpenIdConfigProvider {
         }
     }
 
+    /**
+     * Function to get OpenIdConfiguration endpoint, depending on protocol mode set in configuration.
+     * @param authority 
+     * @param protocolMode 
+     * @returns 
+     */
     async getOpenIdConfigurationEndpoint(authority: string, protocolMode: ProtocolMode): Promise<string> {
         const normalizedAuthority = authority.endsWith("/") ? authority : `${authority}/`;
 
@@ -50,6 +64,11 @@ export class OpenIdConfigProvider {
         }
     }
 
+    /**
+     * Function to check if response object contains jwks_uri property
+     * @param response 
+     * @returns 
+     */
     static isOpenIdConfigResponse(response: object): boolean {
         return response.hasOwnProperty("jwks_uri");
     }

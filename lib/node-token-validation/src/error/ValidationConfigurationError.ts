@@ -5,6 +5,9 @@
 
 import { ClientConfigurationError } from "@azure/msal-common";
 
+/**
+ * ValidationConfigurationErrorMessage class containing string constants used by error codes and messages.
+ */
 export const ValidationConfigurationErrorMessage = {
     missingToken: {
         code: "missing_token",
@@ -28,6 +31,9 @@ export const ValidationConfigurationErrorMessage = {
     }
 };
 
+/**
+ * Token Validation library error class thrown for configuration errors
+ */
 export class ValidationConfigurationError extends ClientConfigurationError {
 
     constructor(errorCode: string, errorMessage?: string) {

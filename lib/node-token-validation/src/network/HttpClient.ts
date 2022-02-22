@@ -7,8 +7,17 @@ import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/m
 import axios, { AxiosRequestConfig } from "axios";
 import { HttpMethod } from "../utils/Constants";
 
+/**
+ * HttpClient class implements API for network requests
+ */
 export class HttpClient implements INetworkModule {
 
+    /**
+     * Http Get request
+     * @param url 
+     * @param options 
+     * @returns 
+     */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
@@ -26,6 +35,12 @@ export class HttpClient implements INetworkModule {
         };
     }
 
+    /**
+     * Http Post request
+     * @param url 
+     * @param options 
+     * @returns 
+     */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
