@@ -91,7 +91,6 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^6.1.0",
-    "@ms/1ds-analytics-web-js": "^2.4.6"
+    "@azure/msal-common": "^6.1.0"
   }
 }
