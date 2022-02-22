@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+
 /**
  * @packageDocumentation
  * @module @azure/msal-browser
@@ -57,6 +58,8 @@ export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttp
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
 export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
 export { PopupUtils } from "./utils/PopupUtils";
+export { PerformanceCallbackFunction, PerformanceEvent} from "./telemetry/PerformanceManager";
+
 
 // Common Object Formats
 export {
@@ -98,6 +101,6 @@ export {
     OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 
-// Telemetry
-export { PerformanceTelemetryReporter } from "./telemetry/1ds";
 export { version } from "./packageMetadata";
+
+
