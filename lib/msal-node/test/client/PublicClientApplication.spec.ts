@@ -11,6 +11,7 @@ import { AuthorizationCodeRequest } from '../../src/request/AuthorizationCodeReq
 import { RefreshTokenRequest } from '../../src/request/RefreshTokenRequest';
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
+import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import { mocked } from 'ts-jest/utils';
 
@@ -342,5 +343,13 @@ describe('PublicClientApplication', () => {
         expect(authApp.getLogger()).toEqual(logger);
 
         authApp.getLogger().info("Message");
+    });
+
+    test("requestedClaims get added to auth code request when claims are present in original request", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+        const testRequest: SilentFlowRequest = {
+            scopes: ["openid", "profile", "user.read"],
+            account: 
+        }
     });
 });

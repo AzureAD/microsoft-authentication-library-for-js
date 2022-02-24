@@ -3,7 +3,7 @@ import { ClientConfiguration, AuthorizationCodeClient, RefreshTokenClient, Authe
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { Configuration } from "../../src/config/Configuration";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
-import { UsernamePasswordRequest } from '../../src';
+import { SilentFlowRequest, UsernamePasswordRequest } from '../../src';
 import { mocked } from 'ts-jest/utils';
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock } from './test-fixtures';
