@@ -23,6 +23,9 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     TEST_END_SESSION_ENDPOINT: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+    TEST_AZURE_CHINA_INSTANCE: "https://login.chinacloudapi.cn/",
+    TEST_AZURE_GERMANY_INSTANCE: "https://login.microsoftonline.de/",
+    TEST_AZURE_USGOV_INSTANCE: "https://login.microsoftonline.us/"
 };
 
 // Test MSAL config params
@@ -32,6 +35,9 @@ export const TEST_CONFIG = {
     MSAL_CLIENT_SECRET: "ThisIsASecret",
     MSAL_TENANT_ID: "3338040d-6c67-4c5b-b112-36a304b66dad",
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common/",
+    chinaAuthority: TEST_URIS.TEST_AZURE_CHINA_INSTANCE + "common/",
+    germanyAuthority: TEST_URIS.TEST_AZURE_GERMANY_INSTANCE + "common/",
+    usGovAuthority: TEST_URIS.TEST_AZURE_USGOV_INSTANCE + "common/",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common/",
     ADFS_AUTHORITY: "https://authority.com/adfs",
     applicationName: "msal.js-tests",
@@ -47,6 +53,7 @@ export const TEST_CONFIG = {
     OID: "test-oid",
     SUB: "test-sub",
     RESPONSE_MODE: "fragment",
+
 };
 
 // Test Tokens
@@ -151,14 +158,36 @@ export const TEST_CRYPTO_VALUES = {
 }
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
+    headers: {},
+    status: 200,
     body: {
-        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
-        "api-version": "1.1",
-        "metadata": [
+        "tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+        "api-version":"1.1",
+        "metadata":[
             {
-                "preferred_network": "login.windows.net",
-                "preferred_cache": "sts.windows.net",
-                "aliases": ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+                "preferred_network":"login.microsoftonline.com",
+                "preferred_cache":"login.windows.net",
+                "aliases":["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+            },
+            {
+                "preferred_network":"login.partner.microsoftonline.cn",
+                "preferred_cache":"login.partner.microsoftonline.cn",
+                "aliases":["login.partner.microsoftonline.cn","login.chinacloudapi.cn"]
+            },
+            {
+                "preferred_network":"login.microsoftonline.de",
+                "preferred_cache":"login.microsoftonline.de",
+                "aliases":["login.microsoftonline.de"]
+            },
+            {
+                "preferred_network":"login.microsoftonline.us",
+                "preferred_cache":"login.microsoftonline.us",
+                "aliases":["login.microsoftonline.us","login.usgovcloudapi.net"]
+            },
+            {
+                "preferred_network":"login-us.microsoftonline.com",
+                "preferred_cache":"login-us.microsoftonline.com",
+                "aliases":["login-us.microsoftonline.com"]
             }
         ]
     }

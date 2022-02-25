@@ -31,3 +31,5 @@ Thumbs.db
 # TS #
 test/**/*.js
 *.js.map
+
+package-lock.json
