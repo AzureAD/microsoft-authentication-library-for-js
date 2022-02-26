@@ -161,7 +161,7 @@ export class TokenValidator {
     async validateClaims(payload: JWTPayload, validationParams: BaseValidationParameters): Promise<void> {
         this.logger.trace("TokenValidator.validateClaims called");
 
-        // Validate nonce
+        // Validate nonce in token against nonce provided in params
         if (payload.nonce) {
             if (!validationParams.nonce) {
                 throw ValidationConfigurationError.createMissingNonceError();
@@ -172,7 +172,7 @@ export class TokenValidator {
             }
         }
 
-        // Validate c_hash
+        // Validate c_hash on token against code provided in params
         if (payload.c_hash && typeof payload.c_hash === "string") {
             this.logger.trace("TokenValidator - Validating c_hash");
 
@@ -186,7 +186,7 @@ export class TokenValidator {
             }
         }
 
-        // Validate at_hash
+        // Validate at_hash on token against access token provided in params
         if (payload.at_hash && typeof payload.at_hash === "string") {
             this.logger.trace("TokenValidator - Validating at_hash");
 
