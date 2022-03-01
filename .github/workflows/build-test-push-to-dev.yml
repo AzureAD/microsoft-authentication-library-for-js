@@ -68,7 +68,7 @@ jobs:
         flags: ${{ matrix.library }}
         
   extensions-build-test:
-    runs-on: windows-2019
+    runs-on: windows-latest
   
     name: msal-node-extensions
     

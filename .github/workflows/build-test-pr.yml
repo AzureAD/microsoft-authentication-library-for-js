@@ -118,7 +118,7 @@ jobs:
 
   extensions-build-test:
     needs: pre-check
-    runs-on: windows-2019
+    runs-on: windows-latest
     if: needs.pre-check.outputs.extensions == 'true'
   
     name: msal-node-extensions
