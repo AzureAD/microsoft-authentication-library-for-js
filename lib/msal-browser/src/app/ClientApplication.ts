@@ -26,7 +26,7 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
-import { PerformanceCallbackFunction, PerformanceManager } from "../telemetry/PerformanceManager";
+import { PerformanceCallbackFunction, PerformanceEvents, PerformanceManager } from "../telemetry/PerformanceManager";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import { BrowserAuthError  } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
@@ -389,7 +389,7 @@ export abstract class ClientApplication {
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByRefreshToken", request.correlationId);
+        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
         const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
