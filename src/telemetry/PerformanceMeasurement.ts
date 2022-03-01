@@ -3,13 +3,15 @@
  * Licensed under the MIT License.
  */
 
+import { PerformanceEvents } from "./PerformanceManager";
+
 export class PerformanceMeasurement {
     private measureName: string;
     private correlationId: string;
     private startMark: string;
     private endMark: string;
 
-    constructor(name: string, correlationId?: string) {
+    constructor(name: PerformanceEvents, correlationId?: string) {
         this.correlationId = correlationId || "";
         this.measureName = `msal.measure.${name}.${this.correlationId}`;
         this.startMark = `msal.start.${name}.${this.correlationId}`;

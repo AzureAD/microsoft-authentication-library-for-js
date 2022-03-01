@@ -14,6 +14,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
+import { PerformanceEvents } from "../telemetry/PerformanceManager";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -93,7 +94,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
-        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilent", request.correlationId);
+        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenSilent, request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", request.correlationId);
         const account = request.account || this.getActiveAccount();
@@ -123,7 +124,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         success: true,
                         fromCache: result.fromCache
                     });
-                    this.performanceManager.flushMeasurements(request.correlationId);
+                    this.performanceManager.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
                     return result;
                 })
                 .catch((error) => {
@@ -131,7 +132,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     endMeasurement({
                         success: false
                     });
-                    this.performanceManager.flushMeasurements(request.correlationId);
+                    this.performanceManager.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
@@ -141,7 +142,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             endMeasurement({
                 success: true
             });
-            this.performanceManager.flushMeasurements(request.correlationId);
+            this.performanceManager.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
             return cachedResponse;
         }
     }
@@ -152,8 +153,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (AccountInfo:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
-    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilentAsync", request.correlationId);
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
         const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
         const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);

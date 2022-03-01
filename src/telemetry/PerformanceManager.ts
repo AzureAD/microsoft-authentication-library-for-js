@@ -6,13 +6,22 @@
 import { ICrypto, Logger } from "@azure/msal-common";
 import { PerformanceMeasurement } from "./PerformanceMeasurement";
 
+export enum PerformanceEvents {
+    AcquireTokenSilent = "acquireTokenSilent",
+    SsoSilent = "ssoSilent",
+    AcquireTokenByCode = "acquireTokenByCode",
+    AcquireTokenSilentAsync = "acquireTokenSilentAsync",
+    AcquireTokenByRefreshToken = "acquireTokenByRefreshToken"
+
+}
+
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type PerformanceEvent = {
     clientId: string
     durationMs: number,
     startTimeMs: number,
-    name: string,
+    name: PerformanceEvents,
     correlationId?: string,
     success: boolean | null,
     startPageVisibility: VisibilityState | null,
@@ -20,22 +29,26 @@ export type PerformanceEvent = {
     fromCache: boolean | null,
 };
 
+export type AcquireTokenSilentPerformanceEvent = PerformanceEvent & {
+    proofOfPossesionDurationMs: number,
+    cacheLookupDurationMs: number
+}
 export class PerformanceManager {
     private clientId: string;
     private logger: Logger;
     private crypto: ICrypto;
     private callbacks: Map<string, PerformanceCallbackFunction>;
     private eventsByCorrelationId: Map<string, PerformanceEvent[]>;
-    
-    constructor(clientId:string, logger: Logger, crypto: ICrypto) {
-        this.clientId= clientId;
+
+    constructor(clientId: string, logger: Logger, crypto: ICrypto) {
+        this.clientId = clientId;
         this.logger = logger;
         this.crypto = crypto;
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
     }
 
-    startMeasurement(measureName: string, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent {
+    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent {
         this.logger.trace(`Performance measurement started for ${measureName}`, correlationId);
         const performanceMeasure = new PerformanceMeasurement(measureName, correlationId);
         performanceMeasure.startMeasurement();
@@ -51,7 +64,7 @@ export class PerformanceManager {
         };
     }
 
-    endMeasurement(performanceMeasure: PerformanceMeasurement, additionalEventData: Partial<PerformanceEvent>, measureName: string, correlationId?: string): PerformanceEvent {
+    endMeasurement(performanceMeasure: PerformanceMeasurement, additionalEventData: Partial<PerformanceEvent>, measureName: PerformanceEvents, correlationId?: string): PerformanceEvent {
         performanceMeasure.endMeasurement();
         const durationMs = Math.round(performanceMeasure.flushMeasurement());
         this.logger.trace(`Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
@@ -85,12 +98,23 @@ export class PerformanceManager {
         return event;
     }
 
-    flushMeasurements(correlationId?: string): void {
+    flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void {
         if (correlationId) {
             this.logger.trace("Performance measurements flushed", correlationId);
             const events = this.eventsByCorrelationId.get(correlationId);
             if (events) {
-                this.emitEvents(events);
+                const topLevelEvent = events.find(event => event.name === measureName);
+                if (topLevelEvent) {
+                    const subMeasurements = events.filter(event => event.name !== measureName);
+                    //Attach new fields to sm
+                    subMeasurements.forEach(event => {
+                        topLevelEvent[`${event.name}DurationMs`] = event.durationMs;
+
+                        //filtering based on event type
+                    })
+
+                    this.emitEvents([topLevelEvent]);
+                };
             }
         } else {
             // TODO: Flush all?
@@ -102,10 +126,10 @@ export class PerformanceManager {
             const callbackId = this.crypto.createNewGuid();
             this.callbacks.set(callbackId, callback);
             this.logger.verbose(`Performance callback registered with id: ${callbackId}`);
-    
+
             return callbackId;
         }
-        
+
         return null;
     }
 
