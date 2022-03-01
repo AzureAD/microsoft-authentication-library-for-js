@@ -173,17 +173,18 @@ export abstract class ClientApplication {
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
 
                 const request: WamTokenRequest | null = this.browserStorage.getCachedNativeRequest();
+                let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && this.isNativeAvailable() && this.wamExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
                     const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.wamExtensionProvider, correlationId);
-                    response = wamClient.handleRedirectPromise();
+                    redirectResponse = wamClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
                     const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
-                    response = redirectClient.handleRedirectPromise(hash);
+                    redirectResponse = redirectClient.handleRedirectPromise(hash);
                 }
 
-                response.then((result: AuthenticationResult | null) => {
+                response = redirectResponse.then((result: AuthenticationResult | null) => {
                     if (result) {
                         // Emit login event if number of accounts change
                         const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
