@@ -128,6 +128,8 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v2
+      with:
+        node-version: '14'
 
     - name: Clean Install
       if: steps.cache.outputs.cache-hit != 'true'
