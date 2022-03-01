@@ -3,16 +3,17 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger } from "@azure/msal-common";
+import { AuthenticationScheme, INetworkModule, Logger } from "@azure/msal-common";
 import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
-import crypto from "crypto";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
+import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { buildTokenValidationParameters, TokenValidationParameters, BaseValidationParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
-import { name, version } from "../packageMetadata";
-import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { ValidationError } from "../error/ValidationError";
+import { name, version } from "../packageMetadata";
+import crypto from "crypto";
+import { HeaderNames } from "../utils/Constants";
 
 export class TokenValidator {
     private config: TokenValidationConfiguration;
@@ -25,6 +26,76 @@ export class TokenValidator {
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
         this.networkInterface = this.config.system.networkClient,
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
+    }
+
+    validateTokenMiddleware(options: TokenValidationParameters) {
+        // @ts-ignore
+        return (req: any, res: any, next: any) => {
+
+            this.validateTokenFromRequest(req, options)
+                .then(() => {
+                    next();
+                })
+                .catch((error) => {
+                    next(error);
+                });
+            };
+    }
+
+    // What would be the request type here?
+    async validateTokenFromRequest(request: any, options: TokenValidationParameters): Promise<TokenValidationResponse> {
+        this.logger.trace("TokenValidator.validateTokenFromRequest called");
+
+        console.log("TOKEN VALIDATION LIBRARY: ", request.headers);
+
+        // const token = "tokentoken";
+
+        // Determine header type - bearer or other. If other, we will call proxy or MISE. If bearer, continue. 
+        if (request.headers && request.headers.get(HeaderNames.AUTHORIZATION)) {
+            const authComponents = request.headers.get(HeaderNames.AUTHORIZATION).split(" ");
+            if (authComponents.length === 2 && authComponents[0].toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
+                const token: string = authComponents[1];
+                this.logger.verbose("Bearer token extracted from request authorization headers");
+                return this.validateToken(token, options);
+            } else {
+                this.logger.verbose("Request authorization headers does not include bearer token");
+                // If not bearer, call CAE/EasyAuth/MISE solution here for more complex handling
+            }
+        } 
+        
+        if (request.body && request.body.access_token) {
+            const token: string = request.body.access_token;
+            if (token) {
+                this.logger.verbose("Token extracted from request body");
+                return this.validateToken(token, options);
+            }
+        }
+
+        throw new Error("no tokens in header or body");
+    }
+
+    // What would be the response type here?
+    async validateTokenFromResponse(response: any, options: TokenValidationParameters): Promise<TokenValidationResponse[]> {
+        this.logger.trace("TokenValidator.validateTokenFromResponse called");
+
+        if (response.token_type === AuthenticationScheme.BEARER) {
+            const validateResponse:TokenValidationResponse[] = [];
+
+            if (response.id_token) {
+                // Add checks for code and access token for c_hash and at_hash check
+                const validateIdTokenResponse: TokenValidationResponse = await this.validateToken(response.id_token, options);
+                validateResponse.push(validateIdTokenResponse);
+            }
+
+            if (response.access_token) {
+                const validateAccessTokenResponse: TokenValidationResponse = await this.validateToken(response.access_token, options);
+                validateResponse.push(validateAccessTokenResponse);
+            }
+
+            return validateResponse;
+        } else {
+            throw new Error("Only bearer authentication scheme supported at this time");
+        }
     }
 
     async validateToken(token: string, options: TokenValidationParameters): Promise<TokenValidationResponse> {
@@ -56,7 +127,7 @@ export class TokenValidator {
             payload,
             token,
             tokenType: validationParams.validTypes[0]
-        };
+        } as TokenValidationResponse;
     }
     
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

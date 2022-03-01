@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { JWSHeaderParameters, JWTPayload } from "jose";
+import { JWTHeaderParameters, JWTPayload } from "jose";
 
 export type TokenValidationResponse = {
-    protectedHeader?: JWSHeaderParameters;
+    protectedHeader?: JWTHeaderParameters;
     payload?: JWTPayload;
     token?: string;
     tokenType?: string;
