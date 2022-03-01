@@ -1320,16 +1320,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             const atsSpy = sinon.spy(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync");
             sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").rejects(testError);
+            const tokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: testAccount
+            };
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
             try {
-                const tokenRequest = {
-                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                    account: testAccount
-                };
-                const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-                const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
-                const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
                 await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
             } catch (e) {
+                // Await resolution of all 3 promises since this catch block will execute as soon as any of them throw
+                await silentRequest1.catch(() => {});
+                await silentRequest2.catch(() => {});
+                await silentRequest3.catch(() => {});
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(atsSpy.calledOnce).toBe(true);
                 expect(window.sessionStorage).toHaveLength(1);
