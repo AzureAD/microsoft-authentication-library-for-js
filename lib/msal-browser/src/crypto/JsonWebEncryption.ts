@@ -8,9 +8,24 @@ import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Algorithms } from "../utils/CryptoConstants";
 
+/**
+ * JOSE Header Parameter specification
+ * https://datatracker.ietf.org/doc/html/rfc7516#section-4.1
+ */
 export type JoseHeader = {
     alg: string,
-    enc: string
+    enc: string,
+    zip?: string,
+    jku?: string,
+    jwk?: string,
+    kid?: string,
+    x5u?: string,
+    x5c?: string,
+    x5t?: string,
+    x5tS256?: string,
+    typ?: string,
+    cty?: string,
+    crit?: string
 };
 
 export type UnwrappingAlgorithmPair = {
@@ -18,7 +33,7 @@ export type UnwrappingAlgorithmPair = {
     encryption: string
 };
 
-const KEY_ALGORITHM_MAP: StringDict = {
+const KeyAlgorithmMap: StringDict = {
     "RSA-OAEP-256": Algorithms.RSA_OAEP,
     "A256GCM": Algorithms.AES_GCM,
     "dir": Algorithms.DIRECT
@@ -67,7 +82,7 @@ export class JsonWebEncryption {
 
     /**
      * Unwrapping a JWE encrypted key is done in two steps:
-     *  1. Decrypt the base64Url decode encrypted key component using the algorithm
+     *  1. Decrypt the base64Url encoded encrypted key component using the algorithm
      *     specified in the "alg" attribute of the JWE header
      *  2. Import the result of previous step as a CryptoKey, setting the key algorithm to the one
      *     specified in the "enc" attribute of the JWE header
@@ -81,6 +96,11 @@ export class JsonWebEncryption {
         return await window.crypto.subtle.importKey("raw", contentEncryptionKey, this.unwrappingAlgorithms.encryption , false, keyUsages);
     }
 
+    /**
+     * Decodes and parses the JOSE header out of the JWE
+     * https://datatracker.ietf.org/doc/html/rfc7516#section-4
+     * @param encodedHeader 
+     */
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
         const decodedHeader = this.decodeElement(encodedHeader);
         try {
@@ -98,7 +118,7 @@ export class JsonWebEncryption {
     }
 
     private matchKeyAlgorithm(label: string): string {
-        const matchedAlgorithm = KEY_ALGORITHM_MAP[label];
+        const matchedAlgorithm = KeyAlgorithmMap[label];
 
         if (matchedAlgorithm) {
             return matchedAlgorithm;
