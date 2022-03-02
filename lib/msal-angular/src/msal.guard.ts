@@ -96,7 +96,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
     }
 
     /**
-     * Helper which checks for the correct interaction type, prevents page with Guard to be set as reidrect, and calls handleRedirectObservable
+     * Helper which checks for the correct interaction type, prevents page with Guard to be set as redirect, and calls handleRedirectObservable
      * @param state 
      */
     private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
