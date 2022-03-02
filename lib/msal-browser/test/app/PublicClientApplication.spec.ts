@@ -1419,7 +1419,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const tokenResp = await pca.acquireTokenSilent(CommonSilentFlowRequest);
 
             expect(tokenResp).toEqual(testTokenResponse);
-            console.log(silentTokenHelperStub.args.length)
             expect(silentTokenHelperStub.args[0][1]).toEqual(expect.objectContaining(expectedRequest));
         });
     });
