@@ -33,7 +33,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v2
 
       - name: Install dependencies
         run: npm install
@@ -77,8 +77,17 @@ jobs:
       - name: Remove .npmrc file
         run: rm .npmrc
 
+      - name: Install Release Scripts dependencies
+        working-directory: ./release-scripts
+        run: npm install
+
       - name: Check npm for package availability
-        run: node ../../release-scripts/checkPackageAvailability.js ${{ inputs.path }}/${{ inputs.lib-name }}
+        working-directory: ./release-scripts
+        run: node checkPackageAvailability.js ${{ inputs.path }}/${{ inputs.lib-name }}
 
       - name: Create Github releases, discussions and milestones
-        run: node ../../.github/createReleases.js -lib ${{ inputs.path }}/${{ inputs.lib-name }}
+        working-directory: ./release-scripts
+        continue-on-error: true
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN}}
+        run: node create-releases.js -lib ${{ inputs.path }}/${{ inputs.lib-name }}
