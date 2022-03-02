@@ -116,7 +116,7 @@ export abstract class CacheManager implements ICacheManager {
     abstract getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
 
     /**
-     * 
+     *
      */
     abstract getAuthorityMetadataKeys(): Array<string>;
 
@@ -186,7 +186,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
 
                 return accountInfo;
-                
+
             });
             return allAccounts;
         }
@@ -341,7 +341,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param realm
      * @param target
-     * @param oboAssertion
+     * @param userAssertionHash
      * @param tokenType
      */
     private getCredentialsFilteredByInternal(
@@ -352,7 +352,7 @@ export abstract class CacheManager implements ICacheManager {
         familyId?: string,
         realm?: string,
         target?: string,
-        oboAssertion?: string,
+        userAssertionHash?: string,
         tokenType?: AuthenticationScheme,
         keyId?: string,
         requestedClaimsHash?: string
@@ -363,7 +363,7 @@ export abstract class CacheManager implements ICacheManager {
             accessTokens: {},
             refreshTokens: {},
         };
-        
+
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
@@ -379,7 +379,7 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!!oboAssertion && !this.matchOboAssertion(entity, oboAssertion)) {
+            if (!!userAssertionHash && !this.matchUserAssertionHash(entity, userAssertionHash)) {
                 return;
             }
 
@@ -414,7 +414,7 @@ export abstract class CacheManager implements ICacheManager {
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
             }
-            
+
             // If request OR cached entity has requested Claims Hash, check if they match
             if (requestedClaimsHash || entity.requestedClaimsHash) {
                 // Don't match if either is undefined or they are different
@@ -537,7 +537,7 @@ export abstract class CacheManager implements ICacheManager {
             matchedEntity = entity;
 
         });
-        
+
         return matchedEntity;
     }
 
@@ -555,7 +555,7 @@ export abstract class CacheManager implements ICacheManager {
             }
             removedAccounts.push(this.removeAccount(cacheKey));
         });
-        
+
         await Promise.all(removedAccounts);
         return true;
     }
@@ -610,7 +610,7 @@ export abstract class CacheManager implements ICacheManager {
             if(credential.tokenType === AuthenticationScheme.POP) {
                 const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
                 const kid = accessTokenWithAuthSchemeEntity.keyId;
-    
+
                 if (kid) {
                     try {
                         await this.cryptoImpl.removeTokenBindingKey(kid);
@@ -733,9 +733,9 @@ export abstract class CacheManager implements ICacheManager {
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
-        
+
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
-        
+
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             return null;
@@ -752,14 +752,15 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      * @param familyRT
      */
-    readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean): RefreshTokenEntity | null {
+    readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean, oboAssertion?: string): RefreshTokenEntity | null {
         const id = familyRT ? THE_FAMILY_ID : undefined;
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
             credentialType: CredentialType.REFRESH_TOKEN,
             clientId: clientId,
-            familyId: id
+            familyId: id,
+            oboAssertion: oboAssertion
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
@@ -820,8 +821,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param value
      * @param oboAssertion
      */
-    private matchOboAssertion(entity: AccountEntity | CredentialEntity, oboAssertion: string): boolean {
-        return !!(entity.oboAssertion && oboAssertion === entity.oboAssertion);
+    private matchUserAssertionHash(entity: AccountEntity | CredentialEntity, userAssertionHash: string): boolean {
+        return !!(entity.userAssertionHash && userAssertionHash === entity.userAssertionHash);
     }
 
     /**
@@ -899,8 +900,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns true if the credential's tokenType or Authentication Scheme matches the one in the request, false otherwise
-     * @param entity 
-     * @param tokenType 
+     * @param entity
+     * @param tokenType
      */
     private matchTokenType(entity: CredentialEntity, tokenType: AuthenticationScheme): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
@@ -908,8 +909,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns true if the credential's keyId matches the one in the request, false otherwise
-     * @param entity 
-     * @param tokenType 
+     * @param entity
+     * @param tokenType
      */
     private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
         return !!(entity.keyId && entity.keyId === keyId);
