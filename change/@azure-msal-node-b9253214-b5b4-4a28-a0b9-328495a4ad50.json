@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Merge branch 'dev' into feature/angular-13",
+  "packageName": "@azure/msal-node",
+  "email": "sandro.colombo.sc@gmail.com",
+  "dependentChangeType": "none"
+}
