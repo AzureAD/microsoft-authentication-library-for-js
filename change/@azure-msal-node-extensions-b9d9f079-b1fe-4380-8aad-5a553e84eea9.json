@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Resolve lint errors #4363",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

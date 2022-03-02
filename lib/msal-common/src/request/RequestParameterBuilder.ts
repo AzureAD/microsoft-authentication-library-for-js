@@ -385,6 +385,13 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * Adds logout_hint parameter for "silent" logout which prevent server account picker
+     */
+    addLogoutHint(logoutHint: string): void {
+        this.parameters.set(AADServerParamKeys.LOGOUT_HINT, encodeURIComponent(logoutHint));
+    }
+
+    /**
      * Add stk_jwk thumbprint to query params
      * @param stkJwkKid
      */

@@ -28,6 +28,13 @@ import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshC
 import { BrowserConfigurationAuthError } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+
+const cacheConfig = {
+    cacheLocation: BrowserCacheLocation.SessionStorage,
+    storeAuthStateInCookie: false,
+    secureCookies: false
+};
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
@@ -318,6 +325,28 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenRedirect", () => {
+        it("throws if interaction is currently in progress", async () => {
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const logger = new Logger({});
+            const browserStorage = new BrowserCacheManager("client-id", cacheConfig, browserCrypto, logger);
+            browserStorage.setInteractionInProgress(true);
+            await expect(pca.acquireTokenRedirect({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+        });
+
+        it("throws if interaction is currently in progress for a different clientId", async () => {
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const logger = new Logger({});
+            const browserStorage = new BrowserCacheManager("client-id", cacheConfig, browserCrypto, logger);
+            const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
+            secondInstanceStorage.setInteractionInProgress(true);
+
+            expect(browserStorage.isInteractionInProgress(true)).toBe(false);
+            expect(browserStorage.isInteractionInProgress(false)).toBe(true);
+            expect(secondInstanceStorage.isInteractionInProgress(true)).toBe(true);
+            expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(true);
+            await expect(pca.acquireTokenRedirect({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+        });
+
         it("throws error if called in a popup", (done) => {
             const oldWindowOpener = window.opener;
             const oldWindowName = window.name;
@@ -494,6 +523,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.localStorage.clear();
             window.sessionStorage.clear();
             sinon.restore();
+        });
+
+        it("throws error if interaction is in progress", async () => {
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const logger = new Logger({});
+            const browserStorage = new BrowserCacheManager("client-id", cacheConfig, browserCrypto, logger);
+            browserStorage.setInteractionInProgress(true);
+
+            await expect(pca.acquireTokenPopup({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
         it("Calls PopupClient.acquireToken and returns its response", async () => {
@@ -1421,6 +1459,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.logoutPopup();
             expect(response).toEqual(undefined);
             expect(popupClientSpy.calledOnce).toBe(true);
+        });
+
+        it("throws error if interaction is in progress", async () => {
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const logger = new Logger({});
+            const browserStorage = new BrowserCacheManager("client-id", cacheConfig, browserCrypto, logger);
+            browserStorage.setInteractionInProgress(true);
+
+            await expect(pca.logoutPopup()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
     });
 

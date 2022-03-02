@@ -116,7 +116,7 @@ export abstract class BaseClient {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
             tokenEndpoint,
-            { body: queryString, headers: headers }
+            { body: queryString, headers: headers, proxyUrl: this.config.systemOptions.proxyUrl }
         );
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
@@ -129,7 +129,7 @@ export abstract class BaseClient {
 
     /**
      * Updates the authority object of the client. Endpoint discovery must be completed.
-     * @param updatedAuthority 
+     * @param updatedAuthority
      */
     updateAuthority(updatedAuthority: Authority): void {
         if (!updatedAuthority.discoveryComplete()) {
