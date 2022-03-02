@@ -28,6 +28,7 @@ import { AccountInfo } from "../account/AccountInfo";
 export class OnBehalfOfClient extends BaseClient {
 
     private scopeSet: ScopeSet;
+    private userAssertionHash: string;
 
     constructor(configuration: ClientConfiguration) {
         super(configuration);
@@ -40,15 +41,18 @@ export class OnBehalfOfClient extends BaseClient {
     public async acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
+        // generate the user_assertion_hash for OBOAssertion
+        this.userAssertionHash = await this.cryptoUtils.hashString(request.oboAssertion);
+
         if (request.skipCache) {
-            return await this.executeTokenRequest(request, this.authority);
+            return await this.executeTokenRequest(request, this.authority, this.userAssertionHash);
         }
 
-        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request);
+        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request, this.userAssertionHash);
         if (cachedAuthenticationResult) {
             return cachedAuthenticationResult;
         } else {
-            return await this.executeTokenRequest(request, this.authority);
+            return await this.executeTokenRequest(request, this.authority, this.userAssertionHash);
         }
     }
 
@@ -56,15 +60,15 @@ export class OnBehalfOfClient extends BaseClient {
      * look up cache for tokens
      * @param request
      */
-    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        const cachedAccessToken = this.readAccessTokenFromCache();
+    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest, userAssertionHash: string): Promise<AuthenticationResult | null> {
+
+        // look in the cache for the access_token which matches the incoming_assertion
+        const cachedAccessToken = this.readAccessTokenFromCache(userAssertionHash);
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
 
             // Update the server telemetry outcome
             this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
-
-            return null;
         }
 
         const cachedIdToken = this.readIdTokenFromCache(request);
@@ -103,13 +107,14 @@ export class OnBehalfOfClient extends BaseClient {
      * read access token from cache TODO: CacheManager API should be used here
      * @param request
      */
-    private readAccessTokenFromCache(): AccessTokenEntity | null {
+    private readAccessTokenFromCache(userAssertionHash: string): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
             target: this.scopeSet.printScopesLowerCase(),
+            userAssertionHash
         };
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
@@ -159,7 +164,7 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority, userAssertionHash: string)
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
@@ -193,7 +198,9 @@ export class OnBehalfOfClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            undefined,
+            userAssertionHash
         );
 
         return tokenResponse;
@@ -217,7 +224,7 @@ export class OnBehalfOfClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
 
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
