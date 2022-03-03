@@ -8,7 +8,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 ## Notable files and what they demonstrate
 
 1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components.
-1. `./src/index.js` - Shows intialization of the `PublicClientApplication` that is passed to `App.js`
+1. `./src/index.js` - Shows initialization of the `PublicClientApplication` that is passed to `App.js`
 1. `./src/pages/Home.jsx` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./src/pages/Profile.jsx` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
 1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests.
