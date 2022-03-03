@@ -13,7 +13,6 @@ import { ValidationConfigurationError } from "../error/ValidationConfigurationEr
 import { ValidationError } from "../error/ValidationError";
 import { name, version } from "../packageMetadata";
 import crypto from "crypto";
-import { HeaderNames } from "../utils/Constants";
 
 export class TokenValidator {
     private config: TokenValidationConfiguration;
@@ -39,7 +38,18 @@ export class TokenValidator {
                 .catch((error) => {
                     next(error);
                 });
-            };
+        };
+    }
+
+    // @ts-ignore
+    addAuthorizationHeaderMiddleware(resource: string) {
+        // @ts-ignore
+        return (req: any, res: any, next: any) => {
+            console.log("REQUEST: ", req.session.protectedResources);
+            const token = req.session.protectedResources[resource].accessToken;
+            req.headers.authorization = `Bearer ${token}`;
+            next();
+        };
     }
 
     // What would be the request type here?
@@ -51,8 +61,8 @@ export class TokenValidator {
         // const token = "tokentoken";
 
         // Determine header type - bearer or other. If other, we will call proxy or MISE. If bearer, continue. 
-        if (request.headers && request.headers.get(HeaderNames.AUTHORIZATION)) {
-            const authComponents = request.headers.get(HeaderNames.AUTHORIZATION).split(" ");
+        if (request.headers && request.headers.authorization) {
+            const authComponents = request.headers.authorization.split(" ");
             if (authComponents.length === 2 && authComponents[0].toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
                 const token: string = authComponents[1];
                 this.logger.verbose("Bearer token extracted from request authorization headers");
