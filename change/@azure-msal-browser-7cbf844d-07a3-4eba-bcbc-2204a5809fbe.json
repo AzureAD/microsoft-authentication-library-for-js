@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Don't reassign request object properties #4563",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
