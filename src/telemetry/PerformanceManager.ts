@@ -18,15 +18,18 @@ export enum PerformanceEvents {
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type PerformanceEvent = {
+    authority: string,
     clientId: string
-    durationMs: number,
-    startTimeMs: number,
-    name: PerformanceEvents,
     correlationId?: string,
-    success: boolean | null,
-    startPageVisibility: VisibilityState | null,
+    durationMs: number,
     endPageVisibility: VisibilityState | null,
     fromCache: boolean | null,
+    name: PerformanceEvents,
+    startPageVisibility: VisibilityState | null,
+    startTimeMs: number,
+    success: boolean | null,
+    libraryName: string,
+    libraryVersion: string
 };
 
 export type AcquireTokenSilentPerformanceEvent = PerformanceEvent & {
@@ -34,13 +37,19 @@ export type AcquireTokenSilentPerformanceEvent = PerformanceEvent & {
     cacheLookupDurationMs: number
 }
 export class PerformanceManager {
+    private authority: string;
+    private libraryName: string;
+    private libraryVersion: string;
     private clientId: string;
     private logger: Logger;
     private crypto: ICrypto;
     private callbacks: Map<string, PerformanceCallbackFunction>;
     private eventsByCorrelationId: Map<string, PerformanceEvent[]>;
 
-    constructor(clientId: string, logger: Logger, crypto: ICrypto) {
+    constructor(clientId: string, authority: string, logger: Logger, crypto: ICrypto, libraryName: string, libraryVersion: string) {
+        this.authority = authority;
+        this.libraryName = libraryName;
+        this.libraryVersion = libraryVersion;
         this.clientId = clientId;
         this.logger = logger;
         this.crypto = crypto;
@@ -69,6 +78,9 @@ export class PerformanceManager {
         const durationMs = Math.round(performanceMeasure.flushMeasurement());
         this.logger.trace(`Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
         const event: PerformanceEvent = {
+            authority: this.authority,
+            libraryName: this.libraryName,
+            libraryVersion: this.libraryVersion,
             clientId: this.clientId,
             success: null,
             fromCache: null,
