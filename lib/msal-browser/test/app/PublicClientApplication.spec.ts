@@ -865,7 +865,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws an error if falsey code is provided", () => {
-            expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(BrowserAuthError.createAuthCodeRequiredError())
+            expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError())
         });
     });
 
@@ -1016,6 +1016,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(CryptoOps.prototype, "hashString").resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+            const atsSpy = sinon.spy(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync");
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
@@ -1042,6 +1043,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const parallelResponse = await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
 
             expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
+            expect(atsSpy.calledOnce).toBe(true);
             expect(silentATStub.callCount).toEqual(1);
             expect(parallelResponse[0]).toEqual(testTokenResponse);
             expect(parallelResponse[1]).toEqual(testTokenResponse);
@@ -1316,18 +1318,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: "testTenantId",
                 username: "username@contoso.com"
             };
+            const atsSpy = sinon.spy(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync");
             sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").rejects(testError);
+            const tokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: testAccount
+            };
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
             try {
-                const tokenRequest = {
-                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                    account: testAccount
-                };
-                const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
-                const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
-                const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
                 await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
             } catch (e) {
+                // Await resolution of all 3 promises since this catch block will execute as soon as any of them throw
+                await silentRequest1.catch(() => {});
+                await silentRequest2.catch(() => {});
+                await silentRequest3.catch(() => {});
                 // Test that error was cached for telemetry purposes and then thrown
+                expect(atsSpy.calledOnce).toBe(true);
                 expect(window.sessionStorage).toHaveLength(1);
                 const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
                 const failureObj = JSON.parse(failures || "") as ServerTelemetryEntity;
@@ -1381,7 +1389,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            const createAcqTokenStub = sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const silentTokenHelperStub = sinon.stub(SilentIframeClient.prototype, <any>"silentTokenHelper").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1400,22 +1407,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const expectedRequest: CommonAuthorizationUrlRequest = {
                 ...CommonSilentFlowRequest,
                 scopes: ["User.Read"],
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
                 correlationId: RANDOM_TEST_GUID,
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 prompt: "none",
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 state: TEST_STATE_VALUES.TEST_STATE_SILENT,
                 nonce: RANDOM_TEST_GUID,
-                responseMode: ResponseMode.FRAGMENT,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                responseMode: ResponseMode.FRAGMENT
             };
             const tokenResp = await pca.acquireTokenSilent(CommonSilentFlowRequest);
 
             expect(tokenResp).toEqual(testTokenResponse);
-            expect(createAcqTokenStub.calledWith(expectedRequest)).toBeTruthy();
-            expect(silentTokenHelperStub.calledWith(testNavUrl)).toBeTruthy();
+            expect(silentTokenHelperStub.args[0][1]).toEqual(expect.objectContaining(expectedRequest));
         });
     });
 
