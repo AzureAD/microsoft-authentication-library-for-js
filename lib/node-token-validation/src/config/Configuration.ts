@@ -49,6 +49,12 @@ const DEFAULT_SYSTEM_OPTIONS = {
     networkClient: NetworkUtils.getNetworkClient()
 };
 
+/**
+ * Function that sets default configurations when not explicitly configured
+ * 
+ * @param {@link (Configuration:type)} 
+ * @returns 
+ */
 export function buildConfiguration({
     auth,
     system,

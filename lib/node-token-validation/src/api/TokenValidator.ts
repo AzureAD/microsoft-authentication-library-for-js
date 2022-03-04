@@ -14,16 +14,39 @@ import { ValidationError } from "../error/ValidationError";
 import { name, version } from "../packageMetadata";
 import crypto from "crypto";
 
+
+/**
+ * The TokenValidator class is the object exposed by the library to perform token validation.
+ */
 export class TokenValidator {
+
+    // Input configuration
     private config: TokenValidationConfiguration;
+
+    // Logger object
     protected logger: Logger;
+
+    // Network interface implementation
     protected networkInterface: INetworkModule;
+
+    // OpenIdConfig Provider implementation
     protected openIdConfigProvider: OpenIdConfigProvider;
 
+    /**
+     * Constructor for the TokenValidator class
+     * @param configuration Object for the TokenValidator instance
+     */
     constructor(configuration: Configuration) {
+        // Set the configuration
         this.config = buildConfiguration(configuration);
+
+        // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
+
+        // Initialize network client
         this.networkInterface = this.config.system.networkClient,
+
+        // Initialize OpenId configuration provider
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
     }
 
@@ -108,6 +131,12 @@ export class TokenValidator {
         }
     }
 
+    /**
+     * Base function that validates tokens against options provided.
+     * @param token JWT token to be validated
+     * @param {@link (TokenValidationParameters:type)}
+     * @returns {Promise.<TokenValidationResponse>}
+     */
     async validateToken(token: string, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.trace("TokenValidator.validateToken called");
         
@@ -115,23 +144,29 @@ export class TokenValidator {
             throw ValidationConfigurationError.createMissingTokenError();
         }
 
+        // Sets defaults for validation params
         const validationParams: BaseValidationParameters = await buildTokenValidationParameters(options);
         this.logger.verbose("TokenValidator - ValidationParams built");
-            
+        
+        // Sets JWKS to be used in jwtVerify
         const jwks = await this.getJWKS(validationParams);
 
+        // Sets JWT verify options to be used in jwtVerify
         const jwtVerifyParams: JWTVerifyOptions = {
             algorithms: validationParams.validAlgorithms,
-            issuer: this.setIssuerParams(options),
-            audience: this.setAudienceParams(options),
+            issuer: this.setIssuerParams(validationParams),
+            audience: this.setAudienceParams(validationParams),
             subject: validationParams.subject,
             typ: validationParams.validTypes[0]
         };
 
+        // Verifies using JOSE's jwtVerify function. Returns payload and header
         const { payload, protectedHeader } = await jwtVerify(token, jwks, jwtVerifyParams);
 
+        // Validates additional claims not verified by jwtVerify
         this.validateClaims(payload, validationParams);
 
+        // Returns TokenValidationResponse
         return {
             protectedHeader,
             payload,
@@ -140,6 +175,12 @@ export class TokenValidator {
         } as TokenValidationResponse;
     }
     
+    
+    /**
+     * Function to return JWKS (JSON Web Key Set) from parameters provided, jwks_uri provided, or from well-known endpoint
+     * @param {@link (BaseValidationParameters:type)}
+     * @returns 
+     */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getJWKS(validationParams: BaseValidationParameters): Promise<any> {
         this.logger.trace("TokenValidator.getJWKS called");
@@ -163,7 +204,12 @@ export class TokenValidator {
         return createRemoteJWKSet(new URL(retrievedJwksUri));
     }
 
-    setIssuerParams(options: TokenValidationParameters): string[] {
+    /**
+     * Function to check that validIssuers parameter is not an empty array. Throws emptyIssuerError if empty.
+     * @param {@link (BaseValidationParameters:type)}
+     * @returns 
+     */
+    setIssuerParams(options: BaseValidationParameters): string[] {
         this.logger.trace("TokenValidator.setIssuerParams called");
 
         // Check that validIssuers is not empty
@@ -174,7 +220,12 @@ export class TokenValidator {
         return options.validIssuers;
     }
 
-    setAudienceParams(options: TokenValidationParameters): string[] {
+    /**
+     * Function to check that validAudiences parameter is not an empty array. Throws emptyAudience error if empty.
+     * @param {@link (BaseValidationParameters:type)} 
+     * @returns 
+     */
+    setAudienceParams(options: BaseValidationParameters): string[] {
         this.logger.trace("TokenValidator.setAudienceParams called");
 
         // Check that validAudiences is not empty
@@ -185,10 +236,15 @@ export class TokenValidator {
         return options.validAudiences;
     }
  
+    /**
+     * Function to validate additional claims on token, including nonce, c_hash, and at_hash. No return, throws error if invalid.
+     * @param payload JWT payload
+     * @param {@link (BaseValidationParameters:type)} 
+     */
     async validateClaims(payload: JWTPayload, validationParams: BaseValidationParameters): Promise<void> {
         this.logger.trace("TokenValidator.validateClaims called");
 
-        // Validate nonce
+        // Validate nonce in token against nonce provided in params
         if (payload.nonce) {
             if (!validationParams.nonce) {
                 throw ValidationConfigurationError.createMissingNonceError();
@@ -199,7 +255,7 @@ export class TokenValidator {
             }
         }
 
-        // Validate c_hash
+        // Validate c_hash on token against code provided in params
         if (payload.c_hash && typeof payload.c_hash === "string") {
             this.logger.trace("TokenValidator - Validating c_hash");
 
@@ -213,7 +269,7 @@ export class TokenValidator {
             }
         }
 
-        // Validate at_hash
+        // Validate at_hash on token against access token provided in params
         if (payload.at_hash && typeof payload.at_hash === "string") {
             this.logger.trace("TokenValidator - Validating at_hash");
 
@@ -229,7 +285,7 @@ export class TokenValidator {
     }
 
     /**
-     * Checking hash per OIDC spec, section 3.3.2.11 https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
+     * Function to check hash per OIDC spec, section 3.3.2.11 https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
      * @param content 
      * @param hashProvided 
      * @returns 

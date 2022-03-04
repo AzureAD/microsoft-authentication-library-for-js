@@ -61,6 +61,11 @@ export type BaseValidationParameters = {
     accessTokenForAtHash?: string,
 };
 
+/**
+ * Function that sets default options when not explicity passed in token validation parameters
+ * @param params 
+ * @returns 
+ */
 export function buildTokenValidationParameters(params: TokenValidationParameters): BaseValidationParameters {
     const DEFAULT_VALIDATION_PARAMS = {
         validAlgorithms: [JwtConstants.RSA_256],

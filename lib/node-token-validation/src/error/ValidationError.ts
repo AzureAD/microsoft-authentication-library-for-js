@@ -5,6 +5,9 @@
 
 import { AuthError } from "@azure/msal-common";
 
+/**
+ * ValidationErrorMessage class containing string constants used by error codes and messages.
+ */
 export const ValidationErrorMessage = {
     invalidNonce: {
         code: "invalid_nonce",
@@ -20,6 +23,9 @@ export const ValidationErrorMessage = {
     }
 };
 
+/**
+ * Token Validation library error class thrown for validation errors
+ */
 export class ValidationError extends AuthError {
 
     constructor(errorCode: string, errorMessage?: string) {
