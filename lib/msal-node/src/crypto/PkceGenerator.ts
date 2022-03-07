@@ -13,6 +13,11 @@ import crypto from "crypto";
  * https://tools.ietf.org/html/rfc7636#page-8
  */
 export class PkceGenerator {
+    private hashUtils: HashUtils;
+
+    constructor() {
+        this.hashUtils = new HashUtils();
+    }
     /**
      * generates the codeVerfier and the challenge from the codeVerfier
      * reference: https://tools.ietf.org/html/rfc7636#section-4.1 and https://tools.ietf.org/html/rfc7636#section-4.2
@@ -51,7 +56,7 @@ export class PkceGenerator {
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
         return EncodingUtils.base64EncodeUrl(
-            HashUtils.sha256(codeVerifier).toString("base64"), 
+            this.hashUtils.sha256(codeVerifier).toString("base64"), 
             "base64" 
         );
     }

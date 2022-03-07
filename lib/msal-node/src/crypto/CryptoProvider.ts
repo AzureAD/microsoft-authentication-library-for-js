@@ -16,10 +16,12 @@ import { HashUtils } from "./HashUtils";
  */
 export class CryptoProvider implements ICrypto {
     private pkceGenerator: PkceGenerator;
+    private hashUtils: HashUtils;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
         this.pkceGenerator = new PkceGenerator();
+        this.hashUtils = new HashUtils();
     }
 
     /**
@@ -87,7 +89,7 @@ export class CryptoProvider implements ICrypto {
      */
     async hashString(plainText: string): Promise<string> {
         return EncodingUtils.base64EncodeUrl(
-            HashUtils.sha256(plainText).toString("base64"), 
+            this.hashUtils.sha256(plainText).toString("base64"), 
             "base64" 
         );
     }

@@ -11,7 +11,7 @@ export class HashUtils {
      * generate 'SHA256' hash
      * @param buffer
      */
-    static sha256(buffer: string): Buffer {
+    sha256(buffer: string): Buffer {
         return crypto
             .createHash(Hash.SHA256)
             .update(buffer)
