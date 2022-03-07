@@ -180,6 +180,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                await publicClientApplication.clearCache();
                 await page.goto(homeRoute);
             });
         
