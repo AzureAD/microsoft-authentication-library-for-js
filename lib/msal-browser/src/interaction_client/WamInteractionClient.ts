@@ -148,6 +148,7 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
+        const authorityPreferredCache = authority.getPreferredCache();
 
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
