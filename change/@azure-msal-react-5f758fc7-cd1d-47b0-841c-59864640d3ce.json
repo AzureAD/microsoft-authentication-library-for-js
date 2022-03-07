@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add react 18 as supported peer dependency #4546",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

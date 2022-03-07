@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 08 Feb 2022 00:41:07 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Mar 2022 23:28:43 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.1
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Update MsalProvider state values concurrently #4477 (thomas.norling@microsoft.com)
+- Add react 18 as supported peer dependency #4546 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.22.1
 
 ## 1.3.0
 

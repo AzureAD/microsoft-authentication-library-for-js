@@ -60,7 +60,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
@@ -102,7 +102,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
