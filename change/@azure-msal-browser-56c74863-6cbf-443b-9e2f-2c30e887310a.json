@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Clear temporary cache when back button is clicked during redirect flow #4513",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

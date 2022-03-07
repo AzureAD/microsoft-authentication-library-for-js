@@ -86,7 +86,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -120,7 +119,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -154,7 +152,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -192,7 +189,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -230,7 +226,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -267,7 +262,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -648,7 +642,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -690,7 +683,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -737,7 +729,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -755,7 +746,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -807,7 +797,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
