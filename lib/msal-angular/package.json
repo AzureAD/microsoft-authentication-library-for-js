@@ -20,7 +20,7 @@
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm run build:all && npm publish dist",
+    "deploy": "npm run build:all && npm publish ./dist",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
