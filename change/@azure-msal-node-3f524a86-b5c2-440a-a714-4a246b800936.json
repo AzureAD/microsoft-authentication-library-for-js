@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix support for claims-based token caching #4533",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
