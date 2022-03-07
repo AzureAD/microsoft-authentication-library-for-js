@@ -7,7 +7,7 @@ import { Logger, AuthError, AuthErrorMessage } from "@azure/msal-common";
 import sinon from "sinon";
 import { WamMessageHandler } from "../../src/broker/wam/WamMessageHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
-import { WamConstants, WamExtensionMethod } from "../../src/utils/BrowserConstants";
+import { WamExtensionMethod } from "../../src/utils/BrowserConstants";
 import { WamAuthError } from "../../src/error/WamAuthError";
 
 describe("WamMessageHandler Tests", () => {
@@ -23,7 +23,7 @@ describe("WamMessageHandler Tests", () => {
     afterEach(() => {
         mcPort.close();
         sinon.restore();
-    })
+    });
 
     describe("createProvider", () => {
         it("Sends handshake request to preferred extension which responds", async () => {
