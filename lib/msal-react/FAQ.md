@@ -33,7 +33,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of React are supported?
 
-React versions 16 and 17 are supported.
+React versions 16.8.0+, 17 and 18 are supported.
 
 ### Does `@azure/msal-react` support Server Side Rendering (SSR) or static site generation?
 
