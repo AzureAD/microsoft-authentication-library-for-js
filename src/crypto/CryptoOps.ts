@@ -13,6 +13,7 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
+import { PerformanceEvents, PerformanceManager } from "../telemetry/PerformanceManager";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -41,12 +42,15 @@ export class CryptoOps implements ICrypto {
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
+    // CryptoOps can be used in contexts outside a PCA instance,
+    // meaning there won't be a performance manager available.
+    private performanceManager: PerformanceManager | undefined;
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, performanceManager?: PerformanceManager) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
@@ -58,6 +62,7 @@ export class CryptoOps implements ICrypto {
             asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
             symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
         };
+        this.performanceManager = performanceManager;
     }
 
     /**
@@ -96,6 +101,8 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
+        const endMeasurement = this.performanceManager?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
+
         // Generate Keypair
         const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
@@ -127,6 +134,12 @@ export class CryptoOps implements ICrypto {
             }
         );
 
+        if (endMeasurement) {
+            endMeasurement({
+                success: true
+            });
+        }
+
         return publicJwkHash;
     }
 
@@ -154,7 +167,8 @@ export class CryptoOps implements ICrypto {
      * @param payload 
      * @param kid 
      */
-    async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+    async signJwt(payload: SignedHttpRequest, kid: string, correlationId?: string): Promise<string> {
+        const endMeasurement = this.performanceManager?.startMeasurement(PerformanceEvents.CryptoOptsSignJwt, correlationId);
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
@@ -186,7 +200,15 @@ export class CryptoOps implements ICrypto {
         const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
-        return `${tokenString}.${encodedSignature}`;
+        const signedJwt = `${tokenString}.${encodedSignature}`;
+
+        if (endMeasurement) {
+            endMeasurement({
+                success: true
+            });
+        }
+
+        return signedJwt;
     }
 
     /**
