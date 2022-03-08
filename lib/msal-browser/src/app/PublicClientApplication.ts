@@ -142,7 +142,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             endMeasurement({
                 success: true
             });
-            this.performanceManager.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
+            this.performanceManager.discardMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
             return cachedResponse;
         }
     }

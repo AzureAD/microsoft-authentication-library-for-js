@@ -3,7 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common";
+import { BrowserCrypto } from "../crypto/BrowserCrypto";
+import { GuidGenerator } from "../crypto/GuidGenerator";
 import { PerformanceMeasurement } from "./PerformanceMeasurement";
 
 export enum PerformanceEvents {
@@ -11,8 +13,9 @@ export enum PerformanceEvents {
     SsoSilent = "ssoSilent",
     AcquireTokenByCode = "acquireTokenByCode",
     AcquireTokenSilentAsync = "acquireTokenSilentAsync",
-    AcquireTokenByRefreshToken = "acquireTokenByRefreshToken"
-
+    AcquireTokenByRefreshToken = "acquireTokenByRefreshToken",
+    CryptoOptsGetPublicKeyThumbprint = "cryptoOptsGetPublicKeyThumbprint",
+    CryptoOptsSignJwt = "cryptoOptsSignJwt"
 }
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
@@ -42,23 +45,25 @@ export class PerformanceManager {
     private libraryVersion: string;
     private clientId: string;
     private logger: Logger;
-    private crypto: ICrypto;
+    private browserCrypto: BrowserCrypto;
+    private guidGenerator: GuidGenerator;
     private callbacks: Map<string, PerformanceCallbackFunction>;
     private eventsByCorrelationId: Map<string, PerformanceEvent[]>;
 
-    constructor(clientId: string, authority: string, logger: Logger, crypto: ICrypto, libraryName: string, libraryVersion: string) {
+    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {
         this.authority = authority;
         this.libraryName = libraryName;
         this.libraryVersion = libraryVersion;
         this.clientId = clientId;
         this.logger = logger;
-        this.crypto = crypto;
+        this.browserCrypto = new BrowserCrypto(this.logger);
+        this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
     }
 
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent {
-        this.logger.trace(`Performance measurement started for ${measureName}`, correlationId);
+        this.logger.trace(`PerformanceManager: Performance measurement started for ${measureName}`, correlationId);
         const performanceMeasure = new PerformanceMeasurement(measureName, correlationId);
         performanceMeasure.startMeasurement();
         const startTimeMs = Date.now();
@@ -76,7 +81,7 @@ export class PerformanceManager {
     endMeasurement(performanceMeasure: PerformanceMeasurement, additionalEventData: Partial<PerformanceEvent>, measureName: PerformanceEvents, correlationId?: string): PerformanceEvent {
         performanceMeasure.endMeasurement();
         const durationMs = Math.round(performanceMeasure.flushMeasurement());
-        this.logger.trace(`Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
+        this.logger.trace(`PerformanceManager: Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
         const event: PerformanceEvent = {
             authority: this.authority,
             libraryName: this.libraryName,
@@ -99,10 +104,10 @@ export class PerformanceManager {
         } else {
             const events = this.eventsByCorrelationId.get(correlationId);
             if (events) {
-                this.logger.trace(`Performance measurement for ${measureName} added`, correlationId);
+                this.logger.trace(`PerformanceManager: Performance measurement for ${measureName} added`, correlationId);
                 events.push(event);
             } else {
-                this.logger.trace(`Performance measurement for ${measureName} started`, correlationId);
+                this.logger.trace(`PerformanceManager: Performance measurement for ${measureName} started`, correlationId);
                 this.eventsByCorrelationId.set(correlationId, [event]);
             }
         }
@@ -112,17 +117,15 @@ export class PerformanceManager {
 
     flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void {
         if (correlationId) {
-            this.logger.trace("Performance measurements flushed", correlationId);
+            this.logger.trace("PerformanceManager: Performance measurements flushed", correlationId);
             const events = this.eventsByCorrelationId.get(correlationId);
             if (events) {
                 const topLevelEvent = events.find(event => event.name === measureName);
                 if (topLevelEvent) {
                     const subMeasurements = events.filter(event => event.name !== measureName);
-                    //Attach new fields to sm
                     subMeasurements.forEach(event => {
+                        // TODO: Emit additional properties for each subMeasurement
                         topLevelEvent[`${event.name}DurationMs`] = event.durationMs;
-
-                        //filtering based on event type
                     })
 
                     this.emitEvents([topLevelEvent]);
@@ -133,11 +136,18 @@ export class PerformanceManager {
         }
     }
 
+    discardMeasurements(measureName: PerformanceEvents, correlationId?: string): void {
+        if (correlationId) {
+            this.logger.trace("PerformanceManager: Performance measurements discarded", correlationId);
+            this.eventsByCorrelationId.delete(correlationId);
+        }
+    }
+
     addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
         if (typeof window !== "undefined") {
-            const callbackId = this.crypto.createNewGuid();
+            const callbackId = this.guidGenerator.generateGuid();
             this.callbacks.set(callbackId, callback);
-            this.logger.verbose(`Performance callback registered with id: ${callbackId}`);
+            this.logger.verbose(`PerformanceManager: Performance callback registered with id: ${callbackId}`);
 
             return callbackId;
         }
@@ -147,15 +157,15 @@ export class PerformanceManager {
 
     removePerformanceCallback(callbackId: string): void {
         this.callbacks.delete(callbackId);
-        this.logger.verbose(`Performance callback ${callbackId} removed.`);
+        this.logger.verbose(`PerformanceManager: Performance callback ${callbackId} removed.`);
     }
 
     emitEvents(events: PerformanceEvent[], correlationId?: string): void {
         if (typeof window !== "undefined") {
-            this.logger.verbose("Emitting performance events", correlationId);
+            this.logger.verbose("PerformanceManager: Emitting performance events", correlationId);
 
             this.callbacks.forEach((callback: PerformanceCallbackFunction, callbackId: string) => {
-                this.logger.verbose(`Emitting event to callback ${callbackId}`, correlationId);
+                this.logger.verbose(`PerformanceManager: Emitting event to callback ${callbackId}`, correlationId);
                 callback.apply(null, [events]);
             });
         }

@@ -113,8 +113,11 @@ export abstract class ClientApplication {
         // Initial hybrid spa map
         this.hybridAuthCodeResponses = new Map();
         
+        // Initialize performance manager
+        this.performanceManager = new PerformanceManager(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
+
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger) : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceManager) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -125,9 +128,6 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
-
-        // Initialize performance manager
-        this.performanceManager = new PerformanceManager(this.config.auth.clientId, this.config.auth.authority, this.logger, this.browserCrypto, name, version);
     }
 
     // #region Redirect Flow
