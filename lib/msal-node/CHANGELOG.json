@@ -2,6 +2,49 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/msal-node_v1.7.0",
+      "version": "1.7.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "eb5b95017798be3081f4e93197ab4ffc767d22fd",
+            "comment": "Fix support for claims-based token caching #4533"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "34ee02434be99db2e03376b5994579df27c4b546",
+            "comment": "Persist authority in in memory cache #4081"
+          }
+        ],
+        "minor": [
+          {
+            "author": "marionminayo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "51946eef5cd502f1edee4e37439396671496b31e",
+            "comment": "Added nonce support to MSAL Node #4504"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a67bd3b8d476268e1ac18840e6b03828c87f34d5",
+            "comment": "Unit tests only"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "d4353b05a90998a47f9f3feaef9b2ee5e88b3875",
+            "comment": "Update axios to address follow-redirects alert #4517"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Feb 2022 00:41:06 GMT",
       "tag": "@azure/msal-node_v1.6.0",
       "version": "1.6.0",

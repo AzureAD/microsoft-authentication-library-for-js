@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update axios to address follow-redirects alert #4517",
-  "packageName": "@azure/msal-node",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
