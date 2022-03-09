@@ -83,6 +83,8 @@ export class Serializer {
                 refresh_on: atEntity.refreshOn,
                 key_id: atEntity.keyId,
                 token_type: atEntity.tokenType,
+                requestedClaims: atEntity.requestedClaims,
+                requestedClaimsHash: atEntity.requestedClaimsHash
             };
         });
 
