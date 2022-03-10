@@ -1,0 +1,80 @@
+{
+  "name": "msal-node-auth-code",
+  "entries": [
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "msal-node-auth-code_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "msal-node-auth-code"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Sep 2020 21:13:48 GMT",
+      "tag": "msal-node-auth-code_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "msal-node-auth-code"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "msal-node-auth-code_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "msal-node-auth-code"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Aug 2020 00:40:45 GMT",
+      "tag": "msal-node-auth-code_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "msal-node-auth-code"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 13 Aug 2020 02:20:48 GMT",
+      "tag": "msal-node-auth-code_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "add beachball config",
+            "author": "prkanher@microsoft.com",
+            "commit": "50d9a9533b07a4a5bf7833bd6a5d0d35798c4903",
+            "package": "msal-node-auth-code"
+          }
+        ]
+      }
+    }
+  ]
+}
