@@ -30,8 +30,10 @@ const getTokenAuthCode = function (port) {
     }
 
     const config = {
-        clientId: "client-id-here",
-        authority: "https://login.microsoftonline.com/common/",
+        auth: {
+            clientId: "client-id-here",
+            authority: "https://login.microsoftonline.com/common/",
+        },
         system: {
             loggerOptions: loggerOptions
         } 

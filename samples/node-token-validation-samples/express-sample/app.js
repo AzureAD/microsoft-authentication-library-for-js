@@ -31,7 +31,7 @@ app.use(express.static(path.join(__dirname, './public')));
  * and set them as desired. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
-    secret: 'DI-7Q~tRB6NAIZz3fB6qR1jTJ~F0iaapUFDE2',
+    secret: 'ADD_SECRET_HERE',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -100,11 +100,10 @@ app.get('/validate',
   msid.getToken({
     resource: msid.appSettings.protectedResources.custom
   }),
-  tokenValidator.addAuthorizationHeaderMiddleware('custom'),
-  tokenValidator.validateTokenMiddleware(tokenValidationParams), 
+  tokenValidator.validateTokenMiddleware(tokenValidationParams, 'custom'), 
   (req, res) => {
-    console.log("VALIDATION RESPONSE: ", res);
-    res.json('token validation complete');
+    console.log('Token validation complete');
+    // Call controller or other function with validated access token stored in req.session.protectedResources.custom
 });
 
 // unauthorized

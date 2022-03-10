@@ -15,7 +15,7 @@ const appSettings = {
         scopes: ["user.read"]
     },
     custom: {
-      scopes: ["custom-scope"]
+      scopes: ["add-custom-scope-here"]
     }
   }
 }

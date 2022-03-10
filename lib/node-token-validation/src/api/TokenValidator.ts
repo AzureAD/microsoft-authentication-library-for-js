@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme, INetworkModule, Logger } from "@azure/msal-common";
+import { AuthenticationResult, AuthenticationScheme, INetworkModule, Logger } from "@azure/msal-common";
 import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
@@ -13,7 +13,6 @@ import { ValidationConfigurationError } from "../error/ValidationConfigurationEr
 import { ValidationError } from "../error/ValidationError";
 import { name, version } from "../packageMetadata";
 import crypto from "crypto";
-
 
 /**
  * The TokenValidator class is the object exposed by the library to perform token validation.
@@ -50,9 +49,15 @@ export class TokenValidator {
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
     }
 
-    validateTokenMiddleware(options: TokenValidationParameters) {
+    validateTokenMiddleware(options: TokenValidationParameters, resource?: string) {
         // @ts-ignore
         return (req: any, res: any, next: any) => {
+
+            // Adding access token to authorization header from session
+            if (resource) {
+                const token = req.session.protectedResources[resource].accessToken;
+                req.headers.authorization = `Bearer ${token}`;
+            }
 
             this.validateTokenFromRequest(req, options)
                 .then(() => {
@@ -64,24 +69,9 @@ export class TokenValidator {
         };
     }
 
-    // @ts-ignore
-    addAuthorizationHeaderMiddleware(resource: string) {
-        // @ts-ignore
-        return (req: any, res: any, next: any) => {
-            console.log("REQUEST: ", req.session.protectedResources);
-            const token = req.session.protectedResources[resource].accessToken;
-            req.headers.authorization = `Bearer ${token}`;
-            next();
-        };
-    }
-
     // What would be the request type here?
     async validateTokenFromRequest(request: any, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.trace("TokenValidator.validateTokenFromRequest called");
-
-        console.log("TOKEN VALIDATION LIBRARY: ", request.headers);
-
-        // const token = "tokentoken";
 
         // Determine header type - bearer or other. If other, we will call proxy or MISE. If bearer, continue. 
         if (request.headers && request.headers.authorization) {
@@ -107,25 +97,39 @@ export class TokenValidator {
         throw new Error("no tokens in header or body");
     }
 
-    // What would be the response type here?
-    async validateTokenFromResponse(response: any, options: TokenValidationParameters): Promise<TokenValidationResponse[]> {
+    // Response type here would be AuthenticationResult from msal-common. Could write another API for HTTP response
+    async validateTokenFromResponse(response: AuthenticationResult, idTokenOptions?: TokenValidationParameters, accessTokenOptions?: TokenValidationParameters): Promise<TokenValidationResponse[]> {
         this.logger.trace("TokenValidator.validateTokenFromResponse called");
 
-        if (response.token_type === AuthenticationScheme.BEARER) {
+        if (response.tokenType === AuthenticationScheme.BEARER) {
+            this.logger.verbose("TokenValidator - Bearer authentication scheme confirmed");
             const validateResponse:TokenValidationResponse[] = [];
 
-            if (response.id_token) {
-                // Add checks for code and access token for c_hash and at_hash check
-                const validateIdTokenResponse: TokenValidationResponse = await this.validateToken(response.id_token, options);
-                validateResponse.push(validateIdTokenResponse);
+            if (!response.idToken && !response.accessToken) {
+                this.logger.verbose("TokenValidator.validateTokenFromResponse - No tokens on response object to validate");
             }
 
-            if (response.access_token) {
-                const validateAccessTokenResponse: TokenValidationResponse = await this.validateToken(response.access_token, options);
-                validateResponse.push(validateAccessTokenResponse);
+            if (response.idToken) {
+                if (!idTokenOptions) {
+                    this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response but idTokenOptions not passed. Id token is not validated");
+                } else {
+                    this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response, validating");
+                    const validateIdTokenResponse: TokenValidationResponse = await this.validateToken(response.idToken, idTokenOptions);
+                    validateResponse.push(validateIdTokenResponse);
+                }
             }
 
-            return validateResponse;
+            if (response.accessToken) {
+                if (!accessTokenOptions) {
+                    this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response but idTokenOptions not passed. Id token is not validated");
+                } else {
+                    this.logger.verbose("TokenValidator.validateTokenFromResponse - access token present on response, validating");
+                    const validateAccessTokenResponse: TokenValidationResponse = await this.validateToken(response.accessToken, accessTokenOptions);
+                    validateResponse.push(validateAccessTokenResponse);
+                }
+            }
+
+            return validateResponse; // Do we need to say which is id or access token? Or treat all as JWT tokens?
         } else {
             throw new Error("Only bearer authentication scheme supported at this time");
         }
@@ -174,7 +178,6 @@ export class TokenValidator {
             tokenType: validationParams.validTypes[0]
         } as TokenValidationResponse;
     }
-    
     
     /**
      * Function to return JWKS (JSON Web Key Set) from parameters provided, jwks_uri provided, or from well-known endpoint
