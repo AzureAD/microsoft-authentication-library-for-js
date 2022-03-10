@@ -2,7 +2,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { UrlTree } from '@angular/router';
 import { Location } from "@angular/common";
-import { BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
+import { AuthError, BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
@@ -70,7 +70,7 @@ function initializeMsal(providers: any[] = []) {
 describe('MsalGuard', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
-    testLoginFailedRoute = undefined;
+    testLoginFailedRoute = undefined!;
     testConfiguration = { };
     browserSystemOptions = { };
     routeStateMock = { snapshot: {}, url: '/' };
@@ -90,7 +90,7 @@ describe('MsalGuard', () => {
         (result) => {},
       );
     } catch (err) {
-      expect(err.errorCode).toBe("invalid_interaction_type");
+      expect((err as AuthError).errorCode).toBe("invalid_interaction_type");
       done();
     }
   })
@@ -139,7 +139,7 @@ describe('MsalGuard', () => {
       }]);
   
     guard.canActivate(routeMock, routeStateMock)
-        .subscribe((result: UrlTree) => {
+        .subscribe((result: boolean | UrlTree) => {
             expect(result.toString()).toEqual('/path');
             done();
         });
@@ -178,7 +178,7 @@ describe('MsalGuard', () => {
       }]);
   
     guard.canActivate(routeMock, routeStateMock)
-        .subscribe((result: UrlTree) => {
+        .subscribe((result: boolean | UrlTree) => {
             expect(result).toBeTrue();
             done();
         });
@@ -217,7 +217,7 @@ describe('MsalGuard', () => {
       }]);
   
     guard.canActivate(routeMock, routeStateMock)
-        .subscribe((result: UrlTree) => {
+        .subscribe((result: boolean | UrlTree) => {
             expect(result).toBeTrue();
             done();
         });
@@ -256,7 +256,7 @@ describe('MsalGuard', () => {
       }]);
   
     guard.canActivate(routeMock, routeStateMock)
-        .subscribe((result: UrlTree) => {
+        .subscribe((result: boolean | UrlTree) => {
             expect(result).toBeTrue();
             done();
         });
@@ -295,7 +295,7 @@ describe('MsalGuard', () => {
       }]);
   
     guard.canActivate(routeMock, routeStateMock)
-        .subscribe((result: UrlTree) => {
+        .subscribe((result: boolean | UrlTree) => {
             expect(result.toString()).toEqual('/');
             done();
         });

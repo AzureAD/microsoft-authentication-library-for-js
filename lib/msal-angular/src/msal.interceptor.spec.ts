@@ -42,7 +42,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://api.test.com", ["default.scope1"]],
       ["https://*.test.com", ["default.scope2"]],
       ["http://localhost:3000/unprotect", null],
-      ["http://localhost:3000/unprotect/post",[{ httpMethod:"POST", scopes: null }]],
+      ["http://localhost:3000/unprotect/post",[{ httpMethod:"POST", scopes: null! }]],
       ["http://localhost:3000/", ["base.scope"]],
       ["http://localhost:9876/tenant?abc", ["query.scope"]],
       ["http://applicationA/slash/", ["customA.scope"]],
@@ -78,7 +78,7 @@ function initializeMsal() {
     imports: [
       HttpClientTestingModule,
       RouterTestingModule,
-      MsalModule.forRoot(MSALInstanceFactory(), null, MSALInterceptorFactory())
+      MsalModule.forRoot(MSALInstanceFactory(), null!, MSALInterceptorFactory())
     ],
     providers: [
       MsalInterceptor,
@@ -167,7 +167,7 @@ describe('MsalInterceptor', () => {
       new Promise((resolve) => {
         //@ts-ignore
         resolve({
-          accessToken: null
+          accessToken: null!
         });
       })
     ));
@@ -425,7 +425,7 @@ describe('MsalInterceptor', () => {
     testInterceptorConfig.authRequest = (msalService, httpReq, authRequest) => {
       return {
         ...authRequest,
-        authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`
+        authority: `https://login.microsoftonline.com/${authRequest.account!.tenantId}`
       };
     }
     initializeMsal();

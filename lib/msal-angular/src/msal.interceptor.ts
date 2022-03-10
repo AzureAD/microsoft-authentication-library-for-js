@@ -20,14 +20,14 @@ import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedReso
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
-    private _document?: Document;
+    private _document: Document;
 
     constructor(
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
         private authService: MsalService,
         private location: Location,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
-        @Inject(DOCUMENT) document?: any
+        @Inject(DOCUMENT) document: any
     ) {
         this._document = document as Document;
     }
@@ -48,10 +48,9 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         // Sets account as active account or first account
-        let account: AccountInfo;
-        if (!!this.authService.instance.getActiveAccount()) {
+        let account: AccountInfo | null = this.authService.instance.getActiveAccount();
+        if (account) {
             this.authService.getLogger().verbose("Interceptor - active account selected");
-            account = this.authService.instance.getActiveAccount();
         } else {
             this.authService.getLogger().verbose("Interceptor - no active account, fallback to first account");
             account = this.authService.instance.getAllAccounts()[0];
@@ -186,15 +185,15 @@ export class MsalInterceptor implements HttpInterceptor {
      * @returns 
      */
     private matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
-        const allMatchedScopes = [];
+        const allMatchedScopes: Array<string[] | null> = [];
 
         // Check each matched endpoint for matching HttpMethod and scopes
         endpointArray.forEach(matchedEndpoint => {
-            const scopesForEndpoint = [];
+            const scopesForEndpoint: string[] = [];
             const methodAndScopesArray = protectedResourceMap.get(matchedEndpoint);
 
             // Return if resource is unprotected
-            if (methodAndScopesArray === null) {
+            if (!methodAndScopesArray) {
                 allMatchedScopes.push(null);
                 return;
             }

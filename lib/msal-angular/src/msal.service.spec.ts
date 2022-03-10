@@ -17,7 +17,7 @@ function initializeMsal() {
 
   TestBed.configureTestingModule({
     imports: [
-      MsalModule.forRoot(msalInstance, null, { interactionType: InteractionType.Popup, protectedResourceMap: new Map() })
+      MsalModule.forRoot(msalInstance, null!, { interactionType: InteractionType.Popup, protectedResourceMap: new Map() })
     ],
     providers: [
       MsalService,
@@ -203,7 +203,7 @@ describe('MsalService', () => {
 
       const request: SilentRequest = {
         scopes: ["user.read"],
-        account: null
+        account: null!
       };
 
       authService.acquireTokenSilent(request)
@@ -226,7 +226,7 @@ describe('MsalService', () => {
 
       const request: SilentRequest = {
         scopes: ["wrong.scope"],
-        account: null
+        account: null!
       };
 
       authService.acquireTokenSilent(request)
@@ -322,8 +322,8 @@ describe('MsalService', () => {
       ));
 
       authService.handleRedirectObservable()
-        .subscribe((response: AuthenticationResult) => {
-          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+        .subscribe((response: AuthenticationResult | null) => {
+          expect(response!.accessToken).toBe(sampleAccessToken.accessToken);
           expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled();
           done();
         });
@@ -363,8 +363,8 @@ describe('MsalService', () => {
       ));
 
       authService.handleRedirectObservable(hash)
-        .subscribe((response: AuthenticationResult) => {
-          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+        .subscribe((response: AuthenticationResult | null) => {
+          expect(response!.accessToken).toBe(sampleAccessToken.accessToken);
           expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalledWith(hash);
           done();
         });

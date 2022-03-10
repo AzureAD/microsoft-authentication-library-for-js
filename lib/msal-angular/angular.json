@@ -12,14 +12,17 @@
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "./tsconfig.lib.json",
             "project": "./ng-package.json"
           },
           "configurations": {
             "production": {
               "tsConfig": "./tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "./tsconfig.lib.json"
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -28,18 +31,6 @@
             "tsConfig": "./tsconfig.spec.json",
             "karmaConfig": "./karma.conf.js",
             "codeCoverage": true
-          }
-        },
-        "lint": {
-          "builder": "@angular-devkit/build-angular:tslint",
-          "options": {
-            "tsConfig": [
-              "./tsconfig.lib.json",
-              "./tsconfig.spec.json"
-            ],
-            "exclude": [
-              "**/node_modules/**"
-            ]
           }
         }
       }

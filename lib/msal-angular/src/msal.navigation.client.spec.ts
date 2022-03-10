@@ -24,7 +24,7 @@ describe('MsalCustomNaviationClient', () => {
 
         TestBed.configureTestingModule({
             imports: [
-                MsalModule.forRoot(msalInstance, null, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})
+                MsalModule.forRoot(msalInstance, null!, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})
             ],
             providers: [
                 MsalBroadcastService,

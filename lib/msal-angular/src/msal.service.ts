@@ -24,8 +24,8 @@ import { name, version } from "./packageMetadata";
 
 @Injectable()
 export class MsalService implements IMsalService {
-    private redirectHash: string;
-    private logger: Logger;
+    private redirectHash?: string;
+    private logger?: Logger;
 
     constructor(
         @Inject(MSAL_INSTANCE) public instance: IPublicClientApplication,
@@ -47,7 +47,7 @@ export class MsalService implements IMsalService {
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.acquireTokenSilent(silentRequest));
     }
-    handleRedirectObservable(hash?: string): Observable<AuthenticationResult> {
+    handleRedirectObservable(hash?: string): Observable<AuthenticationResult | null> {
         return from(this.instance.handleRedirectPromise(hash || this.redirectHash));
     }
     loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
