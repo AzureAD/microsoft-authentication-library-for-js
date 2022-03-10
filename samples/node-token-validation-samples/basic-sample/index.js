@@ -57,40 +57,6 @@ const getTokenAuthCode = function (port) {
             res.status(500).send(error);
         });
 
-        // REQUEST SAMPLE
-        // const request = {
-        //     headers: new Map(),
-        //     body: {
-        //         access_token: token
-        //     }
-        // };
-
-        // request.headers.set("Authorization", `Bearer ${token}`);
-
-        // tokenValidator.validateTokenFromRequest(request, tokenValidationParams).then((response) => {
-        //     console.log("Token was validated");
-        //     console.log(response);
-        //     res.sendStatus(200);
-        // }).catch((error) => {
-        //     console.log(error);
-        //     res.status(500).send(error);
-        // });
-
-        // // RESPONSE SAMPLE
-        // const response = {
-        //     token_type: "Bearer",
-        //     id_token: token
-        // };
-
-        // tokenValidator.validateTokenFromResponse(response, tokenValidationParams).then((response) => {
-        //     console.log("Token was validated");
-        //     console.log(response);
-        //     res.sendStatus(200);
-        // }).catch((error) => {
-        //     console.log(error);
-        //     res.status(500).send(error);
-        // });
-
     });
 
     return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
