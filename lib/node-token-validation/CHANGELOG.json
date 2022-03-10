@@ -1,0 +1,26 @@
+{
+  "name": "@azure/node-token-validation",
+  "entries": [
+    {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
+      "version": "1.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/node-token-validation",
+            "commit": "856d081821dc762f2de180431eef2e938e68a493",
+            "comment": "Implement basic token validation #4368"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/node-token-validation",
+            "comment": "Bump @azure/msal-common to v6.1.0",
+            "commit": "34ee02434be99db2e03376b5994579df27c4b546"
+          }
+        ]
+      }
+    }
+  ]
+}

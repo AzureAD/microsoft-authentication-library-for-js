@@ -4,14 +4,20 @@
  */
 
 import { PkceCodes } from "@azure/msal-common";
-import { CharSet, Hash, RANDOM_OCTET_SIZE } from "../utils/Constants";
+import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants";
 import { EncodingUtils } from "../utils/EncodingUtils";
+import { HashUtils } from "./HashUtils";
 import crypto from "crypto";
 
 /**
  * https://tools.ietf.org/html/rfc7636#page-8
  */
 export class PkceGenerator {
+    private hashUtils: HashUtils;
+
+    constructor() {
+        this.hashUtils = new HashUtils();
+    }
     /**
      * generates the codeVerfier and the challenge from the codeVerfier
      * reference: https://tools.ietf.org/html/rfc7636#section-4.1 and https://tools.ietf.org/html/rfc7636#section-4.2
@@ -50,19 +56,9 @@ export class PkceGenerator {
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
         return EncodingUtils.base64EncodeUrl(
-            this.sha256(codeVerifier).toString("base64"), 
-            "base64"
+            this.hashUtils.sha256(codeVerifier).toString("base64"), 
+            "base64" 
         );
     }
 
-    /**
-     * generate 'SHA256' hash
-     * @param buffer
-     */
-    private sha256(buffer: string): Buffer {
-        return crypto
-            .createHash(Hash.SHA256)
-            .update(buffer)
-            .digest();
-    }
 }

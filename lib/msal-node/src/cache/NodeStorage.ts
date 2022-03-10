@@ -57,7 +57,6 @@ export class NodeStorage extends CacheManager {
      * @param cache - key value store
      */
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache {
-
         const inMemoryCache: InMemoryCache = {
             accounts: {},
             idTokens: {},
@@ -90,16 +89,20 @@ export class NodeStorage extends CacheManager {
      * @param inMemoryCache - kvstore map for inmemory
      */
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore {
+
         // convert in memory cache to a flat Key-Value map
         let cache = this.getCache();
 
         cache = {
+            ...cache,
             ...inMemoryCache.accounts,
             ...inMemoryCache.idTokens,
             ...inMemoryCache.accessTokens,
             ...inMemoryCache.refreshTokens,
             ...inMemoryCache.appMetadata
         };
+
+        // convert in memory cache to a flat Key-Value map
         return cache;
     }
 
