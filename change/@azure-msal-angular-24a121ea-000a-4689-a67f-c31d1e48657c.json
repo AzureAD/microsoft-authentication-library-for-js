@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update @azure/msal-angular to Angular 13 and rxjs 7 (#4599)",
+  "packageName": "@azure/msal-angular",
+  "email": "lukas.spirig@gmail.com",
+  "dependentChangeType": "patch"
+}
