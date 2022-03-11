@@ -12,6 +12,7 @@
     },
     "devDependencies": {
         "@azure/identity": "^1.5.2",
+        "@azure/keyvault-secrets": "^4.3.0",
         "@types/jest": "^27.4.0",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4",

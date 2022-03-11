@@ -13,7 +13,7 @@ import {
     SAMPLE_HOME_URL
  } from "../../testUtils";
 import { PublicClientApplication } from "../../../../lib/msal-node";
-import { getKeyVaultSecretClient, getCredentials } from "../../keyVaultUtils";
+import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc-public.cache.json`;
