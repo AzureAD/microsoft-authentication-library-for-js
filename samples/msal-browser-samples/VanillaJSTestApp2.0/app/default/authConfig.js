@@ -1,8 +1,7 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
-        authority: "https://login.windows-ppe.net/common/"
+        clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
