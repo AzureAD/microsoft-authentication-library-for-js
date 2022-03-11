@@ -181,6 +181,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                await publicClientApplication.clearCache();
             });
         
             afterEach(async () => {

@@ -182,6 +182,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                await confidentialClientApplication.clearCache();
             });
         
             afterEach(async () => {

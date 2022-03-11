@@ -1,3 +1,5 @@
+The non-AGC E2E tests are not able to be run in the AGCE. In order to run - and ONLY run - the AGC E2E tests while in the AGCE, changes must be made to the jest-preset files. Inside of jest-preset.js and jest-preset-no-setup.js, line 7 must be commented and line 9 must be uncommented.
+
 The following seven environment variables must be set in powershell before running the AGC E2E tests. They can be set via the following commands:
 
 1. $env:GRAPH_URL = "The URL of Microsoft Graph API"
