@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add public APIs #4576",
+  "packageName": "@azure/node-token-validation",
+  "email": "joliuac@gmail.com",
+  "dependentChangeType": "none"
+}
