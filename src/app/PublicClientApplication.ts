@@ -156,7 +156,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult> {
         const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
+        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, request.correlationId);
         const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
