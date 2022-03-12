@@ -49,6 +49,12 @@ export class TokenValidator {
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
     }
 
+    /**
+     * Middleware-style function to validate token from request.
+     * @param {@link (TokenValidationParameters:type)}
+     * @param resource Optional resource to retrieve access token from session 
+     * @returns 
+     */
     validateTokenMiddleware(options: TokenValidationParameters, resource?: string) {
         // @ts-ignore
         return (req: any, res: any, next: any) => {
@@ -69,13 +75,20 @@ export class TokenValidator {
         };
     }
 
-    // What would be the request type here?
+    /**
+     * Function to validate token from request
+     * @param request 
+     * @param {@link (TokenValidationParameters:type)}
+     * @returns {Promise.<TokenValidationResponse>}
+     */
     async validateTokenFromRequest(request: any, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.trace("TokenValidator.validateTokenFromRequest called");
 
-        // Determine header type - bearer or other. If other, we will call proxy or MISE. If bearer, continue. 
+        // Validates token if found in authorization header
         if (request.headers && request.headers.authorization) {
             const authComponents = request.headers.authorization.split(" ");
+            
+            // Validates token if authorization header is bearer
             if (authComponents.length === 2 && authComponents[0].toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
                 const token: string = authComponents[1];
                 this.logger.verbose("Bearer token extracted from request authorization headers");
@@ -86,21 +99,25 @@ export class TokenValidator {
             }
         } 
         
+        // Validates token if found in request body
         if (request.body && request.body.access_token) {
-            const token: string = request.body.access_token;
-            if (token) {
-                this.logger.verbose("Token extracted from request body");
-                return this.validateToken(token, options);
-            }
+            this.logger.verbose("Token extracted from request body");
+            return this.validateToken(request.body.access_token, options);
         }
 
         throw new Error("no tokens in header or body");
     }
 
-    // Response type here would be AuthenticationResult from msal-common. Could write another API for HTTP response
+    /**
+     * Function to validate token from msal-node token acquisition response. Returns array of token validation responses.
+     * @param response 
+     * @param {@link (TokenValidationParameters:type)}
+     * @returns {Promise.<TokenValidationResponse>}
+     */
     async validateTokenFromResponse(response: AuthenticationResult, idTokenOptions?: TokenValidationParameters, accessTokenOptions?: TokenValidationParameters): Promise<TokenValidationResponse[]> {
         this.logger.trace("TokenValidator.validateTokenFromResponse called");
 
+        // Only validates token if tokenType from response is Bearer
         if (response.tokenType === AuthenticationScheme.BEARER) {
             this.logger.verbose("TokenValidator - Bearer authentication scheme confirmed");
             const validateResponse:TokenValidationResponse[] = [];
@@ -109,6 +126,7 @@ export class TokenValidator {
                 this.logger.verbose("TokenValidator.validateTokenFromResponse - No tokens on response object to validate");
             }
 
+            // Validates id token on response separately from access token
             if (response.idToken) {
                 if (!idTokenOptions) {
                     this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response but idTokenOptions not passed. Id token is not validated");
@@ -119,6 +137,7 @@ export class TokenValidator {
                 }
             }
 
+            // Validates access token on response separately from id token
             if (response.accessToken) {
                 if (!accessTokenOptions) {
                     this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response but idTokenOptions not passed. Id token is not validated");
@@ -129,7 +148,7 @@ export class TokenValidator {
                 }
             }
 
-            return validateResponse; // Do we need to say which is id or access token? Or treat all as JWT tokens?
+            return validateResponse;
         } else {
             throw new Error("Only bearer authentication scheme supported at this time");
         }
