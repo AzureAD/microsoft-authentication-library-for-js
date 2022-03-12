@@ -25,6 +25,14 @@ export class RedirectClient extends StandardInteractionClient {
         this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
+        const handleBackButton = (event: PageTransitionEvent) => {
+            // Clear temporary cache if the back button is clicked during the redirect flow.
+            if (event.persisted) {
+                this.logger.verbose("Page was restored from back/forward cache. Clearing temporary cache.");
+                this.browserStorage.cleanRequestByState(validRequest.state);
+            }
+        };
+
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -45,6 +53,9 @@ export class RedirectClient extends StandardInteractionClient {
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
+            // Clear temporary cache if the back button is clicked during the redirect flow.
+            window.addEventListener("pageshow", handleBackButton);
+
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return await interactionHandler.initiateAuthRequest(navigateUrl, {
                 navigationClient: this.navigationClient,
@@ -56,6 +67,7 @@ export class RedirectClient extends StandardInteractionClient {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
             }
+            window.removeEventListener("pageshow", handleBackButton);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
