@@ -9,13 +9,16 @@ import { GuidGenerator } from "../crypto/GuidGenerator";
 import { PerformanceMeasurement } from "./PerformanceMeasurement";
 
 export enum PerformanceEvents {
-    AcquireTokenSilent = "acquireTokenSilent",
-    SsoSilent = "ssoSilent",
     AcquireTokenByCode = "acquireTokenByCode",
-    AcquireTokenSilentAsync = "acquireTokenSilentAsync",
     AcquireTokenByRefreshToken = "acquireTokenByRefreshToken",
+    AcquireTokenSilent = "acquireTokenSilent",
+    AcquireTokenSilentAsync = "acquireTokenSilentAsync",
     CryptoOptsGetPublicKeyThumbprint = "cryptoOptsGetPublicKeyThumbprint",
-    CryptoOptsSignJwt = "cryptoOptsSignJwt"
+    CryptoOptsSignJwt = "cryptoOptsSignJwt",
+    SilentCacheClientAcquireToken = "silentCacheClientAcquireToken",
+    SilentIframeClientAcquireToken = "silentIframeClientAcquireToken",
+    SilentRefreshClientAcquireToken = "silentRefreshClientAcquireToken",
+    SsoSilent = "ssoSilent",
 }
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;

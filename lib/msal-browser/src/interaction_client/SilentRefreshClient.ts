@@ -7,6 +7,7 @@ import { StandardInteractionClient } from "./StandardInteractionClient";
 import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { PerformanceEvents } from "../telemetry/PerformanceManager";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
@@ -18,19 +19,32 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ...request,
             ...await this.initializeBaseRequest(request)
         };
+        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, silentRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
 
         const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
         this.logger.verbose("Refresh token client created");
 
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-        return refreshTokenClient.acquireTokenByRefreshToken(silentRequest).catch(e => {
-            if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
-            }
-            serverTelemetryManager.cacheFailedRequest(e);
-            throw e;
-        });
+        return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
+            .then((result: AuthenticationResult) => {
+                endMeasurement({
+                    success: true,
+                    fromCache: result.fromCache
+                })
+
+                return result;
+            })
+            .catch(e => {
+                if (e instanceof AuthError) {
+                    e.setCorrelationId(this.correlationId);
+                }
+                serverTelemetryManager.cacheFailedRequest(e);
+                endMeasurement({
+                    success: false
+                });
+                throw e;
+            });
     }
 
     /**

@@ -14,12 +14,13 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { PerformanceEvents, PerformanceManager } from "../telemetry/PerformanceManager";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceManager: PerformanceManager, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceManager, correlationId);
         this.apiId = apiId;
     }
 
@@ -38,6 +39,8 @@ export class SilentIframeClient extends StandardInteractionClient {
         if (request.prompt && request.prompt !== PromptValue.NONE) {
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
+
+        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
 
         // Create silent request
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
@@ -59,13 +62,22 @@ export class SilentIframeClient extends StandardInteractionClient {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger);
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger)
+                .then((result: AuthenticationResult) => {
+                    endMeasurement({
+                        success: true
+                    });
+                    return result;
+                })
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
+            endMeasurement({
+                success: false
+            })
             throw e;
         }
     }

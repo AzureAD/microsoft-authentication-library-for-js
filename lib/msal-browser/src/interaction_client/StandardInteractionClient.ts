@@ -19,6 +19,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { PerformanceManager } from "../telemetry/PerformanceManager";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -26,8 +27,8 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected navigationClient: INavigationClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceManager: PerformanceManager, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, performanceManager, correlationId);
         this.navigationClient = navigationClient;
     }
 

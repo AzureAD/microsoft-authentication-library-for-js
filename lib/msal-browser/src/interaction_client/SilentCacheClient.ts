@@ -9,6 +9,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { PerformanceEvents } from "../telemetry/PerformanceManager";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -16,6 +17,7 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param silentRequest
      */
     async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, silentRequest.correlationId);
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
 
@@ -25,11 +27,18 @@ export class SilentCacheClient extends StandardInteractionClient {
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            endMeasurement({
+                success: true,
+                fromCache: true
+            });
             return cachedToken;
         } catch (error) {
             if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
                 this.logger.verbose("Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.");
             }
+            endMeasurement({
+                success: false
+            })
             throw error;
         }
     }
