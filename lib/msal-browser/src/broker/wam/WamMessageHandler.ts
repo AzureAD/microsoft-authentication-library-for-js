@@ -146,8 +146,8 @@ export class WamMessageHandler {
      */
     private onChannelMessage(event: MessageEvent): void {
         this.logger.trace("WamMessageHandler - onChannelMessage called.");
+        const request = event.data;
         try {
-            const request = event.data;
             const method = request.body.method;
 
             if (method === WamExtensionMethod.Response) {
@@ -178,7 +178,12 @@ export class WamMessageHandler {
         } catch (err) {
             this.logger.error(`Error parsing response from WAM Extension: ${err.toString()}`);
             this.logger.errorPii(`Unable to parse ${event}`);
-            throw err;
+
+            if (request.responseId) {
+                this.resolvers[request.responseId].reject(err);
+            } else {
+                throw err;
+            }
         }
     }
 } 
