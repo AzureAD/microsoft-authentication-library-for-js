@@ -61,8 +61,18 @@ export class TokenValidator {
 
             // Adding access token to authorization header from session
             if (resource) {
-                const token = req.session.protectedResources[resource].accessToken;
-                req.headers.authorization = `Bearer ${token}`;
+                if (!req.session.protectedResources[resource]) {
+                    const error = ValidationConfigurationError.createMissingTokenError(`Resource ${resource} is not a protectedResource in req session. No access token to add to headers.`);
+                    next(error);
+                } else {
+                    const token = req.session.protectedResources[resource].accessToken;
+                    if (!token) {
+                        const error = ValidationConfigurationError.createMissingTokenError(`No access token for resource ${resource} in session. Unable to add to request headers.`);
+                        next(error);
+                    }
+    
+                    req.headers.authorization = `Bearer ${token}`;
+                }
             }
 
             this.validateTokenFromRequest(req, options)
@@ -150,7 +160,8 @@ export class TokenValidator {
 
             return validateResponse;
         } else {
-            throw new Error("Only bearer authentication scheme supported at this time");
+            // If not bearer, investigate CAE/EasyAuth/MISE solution here for more complex handling
+            throw ValidationConfigurationError.createInvalidAuthenticationScheme("TokenType in response is not bearer.");
         }
     }
 

@@ -1,16 +1,16 @@
+import { AuthenticationResult } from '@azure/msal-common';
+import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
+import { mocked } from 'jest-mock';
 import { TokenValidator } from './../../src/api/TokenValidator';
 import { Configuration } from './../../src/config/Configuration';
 import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from './../utils/TestConstants';
 import { TokenValidationParameters } from '../../src';
 import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from '../../src/error/ValidationConfigurationError';
-import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
-import { mocked } from 'jest-mock';
 import { TokenType } from '../../src/utils/Constants';
 import { BaseValidationParameters } from '../../src/config/TokenValidationParameters';
 import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
 import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
 import 'regenerator-runtime';
-import { AuthenticationResult } from '@azure/msal-common';
 
 jest.mock('jose');
 
@@ -63,6 +63,89 @@ describe("TokenValidator", () => {
     describe("exports a class", () => {
         const validator = new TokenValidator(config);
         expect(validator).toBeInstanceOf(TokenValidator);
+    });
+
+    describe("validateTokenMiddleware", () => {
+
+        it("adds access token to request header if resource passed in and access token exists on session", (done) => {
+            const req = {
+                session: {
+                    protectedResources: {
+                        myApi: {
+                            accessToken: "access-token"
+                        }
+                    }
+                },
+                headers: {
+                    authorization: ''
+                }
+            };
+
+            const validateTokenResponse = {
+                token: "Bearer access-token",
+                tokenType: "JWT"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateTokenFromRequest").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const next = jest.fn((error) => {
+                expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+                expect(req.headers.authorization).toEqual(validateTokenResponse.token);
+                
+                expect(error).toBeUndefined();
+                done();
+            });
+
+            const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
+            
+            middlewareFunction(req, {}, next)
+        });
+
+        it("calls next with missing token error if resource exists but has no access token in req sessions", (done) => {
+            const req = {
+                session: {
+                    protectedResources: {
+                        myApi: {}
+                    }
+                },
+                headers: {
+                    authorization: ''
+                }
+            };
+
+            const next = jest.fn((error) => {
+                expect(error).toBeInstanceOf(ValidationConfigurationError);
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.missingToken.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.missingToken.desc);
+                done();
+            });
+
+            const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
+            
+            middlewareFunction(req, {}, next)
+        });
+
+        it("calls next with missing token error if resource does not exist in req sessions", (done) => {
+            const req = {
+                session: {
+                    protectedResources: {
+                        anotherApi: {}
+                    }
+                }
+            };
+
+            const next = jest.fn((error) => {
+                expect(error).toBeInstanceOf(ValidationConfigurationError);
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.missingToken.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.missingToken.desc);
+                done();
+            });
+
+            const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
+            
+            middlewareFunction(req, {}, next)
+        });
+
     });
 
     describe("validateTokenFromRequest", () => {
@@ -170,7 +253,7 @@ describe("TokenValidator", () => {
             expect(validateTokenSpy).toHaveBeenCalledTimes(0);
         });
 
-        it("validates id token if present on msal response and options provided", async () => {
+        it("validates access token if present on msal response and options provided", async () => {
             const msalResponse = {
                 accessToken: "access-token",
                 tokenType: "Bearer"
@@ -192,7 +275,7 @@ describe("TokenValidator", () => {
             expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
-        it("does not validate access token if present but accessTokenOptions not passed in ", async () => {
+        it("does not validate access token if present but accessTokenOptions not passed in", async () => {
             const msalResponse = {
                 accessToken: "access-token",
                 tokenType: "Bearer"
@@ -205,6 +288,34 @@ describe("TokenValidator", () => {
             expect(result).toEqual([]);
 
             expect(validateTokenSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("returns empty response array if no id token or access token on response", async () => {
+            const msalResponse = {
+                tokenType: "Bearer"
+            } as AuthenticationResult;
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken");
+
+            const result = await validator.validateTokenFromResponse(msalResponse);
+
+            expect(result).toEqual([]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("throws error if tokenType in response is not bearer", async () => {
+            const msalResponse = {
+                accessToken: "access-token",
+                tokenType: "Basic"
+            } as AuthenticationResult;
+
+            await validator.validateTokenFromResponse(msalResponse)
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(ValidationConfigurationError);
+                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code);
+                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc);
+                });
         });
 
     });

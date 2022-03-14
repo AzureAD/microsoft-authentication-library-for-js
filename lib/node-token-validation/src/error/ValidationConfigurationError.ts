@@ -28,6 +28,10 @@ export const ValidationConfigurationErrorMessage = {
     invalidMetadata: {
         code: "invalid_metadata",
         desc: "Metadata returned from well-known endpoint is invalid and does not contain jwks_uri."
+    },
+    invalidAuthenticationScheme: {
+        code: "invalid_auth_scheme",
+        desc: "Invalid authentication scheme. Only bearer is supported by the library at this time."
     }
 };
 
@@ -60,6 +64,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
 
     static createInvalidMetadataError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidMetadata.code, ValidationConfigurationErrorMessage.invalidMetadata.desc);
+    }
+
+    static createInvalidAuthenticationScheme(appendError?: string): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code, `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`);
     }
 
 }
