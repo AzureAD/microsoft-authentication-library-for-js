@@ -55,6 +55,7 @@ export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { IGuidGenerator } from "./crypto/IGuidGenerator";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";
@@ -93,5 +94,11 @@ export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
+export { IPerformanceManager, PerformanceCallbackFunction } from "./telemetry/performance/IPerformanceManager";
+export { PerformanceEvent, PerformanceEvents } from "./telemetry/performance/PerformanceEvent";
+export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
+export { PerformanceManager } from "./telemetry/performance/PerformanceManager";
+
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
+
 export { version } from "./packageMetadata";
