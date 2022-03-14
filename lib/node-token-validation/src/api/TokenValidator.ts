@@ -105,7 +105,7 @@ export class TokenValidator {
             return this.validateToken(request.body.access_token, options);
         }
 
-        throw new Error("no tokens in header or body");
+        throw ValidationConfigurationError.createMissingTokenError("No tokens found in authorization header or body.");
     }
 
     /**

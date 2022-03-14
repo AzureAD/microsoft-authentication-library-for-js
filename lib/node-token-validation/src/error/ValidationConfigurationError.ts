@@ -42,8 +42,8 @@ export class ValidationConfigurationError extends ClientConfigurationError {
         Object.setPrototypeOf(this, ValidationConfigurationError.prototype);
     }
 
-    static createMissingTokenError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, ValidationConfigurationErrorMessage.missingToken.desc);
+    static createMissingTokenError(appendError?: string): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, `${ValidationConfigurationErrorMessage.missingToken.desc} Detail: ${appendError}`);
     }
 
     static createEmptyIssuerError(): ValidationConfigurationError {
