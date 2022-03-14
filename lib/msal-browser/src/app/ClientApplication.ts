@@ -693,7 +693,7 @@ export abstract class ClientApplication {
      */
     protected canUseNative(request: RedirectRequest|PopupRequest|SsoSilentRequest): boolean {
         this.logger.trace("canUseNative called");
-        if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider)) {
+        if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme)) {
             this.logger.trace("canUseNative: isNativeAvailable returned false, returning false");
             return false;
         }

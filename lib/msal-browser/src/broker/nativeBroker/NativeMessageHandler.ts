@@ -195,7 +195,7 @@ export class NativeMessageHandler {
      * @param nativeExtensionProvider
      * @param authenticationScheme 
      */
-    static isNativeAvailable(config: BrowserConfiguration, logger: Logger, nativeExtensionProvider?: NativeMessageHandler): boolean {
+    static isNativeAvailable(config: BrowserConfiguration, logger: Logger, nativeExtensionProvider?: NativeMessageHandler, authenticationScheme?: AuthenticationScheme): boolean {
         logger.trace("isNativeAvailable called");
         if (!config.system.platformSSO) {
             logger.trace("isNativeAvailable: platformSSO is not enabled, returning false");
@@ -207,6 +207,18 @@ export class NativeMessageHandler {
             logger.trace("isNativeAvailable: WAM extension provider is not initialized, returning false");
             // Extension is not available
             return false;
+        }
+
+        if (authenticationScheme) {
+            switch(authenticationScheme) {
+                case AuthenticationScheme.BEARER:
+                case AuthenticationScheme.POP:
+                    logger.trace("isNativeAvailable: authenticationScheme is supported, returning true");
+                    return true;
+                default:
+                    logger.trace("isNativeAvailable: authenticationScheme is not supported, returning false");
+                    return false;
+            }
         }
 
         return true;

@@ -40,7 +40,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler)
+                nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme)
             });
 
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);

@@ -135,7 +135,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
         let result: Promise<AuthenticationResult>;
-        if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && account.nativeAccountId) {
+        if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
             const silentRequest = {
                 ...request,
