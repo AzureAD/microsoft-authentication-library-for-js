@@ -4,10 +4,9 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions } from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions, PerformanceEvents } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { PerformanceEvents } from "../telemetry/PerformanceManager";
 
 export class SilentRefreshClient extends StandardInteractionClient {
     /**

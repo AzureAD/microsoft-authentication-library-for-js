@@ -15,10 +15,12 @@ import { PkceGenerator } from "./PkceGenerator";
  */
 export class CryptoProvider implements ICrypto {
     private pkceGenerator: PkceGenerator;
+    private guidGenerator: GuidGenerator;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
         this.pkceGenerator = new PkceGenerator();
+        this.guidGenerator = new GuidGenerator();
     }
 
     /**
@@ -26,7 +28,7 @@ export class CryptoProvider implements ICrypto {
      * @returns string (GUID)
      */
     createNewGuid(): string {
-        return GuidGenerator.generateGuid();
+        return this.guidGenerator.generateGuid();
     }
 
     /**

@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { PerformanceEvents } from "./PerformanceManager";
+import { IPerformanceMeasurement } from "@azure/msal-common";
 
-export class PerformanceMeasurement {
+export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
     private measureName: string;
     private correlationId: string;
     private startMark: string;
     private endMark: string;
 
-    constructor(name: PerformanceEvents, correlationId?: string) {
+    constructor(name: string, correlationId?: string) {
         this.correlationId = correlationId || "";
         this.measureName = `msal.measure.${name}.${this.correlationId}`;
         this.startMark = `msal.start.${name}.${this.correlationId}`;
@@ -26,20 +26,20 @@ export class PerformanceMeasurement {
     }
 
     startMeasurement(): void {
-        if (PerformanceMeasurement.supportsBrowserPerformance()) {
+        if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
             window.performance.mark(this.startMark);
         }
     }
 
     endMeasurement():void {
-        if (PerformanceMeasurement.supportsBrowserPerformance()) {
+        if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
             window.performance.mark(this.endMark);
             window.performance.measure(this.measureName, this.startMark, this.endMark);
         }
     }
 
     flushMeasurement(): number {
-        if (PerformanceMeasurement.supportsBrowserPerformance()) {
+        if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
             const durationMs = window.performance.getEntriesByName(this.measureName, "measure")[0].duration;
             window.performance.clearMeasures(this.measureName);
             window.performance.clearMarks(this.startMark);

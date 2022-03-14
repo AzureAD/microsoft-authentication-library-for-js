@@ -58,8 +58,7 @@ export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttp
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
 export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
 export { PopupUtils } from "./utils/PopupUtils";
-export { PerformanceCallbackFunction, PerformanceEvent, PerformanceEvents } from "./telemetry/PerformanceManager";
-
+export { BrowserPerformanceManager } from "./telemetry/BrowserPerformanceManager";
 
 // Common Object Formats
 export {
@@ -98,7 +97,10 @@ export {
     AzureCloudInstance,
     AzureCloudOptions,
     AuthenticationHeaderParser,
-    OIDC_DEFAULT_SCOPES
+    OIDC_DEFAULT_SCOPES,
+    PerformanceCallbackFunction, 
+    PerformanceEvent, 
+    PerformanceEvents
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
