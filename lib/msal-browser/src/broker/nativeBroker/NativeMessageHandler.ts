@@ -4,10 +4,11 @@
  */
 
 import { NativeConstants, NativeExtensionMethod } from "../../utils/BrowserConstants";
-import { Logger, AuthError } from "@azure/msal-common";
+import { Logger, AuthError, AuthenticationScheme } from "@azure/msal-common";
 import { NativeExtensionRequest, NativeExtensionRequestBody } from "./NativeRequest";
 import { NativeAuthError } from "../../error/NativeAuthError";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
+import { BrowserConfiguration } from "../../config/Configuration";
 
 export class NativeMessageHandler {
     private extensionId: string | undefined;
@@ -185,5 +186,29 @@ export class NativeMessageHandler {
                 throw err;
             }
         }
+    }
+    
+    /**
+     * Returns boolean indicating whether or not the request should attempt to use native broker
+     * @param logger
+     * @param config
+     * @param nativeExtensionProvider
+     * @param authenticationScheme 
+     */
+    static isNativeAvailable(config: BrowserConfiguration, logger: Logger, nativeExtensionProvider?: NativeMessageHandler): boolean {
+        logger.trace("isNativeAvailable called");
+        if (!config.system.platformSSO) {
+            logger.trace("isNativeAvailable: platformSSO is not enabled, returning false");
+            // Developer disabled WAM
+            return false;
+        }
+
+        if (!nativeExtensionProvider) {
+            logger.trace("isNativeAvailable: WAM extension provider is not initialized, returning false");
+            // Extension is not available
+            return false;
+        }
+
+        return true;
     }
 } 

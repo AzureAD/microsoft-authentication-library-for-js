@@ -146,30 +146,6 @@ export abstract class BaseInteractionClient {
     }
 
     /**
-     * Returns boolean indicating whether or not the request should attempt to use native broker
-     * @param account 
-     * @param authenticationScheme 
-     */
-    protected isNativeAvailable(authenticationScheme?: AuthenticationScheme): boolean {
-        if (!this.config.system.platformSSO) {
-            // Developer disabled WAM
-            return false;
-        }
-
-        if (!this.nativeMessageHandler) {
-            // Extension is not available
-            return false;
-        }
-
-        if (AuthenticationScheme && authenticationScheme !== AuthenticationScheme.BEARER) {
-            // Only Bearer is supported right now. Remove when AT POP is supported by WAM
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
      * @param requestCorrelationId

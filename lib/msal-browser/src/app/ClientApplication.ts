@@ -174,7 +174,7 @@ export abstract class ClientApplication {
 
                 const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
-                if (request && this.isNativeAvailable() && this.nativeExtensionProvider && !hash) {
+                if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
                     const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.nativeExtensionProvider, correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
@@ -688,40 +688,12 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Returns boolean indicating whether or not the request should attempt to use native broker
-     * @param account 
-     * @param authenticationScheme 
-     */
-    protected isNativeAvailable(authenticationScheme?: AuthenticationScheme): boolean {
-        this.logger.trace("isNativeAvailable called");
-        if (!this.config.system.platformSSO) {
-            this.logger.trace("isNativeAvailable: platformSSO is not enabled, returning false");
-            // Developer disabled WAM
-            return false;
-        }
-
-        if (!this.nativeExtensionProvider) {
-            this.logger.trace("isNativeAvailable: WAM extension provider is not initialized, returning false");
-            // Extension is not available
-            return false;
-        }
-
-        if (authenticationScheme && authenticationScheme !== AuthenticationScheme.BEARER) {
-            this.logger.trace("isNativeAvailable: authenticationScheme is not bearer, returning false");
-            // Only Bearer is supported right now. Remove when AT POP is supported by WAM
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Returns boolean indicating if this request can use the native broker
      * @param request 
      */
     protected canUseNative(request: RedirectRequest|PopupRequest|SsoSilentRequest): boolean {
         this.logger.trace("canUseNative called");
-        if (!this.isNativeAvailable(request.authenticationScheme)) {
+        if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider)) {
             this.logger.trace("canUseNative: isNativeAvailable returned false, returning false");
             return false;
         }

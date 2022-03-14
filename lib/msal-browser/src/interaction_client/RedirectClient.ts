@@ -14,6 +14,7 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 export class RedirectClient extends StandardInteractionClient {
     /**
@@ -39,7 +40,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBridge: this.isNativeAvailable()
+                nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler)
             });
 
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);

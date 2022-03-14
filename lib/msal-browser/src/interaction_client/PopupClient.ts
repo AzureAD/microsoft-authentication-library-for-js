@@ -14,6 +14,7 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 export class PopupClient extends StandardInteractionClient {
     /**
@@ -98,7 +99,7 @@ export class PopupClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBridge: this.isNativeAvailable()
+                nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler)
             });
 
             // Create popup interaction handler.

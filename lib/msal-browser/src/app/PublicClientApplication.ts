@@ -15,6 +15,7 @@ import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -134,7 +135,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
         let result: Promise<AuthenticationResult>;
-        if (this.isNativeAvailable(request.authenticationScheme) && account.nativeAccountId) {
+        if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && account.nativeAccountId) {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
             const silentRequest = {
                 ...request,
