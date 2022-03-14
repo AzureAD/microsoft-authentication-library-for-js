@@ -15,7 +15,7 @@ import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
-import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 export abstract class BaseInteractionClient {
 
@@ -26,17 +26,17 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected navigationClient: INavigationClient;
-    protected wamMessageHandler: WamMessageHandler | undefined;
+    protected nativeMessageHandler: NativeMessageHandler | undefined;
     protected correlationId: string;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, wamMessageHandler?: WamMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
         this.navigationClient = navigationClient;
-        this.wamMessageHandler = wamMessageHandler;
+        this.nativeMessageHandler = nativeMessageHandler;
         this.correlationId = correlationId || this.browserCrypto.createNewGuid();
         this.logger = logger.clone(BrowserConstants.MSAL_SKU, version, this.correlationId);
     }
@@ -156,7 +156,7 @@ export abstract class BaseInteractionClient {
             return false;
         }
 
-        if (!this.wamMessageHandler) {
+        if (!this.nativeMessageHandler) {
             // Extension is not available
             return false;
         }

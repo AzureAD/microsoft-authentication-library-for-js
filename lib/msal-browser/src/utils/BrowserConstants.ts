@@ -41,12 +41,12 @@ export const BrowserConstants = {
     MSAL_SKU: "msal.js.browser",
 };
 
-export const WamConstants = {
+export const NativeConstants = {
     CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
     PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji"
 };
 
-export enum WamExtensionMethod {
+export enum NativeExtensionMethod {
     HandshakeRequest = "Handshake",
     HandshakeResponse = "HandshakeResponse",
     GetToken = "GetToken",

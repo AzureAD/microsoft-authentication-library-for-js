@@ -14,7 +14,7 @@ export type OSError = {
     retryable?: boolean;
 };
 
-export enum WamStatusCode {
+export enum NativeStatusCode {
     USER_INTERACTION_REQUIRED = "USER_INTERACTION_REQUIRED",
     USER_CANCEL = "USER_CANCEL",
     NO_NETWORK = "NO_NETWORK",
@@ -22,20 +22,20 @@ export enum WamStatusCode {
     PERSISTENT_ERROR = "PERSISTENT_ERROR", 
 }
 
-export const WamAuthErrorMessage = {
+export const NativeAuthErrorMessage = {
     extensionError: {
         code: "ContentError"
     }
 };
 
-export class WamAuthError extends AuthError {
+export class NativeAuthError extends AuthError {
     ext: OSError | undefined;
 
     constructor(errorCode: string, description: string, ext?: OSError) {
         super(errorCode, description);
 
-        Object.setPrototypeOf(this, WamAuthError.prototype);
-        this.name = "WamAuthError";
+        Object.setPrototypeOf(this, NativeAuthError.prototype);
+        this.name = "NativeAuthError";
         this.ext = ext;
     }
 
@@ -43,12 +43,12 @@ export class WamAuthError extends AuthError {
      * These errors should result in a fallback to the 'standard' browser based auth flow.
      */
     isFatal(): boolean {
-        if (this.ext && this.ext.status && this.ext.status === WamStatusCode.PERSISTENT_ERROR) {
+        if (this.ext && this.ext.status && this.ext.status === NativeStatusCode.PERSISTENT_ERROR) {
             return true;
         }
         
         switch (this.errorCode) {
-            case WamAuthErrorMessage.extensionError.code:
+            case NativeAuthErrorMessage.extensionError.code:
                 return true;
             default:
                 return false;
@@ -65,15 +65,15 @@ export class WamAuthError extends AuthError {
     static createError(code: string, description: string, ext?: OSError): AuthError {
         if (ext && ext.status) {
             switch (ext.status) {
-                case WamStatusCode.USER_INTERACTION_REQUIRED:
+                case NativeStatusCode.USER_INTERACTION_REQUIRED:
                     return new InteractionRequiredAuthError(code, description);
-                case WamStatusCode.USER_CANCEL:
+                case NativeStatusCode.USER_CANCEL:
                     return BrowserAuthError.createUserCancelledError();
-                case WamStatusCode.NO_NETWORK:
+                case NativeStatusCode.NO_NETWORK:
                     return BrowserAuthError.createNoNetworkConnectivityError();
             }
         }
 
-        return new WamAuthError(code, description, ext);
+        return new NativeAuthError(code, description, ext);
     }
 }

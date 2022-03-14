@@ -13,7 +13,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
-import { WamInteractionClient } from "./WamInteractionClient";
+import { NativeInteractionClient } from "./NativeInteractionClient";
 
 export class PopupClient extends StandardInteractionClient {
     /**
@@ -123,11 +123,11 @@ export class PopupClient extends StandardInteractionClient {
 
             if (serverParams.accountId) {
                 this.logger.verbose("Account id found in hash, calling WAM for token");
-                if (!this.wamMessageHandler) {
+                if (!this.nativeMessageHandler) {
                     throw new Error("Call and await initialize function before invoking this API");
                 }
-                const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.wamMessageHandler, validRequest.correlationId);
-                return wamInteractionClient.acquireToken({
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, validRequest.correlationId);
+                return nativeInteractionClient.acquireToken({
                     ...validRequest,
                     prompt: PromptValue.NONE
                 }, serverParams.accountId);

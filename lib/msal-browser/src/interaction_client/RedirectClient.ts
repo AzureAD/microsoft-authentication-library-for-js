@@ -13,7 +13,7 @@ import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
-import { WamInteractionClient } from "./WamInteractionClient";
+import { NativeInteractionClient } from "./NativeInteractionClient";
 
 export class RedirectClient extends StandardInteractionClient {
     /**
@@ -198,11 +198,11 @@ export class RedirectClient extends StandardInteractionClient {
 
         if (serverParams.accountId) {
             this.logger.verbose("Account id found in hash, calling WAM for token");
-            if (!this.wamMessageHandler) {
+            if (!this.nativeMessageHandler) {
                 throw new Error("Call and await initialize function before invoking this API");
             }
-            const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.wamMessageHandler, cachedRequest.correlationId);
-            return wamInteractionClient.acquireToken({
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, cachedRequest.correlationId);
+            return nativeInteractionClient.acquireToken({
                 ...cachedRequest,
                 prompt: PromptValue.NONE
             }, serverParams.accountId);

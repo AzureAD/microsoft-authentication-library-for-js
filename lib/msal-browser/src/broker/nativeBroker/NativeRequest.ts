@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { WamExtensionMethod } from "../../utils/BrowserConstants";
+import { NativeExtensionMethod } from "../../utils/BrowserConstants";
 import { StringDict } from "@azure/msal-common";
 
 /**
  * Token request which native broker will use to acquire tokens
  */
-export type WamTokenRequest = {
+export type NativeTokenRequest = {
     clientId: string;
     authority: string;
     redirectUri: string;
@@ -31,17 +31,17 @@ export type WamTokenRequest = {
 /**
  * Request which will be forwarded to native broker by the browser extension
  */
-export type WamExtensionRequestBody = {
-    method: WamExtensionMethod;
-    request?: WamTokenRequest;
+export type NativeExtensionRequestBody = {
+    method: NativeExtensionMethod;
+    request?: NativeTokenRequest;
 };
 
 /**
  * Browser extension request
  */
-export type WamExtensionRequest = {
+export type NativeExtensionRequest = {
     channel: string;
     responseId: number;
     extensionId?: string;
-    body: WamExtensionRequestBody
+    body: NativeExtensionRequestBody
 };

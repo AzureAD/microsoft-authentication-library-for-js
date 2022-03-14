@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { WamConstants, WamExtensionMethod } from "../../utils/BrowserConstants";
+import { NativeConstants, NativeExtensionMethod } from "../../utils/BrowserConstants";
 import { Logger, AuthError } from "@azure/msal-common";
-import { WamExtensionRequest, WamExtensionRequestBody } from "./WamRequest";
-import { WamAuthError } from "../../error/WamAuthError";
+import { NativeExtensionRequest, NativeExtensionRequestBody } from "./NativeRequest";
+import { NativeAuthError } from "../../error/NativeAuthError";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
 
-export class WamMessageHandler {
+export class NativeMessageHandler {
     private extensionId: string | undefined;
     private logger: Logger;
     private responseId: number;
@@ -31,18 +31,18 @@ export class WamMessageHandler {
      * Sends a given message to the extension and resolves with the extension response
      * @param body 
      */
-    async sendMessage<T>(body: WamExtensionRequestBody): Promise<T> {
-        this.logger.trace("WamMessageHandler - sendMessage called.");
+    async sendMessage<T>(body: NativeExtensionRequestBody): Promise<T> {
+        this.logger.trace("NativeMessageHandler - sendMessage called.");
         const req = {
-            channel: WamConstants.CHANNEL_ID,
+            channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: this.responseId++,
 
             body: body
         };
 
-        this.logger.trace("WamMessageHandler - Sending request to browser extension");
-        this.logger.tracePii(`WamMessageHandler - Sending request to browser extension: ${JSON.stringify(req)}`);
+        this.logger.trace("NativeMessageHandler - Sending request to browser extension");
+        this.logger.tracePii(`NativeMessageHandler - Sending request to browser extension: ${JSON.stringify(req)}`);
         this.messageChannel.port1.postMessage(req);
 
         return new Promise((resolve, reject) => {
@@ -54,15 +54,15 @@ export class WamMessageHandler {
      * Returns an instance of the MessageHandler that has successfully established a connection with an extension
      * @param logger 
      */
-    static async createProvider(logger: Logger): Promise<WamMessageHandler> {
-        logger.trace("WamMessageHandler - createProvider called.");
+    static async createProvider(logger: Logger): Promise<NativeMessageHandler> {
+        logger.trace("NativeMessageHandler - createProvider called.");
         try {
-            const preferredProvider = new WamMessageHandler(logger, WamConstants.PREFERRED_EXTENSION_ID);
+            const preferredProvider = new NativeMessageHandler(logger, NativeConstants.PREFERRED_EXTENSION_ID);
             await preferredProvider.sendHandshakeRequest();
             return preferredProvider;
         } catch (e) {
             // If preferred extension fails for whatever reason, fallback to using any installed extension
-            const backupProvider = new WamMessageHandler(logger);
+            const backupProvider = new NativeMessageHandler(logger);
             await backupProvider.sendHandshakeRequest();
             return backupProvider;
         }
@@ -72,17 +72,17 @@ export class WamMessageHandler {
      * Send handshake request helper.
      */
     private async sendHandshakeRequest(): Promise<void> {
-        this.logger.trace("WamMessageHandler - sendHandshakeRequest called.");
+        this.logger.trace("NativeMessageHandler - sendHandshakeRequest called.");
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
 
-        const req: WamExtensionRequest = {
-            channel: WamConstants.CHANNEL_ID,
+        const req: NativeExtensionRequest = {
+            channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: this.responseId++,
 
             body: {
-                method: WamExtensionMethod.HandshakeRequest
+                method: NativeExtensionMethod.HandshakeRequest
             }
         };
 
@@ -102,7 +102,7 @@ export class WamMessageHandler {
                 window.removeEventListener("message", this.windowListener, false);
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
-                reject(BrowserAuthError.createWamHandshakeTimeoutError());
+                reject(BrowserAuthError.createNativeHandshakeTimeoutError());
                 delete this.resolvers[req.responseId];
             }, 2000); // Use a reasonable timeout in milliseconds here
         });
@@ -113,7 +113,7 @@ export class WamMessageHandler {
      * @param event 
      */
     private onWindowMessage(event: MessageEvent): void {
-        this.logger.trace("WamMessageHandler - onWindowMessage called");
+        this.logger.trace("NativeMessageHandler - onWindowMessage called");
         // We only accept messages from ourselves
         if (event.source !== window) {
             return;
@@ -121,7 +121,7 @@ export class WamMessageHandler {
 
         const request = event.data;
 
-        if (!request.channel || request.channel !== WamConstants.CHANNEL_ID) {
+        if (!request.channel || request.channel !== NativeConstants.CHANNEL_ID) {
             return;
         }
 
@@ -129,14 +129,14 @@ export class WamMessageHandler {
             return;
         }
 
-        if (request.body.method === WamExtensionMethod.HandshakeRequest) {
+        if (request.body.method === NativeExtensionMethod.HandshakeRequest) {
             // If we receive this message back it means no extension intercepted the request, meaning no extension supporting handshake protocol is installed
             this.logger.verbose(request.extensionId ? `Extension with id: ${request.extensionId} not installed` : "No extension installed");
             clearTimeout(this.timeoutId);
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
-            this.resolvers[request.responseId].reject(BrowserAuthError.createWamExtensionNotInstalledError());
+            this.resolvers[request.responseId].reject(BrowserAuthError.createNativeExtensionNotInstalledError());
         }
     }
 
@@ -145,20 +145,20 @@ export class WamMessageHandler {
      * @param event 
      */
     private onChannelMessage(event: MessageEvent): void {
-        this.logger.trace("WamMessageHandler - onChannelMessage called.");
+        this.logger.trace("NativeMessageHandler - onChannelMessage called.");
         const request = event.data;
         try {
             const method = request.body.method;
 
-            if (method === WamExtensionMethod.Response) {
+            if (method === NativeExtensionMethod.Response) {
                 const response = request.body.response;
-                this.logger.trace("WamMessageHandler - Received response from browser extension");
-                this.logger.tracePii(`WamMessageHandler - Received response from browser extension: ${JSON.stringify(response)}`);
+                this.logger.trace("NativeMessageHandler - Received response from browser extension");
+                this.logger.tracePii(`NativeMessageHandler - Received response from browser extension: ${JSON.stringify(response)}`);
                 if (response.status !== "Success") {
-                    this.resolvers[request.responseId].reject(WamAuthError.createError(response.code, response.description, response.ext));
+                    this.resolvers[request.responseId].reject(NativeAuthError.createError(response.code, response.description, response.ext));
                 } else if (response.result) {
                     if (response.result["code"] && response.result["description"]) {
-                        this.resolvers[request.responseId].reject(WamAuthError.createError(response.result["code"], response.result["description"], response.result["ext"]));
+                        this.resolvers[request.responseId].reject(NativeAuthError.createError(response.result["code"], response.result["description"], response.result["ext"]));
                     } else {
                         this.resolvers[request.responseId].resolve(response.result);
                     }
@@ -166,11 +166,11 @@ export class WamMessageHandler {
                     throw AuthError.createUnexpectedError("Event does not contain result.");
                 }
                 delete this.resolvers[request.responseId];
-            } else if (method === WamExtensionMethod.HandshakeResponse) {
+            } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 clearTimeout(this.timeoutId); // Clear setTimeout
                 window.removeEventListener("message", this.windowListener, false); // Remove 'No extension' listener
                 this.extensionId = request.extensionId;
-                this.logger.verbose(`WamMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
+                this.logger.verbose(`NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
                 this.resolvers[request.responseId].resolve();
                 delete this.resolvers[request.body.responseId];
             } 
