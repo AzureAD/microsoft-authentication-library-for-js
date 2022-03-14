@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, PerformanceEvents, PerformanceCallbackFunction } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -26,10 +26,10 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
-import { PerformanceCallbackFunction, PerformanceEvents, PerformanceManager } from "../telemetry/PerformanceManager";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import { BrowserAuthError  } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
 
 export abstract class ClientApplication {
 
@@ -65,7 +65,7 @@ export abstract class ClientApplication {
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
-    protected performanceManager: PerformanceManager;
+    protected performanceManager: BrowserPerformanceManager;
 
     /**
      * @constructor
@@ -114,7 +114,7 @@ export abstract class ClientApplication {
         this.hybridAuthCodeResponses = new Map();
         
         // Initialize performance manager
-        this.performanceManager = new PerformanceManager(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
+        this.performanceManager = new BrowserPerformanceManager(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
 
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceManager) : DEFAULT_CRYPTO_IMPLEMENTATION;

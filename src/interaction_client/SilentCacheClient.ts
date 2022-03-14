@@ -4,12 +4,11 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions} from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions, PerformanceEvents} from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
-import { PerformanceEvents } from "../telemetry/PerformanceManager";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**

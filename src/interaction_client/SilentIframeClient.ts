@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -14,12 +14,12 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { PerformanceEvents, PerformanceManager } from "../telemetry/PerformanceManager";
+import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceManager: PerformanceManager, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceManager: BrowserPerformanceManager, correlationId?: string) {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceManager, correlationId);
         this.apiId = apiId;
     }
