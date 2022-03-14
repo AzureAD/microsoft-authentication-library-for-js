@@ -74,9 +74,7 @@ export class TokenValidator {
                     }
     
                     // Attach bearer token to authorization header
-                    if (req.headers) {
-                        req.headers.authorization = `Bearer ${token}`;
-                    }
+                    req.headers.authorization = `Bearer ${token}`;
                 }
             }
 

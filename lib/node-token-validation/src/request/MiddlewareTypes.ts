@@ -4,14 +4,14 @@
  */
 
 export type ExpressRequest = {
-    session?: {
-        protectedResources?: object
-    },
-    headers?: {
+    headers: {
         authorization?: string
     },
     body?: {
         access_token?: string
+    },
+    session?: {
+        protectedResources?: object
     }
 };
 

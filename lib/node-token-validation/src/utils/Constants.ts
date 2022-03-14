@@ -37,25 +37,3 @@ export const JwtConstants = {
 export const TokenType = {
     JWT: "JWT"
 };
-
-/**
- * Request header names
- */
-export enum HeaderNames {
-    CONTENT_TYPE = "Content-Type",
-    RETRY_AFTER = "Retry-After",
-    CCS_HEADER = "X-AnchorMailbox",
-    WWWAuthenticate = "WWW-Authenticate",
-    AuthenticationInfo = "Authentication-Info",
-    AUTHORIZATION = "Authorization",
-    PROXY_AUTHORIZATION = "Proxy-Authorization"
-}
-
-/**
- * Type of the authentication request
- */
-export enum AuthenticationScheme {
-    BEARER = "Bearer",
-    POP = "pop",
-    SSH = "ssh-cert"
-}
