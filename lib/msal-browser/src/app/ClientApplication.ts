@@ -26,15 +26,15 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
-import { WamInteractionClient } from "../interaction_client/WamInteractionClient";
-import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
+import { NativeInteractionClient } from "../interaction_client/NativeInteractionClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { SilentRequest } from "../request/SilentRequest";
-import { WamAuthError } from "../error/WamAuthError";
+import { NativeAuthError } from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import { BrowserAuthError  } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { WamTokenRequest } from "../broker/wam/WamRequest";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 
 export abstract class ClientApplication {
 
@@ -67,8 +67,8 @@ export abstract class ClientApplication {
     // Redirect Response Object
     protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
-    // WAM Extension Provider
-    protected wamExtensionProvider: WamMessageHandler | undefined;
+    // Native Extension Provider
+    protected nativeExtensionProvider: NativeMessageHandler | undefined;
     
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
@@ -140,7 +140,7 @@ export abstract class ClientApplication {
         this.logger.trace("initialize called");
         if (this.config.system.platformSSO) {
             try {
-                this.wamExtensionProvider = await WamMessageHandler.createProvider(this.logger);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger);
             } catch (e) {
                 this.logger.verbose(e);
             }
@@ -172,15 +172,15 @@ export abstract class ClientApplication {
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
 
-                const request: WamTokenRequest | null = this.browserStorage.getCachedNativeRequest();
+                const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
-                if (request && this.isNativeAvailable() && this.wamExtensionProvider && !hash) {
+                if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
-                    const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.wamExtensionProvider, correlationId);
-                    redirectResponse = wamClient.handleRedirectPromise();
+                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.nativeExtensionProvider, correlationId);
+                    redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
-                    const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
+                    const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, correlationId);
                     redirectResponse = redirectClient.handleRedirectPromise(hash);
                 }
 
@@ -245,11 +245,11 @@ export abstract class ClientApplication {
 
         let result: Promise<void>;
         
-        if (this.wamExtensionProvider && this.canUseNative(request)) {
-            const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.wamExtensionProvider, request.correlationId);
-            result = wamClient.acquireTokenRedirect(request).catch((e: AuthError) => {
-                if (e instanceof WamAuthError && e.isFatal()) {
-                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+        if (this.nativeExtensionProvider && this.canUseNative(request)) {
+            const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.nativeExtensionProvider, request.correlationId);
+            result = nativeClient.acquireTokenRedirect(request).catch((e: AuthError) => {
+                if (e instanceof NativeAuthError && e.isFatal()) {
+                    this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const redirectClient = this.createRedirectClient(request.correlationId);
                     return redirectClient.acquireToken(request);
                 }
@@ -306,8 +306,8 @@ export abstract class ClientApplication {
                 this.browserStorage.setInteractionInProgress(false);
                 return response;
             }).catch((e: AuthError) => {
-                if (e instanceof WamAuthError && e.isFatal()) {
-                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                if (e instanceof NativeAuthError && e.isFatal()) {
+                    this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const popupClient = this.createPopupClient(request.correlationId);
                     return popupClient.acquireToken(request);
                 }
@@ -368,8 +368,8 @@ export abstract class ClientApplication {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.ssoSilent).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
-                if (e instanceof WamAuthError && e.isFatal()) {
-                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                if (e instanceof NativeAuthError && e.isFatal()) {
+                    this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                     return silentIframeClient.acquireToken(request);
                 }
@@ -431,8 +431,8 @@ export abstract class ClientApplication {
                 if (this.canUseNative(request)) {
                     return this.acquireTokenNative(request, ApiId.acquireTokenByCode).catch((e: AuthError) => {
                         // If native token acquisition fails for availability reasons fallback to standard flow
-                        if (e instanceof WamAuthError && e.isFatal()) {
-                            this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                        if (e instanceof NativeAuthError && e.isFatal()) {
+                            this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                             const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                             return silentIframeClient.acquireToken(request);
                         }
@@ -458,7 +458,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
-        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.wamExtensionProvider, request.correlationId);
+        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.nativeExtensionProvider, request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
         return silentTokenResult;
     }
@@ -479,7 +479,7 @@ export abstract class ClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, request.correlationId);
+        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, request.correlationId);
 
         return silentRefreshClient.acquireToken(request).catch(e => {
             const isServerError = e instanceof ServerError;
@@ -488,7 +488,7 @@ export abstract class ClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.wamExtensionProvider, request.correlationId);
+                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.nativeExtensionProvider, request.correlationId);
                 return silentIframeClient.acquireToken(request);
             }
             throw e;
@@ -517,7 +517,7 @@ export abstract class ClientApplication {
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, logoutRequest?.correlationId);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, logoutRequest?.correlationId);
         return redirectClient.logout(logoutRequest);
     }
 
@@ -673,46 +673,18 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Acquire a token from native device (WAM)
+     * Acquire a token from native device (e.g. WAM)
      * @param request 
      */
     protected acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
-        if (!this.wamExtensionProvider) {
-            throw BrowserAuthError.createWamConnectionNotEstablishedError();
+        if (!this.nativeExtensionProvider) {
+            throw BrowserAuthError.createNativeConnectionNotEstablishedError();
         }
 
-        const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.wamExtensionProvider, request.correlationId);
+        const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.nativeExtensionProvider, request.correlationId);
 
-        return wamClient.acquireToken(request);
-    }
-
-    /**
-     * Returns boolean indicating whether or not the request should attempt to use native broker
-     * @param account 
-     * @param authenticationScheme 
-     */
-    protected isNativeAvailable(authenticationScheme?: AuthenticationScheme): boolean {
-        this.logger.trace("isNativeAvailable called");
-        if (!this.config.system.platformSSO) {
-            this.logger.trace("isNativeAvailable: platformSSO is not enabled, returning false");
-            // Developer disabled WAM
-            return false;
-        }
-
-        if (!this.wamExtensionProvider) {
-            this.logger.trace("isNativeAvailable: WAM extension provider is not initialized, returning false");
-            // Extension is not available
-            return false;
-        }
-
-        if (authenticationScheme && authenticationScheme !== AuthenticationScheme.BEARER) {
-            this.logger.trace("isNativeAvailable: authenticationScheme is not bearer, returning false");
-            // Only Bearer is supported right now. Remove when AT POP is supported by WAM
-            return false;
-        }
-
-        return true;
+        return nativeClient.acquireToken(request);
     }
 
     /**
@@ -721,7 +693,7 @@ export abstract class ClientApplication {
      */
     protected canUseNative(request: RedirectRequest|PopupRequest|SsoSilentRequest): boolean {
         this.logger.trace("canUseNative called");
-        if (!this.isNativeAvailable(request.authenticationScheme)) {
+        if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme)) {
             this.logger.trace("canUseNative: isNativeAvailable returned false, returning false");
             return false;
         }
@@ -746,7 +718,7 @@ export abstract class ClientApplication {
      * @param correlationId 
      */
     protected createPopupClient(correlationId?: string): PopupClient {
-        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
+        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -754,7 +726,7 @@ export abstract class ClientApplication {
      * @param correlationId 
      */
     protected createRedirectClient(correlationId?: string): RedirectClient {
-        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
+        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -762,14 +734,14 @@ export abstract class ClientApplication {
      * @param correlationId 
      */
     protected createSilentIframeClient(correlationId?: string): SilentIframeClient {
-        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.wamExtensionProvider, correlationId);
+        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.nativeExtensionProvider, correlationId);
     }
 
     /**
      * Returns new instance of the Silent Cache Interaction Client
      */
     protected createSilentCacheClient(correlationId?: string): SilentCacheClient {
-        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
+        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**

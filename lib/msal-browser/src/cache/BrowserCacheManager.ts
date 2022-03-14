@@ -11,7 +11,7 @@ import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
-import { WamTokenRequest } from "../broker/wam/WamRequest";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -925,7 +925,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets cached native request for redirect flows
      */
-    getCachedNativeRequest(): WamTokenRequest | null {
+    getCachedNativeRequest(): NativeTokenRequest | null {
         this.logger.trace("BrowserCacheManager.getCachedNativeRequest called");
         const cachedRequest = this.getTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, true);
         if (!cachedRequest) {
@@ -933,7 +933,7 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
 
-        const parsedRequest = this.validateAndParseJson(cachedRequest) as WamTokenRequest;
+        const parsedRequest = this.validateAndParseJson(cachedRequest) as NativeTokenRequest;
         if (!parsedRequest) {
             this.logger.error("BrowserCacheManager.getCachedNativeRequest: Unable to parse native request");
             return null;

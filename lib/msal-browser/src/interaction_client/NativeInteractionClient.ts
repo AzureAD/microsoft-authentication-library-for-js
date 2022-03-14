@@ -11,20 +11,20 @@ import { EventHandler } from "../event/EventHandler";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
-import { WamExtensionMethod, ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
-import { WamExtensionRequestBody, WamTokenRequest } from "../broker/wam/WamRequest";
-import { WamResponse } from "../broker/wam/WamResponse";
-import { WamAuthError } from "../error/WamAuthError";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { NativeExtensionMethod, ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { NativeExtensionRequestBody, NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
+import { NativeResponse } from "../broker/nativeBroker/NativeResponse";
+import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 
-export class WamInteractionClient extends BaseInteractionClient {
+export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
-    protected wamMessageHandler: WamMessageHandler;
+    protected wamMessageHandler: NativeMessageHandler;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: WamMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: NativeMessageHandler, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
         this.apiId = apiId;
         this.wamMessageHandler = provider;
@@ -38,15 +38,15 @@ export class WamInteractionClient extends BaseInteractionClient {
         this.logger.trace("WamInteractionClient - acquireToken called.");
         const wamRequest = this.initializeWamRequest(request, accountId);
 
-        const messageBody: WamExtensionRequestBody = {
-            method: WamExtensionMethod.GetToken,
+        const messageBody: NativeExtensionRequestBody = {
+            method: NativeExtensionMethod.GetToken,
             request: wamRequest
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.wamMessageHandler.sendMessage(messageBody);
         this.validateWamResponse(response);
-        return this.handleWamResponse(response as WamResponse, wamRequest, reqTimestamp);
+        return this.handleWamResponse(response as NativeResponse, wamRequest, reqTimestamp);
     }
 
     /**
@@ -57,8 +57,8 @@ export class WamInteractionClient extends BaseInteractionClient {
         this.logger.trace("WamInteractionClient - acquireTokenRedirect called.");
         const wamRequest = this.initializeWamRequest(request);
 
-        const messageBody: WamExtensionRequestBody = {
-            method: WamExtensionMethod.GetToken,
+        const messageBody: NativeExtensionRequestBody = {
+            method: NativeExtensionMethod.GetToken,
             request: wamRequest
         };
 
@@ -67,7 +67,7 @@ export class WamInteractionClient extends BaseInteractionClient {
             this.validateWamResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
-            if (e instanceof WamAuthError && e.isFatal()) {
+            if (e instanceof NativeAuthError && e.isFatal()) {
                 throw e;
             }
         }
@@ -106,8 +106,8 @@ export class WamInteractionClient extends BaseInteractionClient {
             prompt: PromptValue.NONE // If prompt was specified on the request, it was already shown before the "redirect". This prevents double prompts.
         };
 
-        const messageBody: WamExtensionRequestBody = {
-            method: WamExtensionMethod.GetToken,
+        const messageBody: NativeExtensionRequestBody = {
+            method: NativeExtensionMethod.GetToken,
             request: request
         };
 
@@ -117,7 +117,7 @@ export class WamInteractionClient extends BaseInteractionClient {
             this.logger.verbose("WamInteractionClient - handleRedirectPromise sending message to native broker.");
             const response: object = await this.wamMessageHandler.sendMessage(messageBody);
             this.validateWamResponse(response);
-            const result = this.handleWamResponse(response as WamResponse, request, reqTimestamp);
+            const result = this.handleWamResponse(response as NativeResponse, request, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {
@@ -141,7 +141,7 @@ export class WamInteractionClient extends BaseInteractionClient {
      * @param request 
      * @param reqTimestamp 
      */
-    protected async handleWamResponse(response: WamResponse, request: WamTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+    protected async handleWamResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("WamInteractionClient - handleWamResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
@@ -201,7 +201,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         ) {
             return;
         } else {
-            throw WamAuthError.createUnexpectedError("Response missing expected properties.");
+            throw NativeAuthError.createUnexpectedError("Response missing expected properties.");
         }
     }
 
@@ -209,7 +209,7 @@ export class WamInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into WamRequest object
      * @param request 
      */
-    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): WamTokenRequest {
+    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
         this.logger.trace("WamInteractionClient - initializeWamRequest called");
 
         const authority = request.authority || this.config.auth.authority;
@@ -222,7 +222,7 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
 
-        const validatedRequest: WamTokenRequest = {
+        const validatedRequest: NativeTokenRequest = {
             ...request,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,

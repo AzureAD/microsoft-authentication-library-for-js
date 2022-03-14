@@ -165,17 +165,17 @@ export const BrowserAuthErrorMessage = {
         code: "unable_to_acquire_token_from_native_platform",
         desc: "Unable to acquire token from native platform. For a list of possible reasons visit aka.ms/msaljs/browser-errors."
     },
-    wamHandshakeTimeout: {
-        code: "wam_handshake_timeout",
-        desc: "Timed out while attempting to establish connection to WAM extension"
+    nativeHandshakeTimeout: {
+        code: "native_handshake_timeout",
+        desc: "Timed out while attempting to establish connection to browser extension"
     },
-    wamExtensionNotInstalled: {
-        code: "wam_extension_not_installed",
-        desc: "Wam extension is not installed. If you think this is a mistake run the initialize function."
+    nativeExtensionNotInstalled: {
+        code: "native_extension_not_installed",
+        desc: "Native extension is not installed. If you think this is a mistake run the initialize function."
     },
-    wamConnectionNotEstablished: {
-        code: "wam_connection_not_established",
-        desc: "Connection to WAM has not been established. Please install a compatible browser extension and run initialize()."
+    nativeConnectionNotEstablished: {
+        code: "native_connection_not_established",
+        desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize()."
     }
 };
 
@@ -488,20 +488,20 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Create an error thrown when Handshake with WAM extension times out
+     * Create an error thrown when Handshake with browser extension times out
      */
-    static createWamHandshakeTimeoutError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.wamHandshakeTimeout.code, BrowserAuthErrorMessage.wamHandshakeTimeout.desc);
+    static createNativeHandshakeTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nativeHandshakeTimeout.code, BrowserAuthErrorMessage.nativeHandshakeTimeout.desc);
     }
 
     /**
-     * Create an error thrown when WAM extension is not installed
+     * Create an error thrown when browser extension is not installed
      */
-    static createWamExtensionNotInstalledError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.wamExtensionNotInstalled.code, BrowserAuthErrorMessage.wamExtensionNotInstalled.desc);
+    static createNativeExtensionNotInstalledError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nativeExtensionNotInstalled.code, BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc);
     }
 
-    static createWamConnectionNotEstablishedError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.wamConnectionNotEstablished.code, BrowserAuthErrorMessage.wamConnectionNotEstablished.desc);
+    static createNativeConnectionNotEstablishedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code, BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
     }
 }
