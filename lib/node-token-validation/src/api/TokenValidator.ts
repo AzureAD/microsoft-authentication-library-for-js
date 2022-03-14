@@ -8,9 +8,10 @@ import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWT
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { buildTokenValidationParameters, TokenValidationParameters, BaseValidationParameters } from "../config/TokenValidationParameters";
-import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { ValidationError } from "../error/ValidationError";
+import { ExpressNextFunction, ExpressRequest, ExpressResponse } from "../request/MiddlewareTypes";
+import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { name, version } from "../packageMetadata";
 import crypto from "crypto";
 
@@ -55,12 +56,13 @@ export class TokenValidator {
      * @param resource Optional resource to retrieve access token from session 
      * @returns 
      */
-    validateTokenMiddleware(options: TokenValidationParameters, resource?: string) {
-        // @ts-ignore
-        return (req: any, res: any, next: any) => {
+    validateTokenMiddleware(options: TokenValidationParameters, resource?: string): Function {
+
+        // @ts-ignore 
+        return (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
 
             // Adding access token to authorization header from session
-            if (resource) {
+            if (resource && req.session && req.session.protectedResources) {
                 if (!req.session.protectedResources[resource]) {
                     const error = ValidationConfigurationError.createMissingTokenError(`Resource ${resource} is not a protectedResource in req session. No access token to add to headers.`);
                     next(error);
@@ -71,10 +73,14 @@ export class TokenValidator {
                         next(error);
                     }
     
-                    req.headers.authorization = `Bearer ${token}`;
+                    // Attach bearer token to authorization header
+                    if (req.headers) {
+                        req.headers.authorization = `Bearer ${token}`;
+                    }
                 }
             }
 
+            // Validating token from request
             this.validateTokenFromRequest(req, options)
                 .then(() => {
                     next();
@@ -91,7 +97,7 @@ export class TokenValidator {
      * @param {@link (TokenValidationParameters:type)}
      * @returns {Promise.<TokenValidationResponse>}
      */
-    async validateTokenFromRequest(request: any, options: TokenValidationParameters): Promise<TokenValidationResponse> {
+    async validateTokenFromRequest(request: ExpressRequest, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.trace("TokenValidator.validateTokenFromRequest called");
 
         // Validates token if found in authorization header
