@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 export enum PerformanceEvents {
     AcquireTokenByCode = "acquireTokenByCode",
     AcquireTokenByRefreshToken = "acquireTokenByRefreshToken",
@@ -9,6 +14,7 @@ export enum PerformanceEvents {
     SilentIframeClientAcquireToken = "silentIframeClientAcquireToken",
     SilentRefreshClientAcquireToken = "silentRefreshClientAcquireToken",
     SsoSilent = "ssoSilent",
+    StandardInteractionClientGetDiscoveredAuthority = "standardInteractionClientGetDiscoveredAuthority"
 }
 
 export type PerformanceEvent = {

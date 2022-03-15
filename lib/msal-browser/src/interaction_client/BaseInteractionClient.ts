@@ -77,7 +77,7 @@ export abstract class BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];
-
+        
         // Set authenticationScheme to BEARER if not explicitly set in the request
         if (!request.authenticationScheme) {
             request.authenticationScheme = AuthenticationScheme.BEARER;

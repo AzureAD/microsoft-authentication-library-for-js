@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-
 /**
  * @packageDocumentation
  * @module @azure/msal-browser
@@ -104,5 +103,3 @@ export {
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
-
-

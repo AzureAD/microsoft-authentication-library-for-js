@@ -30,7 +30,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
                 endMeasurement({
                     success: true,
                     fromCache: result.fromCache
-                })
+                });
 
                 return result;
             })
