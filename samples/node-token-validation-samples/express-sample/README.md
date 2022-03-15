@@ -1,10 +1,10 @@
 # Sample for Token Validation prototype
 
-This sample application demonstrates how to validate a token against claims using `node-token-validation`.
+This is a sample that can run `node-token-validation` and validate a token against claims.
 
 **Note that this library has not been released, and this sample is used for experimental purposes only.**
 
-## Instructions to run sample
+## Instructions to run prototype
 
 ### In the Azure Portal
 
@@ -14,7 +14,7 @@ This sample application demonstrates how to validate a token against claims usin
 
 ### In a msal-browser sample (e.g. [VanillaJSTestApp2.0](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0))
 
-1. Replace client id, authority, and token request scopes with information from above app registration. Note that token request scopes should only have the custom scope, and no MS Graph scopes, otherwise the token will not be able to be validated using this library.
+1. Replace client id, authority, and token request scopes with information from above app registration. Note that token request scopes should only have the custom scope, and no MS Graph scopes, otherwise you will get a token that cannot be validated.
 
 1. Run the sample, sign in, and click get profile.
 
