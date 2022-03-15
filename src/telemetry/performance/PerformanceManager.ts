@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-
 import { IGuidGenerator } from "../../crypto/IGuidGenerator";
 import { Logger } from "../../logger/Logger";
 import { IPerformanceManager, PerformanceCallbackFunction } from "./IPerformanceManager";
@@ -88,14 +87,25 @@ export abstract class PerformanceManager implements IPerformanceManager {
             if (events) {
                 const topLevelEvent = events.find(event => event.name === measureName);
                 if (topLevelEvent) {
+                    this.logger.verbose(`PerformanceManager: Measurement found for ${measureName}`, correlationId);
                     const subMeasurements = events.filter(event => event.name !== measureName);
                     subMeasurements.forEach(event => {
+                        this.logger.verbose(`PerformanceManager: Sub measurement found for ${event.name}`, correlationId);
                         // TODO: Emit additional properties for each subMeasurement
-                        topLevelEvent[`${event.name}DurationMs`] = event.durationMs;
-                    })
+                        const subMeasurementName = `${event.name}DurationMs`;
+                        /*
+                         * Some code paths, such as resolving an authority, can occur multiple times.
+                         * Only take the first measurement since the second is often read from the cache.
+                         */
+                        if (!topLevelEvent[subMeasurementName]) {
+                            topLevelEvent[subMeasurementName] = event.durationMs;
+                        }
+                    });
 
                     this.emitEvents([topLevelEvent]);
-                };
+                }
+            } else {
+                this.logger.verbose("PerformanceManager: No measurements found", correlationId);
             }
         } else {
             // TODO: Flush all?
