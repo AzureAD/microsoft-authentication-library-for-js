@@ -68,7 +68,7 @@ export class SilentIframeClient extends StandardInteractionClient {
                         success: true
                     });
                     return result;
-                })
+                });
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
@@ -77,7 +77,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.browserStorage.cleanRequestByState(silentRequest.state);
             endMeasurement({
                 success: false
-            })
+            });
             throw e;
         }
     }

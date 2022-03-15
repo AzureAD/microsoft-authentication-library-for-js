@@ -37,7 +37,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             }
             endMeasurement({
                 success: false
-            })
+            });
             throw error;
         }
     }

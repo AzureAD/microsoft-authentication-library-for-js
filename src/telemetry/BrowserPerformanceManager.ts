@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceCallbackFunction, PerformanceEvent, PerformanceEvents, IPerformanceManager, IGuidGenerator, PerformanceManager, IPerformanceMeasurement } from "@azure/msal-common";
+import { Logger, PerformanceCallbackFunction, PerformanceEvent, PerformanceEvents, IPerformanceManager, PerformanceManager, IPerformanceMeasurement } from "@azure/msal-common";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
@@ -50,7 +50,7 @@ export class BrowserPerformanceManager extends PerformanceManager implements IPe
 
     emitEvents(events: PerformanceEvent[], correlationId?: string): void {
         if (typeof window !== "undefined") {
-            super.emitEvents(events);
+            super.emitEvents(events, correlationId);
         }
     }
 }

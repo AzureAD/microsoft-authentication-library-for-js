@@ -42,8 +42,11 @@ export class CryptoOps implements ICrypto {
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
-    // CryptoOps can be used in contexts outside a PCA instance,
-    // meaning there won't be a performance manager available.
+
+    /**
+     * CryptoOps can be used in contexts outside a PCA instance,
+     * meaning there won't be a performance manager available.
+     */
     private performanceManager: BrowserPerformanceManager | undefined;
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
