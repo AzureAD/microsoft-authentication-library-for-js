@@ -131,6 +131,9 @@ describe("TokenValidator", () => {
                     protectedResources: {
                         anotherApi: {}
                     }
+                },
+                headers: {
+                    authorization: ''
                 }
             };
 
@@ -197,6 +200,7 @@ describe("TokenValidator", () => {
             };
 
             const request = {
+                headers: {},
                 body: {
                     access_token: "access-token-from-body"
                 }
