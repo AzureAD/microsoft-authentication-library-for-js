@@ -91,13 +91,15 @@ export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
-// Telemetry
+// Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
-export { IPerformanceManager, PerformanceCallbackFunction } from "./telemetry/performance/IPerformanceManager";
+
+// Performance Telemetry
+export { IPerformanceClient, PerformanceCallbackFunction } from "./telemetry/performance/IPerformanceClient";
 export { PerformanceEvent, PerformanceEvents } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
-export { PerformanceManager } from "./telemetry/performance/PerformanceManager";
+export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
 
