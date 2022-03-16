@@ -119,7 +119,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
     }
 
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         const callbackId = this.guidGenerator.generateGuid();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(`PerformanceManager: Performance callback registered with id: ${callbackId}`);
@@ -127,9 +127,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
         return callbackId;
     }
 
-    removePerformanceCallback(callbackId: string): void {
-        this.callbacks.delete(callbackId);
-        this.logger.verbose(`PerformanceManager: Performance callback ${callbackId} removed.`);
+    removePerformanceCallback(callbackId: string): boolean {
+        const result = this.callbacks.delete(callbackId);
+
+        if (result) {
+            this.logger.verbose(`PerformanceManager: Performance callback ${callbackId} removed.`);
+        } else {
+            this.logger.verbose(`PerformanceManager: Performance callback ${callbackId} not removed.`);
+        }
+        
+        return result;
     }
 
     emitEvents(events: PerformanceEvent[], correlationId?: string): void {
