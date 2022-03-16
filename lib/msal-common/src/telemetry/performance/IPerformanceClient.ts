@@ -13,6 +13,6 @@ export interface IPerformanceClient {
     endMeasurement(performanceMeasure: IPerformanceMeasurement, additionalEventData: Partial<PerformanceEvent>, measureName: PerformanceEvents, correlationId?: string): PerformanceEvent;
     flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void;
     discardMeasurements(measureName: PerformanceEvents, correlationId?: string): void;
-    removePerformanceCallback(callbackId: string): void;
+    removePerformanceCallback(callbackId: string): boolean;
     emitEvents(events: PerformanceEvent[], correlationId?: string): void;
 }

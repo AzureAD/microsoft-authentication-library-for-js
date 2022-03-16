@@ -40,12 +40,12 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         };
     }
 
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         if (typeof window !== "undefined") {
-            super.addPerformanceCallback(callback);
+            return super.addPerformanceCallback(callback);
         }
 
-        return null;
+        return "";
     }
 
     emitEvents(events: PerformanceEvent[], correlationId?: string): void {
