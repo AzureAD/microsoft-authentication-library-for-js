@@ -15,13 +15,13 @@ import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
-import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
+import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceManager: BrowserPerformanceManager, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceManager, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: BrowserPerformanceClient, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, correlationId);
         this.apiId = apiId;
     }
     

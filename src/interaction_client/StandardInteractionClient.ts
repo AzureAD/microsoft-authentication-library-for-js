@@ -19,7 +19,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
+import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -27,8 +27,8 @@ import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManage
 export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected navigationClient: INavigationClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceManager: BrowserPerformanceManager, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, performanceManager, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: BrowserPerformanceClient, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, performanceClient, correlationId);
         this.navigationClient = navigationClient;
     }
 
@@ -214,7 +214,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
-        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,

@@ -14,7 +14,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
+import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 
 export abstract class BaseInteractionClient {
 
@@ -25,9 +25,9 @@ export abstract class BaseInteractionClient {
     protected logger: Logger;
     protected eventHandler: EventHandler;
     protected correlationId: string;
-    protected performanceManager: BrowserPerformanceManager;
+    protected performanceClient: BrowserPerformanceClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, performanceManager: BrowserPerformanceManager, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, performanceClient: BrowserPerformanceClient, correlationId?: string) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
@@ -35,7 +35,7 @@ export abstract class BaseInteractionClient {
         this.eventHandler = eventHandler;
         this.correlationId = correlationId || this.browserCrypto.createNewGuid();
         this.logger = logger.clone(BrowserConstants.MSAL_SKU, version, this.correlationId);
-        this.performanceManager = performanceManager;
+        this.performanceClient = performanceClient;
     }
 
     abstract acquireToken(request: RedirectRequest|PopupRequest|SsoSilentRequest): Promise<AuthenticationResult|void>;

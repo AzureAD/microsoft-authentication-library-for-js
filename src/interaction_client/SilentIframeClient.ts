@@ -14,13 +14,13 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
+import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceManager: BrowserPerformanceManager, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceManager, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: BrowserPerformanceClient, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, correlationId);
         this.apiId = apiId;
     }
 
@@ -40,7 +40,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
-        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
 
         // Create silent request
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({

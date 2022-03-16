@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceCallbackFunction, PerformanceEvent, PerformanceEvents, IPerformanceManager, PerformanceManager, IPerformanceMeasurement } from "@azure/msal-common";
+import { Logger, PerformanceCallbackFunction, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement } from "@azure/msal-common";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
 
-export class BrowserPerformanceManager extends PerformanceManager implements IPerformanceManager {
+export class BrowserPerformanceClient extends PerformanceClient implements IPerformanceClient {
     private browserCrypto: BrowserCrypto;
     
     constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {

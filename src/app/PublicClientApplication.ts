@@ -93,7 +93,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
-        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", request.correlationId);
         const account = request.account || this.getActiveAccount();
@@ -123,7 +123,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         success: true,
                         fromCache: result.fromCache
                     });
-                    this.performanceManager.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+                    this.performanceClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
                     return result;
                 })
                 .catch((error) => {
@@ -131,7 +131,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     endMeasurement({
                         success: false
                     });
-                    this.performanceManager.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+                    this.performanceClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
@@ -142,7 +142,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 success: true
             });
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            this.performanceManager.discardMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+            this.performanceClient.discardMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
             return cachedResponse;
         }
     }
@@ -154,8 +154,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult> {
-        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, request.correlationId);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
         const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
