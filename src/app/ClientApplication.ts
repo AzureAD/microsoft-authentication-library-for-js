@@ -634,12 +634,12 @@ export abstract class ClientApplication {
         this.eventHandler.removeEventCallback(callbackId);
     }
 
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         return this.performanceClient.addPerformanceCallback(callback);
     }
 
-    removePerformanceCallback(callbackId: string): void {
-        this.performanceClient.removePerformanceCallback(callbackId);
+    removePerformanceCallback(callbackId: string): boolean {
+        return this.performanceClient.removePerformanceCallback(callbackId);
     }
 
     /**
