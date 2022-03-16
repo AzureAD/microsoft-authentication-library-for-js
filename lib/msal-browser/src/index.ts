@@ -57,7 +57,7 @@ export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttp
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
 export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
 export { PopupUtils } from "./utils/PopupUtils";
-export { BrowserPerformanceManager } from "./telemetry/BrowserPerformanceManager";
+export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
 
 // Common Object Formats
 export {

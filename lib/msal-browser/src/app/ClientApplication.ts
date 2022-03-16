@@ -29,7 +29,7 @@ import { ITokenCache } from "../cache/ITokenCache";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import { BrowserAuthError  } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
-import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
+import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 
 export abstract class ClientApplication {
 
@@ -65,7 +65,7 @@ export abstract class ClientApplication {
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
-    protected performanceManager: BrowserPerformanceManager;
+    protected performanceClient: BrowserPerformanceClient;
 
     /**
      * @constructor
@@ -114,10 +114,10 @@ export abstract class ClientApplication {
         this.hybridAuthCodeResponses = new Map();
         
         // Initialize performance manager
-        this.performanceManager = new BrowserPerformanceManager(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
+        this.performanceClient = new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
 
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceManager) : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -154,7 +154,7 @@ export abstract class ClientApplication {
                 this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
-                const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, correlationId);
+                const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, correlationId);
                 response = redirectClient.handleRedirectPromise(hash)
                     .then((result: AuthenticationResult | null) => {
                         if (result) {
@@ -217,7 +217,7 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
         }
         
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, request.correlationId);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
         return redirectClient.acquireToken(request).catch((e) => {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -258,7 +258,7 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
         }
 
-        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, request.correlationId);
+        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
 
         return popupClient.acquireToken(request).then((result) => {
             // If logged in, emit acquire token events
@@ -307,7 +307,7 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceManager, request.correlationId);
+            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, request.correlationId);
             const silentTokenResult = await silentIframeClient.acquireToken(request);
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
@@ -370,7 +370,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
-        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceManager, request.correlationId);
+        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
         return silentTokenResult;
     }
@@ -389,10 +389,10 @@ export abstract class ClientApplication {
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const endMeasurement = this.performanceManager.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
-        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, request.correlationId);
+        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
 
         return silentRefreshClient.acquireToken(request)
             .then((result: AuthenticationResult) => {
@@ -409,7 +409,7 @@ export abstract class ClientApplication {
                 if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                     this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.performanceManager, request.correlationId);
+                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.performanceClient, request.correlationId);
                     return silentIframeClient.acquireToken(request)
                         .then((result: AuthenticationResult) => {
                             endMeasurement({
@@ -459,7 +459,7 @@ export abstract class ClientApplication {
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient,this.performanceManager, correlationId);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient,this.performanceClient, correlationId);
         return redirectClient.logout({
             correlationId,
             ...logoutRequest
@@ -474,7 +474,7 @@ export abstract class ClientApplication {
         try{
             const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceManager, correlationId);
+            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, correlationId);
             return popupClient.logout(logoutRequest);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -635,11 +635,11 @@ export abstract class ClientApplication {
     }
 
     addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
-        return this.performanceManager.addPerformanceCallback(callback);
+        return this.performanceClient.addPerformanceCallback(callback);
     }
 
     removePerformanceCallback(callbackId: string): void {
-        this.performanceManager.removePerformanceCallback(callbackId);
+        this.performanceClient.removePerformanceCallback(callbackId);
     }
 
     /**

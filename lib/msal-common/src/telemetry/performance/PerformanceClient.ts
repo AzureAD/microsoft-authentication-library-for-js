@@ -5,11 +5,11 @@
 
 import { IGuidGenerator } from "../../crypto/IGuidGenerator";
 import { Logger } from "../../logger/Logger";
-import { IPerformanceManager, PerformanceCallbackFunction } from "./IPerformanceManager";
+import { IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents } from "./PerformanceEvent";
 
-export abstract class PerformanceManager implements IPerformanceManager {
+export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
     protected libraryName: string;
     protected libraryVersion: string;
