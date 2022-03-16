@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Created two Angular13 sample apps. One uses RxJS v6 and the other uses RxJS v7.",
+  "packageName": "@azure/msal-angular",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
