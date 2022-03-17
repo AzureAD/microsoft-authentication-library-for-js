@@ -40,9 +40,15 @@ class MockGuidGenerator implements IGuidGenerator {
 }
 
 class MockPerformanceClient extends PerformanceClient implements IPerformanceClient {
+    private guidGenerator: MockGuidGenerator;
+
     constructor() {
         super(sampleClientId, authority, logger, libraryName, libraryVersion);
         this.guidGenerator = new MockGuidGenerator();
+    }
+
+    generateCallbackId(): string {
+        return this.guidGenerator.generateGuid();
     }
 
     startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {

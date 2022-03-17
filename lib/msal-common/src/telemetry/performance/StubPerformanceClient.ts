@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { IPerformanceClient } from "./IPerformanceClient";
+import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
+import { PerformanceClient } from "./PerformanceClient";
+
+export class StubPerformanceMeasurement implements IPerformanceMeasurement {
+    startMeasurement(): void {
+        
+    }
+    endMeasurement(): void {
+        
+    }
+    flushMeasurement(): number | null {
+        return null;
+    }
+    
+}
+
+export class StubPerformanceClient extends PerformanceClient implements IPerformanceClient {
+    generateCallbackId(): string {
+        return "callback-id";
+    }
+    
+    startPerformanceMeasuremeant(): IPerformanceMeasurement {
+        return new StubPerformanceMeasurement();
+    }
+}

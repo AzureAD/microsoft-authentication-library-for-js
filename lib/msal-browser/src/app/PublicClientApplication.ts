@@ -61,7 +61,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
-        const correlationId: string = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        const correlationId: string = this.getRequestCorrelationId(request);
         this.logger.verbose("loginRedirect called", correlationId);
         return this.acquireTokenRedirect({
             correlationId,
@@ -77,7 +77,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        const correlationId: string = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        const correlationId: string = this.getRequestCorrelationId(request);
         this.logger.verbose("loginPopup called", correlationId);
         return this.acquireTokenPopup({
             correlationId,
@@ -92,7 +92,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+        request.correlationId = this.getRequestCorrelationId(request);
         const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", request.correlationId);

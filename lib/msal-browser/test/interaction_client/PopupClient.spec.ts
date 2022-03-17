@@ -24,7 +24,7 @@ describe("PopupClient", () => {
             }
         });
         //@ts-ignore
-        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
     });
 
     afterEach(() => {
@@ -117,7 +117,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -274,7 +274,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate, popupName) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
@@ -317,7 +317,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
@@ -345,7 +345,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
@@ -367,7 +367,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
@@ -390,7 +390,7 @@ describe("PopupClient", () => {
             });
 
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             const logoutHint = "test@user.com";
 
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
@@ -415,7 +415,7 @@ describe("PopupClient", () => {
             });
 
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             
             const logoutHint = "test@user.com";
             const testIdTokenClaims: TokenClaims = {
@@ -461,7 +461,7 @@ describe("PopupClient", () => {
             });
             
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             const logoutHint = "test@user.com";
             const loginHint = "anothertest@user.com";
             const testIdTokenClaims: TokenClaims = {

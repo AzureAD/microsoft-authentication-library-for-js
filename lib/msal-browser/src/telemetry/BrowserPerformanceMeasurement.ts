@@ -38,7 +38,7 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
         }
     }
 
-    flushMeasurement(): number {
+    flushMeasurement(): number | null {
         if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
             const durationMs = window.performance.getEntriesByName(this.measureName, "measure")[0].duration;
             window.performance.clearMeasures(this.measureName);
@@ -46,6 +46,6 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
             window.performance.clearMarks(this.endMark);
             return durationMs;
         }
-        return 0;
+        return null;
     }
 }

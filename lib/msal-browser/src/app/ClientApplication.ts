@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, PerformanceEvents, PerformanceCallbackFunction } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -65,7 +65,7 @@ export abstract class ClientApplication {
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
-    protected performanceClient: BrowserPerformanceClient;
+    protected performanceClient: IPerformanceClient;
 
     /**
      * @constructor
@@ -114,7 +114,7 @@ export abstract class ClientApplication {
         this.hybridAuthCodeResponses = new Map();
         
         // Initialize performance manager
-        this.performanceClient = new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
+        this.performanceClient = this.isBrowserEnvironment ? new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version) : new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
 
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient) : DEFAULT_CRYPTO_IMPLEMENTATION;
@@ -205,7 +205,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+        request.correlationId = this.getRequestCorrelationId(request);
         this.logger.verbose("acquireTokenRedirect called", request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
@@ -242,7 +242,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+            request.correlationId = this.getRequestCorrelationId(request);
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
@@ -301,7 +301,7 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+        request.correlationId = this.getRequestCorrelationId(request);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("ssoSilent called", request.correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
@@ -328,6 +328,7 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        request.correlationId = this.getRequestCorrelationId(request);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.trace("acquireTokenByCode called", request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
@@ -443,7 +444,7 @@ export abstract class ClientApplication {
      * @deprecated
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
+        const correlationId = this.getRequestCorrelationId(logoutRequest);
         this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.", correlationId);
         return this.logoutRedirect({
             correlationId,
@@ -457,7 +458,7 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
-        const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
+        const correlationId = this.getRequestCorrelationId(logoutRequest);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient,this.performanceClient, correlationId);
         return redirectClient.logout({
@@ -472,7 +473,7 @@ export abstract class ClientApplication {
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
-            const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
+            const correlationId = this.getRequestCorrelationId(logoutRequest);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, correlationId);
             return popupClient.logout(logoutRequest);
@@ -701,6 +702,18 @@ export abstract class ClientApplication {
      */
     getConfiguration(): BrowserConfiguration {
         return this.config;
+    }
+
+    protected getRequestCorrelationId(request?: Partial<BaseAuthRequest>): string {
+        if (request?.correlationId) {
+            return request.correlationId;
+        }
+
+        if (this.isBrowserEnvironment) {
+            return this.browserCrypto.createNewGuid();
+        }
+
+        return "";
     }
 
     // #endregion

@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceCallbackFunction, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement } from "@azure/msal-common";
+import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement } from "@azure/msal-common";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
 
 export class BrowserPerformanceClient extends PerformanceClient implements IPerformanceClient {
     private browserCrypto: BrowserCrypto;
+    private guidGenerator: GuidGenerator;
     
     constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {
         super(clientId, authority, logger, libraryName, libraryVersion);
@@ -21,36 +22,26 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         return new BrowserPerformanceMeasurement(measureName, correlationId);
     }
 
+    generateCallbackId() : string {
+        return this.guidGenerator.generateGuid();
+    }
+
     private getPageVisibility(): string | null {
         return document.visibilityState?.toString() || null;
     }
 
-    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent {
+    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent| null {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
         
         const endMeasurement = super.startMeasurement(measureName, correlationId);
 
-        return (event?: Partial<PerformanceEvent>) => {
+        return (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
             return endMeasurement({
                 startPageVisibility,
                 endPageVisibility: this.getPageVisibility(),
                 ...event
             });
         };
-    }
-
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string {
-        if (typeof window !== "undefined") {
-            return super.addPerformanceCallback(callback);
-        }
-
-        return "";
-    }
-
-    emitEvents(events: PerformanceEvent[], correlationId?: string): void {
-        if (typeof window !== "undefined") {
-            super.emitEvents(events, correlationId);
-        }
     }
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, IPerformanceClient, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -13,7 +13,6 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
-import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -47,13 +46,13 @@ export class CryptoOps implements ICrypto {
      * CryptoOps can be used in contexts outside a PCA instance,
      * meaning there won't be a performance manager available.
      */
-    private performanceClient: BrowserPerformanceClient | undefined;
+    private performanceClient: IPerformanceClient | undefined;
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(logger: Logger, performanceClient?: BrowserPerformanceClient) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
