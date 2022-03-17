@@ -4,20 +4,20 @@
  */
 
 /**
- * Account properties returned by WAM
+ * Account properties returned by Native Platform e.g. WAM
  */
-export type WamAccountInfo = {
+export type NativeAccountInfo = {
     id: string;
     properties: object;
     userName: string;
 };
 
 /**
- * Token response returned by WAM
+ * Token response returned by Native Platform e.g. WAM
  */
-export type WamResponse = {
+export type NativeResponse = {
     access_token: string;
-    account: WamAccountInfo;
+    account: NativeAccountInfo;
     client_info: string;
     expires_in: number;
     id_token: string;

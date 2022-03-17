@@ -14,14 +14,14 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
-import { WamInteractionClient } from "./WamInteractionClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { NativeInteractionClient } from "./NativeInteractionClient";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, wamMessageHandler?: WamMessageHandler, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, wamMessageHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
     }
 
@@ -86,7 +86,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create authorize request url
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
-            nativeBridge: this.isNativeAvailable()
+            nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
         });
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
@@ -100,11 +100,11 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         if (serverParams.accountId) {
             this.logger.verbose("Account id found in hash, calling WAM for token");
-            if (!this.wamMessageHandler) {
+            if (!this.nativeMessageHandler) {
                 throw new Error("Call and await initialize function before invoking this API");
             }
-            const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.wamMessageHandler, this.correlationId);
-            return wamInteractionClient.acquireToken({
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.nativeMessageHandler, this.correlationId);
+            return nativeInteractionClient.acquireToken({
                 ...silentRequest,
                 prompt: PromptValue.NONE
             }, serverParams.accountId);
