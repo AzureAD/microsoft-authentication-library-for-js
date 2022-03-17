@@ -6,5 +6,5 @@
 export interface IPerformanceMeasurement {
     startMeasurement(): void;
     endMeasurement(): void;
-    flushMeasurement(): number;
+    flushMeasurement(): number | null;
 }

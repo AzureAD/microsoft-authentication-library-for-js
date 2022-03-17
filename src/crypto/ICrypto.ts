@@ -17,7 +17,9 @@ export type PkceCodes = {
     challenge: string
 };
 
-export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" | "correlationId">;
+export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" > & {
+    correlationId?: string
+};
 
 /**
  * Interface for crypto functions used by library

@@ -100,6 +100,7 @@ export { IPerformanceClient, PerformanceCallbackFunction } from "./telemetry/per
 export { PerformanceEvent, PerformanceEvents } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
+export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
 

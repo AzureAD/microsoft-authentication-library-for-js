@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { IGuidGenerator } from "../../crypto/IGuidGenerator";
 import { Logger } from "../../logger/Logger";
 import { IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
@@ -15,7 +14,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected libraryVersion: string;
     protected clientId: string;
     protected logger: Logger;
-    protected guidGenerator: IGuidGenerator;
     protected callbacks: Map<string, PerformanceCallbackFunction>;
     protected eventsByCorrelationId: Map<string, PerformanceEvent[]>;
 
@@ -30,14 +28,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     abstract startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement;
+    abstract generateCallbackId(): string;
 
-    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent {
+    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent | null {
         this.logger.trace(`PerformanceManager: Performance measurement started for ${measureName}`, correlationId);
         const performanceMeasurement = this.startPerformanceMeasuremeant(measureName, correlationId);
         performanceMeasurement.startMeasurement();
         const startTimeMs = Date.now();
 
-        return (event?: Partial<PerformanceEvent>): PerformanceEvent => {
+        return (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
             return this.endMeasurement(performanceMeasurement, {
                 startTimeMs,
                 ...event
@@ -45,39 +44,44 @@ export abstract class PerformanceClient implements IPerformanceClient {
         };
     }
 
-    endMeasurement(performanceMeasure: IPerformanceMeasurement, additionalEventData: Partial<PerformanceEvent>, measureName: PerformanceEvents, correlationId?: string): PerformanceEvent {
+    endMeasurement(performanceMeasure: IPerformanceMeasurement, additionalEventData: Partial<PerformanceEvent>, measureName: PerformanceEvents, correlationId?: string): PerformanceEvent | null {
         performanceMeasure.endMeasurement();
-        const durationMs = Math.round(performanceMeasure.flushMeasurement());
-        this.logger.trace(`PerformanceManager: Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
-        const event: PerformanceEvent = {
-            authority: this.authority,
-            libraryName: this.libraryName,
-            libraryVersion: this.libraryVersion,
-            clientId: this.clientId,
-            success: null,
-            fromCache: null,
-            startTimeMs: 0,
-            durationMs,
-            name: measureName,
-            correlationId,
-            ...additionalEventData,
-        };
-
-        // Immediately flush events without correlation ids
-        if (!correlationId) {
-            this.emitEvents([event]);
-        } else {
-            const events = this.eventsByCorrelationId.get(correlationId);
-            if (events) {
-                this.logger.trace(`PerformanceManager: Performance measurement for ${measureName} added`, correlationId);
-                events.push(event);
+        const durationMs = performanceMeasure.flushMeasurement();
+        // null indicates no measurement was taken (e.g. needed performance APIs not present)
+        if (durationMs !== null) {
+            this.logger.trace(`PerformanceManager: Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
+            const event: PerformanceEvent = {
+                authority: this.authority,
+                libraryName: this.libraryName,
+                libraryVersion: this.libraryVersion,
+                clientId: this.clientId,
+                success: null,
+                fromCache: null,
+                startTimeMs: 0,
+                durationMs: Math.round(durationMs),
+                name: measureName,
+                correlationId,
+                ...additionalEventData,
+            };
+    
+            // Immediately flush events without correlation ids
+            if (!correlationId) {
+                this.emitEvents([event]);
             } else {
-                this.logger.trace(`PerformanceManager: Performance measurement for ${measureName} started`, correlationId);
-                this.eventsByCorrelationId.set(correlationId, [event]);
+                const events = this.eventsByCorrelationId.get(correlationId);
+                if (events) {
+                    this.logger.trace(`PerformanceManager: Performance measurement for ${measureName} added`, correlationId);
+                    events.push(event);
+                } else {
+                    this.logger.trace(`PerformanceManager: Performance measurement for ${measureName} started`, correlationId);
+                    this.eventsByCorrelationId.set(correlationId, [event]);
+                }
             }
+    
+            return event;
         }
 
-        return event;
+        return null;
     }
 
     flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void {
@@ -120,7 +124,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
-        const callbackId = this.guidGenerator.generateGuid();
+        const callbackId = this.generateCallbackId();
         this.callbacks.set(callbackId, callback);
         this.logger.verbose(`PerformanceManager: Performance callback registered with id: ${callbackId}`);
 
