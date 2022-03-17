@@ -772,11 +772,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const response = await pca.acquireTokenByCode({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy.calledWith({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             })).toBe(true);
         });
 
@@ -809,10 +811,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 response2
             ] = await Promise.all([
                 pca.acquireTokenByCode({
-                    code: "auth-code"
+                    code: "auth-code",
+                    correlationId: testTokenResponse.correlationId
                 }),
                 pca.acquireTokenByCode({
-                    code: "auth-code"
+                    code: "auth-code",
+                    correlationId: testTokenResponse.correlationId
                 })
             ]);
 
@@ -820,7 +824,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(response2).toEqual(testTokenResponse);
             expect(silentClientSpy.callCount).toBe(1);
             expect(silentClientSpy.calledWith({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             })).toBe(true);
         });
 
@@ -849,18 +854,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const response = await pca.acquireTokenByCode({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             });
 
             const response2 = await pca.acquireTokenByCode({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             });
 
             expect(response).toEqual(testTokenResponse);
             expect(response2).toEqual(testTokenResponse);
             expect(silentClientSpy.callCount).toBe(2);
             expect(silentClientSpy.calledWith({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             })).toBe(true);
         });
 
