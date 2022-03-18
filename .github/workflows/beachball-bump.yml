@@ -6,10 +6,6 @@ on:
     types: [closed]
     branches:
       - dev
-      
-concurrency:
-  group: release-staging
-  cancel-in-progress: true
 
 concurrency:
   group: beachball-bump
@@ -45,7 +41,7 @@ jobs:
 
       - name: Get release date
         id: release-date
-        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js -branch)"
+        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
 
       - name: Get a list of packages with bumped versions
         id: bumped-package-list
