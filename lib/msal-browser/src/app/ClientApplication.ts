@@ -476,7 +476,10 @@ export abstract class ClientApplication {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, correlationId);
-            return popupClient.logout(logoutRequest);
+            return popupClient.logout({
+                correlationId,
+                ...logoutRequest
+            });
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
