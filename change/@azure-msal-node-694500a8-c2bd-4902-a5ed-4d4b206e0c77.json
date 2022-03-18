@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added nonce support to MSAL Node #4504",
-  "packageName": "@azure/msal-node",
-  "email": "marionminayo@microsoft.com",
-  "dependentChangeType": "patch"
-}

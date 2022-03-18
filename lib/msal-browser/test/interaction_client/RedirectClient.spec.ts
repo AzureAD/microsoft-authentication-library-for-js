@@ -922,6 +922,50 @@ describe("RedirectClient", () => {
             expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
+        it("Temporary cache is cleared when 'pageshow' event is fired", (done) => {
+            let bfCacheCallback: (event: object) => any;
+            jest.spyOn(window, "addEventListener").mockImplementation((eventName, callback) => {
+                expect(eventName).toEqual("pageshow");
+                // @ts-ignore
+                bfCacheCallback = callback;
+            });
+            const emptyRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: [],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+
+            const testLogger = new Logger(loggerOptions);
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(browserStorage.isInteractionInProgress()).toBe(true);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(RANDOM_TEST_GUID);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
+                bfCacheCallback({ persisted: true });
+                expect(browserStorage.isInteractionInProgress()).toBe(false);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(null);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(null);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(null);
+                done();
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true); // This happens in PCA so need to set manually here
+            redirectClient.acquireToken(emptyRequest);
+        });
+
         it("Adds login_hint as CCS cache entry to the cache and urlNavigate", async () => {
             const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",

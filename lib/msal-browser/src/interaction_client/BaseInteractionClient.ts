@@ -76,27 +76,6 @@ export abstract class BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];
-        
-        // Set authenticationScheme to BEARER if not explicitly set in the request
-        if (!request.authenticationScheme) {
-            request.authenticationScheme = AuthenticationScheme.BEARER;
-            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
-        } else {
-            if (request.authenticationScheme === AuthenticationScheme.SSH) {
-                if (!request.sshJwk) {
-                    throw ClientConfigurationError.createMissingSshJwkError();
-                }
-                if(!request.sshKid) {
-                    throw ClientConfigurationError.createMissingSshKidError();
-                }
-            }
-            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
-        }
-
-        // Set requested claims hash if claims were requested
-        if (request.claims && !StringUtils.isEmpty(request.claims)) {
-            request.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
-        } 
 
         const validatedRequest: BaseAuthRequest = {
             ...request,
@@ -104,6 +83,27 @@ export abstract class BaseInteractionClient {
             authority,
             scopes
         };
+
+        // Set authenticationScheme to BEARER if not explicitly set in the request
+        if (!validatedRequest.authenticationScheme) {
+            validatedRequest.authenticationScheme = AuthenticationScheme.BEARER;
+            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
+        } else {
+            if (validatedRequest.authenticationScheme === AuthenticationScheme.SSH) {
+                if (!request.sshJwk) {
+                    throw ClientConfigurationError.createMissingSshJwkError();
+                }
+                if(!request.sshKid) {
+                    throw ClientConfigurationError.createMissingSshKidError();
+                }
+            }
+            this.logger.verbose(`Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`);
+        }
+
+        // Set requested claims hash if claims were requested
+        if (request.claims && !StringUtils.isEmpty(request.claims)) {
+            validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
+        } 
 
         return validatedRequest;
     }
