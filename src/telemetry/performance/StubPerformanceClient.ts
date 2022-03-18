@@ -8,12 +8,10 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceClient } from "./PerformanceClient";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
-    startMeasurement(): void {
-        
-    }
-    endMeasurement(): void {
-        
-    }
+    /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+    startMeasurement(): void { }
+    /* eslint-disable-next-line @typescript-eslint/no-empty-function */
+    endMeasurement(): void { }
     flushMeasurement(): number | null {
         return null;
     }
