@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Mar 2022 23:28:43 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.22.1
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Clear temporary cache when back button is clicked during redirect flow #4513 (thomas.norling@microsoft.com)
+- Don't reassign request object properties #4563 (thomas.norling@microsoft.com)
 
 ## 2.22.0
 
