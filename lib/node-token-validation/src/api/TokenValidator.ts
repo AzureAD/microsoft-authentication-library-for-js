@@ -154,7 +154,7 @@ export class TokenValidator {
             // Validates access token on response separately from id token
             if (response.accessToken) {
                 if (!accessTokenOptions) {
-                    this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response but idTokenOptions not passed. Id token is not validated");
+                    this.logger.verbose("TokenValidator.validateTokenFromResponse - access token present on response but idTokenOptions not passed. Access token is not validated");
                 } else {
                     this.logger.verbose("TokenValidator.validateTokenFromResponse - access token present on response, validating");
                     const validateAccessTokenResponse: TokenValidationResponse = await this.validateToken(response.accessToken, accessTokenOptions);

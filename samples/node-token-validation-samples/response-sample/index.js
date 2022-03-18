@@ -20,15 +20,6 @@ const { request } = require("express");
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('./cachePlugin')(cacheLocation);
-
-/**
- * The scenario string is the name of a .json file which contains the MSAL client configuration
- * For an example of what a configuration file should look like, check out the customConfig.json file in the
- * /config directory.
- * 
- * You can create your own configuration file and replace the path inside the "config" require statement below
- * with the path to your custom configuraiton.
- */
 const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
@@ -60,18 +51,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
         if (req.query) {
             // Check for the state parameter
             if(req.query.state) authCodeUrlParameters.state = req.query.state;
-            // Check for nonce parameter
-            /**
-             * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
-             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
-             * used to populate the nonce value if none is provided.
-             * 
-             * The generated nonce is then cached and passed as part of authCodeUrlParameters during authentication request.
-             * 
-             * For more information about nonce,
-             * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
-             */
 
+            // Check for nonce parameter
             if(req.query.nonce) {
                 authCodeUrlParameters.nonce = req.query.nonce
             } else {
@@ -92,7 +73,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
         
         /**
          * MSAL Usage
-         * The code below demonstrates the correct usage pattern of the ClientApplicaiton.getAuthCodeUrl API.
+         * The code below demonstrates the correct usage pattern of the ClientApplication.getAuthCodeUrl API.
          * 
          * Authorization Code Grant: First Leg
          * 
@@ -124,20 +105,29 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
 
         clientApplication.acquireTokenByCode(tokenRequest, authCodeResponse).then((response) => {
             console.log("Successfully acquired token using Authorization Code.");
+
+            console.log(response);
             
+            /**
+             * Id Token options to be passed into the TokenValidator.validateTokenFromResponse API.
+             * 
+             * A separate object for access token options can also be passed in to the API to validate access tokens on the response.
+             */
             const idTokenOptions = {
-                validIssuers: ['https://login.microsoftonline.com/417e52c1-667e-489b-8676-33eca4e6a4b1/v2.0'],
-                validAudiences: ['f45765f4-b5f9-4f5f-883c-5a2e4b3c72f3'],
+                validIssuers: ['https://login.windows-ppe.net/f686d426-8d16-42db-81b7-ab578e110ccd/v2.0'],
+                validAudiences: ['8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051'],
                 nonce: response.idTokenClaims.nonce
             };
 
-            const accessTokenOptions = {
-                validIssuers: ['https://sts.windows.net/417e52c1-667e-489b-8676-33eca4e6a4b1/'],
-                validAudiences: ['api://f45765f4-b5f9-4f5f-883c-5a2e4b3c72f3']
-            };
-
             /**
-             * Validate tokens here from response
+             * Node Token Validation Usage
+             * The code below demonstrates the correct usage pattern of the TokenValidator.validateTokenFromResponse API.
+             * 
+             * The response from MSAL along with id token or access token options are passed in, 
+             * containing the claims the token is to be validated against.
+             * 
+             * If successful, a response will be returned from the Token Validator containing the decoded header and payload from the token.
+             * Unsuccessful validation will throw an error.
              */
             tokenValidator.validateTokenFromResponse(response, idTokenOptions, accessTokenOptions).then((response) => {
                 console.log(`Token validation complete. Token validation response: `, response);
@@ -158,8 +148,6 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
     return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
 }
 
-
-
 /**
  * The code below checks if the script is being executed manually or in automation.
  * If the script was executed manually, it will initialize a PublicClientApplication object
@@ -174,7 +162,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
         logLevel: nodeTokenValidation.LogLevel.Verbose,
     }
     
-    // Build MSAL ClientApplication Configuration object
+    // Build MSAL ClientApplication Configuration object. Uncomment code to see MSAL logs
     const clientConfig = {
         auth: config.authOptions,
         cache: {

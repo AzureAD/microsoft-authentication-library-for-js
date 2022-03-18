@@ -1,22 +1,16 @@
 {
     "authOptions":
         {
-            "clientId": "f45765f4-b5f9-4f5f-883c-5a2e4b3c72f3",
-            "authority": "https://login.microsoftonline.com/417e52c1-667e-489b-8676-33eca4e6a4b1/"
+            "clientId": "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+            "authority": "https://login.windows-ppe.net/common/"
         },
     "request":
     {
         "authCodeUrlParameters": {
-            "scopes": ["api://f45765f4-b5f9-4f5f-883c-5a2e4b3c72f3/custom.scope"],
             "redirectUri": "http://localhost:3000/redirect"
         },
         "tokenRequest": {
-            "redirectUri": "http://localhost:3000/redirect",
-            "scopes": ["api://f45765f4-b5f9-4f5f-883c-5a2e4b3c72f3/custom.scope"]
+            "redirectUri": "http://localhost:3000/redirect"
         }
-    },
-    "resourceApi":
-    {
-        "endpoint": "https://graph.microsoft.com/v1.0/me"
     }
 }
