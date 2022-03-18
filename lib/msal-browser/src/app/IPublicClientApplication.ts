@@ -24,7 +24,7 @@ export interface IPublicClientApplication {
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
-    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null;
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     removePerformanceCallback(callbackId: string): void;
     enableAccountStorageEvents(): void;
     disableAccountStorageEvents(): void;
@@ -102,7 +102,7 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return;
     },
     addPerformanceCallback: () => {
-        return null;
+        return "";
     },
     removePerformanceCallback: () => {
         return;
