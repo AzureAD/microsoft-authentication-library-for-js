@@ -105,8 +105,6 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
 
         clientApplication.acquireTokenByCode(tokenRequest, authCodeResponse).then((response) => {
             console.log("Successfully acquired token using Authorization Code.");
-
-            console.log(response);
             
             /**
              * Id Token options to be passed into the TokenValidator.validateTokenFromResponse API.
@@ -115,9 +113,17 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
              */
             const idTokenOptions = {
                 validIssuers: ['https://login.windows-ppe.net/f686d426-8d16-42db-81b7-ab578e110ccd/v2.0'],
-                validAudiences: ['8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051'],
+                validAudiences: [config.authOptions.clientId],
                 nonce: response.idTokenClaims.nonce
             };
+
+            /**
+             * Uncomment accessTokenOptions and add to line 138 if wanting to validate access token with custom scopes
+             */
+            // const accessTokenOptions = {
+            //     validIssuers: [`https://sts.windows.net/${config.authOptions.tenantId}/`],
+            //     validAudiences: [`api://${config.authOptions.clientId}`]
+            // }
 
             /**
              * Node Token Validation Usage
@@ -129,7 +135,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
              * If successful, a response will be returned from the Token Validator containing the decoded header and payload from the token.
              * Unsuccessful validation will throw an error.
              */
-            tokenValidator.validateTokenFromResponse(response, idTokenOptions, accessTokenOptions).then((response) => {
+            tokenValidator.validateTokenFromResponse(response, idTokenOptions).then((response) => {
                 console.log(`Token validation complete. Token validation response: `, response);
                 res.sendStatus(200);
             }).catch((error) => {

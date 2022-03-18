@@ -23,7 +23,8 @@ This sample has been set up with default lab configuration values and can be run
 ##### In the Azure Portal
 
 1. [Register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application) or use an existing application.
-1. Create a custom scope in the `Expose an API` blade. Make note of the tenant id, client id, and custom scope.
+1. [Optional] Create a custom scope in the `Expose an API` blade.
+1. Make note of the tenant id, client id, and custom scope.
 
 ##### In the sample
 
@@ -31,7 +32,8 @@ This sample has been set up with default lab configuration values and can be run
 1. Replace the following:
     1. Client id with the Application (client) ID from the portal registration
     1. Authority with `https://login.microsoftonline.com/YOUR_TENANT_ID_HERE` with your Directory (tenant) ID
-1. Add custom scopes to requests if required.
+    1. Add your Directory (tenant) ID to authOptions
+1. [Optional] Add custom scopes to requests if desired.
 
 Your configuration should look like this:
 
@@ -40,7 +42,8 @@ Your configuration should look like this:
     "authOptions":
         {
             "clientId": "YOUR_CLIENT_ID",
-            "authority": "YOUR_AUTHORITY"
+            "authority": "https://login.microsoftonline.com/YOUR_TENANT_ID",
+            "tenantId": "YOUR_TENANT_ID"
         },
     "request":
     {
@@ -55,6 +58,15 @@ Your configuration should look like this:
     }
 }
 ```
+
+##### Adding access token options and validating a custom token
+
+1. Open `./index.js` in an editor.
+1. Update `idTokenOptions` by replacing the value in validIssuers with `YOUR_AUTHORITY/v2.0` on line 115.
+1. If wanting to validate an access token, uncomment the `accessTokenOptions` on lines 123-125 and add `accessTokenOptions` to line 138, after `idTokenOptions`.
+1. Note that the issuers and audiences for the id token and access tokens are for AAD and draw from the configurations you have set up. You may need to add or modify the issuers and audiences for your app.
+
+**Note:** Only access tokens with custom scopes are able to be validated at this time. Access tokens with Microsoft Graph scopes will result in a signature validation error.
 
 ### Install npm dependencies for sample
 
