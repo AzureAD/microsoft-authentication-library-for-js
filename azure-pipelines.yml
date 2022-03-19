@@ -5,9 +5,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 jobs:
-  - job: windows-2019
+  - job: Windows
     displayName: 'Build Job for JS (VS2019)'
     pool:
-      name: Hosted VS2019
+      vmImage: 'windows-2019'
     steps:
       - template: build/sdl-tasks.yml
