@@ -52,16 +52,16 @@ export abstract class BaseInteractionClient {
             } catch (error) {
                 this.logger.error("Account provided in logout request was not found. Local cache unchanged.");
             }
-        } else {
+        } else {      
             try {
+                this.logger.verbose("No account provided in logout request, clearing all cache items.");
                 // Clear all accounts and tokens
                 await this.browserStorage.clear();
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
-                this.logger.verbose("No account provided in logout request, clearing all cache items.");
             } catch(e) {
                 this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
-            }
+            }  
         }
     }
 

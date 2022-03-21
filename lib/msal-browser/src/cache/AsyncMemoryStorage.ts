@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger } from "@azure/msal-common";
+import { Constants, Logger } from "@azure/msal-common";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
@@ -17,16 +17,20 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
+    private name?: string;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, name?: string) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
         this.logger = logger;
+        this.name = name;
     }
 
     private handleDatabaseAccessError(error: unknown): void {
         if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.databaseUnavailable.code) {
             this.logger.error("Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.");
+        } else {
+            throw error;
         }
     }
     /**
@@ -112,12 +116,34 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     /**
      * Clears in-memory Map and tries to delete the IndexedDB database.
      */
-    async clear(): Promise<void> {
+    async clear(): Promise<boolean> {
+    // InMemory cache is a Map instance, clear is straightforward
+        this.logger.verbose(`Deleting in-memory keystore ${this.logStoreName()}`);
         this.inMemoryCache.clear();
+        this.logger.verbose(`In-memory keystore ${this.logStoreName()} deleted`);
+        this.logger.verbose(`Deleting persistent keystore ${this.logStoreName()}`);
+        
         try {
-            await this.indexedDBCache.deleteDatabase();
+            const dbDeleted = await this.indexedDBCache.deleteDatabase();
+            
+            if (dbDeleted) {
+                this.logger.verbose(`Persistent keystore ${this.logStoreName()} deleted`);
+            }
+            
+            return dbDeleted;
         } catch (e) {
-            this.handleDatabaseAccessError(e);
+            if (e instanceof Error) {
+                this.handleDatabaseAccessError(e);
+            }
+            return false;
         }
+    }
+
+    /**
+     * Helper that prints the keystore name in a log-friendly way
+     * @returns 
+     */
+    private logStoreName() {
+        return (this.name) ? `"${this.name}"` : Constants.EMPTY_STRING;
     }
 }
