@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Implement basic token validation #4368",
-  "packageName": "@azure/node-token-validation",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
