@@ -10,6 +10,7 @@ import { ApiId } from "../../src/utils/BrowserConstants";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS } from "../utils/StringConstants";
+import { NavigationClient } from "../../src/navigation/NavigationClient";
 
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -51,10 +52,13 @@ describe("NativeInteractionClient Tests", () => {
 
             const testAccount: AccountInfo = {
                 homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
                 environment: "login.windows.net",
                 tenantId: ID_TOKEN_CLAIMS.tid,
-                username: ID_TOKEN_CLAIMS.preferred_username
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                name: ID_TOKEN_CLAIMS.name,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                nativeAccountId: mockWamResponse.account.id
             };
             sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
                 return Promise.resolve(mockWamResponse);
@@ -70,6 +74,31 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+    });
+
+    describe("acquireTokenRedirect tests", () => {
+        it("acquires token successfully then redirects to start page", (done) => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scopes: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                }
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
+                expect(url).toBe(window.location.href);
+                done();
+                return Promise.resolve(true);
+            });
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
+                return Promise.resolve(mockWamResponse);
+            });
+            nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]});
         });
     });
 
