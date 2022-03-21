@@ -5,12 +5,12 @@
 
 import { Logger, AuthError, AuthErrorMessage } from "@azure/msal-common";
 import sinon from "sinon";
-import { WamMessageHandler } from "../../src/broker/wam/WamMessageHandler";
+import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
-import { WamExtensionMethod } from "../../src/utils/BrowserConstants";
-import { WamAuthError } from "../../src/error/WamAuthError";
+import { NativeExtensionMethod } from "../../src/utils/BrowserConstants";
+import { NativeAuthError } from "../../src/error/NativeAuthError";
 
-describe("WamMessageHandler Tests", () => {
+describe("NativeMessageHandler Tests", () => {
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -49,8 +49,8 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await WamMessageHandler.createProvider(new Logger({}));
-            expect(wamMessageHandler).toBeInstanceOf(WamMessageHandler);
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}));
+            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
@@ -83,17 +83,17 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await WamMessageHandler.createProvider(new Logger({}));
-            expect(wamMessageHandler).toBeInstanceOf(WamMessageHandler);
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}));
+            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
 
         it("Throws if no extension is installed", (done) => {
-            WamMessageHandler.createProvider(new Logger({})).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({})).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.wamExtensionNotInstalled.code);
-                expect(e.errorMessage).toBe(BrowserAuthErrorMessage.wamExtensionNotInstalled.desc);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativeExtensionNotInstalled.code);
+                expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc);
                 done();
             });
         });
@@ -105,10 +105,10 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            WamMessageHandler.createProvider(new Logger({})).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({})).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.wamHandshakeTimeout.code);
-                expect(e.errorMessage).toBe(BrowserAuthErrorMessage.wamHandshakeTimeout.desc);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativeHandshakeTimeout.code);
+                expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativeHandshakeTimeout.desc);
                 done();
             }).finally(() => {
                 window.removeEventListener("message", eventHandler, true);
@@ -142,7 +142,7 @@ describe("WamMessageHandler Tests", () => {
                     throw new Error("MessageChannel port was not transferred");
                 }
                 mcPort.onmessage = (event) => {
-                    expect(event.data.body.method).toBe(WamExtensionMethod.GetToken);
+                    expect(event.data.body.method).toBe(NativeExtensionMethod.GetToken);
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
                         extensionId: "test-ext-id",
@@ -158,10 +158,10 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await WamMessageHandler.createProvider(new Logger({}));
-            expect(wamMessageHandler).toBeInstanceOf(WamMessageHandler);
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}));
+            expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
-            const response = await wamMessageHandler.sendMessage({method: WamExtensionMethod.GetToken});
+            const response = await wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken});
             expect(response).toEqual(testResponse.result);
 
             window.removeEventListener("message", eventHandler, true);
@@ -191,7 +191,7 @@ describe("WamMessageHandler Tests", () => {
                     throw new Error("MessageChannel port was not transferred");
                 }
                 mcPort.onmessage = (event) => {
-                    expect(event.data.body.method).toBe(WamExtensionMethod.GetToken);
+                    expect(event.data.body.method).toBe(NativeExtensionMethod.GetToken);
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
                         extensionId: "test-ext-id",
@@ -207,9 +207,9 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            WamMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
-                wamMessageHandler.sendMessage({method: WamExtensionMethod.GetToken}).catch((e) => {
-                    expect(e).toBeInstanceOf(WamAuthError);
+            NativeMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
+                wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
+                    expect(e).toBeInstanceOf(NativeAuthError);
                     expect(e.errorCode).toEqual(testResponse.code);
                     expect(e.errorMessage).toEqual(testResponse.description);
                     done();
@@ -245,7 +245,7 @@ describe("WamMessageHandler Tests", () => {
                     throw new Error("MessageChannel port was not transferred");
                 }
                 mcPort.onmessage = (event) => {
-                    expect(event.data.body.method).toBe(WamExtensionMethod.GetToken);
+                    expect(event.data.body.method).toBe(NativeExtensionMethod.GetToken);
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
                         extensionId: "test-ext-id",
@@ -261,9 +261,9 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            WamMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
-                wamMessageHandler.sendMessage({method: WamExtensionMethod.GetToken}).catch((e) => {
-                    expect(e).toBeInstanceOf(WamAuthError);
+            NativeMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
+                wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
+                    expect(e).toBeInstanceOf(NativeAuthError);
                     expect(e.errorCode).toEqual(testResponse.result.code);
                     expect(e.errorMessage).toEqual(testResponse.result.description);
                     done();
@@ -295,7 +295,7 @@ describe("WamMessageHandler Tests", () => {
                     throw new Error("MessageChannel port was not transferred");
                 }
                 mcPort.onmessage = (event) => {
-                    expect(event.data.body.method).toBe(WamExtensionMethod.GetToken);
+                    expect(event.data.body.method).toBe(NativeExtensionMethod.GetToken);
                     mcPort.postMessage({
                         channelId: "53ee284d-920a-4b59-9d30-a60315b26836",
                         extensionId: "test-ext-id",
@@ -311,8 +311,8 @@ describe("WamMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            WamMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
-                wamMessageHandler.sendMessage({method: WamExtensionMethod.GetToken}).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
+                wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(AuthError);
                     expect(e.errorCode).toEqual(AuthErrorMessage.unexpectedError.code);
                     expect(e.errorMessage).toContain(AuthErrorMessage.unexpectedError.desc);

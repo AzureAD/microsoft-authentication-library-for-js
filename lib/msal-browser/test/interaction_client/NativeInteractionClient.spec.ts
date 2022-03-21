@@ -5,13 +5,13 @@
 
 import { AuthenticationScheme, AccountInfo } from "@azure/msal-common";
 import sinon from "sinon";
-import { WamMessageHandler } from "../../src/broker/wam/WamMessageHandler";
+import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { ApiId } from "../../src/utils/BrowserConstants";
-import { WamInteractionClient } from "../../src/interaction_client/WamInteractionClient";
+import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS } from "../utils/StringConstants";
 
-describe("WamInteractionClient Tests", () => {
+describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     
     const pca = new PublicClientApplication({
@@ -19,10 +19,10 @@ describe("WamInteractionClient Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
         }
     });
-    const wamProvider = new WamMessageHandler(pca.getLogger());
+    const wamProvider = new NativeMessageHandler(pca.getLogger());
 
     // @ts-ignore
-    const wamInteractionClient = new WamInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, wamProvider, RANDOM_TEST_GUID);
+    const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, wamProvider, RANDOM_TEST_GUID);
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
 
@@ -56,10 +56,10 @@ describe("WamInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username
             };
-            sinon.stub(WamMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
                 return Promise.resolve(mockWamResponse);
             });
-            const response = await wamInteractionClient.acquireToken({scopes: ["User.Read"]});
+            const response = await nativeInteractionClient.acquireToken({scopes: ["User.Read"]});
             expect(response.accessToken).toEqual(mockWamResponse.access_token);
             expect(response.idToken).toEqual(mockWamResponse.id_token);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
