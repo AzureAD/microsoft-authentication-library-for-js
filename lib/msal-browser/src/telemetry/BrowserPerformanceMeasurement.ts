@@ -20,9 +20,12 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
 
     static supportsBrowserPerformance(): boolean {
         return typeof window !== "undefined" &&
-            "performance" in window &&
-            !!window.performance.mark && 
-            !!window.performance.measure;
+            typeof window.performance !== "undefined" &&
+            typeof window.performance.mark === "function" && 
+            typeof window.performance.measure === "function" &&
+            typeof window.performance.clearMarks === "function" &&
+            typeof window.performance.clearMeasures === "function" &&
+            typeof window.performance.getEntriesByName === "function";
     }
 
     startMeasurement(): void {
