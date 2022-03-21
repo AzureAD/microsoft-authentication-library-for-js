@@ -65,7 +65,7 @@ export class Logger {
         this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
         this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
         this.level = typeof(loggerOptions.logLevel) === "number" ? loggerOptions.logLevel : LogLevel.Info;
-        this.correlationId = loggerOptions.correlationId || "";
+        this.correlationId = loggerOptions.correlationId || Constants.EMPTY_STRING;
 
         this.packageName = packageName || Constants.EMPTY_STRING;
         this.packageVersion = packageVersion || Constants.EMPTY_STRING;
@@ -98,7 +98,7 @@ export class Logger {
         }
 
         const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
-        // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
+        // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": Constants.EMPTY_STRING}${options.context ? `:${options.context}` : Constants.EMPTY_STRING}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii || false);
     }
 
@@ -118,7 +118,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: false,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -129,7 +129,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: true,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -140,7 +140,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: false,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -151,7 +151,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: true,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -162,7 +162,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: false,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -173,7 +173,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: true,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -184,7 +184,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: false,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -195,7 +195,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: true,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -206,7 +206,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: false,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 
@@ -217,7 +217,7 @@ export class Logger {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: true,
-            correlationId: correlationId || ""
+            correlationId: correlationId || Constants.EMPTY_STRING
         });
     }
 

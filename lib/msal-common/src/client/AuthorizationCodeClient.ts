@@ -210,7 +210,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Add library metadata
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addClientTelemetry(this.config.clientTelemetry);
         parameterBuilder.addThrottling();
         
         if (this.serverTelemetryManager) {

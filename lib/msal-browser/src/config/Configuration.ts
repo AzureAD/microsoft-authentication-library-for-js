@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ClientTelemetryOptions } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -81,6 +81,10 @@ export type BrowserSystemOptions = SystemOptions & {
     allowRedirectInIframe?: boolean;
 };
 
+export type BrowserTelemetryOptions = {
+    clientTelemetry?: ClientTelemetryOptions;
+};
+
 /**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
@@ -92,13 +96,15 @@ export type BrowserSystemOptions = SystemOptions & {
 export type Configuration = {
     auth: BrowserAuthOptions,
     cache?: CacheOptions,
-    system?: BrowserSystemOptions
+    system?: BrowserSystemOptions,
+    telemetry?: BrowserTelemetryOptions
 };
 
 export type BrowserConfiguration = {
     auth: Required<BrowserAuthOptions>,
     cache: Required<CacheOptions>,
-    system: Required<BrowserSystemOptions>
+    system: Required<BrowserSystemOptions>,
+    telemetry: Required<BrowserTelemetryOptions>
 };
 
 /**
@@ -110,23 +116,23 @@ export type BrowserConfiguration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, telemetry: userInputTelemetry }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
 
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
-        clientId: "",
+        clientId: Constants.EMPTY_STRING,
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: "",
-        authorityMetadata: "",
-        redirectUri: "",
-        postLogoutRedirectUri: "",
+        cloudDiscoveryMetadata: Constants.EMPTY_STRING,
+        authorityMetadata: Constants.EMPTY_STRING,
+        redirectUri: Constants.EMPTY_STRING,
+        postLogoutRedirectUri: Constants.EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: ""
+            tenant: Constants.EMPTY_STRING
         },
     };
 
@@ -161,10 +167,18 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         allowRedirectInIframe: false
     };
 
+    const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
+        clientTelemetry: {
+            appName: Constants.EMPTY_STRING,
+            appVersion: Constants.EMPTY_STRING
+        }
+    };
+
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem }
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem },
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
     };
     return overlayedConfig;
 }

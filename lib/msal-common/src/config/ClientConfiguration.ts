@@ -41,6 +41,7 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
+    clientTelemetry?: ClientTelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
     serializableCache?: ISerializableTokenCache | null
@@ -54,6 +55,7 @@ export type CommonClientConfiguration = {
     networkInterface : INetworkModule,
     cryptoInterface : Required<ICrypto>,
     libraryInfo : LibraryInfo,
+    clientTelemetry: Required<ClientTelemetryOptions>,
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
@@ -135,10 +137,18 @@ export type AzureCloudOptions = {
     tenant?: string,
 };
 
+/**
+ * Telemetry information sent on request
+ */
+export type ClientTelemetryOptions = {
+    appName: string,
+    appVersion: string
+};
+
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     preventCorsPreflight: false,
-    proxyUrl: "",
+    proxyUrl: Constants.EMPTY_STRING
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -147,7 +157,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: ""
+    correlationId: Constants.EMPTY_STRING
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -164,18 +174,23 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: Constants.SKU,
     version: version,
-    cpu: "",
-    os: ""
+    cpu: Constants.EMPTY_STRING,
+    os: Constants.EMPTY_STRING
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
-    clientSecret: "",
+    clientSecret: Constants.EMPTY_STRING,
     clientAssertion: undefined
 };
 
 const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance.None,
     tenant: `${Constants.DEFAULT_COMMON_TENANT}`
+};
+
+const DEFAULT_CLIENT_TELEMETRY_OPTIONS: Required<ClientTelemetryOptions> = {
+    appName: Constants.EMPTY_STRING,
+    appVersion: Constants.EMPTY_STRING
 };
 
 /**
@@ -211,6 +226,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
+        clientTelemetry: {...DEFAULT_CLIENT_TELEMETRY_OPTIONS},
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
         serializableCache: serializableCache || null

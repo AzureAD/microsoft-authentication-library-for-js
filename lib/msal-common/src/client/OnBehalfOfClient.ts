@@ -78,7 +78,7 @@ export class OnBehalfOfClient extends BaseClient {
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
                 username: Constants.EMPTY_STRING,
-                localAccountId: localAccountId || ""
+                localAccountId: localAccountId || Constants.EMPTY_STRING
             };
 
             cachedAccount = this.readAccountFromCache(accountInfo);

@@ -8,7 +8,7 @@ import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
-import { LibraryInfo } from "../config/ClientConfiguration";
+import { ClientTelemetryOptions, LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
@@ -154,6 +154,15 @@ export class RequestParameterBuilder {
         this.parameters.set(AADServerParamKeys.X_CLIENT_VER, libraryInfo.version);
         this.parameters.set(AADServerParamKeys.X_CLIENT_OS, libraryInfo.os);
         this.parameters.set(AADServerParamKeys.X_CLIENT_CPU, libraryInfo.cpu);
+    }
+
+    /**
+     * Add client telemetry parameters
+     * @param clientTelemetry 
+     */
+    addClientTelemetry(clientTelemetry: ClientTelemetryOptions): void {
+        this.parameters.set(AADServerParamKeys.X_APP_NAME, clientTelemetry.appName);
+        this.parameters.set(AADServerParamKeys.X_APP_VER, clientTelemetry.appVersion);
     }
 
     /**
