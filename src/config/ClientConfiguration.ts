@@ -210,6 +210,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
+        clientTelemetry: clientTelemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
@@ -226,7 +227,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
-        clientTelemetry: {...DEFAULT_CLIENT_TELEMETRY_OPTIONS},
+        clientTelemetry: { ...DEFAULT_CLIENT_TELEMETRY_OPTIONS, ...clientTelemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
         serializableCache: serializableCache || null
