@@ -42,7 +42,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
-            code: "",
+            code: Constants.EMPTY_STRING,
             codeVerifier: generatedPkceParams.verifier
         };
 
@@ -175,9 +175,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: "",
-                os: ""
-            }
+                cpu: Constants.EMPTY_STRING,
+                os: Constants.EMPTY_STRING
+            },
+            clientTelemetry: this.config.telemetry.clientTelemetry
         };
     }
 
