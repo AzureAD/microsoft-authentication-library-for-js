@@ -327,6 +327,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+        parameterBuilder.addClientTelemetry(this.config.clientTelemetry);
 
         // add client_info=1
         parameterBuilder.addClientInfo();

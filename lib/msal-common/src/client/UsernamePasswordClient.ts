@@ -98,7 +98,7 @@ export class UsernamePasswordClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addClientTelemetry(this.config.clientTelemetry);
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager) {

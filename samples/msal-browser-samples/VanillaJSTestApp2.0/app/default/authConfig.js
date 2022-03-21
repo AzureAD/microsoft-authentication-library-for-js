@@ -30,6 +30,12 @@ const msalConfig = {
                 }
             }
         }
+    },
+    telemetry: {
+        clientTelemetry: {
+            appName: "MSAL Browser V2 Default Sample",
+            appVersion: "1.0.0"
+        }
     }
 };
 
