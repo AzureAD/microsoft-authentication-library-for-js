@@ -67,7 +67,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     closeConnection(): void {
         const db = this.db;
-        if (db) {
+        if (db && this.dbOpen) {
             db.close();
             this.dbOpen = false;
         }
@@ -235,7 +235,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
     async deleteDatabase(): Promise<boolean> {
         // Check if database being deleted exists
         const db = this.db;
-        
+
         if (db && this.dbOpen) {
             this.closeConnection();
         }
