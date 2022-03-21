@@ -119,14 +119,13 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     async setItem(key: string, payload: T): Promise<void> {
         await this.validateDbIsOpen();
-        const db = this.db;
 
         return new Promise<void>((resolve: Function, reject: Function) => {
             // TODO: Add timeouts?
-            if (!db) {
+            if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
-            const transaction = db.transaction([this.tableName], "readwrite");
+            const transaction = this.db.transaction([this.tableName], "readwrite");
 
             const objectStore = transaction.objectStore(this.tableName);
 
@@ -150,16 +149,16 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     async removeItem(key: string): Promise<void> {
         await this.validateDbIsOpen();
-        const db = this.db;
 
         return new Promise<void>((resolve: Function, reject: Function) => {
-            if (!db) {
+            if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = db.transaction([this.tableName], "readwrite");
+            const transaction = this.db.transaction([this.tableName], "readwrite");
             const objectStore = transaction.objectStore(this.tableName);
             const dbDelete = objectStore.delete(key);
+
             dbDelete.addEventListener("success", () => {
                 this.closeConnection();
                 resolve();
@@ -177,14 +176,12 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     async getKeys(): Promise<string[]> {
         await this.validateDbIsOpen();
-        const db = this.db;
-
         return new Promise<string[]>((resolve: Function, reject: Function) => {
-            if (!db) {
+            if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = db.transaction([this.tableName], "readonly");
+            const transaction = this.db.transaction([this.tableName], "readonly");
             const objectStore = transaction.objectStore(this.tableName);
             const dbGetKeys = objectStore.getAllKeys();
 
@@ -207,14 +204,13 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     async containsKey(key: string): Promise<boolean> {
         await this.validateDbIsOpen();
-        const db = this.db;
 
         return new Promise<boolean>((resolve: Function, reject: Function) => {
-            if (!db) {
+            if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = db.transaction([this.tableName], "readonly");
+            const transaction = this.db.transaction([this.tableName], "readonly");
             const objectStore = transaction.objectStore(this.tableName);
             const dbContainsKey = objectStore.count(key);
 
@@ -238,7 +234,12 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     async deleteDatabase(): Promise<boolean> {
         // Check if database being deleted exists
-        this.closeConnection();
+        const db = this.db;
+        
+        if (db && this.dbOpen) {
+            this.closeConnection();
+        }
+        
         // @ts-ignore
         const existingDatabases = await window.indexedDB.databases();
         const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
@@ -247,12 +248,11 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         if (database) {
             return new Promise<boolean>((resolve: Function, reject: Function) => {
                 const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
-                deleteDbRequest.onsuccess = () => {
-                    resolve(true);
-                };
-                deleteDbRequest.onerror = () => reject(false);
+                deleteDbRequest.addEventListener("success", () => resolve(true));
+                deleteDbRequest.addEventListener("error", () => reject(false));
             });
         }
+
         // Database doesn't exist, return true
         return true;
     }
