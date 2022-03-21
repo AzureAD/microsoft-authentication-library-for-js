@@ -25,8 +25,14 @@ class MockPerformanceMeasurement implements IPerformanceMeasurement {
     endMeasurement(): void {
         
     }
-    flushMeasurement(): number {
+    flushMeasurement(): number | null {
         return samplePerfDuration;
+    }
+}
+
+class UnsupportedBrowserPerformanceMeasurement extends MockPerformanceMeasurement {
+    flushMeasurement(): number | null {
+        return null;
     }
 }
 
@@ -53,6 +59,12 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
 
     startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
         return new MockPerformanceMeasurement();
+    }
+}
+
+class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
+    startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
+        return new UnsupportedBrowserPerformanceMeasurement();
     }
 }
 
@@ -102,4 +114,53 @@ describe("PerformanceClient.spec.ts", () => {
 
         mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
     });
+
+    it("only records the first measurement for a subMeasurement", done => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const correlationId = "test-correlation-id";
+
+        mockPerfClient.addPerformanceCallback((events =>{
+            expect(events.length).toBe(1);
+
+            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            done();
+        }));
+
+        // Start and end top-level measurement
+        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)({
+            success: true
+        });
+
+        // Start and end submeasurements
+        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)({
+            success: true
+        });
+
+        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)({
+            success: true,
+            durationMs: 1
+        });
+
+        mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
+    });
+
+    it("Events are not emittted for unsupported browsers", () => {
+        const mockPerfClient = new UnsupportedBrowserPerformanceClient();
+
+        const correlationId = "test-correlation-id";
+
+        mockPerfClient.addPerformanceCallback((events =>{
+            expect(events.length).toBe(0);
+        }));
+
+        // Start and end top-level measurement
+        const result = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)({
+            success: true
+        });
+        
+        mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
+
+        expect(result).toBe(null);
+    })
 });
