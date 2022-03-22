@@ -118,7 +118,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 logMessages.push({ level: level, message: message });
             },
             logLevel: LogLevel.Verbose
-        }));
+        }),
+        "testPersistentStorage");
 
         describe("getItem", () =>{
             beforeEach(() => {
@@ -192,7 +193,8 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 logMessages.push({ level: level, message: message });
             },
             logLevel: LogLevel.Verbose
-        }));
+        }),
+        "testPersistentStorage");
 
         describe("getItem", () =>{
             beforeEach(() => {
