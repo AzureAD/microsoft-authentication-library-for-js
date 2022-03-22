@@ -25,7 +25,7 @@ export interface IPublicClientApplication {
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
-    removePerformanceCallback(callbackId: string): void;
+    removePerformanceCallback(callbackId: string): boolean;
     enableAccountStorageEvents(): void;
     disableAccountStorageEvents(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -105,7 +105,7 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return "";
     },
     removePerformanceCallback: () => {
-        return;
+        return false;
     },
     enableAccountStorageEvents: () => {
         return;
