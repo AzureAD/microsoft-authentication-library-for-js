@@ -159,7 +159,7 @@ export class CryptoOps implements ICrypto {
             return true;
         } catch (e) {
             if (e instanceof Error) {
-                this.logger.error("Clearing keystore failed with error: ", e.message);
+                this.logger.error(`Clearing keystore failed with error: ${e.message}`);
             } else {
                 this.logger.error("Clearing keystore failed with unknown error");
             }
