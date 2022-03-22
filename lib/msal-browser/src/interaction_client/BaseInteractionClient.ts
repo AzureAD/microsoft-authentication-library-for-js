@@ -54,7 +54,7 @@ export abstract class BaseInteractionClient {
             }
         } else {
             try {
-                this.logger.verbose("No account provided in logout request, clearing all cache items.");
+                this.logger.verbose("No account provided in logout request, clearing all cache items.", this.correlationId);
                 // Clear all accounts and tokens
                 await this.browserStorage.clear();
                 // Clear any stray keys from IndexedDB
