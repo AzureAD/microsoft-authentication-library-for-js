@@ -676,7 +676,7 @@ export abstract class ClientApplication {
      * Acquire a token from native device (e.g. WAM)
      * @param request 
      */
-    protected acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
+    protected async acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
