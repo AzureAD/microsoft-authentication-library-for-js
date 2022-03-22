@@ -1,12 +1,14 @@
-The non-AGC E2E tests are not able to be run in the AGCE. In order to run - and ONLY run - the AGC E2E tests while in the AGCE, changes must be made to the jest-preset files. Inside of jest-preset.js and jest-preset-no-setup.js, line 7 must be commented and line 9 must be uncommented.
+The non-AGC E2E tests are not able to be run in the AGCE. In order to run - and ONLY run - the AGC E2E tests while in the AGCE, the following command must be run: npm run test:agc
 
 The following seven environment variables must be set in powershell before running the AGC E2E tests. They can be set via the following commands:
 
 1. $env:GRAPH_URL = "The URL of Microsoft Graph API"
+This can be found in the Azure Portal in the application's App Registration
 Important to note: "/v1.0/me" and "/.default" should not be appended to the end of the URL.
 These parts of the URL are already accounted for in the E2E tests.
 
-2. $env:AUTHORITY = "The URL that indicates a directory that MSAL can request tokens from"
+2. $env:AUTHORITY = "The URL that indicates a directory that MSAL can request tokens from."
+This can be found in the Azure Portal in the application's App Registration
 
 3. $env:KEY_VAULT_URL = "The URL to the key vault where the test user's credentials are stored"
 

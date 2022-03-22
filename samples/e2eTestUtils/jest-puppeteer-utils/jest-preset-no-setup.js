@@ -4,8 +4,6 @@ module.exports = {
         "^.+\\.ts?$": "ts-jest"
     },
     verbose: true,
-    testMatch: ["**/test/**/**.spec.ts", "!**/test/**/**agc*.spec.ts"],
-    // AGC:
-    // testMatch: ["**/test/**/**agc*.spec.ts"],
+    testMatch: ["**/test/**/**.spec.ts", "!**/test/**/*agc*.spec.ts"],
     testEnvironment: `${__dirname}/puppeteer_environment.js`
 }
