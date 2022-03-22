@@ -33,6 +33,10 @@
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo @peterzenz
 
+# Node Token Validation
+/lib/node-token-validation @jo-arroyo @pkanher617 @peterzenz
+/samples/node-token-validation @jo-arroyo @pkanher617 @peterzenz
+
 ## ADAL.js
 /maintenance/adal-angular @jasonnutter @sameerag @pkanher617 @peterzenz
 
