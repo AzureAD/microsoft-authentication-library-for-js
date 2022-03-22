@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, Logger } from "@azure/msal-common";
+import { Logger } from "@azure/msal-common";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
@@ -17,13 +17,13 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
-    private name?: string;
+    private storeName: string;
 
-    constructor(logger: Logger, name?: string) {
+    constructor(logger: Logger, storeName: string) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
         this.logger = logger;
-        this.name = name;
+        this.storeName = storeName;
     }
 
     private handleDatabaseAccessError(error: unknown): void {
@@ -118,16 +118,16 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      */
     async clear(): Promise<boolean> {
     // InMemory cache is a Map instance, clear is straightforward
-        this.logger.verbose(`Deleting in-memory keystore ${this.logStoreName()}`);
+        this.logger.verbose(`Deleting in-memory keystore ${this.storeName}`);
         this.inMemoryCache.clear();
-        this.logger.verbose(`In-memory keystore ${this.logStoreName()} deleted`);
-        this.logger.verbose(`Deleting persistent keystore ${this.logStoreName()}`);
+        this.logger.verbose(`In-memory keystore ${this.storeName} deleted`);
+        this.logger.verbose(`Deleting persistent keystore ${this.storeName}`);
         
         try {
             const dbDeleted = await this.indexedDBCache.deleteDatabase();
             
             if (dbDeleted) {
-                this.logger.verbose(`Persistent keystore ${this.logStoreName()} deleted`);
+                this.logger.verbose(`Persistent keystore ${this.storeName} deleted`);
             }
             
             return dbDeleted;
@@ -137,13 +137,5 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             }
             return false;
         }
-    }
-
-    /**
-     * Helper that prints the keystore name in a log-friendly way
-     * @returns 
-     */
-    private logStoreName() {
-        return (this.name) ? `"${this.name}"` : Constants.EMPTY_STRING;
     }
 }
