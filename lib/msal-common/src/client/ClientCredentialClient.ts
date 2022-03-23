@@ -164,7 +164,7 @@ export class ClientCredentialClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addClientTelemetry(this.config.clientTelemetry);
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
 
         parameterBuilder.addThrottling();
         

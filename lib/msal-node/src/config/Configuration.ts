@@ -12,7 +12,7 @@ import {
     Constants,
     AzureCloudInstance,
     AzureCloudOptions,
-    ClientTelemetryOptions
+    ApplicationTelemetry
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -68,7 +68,7 @@ export type NodeSystemOptions = {
 };
 
 export type NodeTelemetryOptions = {
-    clientTelemetry?: ClientTelemetryOptions;
+    application?: ApplicationTelemetry;
 };
 
 /**
@@ -124,7 +124,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
-    clientTelemetry: {
+    application: {
         appName: Constants.EMPTY_STRING,
         appVersion: Constants.EMPTY_STRING
     }

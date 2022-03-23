@@ -234,6 +234,12 @@ export class ClientTestUtils {
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU,
             },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion
+                }
+            }
         };
     }
 }

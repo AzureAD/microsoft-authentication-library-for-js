@@ -32,7 +32,7 @@ const msalConfig = {
         }
     },
     telemetry: {
-        clientTelemetry: {
+        application: {
             appName: "MSAL Browser V2 Default Sample",
             appVersion: "1.0.0"
         }

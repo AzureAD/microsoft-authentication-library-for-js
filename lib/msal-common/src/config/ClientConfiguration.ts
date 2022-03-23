@@ -41,7 +41,7 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
-    clientTelemetry?: ClientTelemetryOptions,
+    telemetry?: TelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
     serializableCache?: ISerializableTokenCache | null
@@ -55,7 +55,7 @@ export type CommonClientConfiguration = {
     networkInterface : INetworkModule,
     cryptoInterface : Required<ICrypto>,
     libraryInfo : LibraryInfo,
-    clientTelemetry: Required<ClientTelemetryOptions>,
+    telemetry: Required<TelemetryOptions>,
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
@@ -137,12 +137,16 @@ export type AzureCloudOptions = {
     tenant?: string,
 };
 
+export type TelemetryOptions = {
+    application: ApplicationTelemetry;
+};
+
 /**
  * Telemetry information sent on request
  */
-export type ClientTelemetryOptions = {
-    appName: string,
-    appVersion: string
+export type ApplicationTelemetry = {
+    appName: string;
+    appVersion: string;
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
@@ -188,9 +192,11 @@ const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     tenant: `${Constants.DEFAULT_COMMON_TENANT}`
 };
 
-const DEFAULT_CLIENT_TELEMETRY_OPTIONS: Required<ClientTelemetryOptions> = {
-    appName: Constants.EMPTY_STRING,
-    appVersion: Constants.EMPTY_STRING
+const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
+    application: {
+        appName: "",
+        appVersion: ""
+    }
 };
 
 /**
@@ -210,7 +216,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
-        clientTelemetry: clientTelemetry,
+        telemetry: telemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
@@ -227,7 +233,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
-        clientTelemetry: { ...DEFAULT_CLIENT_TELEMETRY_OPTIONS, ...clientTelemetry },
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
         serializableCache: serializableCache || null

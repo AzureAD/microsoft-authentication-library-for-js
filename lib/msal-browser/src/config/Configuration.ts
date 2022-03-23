@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ClientTelemetryOptions } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ApplicationTelemetry } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -82,7 +82,7 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type BrowserTelemetryOptions = {
-    clientTelemetry?: ClientTelemetryOptions;
+    application?: ApplicationTelemetry;
 };
 
 /**
@@ -168,7 +168,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
-        clientTelemetry: {
+        application: {
             appName: Constants.EMPTY_STRING,
             appVersion: Constants.EMPTY_STRING
         }

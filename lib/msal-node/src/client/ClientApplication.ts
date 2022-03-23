@@ -345,7 +345,7 @@ export abstract class ClientApplication {
                 cpu: process.arch || Constants.EMPTY_STRING,
                 os: process.platform || Constants.EMPTY_STRING,
             },
-            clientTelemetry: this.config.telemetry.clientTelemetry,
+            telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
             serializableCache: this.tokenCache,
         };
