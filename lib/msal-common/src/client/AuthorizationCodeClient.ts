@@ -406,11 +406,15 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.nativeBridge) {
             // signal ests that this is a WAM call
             parameterBuilder.addNativeBridge();
-            // pass the SHR parameters for POP tokens
+
+            // pass the req_cnf for POP
             if (request.authenticationScheme === AuthenticationScheme.POP) {
                 const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-                const cnfString = await popTokenGenerator.generateCnf(request);
-                parameterBuilder.addPopToken(cnfString);
+                const cnf = await popTokenGenerator.generateCnf(request);
+
+                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                const cnfHash = await popTokenGenerator.generateCnfHash(cnf);
+                parameterBuilder.addPopToken(cnfHash);
             }
         }
 
