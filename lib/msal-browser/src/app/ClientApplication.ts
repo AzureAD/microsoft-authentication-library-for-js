@@ -676,7 +676,7 @@ export abstract class ClientApplication {
      * Acquire a token from native device (e.g. WAM)
      * @param request
      */
-    protected acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
+    protected async acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
@@ -698,9 +698,16 @@ export abstract class ClientApplication {
             return false;
         }
 
-        if (request.prompt && (request.prompt === PromptValue.SELECT_ACCOUNT || request.prompt === PromptValue.CREATE)) {
-            this.logger.trace("canUseNative: prompt is not compatible with native flow, returning false");
-            return false;
+        if (request.prompt) {
+            switch (request.prompt) {
+                case PromptValue.NONE:
+                case PromptValue.CONSENT:
+                    this.logger.trace("canUseNative: prompt is compatible with native flow");
+                    break;
+                default:
+                    this.logger.trace(`canUseNative: prompt = ${request.prompt} is not compatible with native flow, returning false`);
+                    return false;
+            }
         }
 
         const account = request.account || this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid) || this.getActiveAccount();
