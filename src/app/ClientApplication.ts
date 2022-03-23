@@ -303,6 +303,7 @@ export abstract class ClientApplication {
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         request.correlationId = this.getRequestCorrelationId(request);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, request.correlationId);
         this.logger.verbose("ssoSilent called", request.correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
@@ -310,9 +311,15 @@ export abstract class ClientApplication {
             const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, request.correlationId);
             const silentTokenResult = await silentIframeClient.acquireToken(request);
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            endMeasurement({
+                success: true
+            });
             return silentTokenResult;
         } catch (e) {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            endMeasurement({
+                success: false
+            });
             throw e;
         }
     }
@@ -332,6 +339,7 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.trace("acquireTokenByCode called", request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
             if (!request.code) {
@@ -345,21 +353,32 @@ export abstract class ClientApplication {
                     .then((result: AuthenticationResult) => {
                         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                         this.hybridAuthCodeResponses.delete(request.code);
+                        endMeasurement({
+                            success: true
+                        });
                         return result;
                     })
                     .catch((error: Error) => {
                         this.hybridAuthCodeResponses.delete(request.code);
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, error);
+                        endMeasurement({
+                            success: false
+                        });
                         throw error;
                     });
 
                 this.hybridAuthCodeResponses.set(request.code, response);
             } else {
                 this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
+                this.performanceClient.discardMeasurements(PerformanceEvents.AcquireTokenByCode, request.correlationId);
             }
             
             return response;
         } catch (e) {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
+            endMeasurement({
+                success: false
+            });
             throw e;
         }
     }

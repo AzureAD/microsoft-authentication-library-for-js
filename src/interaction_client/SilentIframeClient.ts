@@ -28,7 +28,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByIframe called");
+        this.logger.verbose("acquireTokenByIframe called", request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
