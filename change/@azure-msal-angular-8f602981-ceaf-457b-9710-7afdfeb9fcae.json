@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Created two Angular13 sample apps. One uses RxJS v6 and the other uses RxJS v7.",
+  "comment": "Add support for rxjs v7 and Angular 13 #4605",
   "packageName": "@azure/msal-angular",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
