@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -23,16 +23,18 @@ import { INavigationClient } from "../navigation/INavigationClient";
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected wamMessageHandler: NativeMessageHandler;
+    protected cryptoObj: ICrypto;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: NativeMessageHandler, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
         this.apiId = apiId;
         this.wamMessageHandler = provider;
+        this.cryptoObj = browserCrypto;
     }
 
     /**
      * Acquire token from WAM via browser extension
-     * @param request 
+     * @param request
      */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest, accountId?: string): Promise<AuthenticationResult> {
         this.logger.trace("WamInteractionClient - acquireToken called.");
@@ -46,12 +48,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.wamMessageHandler.sendMessage(messageBody);
         this.validateWamResponse(response);
-        return this.handleWamResponse(response as NativeResponse, wamRequest, reqTimestamp);
+        return this.handleNativeServerResponse(response as NativeResponse, wamRequest, reqTimestamp);
     }
 
     /**
-     * Acquires a token from WAM then redirects to the redirectUri instead of returning the response                                
-     * @param request 
+     * Acquires a token from WAM then redirects to the redirectUri instead of returning the response
+     * @param request
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.logger.trace("WamInteractionClient - acquireTokenRedirect called.");
@@ -98,7 +100,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose("WamInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
             return null;
         }
-        
+
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
         const request = {
@@ -117,7 +119,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose("WamInteractionClient - handleRedirectPromise sending message to native broker.");
             const response: object = await this.wamMessageHandler.sendMessage(messageBody);
             this.validateWamResponse(response);
-            const result = this.handleWamResponse(response as NativeResponse, request, reqTimestamp);
+            const result = this.handleNativeServerResponse(response as NativeResponse, request, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {
@@ -128,7 +130,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Logout from WAM via browser extension
-     * @param request 
+     * @param request
      */
     logout(): Promise<void> {
         this.logger.trace("WamInteractionClient - logout called.");
@@ -137,12 +139,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Transform response from WAM into AuthenticationResult object which will be returned to the end user
-     * @param response 
-     * @param request 
-     * @param reqTimestamp 
+     * @param response
+     * @param request
+     * @param reqTimestamp
      */
-    protected async handleWamResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
-        this.logger.trace("WamInteractionClient - handleWamResponse called.");
+    protected async handleNativeServerResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+        this.logger.trace("NativeInteractionClient - handleNativeServerResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
 
@@ -157,10 +159,27 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // If scopes not returned in server response, use request scopes
         const responseScopes = response.scopes ? ScopeSet.fromString(response.scopes) : ScopeSet.fromString(request.scopes);
-        
+
         const accountProperties = response.account.properties || {};
         const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
+
+        let responseAccessToken;
+        if (request.tokenType === AuthenticationScheme.POP && request.shrParameters) {
+            // Check if native layer returned an SHR token
+            if (response.shr) {
+                this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
+                responseAccessToken = response.shr;
+            }
+            // Generate SHR in msal js if WAM does not compute it when POP is enabled
+            else {
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.cryptoObj);
+                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.shrParameters);
+            }
+        // default to access token from the native layer. TODO: Should we throw for other than BEARER type??
+        } else {
+            responseAccessToken = response.access_token;
+        }
 
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,
@@ -170,7 +189,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             account: accountEntity.getAccountInfo(),
             idToken: response.id_token,
             idTokenClaims: idTokenObj.claims,
-            accessToken: response.access_token,
+            accessToken: responseAccessToken,
             fromCache: false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
             tokenType: AuthenticationScheme.BEARER,
@@ -188,7 +207,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Validates WAM response before processing
-     * @param response 
+     * @param response
      */
     private validateWamResponse(response: object): void {
         if (
@@ -207,7 +226,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Translates developer provided request object into WamRequest object
-     * @param request 
+     * @param request
      */
     protected initializeWamRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
         this.logger.trace("WamInteractionClient - initializeWamRequest called");
@@ -215,7 +234,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
         const canonicalAuthority = new UrlString(authority);
         canonicalAuthority.validateAsUri();
-        
+
         const scopes = request && request.scopes || [];
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
@@ -245,7 +264,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             validatedRequest.accountId = accountId;
         } else {
             const account = request.account || this.browserStorage.getAccountInfoByHints(validatedRequest.loginHint, validatedRequest.sid) || this.browserStorage.getActiveAccount();
-    
+
             if (account) {
                 validatedRequest.accountId = account.nativeAccountId;
                 if (!validatedRequest.accountId) {

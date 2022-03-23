@@ -107,7 +107,7 @@ export abstract class BaseInteractionClient {
         // Set requested claims hash if claims were requested
         if (request.claims && !StringUtils.isEmpty(request.claims)) {
             validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
-        } 
+        }
 
         return validatedRequest;
     }

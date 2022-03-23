@@ -4,7 +4,7 @@
  */
 
 import { NativeExtensionMethod } from "../../utils/BrowserConstants";
-import { StringDict } from "@azure/msal-common";
+import { SignedHttpRequestParameters, StringDict } from "@azure/msal-common";
 
 /**
  * Token request which native broker will use to acquire tokens
@@ -23,6 +23,9 @@ export type NativeTokenRequest = {
     domainHint?: string;
     loginHint?: string;
     sid?: string;
+    reqCnf?: string;
+    tokenType?: string;
+    shrParameters?: SignedHttpRequestParameters;
     extendedExpiryToken?: boolean;
     instanceAware?: boolean;
     extraParameters?: StringDict;
