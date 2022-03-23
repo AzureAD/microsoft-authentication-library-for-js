@@ -178,7 +178,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 cpu: Constants.EMPTY_STRING,
                 os: Constants.EMPTY_STRING
             },
-            clientTelemetry: this.config.telemetry.clientTelemetry
+            telemetry: this.config.telemetry
         };
     }
 
