@@ -36,21 +36,21 @@ describe("BrowserPerformanceClient.ts", () => {
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version);
 
-            const endMeasurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
-            const result = endMeasurement();
+            const result = measurement.endMeasurement();
 
             expect(result?.durationMs).toBe(50);
         });
 
-        it("calculate performance duration", () => {
+        it("captures page visibilityState", () => {
             const spy = jest.spyOn(Document.prototype,"visibilityState", "get").mockReturnValue("visible");
 
             const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version);
 
-            const endMeasurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
-            const result = endMeasurement();
+            const result = measurement.endMeasurement();
 
             expect(result?.startPageVisibility).toBe("visible");
             expect(result?.endPageVisibility).toBe("visible");

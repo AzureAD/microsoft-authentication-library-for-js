@@ -106,16 +106,18 @@ describe("PerformanceClient.spec.ts", () => {
         }));
 
         // Start and end top-level measurement
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)({
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)
+        topLevelEvent.endMeasurement({
             success: true
         });
 
         // Start and end submeasurement
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)({
+        const subMeasurement = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)
+        subMeasurement.endMeasurement({
             success: true
         });
 
-        mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
+        topLevelEvent.flushMeasurement();
     });
     it("gracefully handles a submeasurement not being ended before top level measurement", done => {
         const mockPerfClient = new MockPerformanceClient();
@@ -133,18 +135,18 @@ describe("PerformanceClient.spec.ts", () => {
         }));
 
         // Start and end top-level measurement
-        const endTopLevel = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
         // Start submeasurement but dont end it
         mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
 
         // End top level event without ending submeasurement
-        endTopLevel({
+        topLevelEvent.endMeasurement({
             success: true
         });
 
         // Emit events for this operation
-        mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
+        topLevelEvent.flushMeasurement();
     });
 
     it("only records the first measurement for a subMeasurement", done => {
@@ -160,21 +162,24 @@ describe("PerformanceClient.spec.ts", () => {
         }));
 
         // Start and end top-level measurement
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)({
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        topLevelEvent.endMeasurement({
             success: true
         });
 
         // Start and end submeasurements
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)({
+        const subMeasure1 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)
+        subMeasure1.endMeasurement({
             success: true
         });
 
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)({
+        const subMeasure2 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
+        subMeasure2.endMeasurement({
             success: true,
             durationMs: 1
         });
 
-        mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
+        topLevelEvent.flushMeasurement();
     });
 
     it("Events are not emittted for unsupported browsers", () => {
@@ -187,7 +192,8 @@ describe("PerformanceClient.spec.ts", () => {
         }));
 
         // Start and end top-level measurement
-        const result = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)({
+        const measure = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const result = measure.endMeasurement({
             success: true
         });
         

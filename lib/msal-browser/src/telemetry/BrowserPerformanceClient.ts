@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement } from "@azure/msal-common";
+import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
@@ -38,18 +38,21 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @param {?string} [correlationId]
      * @returns {((event?: Partial<PerformanceEvent>) => PerformanceEvent| null)}
      */
-    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent| null {
+    startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
         
-        const endMeasurement = super.startMeasurement(measureName, correlationId);
+        const inProgressEvent = super.startMeasurement(measureName, correlationId);
 
-        return (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
-            return endMeasurement({
-                startPageVisibility,
-                endPageVisibility: this.getPageVisibility(),
-                ...event
-            });
+        return {
+            ...inProgressEvent,
+            endMeasurement: (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
+                return inProgressEvent.endMeasurement({
+                    startPageVisibility,
+                    endPageVisibility: this.getPageVisibility(),
+                    ...event
+                });
+            }
         };
     }
 }
