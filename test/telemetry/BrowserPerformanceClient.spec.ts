@@ -25,11 +25,11 @@ describe("BrowserPerformanceClient.ts", () => {
         jest.restoreAllMocks();
     });
 
-    describe("generateCallbackId", () => {
+    describe("generateId", () => {
         it("returns a string", () => {
             const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version);
 
-            expect(typeof browserPerfClient.generateCallbackId()).toBe("string");
+            expect(typeof browserPerfClient.generateId()).toBe("string");
         });
     });
     describe("startPerformanceMeasuremeant", () => {

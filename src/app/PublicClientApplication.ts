@@ -92,10 +92,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        request.correlationId = this.getRequestCorrelationId(request);
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+        const correlationId = this.getRequestCorrelationId(request);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("acquireTokenSilent called", request.correlationId);
+        this.logger.verbose("acquireTokenSilent called", correlationId);
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
@@ -115,15 +115,18 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
-            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
-            const response = this.acquireTokenSilentAsync(request, account)
+            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
+            const response = this.acquireTokenSilentAsync({
+                ...request,
+                correlationId
+            }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     endMeasurement({
                         success: true,
                         fromCache: result.fromCache
                     });
-                    this.performanceClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+                    this.performanceClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
                     return result;
                 })
                 .catch((error) => {
@@ -131,18 +134,18 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     endMeasurement({
                         success: false
                     });
-                    this.performanceClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+                    this.performanceClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
             return response;
         } else {
-            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
+            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
             endMeasurement({
                 success: true
             });
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            this.performanceClient.discardMeasurements(PerformanceEvents.AcquireTokenSilent, request.correlationId);
+            this.performanceClient.discardMeasurements(correlationId);
             return cachedResponse;
         }
     }
