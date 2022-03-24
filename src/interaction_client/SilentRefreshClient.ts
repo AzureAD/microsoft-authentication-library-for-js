@@ -18,7 +18,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ...request,
             ...await this.initializeBaseRequest(request)
         };
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, silentRequest.correlationId);
+        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, silentRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
 
         const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
@@ -27,7 +27,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
             .then((result: AuthenticationResult) => {
-                endMeasurement({
+                acquireTokenMeasurement.endMeasurement({
                     success: true,
                     fromCache: result.fromCache
                 });
@@ -39,7 +39,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
                     e.setCorrelationId(this.correlationId);
                 }
                 serverTelemetryManager.cacheFailedRequest(e);
-                endMeasurement({
+                acquireTokenMeasurement.endMeasurement({
                     success: false
                 });
                 throw e;

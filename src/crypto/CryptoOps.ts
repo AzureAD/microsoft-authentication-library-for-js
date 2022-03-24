@@ -103,7 +103,7 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
-        const endMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
+        const publicKeyThumbMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
 
         // Generate Keypair
         const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
@@ -136,8 +136,8 @@ export class CryptoOps implements ICrypto {
             }
         );
 
-        if (endMeasurement) {
-            endMeasurement({
+        if (publicKeyThumbMeasurement) {
+            publicKeyThumbMeasurement.endMeasurement({
                 success: true
             });
         }
@@ -170,7 +170,7 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string, correlationId?: string): Promise<string> {
-        const endMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsSignJwt, correlationId);
+        const signJwtMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsSignJwt, correlationId);
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
@@ -204,8 +204,8 @@ export class CryptoOps implements ICrypto {
 
         const signedJwt = `${tokenString}.${encodedSignature}`;
 
-        if (endMeasurement) {
-            endMeasurement({
+        if (signJwtMeasurement) {
+            signJwtMeasurement.endMeasurement({
                 success: true
             });
         }
