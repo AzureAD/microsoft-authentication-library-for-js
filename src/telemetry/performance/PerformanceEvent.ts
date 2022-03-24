@@ -3,6 +3,12 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Enumeration of operations that are instrumented by have their performance measured by the PerformanceClient.
+ *
+ * @export
+ * @enum {number}
+ */
 export enum PerformanceEvents {
     
     /**
@@ -72,7 +78,39 @@ export enum PerformanceEvents {
     StandardInteractionClientGetDiscoveredAuthority = "standardInteractionClientGetDiscoveredAuthority"
 }
 
+/**
+ * State of the performance event. 
+ *
+ * @export
+ * @enum {number}
+ */
+export enum PerformanceEventStatus {
+    NotStarted,
+    InProgress,
+    Completed
+}
+
+/**
+ * Performance measurement taken by the library, including metadata about the request and application.
+ *
+ * @export
+ * @typedef {PerformanceEvent}
+ */
 export type PerformanceEvent = {
+    /**
+     * Unique id for the event
+     *
+     * @type {string}
+     */
+    eventId: string,
+
+    /**
+     * State of the perforance measure.
+     *
+     * @type {PerformanceEventStatus}
+     */
+    status: PerformanceEventStatus,
+
     /**
      * Login authority used for the request
      *
@@ -90,9 +128,9 @@ export type PerformanceEvent = {
     /**
      * Correlation ID used for the request
      *
-     * @type {?string}
+     * @type {string}
      */
-    correlationId?: string,
+    correlationId: string,
     
     /**
      * End-to-end duration in milliseconds.
@@ -100,7 +138,7 @@ export type PerformanceEvent = {
      *
      * @type {number}
      */
-    durationMs: number,
+    durationMs?: number,
     
     /**
      * Visibility of the page when the event completed.
@@ -115,7 +153,7 @@ export type PerformanceEvent = {
      *
      * @type {(boolean | null)}
      */
-    fromCache: boolean | null,
+    fromCache?: boolean | null,
     
     /**
      * Event name (usually in the form of classNameFunctionName)
@@ -144,7 +182,7 @@ export type PerformanceEvent = {
      *
      * @type {(boolean | null)}
      */
-    success: boolean | null,
+    success?: boolean | null,
     
     /**
      * Name of the library used for the operation.
