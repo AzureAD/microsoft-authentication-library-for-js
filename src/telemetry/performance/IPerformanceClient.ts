@@ -8,8 +8,16 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
+export type InProgressPerformanceEvent = {
+    endMeasurement: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null
+    flushMeasurement: () => void,
+    discardMeasurement: () => void,
+    event: PerformanceEvent,
+    measurement: IPerformanceMeasurement
+};
+
 export interface IPerformanceClient {
-    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent | null;
+    startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent;
     endMeasurement(event: PerformanceEvent): PerformanceEvent | null;
     flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void;
     discardMeasurements(correlationId: string): void;
