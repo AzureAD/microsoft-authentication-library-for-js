@@ -53,7 +53,7 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
         this.guidGenerator = new MockGuidGenerator();
     }
 
-    generateCallbackId(): string {
+    generateId(): string {
         return this.guidGenerator.generateGuid();
     }
 
@@ -69,6 +69,11 @@ class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
 }
 
 describe("PerformanceClient.spec.ts", () => {
+    afterEach(() => {
+        jest.resetAllMocks();
+        jest.restoreAllMocks();
+    });
+
     it("Adds and removes a callback", () => {
         const mockPerfClient = new MockPerformanceClient();
 
@@ -112,6 +117,36 @@ describe("PerformanceClient.spec.ts", () => {
             success: true
         });
 
+        mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
+    });
+    it("gracefully handles a submeasurement not being ended before top level measurement", done => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const endMeasurementSpy = jest.spyOn(mockPerfClient, "endMeasurement");
+
+        const correlationId = "test-correlation-id";
+
+        mockPerfClient.addPerformanceCallback((events =>{
+            // There should be no measurement emitted for incomplete submeasurements
+            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(undefined);
+
+            // Ensure endMeasurement was called for the incomplete event
+            expect(endMeasurementSpy.mock.calls[1][0].name).toBe(PerformanceEvents.AcquireTokenSilentAsync);
+            done();
+        }));
+
+        // Start and end top-level measurement
+        const endTopLevel = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+
+        // Start submeasurement but dont end it
+        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
+
+        // End top level event without ending submeasurement
+        endTopLevel({
+            success: true
+        });
+
+        // Emit events for this operation
         mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
     });
 

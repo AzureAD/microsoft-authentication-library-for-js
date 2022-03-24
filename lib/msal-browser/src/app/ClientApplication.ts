@@ -65,6 +65,7 @@ export abstract class ClientApplication {
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
+    // Performance telemetry client
     protected performanceClient: IPerformanceClient;
 
     /**
@@ -113,8 +114,10 @@ export abstract class ClientApplication {
         // Initial hybrid spa map
         this.hybridAuthCodeResponses = new Map();
         
-        // Initialize performance manager
-        this.performanceClient = this.isBrowserEnvironment ? new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version) : new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
+        // Initialize performance client
+        this.performanceClient = this.isBrowserEnvironment ? 
+            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version) : 
+            new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
 
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient) : DEFAULT_CRYPTO_IMPLEMENTATION;
@@ -205,8 +208,8 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        request.correlationId = this.getRequestCorrelationId(request);
-        this.logger.verbose("acquireTokenRedirect called", request.correlationId);
+        const correlationId = this.getRequestCorrelationId(request);
+        this.logger.verbose("acquireTokenRedirect called", correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
@@ -217,8 +220,11 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
         }
         
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
-        return redirectClient.acquireToken(request).catch((e) => {
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, correlationId);
+        return redirectClient.acquireToken({
+            ...request,
+            correlationId
+        }).catch((e) => {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
@@ -241,9 +247,10 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        const correlationId = this.getRequestCorrelationId(request);
+
         try {
-            request.correlationId = this.getRequestCorrelationId(request);
-            this.logger.verbose("acquireTokenPopup called", request.correlationId);
+            this.logger.verbose("acquireTokenPopup called", correlationId);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -258,9 +265,12 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
         }
 
-        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
+        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, correlationId);
 
-        return popupClient.acquireToken(request).then((result) => {
+        return popupClient.acquireToken({
+            ...request,
+            correlationId
+        }).then((result) => {
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
@@ -301,15 +311,18 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        request.correlationId = this.getRequestCorrelationId(request);
+        const correlationId = this.getRequestCorrelationId(request);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, request.correlationId);
-        this.logger.verbose("ssoSilent called", request.correlationId);
+        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, request.correlationId);
-            const silentTokenResult = await silentIframeClient.acquireToken(request);
+            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, correlationId);
+            const silentTokenResult = await silentIframeClient.acquireToken({
+                ...request,
+                correlationId
+            });
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             endMeasurement({
                 success: true
@@ -335,9 +348,9 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
-        request.correlationId = this.getRequestCorrelationId(request);
+        const correlationId = this.getRequestCorrelationId(request);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.trace("acquireTokenByCode called", request.correlationId);
+        this.logger.trace("acquireTokenByCode called", correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
         const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
@@ -348,8 +361,11 @@ export abstract class ClientApplication {
 
             let response = this.hybridAuthCodeResponses.get(request.code);
             if (!response) {
-                this.logger.verbose("Initiating new acquireTokenByCode request", request.correlationId);
-                response = this.acquireTokenByCodeAsync(request)
+                this.logger.verbose("Initiating new acquireTokenByCode request", correlationId);
+                response = this.acquireTokenByCodeAsync({
+                    ...request,
+                    correlationId
+                })
                     .then((result: AuthenticationResult) => {
                         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                         this.hybridAuthCodeResponses.delete(request.code);
@@ -370,7 +386,7 @@ export abstract class ClientApplication {
                 this.hybridAuthCodeResponses.set(request.code, response);
             } else {
                 this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                this.performanceClient.discardMeasurements(PerformanceEvents.AcquireTokenByCode, request.correlationId);
+                this.performanceClient.discardMeasurements(correlationId);
             }
             
             return response;
@@ -656,11 +672,23 @@ export abstract class ClientApplication {
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
     }
-
+    
+    /**
+     * Registers a callback to receive performance events.
+     *
+     * @param {PerformanceCallbackFunction} callback
+     * @returns {string}
+     */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         return this.performanceClient.addPerformanceCallback(callback);
     }
-
+    
+    /**
+     * Removes a callback registered with addPerformanceCallback.
+     *
+     * @param {string} callbackId
+     * @returns {boolean}
+     */
     removePerformanceCallback(callbackId: string): boolean {
         return this.performanceClient.removePerformanceCallback(callbackId);
     }
@@ -725,7 +753,14 @@ export abstract class ClientApplication {
     getConfiguration(): BrowserConfiguration {
         return this.config;
     }
-
+    
+    /**
+     * Generates a correlation id for a request if none is provided.
+     *
+     * @protected
+     * @param {?Partial<BaseAuthRequest>} [request]
+     * @returns {string}
+     */
     protected getRequestCorrelationId(request?: Partial<BaseAuthRequest>): string {
         if (request?.correlationId) {
             return request.correlationId;

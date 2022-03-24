@@ -11,8 +11,8 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
     private startMark: string;
     private endMark: string;
 
-    constructor(name: string, correlationId?: string) {
-        this.correlationId = correlationId || "";
+    constructor(name: string, correlationId: string) {
+        this.correlationId = correlationId;
         this.measureName = `msal.measure.${name}.${this.correlationId}`;
         this.startMark = `msal.start.${name}.${this.correlationId}`;
         this.endMark = `msal.end.${name}.${this.correlationId}`;
@@ -43,11 +43,14 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
 
     flushMeasurement(): number | null {
         if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
-            const durationMs = window.performance.getEntriesByName(this.measureName, "measure")[0].duration;
-            window.performance.clearMeasures(this.measureName);
-            window.performance.clearMarks(this.startMark);
-            window.performance.clearMarks(this.endMark);
-            return durationMs;
+            const entriesForMeasurement = window.performance.getEntriesByName(this.measureName, "measure");
+            if (entriesForMeasurement.length > 0) {
+                const durationMs = entriesForMeasurement[0].duration;
+                window.performance.clearMeasures(this.measureName);
+                window.performance.clearMarks(this.startMark);
+                window.performance.clearMarks(this.endMark);
+                return durationMs;
+            }
         }
         return null;
     }

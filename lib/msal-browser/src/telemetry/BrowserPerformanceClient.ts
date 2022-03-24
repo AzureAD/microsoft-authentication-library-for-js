@@ -18,18 +18,26 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
     }
     
-    startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
+    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
         return new BrowserPerformanceMeasurement(measureName, correlationId);
     }
 
-    generateCallbackId() : string {
+    generateId() : string {
         return this.guidGenerator.generateGuid();
     }
 
     private getPageVisibility(): string | null {
         return document.visibilityState?.toString() || null;
     }
-
+    
+    /**
+     * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
+     * Also captures browser page visibilityState.
+     *
+     * @param {PerformanceEvents} measureName
+     * @param {?string} [correlationId]
+     * @returns {((event?: Partial<PerformanceEvent>) => PerformanceEvent| null)}
+     */
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent| null {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();

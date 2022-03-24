@@ -19,7 +19,7 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
 }
 
 export class StubPerformanceClient extends PerformanceClient implements IPerformanceClient {
-    generateCallbackId(): string {
+    generateId(): string {
         return "callback-id";
     }
     
