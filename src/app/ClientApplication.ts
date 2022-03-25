@@ -313,7 +313,7 @@ export abstract class ClientApplication {
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        const ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
@@ -324,15 +324,17 @@ export abstract class ClientApplication {
                 correlationId
             });
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-            endMeasurement({
+            ssoSilentMeasurement.endMeasurement({
                 success: true
             });
+            ssoSilentMeasurement.flushMeasurement();
             return silentTokenResult;
         } catch (e) {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
-            endMeasurement({
+            ssoSilentMeasurement.endMeasurement({
                 success: false
             });
+            ssoSilentMeasurement.flushMeasurement();
             throw e;
         }
     }
@@ -352,7 +354,7 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.trace("acquireTokenByCode called", correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
+        const atbcMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
             if (!request.code) {
@@ -369,30 +371,35 @@ export abstract class ClientApplication {
                     .then((result: AuthenticationResult) => {
                         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                         this.hybridAuthCodeResponses.delete(request.code);
-                        endMeasurement({
+                        atbcMeasurement.endMeasurement({
                             success: true
                         });
+                        atbcMeasurement.flushMeasurement();
                         return result;
                     })
                     .catch((error: Error) => {
                         this.hybridAuthCodeResponses.delete(request.code);
                         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, error);
-                        endMeasurement({
+                        atbcMeasurement.endMeasurement({
                             success: false
                         });
+                        atbcMeasurement.flushMeasurement();
                         throw error;
                     });
 
                 this.hybridAuthCodeResponses.set(request.code, response);
             } else {
                 this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                this.performanceClient.discardMeasurements(correlationId);
+                atbcMeasurement.endMeasurement({
+                    success: true
+                });
+                atbcMeasurement.discardMeasurement();
             }
             
             return response;
         } catch (e) {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
-            endMeasurement({
+            atbcMeasurement.endMeasurement({
                 success: false
             });
             throw e;
@@ -425,14 +432,14 @@ export abstract class ClientApplication {
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
+        const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
         const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
 
         return silentRefreshClient.acquireToken(request)
             .then((result: AuthenticationResult) => {
-                endMeasurement({
+                atbrtMeasurement.endMeasurement({
                     success: true,
                     fromCache: result.fromCache
                 });
@@ -448,7 +455,7 @@ export abstract class ClientApplication {
                     const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.performanceClient, request.correlationId);
                     return silentIframeClient.acquireToken(request)
                         .then((result: AuthenticationResult) => {
-                            endMeasurement({
+                            atbrtMeasurement.endMeasurement({
                                 success: true,
                                 fromCache: result.fromCache
                             });
@@ -456,13 +463,13 @@ export abstract class ClientApplication {
                             return result;
                         })
                         .catch((error) => {
-                            endMeasurement({
+                            atbrtMeasurement.endMeasurement({
                                 success: false
                             });
                             throw error;
                         });
                 }
-                endMeasurement({
+                atbrtMeasurement.endMeasurement({
                     success: false
                 });
                 throw e;

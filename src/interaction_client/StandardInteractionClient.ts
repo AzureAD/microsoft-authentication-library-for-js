@@ -213,7 +213,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
-        const endMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
+        const getAuthorityMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
@@ -229,14 +229,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
         return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions)
             .then((result: Authority) => {
-                endMeasurement({
+                getAuthorityMeasurement.endMeasurement({
                     success: true
                 });
 
                 return result;
             })
             .catch((error) => {
-                endMeasurement({
+                getAuthorityMeasurement.endMeasurement({
                     success: false
                 });
 
