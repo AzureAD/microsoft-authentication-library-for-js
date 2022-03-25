@@ -1,0 +1,22 @@
+name: OneBranch Build and Release
+
+# Run this workflow every time a commit gets pushed to main or a pull request gets opened against main
+on:
+  push:
+    branches:
+      - ob-test-branch
+  pull_request:
+    branches: 
+      - ob-test-branch
+
+jobs:
+    build:
+        name: Call Azure Pipeline
+        runs-on: ubuntu-latest
+        steps:
+        - name: Azure Pipelines Action
+          uses: Azure/pipelines@v1
+          with:
+            azure-devops-project-url: https://dev.azure.com/IdentityDivision/IDDP
+            azure-pipeline-name: 'MSAL Browser-PullRequest'
+            azure-devops-token: ${{ secrets.AZURE_DEVOPS_TOKEN }}
