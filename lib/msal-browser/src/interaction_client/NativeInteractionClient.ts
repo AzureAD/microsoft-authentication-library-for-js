@@ -230,10 +230,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
             instanceAware: instanceAware,
-            extraParameters: {
+            extraParameters: JSON.stringify({
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
-            },
+            }),
             extendedExpiryToken: false // Make this configurable?
         };
 
