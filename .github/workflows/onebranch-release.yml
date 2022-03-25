@@ -4,7 +4,7 @@ name: OneBranch Build and Release
 on:
   push:
     branches:
-      - ob-test-branch
+      - ob-pipeline-trigger
   pull_request:
     branches: 
       - ob-test-branch
