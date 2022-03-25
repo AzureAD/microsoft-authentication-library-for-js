@@ -43,6 +43,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
+        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
 
         // Create silent request
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
@@ -66,10 +67,9 @@ export class SilentIframeClient extends StandardInteractionClient {
 
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger)
                 .then((result: AuthenticationResult) => {
-                    endMeasurement({
-                        success: true,
-                        fromCache: false
-                    })
+                    acquireTokenMeasurement.endMeasurement({
+                        success: true
+                    });
                     return result;
                 });
         } catch (e) {
@@ -78,7 +78,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
-            endMeasurement({
+            acquireTokenMeasurement.endMeasurement({
                 success: false
             });
             throw e;

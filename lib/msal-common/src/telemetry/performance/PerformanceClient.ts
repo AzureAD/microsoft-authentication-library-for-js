@@ -4,7 +4,7 @@
  */
 
 import { Logger } from "../../logger/Logger";
-import { IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
+import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./PerformanceEvent";
 
@@ -53,7 +53,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {?string} [correlationId]
      * @returns {((event?: Partial<PerformanceEvent>) => PerformanceEvent | null)}
      */
-    startMeasurement(measureName: PerformanceEvents, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent | null {
+    startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent {
         // Generate a placeholder correlation if the request does not provide one
         const eventCorrelationId = correlationId || this.generateId();
         if (!correlationId) {
@@ -80,22 +80,33 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.cacheEventByCorrelationId(inProgressEvent);
         this.cacheMeasurement(inProgressEvent, performanceMeasurement);
 
-        // Return a function the caller can use to properly end the measurement
-        return (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
-            const completedEvent = this.endMeasurement({
-                // Initial set of event properties
-                ...inProgressEvent,
-                // Properties set when event ends
-                ...event
-            });
-
-            if (completedEvent) {
-                // Cache event so that submeasurements can be added downstream
-                this.cacheEventByCorrelationId(completedEvent);
-            }
-
-            return completedEvent;
+        // Return the event and functions the caller can use to properly end/flush the measurement
+        return {
+            endMeasurement: (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
+                const completedEvent = this.endMeasurement({
+                    // Initial set of event properties
+                    ...inProgressEvent,
+                    // Properties set when event ends
+                    ...event
+                });
+    
+                if (completedEvent) {
+                    // Cache event so that submeasurements can be added downstream
+                    this.cacheEventByCorrelationId(completedEvent);
+                }
+    
+                return completedEvent;
+            },
+            flushMeasurement: () => {
+                return this.flushMeasurements(inProgressEvent.name, inProgressEvent.correlationId);
+            },
+            discardMeasurement: () => {
+                return this.discardMeasurements(inProgressEvent.correlationId);
+            },
+            measurement: performanceMeasurement,
+            event: inProgressEvent
         };
+        
     }
     
     /**
