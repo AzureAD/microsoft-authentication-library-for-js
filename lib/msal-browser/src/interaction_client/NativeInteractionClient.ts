@@ -19,6 +19,7 @@ import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -165,20 +166,28 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
         let responseAccessToken;
-        if (request.tokenType === AuthenticationScheme.POP && request.shrParameters) {
-            // Check if native layer returned an SHR token
-            if (response.shr) {
-                this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
-                responseAccessToken = response.shr;
+        switch (request.tokenType) {
+            case AuthenticationScheme.POP: {
+                // Check if native layer returned an SHR token
+                if (response.shr) {
+                    this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
+                    responseAccessToken = response.shr;
+                    break;
+                }
+                // Generate SHR in msal js if WAM does not compute it when POP is enabled
+                if (request.shrParameters) {
+                    const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.cryptoObj);
+                    responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.shrParameters);
+                    break;
+                }
+                // Should not land here unless shrParameters are corrupt/not initialized
+                this.logger.trace("handleNativeServerResponse: SHR cannot be calculate, please check the request");
+                throw BrowserAuthError.createSHRGenerationError();
             }
-            // Generate SHR in msal js if WAM does not compute it when POP is enabled
-            else {
-                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.cryptoObj);
-                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.shrParameters);
+            // assign the access token to the response for all non-POP cases (Should be Bearer only today)
+            default: {
+                responseAccessToken = response.access_token;
             }
-        // default to access token from the native layer. TODO: Should we throw for other than BEARER type??
-        } else {
-            responseAccessToken = response.access_token;
         }
 
         const result: AuthenticationResult = {
