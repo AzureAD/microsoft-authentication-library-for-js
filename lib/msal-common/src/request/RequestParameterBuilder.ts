@@ -44,9 +44,9 @@ export class RequestParameterBuilder {
     /**
      * Add flag to indicate STS should attempt to use WAM if available
      */
-    addNativeBridge(): void {
+    addNativeBroker(): void {
         this.parameters.set(
-            AADServerParamKeys.NATIVE_BRIDGE,
+            AADServerParamKeys.NATIVE_BROKER,
             encodeURIComponent("1")
         );
     }

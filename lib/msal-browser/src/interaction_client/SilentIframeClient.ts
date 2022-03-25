@@ -86,7 +86,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create authorize request url
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
-            nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
+            nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
         });
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);

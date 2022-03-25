@@ -139,7 +139,7 @@ export enum AADServerParamKeys {
     FOCI = "foci",
     CCS_HEADER = "X-AnchorMailbox",
     RETURN_SPA_CODE = "return_spa_code",
-    NATIVE_BRIDGE = "nativebridge",
+    NATIVE_BROKER = "nativebroker",
     LOGOUT_HINT = "logout_hint"
 }
 
