@@ -182,6 +182,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
             this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
         });
+        this.browserStorage.cleanRequestByState(response.state);
 
         return result;
     }
