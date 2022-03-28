@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, PromptValue, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, PromptValue, OIDC_DEFAULT_SCOPES, ProtocolUtils } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -128,9 +128,11 @@ export class PopupClient extends StandardInteractionClient {
                     throw new Error("Call and await initialize function before invoking this API");
                 }
                 const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, validRequest.correlationId);
+                this.browserStorage.cleanRequestByState(state);
+                const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
                     ...validRequest,
-                    prompt: PromptValue.NONE
+                    state: userRequestState
                 }, serverParams.accountId);
             }
 

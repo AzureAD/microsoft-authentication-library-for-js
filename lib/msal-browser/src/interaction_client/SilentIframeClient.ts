@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, UrlString, ServerAuthorizationCodeResponse } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, UrlString, ServerAuthorizationCodeResponse, ProtocolUtils } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -104,8 +104,11 @@ export class SilentIframeClient extends StandardInteractionClient {
                 throw new Error("Call and await initialize function before invoking this API");
             }
             const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.nativeMessageHandler, this.correlationId);
+            this.browserStorage.cleanRequestByState(state);
+            const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
             return nativeInteractionClient.acquireToken({
                 ...silentRequest,
+                state: userRequestState,
                 prompt: PromptValue.NONE
             }, serverParams.accountId);
         }
