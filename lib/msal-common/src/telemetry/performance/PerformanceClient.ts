@@ -146,7 +146,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
     
     /**
-     * Upserts event into event cache
+     * Upserts event into event cache.
+     * First key is the correlation id, second key is the event id.
+     * Allows for events to be grouped by correlation id,
+     * and to easily allow for properties on them to be updated.
      *
      * @private
      * @param {PerformanceEvent} event
@@ -204,23 +207,38 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 completedEvents.push(event);
             });
 
-            // Take completed top level event and add completed submeasurements
-            const topLevelEvent = completedEvents.find(event => event.name === measureName && event.status === PerformanceEventStatus.Completed);
-            if (topLevelEvent) {
+            // Sort events by start time (earliest first)
+            const sortedCompletedEvents = completedEvents.sort((eventA, eventB) => eventA.startTimeMs - eventB.startTimeMs);
+
+            // Take completed top level event and add completed submeasurements durations as properties
+            const topLevelEvents = sortedCompletedEvents.filter(event => event.name === measureName && event.status === PerformanceEventStatus.Completed);
+            if (topLevelEvents.length > 0) {
+                /*
+                 * Only take the first top-level event if there are multiple events with the same correlation id.
+                 * This greatly simplifies logic for submeasurements.
+                 */
+                if (topLevelEvents.length > 1) {
+                    this.logger.verbose("PerformanceClient: Multiple distinct top-level performance events found, using the first", correlationId);
+                }
+                const topLevelEvent = topLevelEvents[0];
+
                 this.logger.verbose(`PerformanceClient: Measurement found for ${measureName}`, correlationId);
 
                 // Build event object with top level and sub measurements
-                const eventToEmit = completedEvents.reduce((previous, current) => {
+                const eventToEmit = sortedCompletedEvents.reduce((previous, current) => {
                     if (current.name !== measureName) {
                         this.logger.trace(`PerformanceClient: Complete submeasurement found for ${current.name}`, correlationId);
                         // TODO: Emit additional properties for each subMeasurement
                         const subMeasurementName = `${current.name}DurationMs`;
                         /*
                          * Some code paths, such as resolving an authority, can occur multiple times.
-                         * Only take the first measurement since the second is often read from the cache.
+                         * Only take the first measurement, since the second could be read from the cache,
+                         * or due to the same correlation id being used for two distinct requests.
                          */
                         if (!previous[subMeasurementName]) {
                             previous[subMeasurementName] = current.durationMs;
+                        } else {
+                            this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
                     }
 
@@ -228,6 +246,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 }, topLevelEvent);
 
                 this.emitEvents([eventToEmit], eventToEmit.correlationId);
+            } else {
+                this.logger.verbose(`PerformanceClient: No completed top-level measurements found for ${measureName}`, correlationId);
             }
         } else {
             this.logger.verbose("PerformanceClient: No measurements found", correlationId);
