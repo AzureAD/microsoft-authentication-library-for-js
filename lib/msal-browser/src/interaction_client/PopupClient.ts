@@ -15,6 +15,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class PopupClient extends StandardInteractionClient {
     /**
@@ -125,7 +126,7 @@ export class PopupClient extends StandardInteractionClient {
             if (serverParams.accountId) {
                 this.logger.verbose("Account id found in hash, calling WAM for token");
                 if (!this.nativeMessageHandler) {
-                    throw new Error("Call and await initialize function before invoking this API");
+                    throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }
                 const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, validRequest.correlationId);
                 this.browserStorage.cleanRequestByState(state);
