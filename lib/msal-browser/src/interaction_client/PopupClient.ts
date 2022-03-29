@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, PromptValue, OIDC_DEFAULT_SCOPES, ProtocolUtils } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, OIDC_DEFAULT_SCOPES, ProtocolUtils } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
