@@ -416,6 +416,8 @@ export class AuthorizationCodeClient extends BaseClient {
                 const cnfHash = await popTokenGenerator.generateCnfHash(cnf);
                 parameterBuilder.addPopToken(cnfHash);
             }
+        }
+
         if (request.nativeBroker) {
             parameterBuilder.addNativeBroker();
         }
