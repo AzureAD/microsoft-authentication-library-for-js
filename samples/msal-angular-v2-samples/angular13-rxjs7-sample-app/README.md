@@ -2,6 +2,10 @@
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.2.6.
 
+## RxJSv7
+
+RxJSv6 is the default version of RxJS in MSAL-Angular v2. In order to use the installed version of RxJSv7 for this sample, ```"rxjs": ["./node_modules/rxjs"]``` must be added to the ```compilerOptions``` object's ```paths``` object in ```tsconfig.json```. This tells the compiler to use the version of RxJS specified in ```package.json``` (RxJSv7).
+
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
