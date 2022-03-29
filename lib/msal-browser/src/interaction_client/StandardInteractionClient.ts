@@ -235,7 +235,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
                 return result;
             })
-            .catch((error) => {
+            .catch((error:Error) => {
                 getAuthorityMeasurement.endMeasurement({
                     success: false
                 });

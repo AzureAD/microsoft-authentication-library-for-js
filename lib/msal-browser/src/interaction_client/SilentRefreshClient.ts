@@ -34,9 +34,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
                 return result;
             })
-            .catch(e => {
+            .catch((e:Error)=> {
                 if (e instanceof AuthError) {
-                    e.setCorrelationId(this.correlationId);
+                    (e as AuthError).setCorrelationId(this.correlationId);
                 }
                 serverTelemetryManager.cacheFailedRequest(e);
                 acquireTokenMeasurement.endMeasurement({
