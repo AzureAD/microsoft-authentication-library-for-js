@@ -31,7 +31,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @type {Map<string, IPerformanceMeasurement>}
      */
     protected measurementsById: Map<string, IPerformanceMeasurement>;
-
+    
+    /**
+     * Creates an instance of PerformanceClient, 
+     * an abstract class containing core performance telemetry logic.
+     *
+     * @constructor
+     * @param {string} clientId Client ID of the application
+     * @param {string} authority Authority used by the application
+     * @param {Logger} logger Logger used by the application
+     * @param {string} libraryName Name of the library
+     * @param {string} libraryVersion Version of the library
+     */
     constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {
         this.authority = authority;
         this.libraryName = libraryName;
@@ -42,8 +53,23 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
     }
-
+    
+    /**
+     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
+     *
+     * @abstract
+     * @param {string} measureName
+     * @param {string} correlationId
+     * @returns {IPerformanceMeasurement}
+     */
     abstract startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
+    
+    /**
+     * Generates and returns a unique id, typically a guid.
+     *
+     * @abstract
+     * @returns {string}
+     */
     abstract generateId(): string;
     
     /**
@@ -51,7 +77,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      *
      * @param {PerformanceEvents} measureName
      * @param {?string} [correlationId]
-     * @returns {((event?: Partial<PerformanceEvent>) => PerformanceEvent | null)}
+     * @returns {InProgressPerformanceEvent}
      */
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent {
         // Generate a placeholder correlation if the request does not provide one
