@@ -59,7 +59,7 @@ Applications that want to measure the performance of authentication flows in MSA
 
 Since version `@azure/msal-browser@2.23.0`, applications can register a callback to receive performance measurements taken by the library. These measurement will include end-to-end measurements for top-level APIs, as well as measurements for important internal APIs.
 
-**Note for MSFT first-party applications**: We will publishing an internal build of `@azure/msal-browser` that is already instrumented to capture this telemetry. Contact us for more details.
+**Note for MSFT first-party applications**: We will be publishing an internal build of `@azure/msal-browser` that is already instrumented to capture this telemetry. Contact us for more details.
 
 #### Example
 
