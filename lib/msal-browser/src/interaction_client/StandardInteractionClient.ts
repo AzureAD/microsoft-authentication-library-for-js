@@ -19,7 +19,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
-export abstract class StandardInteractionClient extends BaseInteractionClient {    
+export abstract class StandardInteractionClient extends BaseInteractionClient {
     /**
      * Generates an auth code request tied to the url request.
      * @param request
@@ -194,8 +194,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     *<<<<<<< HEAD
-     *=======
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
      * @param requestCorrelationId
