@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, UrlString, ServerAuthorizationCodeResponse } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, UrlString, ServerAuthorizationCodeResponse, ProtocolUtils } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -86,7 +86,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create authorize request url
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
-            nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
+            nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
         });
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
@@ -104,8 +104,11 @@ export class SilentIframeClient extends StandardInteractionClient {
                 throw new Error("Call and await initialize function before invoking this API");
             }
             const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.nativeMessageHandler, this.correlationId);
+            this.browserStorage.cleanRequestByState(state);
+            const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
             return nativeInteractionClient.acquireToken({
                 ...silentRequest,
+                state: userRequestState,
                 prompt: PromptValue.NONE
             }, serverParams.accountId);
         }
