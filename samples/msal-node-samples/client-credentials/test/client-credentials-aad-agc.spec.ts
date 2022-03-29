@@ -1,45 +1,33 @@
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
-import { retrieveAppConfiguration } from "../../../e2eTestUtils/TestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { validateCacheLocation } from "../../testUtils";
 import { ConfidentialClientApplication } from "../../../../lib/msal-node/";
-import config from "../config/AAD.json";
 
-const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
 
 const getClientCredentialsToken = require("../index");
 
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-let clientID;
-let clientSecret;
-let authority;
+const authOptions = {
+    clientId: process.env.AZURE_CLIENT_ID,
+    clientSecret: process.env.AZURE_CLIENT_SECRET,
+    authority: `${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`,
+    knownAuthorities: [`${process.env.AUTHORITY}/${process.env.AZURE_TENANT_ID}`],
+};
 
-const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
+const clientCredentialRequestScopes = [`${process.env.GRAPH_URL}/.default`];
 
-describe('Client Credentials AAD PPE Tests', () => {
+describe('Client Credentials AAD AGC Tests', () => {
     jest.retryTimes(1);
     jest.setTimeout(90000);
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
-
-        const labApiParms: LabApiQueryParams = {
-            appType: "cloud",
-            publicClient: "no",
-            signInAudience: "azureadmyorg"
-        };
-
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [clientID, clientSecret, authority] = await retrieveAppConfiguration(envResponse[0], labClient, true);
-
-        // Update the complete config
-        config.authOptions.clientId = clientID;
-        config.authOptions.clientSecret = clientSecret;
-        config.authOptions.authority = authority;
     });
     
     describe("Acquire Token", () => {
@@ -59,15 +47,15 @@ describe('Client Credentials AAD PPE Tests', () => {
         })
 
         it("Performs acquire token", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            confidentialClientApplication = new ConfidentialClientApplication({ auth: authOptions, cache: { cachePlugin }});
             server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes);
             const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
         });
 
         it("Performs acquire token through regional authorities", async () => {
-            confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes, { region: "westus2" });
+            confidentialClientApplication = new ConfidentialClientApplication({ auth: authOptions, cache: { cachePlugin }});
+            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes, { region: "usseceast" });
             const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
         });

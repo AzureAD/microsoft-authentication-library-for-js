@@ -3,7 +3,9 @@
     "version": "1.0.0",
     "description": "End-to-end test suite for msal-node",
     "scripts": {
-        "test": "shx rm -rf screenshots && jest",
+        "removeScreeshots": "shx rm -rf screenshots",
+        "test": "npm run removeScreeshots && jest",
+        "test:agc": "npm run removeScreeshots && jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
         "preinstall": "cd .. && npm install",
         "build:package": "cd ../../lib/msal-node && npm run build:all"
     },

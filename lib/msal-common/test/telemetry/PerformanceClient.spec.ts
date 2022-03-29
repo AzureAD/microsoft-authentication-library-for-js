@@ -200,5 +200,38 @@ describe("PerformanceClient.spec.ts", () => {
         mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
 
         expect(result).toBe(null);
-    })
+    });
+    
+    it("gracefully handles two requests with teh same correlation id", done => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const correlationId = "test-correlation-id";
+        let event1Id: string;
+
+        mockPerfClient.addPerformanceCallback((events =>{
+            expect(events.length).toBe(1);
+
+            expect(events[0].eventId).toBe(event1Id);
+
+            done();
+        }));
+
+        // Start and end top-level measurement
+        const topLevelEvent1 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent2 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+
+
+        topLevelEvent1.endMeasurement({
+            success: false
+        });
+        event1Id = topLevelEvent1.event.eventId;
+
+        topLevelEvent2.endMeasurement({
+            success: true,
+            startTimeMs: topLevelEvent1.event.startTimeMs + 5
+        });
+
+        topLevelEvent2.flushMeasurement();
+        topLevelEvent1.flushMeasurement();
+    });
 });
