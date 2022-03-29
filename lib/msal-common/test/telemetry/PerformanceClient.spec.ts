@@ -233,5 +233,5 @@ describe("PerformanceClient.spec.ts", () => {
 
         topLevelEvent2.flushMeasurement();
         topLevelEvent1.flushMeasurement();
-    })
+    });
 });
