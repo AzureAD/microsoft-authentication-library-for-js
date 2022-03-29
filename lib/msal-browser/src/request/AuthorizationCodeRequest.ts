@@ -10,5 +10,4 @@ export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeReque
     cloudGraphHostName?: string;
     msGraphHost?: string;
     cloudInstanceHostName?: string;
-    correlationId?: string;
 };
