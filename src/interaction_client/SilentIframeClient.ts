@@ -28,7 +28,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByIframe called", request.correlationId);
+        this.logger.verbose("acquireTokenByIframe called");
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -66,7 +66,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger)
                 .then((result: AuthenticationResult) => {
                     acquireTokenMeasurement.endMeasurement({
-                        success: true
+                        success: true,
+                        fromCache: false
                     });
                     return result;
                 });
