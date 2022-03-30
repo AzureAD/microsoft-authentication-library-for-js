@@ -1,31 +1,24 @@
-# Angular13RxJS7SampleApp
+# Angular 13 RxJS7 MSAL Angular v2 Sample
+
+This developer sample is used to demonstrate how to use `@azure/msal-angular`.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.2.6.
 
-## RxJSv7
+## How to run the sample
 
-RxJSv6 is the default version of RxJS in MSAL-Angular v2. In order to use the installed version of RxJSv7 for this sample, ```"rxjs": ["./node_modules/rxjs"]``` must be added to the ```compilerOptions``` object's ```paths``` object in ```tsconfig.json```. This tells the compiler to use the version of RxJS specified in ```package.json``` (RxJSv7).
+### Pre-requisites
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
-## Development server
+### Configure the application
+- Open `./src/app/app.modules.ts` in an editor.
+- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration. 
+  - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+### Running the sample
+- In a command prompt, run `npm start`.
+- Navigate to [http://localhost:4200](http://localhost:4200)
+- In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
-## Code scaffolding
+## Additional notes
+- The default interaction type for the sample is redirects. The sample can be configured to use redirects by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
-
-## Build
-
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
