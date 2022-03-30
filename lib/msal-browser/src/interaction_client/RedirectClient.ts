@@ -220,7 +220,7 @@ export class RedirectClient extends StandardInteractionClient {
             return nativeInteractionClient.acquireToken({
                 ...cachedRequest,
                 state: userRequestState,
-                prompt: PromptValue.NONE
+                prompt: undefined // Server should handle the prompt, ideally native broker can do this part silently
             }, serverParams.accountId);
         }
 

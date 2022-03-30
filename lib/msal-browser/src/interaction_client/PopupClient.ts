@@ -132,7 +132,8 @@ export class PopupClient extends StandardInteractionClient {
                 const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
                     ...validRequest,
-                    state: userRequestState
+                    state: userRequestState,
+                    prompt: undefined // Server should handle the prompt, ideally native broker can do this part silently
                 }, serverParams.accountId);
             }
 
