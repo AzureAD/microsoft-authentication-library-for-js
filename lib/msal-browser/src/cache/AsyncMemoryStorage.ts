@@ -117,7 +117,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      * Clears in-memory Map and tries to delete the IndexedDB database.
      */
     async clear(): Promise<boolean> {
-    // InMemory cache is a Map instance, clear is straightforward
+        // InMemory cache is a Map instance, clear is straightforward
         this.logger.verbose(`Deleting in-memory keystore ${this.storeName}`);
         this.inMemoryCache.clear();
         this.logger.verbose(`In-memory keystore ${this.storeName} deleted`);
@@ -132,9 +132,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             
             return dbDeleted;
         } catch (e) {
-            if (e instanceof Error) {
-                this.handleDatabaseAccessError(e);
-            }
+            this.handleDatabaseAccessError(e);
             return false;
         }
     }
