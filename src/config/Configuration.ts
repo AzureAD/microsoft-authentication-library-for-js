@@ -81,6 +81,12 @@ export type BrowserSystemOptions = SystemOptions & {
     allowRedirectInIframe?: boolean;
 };
 
+/**
+ * Telemetry Options
+ * - application: Telemetry information sent on request
+ *     - appName: Unique string name of an application
+ *     - appVersion: Version of the application using MSAL
+ */
 export type BrowserTelemetryOptions = {
     application?: ApplicationTelemetry;
 };
@@ -92,6 +98,7 @@ export type BrowserTelemetryOptions = {
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location and whether to store cache in cookies
  * - system: this is where you can configure the network client, logger, token renewal offset
+ * - telemetry: this is where you can configure telemetry data and options
  */
 export type Configuration = {
     auth: BrowserAuthOptions,
