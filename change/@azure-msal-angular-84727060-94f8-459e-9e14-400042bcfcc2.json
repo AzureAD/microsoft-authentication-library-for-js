@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Created Angular 14 RxJS 6/7 Sample Apps",
+  "packageName": "@azure/msal-angular",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
