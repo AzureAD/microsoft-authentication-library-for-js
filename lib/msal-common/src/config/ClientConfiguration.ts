@@ -26,6 +26,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - authOptions                - Authentication for application
  * - cryptoInterface            - Implementation of crypto functions
  * - libraryInfo                - Library metadata
+ * - telemetry                  - Telemetry options and data
  * - loggerOptions              - Logging for application
  * - networkInterface           - Network implementation
  * - storageInterface           - Storage implementation
@@ -143,6 +144,8 @@ export type TelemetryOptions = {
 
 /**
  * Telemetry information sent on request
+ * - appName: Unique string name of an application
+ * - appVersion: Version of the application using MSAL
  */
 export type ApplicationTelemetry = {
     appName: string;
