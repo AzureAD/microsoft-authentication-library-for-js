@@ -19,52 +19,53 @@ import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
-    protected wamMessageHandler: NativeMessageHandler;
+    protected nativeMessageHandler: NativeMessageHandler;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: NativeMessageHandler, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
         this.apiId = apiId;
-        this.wamMessageHandler = provider;
+        this.nativeMessageHandler = provider;
     }
 
     /**
-     * Acquire token from WAM via browser extension
+     * Acquire token from native platform via browser extension
      * @param request 
      */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest, accountId?: string): Promise<AuthenticationResult> {
-        this.logger.trace("WamInteractionClient - acquireToken called.");
-        const wamRequest = this.initializeWamRequest(request, accountId);
+        this.logger.trace("NativeInteractionClient - acquireToken called.");
+        const nativeRequest = this.initializeNativeRequest(request, accountId);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: wamRequest
+            request: nativeRequest
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response: object = await this.wamMessageHandler.sendMessage(messageBody);
-        this.validateWamResponse(response);
-        return this.handleWamResponse(response as NativeResponse, wamRequest, reqTimestamp);
+        const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
+        this.validateNativeResponse(response);
+        return this.handleNativeResponse(response as NativeResponse, nativeRequest, reqTimestamp);
     }
 
     /**
-     * Acquires a token from WAM then redirects to the redirectUri instead of returning the response                                
+     * Acquires a token from native platform then redirects to the redirectUri instead of returning the response                                
      * @param request 
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        this.logger.trace("WamInteractionClient - acquireTokenRedirect called.");
-        const wamRequest = this.initializeWamRequest(request);
+        this.logger.trace("NativeInteractionClient - acquireTokenRedirect called.");
+        const nativeRequest = this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: wamRequest
+            request: nativeRequest
         };
 
         try {
-            const response: object = await this.wamMessageHandler.sendMessage(messageBody);
-            this.validateWamResponse(response);
+            const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
+            this.validateNativeResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
             if (e instanceof NativeAuthError && e.isFatal()) {
@@ -72,7 +73,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         }
         this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.correlationId, true);
-        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(wamRequest), true);
+        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(nativeRequest), true);
 
         const navigationOptions: NavigationOptions = {
             apiId: ApiId.acquireTokenRedirect,
@@ -84,10 +85,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * If the previous page called WAM for a token using redirect APIs, send the same request again and return the response
+     * If the previous page called native platform for a token using redirect APIs, send the same request again and return the response
      */
     async handleRedirectPromise(): Promise<AuthenticationResult | null> {
-        this.logger.trace("WamInteractionClient - handleRedirectPromise called.");
+        this.logger.trace("NativeInteractionClient - handleRedirectPromise called.");
         if (!this.browserStorage.isInteractionInProgress(true)) {
             this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
             return null;
@@ -95,7 +96,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const cachedRequest = this.browserStorage.getCachedNativeRequest();
         if (!cachedRequest) {
-            this.logger.verbose("WamInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
+            this.logger.verbose("NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
             return null;
         }
         
@@ -114,10 +115,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
 
         try {
-            this.logger.verbose("WamInteractionClient - handleRedirectPromise sending message to native broker.");
-            const response: object = await this.wamMessageHandler.sendMessage(messageBody);
-            this.validateWamResponse(response);
-            const result = this.handleWamResponse(response as NativeResponse, request, reqTimestamp);
+            this.logger.verbose("NativeInteractionClient - handleRedirectPromise sending message to native broker.");
+            const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
+            this.validateNativeResponse(response);
+            const result = this.handleNativeResponse(response as NativeResponse, request, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {
@@ -127,22 +128,22 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Logout from WAM via browser extension
+     * Logout from native platform via browser extension
      * @param request 
      */
     logout(): Promise<void> {
-        this.logger.trace("WamInteractionClient - logout called.");
+        this.logger.trace("NativeInteractionClient - logout called.");
         return Promise.reject("Logout not implemented yet");
     }
 
     /**
-     * Transform response from WAM into AuthenticationResult object which will be returned to the end user
+     * Transform response from native platform into AuthenticationResult object which will be returned to the end user
      * @param response 
      * @param request 
      * @param reqTimestamp 
      */
-    protected async handleWamResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
-        this.logger.trace("WamInteractionClient - handleWamResponse called.");
+    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+        this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
 
@@ -187,10 +188,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Validates WAM response before processing
+     * Validates native platform response before processing
      * @param response 
      */
-    private validateWamResponse(response: object): void {
+    private validateNativeResponse(response: object): void {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -206,11 +207,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Translates developer provided request object into WamRequest object
+     * Translates developer provided request object into NativeRequest object
      * @param request 
      */
-    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
-        this.logger.trace("WamInteractionClient - initializeWamRequest called");
+    protected initializeNativeRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
+        this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
 
         const authority = request.authority || this.config.auth.authority;
         const canonicalAuthority = new UrlString(authority);
@@ -219,6 +220,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const scopes = request && request.scopes || [];
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
+
+        if (request.prompt) {
+            switch (request.prompt) {
+                case PromptValue.NONE:
+                case PromptValue.CONSENT:
+                    this.logger.trace("initializeNativeRequest: prompt is compatible with native flow");
+                    break;
+                default:
+                    this.logger.trace(`initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow, returning false`);
+                    throw BrowserAuthError.createNativePromptParameterNotSupportedError();
+            }
+        }
 
         const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
 

@@ -176,6 +176,10 @@ export const BrowserAuthErrorMessage = {
     nativeConnectionNotEstablished: {
         code: "native_connection_not_established",
         desc: "Connection to native platform has not been established. Please install a compatible browser extension and call initialize()."
+    },
+    nativePromptNotSupported: {
+        code: "native_prompt_not_supported",
+        desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
     }
 };
 
@@ -501,7 +505,19 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativeExtensionNotInstalled.code, BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc);
     }
 
+    /**
+     * Create an error thrown when the initialize function hasn't been called
+     * @returns 
+     */
     static createNativeConnectionNotEstablishedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code, BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
+    }
+
+    /**
+     * Create an error thrown when requesting a token directly from the native platform with an unsupported prompt parameter e.g. select_account, login or create
+     * These requests must go through eSTS to ensure eSTS is aware of the new account
+     */
+    static createNativePromptParameterNotSupportedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nativePromptNotSupported.code, BrowserAuthErrorMessage.nativePromptNotSupported.desc);
     }
 }
