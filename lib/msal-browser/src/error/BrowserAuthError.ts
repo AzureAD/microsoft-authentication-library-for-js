@@ -171,11 +171,11 @@ export const BrowserAuthErrorMessage = {
     },
     nativeExtensionNotInstalled: {
         code: "native_extension_not_installed",
-        desc: "Native extension is not installed. If you think this is a mistake run the initialize function."
+        desc: "Native extension is not installed. If you think this is a mistake call the initialize function."
     },
     nativeConnectionNotEstablished: {
         code: "native_connection_not_established",
-        desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize()."
+        desc: "Connection to native platform has not been established. Please install a compatible browser extension and call initialize()."
     }
 };
 
