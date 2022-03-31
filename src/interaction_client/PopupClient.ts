@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -84,7 +84,7 @@ export class PopupClient extends StandardInteractionClient {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
-        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
 
         try {
             // Create auth code request and generate PKCE params

@@ -45,6 +45,12 @@ describe("RedirectClient", () => {
         const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion
+                }
             }
         });
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
