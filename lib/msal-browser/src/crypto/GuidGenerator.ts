@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import { Constants , IGuidGenerator } from "@azure/msal-common";
 import { MathUtils } from "../utils/MathUtils";
 import { BrowserCrypto } from "./BrowserCrypto";
-import { IGuidGenerator } from "@azure/msal-common";
-
 export class GuidGenerator implements IGuidGenerator {
 
     // browser crypto object used to generate random values
