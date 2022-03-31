@@ -176,7 +176,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
             tokenType: AuthenticationScheme.BEARER,
             correlationId: this.correlationId,
-            state: response.state
+            state: response.state,
+            fromNativeBroker: true
         };
 
         // Remove any existing cached tokens for this account
