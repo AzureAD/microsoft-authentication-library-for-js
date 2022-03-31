@@ -125,6 +125,8 @@ export enum AADServerParamKeys {
     X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
     X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
     X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
+    X_APP_NAME = "x-app-name",
+    X_APP_VER = "x-app-ver",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     ID_TOKEN_HINT= "id_token_hint",
     DEVICE_CODE = "device_code",

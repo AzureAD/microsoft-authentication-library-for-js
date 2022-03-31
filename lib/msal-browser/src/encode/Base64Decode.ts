@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "@azure/msal-common";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -40,7 +41,7 @@ export class Base64Decode {
      * @param nBlockSize 
      */
     private base64DecToArr(base64String: string, nBlockSize?: number): Uint8Array {
-        const sB64Enc = base64String.replace(/[^A-Za-z0-9\+\/]/g, "");
+        const sB64Enc = base64String.replace(/[^A-Za-z0-9\+\/]/g, Constants.EMPTY_STRING);
         const nInLen = sB64Enc.length;
         const nOutLen = nBlockSize ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : nInLen * 3 + 1 >>> 2;
         const aBytes = new Uint8Array(nOutLen);
