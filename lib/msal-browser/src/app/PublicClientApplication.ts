@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, RequestThumbprint } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -92,7 +92,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
-            authority: request.authority || "",
+            authority: request.authority || Constants.EMPTY_STRING,
             scopes: request.scopes,
             homeAccountIdentifier: account.homeAccountId,
             claims: request.claims,

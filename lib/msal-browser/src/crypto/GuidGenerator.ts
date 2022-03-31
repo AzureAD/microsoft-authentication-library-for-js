@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "@azure/msal-common";
 import { MathUtils } from "../utils/MathUtils";
 import { BrowserCrypto } from "./BrowserCrypto";
 
@@ -63,7 +64,7 @@ export class GuidGenerator {
             const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
             const hex: string = "0123456789abcdef";
             let r: number = 0;
-            let guidResponse: string = "";
+            let guidResponse: string = Constants.EMPTY_STRING;
             for (let i: number = 0; i < 36; i++) {
                 if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
                     // each x and y needs to be random
