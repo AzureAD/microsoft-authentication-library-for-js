@@ -777,7 +777,11 @@ export abstract class ClientApplication {
             return this.browserCrypto.createNewGuid();
         }
 
-        return "";
+        /*
+         * Included for fallback for non-browser environments,
+         * and to ensure this method always returns a string.
+         */
+        return Constants.EMPTY_STRING;
     }
 
     // #endregion
