@@ -29,6 +29,11 @@ export type CryptoKeyStore = {
     symmetricKeys: AsyncMemoryStorage<CryptoKey>;
 };
 
+export enum CryptoKeyStoreNames {
+    asymmetricKeys = "asymmetricKeys",
+    symmetricKeys = "symmetricKeys"
+}
+
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
@@ -55,8 +60,8 @@ export class CryptoOps implements ICrypto {
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = {
-            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
-            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
+            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys),
+            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys)
         };
     }
 
@@ -144,9 +149,23 @@ export class CryptoOps implements ICrypto {
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        const dataStoreNames = Object.keys(this.cache);
-        const databaseStorage = this.cache[dataStoreNames[0]];
-        return databaseStorage ? await databaseStorage.deleteDatabase() : false;
+        try {
+            this.logger.verbose("Deleting in-memory and persistent asymmetric key stores");
+            await this.cache.asymmetricKeys.clear();
+            this.logger.verbose("Successfully deleted asymmetric key stores");
+            this.logger.verbose("Deleting in-memory and persistent symmetric key stores");
+            await this.cache.symmetricKeys.clear();
+            this.logger.verbose("Successfully deleted symmetric key stores");
+            return true;
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(`Clearing keystore failed with error: ${e.message}`);
+            } else {
+                this.logger.error("Clearing keystore failed with unknown error");
+            }
+            
+            return false;
+        }
     }
 
     /**
