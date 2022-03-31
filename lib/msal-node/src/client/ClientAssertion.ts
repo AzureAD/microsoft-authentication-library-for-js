@@ -4,7 +4,7 @@
  */
 
 import { JwtHeader, sign } from "jsonwebtoken";
-import { TimeUtils, ClientAuthError } from "@azure/msal-common";
+import { TimeUtils, ClientAuthError, Constants } from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from "../utils/EncodingUtils";
 import { JwtConstants } from "../utils/Constants";
@@ -136,7 +136,7 @@ export class ClientAssertion {
         let matches;
         while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
             // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1].replace(/\n/, ""));
+            certs.push(matches[1].replace(/\n/, Constants.EMPTY_STRING));
         }
 
         return certs;
