@@ -189,7 +189,7 @@ export class UrlString {
         } else if (hashIndex1 > -1) {
             return hashString.substring(hashIndex1 + 1);
         }
-        return "";
+        return Constants.EMPTY_STRING;
     }
 
     static constructAuthorityUriFromObject(urlObject: IUri): UrlString {

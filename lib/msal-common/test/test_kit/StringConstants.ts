@@ -141,6 +141,8 @@ export const TEST_CONFIG = {
     TEST_VERSION: "1.1.0",
     TEST_OS: "win32",
     TEST_CPU: "x86",
+    TEST_APP_NAME: "MSAL.js Unit Test",
+    TEST_APP_VER: "1.0.0",
     TEST_ASSERTION_TYPE: "jwt_bearer",
     THE_FAMILY_ID: "1",
     DEFAULT_TOKEN_RENEWAL_OFFSET: 300

@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "@azure/msal-common";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -17,7 +18,7 @@ export class Base64Encode {
      */
     urlEncode(input: string): string {
         return encodeURIComponent(this.encode(input)
-            .replace(/=/g, "")
+            .replace(/=/g, Constants.EMPTY_STRING)
             .replace(/\+/g, "-")
             .replace(/\//g, "_"));
     }
@@ -28,7 +29,7 @@ export class Base64Encode {
      */
     urlEncodeArr(inputArr: Uint8Array): string {
         return this.base64EncArr(inputArr)
-            .replace(/=/g, "")
+            .replace(/=/g, Constants.EMPTY_STRING)
             .replace(/\+/g, "-")
             .replace(/\//g, "_");
     }
@@ -48,7 +49,7 @@ export class Base64Encode {
      */
     private base64EncArr(aBytes: Uint8Array): string {  
         const eqLen = (3 - (aBytes.length % 3)) % 3;
-        let sB64Enc = "";
+        let sB64Enc = Constants.EMPTY_STRING;
       
         for (let nMod3, nLen = aBytes.length, nUint24 = 0, nIdx = 0; nIdx < nLen; nIdx++) {
             nMod3 = nIdx % 3;
