@@ -197,8 +197,8 @@ export class NativeMessageHandler {
      */
     static isNativeAvailable(config: BrowserConfiguration, logger: Logger, nativeExtensionProvider?: NativeMessageHandler, authenticationScheme?: AuthenticationScheme): boolean {
         logger.trace("isNativeAvailable called");
-        if (!config.system.platformSSO) {
-            logger.trace("isNativeAvailable: platformSSO is not enabled, returning false");
+        if (!config.system.allowNativeBroker) {
+            logger.trace("isNativeAvailable: allowNativeBroker is not enabled, returning false");
             // Developer disabled WAM
             return false;
         }
