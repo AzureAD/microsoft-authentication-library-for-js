@@ -112,7 +112,7 @@ The complete details for `PerformanceEvents` objects can be found [here](../../m
 
 ### removePerformanceCallback
 
-The `addPerformanceCallback` API will return a callback id, which an application can pass to `PublicClientApplication.removePerformanceCallback` to unregister that callback from receiving performance events. It will return a boolean indicating whether or the callback was successfully removed.
+The `addPerformanceCallback` API will return a callback id, which an application can pass to `PublicClientApplication.removePerformanceCallback` to unregister that callback from receiving performance events. It will return a boolean indicating whether or not the callback was successfully removed.
 
 #### Example
 
