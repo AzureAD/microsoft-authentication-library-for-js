@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix persistent key store deletion on logout #4617",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
