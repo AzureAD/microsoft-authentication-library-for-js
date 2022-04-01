@@ -116,8 +116,8 @@ export abstract class ClientApplication {
         
         // Initialize performance client
         this.performanceClient = this.isBrowserEnvironment ? 
-            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version) : 
-            new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version);
+            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application) : 
+            new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
 
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient) : DEFAULT_CRYPTO_IMPLEMENTATION;
