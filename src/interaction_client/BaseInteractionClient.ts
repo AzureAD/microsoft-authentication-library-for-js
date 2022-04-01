@@ -56,11 +56,11 @@ export abstract class BaseInteractionClient {
             }
         } else {
             try {
+                this.logger.verbose("No account provided in logout request, clearing all cache items.", this.correlationId);
                 // Clear all accounts and tokens
                 await this.browserStorage.clear();
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
-                this.logger.verbose("No account provided in logout request, clearing all cache items.");
             } catch(e) {
                 this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
             }
