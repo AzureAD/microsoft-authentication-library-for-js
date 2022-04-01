@@ -196,5 +196,19 @@ export type PerformanceEvent = {
      *
      * @type {string}
      */
-    libraryVersion: string
+    libraryVersion: string,
+    
+    /**
+     * Application name as specified by the app.
+     *
+     * @type {?string}
+     */
+    appName?: string,
+    
+    /**
+     * Application version as specified by the app.
+     *
+     * @type {?string}
+     */
+    appVersion?: string
 };

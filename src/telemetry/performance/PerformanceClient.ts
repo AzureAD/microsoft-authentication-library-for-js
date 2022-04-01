@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
 import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
@@ -12,6 +13,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
     protected libraryName: string;
     protected libraryVersion: string;
+    protected applicationTelemetry: ApplicationTelemetry;
     protected clientId: string;
     protected logger: Logger;
     protected callbacks: Map<string, PerformanceCallbackFunction>;
@@ -43,10 +45,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryName Name of the library
      * @param {string} libraryVersion Version of the library
      */
-    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {
+    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry) {
         this.authority = authority;
         this.libraryName = libraryName;
         this.libraryVersion = libraryVersion;
+        this.applicationTelemetry = applicationTelemetry;
         this.clientId = clientId;
         this.logger = logger;
         this.callbacks = new Map();
@@ -96,6 +99,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             authority: this.authority,
             libraryName: this.libraryName,
             libraryVersion: this.libraryVersion,
+            appName: this.applicationTelemetry?.appName,
+            appVersion: this.applicationTelemetry?.appVersion,
             clientId: this.clientId,
             name: measureName,
             startTimeMs: Date.now(),

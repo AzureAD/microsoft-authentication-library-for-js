@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IGuidGenerator, IPerformanceMeasurement, Logger, PerformanceEvents } from "../../src";
+import { ApplicationTelemetry, IGuidGenerator, IPerformanceMeasurement, Logger, PerformanceEvents } from "../../src";
 import { IPerformanceClient } from "../../src/telemetry/performance/IPerformanceClient";
 import { PerformanceClient } from "../../src/telemetry/performance/PerformanceClient";
 import { randomUUID } from 'crypto';
@@ -13,6 +13,10 @@ const authority = "https://login.microsoftonline.com/common";
 const libraryName = "@azure/msal-common";
 const libraryVersion = "1.0.0";
 const samplePerfDuration = 50;
+const sampleApplicationTelemetry: ApplicationTelemetry = {
+    appName: "Test Comon App",
+    appVersion: "1.0.0-test.1"
+}
 
 const logger = new Logger({
     loggerCallback: () => {}
@@ -49,7 +53,7 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
     private guidGenerator: MockGuidGenerator;
 
     constructor() {
-        super(sampleClientId, authority, logger, libraryName, libraryVersion);
+        super(sampleClientId, authority, logger, libraryName, libraryVersion, sampleApplicationTelemetry);
         this.guidGenerator = new MockGuidGenerator();
     }
 
@@ -101,6 +105,8 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events[0].libraryName).toBe(libraryName);
             expect(events[0].libraryVersion).toBe(libraryVersion);
             expect(events[0].success).toBe(true);
+            expect(events[0].appName).toBe(sampleApplicationTelemetry.appName);
+            expect(events[0].appVersion).toBe(sampleApplicationTelemetry.appVersion);
             expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
             done();
         }));
