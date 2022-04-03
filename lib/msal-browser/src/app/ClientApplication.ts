@@ -138,7 +138,7 @@ export abstract class ClientApplication {
      */
     async initialize(): Promise<void> {
         this.logger.trace("initialize called");
-        if (this.config.system.platformSSO) {
+        if (this.config.system.allowNativeBroker) {
             try {
                 this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger);
             } catch (e) {

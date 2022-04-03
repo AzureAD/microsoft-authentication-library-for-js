@@ -101,7 +101,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         if (serverParams.accountId) {
             this.logger.verbose("Account id found in hash, calling WAM for token");
             if (!this.nativeMessageHandler) {
-                throw new Error("Call and await initialize function before invoking this API");
+                throw BrowserAuthError.createNativeConnectionNotEstablishedError();
             }
             const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.nativeMessageHandler, this.correlationId);
             this.browserStorage.cleanRequestByState(state);

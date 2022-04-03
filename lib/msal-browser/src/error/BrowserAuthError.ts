@@ -171,11 +171,15 @@ export const BrowserAuthErrorMessage = {
     },
     nativeExtensionNotInstalled: {
         code: "native_extension_not_installed",
-        desc: "Native extension is not installed. If you think this is a mistake run the initialize function."
+        desc: "Native extension is not installed. If you think this is a mistake call the initialize function."
     },
     nativeConnectionNotEstablished: {
         code: "native_connection_not_established",
         desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize()."
+    },
+    nativePromptNotSupported: {
+        code: "native_prompt_not_supported",
+        desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
     },
     shrGenerationError: {
         code: "shr_generation_error",
@@ -507,9 +511,19 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Create an error when native connection cannot be established
+     * Create an error thrown when the initialize function hasn't been called
+     * @returns
      */
     static createNativeConnectionNotEstablishedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code, BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
+    }
+
+    /**
+     * Create an error thrown when requesting a token directly from the native platform with an unsupported prompt parameter e.g. select_account, login or create
+     * These requests must go through eSTS to ensure eSTS is aware of the new account
+     */
+    static createNativePromptParameterNotSupportedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nativePromptNotSupported.code, BrowserAuthErrorMessage.nativePromptNotSupported.desc);
     }
 
     /**
@@ -518,5 +532,4 @@ export class BrowserAuthError extends AuthError {
     static createSHRGenerationError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.shrGenerationError.code, BrowserAuthErrorMessage.shrGenerationError.desc);
     }
-
 }
