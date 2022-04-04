@@ -30,6 +30,7 @@ import {
     AzureCloudOptions,
     AuthorizationCodePayload,
     StringUtils,
+    Constants,
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -341,9 +342,10 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || "",
-                os: process.platform || "",
+                cpu: process.arch || Constants.EMPTY_STRING,
+                os: process.platform || Constants.EMPTY_STRING,
             },
+            telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
             serializableCache: this.tokenCache,
         };

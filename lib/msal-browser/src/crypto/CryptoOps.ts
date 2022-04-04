@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, IPerformanceClient, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -29,6 +29,11 @@ export type CryptoKeyStore = {
     symmetricKeys: AsyncMemoryStorage<CryptoKey>;
 };
 
+export enum CryptoKeyStoreNames {
+    asymmetricKeys = "asymmetricKeys",
+    symmetricKeys = "symmetricKeys"
+}
+
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
@@ -42,11 +47,17 @@ export class CryptoOps implements ICrypto {
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
 
+    /**
+     * CryptoOps can be used in contexts outside a PCA instance,
+     * meaning there won't be a performance manager available.
+     */
+    private performanceClient: IPerformanceClient | undefined;
+
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
@@ -55,9 +66,10 @@ export class CryptoOps implements ICrypto {
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = {
-            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
-            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
+            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys),
+            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys)
         };
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -96,6 +108,8 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
+        const publicKeyThumbMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
+
         // Generate Keypair
         const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
@@ -127,6 +141,12 @@ export class CryptoOps implements ICrypto {
             }
         );
 
+        if (publicKeyThumbMeasurement) {
+            publicKeyThumbMeasurement.endMeasurement({
+                success: true
+            });
+        }
+
         return publicJwkHash;
     }
 
@@ -144,9 +164,23 @@ export class CryptoOps implements ICrypto {
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        const dataStoreNames = Object.keys(this.cache);
-        const databaseStorage = this.cache[dataStoreNames[0]];
-        return databaseStorage ? await databaseStorage.deleteDatabase() : false;
+        try {
+            this.logger.verbose("Deleting in-memory and persistent asymmetric key stores");
+            await this.cache.asymmetricKeys.clear();
+            this.logger.verbose("Successfully deleted asymmetric key stores");
+            this.logger.verbose("Deleting in-memory and persistent symmetric key stores");
+            await this.cache.symmetricKeys.clear();
+            this.logger.verbose("Successfully deleted symmetric key stores");
+            return true;
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(`Clearing keystore failed with error: ${e.message}`);
+            } else {
+                this.logger.error("Clearing keystore failed with unknown error");
+            }
+            
+            return false;
+        }
     }
 
     /**
@@ -154,7 +188,8 @@ export class CryptoOps implements ICrypto {
      * @param payload 
      * @param kid 
      */
-    async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+    async signJwt(payload: SignedHttpRequest, kid: string, correlationId?: string): Promise<string> {
+        const signJwtMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsSignJwt, correlationId);
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
@@ -186,7 +221,15 @@ export class CryptoOps implements ICrypto {
         const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
-        return `${tokenString}.${encodedSignature}`;
+        const signedJwt = `${tokenString}.${encodedSignature}`;
+
+        if (signJwtMeasurement) {
+            signJwtMeasurement.endMeasurement({
+                success: true
+            });
+        }
+
+        return signedJwt;
     }
 
     /**

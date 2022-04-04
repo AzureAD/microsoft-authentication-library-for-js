@@ -4,6 +4,7 @@
  */
 
 import {
+    Constants,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
@@ -63,7 +64,7 @@ export class HttpClient implements INetworkModule {
             method: HttpMethod.POST,
             url: url,
             /* istanbul ignore next */
-            data: (options && options.body) || "",
+            data: (options && options.body) || Constants.EMPTY_STRING,
             timeout: cancellationToken,
             /* istanbul ignore next */
             headers: options && options.headers,

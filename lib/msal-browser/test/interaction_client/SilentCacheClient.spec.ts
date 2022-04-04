@@ -67,7 +67,7 @@ describe("SilentCacheClient", () => {
             }
         });
         // @ts-ignore
-        silentCacheClient = new SilentCacheClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+        silentCacheClient = new SilentCacheClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
     })
     describe("acquireToken", () => {
         it("successfully acquires the token from the cache", async () => {
