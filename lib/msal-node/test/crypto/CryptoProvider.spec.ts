@@ -13,7 +13,7 @@ describe('CryptoOps', () => {
     // tests createNewGuid() generates a GUID
     test('createNewGuid() generates a valid Guid', () => {
         const guid = cryptoOps.createNewGuid();
-        expect(GuidGenerator.isGuid(guid)).toBe(true);
+        expect(new GuidGenerator().isGuid(guid)).toBe(true);
     });
 
     // tests base64Encode() works as expected

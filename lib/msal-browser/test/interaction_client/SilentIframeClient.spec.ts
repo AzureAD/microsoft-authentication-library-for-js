@@ -12,6 +12,7 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { ApiId } from "../../src";
 
 describe("SilentIframeClient", () => {
     let silentIframeClient: SilentIframeClient;
@@ -23,7 +24,7 @@ describe("SilentIframeClient", () => {
             }
         });
         // @ts-ignore
-        silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+        silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient);
     });
 
     afterEach(() => {

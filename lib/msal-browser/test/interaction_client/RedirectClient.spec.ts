@@ -45,6 +45,12 @@ describe("RedirectClient", () => {
         const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion
+                }
             }
         });
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
@@ -53,7 +59,7 @@ describe("RedirectClient", () => {
         browserStorage = pca.browserStorage;
 
         // @ts-ignore
-        redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+        redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
     });
 
     afterEach(() => {
@@ -375,7 +381,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -488,7 +494,7 @@ describe("RedirectClient", () => {
             pca.setNavigationClient(navigationClient);
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             if (!tokenResponse) {
@@ -596,7 +602,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -662,7 +668,7 @@ describe("RedirectClient", () => {
                 }
             }
             // @ts-ignore
-            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -816,7 +822,7 @@ describe("RedirectClient", () => {
                 }
             });
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             browserStorage.setInteractionInProgress(true);
             const loginRequestUrl = window.location.href + "#testHash";
@@ -1714,7 +1720,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             redirectClient.logout();
         });
@@ -1734,7 +1740,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
             redirectClient.logout();
         });
