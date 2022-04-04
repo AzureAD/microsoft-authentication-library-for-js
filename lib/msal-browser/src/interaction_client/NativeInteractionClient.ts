@@ -165,6 +165,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
+        // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
         let responseAccessToken;
         switch (request.tokenType) {
             case AuthenticationScheme.POP: {
@@ -172,17 +173,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 if (response.shr) {
                     this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
                     responseAccessToken = response.shr;
-                    break;
                 }
                 // Generate SHR in msal js if WAM does not compute it when POP is enabled
-                if (request.shrParameters) {
+                else if (request.shrParameters) {
                     const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.cryptoObj);
                     responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.shrParameters);
-                    break;
                 }
                 // Should not land here unless shrParameters are corrupt/not initialized
-                this.logger.trace("handleNativeServerResponse: SHR cannot be calculate, please check the request");
-                throw BrowserAuthError.createSHRGenerationError();
+                else {
+                    this.logger.trace("handleNativeServerResponse: SHR cannot be calculated, please check the request");
+                    throw BrowserAuthError.createSHRGenerationError();
+                }
+                break;
             }
             // assign the access token to the response for all non-POP cases (Should be Bearer only today)
             default: {
