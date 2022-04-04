@@ -1,8 +1,8 @@
 const appSettings = {
     appCredentials: {
-        clientId: "client-id",
+        clientId: "client-id", // Application (client) ID for MSAL-Node application
         authority: "authority",
-        tenantId: "tenant-id",
+        tenantId: "tenant-id", // Directory (tenant) ID
         clientSecret: "client-secret",
         protocolMode: "AAD"
     },
@@ -20,7 +20,7 @@ const appSettings = {
             scopes: ["add-custom-scope-here"]
         }
     },
-    validationParameters: {
+    validationParameters: { // Parameters for validating access token
         validIssuers: [`https://sts.windows.net/YOUR_TENANT_ID_HERE/`],
         validAudiences: [`api://YOUR_CLIENT_ID_HERE`]
     }

@@ -14,11 +14,11 @@ This developer sample application demonstrates how to validate a token against c
 
 1. [Register a Single Page Application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-spa-app-registration) or use an existing SPA application.
 
-1. Create a custom scope in the `Expose an API` blade. Make note of the tenant id, client id, and custom scope.
+1. Create a custom scope in the `Expose an API` blade. Make note of the tenant id and custom scope.
 
 #### In a msal-browser sample (e.g. [VanillaJSTestApp2.0](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0))
 
-1. Replace client id, authority, and token request scopes with information from above app registration. Note that token request scopes should only have the custom scope, and no MS Graph scopes, otherwise the token will not be able to be validated using this library.
+1. Replace authority and token request scopes with information from above app registration. Note that token request scopes should only have the custom scope, and no MS Graph scopes, otherwise the token will not be able to be validated using this library.
 
 1. Run the sample, sign in, and click get profile.
 
@@ -36,7 +36,6 @@ This developer sample application demonstrates how to validate a token against c
 
 1. Open `index.js`,
 
-    1. Line 33: replace `client-id-here` with the client Id of your SPA app.
     1. Line 34: replace `common` in the authority with your SPA app tenant id.
     1. Line 44: replace `token-here` with the secret from the msal-browser sample above.
     1. Line 46: replace `issuer-here` with the `iss` field from the decoded token.

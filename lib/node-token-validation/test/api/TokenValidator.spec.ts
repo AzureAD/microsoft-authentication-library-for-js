@@ -2,7 +2,6 @@ import { AuthenticationResult } from '@azure/msal-common';
 import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
 import { mocked } from 'jest-mock';
 import { TokenValidator } from './../../src/api/TokenValidator';
-import { Configuration } from './../../src/config/Configuration';
 import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from './../utils/TestConstants';
 import { TokenValidationParameters } from '../../src';
 import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from '../../src/error/ValidationConfigurationError';
@@ -15,12 +14,6 @@ import 'regenerator-runtime';
 jest.mock('jose');
 
 describe("TokenValidator", () => {
-    let config: Configuration = {
-        auth: {
-            clientId: TEST_CONSTANTS.CLIENT_ID
-        }
-    };
-
     let joseMockResult: (JWTVerifyResult & ResolvedKey) = {
         payload: {
             aud: "audience"
@@ -53,7 +46,7 @@ describe("TokenValidator", () => {
     let validator: TokenValidator;
 
     beforeEach(() => {
-        validator = new TokenValidator(config);
+        validator = new TokenValidator();
     });
 
     afterEach(() => {
@@ -61,7 +54,7 @@ describe("TokenValidator", () => {
     });
 
     describe("exports a class", () => {
-        const validator = new TokenValidator(config);
+        const validator = new TokenValidator();
         expect(validator).toBeInstanceOf(TokenValidator);
     });
 

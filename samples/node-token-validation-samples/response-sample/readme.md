@@ -33,40 +33,76 @@ This sample has been set up with default lab configuration values and can be run
     1. Client id with the Application (client) ID from the portal registration
     1. Authority with `https://login.microsoftonline.com/YOUR_TENANT_ID_HERE` with your Directory (tenant) ID
     1. Add your Directory (tenant) ID to authOptions
-1. [Optional] Add custom scopes to requests if desired.
 
 Your configuration should look like this:
 
 ```json
 {
-    "authOptions":
-        {
-            "clientId": "YOUR_CLIENT_ID",
-            "authority": "https://login.microsoftonline.com/YOUR_TENANT_ID",
-            "tenantId": "YOUR_TENANT_ID"
-        },
-    "request":
-    {
+    "authOptions": {
+        "clientId": "YOUR_CLIENT_ID",
+        "authority": "https://login.microsoftonline.com/YOUR_TENANT_ID",
+        "tenantId": "YOUR_TENANT_ID",
+        "protocolMode": "AAD"
+    },
+    "request": {
         "authCodeUrlParameters": {
-            "scopes": ["YOUR_CUSTOM_SCOPE"],
             "redirectUri": "http://localhost:3000/redirect"
         },
         "tokenRequest": {
-            "redirectUri": "http://localhost:3000/redirect",
-            "scopes": ["YOUR_CUSTOM_SCOPE"]
+            "redirectUri": "http://localhost:3000/redirect"
+        }
+    },
+    "validationParams": {
+        "idTokenOptions": {
+            "validIssuers": ["https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0"],
+            "validAudiences": ["YOUR_CLIENT_ID"]
         }
     }
 }
 ```
 
-##### Adding access token options and validating a custom token
+##### Adding access token validation params and validating a custom token
 
+1. Open `./config/customConfig.json` in an editor.
+1. In addition to the steps above:
+    1. Add a custom scopes to the `tokenRequest`.
+    1. Add `accessTokenOptions` to `validationParams`, including both `validIssuers` and `validAudiences` and any other claims you wish to validate on the access token.
 1. Open `./index.js` in an editor.
-1. Update `idTokenOptions` by replacing the value in validIssuers with `YOUR_AUTHORITY/v2.0` on line 115.
-1. If wanting to validate an access token, uncomment the `accessTokenOptions` on lines 123-125 and add `accessTokenOptions` to line 138, after `idTokenOptions`.
-1. Note that the issuers and audiences for the id token and access tokens are for AAD and draw from the configurations you have set up. You may need to add or modify the issuers and audiences for your app.
+    1. Add `accessTokenOptions` to line 139, after `idTokenOptions`.
 
 **Note:** Only access tokens with custom scopes are able to be validated at this time. Access tokens with Microsoft Graph scopes will result in a signature validation error.
+
+Your configuration should look like this:
+
+```json
+{
+    "authOptions": {
+        "clientId": "YOUR_CLIENT_ID",
+        "authority": "https://login.microsoftonline.com/YOUR_TENANT_ID",
+        "tenantId": "YOUR_TENANT_ID",
+        "protocolMode": "AAD"
+    },
+    "request": {
+        "authCodeUrlParameters": {
+            "redirectUri": "http://localhost:3000/redirect",
+            "scopes": ["YOUR_CUSTOM_SCOPE"] // Optional
+        },
+        "tokenRequest": {
+            "redirectUri": "http://localhost:3000/redirect",
+            "scopes": ["YOUR_CUSTOM_SCOPE"] // Optional
+        }
+    },
+    "validationParams": {
+        "idTokenOptions": {
+            "validIssuers": ["https://login.microsoftonline.com/YOUR_TENANT_ID/v2.0"],
+            "validAudiences": ["YOUR_CLIENT_ID"]
+        },
+        "accessTokenOptions": {
+            "validIssuers": ["https://sts.windows.net/YOUR_TENANT_ID/"],
+            "validAudiences": ["api://YOUR_CLIENT_ID"]
+        }
+    }
+}
 
 ### Install npm dependencies for sample
 

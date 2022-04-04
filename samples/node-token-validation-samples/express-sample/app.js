@@ -69,7 +69,6 @@ const clientConfig = {
 // Token validator configurations
 const tokenValidatorConfig = {
     auth: {
-        clientId: appSettings.appCredentials.clientId,
         authority: appSettings.appCredentials.authority,
         protocolMode: appSettings.appCredentials.protocolMode
     },

@@ -112,8 +112,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
              * A separate object for access token options can also be passed in to the API to validate access tokens on the response.
              */
             const idTokenOptions = {
-                validIssuers: ['https://login.windows-ppe.net/f686d426-8d16-42db-81b7-ab578e110ccd/v2.0'],
-                validAudiences: [config.authOptions.clientId],
+                validIssuers: config.validationParams.idTokenOptions.validIssuers,
+                validAudiences: config.validationParams.idTokenOptions.validAudiences,
                 nonce: response.idTokenClaims.nonce
             };
 
@@ -121,8 +121,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
              * Uncomment accessTokenOptions and add to line 138 if wanting to validate access token with custom scopes
              */
             // const accessTokenOptions = {
-            //     validIssuers: [`https://sts.windows.net/${config.authOptions.tenantId}/`],
-            //     validAudiences: [`api://${config.authOptions.clientId}`]
+                // validIssuers: config.validationParams.accessTokenOptions.validIssuers,
+                // validAudiences: config.validationParams.accessTokenOptions.validAudiences,
             // }
 
             /**
@@ -133,6 +133,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
              * containing the claims the token is to be validated against.
              * 
              * If successful, a response will be returned from the Token Validator containing the decoded header and payload from the token.
+             * If multiple tokens are validated, the response will be an array.
              * Unsuccessful validation will throw an error.
              */
             tokenValidator.validateTokenFromResponse(response, idTokenOptions).then((response) => {
@@ -185,8 +186,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, tokenValid
     // Build Node Token Validator Configuration object
     const tokenValidationConfig = {
         auth: {
-            ...config.authOptions,
-            protocolMode: nodeTokenValidation.ProtocolMode.AAD
+            authority: config.authOptions.authority,
+            protocolMode: config.authOptions.protocolMode
         },
         system: {
             loggerOptions: loggerOptions

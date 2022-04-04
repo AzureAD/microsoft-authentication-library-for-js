@@ -8,12 +8,11 @@ import { Constants } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
 export type Configuration = {
-    auth: TokenValidationOptions,
+    auth?: TokenValidationOptions,
     system?: SystemOptions
 };
 
 export type TokenValidationOptions = {
-    clientId: string,
     authority?: string,
     protocolMode?: ProtocolMode
     clockSkew?: Number,
@@ -38,7 +37,6 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 };
 
 const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
-    clientId: "",
     authority: Constants.DEFAULT_AUTHORITY,
     protocolMode: ProtocolMode.OIDC,
     clockSkew: 0
@@ -55,12 +53,9 @@ const DEFAULT_SYSTEM_OPTIONS = {
  * @param {@link (Configuration:type)} 
  * @returns 
  */
-export function buildConfiguration({
-    auth,
-    system,
-}: Configuration): TokenValidationConfiguration {
+export function buildConfiguration(config?: Configuration): TokenValidationConfiguration {
     return {
-        auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...auth },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...config?.auth },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...config?.system },
     };
 }
