@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -173,18 +173,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 if (response.shr) {
                     this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
                     responseAccessToken = response.shr;
-                }
-                // Generate SHR in msal js if WAM does not compute it when POP is enabled
-                else if (request.shrParameters) {
-                    const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.cryptoObj);
-                    responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.shrParameters);
+                    break;
                 }
                 // Should not land here unless shrParameters are corrupt/not initialized
-                else {
+                if (!request.shrParameters) {
                     this.logger.trace("handleNativeServerResponse: SHR cannot be calculated, please check the request");
                     throw BrowserAuthError.createSHRGenerationError();
                 }
+                // Generate SHR in msal js if WAM does not compute it when POP is enabled
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.cryptoObj);
+                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.shrParameters);
                 break;
+
             }
             // assign the access token to the response for all non-POP cases (Should be Bearer only today)
             default: {
@@ -218,13 +218,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     *<<<<<<< HEAD
-     * Validates WAM response before processing
-     * @param response
-     *=======
      * Validates native platform response before processing
      * @param response
-     *>>>>>>> wam-bridge-server-first
      */
     private validateNativeResponse(response: object): void {
         if (
@@ -242,13 +237,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     *<<<<<<< HEAD
-     * Translates developer provided request object into WamRequest object
-     * @param request
-     *=======
      * Translates developer provided request object into NativeRequest object
      * @param request
-     *>>>>>>> wam-bridge-server-first
      */
     protected initializeNativeRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
@@ -275,6 +265,22 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
 
+        // validate SHR parameters
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            if (!request.resourceRequestMethod && !request.resourceRequestUri) {
+                throw BrowserAuthError.createSHRParametersMissingError();
+            }
+        }
+
+        // assign shrParameters
+        const shrParams: SignedHttpRequestParameters = {
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            shrNonce: request.shrNonce
+        };
+
+        // TODO: Should we just send all SHR Params instead of packaging them?
         const validatedRequest: NativeTokenRequest = {
             ...request,
             clientId: this.config.auth.clientId,
@@ -287,6 +293,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
             },
+            shrParameters: shrParams,
             extendedExpiryToken: false // Make this configurable?
         };
 
