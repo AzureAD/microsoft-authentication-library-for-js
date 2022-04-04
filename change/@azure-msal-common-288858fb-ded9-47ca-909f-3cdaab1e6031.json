@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "removed bebug lib from msal-common",
+  "packageName": "@azure/msal-common",
+  "email": "ellymakuba@microsoft.com",
+  "dependentChangeType": "patch"
+}
