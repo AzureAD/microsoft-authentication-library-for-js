@@ -38,6 +38,7 @@ line3
 line4
 -----END CERTIFICATE-----
     `,
+    CLAIMS: 'claim1 claim2',
 };
 
 export const AUTHENTICATION_RESULT = {
