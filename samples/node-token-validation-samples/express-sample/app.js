@@ -7,10 +7,10 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 
-const appSettings = require('./appSettings.js');
 const msal = require('@azure/msal-node');
 const validator = require('@azure/node-token-validation');
 
+const appSettings = require('./appSettings.js');
 const mainRouter = require('./routes/mainRouter.js');
 
 const SERVER_PORT = process.env.PORT || 4000;
@@ -27,8 +27,8 @@ app.use('/js', express.static(path.join(__dirname, 'node_modules/bootstrap/dist/
 app.use(express.static(path.join(__dirname, './public')));
 
 /**
- * Using express-session middleware. Be sure to familiarize yourself with available options
- * and set them as desired. Visit: https://www.npmjs.com/package/express-session
+ * Using express-session middleware. Be sure to familiarize yourself with available options and set them as desired. 
+ * Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
     secret: 'ADD_CLIENT_SECRET_HERE',
@@ -50,7 +50,7 @@ const loggerOptions = {
     logLevel: validator.LogLevel.Info,
 };
 
-// Msal-node configurations
+// MSAL configurations
 const clientConfig = {
     auth: {
         clientId: appSettings.appCredentials.clientId,
@@ -78,11 +78,11 @@ const tokenValidatorConfig = {
     } 
 };
 
-// instantiate msal-node
+// Instantiate msal-node
 const msalClient = new msal.ConfidentialClientApplication(clientConfig);
 const cryptoProvider = new msal.CryptoProvider();
 
-// instantiate token validator
+// Instantiate token validator
 const tokenValidator = new validator.TokenValidator(tokenValidatorConfig);
 
 app.use(mainRouter(msalClient, tokenValidator, cryptoProvider));

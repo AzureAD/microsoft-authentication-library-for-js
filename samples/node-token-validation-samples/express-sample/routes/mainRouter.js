@@ -4,27 +4,27 @@ const appSettings = require('../appSettings.js');
 
 module.exports = (msalClient, tokenValidator, cryptoProvider) => {
 
-    // initialize router
+    // Initialize router
     const router = express.Router();
 
-    // app routes
+    // App routes
     router.get('/', (req, res, next) => res.redirect('/home'));
     router.get('/home', mainController.getHomePage);
 
-    // authentication routes
+    // Authentication routes
     router.get('/signin', mainController.signIn(msalClient, cryptoProvider, appSettings));
     router.get('/signout', mainController.signOut(appSettings))
-
     router.get('/redirect', mainController.redirect(msalClient, cryptoProvider));
 
+    // Token validation parameters
     const tokenValidationParams = {
         validIssuers: appSettings.validationParameters.validIssuers,
         validAudiences: appSettings.validationParameters.validAudiences
     };
 
-    // validate token routes
+    // Validate token routes
     router.get('/validate', 
-        mainController.getToken('custom', appSettings, msalClient),
+        mainController.getToken('custom', appSettings, msalClient, cryptoProvider),
         tokenValidator.validateTokenMiddleware(tokenValidationParams, 'custom'), 
         (req, res) => {
             console.log('Token validation complete');
@@ -32,10 +32,10 @@ module.exports = (msalClient, tokenValidator, cryptoProvider) => {
             res.status(200).render('home', { isAuthenticated: req.session.isAuthenticated, isValidated: true, token: req.session.protectedResources.custom });  
     });
 
-    // unauthorized
+    // Unauthorized
     router.get('/error', (req, res) => res.redirect('/500.html'));
 
-    // error
+    // Error
     router.get('/unauthorized', (req, res) => res.redirect('/401.html'));
 
     // 404
