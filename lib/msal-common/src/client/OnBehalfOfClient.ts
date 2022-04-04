@@ -62,15 +62,7 @@ export class OnBehalfOfClient extends BaseClient {
      */
     private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest, userAssertionHash: string): Promise<AuthenticationResult | null> {
 
-        // look in the cache for the access_token which matches the incoming_assertion
-        const cachedAccessToken = this.readAccessTokenFromCache(userAssertionHash);
-        if (!cachedAccessToken ||
-            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
-
-            // Update the server telemetry outcome
-            this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
-        }
-
+        // look for idToken in the cache and generate accountInfo
         const cachedIdToken = this.readIdTokenFromCache(request);
         let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
@@ -88,6 +80,15 @@ export class OnBehalfOfClient extends BaseClient {
             cachedAccount = this.readAccountFromCache(accountInfo);
         }
 
+        // look in the cache for the access_token which matches the incoming_assertion
+        const cachedAccessToken = this.cacheManager.readAccessTokenFromCache(userAssertionHash);
+        if (!cachedAccessToken ||
+            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+
+            // Update the server telemetry outcome
+            this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+        }
+
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
@@ -101,32 +102,6 @@ export class OnBehalfOfClient extends BaseClient {
             true,
             request,
             idTokenObject);
-    }
-
-    /**
-     * read access token from cache TODO: CacheManager API should be used here
-     * @param request
-     */
-    private readAccessTokenFromCache(userAssertionHash: string): AccessTokenEntity | null {
-        const accessTokenFilter: CredentialFilter = {
-            environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
-            credentialType: CredentialType.ACCESS_TOKEN,
-            clientId: this.config.authOptions.clientId,
-            realm: this.authority.tenant,
-            target: this.scopeSet.printScopesLowerCase(),
-            userAssertionHash
-        };
-
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
-
-        const numAccessTokens = accessTokens.length;
-        if (numAccessTokens < 1) {
-            return null;
-        } else if (numAccessTokens > 1) {
-            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
-        }
-        return accessTokens[0] as AccessTokenEntity;
     }
 
     /**
