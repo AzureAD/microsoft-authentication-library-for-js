@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-browser_v2.23.0",
+      "version": "2.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "561749e626ffa0ac14e0708dda0eb3b7ea208780",
+            "comment": "Add performance telemetry API #4570"
+          },
+          {
+            "author": "prithviraj.kanherkar@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b3cc863ed0decc5a088d16ee0c9489dbb44a4bff",
+            "comment": "Add Client Application telemetry parameters to MSAL #4616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be68c190f5561e1a8e7c3144cfee35a5dbc5f109",
+            "comment": "Fix persistent key store deletion on logout #4617"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Mar 2022 23:28:43 GMT",
       "tag": "@azure/msal-browser_v2.22.1",
       "version": "2.22.1",
