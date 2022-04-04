@@ -54,11 +54,11 @@ export abstract class BaseInteractionClient {
             }
         } else {
             try {
+                this.logger.verbose("No account provided in logout request, clearing all cache items.", this.correlationId);
                 // Clear all accounts and tokens
                 await this.browserStorage.clear();
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
-                this.logger.verbose("No account provided in logout request, clearing all cache items.");
             } catch(e) {
                 this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
             }
@@ -75,12 +75,19 @@ export abstract class BaseInteractionClient {
 
         const scopes = [...((request && request.scopes) || [])];
 
+        const validatedRequest: BaseAuthRequest = {
+            ...request,
+            correlationId: this.correlationId,
+            authority,
+            scopes
+        };
+
         // Set authenticationScheme to BEARER if not explicitly set in the request
-        if (!request.authenticationScheme) {
-            request.authenticationScheme = AuthenticationScheme.BEARER;
+        if (!validatedRequest.authenticationScheme) {
+            validatedRequest.authenticationScheme = AuthenticationScheme.BEARER;
             this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
         } else {
-            if (request.authenticationScheme === AuthenticationScheme.SSH) {
+            if (validatedRequest.authenticationScheme === AuthenticationScheme.SSH) {
                 if (!request.sshJwk) {
                     throw ClientConfigurationError.createMissingSshJwkError();
                 }
@@ -88,20 +95,13 @@ export abstract class BaseInteractionClient {
                     throw ClientConfigurationError.createMissingSshKidError();
                 }
             }
-            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
+            this.logger.verbose(`Authentication Scheme set to "${validatedRequest.authenticationScheme}" as configured in Auth request`);
         }
 
         // Set requested claims hash if claims were requested
         if (request.claims && !StringUtils.isEmpty(request.claims)) {
-            request.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
+            validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
         } 
-
-        const validatedRequest: BaseAuthRequest = {
-            ...request,
-            correlationId: this.correlationId,
-            authority,
-            scopes
-        };
 
         return validatedRequest;
     }

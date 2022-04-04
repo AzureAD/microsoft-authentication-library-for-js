@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
+This log was last generated on Mon, 07 Mar 2022 23:28:43 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.7.0
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Minor changes
+
+- Added nonce support to MSAL Node #4504 (marionminayo@microsoft.com)
+
+### Patches
+
+- Fix support for claims-based token caching #4533 (hemoral@microsoft.com)
+- Persist authority in in memory cache #4081 (sameera.gajjarapu@microsoft.com)
 
 ## 1.6.0
 

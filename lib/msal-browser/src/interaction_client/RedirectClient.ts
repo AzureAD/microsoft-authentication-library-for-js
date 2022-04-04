@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -21,8 +21,16 @@ export class RedirectClient extends StandardInteractionClient {
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect);
-        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
+
+        const handleBackButton = (event: PageTransitionEvent) => {
+            // Clear temporary cache if the back button is clicked during the redirect flow.
+            if (event.persisted) {
+                this.logger.verbose("Page was restored from back/forward cache. Clearing temporary cache.");
+                this.browserStorage.cleanRequestByState(validRequest.state);
+            }
+        };
 
         try {
             // Create auth code request and generate PKCE params
@@ -41,6 +49,9 @@ export class RedirectClient extends StandardInteractionClient {
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
+            // Clear temporary cache if the back button is clicked during the redirect flow.
+            window.addEventListener("pageshow", handleBackButton);
+
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return await interactionHandler.initiateAuthRequest(navigateUrl, {
                 navigationClient: this.navigationClient,
@@ -52,6 +63,7 @@ export class RedirectClient extends StandardInteractionClient {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
             }
+            window.removeEventListener("pageshow", handleBackButton);
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
@@ -91,7 +103,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
 
             // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
-            const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true) || "";
+            const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true) || Constants.EMPTY_STRING;
             const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl);
             const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
 

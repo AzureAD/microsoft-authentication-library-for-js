@@ -29,6 +29,8 @@ import {
     AuthError,
     AzureCloudOptions,
     AuthorizationCodePayload,
+    StringUtils,
+    Constants,
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -101,7 +103,7 @@ export abstract class ClientApplication {
         this.logger.info("getAuthCodeUrl called", request.correlationId);
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
-            ...this.initializeBaseRequest(request),
+            ... await this.initializeBaseRequest(request),
             responseMode: request.responseMode || ResponseMode.QUERY,
             authenticationScheme: AuthenticationScheme.BEARER
         };
@@ -132,7 +134,7 @@ export abstract class ClientApplication {
         this.logger.info("acquireTokenByCode called", request.correlationId);
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
-            ...this.initializeBaseRequest(request),
+            ... await this.initializeBaseRequest(request),
             authenticationScheme: AuthenticationScheme.BEARER
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId);
@@ -169,7 +171,7 @@ export abstract class ClientApplication {
         this.logger.info("acquireTokenByRefreshToken called", request.correlationId);
         const validRequest: CommonRefreshTokenRequest = {
             ...request,
-            ...this.initializeBaseRequest(request),
+            ... await this.initializeBaseRequest(request),
             authenticationScheme: AuthenticationScheme.BEARER
         };
 
@@ -207,7 +209,7 @@ export abstract class ClientApplication {
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
         const validRequest: CommonSilentFlowRequest = {
             ...request,
-            ...this.initializeBaseRequest(request),
+            ... await this.initializeBaseRequest(request),
             forceRefresh: request.forceRefresh || false
         };
 
@@ -248,7 +250,7 @@ export abstract class ClientApplication {
         this.logger.info("acquireTokenByUsernamePassword called", request.correlationId);
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId);
         try {
@@ -340,9 +342,10 @@ export abstract class ClientApplication {
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
                 version: version,
-                cpu: process.arch || "",
-                os: process.platform || "",
+                cpu: process.arch || Constants.EMPTY_STRING,
+                os: process.platform || Constants.EMPTY_STRING,
             },
+            telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
             serializableCache: this.tokenCache,
         };
@@ -359,7 +362,7 @@ export abstract class ClientApplication {
      * Generates a request with the default scopes & generates a correlationId.
      * @param authRequest - BaseAuthRequest for initialization
      */
-    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
+    protected async initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
         this.logger.verbose("initializeRequestScopes called", authRequest.correlationId);
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (authRequest.authenticationScheme && authRequest.authenticationScheme === AuthenticationScheme.POP) {
@@ -367,6 +370,11 @@ export abstract class ClientApplication {
         }
 
         authRequest.authenticationScheme = AuthenticationScheme.BEARER;
+
+        // Set requested claims hash if claims were requested
+        if (authRequest.claims && !StringUtils.isEmpty(authRequest.claims)) {
+            authRequest.requestedClaimsHash = await this.cryptoProvider.hashString(authRequest.claims);
+        } 
 
         return {
             ...authRequest,
@@ -413,5 +421,12 @@ export abstract class ClientApplication {
         };
 
         return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
+    }
+
+    /**
+     * Clear the cache
+     */
+    clearCache(): void {
+        this.storage.clear();
     }
 }

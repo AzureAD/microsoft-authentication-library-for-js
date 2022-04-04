@@ -16,7 +16,8 @@ import {
     StringUtils,
     ClientAuthError,
     AzureRegionConfiguration,
-    AuthError
+    AuthError,
+    Constants
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -60,7 +61,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
@@ -102,7 +103,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
@@ -128,8 +129,8 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
         const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
         const certificate = configuration.auth.clientCertificate || {
-            thumbprint: "",
-            privateKey: ""
+            thumbprint: Constants.EMPTY_STRING,
+            privateKey: Constants.EMPTY_STRING
         };
         const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
 

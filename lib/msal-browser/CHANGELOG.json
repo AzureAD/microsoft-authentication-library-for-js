@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/msal-browser_v2.22.1",
+      "version": "2.22.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "131bde21ec44897898a8f461e80d3865129b6b6e",
+            "comment": "Clear temporary cache when back button is clicked during redirect flow #4513"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8fba82a563a25eb92f5d071f0358ef24c4304595",
+            "comment": "Don't reassign request object properties #4563"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a67bd3b8d476268e1ac18840e6b03828c87f34d5",
+            "comment": "Unit tests only"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 08 Feb 2022 00:41:06 GMT",
       "tag": "@azure/msal-browser_v2.22.0",
       "version": "2.22.0",

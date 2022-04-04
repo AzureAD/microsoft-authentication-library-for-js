@@ -119,8 +119,8 @@ export class AccountEntity {
     static generateAccountCacheKey(accountInterface: AccountInfo): string {
         const accountKey = [
             accountInterface.homeAccountId,
-            accountInterface.environment || "",
-            accountInterface.tenantId || "",
+            accountInterface.environment || Constants.EMPTY_STRING,
+            accountInterface.tenantId || Constants.EMPTY_STRING,
         ];
 
         return accountKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -157,20 +157,20 @@ export class AccountEntity {
 
         account.environment = env;
         // non AAD scenarios can have empty realm
-        account.realm = idToken?.claims?.tid || "";
+        account.realm = idToken?.claims?.tid || Constants.EMPTY_STRING;
         account.oboAssertion = oboAssertion;
 
         if (idToken) {
             account.idTokenClaims = idToken.claims;
 
             // How do you account for MSA CID here?
-            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || "";
+            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || Constants.EMPTY_STRING;
 
             /*
              * In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
              * This field should not be relied upon if a custom policy is configured to return more than 1 email.
              */
-            account.username = idToken?.claims?.preferred_username || (idToken?.claims?.emails? idToken.claims.emails[0]: "");
+            account.username = idToken?.claims?.preferred_username || (idToken?.claims?.emails? idToken.claims.emails[0]: Constants.EMPTY_STRING);
             account.name = idToken?.claims?.name;
         }
 
@@ -198,7 +198,7 @@ export class AccountEntity {
         account.authorityType = (authority && authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
-        account.realm = "";
+        account.realm = Constants.EMPTY_STRING;
 
         const env = environment || authority && authority.getPreferredCache();
 
@@ -208,10 +208,10 @@ export class AccountEntity {
 
         if (idToken) {
             // How do you account for MSA CID here?
-            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || "";
+            account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || Constants.EMPTY_STRING;
             // upn claim for most ADFS scenarios
-            account.username = idToken?.claims?.upn || "";
-            account.name = idToken?.claims?.name || "";
+            account.username = idToken?.claims?.upn || Constants.EMPTY_STRING;
+            account.name = idToken?.claims?.name || Constants.EMPTY_STRING;
             account.idTokenClaims = idToken?.claims;
         }
 
