@@ -19,6 +19,10 @@ const appSettings = {
         custom: {
             scopes: ["add-custom-scope-here"]
         }
+    },
+    validationParameters: {
+        validIssuers: [`https://sts.windows.net/YOUR_TENANT_ID_HERE/`],
+        validAudiences: [`api://YOUR_CLIENT_ID_HERE`]
     }
 }
 

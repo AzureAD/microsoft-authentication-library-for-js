@@ -18,8 +18,8 @@ module.exports = (msalClient, tokenValidator, cryptoProvider) => {
     router.get('/redirect', mainController.redirect(msalClient, cryptoProvider));
 
     const tokenValidationParams = {
-        validIssuers: [`https://sts.windows.net/${appSettings.appCredentials.tenantId}/`],
-        validAudiences: [`api://${appSettings.appCredentials.clientId}`]
+        validIssuers: appSettings.validationParameters.validIssuers,
+        validAudiences: appSettings.validationParameters.validAudiences
     };
 
     // validate token routes

@@ -1,45 +1,102 @@
-# Sample for Token Validation prototype
+# Microsoft Identity Token Validation for Node Sample - Express.js Application
 
-This is a sample that can run `node-token-validation` and validate a token against claims.
+## About this sample
 
-**Note that this library has not been released, and this sample is used for experimental purposes only.**
+This developer sample application demonstrates how to use the Authorization Code Grant APIs provided by MSAL Node.js to sign in and acquire tokens in an Express.js application, and then validate tokens using the Node Token Validation library.
 
-## Instructions to run prototype
+### How is this scenario used?
 
-### In the Azure Portal
+The Auth Code flow is most commonly used for a web app that signs in users.  General information about this scenario is available [here](https://docs.microsoft.com/azure/active-directory/develop/scenario-web-app-sign-user-overview?tabs=aspnetcore).
 
-1. Set up or use an existing SPA application.
+More information about MSAL Node and the different scenarios and flows it supports can also be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node).
 
-1. Create a custom scope. Make note of the tenant id, client id, and custom scope.
+## How to run the sample
 
-### In a msal-browser sample (e.g. [VanillaJSTestApp2.0](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0))
+### Configure the application
 
-1. Replace client id, authority, and token request scopes with information from above app registration. Note that token request scopes should only have the custom scope, and no MS Graph scopes, otherwise you will get a token that cannot be validated.
+#### In the Azure Portal
 
-1. Run the sample, sign in, and click get profile.
+1. [Register an application in Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-register-app#register-an-application) or use an existing application.
+1. Make note of the client id, tenant id, and redirectUri.
+1. Create a custom scope in the `Expose an API` blade.
+1. Create a client secret in the `Certificates & Secrets` blade.
 
-1. In the developers console, get the secret from the access token that has the custom scope (not Graph scopes).
+#### In the sample
 
-### Go to a website that can open JWT tokens (e.g. [jwt.ms](https://jwt.ms/))
+1. Open `./appSettings.js` in an editor.
+    1. Add the following from your portal registration:
+        1. Replace `client-id` with the Application (client) ID
+        1. Replace `authority` with `https://login.microsoftonline.com/YOUR_TENANT_ID_HERE` with your Directory (tenant) ID
+        1. Replace `tenant-id` with the Directory (tenant) ID
+        1. Replace `client-secret` with your client secret
+        1. Replace `add-custom-scope-here` with your custom scope
+    1. Add claims to validate your token:
+        1. Add valid issuers, or replace `YOUR_TENANT_ID_HERE` with your Directory (tenant) ID
+        1. Add valid audience, or replace `YOUR_CLIENT_ID_HERE` with your Application (client) ID
+1. Open `app.js`
+    1. Replace `ADD_CLIENT_SECRET_HERE` with your client secret on line 34.
 
-1. Enter the token. Make note of the `iss` and `aud` fields, and any other information you want to validate.
+Your configuration should look like this:
 
-### In the src/lib/node-token-validation library
+```js
+const appSettings = {
+    appCredentials: {
+        clientId: "YOUR_CLIENT_ID",
+        authority: "http://login.microsoftonline.com/YOUR_TENANT_ID",
+        tenantId: "YOUR_TENANT_ID",
+        clientSecret: "YOUR_CLIENT_SECRET",
+        protocolMode: "AAD"
+    },
+    authRoutes: {
+        redirect: "/redirect",
+        error: "/error",
+        unauthorized: "/unauthorized"
+    },
+    settings: {
+        redirectUri: "http://localhost:4000/redirect",
+        postLogoutRedirectUri: 'http://localhost:4000/'
+    },
+    protectedResources: {
+        custom: {
+            scopes: ["YOUR_CUSTOM_SCOPE"]
+        }
+    },
+    validationParameters: {
+        validIssuers: [`https://sts.windows.net/YOUR_TENANT_ID_HERE/`],
+        validAudiences: [`api://YOUR_CLIENT_ID_HERE`]
+    }
+}
+```
 
-1. Build the library with `npm run build`.
+**Note:** Only access tokens with custom scopes are able to be validated at this time. Access tokens with Microsoft Graph scopes will result in a signature validation error.
 
-### In this sample
+### Install npm dependencies for sample
 
-1. Open `index.js`,
+```bash
+# Install dev dependencies for node-token-validation, msal-node, and msal-common from root of repo
+npm install
 
-    1. Line 33: replace `client-id-here` with the client Id of your SPA app.
-    1. Line 34: replace `common` in the authority with your SPA app tenant id.
-    1. Line 44: replace `token-here` with the secret from the msal-browser sample above.
-    1. Line 46: replace `issuer-here` with the `iss` field from the decoded token.
-    1. Line 47: replace `audience-here` with the `aud` field from the decoded token.
+# Change directory to sample directory
+cd samples/node-token-validation/express-sample
 
-1. Run the sample with `npm install:local` and `npm start:build`.
+# Build packages locally
+npm run build:package
 
-1. Navigate to `http://localhost:3000`.
+# Install local libs
+npm run install:local
 
-1. Successful token validation will display a response in the console, or otherwise throw a validation error.
+# Install sample dependencies
+npm install
+```
+
+### Running the sample
+
+1. Run the sample with `npm start`.
+1. Navigate to `http://localhost:4000`.
+1. Sign in with your AAD account if prompted.
+1. Click the `Get and validate a token` button to acquire a token and validate it.
+1. Successful token validation will display the token scope on the page, or otherwise throw a validation error.
+
+### Learn more about msal-node
+
+To learn more about other supported account types and configuring your app as a Confidential Client Application, see our msal-node samples [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples).
