@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 07 Mar 2022 23:28:43 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Apr 2022 21:12:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.8.0
+
+Mon, 04 Apr 2022 21:12:42 GMT
+
+### Minor changes
+
+- Add Client Application telemetry parameters to MSAL #4616 (prithviraj.kanherkar@microsoft.com)
+- Bump @azure/msal-common to v6.2.0
+
+### Patches
+
+- Use IGuidGenerator interface for GuidGenerator class #4570 (janutter@microsoft.com)
 
 ## 1.7.0
 

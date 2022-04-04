@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "removed debug dependency from msal-common #4665",
-  "packageName": "@azure/msal-common",
-  "email": "ellymakuba@microsoft.com",
-  "dependentChangeType": "patch"
-}
