@@ -3,11 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import { Constants , IGuidGenerator } from "@azure/msal-common";
 import { MathUtils } from "../utils/MathUtils";
 import { BrowserCrypto } from "./BrowserCrypto";
-
-export class GuidGenerator {
+export class GuidGenerator implements IGuidGenerator {
 
     // browser crypto object used to generate random values
     private cryptoObj: BrowserCrypto;
@@ -89,7 +88,7 @@ export class GuidGenerator {
      * verifies if a string is  GUID
      * @param guid
      */
-    static isGuid(guid: string): boolean {
+    isGuid(guid: string): boolean {
         const regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return regexGuid.test(guid);
     }
