@@ -17,11 +17,11 @@ describe("GuidGenerator Unit Tests", () => {
     describe("test if a string is GUID", () => {
 
         it("Regular text", () => {
-            expect(GuidGenerator.isGuid("Hello")).toBe(false);
+            expect(new GuidGenerator(browserCrypto).isGuid("Hello")).toBe(false);
         });
 
         it("GUID", () => {
-            expect(GuidGenerator.isGuid(RANDOM_TEST_GUID)).toBe(true);
+            expect(new GuidGenerator(browserCrypto).isGuid(RANDOM_TEST_GUID)).toBe(true);
         });
     });
 
@@ -29,7 +29,7 @@ describe("GuidGenerator Unit Tests", () => {
 
         it("Creates a new valid guid with browser crypto", () => {
             const guidGen = new GuidGenerator(browserCrypto);
-            expect(GuidGenerator.isGuid(guidGen.generateGuid())).toBe(true);
+            expect(guidGen.isGuid(guidGen.generateGuid())).toBe(true);
         });
 
         it("Creates a new valid guid when browser crypto throws error", () => {
@@ -37,7 +37,7 @@ describe("GuidGenerator Unit Tests", () => {
                 throw "No crypto object available.";
             });
             const guidGen = new GuidGenerator(browserCrypto);
-            expect(GuidGenerator.isGuid(guidGen.generateGuid())).toBe(true);
+            expect(guidGen.isGuid(guidGen.generateGuid())).toBe(true);
         });
     });
 });

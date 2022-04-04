@@ -28,6 +28,14 @@
   "directories": {
     "test": "test"
   },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major",
+      "prerelease"
+    ]
+  },
   "scripts": {
     "clean": "shx rm -rf dist lib",
     "clean:coverage": "rimraf ./coverage/*",

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use IGuidGenerator interface for GuidGenerator class #4570",
+  "packageName": "@azure/msal-node",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
