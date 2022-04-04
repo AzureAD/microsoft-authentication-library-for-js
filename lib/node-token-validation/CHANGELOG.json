@@ -2,6 +2,21 @@
   "name": "@azure/node-token-validation",
   "entries": [
     {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
+      "version": "1.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "author": "beachball",
+            "package": "@azure/node-token-validation",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Mar 2022 23:28:43 GMT",
       "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
       "version": "1.0.0-alpha.0",

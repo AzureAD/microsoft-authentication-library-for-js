@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for rxjs v7 and Angular 13 #4605",
-  "packageName": "@azure/msal-angular",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
