@@ -1,23 +1,25 @@
 const appSettings = {
-  appCredentials: {
-      clientId: "client-id",
-      tenantId: "tenant-id",
-      clientSecret: "client-secret"
-  },
-  authRoutes: {
-      redirect: "/redirect",
-      error: "/error", // the wrapper will redirect to this route in case of any error.
-      unauthorized: "/unauthorized" // the wrapper will redirect to this route in case of unauthorized access attempt.
-  },
-  protectedResources: {
-    graphAPI: {
-        endpoint: "https://graph.microsoft.com/v1.0/me",
-        scopes: ["user.read"]
+    appCredentials: {
+        clientId: "client-id",
+        authority: "authority",
+        tenantId: "tenant-id",
+        clientSecret: "client-secret",
+        protocolMode: "AAD"
     },
-    custom: {
-      scopes: ["add-custom-scope-here"]
+    authRoutes: {
+        redirect: "/redirect",
+        error: "/error", // the app will redirect to this route in case of any error.
+        unauthorized: "/unauthorized" // the app will redirect to this route in case of unauthorized access attempt.
+    },
+    settings: {
+        redirectUri: "http://localhost:4000/redirect",
+        postLogoutRedirectUri: 'http://localhost:4000/'
+    },
+    protectedResources: {
+        custom: {
+            scopes: ["add-custom-scope-here"]
+        }
     }
-  }
 }
 
 module.exports = appSettings;

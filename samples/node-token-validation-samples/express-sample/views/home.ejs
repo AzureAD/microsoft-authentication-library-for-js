@@ -18,19 +18,20 @@
                     <div class="card-body">
                         <% if (isAuthenticated) { %>
                             <h5 class="card-description">Welcome!</h5>
-                            <a class="btn btn-primary" href="/profile" "role="button">Get my profile</a>
-                            <br>
-                            <br>
                             <a class="btn btn-primary" href="/validate" "role="button">Get and validate a token</a>
                         <% }  else { %>
                             <h5 class="card-description">Sign-in to access your resources</h5>
                         <% } %>
                     </div>
+                    <div class="card-body">
+                        <% if (isValidated) { %>
+                            <h5>Token has been validated for scope: </h5>
+                            <h6><%= token.scopes %></h6>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </div>
-
-        <%- include('includes/footer'); %>
 
         <!-- importing bootstrap.js and supporting js libraries -->
         <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>

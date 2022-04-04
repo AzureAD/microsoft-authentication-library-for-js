@@ -2,7 +2,7 @@ const express = require('express');
 const mainController = require('../controllers/mainController');
 const appSettings = require('../appSettings.js');
 
-module.exports = (msid) => {
+module.exports = (msalClient, tokenValidator, cryptoProvider) => {
 
     // initialize router
     const router = express.Router();
@@ -12,19 +12,25 @@ module.exports = (msid) => {
     router.get('/home', mainController.getHomePage);
 
     // authentication routes
-    router.get('/signin', msid.signIn({ postLogoutRedirect: '/' }));
-    router.get('/signout', msid.signOut({ postLogoutRedirect: '/' }));
+    router.get('/signin', mainController.signIn(msalClient, cryptoProvider, appSettings));
+    router.get('/signout', mainController.signOut(appSettings))
 
-    // secure routes
-    router.get('/id', msid.isAuthenticated(), mainController.getIdPage);
+    router.get('/redirect', mainController.redirect(msalClient, cryptoProvider));
 
-    router.get('/profile',
-        msid.isAuthenticated(), 
-        msid.getToken({
-            resource: appSettings.protectedResources.graphAPI
-        }), 
-        mainController.getProfilePage
-    );
+    const tokenValidationParams = {
+        validIssuers: [`https://sts.windows.net/${appSettings.appCredentials.tenantId}/`],
+        validAudiences: [`api://${appSettings.appCredentials.clientId}`]
+    };
+
+    // validate token routes
+    router.get('/validate', 
+        mainController.getToken('custom', appSettings, msalClient),
+        tokenValidator.validateTokenMiddleware(tokenValidationParams, 'custom'), 
+        (req, res) => {
+            console.log('Token validation complete');
+            // Call controller or other function with validated access token stored in req.session.protectedResources.custom
+            res.status(200).render('home', { isAuthenticated: req.session.isAuthenticated, isValidated: true, token: req.session.protectedResources.custom });  
+    });
 
     // unauthorized
     router.get('/error', (req, res) => res.redirect('/500.html'));

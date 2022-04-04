@@ -7,11 +7,11 @@ const express = require('express');
 const session = require('express-session');
 const path = require('path');
 
-const MsIdExpress = require('microsoft-identity-express');
 const appSettings = require('./appSettings.js');
+const msal = require('@azure/msal-node');
 const validator = require('@azure/node-token-validation');
 
-const mainController = require('./controllers/mainController');
+const mainRouter = require('./routes/mainRouter.js');
 
 const SERVER_PORT = process.env.PORT || 4000;
 
@@ -31,7 +31,7 @@ app.use(express.static(path.join(__dirname, './public')));
  * and set them as desired. Visit: https://www.npmjs.com/package/express-session
  */
 app.use(session({
-    secret: 'ADD_SECRET_HERE',
+    secret: 'ADD_CLIENT_SECRET_HERE',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -39,81 +39,53 @@ app.use(session({
     }
 }));
 
-// instantiate the wrapper
-const msid = new MsIdExpress.WebAppAuthClientBuilder(appSettings).build();
+const cacheLocation = "./data/cache.json";
+const cachePlugin = require('./cachePlugin')(cacheLocation);
 
-// initialize the wrapper
-app.use(msid.initialize());
-
-// app routes
-app.get('/', (req, res) => res.redirect('/home'));
-app.get('/home', mainController.getHomePage);
-
-// authentication routes
-app.get('/signin', 
-    msid.signIn({
-        postLoginRedirect: '/'
-    }
-));
-
-app.get('/signout', 
-    msid.signOut({
-        postLogoutRedirect: '/'
-    }
-));
-
-// secure routes
-app.get('/id', 
-    msid.isAuthenticated(), 
-    mainController.getIdPage
-);
-
-// token validation
 const loggerOptions = {
-  loggerCallback(loglevel, message, containsPii) {
-      console.log(message);
-  },
-        piiLoggingEnabled: false,
-  logLevel: validator.LogLevel.Verbose,
+    loggerCallback(loglevel, message, containsPii) {
+        console.log(message);
+    },
+            piiLoggingEnabled: false,
+    logLevel: validator.LogLevel.Info,
 };
 
+// Msal-node configurations
+const clientConfig = {
+    auth: {
+        clientId: appSettings.appCredentials.clientId,
+        authority: appSettings.appCredentials.authority,
+        tenantId: appSettings.appCredentials.tenantId,
+        clientSecret: appSettings.appCredentials.clientSecret
+    },
+    cache: {
+        cachePlugin
+    },
+    system: {
+        loggerOptions: loggerOptions
+    } 
+};
+
+// Token validator configurations
 const tokenValidatorConfig = {
-  auth: {
-    clientId: appSettings.appCredentials.clientId,
-    authority: `https://login.microsoftonline.com/${appSettings.appCredentials.tenantId}/`,
-    protocolMode: 'AAD'
-  },
-  system: {
-      loggerOptions: loggerOptions
-  } 
+    auth: {
+        clientId: appSettings.appCredentials.clientId,
+        authority: appSettings.appCredentials.authority,
+        protocolMode: appSettings.appCredentials.protocolMode
+    },
+    system: {
+        loggerOptions: loggerOptions
+    } 
 };
 
+// instantiate msal-node
+const msalClient = new msal.ConfidentialClientApplication(clientConfig);
+const cryptoProvider = new msal.CryptoProvider();
+
+// instantiate token validator
 const tokenValidator = new validator.TokenValidator(tokenValidatorConfig);
 
-const tokenValidationParams = {
-  validIssuers: ["issuer-here"],
-  validAudiences: ["audience-here"]
-};
-
-app.get('/validate', 
-  msid.isAuthenticated(),
-  msid.getToken({
-    resource: msid.appSettings.protectedResources.custom
-  }),
-  tokenValidator.validateTokenMiddleware(tokenValidationParams, 'custom'), 
-  (req, res) => {
-    console.log('Token validation complete');
-    // Call controller or other function with validated access token stored in req.session.protectedResources.custom
-});
-
-// unauthorized
-app.get('/error', (req, res) => res.redirect('/500.html'));
-
-// error
-app.get('/unauthorized', (req, res) => res.redirect('/401.html'));
-
-// 404
-app.get('*', (req, res) => res.status(404).redirect('/404.html'));
+app.use(mainRouter(msalClient, tokenValidator, cryptoProvider));
 
 app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
 

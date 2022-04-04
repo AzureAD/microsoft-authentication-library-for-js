@@ -12,7 +12,6 @@
   "dependencies": {
     "@azure/msal-node": "^1.6.0",
     "@azure/node-token-validation": "file:../../../lib/node-token-validation",
-    "microsoft-identity-express": "git+https://github.com/Azure-Samples/microsoft-identity-express.git",
     "bootstrap": "^4.6.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
