@@ -419,10 +419,6 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
-        if (request.nativeBroker) {
-            parameterBuilder.addNativeBroker();
-        }
-
         return parameterBuilder.createQueryString();
     }
 
