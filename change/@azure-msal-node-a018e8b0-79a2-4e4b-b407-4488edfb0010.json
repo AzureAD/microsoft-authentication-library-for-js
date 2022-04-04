@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Test changes",
   "packageName": "@azure/msal-node",
   "email": "bmahal@microsoft.com",
