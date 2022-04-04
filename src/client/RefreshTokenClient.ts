@@ -183,7 +183,7 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager) {

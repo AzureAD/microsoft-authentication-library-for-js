@@ -183,7 +183,7 @@ export class CredentialEntity {
         const credentialId: Array<string> = [
             credentialType,
             clientOrFamilyId,
-            realm || "",
+            realm || Constants.EMPTY_STRING,
         ];
 
         return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -193,14 +193,14 @@ export class CredentialEntity {
      * Generate target key component as per schema: <target>
      */
     private static generateTargetForCacheKey(scopes?: string): string {
-        return (scopes || "").toLowerCase();
+        return (scopes || Constants.EMPTY_STRING).toLowerCase();
     }
 
     /**
      * Generate requested claims key component as per schema: <requestedClaims>
      */
     private static generateClaimsHashForCacheKey(requestedClaimsHash?: string): string {
-        return(requestedClaimsHash || "").toLowerCase();
+        return(requestedClaimsHash || Constants.EMPTY_STRING).toLowerCase();
     }
 
     /**
@@ -211,6 +211,6 @@ export class CredentialEntity {
          * PoP Tokens and SSH certs include scheme in cache key
          * Cast to lowercase to handle "bearer" from ADFS
          */
-        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : "";
+        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
     }
 }

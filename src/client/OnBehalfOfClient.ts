@@ -74,7 +74,7 @@ export class OnBehalfOfClient extends BaseClient {
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
                 username: Constants.EMPTY_STRING,
-                localAccountId: localAccountId || ""
+                localAccountId: localAccountId || Constants.EMPTY_STRING
             };
 
             cachedAccount = this.readAccountFromCache(accountInfo);
@@ -197,7 +197,7 @@ export class OnBehalfOfClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager) {

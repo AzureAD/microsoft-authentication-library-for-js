@@ -270,8 +270,8 @@ export class ResponseHandler {
      */
     private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, authCodePayload?: AuthorizationCodePayload): AccountEntity {
         const authorityType = authority.authorityType;
-        const cloudGraphHostName = authCodePayload ? authCodePayload.cloud_graph_host_name : "";
-        const msGraphhost = authCodePayload ? authCodePayload.msgraph_host : "";
+        const cloudGraphHostName = authCodePayload ? authCodePayload.cloud_graph_host_name : Constants.EMPTY_STRING;
+        const msGraphhost = authCodePayload ? authCodePayload.msgraph_host : Constants.EMPTY_STRING;
 
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
@@ -309,7 +309,7 @@ export class ResponseHandler {
         requestState?: RequestStateObject,
         code?: string
     ): Promise<AuthenticationResult> {
-        let accessToken: string = "";
+        let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
