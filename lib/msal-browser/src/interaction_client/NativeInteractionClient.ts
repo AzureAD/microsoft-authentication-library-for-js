@@ -24,11 +24,13 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected nativeMessageHandler: NativeMessageHandler;
+    protected cryptoObj: ICrypto;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: NativeMessageHandler, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
         this.apiId = apiId;
         this.nativeMessageHandler = provider;
+        this.cryptoObj = browserCrypto;
     }
 
     /**

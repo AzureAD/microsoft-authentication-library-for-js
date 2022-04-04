@@ -403,9 +403,9 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
-        if (request.nativeBridge) {
+        if (request.nativeBroker) {
             // signal ests that this is a WAM call
-            parameterBuilder.addNativeBridge();
+            parameterBuilder.addNativeBroker();
 
             // pass the req_cnf for POP
             if (request.authenticationScheme === AuthenticationScheme.POP) {
