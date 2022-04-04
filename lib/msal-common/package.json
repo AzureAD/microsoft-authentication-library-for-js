@@ -70,7 +70,5 @@
     "tslint": "^5.20.0",
     "typescript": "^3.7.5"
   },
-  "dependencies": {
-    "debug": "^4.1.1"
-  }
+  "dependencies": {}
 }
