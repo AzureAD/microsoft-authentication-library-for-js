@@ -1,13 +1,13 @@
 # Microsoft Identity Token Validation for Node (node-token-validation)
 
-**NOTE: This library is currently a pre-release version under active development and shouldn't be used.**
+**NOTE: This library is currently a pre-release version under active development and should not be used.**
 
 1. [About](#about)
-1. [FAQ](#faq)
-1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/CHANGELOG.md)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/node-token-validation/docs/FAQ.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/node-token-validation/CHANGELOG.md)
+1. [Node Version Support](#node-version-support)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
-1. [Node Version Support](#node-version-support)
 1. [Usage](#usage)
 1. [Samples](#samples)
 1. [Build Library](#build-and-test)
@@ -18,6 +18,43 @@
 ## About
 
 Node Token Validation library enables token signature and claim validation for JWT tokens. This library is under active development and is not available for use yet.
+
+- RFC specification support
+- Claims validation supported?
+- OIDC or AAD endpoints?
+
+## Node Version Support
+
+Node Token Validation will follow the [Long Term Support (LTS) schedule of the Node.js project](https://nodejs.org/about/releases/). Our support plan is as follows.
+
+Any major MSAL Node release:
+- Will support stable (even-numbered) Maintenance LTS, Active LTS, and Current versions of Node
+- Will drop support for any previously supported Node versions that have reached end of life
+- Will not support prerelease/preview/pending versions until they are stable
+
+| Node Token Validation version | Support status       | Supported Node versions |
+|-------------------------------|----------------------|-------------------------|
+| 1.x.x                         | Active development   | 16                      |
+
+## Prerequisites
+
+## Installation
+
+## Usage
+
+1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/node-token-validation/docs/initialization.md)
+1. [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/node-token-validation/docs/configuration.md)
+1. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/node-token-validation/docs/public-apis.md)
+
+## Samples
+
+There are multiple [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples) included in the repository that use Node Token Validation to validate tokens. These samples are currently used for manual testing, and are not meant to be a reference of best practices, therefore use judgement and do not blindly copy this code to any production applications.
+
+- [basic-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples/basic-sample): Express application demonstrating token validation with manual token and claims set
+- [express-sample](ttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples/express-sample): Express.js MVC web application using MSAL Node to acquire tokens, and middleware-style token validation
+- [response-sample](ttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples/response-sample): Express application using MSAL Node 0Auth2.0 authorization code flow to acquire tokens, and validating tokens from response
+
+## Build Library
 
 ## Security Reporting
 
