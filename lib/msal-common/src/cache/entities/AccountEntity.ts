@@ -19,7 +19,6 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
 import { TokenClaims } from "../../account/TokenClaims";
-import { IdentityToken } from "../../account/IdentityToken";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -111,7 +110,7 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
-            idTokenClaims: this.idTokenClaims as IdentityToken
+            idTokenClaims: this.idTokenClaims
         };
     }
 

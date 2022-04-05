@@ -16,7 +16,6 @@ import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
-import { IdentityToken } from "../account/IdentityToken";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
@@ -183,7 +182,7 @@ export abstract class CacheManager implements ICacheManager {
                 const accountInfo = accountEntity.getAccountInfo();
                 const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
                 if (idToken && !accountInfo.idTokenClaims) {
-                    accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims as IdentityToken;
+                    accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
                 }
 
                 return accountInfo;
