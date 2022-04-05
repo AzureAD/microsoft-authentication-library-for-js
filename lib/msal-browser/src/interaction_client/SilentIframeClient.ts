@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, Constants } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, PerformanceEvents, Constants, IPerformanceClient } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -18,8 +18,8 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, correlationId);
         this.apiId = apiId;
     }
 
@@ -29,6 +29,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
+        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
@@ -36,6 +37,9 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
+            acquireTokenMeasurement.endMeasurement({
+                success: false
+            });
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
@@ -59,13 +63,23 @@ export class SilentIframeClient extends StandardInteractionClient {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger);
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger)
+                .then((result: AuthenticationResult) => {
+                    acquireTokenMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: false
+                    });
+                    return result;
+                });
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
+            acquireTokenMeasurement.endMeasurement({
+                success: false
+            });
             throw e;
         }
     }

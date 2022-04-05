@@ -28,6 +28,14 @@
   "directories": {
     "test": "test"
   },
+  "beachball": {
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major",
+      "prerelease"
+    ]
+  },
   "scripts": {
     "clean": "shx rm -rf dist lib",
     "clean:coverage": "rimraf ./coverage/*",
@@ -63,7 +71,7 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^5.2.0",
+    "@azure/msal-common": "^6.2.0",
     "axios": "^0.24.0",
     "jose": "^4.5.0"
   }

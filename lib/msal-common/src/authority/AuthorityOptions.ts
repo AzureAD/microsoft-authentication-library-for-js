@@ -21,6 +21,9 @@ export enum AzureCloudInstance {
     // Microsoft Azure public cloud
     AzurePublic = "https://login.microsoftonline.com",
 
+    // Microsoft PPE
+    AzurePpe = "https://login.windows-ppe.net",
+
     // Microsoft Chinese national cloud
     AzureChina = "https://login.chinacloudapi.cn",
 

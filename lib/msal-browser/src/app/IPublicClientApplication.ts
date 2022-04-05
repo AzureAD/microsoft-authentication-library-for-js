@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AccountInfo, Logger } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo, Logger, PerformanceCallbackFunction } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
@@ -24,6 +24,8 @@ export interface IPublicClientApplication {
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string;
+    removePerformanceCallback(callbackId: string): boolean;
     enableAccountStorageEvents(): void;
     disableAccountStorageEvents(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -98,6 +100,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     removeEventCallback: () => {
         return;
+    },
+    addPerformanceCallback: () => {
+        return "";
+    },
+    removePerformanceCallback: () => {
+        return false;
     },
     enableAccountStorageEvents: () => {
         return;

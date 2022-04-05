@@ -98,6 +98,8 @@ All documentation for MSAL Angular v1 can be found [here](https://github.com/Azu
 * [Angular v12](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular12-sample-app)
 * [Angular v13 RxJS v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular13-rxjs6-sample-app)
 * [Angular v13 RxJS v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular13-rxjs7-sample-app)
+* [Angular v14 RxJS v6](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular14-rxjs6-sample-app)
+* [Angular v14 RxJS v7](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular14-rxjs7-sample-app)
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/README.md) for specific features demonstrated by our MSAL Angular v2 samples.
 
