@@ -30,11 +30,11 @@ const MSAL_CONFIG: Configuration = {
     },
     system: {
         loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
             },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Info,
+            piiLoggingEnabled: false,
+            logLevel: LogLevel.Info,
         }
     }
 };
@@ -55,6 +55,14 @@ export default class AuthProvider {
 
     public get currentAccount(): AccountInfo {
         return this.account;
+    }
+
+    // Creates main application window
+    private static createAuthWindow(): BrowserWindow {
+        return new BrowserWindow({
+            width: 400,
+            height: 600
+        });
     }
 
     /**
@@ -85,42 +93,44 @@ export default class AuthProvider {
         };
     }
 
-    async getProfileToken(authWindow: BrowserWindow): Promise<string> {
-        return await this.getToken(authWindow, this.silentProfileRequest);
+    async getProfileToken(): Promise<string> {
+        return await this.getToken(this.silentProfileRequest);
     }
 
-    async getMailToken(authWindow: BrowserWindow): Promise<string> {
-        return await this.getToken(authWindow, this.silentMailRequest);
+    async getMailToken(): Promise<string> {
+        return await this.getToken(this.silentMailRequest);
     }
 
-    async getToken(authWindow: BrowserWindow, request: SilentFlowRequest): Promise<string> {
+    async getToken(request: SilentFlowRequest): Promise<string> {
         let authResponse: AuthenticationResult;
         const account = this.account || await this.getAccount();
         if (account) {
             request.account = account;
-            authResponse = await this.getTokenSilent(authWindow, request);
+            authResponse = await this.getTokenSilent(request);
         } else {
             const authCodeRequest = {...this.authCodeUrlParams, ...request };
-            authResponse = await this.getTokenInteractive(authWindow, authCodeRequest);
+            const authWindow = AuthProvider.createAuthWindow();
+            authResponse = await this.getTokenInteractive(authCodeRequest);
         }
 
         return authResponse.accessToken || null;
     }
 
-    async getTokenSilent(authWindow: BrowserWindow, tokenRequest: SilentFlowRequest): Promise<AuthenticationResult> {
+    async getTokenSilent(tokenRequest: SilentFlowRequest): Promise<AuthenticationResult> {
         try {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
             console.log("Silent token acquisition failed, acquiring token using pop up");
             const authCodeRequest = {...this.authCodeUrlParams, ...tokenRequest };
-            return await this.getTokenInteractive(authWindow, authCodeRequest);
+            return await this.getTokenInteractive(authCodeRequest);
         }
     }
 
-    async getTokenInteractive(authWindow: BrowserWindow, tokenRequest: AuthorizationUrlRequest ): Promise<AuthenticationResult> {
+    async getTokenInteractive(tokenRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         // Generate PKCE Challenge and Verifier before request
         const cryptoProvider = new CryptoProvider();
         const { challenge, verifier } = await cryptoProvider.generatePkceCodes();
+        const authWindow = AuthProvider.createAuthWindow();
 
         // Add PKCE params to Auth Code URL request
         const authCodeUrlParams = { 
@@ -130,21 +140,29 @@ export default class AuthProvider {
             codeChallengeMethod: "S256" 
         };
 
-        // Get Auth Code URL
-        const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
+        try {
+            // Get Auth Code URL
+            const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
 
-        const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
+            const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
 
-        // Use Authorization Code and PKCE Code verifier to make token request
-        return await this.clientApplication.acquireTokenByCode({
-            ...this.authCodeRequest,
-            code: authCode,
-            codeVerifier: verifier
-        });
+            // Use Authorization Code and PKCE Code verifier to make token request
+            const authResult: AuthenticationResult = await this.clientApplication.acquireTokenByCode({
+                ...this.authCodeRequest,
+                code: authCode,
+                codeVerifier: verifier
+            });
+            
+            authWindow.close();
+            return authResult;
+        } catch (error) {
+            authWindow.close();
+            throw error;
+        }
     }
 
-    async login(authWindow: BrowserWindow): Promise<AccountInfo> {
-        const authResult = await this.getTokenInteractive(authWindow, this.authCodeUrlParams);
+    async login(): Promise<AccountInfo> {
+        const authResult = await this.getTokenInteractive(this.authCodeUrlParams);
         return this.handleResponse(authResult);
     }
 
