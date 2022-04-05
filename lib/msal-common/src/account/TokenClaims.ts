@@ -60,9 +60,5 @@ export type TokenClaims = {
     m?: string,
     roles?: string[],
     amr?: string[],
-    email?: string,
-    family_name?: string,
-    given_name?: string,
     idp?: string,
-    ipaddr?: string,
-} & { [key: string]: string | number | string[] | undefined | unknown };
+};
