@@ -21,6 +21,7 @@ export { ClientConfiguration } from "./config/ClientConfiguration";
 export { AccountInfo } from "./account/AccountInfo";
 export { AuthToken } from "./account/AuthToken";
 export { AuthToken as IdToken } from "./account/AuthToken";
+export { IdentityToken } from "./account/IdentityToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
