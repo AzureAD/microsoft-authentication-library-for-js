@@ -57,7 +57,7 @@ export default class AuthProvider {
         return this.account;
     }
 
-    // Creates main application window
+    // Creates a  "popup" window for interactive authentication
     private static createAuthWindow(): BrowserWindow {
         return new BrowserWindow({
             width: 400,
