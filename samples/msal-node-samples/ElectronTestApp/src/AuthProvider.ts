@@ -12,16 +12,15 @@ import {
     AuthenticationResult,
     SilentFlowRequest, 
     CryptoProvider} from "@azure/msal-node";
-import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
-import { CustomFileProtocolListener } from "./CustomFileProtocol";
+import { CustomProtocolListener } from "./CustomProtocolListener";
 
 // Change this to load the desired MSAL Client Configuration
 import * as APP_CONFIG from "./config/customConfig.json";
 
 // Redirect URL registered in Azure PPE Lab App
-const CUSTOM_FILE_PROTOCOL_NAME = APP_CONFIG.fileProtocol.name;
+const CUSTOM_PROTOCOL_NAME = APP_CONFIG.customProtocol.name;
 
 const MSAL_CONFIG: Configuration = {
     auth: APP_CONFIG.authOptions,
@@ -109,7 +108,6 @@ export default class AuthProvider {
             authResponse = await this.getTokenSilent(request);
         } else {
             const authCodeRequest = {...this.authCodeUrlParams, ...request };
-            const authWindow = AuthProvider.createAuthWindow();
             authResponse = await this.getTokenInteractive(authCodeRequest);
         }
 
@@ -183,7 +181,7 @@ export default class AuthProvider {
 
     private async listenForAuthCode(navigateUrl: string, authWindow: BrowserWindow): Promise<string> {
         // Set up custom file protocol to listen for redirect response
-        const authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
+        const authCodeListener = new CustomProtocolListener(CUSTOM_PROTOCOL_NAME);
         const codePromise = authCodeListener.start();
         authWindow.loadURL(navigateUrl);
         const code = await codePromise;
