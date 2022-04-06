@@ -25,6 +25,10 @@ export enum NativeStatusCode {
 export const NativeAuthErrorMessage = {
     extensionError: {
         code: "ContentError"
+    },
+    userSwitch: {
+        code: "user_switch",
+        desc: "User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again."
     }
 };
 
@@ -75,5 +79,13 @@ export class NativeAuthError extends AuthError {
         }
 
         return new NativeAuthError(code, description, ext);
+    }
+
+    /**
+     * Creates user switch error when the user chooses a different account in the native broker prompt
+     * @returns 
+     */
+    static createUserSwitchError(): NativeAuthError {
+        return new NativeAuthError(NativeAuthErrorMessage.userSwitch.code, NativeAuthErrorMessage.userSwitch.desc);
     }
 }

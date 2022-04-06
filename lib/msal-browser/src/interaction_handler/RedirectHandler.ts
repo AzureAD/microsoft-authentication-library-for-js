@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger, ServerError } from "@azure/msal-common";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
@@ -99,7 +99,18 @@ export class RedirectHandler extends InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        let authCodeResponse;
+        try {
+            authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        } catch (e) {
+            if (e instanceof ServerError && e.subError === BrowserAuthErrorMessage.userCancelledError.code) {
+                // Translate server error caused by user closing native prompt to corresponding first class MSAL error
+                throw BrowserAuthError.createUserCancelledError();
+            } else {
+                throw e;
+            }
+        }
 
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);

@@ -144,6 +144,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
+
+        if (response.account.id !== request.accountId) {
+            // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
+            throw NativeAuthError.createUserSwitchError();
+        }
+
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
 
