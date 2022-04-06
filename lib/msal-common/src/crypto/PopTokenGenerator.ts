@@ -93,6 +93,7 @@ export class PopTokenGenerator {
      */
     async signPayload(payload: string, kid: string, request: SignedHttpRequestParameters, claims?: object): Promise<string> {
         // Deconstruct request to extract SHR parameters
+
         const { resourceRequestMethod, resourceRequestUri, shrClaims, shrNonce } = request;
 
         const resourceUrlString = (resourceRequestUri) ? new UrlString(resourceRequestUri) : undefined;
