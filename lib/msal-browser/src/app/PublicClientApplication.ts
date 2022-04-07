@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PromptValue } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PromptValue, PerformanceEvents } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -63,8 +63,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
-        this.logger.verbose("loginRedirect called");
-        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginRedirect called", correlationId);
+        return this.acquireTokenRedirect({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
     }
 
     /**
@@ -75,8 +79,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("loginPopup called");
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginPopup called", correlationId);
+        return this.acquireTokenPopup({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
     }
 
     /**
@@ -86,8 +94,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        const correlationId = this.getRequestCorrelationId(request);
+        const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("acquireTokenSilent called", request.correlationId);
+        this.logger.verbose("acquireTokenSilent called", correlationId);
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
@@ -107,20 +117,37 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
-            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
-            const response = this.acquireTokenSilentAsync(request, account)
+            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
+            const response = this.acquireTokenSilentAsync({
+                ...request,
+                correlationId
+            }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: result.fromCache
+                    });
+                    atsMeasurement.flushMeasurement();
                     return result;
                 })
                 .catch((error) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        success: false
+                    });
+                    atsMeasurement.flushMeasurement();
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
             return response;
         } else {
-            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
+            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
+            atsMeasurement.endMeasurement({
+                success: true
+            });
+            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
+            atsMeasurement.discardMeasurement();
             return cachedResponse;
         }
     }
@@ -133,6 +160,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
@@ -149,7 +177,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
 
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
-                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, this.nativeExtensionProvider, request.correlationId);
+                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
@@ -165,9 +193,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
+            astsAsyncMeasurement.endMeasurement({
+                success: true,
+                fromCache: response.fromCache
+            });
             return response;
         }).catch((tokenRenewalError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+            astsAsyncMeasurement.endMeasurement({
+                success: false
+            });
             throw tokenRenewalError;
         });
     }

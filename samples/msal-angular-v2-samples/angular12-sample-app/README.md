@@ -1,27 +1,26 @@
-# Angular12SampleApp
+# Angular 12 MSAL Angular v2 Sample
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.0.0-rc.0.
+This developer sample is used to demonstrate how to use `@azure/msal-angular`.
 
-## Development server
+This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 12.2.17.
 
-Run `npm run serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+## How to run the sample
 
-## Code scaffolding
+### Pre-requisites
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+### Configure the application
+- Open `./src/app/app.modules.ts` in an editor.
+- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration. 
+  - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
 
-## Build
+### Running the sample
+- In a command prompt, run `npm start`.
+- Navigate to [http://localhost:4200](http://localhost:4200)
+- In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
-Run `npm run build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+## Running the sample with Angular Universal SSR
+Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with this existing sample, and our [Angular Universal doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/angular-universal.md) for using Angular Universal with MSAL Angular. Comments have been added to this sample where adjustments need to be made. 
 
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `npm run e2e` to execute the end-to-end tests via [Jest](https://jestjs.io/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+## Additional notes
+- The default interaction type for the sample is redirect. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 

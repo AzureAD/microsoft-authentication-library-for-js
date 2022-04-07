@@ -2,6 +2,27 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 04 Apr 2022 21:12:41 GMT",
+      "tag": "@azure/msal-angular_v2.2.0",
+      "version": "2.2.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "0feaf5678cf92abbf649b08565dfd74dba2a5620",
+            "comment": "Add support for rxjs v7 and Angular 13 #4605"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.23.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Mar 2022 23:28:43 GMT",
       "tag": "@azure/msal-angular_v2.1.2",
       "version": "2.1.2",

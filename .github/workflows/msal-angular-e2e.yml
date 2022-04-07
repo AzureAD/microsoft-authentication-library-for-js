@@ -38,6 +38,8 @@ jobs:
           - 'angular12-sample-app'
           - 'angular13-rxjs6-sample-app'
           - 'angular13-rxjs7-sample-app'
+          - 'angular14-rxjs6-sample-app'
+          - 'angular14-rxjs7-sample-app'
 
     name: ${{ matrix.sample }}
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, IPerformanceClient } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -25,8 +25,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected nativeMessageHandler: NativeMessageHandler;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: NativeMessageHandler, correlationId?: string) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, correlationId?: string) {
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
         this.apiId = apiId;
         this.nativeMessageHandler = provider;
     }

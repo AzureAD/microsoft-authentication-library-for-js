@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, IPerformanceClient } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -20,8 +20,8 @@ import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandle
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, nativeMessageHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
     }
     
@@ -35,6 +35,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Auth code payload is required
         if (!request.code) {
             throw BrowserAuthError.createAuthCodeRequiredError();
+            
         }
 
         // Create silent request
@@ -74,7 +75,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             );
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);

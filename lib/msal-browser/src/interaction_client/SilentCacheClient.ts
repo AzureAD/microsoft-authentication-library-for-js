@@ -4,7 +4,7 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions} from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions, PerformanceEvents} from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
@@ -15,6 +15,7 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param silentRequest
      */
     async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, silentRequest.correlationId);
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
 
@@ -23,11 +24,18 @@ export class SilentCacheClient extends StandardInteractionClient {
 
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+            acquireTokenMeasurement.endMeasurement({
+                success: true,
+                fromCache: true
+            });
             return cachedToken;
         } catch (error) {
             if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
                 this.logger.verbose("Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.");
             }
+            acquireTokenMeasurement.endMeasurement({
+                success: false
+            });
             throw error;
         }
     }

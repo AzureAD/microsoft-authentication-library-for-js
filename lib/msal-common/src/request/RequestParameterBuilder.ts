@@ -175,11 +175,11 @@ export class RequestParameterBuilder {
      * @param appTelemetry 
      */
     addApplicationTelemetry(appTelemetry: ApplicationTelemetry): void {
-        if (appTelemetry.appName) {
+        if (appTelemetry?.appName) {
             this.parameters.set(AADServerParamKeys.X_APP_NAME, appTelemetry.appName);
         }
         
-        if (appTelemetry.appVersion) {
+        if (appTelemetry?.appVersion) {
             this.parameters.set(AADServerParamKeys.X_APP_VER, appTelemetry.appVersion);
         }
     }

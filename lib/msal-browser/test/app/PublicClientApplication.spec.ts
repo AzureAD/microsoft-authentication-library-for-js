@@ -25,7 +25,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { BrowserConfigurationAuthError } from "../../src";
+import { AuthorizationCodeRequest, BrowserConfigurationAuthError, EndSessionRequest } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -299,6 +299,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("loginRedirect", () => {
+        it("doesnt mutate request correlation id", async () => {
+            const request: SilentRequest = {
+                scopes: []
+            };
+
+            const result1 = await pca.loginRedirect(request)
+                .catch(() => null);
+
+            const result2 = await pca.loginRedirect(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("Uses default request if no request provided", (done) => {
             sinon.stub(pca, "acquireTokenRedirect").callsFake(async (request): Promise<void> => {
                 expect(request.scopes).toContain("openid");
@@ -327,6 +341,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenRedirect", () => {
+        it("doesnt mutate request correlation id", async () => {
+            const request: SilentRequest = {
+                scopes: []
+            };
+
+            const result1 = await pca.acquireTokenRedirect(request)
+                .catch(() => null);
+
+            const result2 = await pca.acquireTokenRedirect(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("throws if interaction is currently in progress", async () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});
@@ -458,6 +486,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(window, "open").returns(popupWindow);
         });
 
+        it("doesnt mutate request correlation id", async () => {
+            const request: SilentRequest = {
+                scopes: []
+            };
+
+            const result1 = await pca.loginPopup(request)
+                .catch(() => null);
+
+            const result2 = await pca.loginPopup(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("Uses default request if no request provided", (done) => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -525,6 +567,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.localStorage.clear();
             window.sessionStorage.clear();
             sinon.restore();
+        });
+
+        it("doesnt mutate request correlation id", async () => {
+            const request: SilentRequest = {
+                scopes: []
+            };
+
+            const result1 = await pca.acquireTokenPopup(request)
+                .catch(() => null);
+
+            const result2 = await pca.acquireTokenPopup(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
         });
 
         it("throws error if interaction is in progress", async () => {
@@ -722,6 +778,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("ssoSilent", () => {
+        it("doesnt mutate request correlation id", async () => {
+            const request: SilentRequest = {
+                scopes: []
+            };
+
+            const result1 = await pca.ssoSilent(request)
+                .catch(() => null);
+
+            const result2 = await pca.ssoSilent(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("Calls SilentIframeClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -753,6 +823,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenByCode", () => {
+        it("doesnt mutate request correlation id", async () => {
+            const request: AuthorizationCodeRequest = {
+                code: "123"
+            };
+
+            const result1 = await pca.acquireTokenByCode(request)
+                .catch(() => null);
+
+            const result2 = await pca.acquireTokenByCode(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("Calls SilentAuthCodeClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -778,11 +862,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const response = await pca.acquireTokenByCode({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             });
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy.calledWith({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             })).toBe(true);
         });
 
@@ -815,10 +901,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 response2
             ] = await Promise.all([
                 pca.acquireTokenByCode({
-                    code: "auth-code"
+                    code: "auth-code",
+                    correlationId: testTokenResponse.correlationId
                 }),
                 pca.acquireTokenByCode({
-                    code: "auth-code"
+                    code: "auth-code",
+                    correlationId: testTokenResponse.correlationId
                 })
             ]);
 
@@ -826,7 +914,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(response2).toEqual(testTokenResponse);
             expect(silentClientSpy.callCount).toBe(1);
             expect(silentClientSpy.calledWith({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             })).toBe(true);
         });
 
@@ -855,18 +944,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
             const response = await pca.acquireTokenByCode({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             });
 
             const response2 = await pca.acquireTokenByCode({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             });
 
             expect(response).toEqual(testTokenResponse);
             expect(response2).toEqual(testTokenResponse);
             expect(silentClientSpy.callCount).toBe(2);
             expect(silentClientSpy.calledWith({
-                code: "auth-code"
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
             })).toBe(true);
         });
 
@@ -878,6 +970,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("acquireTokenSilent", () => {
         it("throws No Account error if no account is provided", async () => {
             await expect(pca.acquireTokenSilent({scopes: []})).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
+        });
+
+        it("doesnt mutate request correlation id", async () => {
+            const request: SilentRequest = {
+                scopes: []
+            };
+
+            const result1 = await pca.acquireTokenSilent(request)
+                .catch(() => null);
+
+            const result2 = await pca.acquireTokenSilent(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
         });
 
         it("Calls SilentCacheClient.acquireToken and returns its response", async () => {
@@ -1439,9 +1545,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     
             pca.logout({postLogoutRedirectUri: "/logout"});
         });
+
+        it("doesnt mutate request correlation id", async () => {
+            sinon.stub(pca, "logoutRedirect").callsFake((request) => {
+                return Promise.resolve();
+            });
+            const request: EndSessionRequest = { };
+
+            const result1 = await pca.logout(request)
+                .catch(() => null);
+
+            const result2 = await pca.logout(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
     });
 
     describe("logoutRedirect", () => {
+        it("doesnt mutate request correlation id", async () => {
+            sinon.stub(RedirectClient.prototype, "logout").resolves();
+
+            const request: EndSessionRequest = { };
+
+            const result1 = await pca.logoutRedirect(request)
+                .catch(() => null);
+
+            const result2 = await pca.logoutRedirect(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("Calls RedirectClient.logout and returns its response", async () => {
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "logout").resolves();
 
@@ -1457,6 +1592,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("logoutPopup", () => {
+        it("doesnt mutate request correlation id", async () => {
+            sinon.stub(PopupClient.prototype, "logout").resolves()
+
+            const request: EndSessionRequest = { };
+
+            const result1 = await pca.logoutPopup(request)
+                .catch(() => null);
+
+            const result2 = await pca.logoutPopup(request)
+            .catch(() => null);
+
+            expect(request.correlationId).toBe(undefined);
+        });
+
         it("Calls PopupClient.logout and returns its response", async () => {
             const popupClientSpy = sinon.stub(PopupClient.prototype, "logout").resolves();
 

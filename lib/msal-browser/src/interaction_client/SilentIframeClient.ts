@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, Constants, UrlString, ServerAuthorizationCodeResponse, ProtocolUtils } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, Constants, UrlString, ServerAuthorizationCodeResponse, ProtocolUtils, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -20,8 +20,8 @@ import { NativeInteractionClient } from "./NativeInteractionClient";
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, nativeMessageHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
     }
 
@@ -31,6 +31,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
+        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
@@ -38,6 +39,9 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
+            acquireTokenMeasurement.endMeasurement({
+                success: false
+            });
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
@@ -55,13 +59,22 @@ export class SilentIframeClient extends StandardInteractionClient {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
-            return await this.silentTokenHelper(authClient, silentRequest);
+            return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
+                acquireTokenMeasurement.endMeasurement({
+                    success: true,
+                    fromCache: false
+                });
+                return result;
+            });
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
+            acquireTokenMeasurement.endMeasurement({
+                success: false
+            });
             throw e;
         }
     }
@@ -103,7 +116,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             if (!this.nativeMessageHandler) {
                 throw BrowserAuthError.createNativeConnectionNotEstablishedError();
             }
-            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.nativeMessageHandler, this.correlationId);
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.performanceClient, this.nativeMessageHandler, this.correlationId);
             this.browserStorage.cleanRequestByState(state);
             const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
             return nativeInteractionClient.acquireToken({
