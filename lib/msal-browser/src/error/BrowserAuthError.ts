@@ -171,11 +171,15 @@ export const BrowserAuthErrorMessage = {
     },
     nativeExtensionNotInstalled: {
         code: "native_extension_not_installed",
-        desc: "Native extension is not installed. If you think this is a mistake run the initialize function."
+        desc: "Native extension is not installed. If you think this is a mistake call the initialize function."
     },
     nativeConnectionNotEstablished: {
         code: "native_connection_not_established",
         desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize()."
+    },
+    nativePromptNotSupported: {
+        code: "native_prompt_not_supported",
+        desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
     }
 };
 
@@ -193,7 +197,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when PKCE is not implemented.
-     * @param errDetail 
+     * @param errDetail
      */
     static createPkceNotGeneratedError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.pkceNotGenerated.code,
@@ -202,7 +206,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the crypto object is unavailable.
-     * @param errDetail 
+     * @param errDetail
      */
     static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.cryptoDoesNotExist.code,
@@ -211,7 +215,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when an HTTP method hasn't been implemented by the browser class.
-     * @param method 
+     * @param method
      */
     static createHttpMethodNotImplementedError(method: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.httpMethodNotImplementedError.code,
@@ -227,7 +231,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the hash string value is unexpectedly empty.
-     * @param hashValue 
+     * @param hashValue
      */
     static createEmptyHashError(hashValue: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
@@ -270,7 +274,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the popup window could not be opened.
-     * @param errDetail 
+     * @param errDetail
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
         let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
@@ -280,7 +284,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when window.open returns an empty window object.
-     * @param errDetail 
+     * @param errDetail
      */
     static createEmptyWindowCreatedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.emptyWindowError.code, BrowserAuthErrorMessage.emptyWindowError.desc);
@@ -312,10 +316,10 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when navigateWindow is called inside an iframe.
-     * @param windowParentCheck 
+     * @param windowParentCheck
      */
     static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.redirectInIframeError.code, 
+        return new BrowserAuthError(BrowserAuthErrorMessage.redirectInIframeError.code,
             `${BrowserAuthErrorMessage.redirectInIframeError.desc} (window.parent !== window) => ${windowParentCheck}`);
     }
 
@@ -329,10 +333,10 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when a popup attempts to call an acquireToken API
-     * @returns 
+     * @returns
      */
     static createBlockAcquireTokenInPopupsError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code, 
+        return new BrowserAuthError(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code,
             BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
     }
 
@@ -446,19 +450,19 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Create an error thrown when the necessary information is not available to sideload tokens 
+     * Create an error thrown when the necessary information is not available to sideload tokens
      */
     static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
     }
-  
+
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
-    
+
     /**
      * Create an error when an authorization code is required but not provided
      */
@@ -501,7 +505,20 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativeExtensionNotInstalled.code, BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc);
     }
 
+    /**
+     * Create an error when native connection cannot be established
+     * Create an error thrown when the initialize function hasn't been called
+     * @returns
+     */
     static createNativeConnectionNotEstablishedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code, BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
+    }
+
+    /**
+     * Create an error thrown when requesting a token directly from the native platform with an unsupported prompt parameter e.g. select_account, login or create
+     * These requests must go through eSTS to ensure eSTS is aware of the new account
+     */
+    static createNativePromptParameterNotSupportedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nativePromptNotSupported.code, BrowserAuthErrorMessage.nativePromptNotSupported.desc);
     }
 }

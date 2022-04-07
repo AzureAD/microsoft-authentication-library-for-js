@@ -77,6 +77,11 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.libraryInfo.version).toBe(version);
         expect(emptyConfig.libraryInfo.os).toHaveLength(0);
         expect(emptyConfig.libraryInfo.cpu).toHaveLength(0);
+        // App telemetry checks
+        expect(emptyConfig.telemetry).not.toBeNull();
+        expect(emptyConfig.telemetry.application).not.toBeNull();
+        expect(emptyConfig.telemetry.application.appName).toHaveLength(0);
+        expect(emptyConfig.telemetry.application.appVersion).toHaveLength(0);
     });
 
     const cacheStorageMock = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
@@ -143,6 +148,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 version: TEST_CONFIG.TEST_VERSION,
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU
+            },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.TEST_APP_NAME,
+                    appVersion: TEST_CONFIG.TEST_APP_VER
+                }
             }
         });
         cacheStorageMock.setAccount(MockCache.acc);
@@ -187,5 +198,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);
         expect(newConfig.libraryInfo.os).toBe(TEST_CONFIG.TEST_OS);
         expect(newConfig.libraryInfo.cpu).toBe(TEST_CONFIG.TEST_CPU);
+        // App telemetry tests
+        expect(newConfig.telemetry.application.appName).toBe(TEST_CONFIG.TEST_APP_NAME);
+        expect(newConfig.telemetry.application.appVersion).toBe(TEST_CONFIG.TEST_APP_VER);
     });
 });

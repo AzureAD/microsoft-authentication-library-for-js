@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory,ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
@@ -19,7 +19,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
-export abstract class StandardInteractionClient extends BaseInteractionClient {    
+export abstract class StandardInteractionClient extends BaseInteractionClient {
     /**
      * Generates an auth code request tied to the url request.
      * @param request
@@ -31,7 +31,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
-            code: "",
+            code: Constants.EMPTY_STRING,
             codeVerifier: generatedPkceParams.verifier
         };
 
@@ -49,7 +49,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
         const validLogoutRequest: CommonEndSessionRequest = {
-            correlationId: this.browserCrypto.createNewGuid(),
+            correlationId: this.correlationId || this.browserCrypto.createNewGuid(),
             ...logoutRequest
         };
 
@@ -138,7 +138,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestCorrelationId
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
-        this.logger.verbose("getClientConfiguration called");
+        this.logger.verbose("getClientConfiguration called", this.correlationId);
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
 
         return {
@@ -164,9 +164,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: "",
-                os: ""
-            }
+                cpu: Constants.EMPTY_STRING,
+                os: Constants.EMPTY_STRING
+            },
+            telemetry: this.config.telemetry
         };
     }
 
@@ -194,14 +195,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     *<<<<<<< HEAD
-     *=======
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
      * @param requestCorrelationId
      */
     protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
-        this.logger.verbose("getDiscoveredAuthority called");
+        this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
+        const getAuthorityMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
@@ -214,18 +214,31 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
-        this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions)
+            .then((result: Authority) => {
+                getAuthorityMeasurement.endMeasurement({
+                    success: true
+                });
+
+                return result;
+            })
+            .catch((error:Error) => {
+                getAuthorityMeasurement.endMeasurement({
+                    success: false
+                });
+
+                throw error;
+            });
     }
 
     /**
-     *>>>>>>> 96980049d59f99c21d00505a6b4b8a5fc0e583b6
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      * @param interactionType
      */
     protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
-        this.logger.verbose("initializeAuthorizationRequest called");
+        this.logger.verbose("initializeAuthorizationRequest called", this.correlationId);
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType
@@ -246,8 +259,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         const account = request.account || this.browserStorage.getActiveAccount();
         if (account) {
-            this.logger.verbose("Setting validated request account");
-            this.logger.verbosePii(`Setting validated request account: ${account}`);
+            this.logger.verbose("Setting validated request account", this.correlationId);
+            this.logger.verbosePii(`Setting validated request account: ${account.homeAccountId}`, this.correlationId);
             validatedRequest.account = account;
         }
 

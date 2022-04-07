@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse, PromptValue, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -15,6 +15,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class PopupClient extends StandardInteractionClient {
     /**
@@ -86,7 +87,7 @@ export class PopupClient extends StandardInteractionClient {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
-        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
 
         try {
             // Create auth code request and generate PKCE params
@@ -99,7 +100,7 @@ export class PopupClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBridge: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme)
+                nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme)
             });
 
             // Create popup interaction handler.
@@ -125,13 +126,17 @@ export class PopupClient extends StandardInteractionClient {
             if (serverParams.accountId) {
                 this.logger.verbose("Account id found in hash, calling WAM for token");
                 if (!this.nativeMessageHandler) {
-                    throw new Error("Call and await initialize function before invoking this API");
+                    throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }
-                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, validRequest.correlationId);
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, validRequest.correlationId);
+                const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
                     ...validRequest,
-                    prompt: PromptValue.NONE
-                }, serverParams.accountId);
+                    state: userRequestState,
+                    prompt: undefined // Server should handle the prompt, ideally native broker can do this part silently
+                }).finally(() => {
+                    this.browserStorage.cleanRequestByState(state);
+                });
             }
 
             // Handle response from hash string.
@@ -145,7 +150,7 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
@@ -218,7 +223,7 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
 
             this.browserStorage.setInteractionInProgress(false);

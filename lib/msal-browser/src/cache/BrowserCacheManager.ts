@@ -382,8 +382,8 @@ export class BrowserCacheManager extends CacheManager {
      * Returns wrapper metadata from in-memory storage
      */
     getWrapperMetadata(): [string, string] {
-        const sku = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) || "";
-        const version = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) || "";
+        const sku = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) || Constants.EMPTY_STRING;
+        const version = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) || Constants.EMPTY_STRING;
         return [sku, version];
     }
 
@@ -650,7 +650,7 @@ export class BrowserCacheManager extends CacheManager {
                 return decodeURIComponent(cookie.substring(name.length, cookie.length));
             }
         }
-        return "";
+        return Constants.EMPTY_STRING;
     }
 
     /**
@@ -676,7 +676,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param cookieName
      */
     clearItemCookie(cookieName: string): void {
-        this.setItemCookie(cookieName, "", -1);
+        this.setItemCookie(cookieName, Constants.EMPTY_STRING, -1);
     }
 
     /**
@@ -836,6 +836,7 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
         this.setInteractionInProgress(false);
     }
 
@@ -850,7 +851,7 @@ export class BrowserCacheManager extends CacheManager {
             const stateKey = this.generateStateKey(stateString);
             const cachedState = this.temporaryCacheStorage.getItem(stateKey);
             this.logger.infoPii(`BrowserCacheManager.cleanRequestByState: Removing temporary cache items for state: ${cachedState}`);
-            this.resetRequestCache(cachedState || "");
+            this.resetRequestCache(cachedState || Constants.EMPTY_STRING);
         }
         this.clearMsalCookies();
     }

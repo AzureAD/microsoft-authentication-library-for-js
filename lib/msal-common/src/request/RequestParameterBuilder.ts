@@ -8,7 +8,7 @@ import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
-import { LibraryInfo } from "../config/ClientConfiguration";
+import { ApplicationTelemetry, LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
@@ -44,9 +44,9 @@ export class RequestParameterBuilder {
     /**
      * Add flag to indicate STS should attempt to use WAM if available
      */
-    addNativeBridge(): void {
+    addNativeBroker(): void {
         this.parameters.set(
-            AADServerParamKeys.NATIVE_BRIDGE,
+            AADServerParamKeys.NATIVE_BROKER,
             encodeURIComponent("1")
         );
     }
@@ -162,8 +162,26 @@ export class RequestParameterBuilder {
         // Telemetry Info
         this.parameters.set(AADServerParamKeys.X_CLIENT_SKU, libraryInfo.sku);
         this.parameters.set(AADServerParamKeys.X_CLIENT_VER, libraryInfo.version);
-        this.parameters.set(AADServerParamKeys.X_CLIENT_OS, libraryInfo.os);
-        this.parameters.set(AADServerParamKeys.X_CLIENT_CPU, libraryInfo.cpu);
+        if (libraryInfo.os) {
+            this.parameters.set(AADServerParamKeys.X_CLIENT_OS, libraryInfo.os);
+        }
+        if (libraryInfo.cpu) {
+            this.parameters.set(AADServerParamKeys.X_CLIENT_CPU, libraryInfo.cpu);
+        }
+    }
+
+    /**
+     * Add client telemetry parameters
+     * @param appTelemetry 
+     */
+    addApplicationTelemetry(appTelemetry: ApplicationTelemetry): void {
+        if (appTelemetry?.appName) {
+            this.parameters.set(AADServerParamKeys.X_APP_NAME, appTelemetry.appName);
+        }
+        
+        if (appTelemetry?.appVersion) {
+            this.parameters.set(AADServerParamKeys.X_APP_VER, appTelemetry.appVersion);
+        }
     }
 
     /**
