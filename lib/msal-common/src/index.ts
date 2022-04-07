@@ -55,6 +55,7 @@ export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { IGuidGenerator } from "./crypto/IGuidGenerator";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";
@@ -90,8 +91,17 @@ export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
-// Telemetry
+// Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
+
+// Performance Telemetry
+export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent } from "./telemetry/performance/IPerformanceClient";
+export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./telemetry/performance/PerformanceEvent";
+export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
+export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
+export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";
+
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
+
 export { version } from "./packageMetadata";

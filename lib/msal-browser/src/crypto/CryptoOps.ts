@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, IPerformanceClient, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -47,11 +47,17 @@ export class CryptoOps implements ICrypto {
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
 
+    /**
+     * CryptoOps can be used in contexts outside a PCA instance,
+     * meaning there won't be a performance manager available.
+     */
+    private performanceClient: IPerformanceClient | undefined;
+
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
@@ -63,6 +69,7 @@ export class CryptoOps implements ICrypto {
             asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys),
             symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys)
         };
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -101,6 +108,8 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
+        const publicKeyThumbMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
+
         // Generate Keypair
         const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
@@ -131,6 +140,12 @@ export class CryptoOps implements ICrypto {
                 requestUri: request.resourceRequestUri
             }
         );
+
+        if (publicKeyThumbMeasurement) {
+            publicKeyThumbMeasurement.endMeasurement({
+                success: true
+            });
+        }
 
         return publicJwkHash;
     }
@@ -173,7 +188,8 @@ export class CryptoOps implements ICrypto {
      * @param payload 
      * @param kid 
      */
-    async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+    async signJwt(payload: SignedHttpRequest, kid: string, correlationId?: string): Promise<string> {
+        const signJwtMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsSignJwt, correlationId);
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
@@ -205,7 +221,15 @@ export class CryptoOps implements ICrypto {
         const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
-        return `${tokenString}.${encodedSignature}`;
+        const signedJwt = `${tokenString}.${encodedSignature}`;
+
+        if (signJwtMeasurement) {
+            signJwtMeasurement.endMeasurement({
+                success: true
+            });
+        }
+
+        return signedJwt;
     }
 
     /**
