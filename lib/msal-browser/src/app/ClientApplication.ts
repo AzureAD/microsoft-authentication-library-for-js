@@ -456,6 +456,7 @@ export abstract class ClientApplication {
                             atbcMeasurement.flushMeasurement();
                             throw error;
                         });
+                    this.hybridAuthCodeResponses.set(hybridAuthCode, response);
                 } else {
                     this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
                     atbcMeasurement.endMeasurement({

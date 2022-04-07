@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme, AccountInfo } from "@azure/msal-common";
+import { AuthenticationScheme, AccountInfo, StubPerformanceClient } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { ApiId } from "../../src/utils/BrowserConstants";
@@ -21,9 +21,8 @@ describe("NativeInteractionClient Tests", () => {
         }
     });
     const wamProvider = new NativeMessageHandler(pca.getLogger());
-
     // @ts-ignore
-    const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, wamProvider, RANDOM_TEST_GUID);
+    const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
 
