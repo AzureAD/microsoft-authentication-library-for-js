@@ -109,6 +109,6 @@ export class PopTokenGenerator {
             q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
             client_claims: shrClaims || undefined,
             ...claims
-        }, kid);
+        }, kid, request.correlationId);
     }
 }

@@ -128,7 +128,7 @@ export class PopupClient extends StandardInteractionClient {
                 if (!this.nativeMessageHandler) {
                     throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }
-                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, validRequest.correlationId);
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, validRequest.correlationId);
                 this.browserStorage.cleanRequestByState(state);
                 const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
@@ -149,7 +149,7 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
@@ -222,7 +222,7 @@ export class PopupClient extends StandardInteractionClient {
             }
 
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
 
             this.browserStorage.setInteractionInProgress(false);
