@@ -74,7 +74,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 throw e;
             }
         }
-        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.correlationId, true);
         this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(nativeRequest), true);
 
         const navigationOptions: NavigationOptions = {
@@ -104,14 +103,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
-        const request = {
-            ...cachedRequest,
-            prompt: PromptValue.NONE // If prompt was specified on the request, it was already shown before the "redirect". This prevents double prompts.
-        };
-
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: request
+            request: cachedRequest
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -120,7 +114,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose("NativeInteractionClient - handleRedirectPromise sending message to native broker.");
             const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
             this.validateNativeResponse(response);
-            const result = this.handleNativeResponse(response as NativeResponse, request, reqTimestamp);
+            const result = this.handleNativeResponse(response as NativeResponse, cachedRequest, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {

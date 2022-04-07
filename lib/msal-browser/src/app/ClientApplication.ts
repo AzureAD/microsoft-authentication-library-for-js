@@ -179,16 +179,16 @@ export abstract class ClientApplication {
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
-                const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;
-
+                
                 const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
-                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, correlationId);
+                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
+                    const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;
                     const redirectClient = this.createRedirectClient(correlationId);
                     redirectResponse = redirectClient.handleRedirectPromise(hash);
                 }

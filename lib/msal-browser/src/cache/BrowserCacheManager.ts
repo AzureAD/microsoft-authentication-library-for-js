@@ -836,6 +836,7 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
         this.setInteractionInProgress(false);
     }
 
