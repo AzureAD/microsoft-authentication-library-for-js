@@ -42,7 +42,7 @@ describe("StandardInteractionClient", () => {
             }
         });
         // @ts-ignore
-        testClient = new testStandardInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, null);
+        testClient = new testStandardInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, null, pca.performanceClient);
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(FetchClient.prototype, "sendGetRequestAsync").callsFake((url) => {
             if (url.startsWith("https://login.microsoftonline.com/common/discovery/instance?")) {

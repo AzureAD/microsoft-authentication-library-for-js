@@ -160,7 +160,7 @@ export class RedirectClient extends StandardInteractionClient {
             return null;
         } catch (e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
@@ -257,7 +257,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
         } catch(e) {
             if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
+                (e as AuthError).setCorrelationId(this.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
