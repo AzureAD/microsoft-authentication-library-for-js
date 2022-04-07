@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -33,7 +33,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Acquire token from native platform via browser extension
-     * @param request 
+     * @param request
      */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest, accountId?: string): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - acquireToken called.");
@@ -51,8 +51,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Acquires a token from native platform then redirects to the redirectUri instead of returning the response                                
-     * @param request 
+     * Acquires a token from native platform then redirects to the redirectUri instead of returning the response
+     * @param request
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.logger.trace("NativeInteractionClient - acquireTokenRedirect called.");
@@ -99,7 +99,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose("NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
             return null;
         }
-        
+
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
         const request = {
@@ -129,7 +129,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Logout from native platform via browser extension
-     * @param request 
+     * @param request
      */
     logout(): Promise<void> {
         this.logger.trace("NativeInteractionClient - logout called.");
@@ -138,9 +138,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Transform response from native platform into AuthenticationResult object which will be returned to the end user
-     * @param response 
-     * @param request 
-     * @param reqTimestamp 
+     * @param response
+     * @param request
+     * @param reqTimestamp
      */
     protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
@@ -164,10 +164,38 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // If scopes not returned in server response, use request scopes
         const responseScopes = response.scopes ? ScopeSet.fromString(response.scopes) : ScopeSet.fromString(request.scopes);
-        
+
         const accountProperties = response.account.properties || {};
         const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
+
+        // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
+        let responseAccessToken;
+        switch (request.tokenType) {
+            case AuthenticationScheme.POP: {
+                // Check if native layer returned an SHR token
+                if (response.shr) {
+                    this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
+                    responseAccessToken = response.shr;
+                    break;
+                }
+                // Generate SHR in msal js if WAM does not compute it when POP is enabled
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.browserCrypto);
+                const shrParameters: SignedHttpRequestParameters = {
+                    resourceRequestMethod: request.resourceRequestMethod,
+                    resourceRequestUri: request.resourceRequestUri,
+                    shrClaims: request.shrClaims,
+                    shrNonce: request.shrNonce
+                };
+                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, shrParameters);
+                break;
+
+            }
+            // assign the access token to the response for all non-POP cases (Should be Bearer only today)
+            default: {
+                responseAccessToken = response.access_token;
+            }
+        }
 
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,
@@ -177,7 +205,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             account: accountEntity.getAccountInfo(),
             idToken: response.id_token,
             idTokenClaims: idTokenObj.claims,
-            accessToken: response.access_token,
+            accessToken: responseAccessToken,
             fromCache: false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
             tokenType: AuthenticationScheme.BEARER,
@@ -196,7 +224,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Validates native platform response before processing
-     * @param response 
+     * @param response
      */
     private validateNativeResponse(response: object): void {
         if (
@@ -215,7 +243,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Translates developer provided request object into NativeRequest object
-     * @param request 
+     * @param request
      */
     protected initializeNativeRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
@@ -223,7 +251,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = request.authority || this.config.auth.authority;
         const canonicalAuthority = new UrlString(authority);
         canonicalAuthority.validateAsUri();
-        
+
         const scopes = request && request.scopes || [];
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
@@ -241,7 +269,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
-
         const validatedRequest: NativeTokenRequest = {
             ...request,
             clientId: this.config.auth.clientId,
@@ -265,7 +292,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             validatedRequest.accountId = accountId;
         } else {
             const account = request.account || this.browserStorage.getAccountInfoByHints(validatedRequest.loginHint, validatedRequest.sid) || this.browserStorage.getActiveAccount();
-    
+
             if (account) {
                 validatedRequest.accountId = account.nativeAccountId;
                 if (!validatedRequest.accountId) {

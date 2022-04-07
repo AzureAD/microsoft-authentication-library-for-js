@@ -23,6 +23,12 @@ export type NativeTokenRequest = {
     domainHint?: string;
     loginHint?: string;
     sid?: string;
+    reqCnf?: string;
+    tokenType?: string;
+    shrClaims?: string;
+    shrNonce?: string;
+    resourceRequestMethod?: string;
+    resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
     instanceAware?: boolean;
     extraParameters?: StringDict;

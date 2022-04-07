@@ -24,5 +24,6 @@ export type NativeResponse = {
     properties: object;
     scopes: string;
     state: string;
+    shr?: string;
     extendedLifetimeToken?: boolean;
 };
