@@ -14,7 +14,6 @@ import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { NativeAuthError } from "../error/NativeAuthError";
-import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 /**
