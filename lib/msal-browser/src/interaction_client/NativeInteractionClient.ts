@@ -23,11 +23,13 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
+    protected accountId: string;
     protected nativeMessageHandler: NativeMessageHandler;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
         this.apiId = apiId;
+        this.accountId = accountId;
         this.nativeMessageHandler = provider;
     }
 
@@ -35,9 +37,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Acquire token from native platform via browser extension
      * @param request
      */
-    async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest, accountId?: string): Promise<AuthenticationResult> {
+    async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - acquireToken called.");
-        const nativeRequest = this.initializeNativeRequest(request, accountId);
+        const nativeRequest = this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
@@ -245,7 +247,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
-    protected initializeNativeRequest(request: PopupRequest|SsoSilentRequest, accountId?: string): NativeTokenRequest {
+    protected initializeNativeRequest(request: PopupRequest|SsoSilentRequest): NativeTokenRequest {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
 
         const authority = request.authority || this.config.auth.authority;
@@ -271,6 +273,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
         const validatedRequest: NativeTokenRequest = {
             ...request,
+            accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
             scopes: scopeSet.printScopes(),
@@ -286,26 +289,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
             validatedRequest.prompt = PromptValue.NONE;
-        }
-
-        if (accountId) {
-            validatedRequest.accountId = accountId;
-        } else {
-            const account = request.account || this.browserStorage.getAccountInfoByHints(validatedRequest.loginHint, validatedRequest.sid) || this.browserStorage.getActiveAccount();
-
-            if (account) {
-                validatedRequest.accountId = account.nativeAccountId;
-                if (!validatedRequest.accountId) {
-                    validatedRequest.sid = account.idTokenClaims && account.idTokenClaims["sid"];
-                    validatedRequest.loginHint = account.idTokenClaims && (account.idTokenClaims["login_hint"] || account.idTokenClaims["preferred_username"]);
-                }
-            } else {
-                // Check for ADAL/MSAL v1 SSO
-                const loginHint = this.browserStorage.getLegacyLoginHint();
-                if (loginHint) {
-                    validatedRequest.loginHint = loginHint;
-                }
-            }
         }
 
         return validatedRequest;

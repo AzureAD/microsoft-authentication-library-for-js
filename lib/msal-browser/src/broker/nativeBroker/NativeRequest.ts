@@ -10,6 +10,7 @@ import { StringDict } from "@azure/msal-common";
  * Token request which native broker will use to acquire tokens
  */
 export type NativeTokenRequest = {
+    accountId: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     clientId: string;
     authority: string;
     redirectUri: string;
@@ -17,12 +18,8 @@ export type NativeTokenRequest = {
     correlationId: string;
     prompt?: string;
     nonce?: string;
-    accountId?: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     claims?: string;
     state?: string;
-    domainHint?: string;
-    loginHint?: string;
-    sid?: string;
     reqCnf?: string;
     tokenType?: string;
     shrClaims?: string;
