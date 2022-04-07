@@ -406,3 +406,6 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 
 In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
+
+## Register custom scopes for a web API
+[How to register custom scopes for my web API](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-configure-app-expose-web-apis).
