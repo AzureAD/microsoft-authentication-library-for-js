@@ -326,7 +326,7 @@ export abstract class CacheManager implements ICacheManager {
             filter.familyId,
             filter.realm,
             filter.target,
-            filter.oboAssertion,
+            filter.userAssertionHash,
             filter.tokenType,
             filter.keyId,
             filter.requestedClaimsHash
