@@ -22,5 +22,5 @@ export type AccountInfo = {
     username: string;
     localAccountId: string;
     name?: string;
-    idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | undefined | unknown };
+    idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | object | undefined | unknown };
 };
