@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 
 export type InteractionParams = {};
@@ -51,7 +51,18 @@ export abstract class InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        let authCodeResponse;
+        try {
+            authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        } catch (e) {
+            if (e instanceof ServerError && e.subError === BrowserAuthErrorMessage.userCancelledError.code) {
+                // Translate server error caused by user closing native prompt to corresponding first class MSAL error
+                throw BrowserAuthError.createUserCancelledError();
+            } else {
+                throw e;
+            }
+        }
 
         return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
     }

@@ -7,13 +7,16 @@ const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
 const argv = require('yargs')
-    .usage('Usage: $0 -sample [sample-name] -p [PORT]')
+    .usage('Usage: $0 -sample [sample-name] -p [PORT] -https')
     .alias('s', 'sample')
     .alias('p', 'port')
+    .alias('h', 'https')
     .describe('sample', '(Optional) Name of sample to run')
     .describe('port', '(Optional) Port Number - default is 30662')
+    .describe('https', '(Optional) Serve over https')
     .strict()
     .argv;
+
 
 const DEFAULT_PORT = 30662;
 const APP_DIR = __dirname + `/app`;
@@ -59,5 +62,14 @@ app.get('*', function (req, res) {
 });
 
 // Start the server.
-app.listen(port);
+if (argv.https) {
+    const https = require('https');
+    const privateKey  = fs.readFileSync('./key.pem', 'utf8');
+    const certificate = fs.readFileSync('./cert.pem', 'utf8');
+    const credentials = {key: privateKey, cert: certificate};
+    const httpsServer = https.createServer(credentials, app);
+    httpsServer.listen(port);
+} else {
+    app.listen(port);
+}
 console.log(`Listening on port ${port}...`);

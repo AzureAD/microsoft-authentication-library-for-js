@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -13,6 +13,9 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { PopupRequest } from "../request/PopupRequest";
+import { NativeInteractionClient } from "./NativeInteractionClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class PopupClient extends StandardInteractionClient {
     /**
@@ -95,7 +98,10 @@ export class PopupClient extends StandardInteractionClient {
             this.logger.verbose("Auth code client created");
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
+            const navigateUrl = await authClient.getAuthCodeUrl({
+                ...validRequest,
+                nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme)
+            });
 
             // Create popup interaction handler.
             const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
@@ -111,10 +117,27 @@ export class PopupClient extends StandardInteractionClient {
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow);
-            const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup, validRequest.correlationId);
-
+            // Deserialize hash fragment response parameters.
+            const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+            const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Popup, validRequest.correlationId);
             // Remove throttle if it exists
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);
+
+            if (serverParams.accountId) {
+                this.logger.verbose("Account id found in hash, calling WAM for token");
+                if (!this.nativeMessageHandler) {
+                    throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+                }
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, validRequest.correlationId);
+                const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
+                return nativeInteractionClient.acquireToken({
+                    ...validRequest,
+                    state: userRequestState,
+                    prompt: undefined // Server should handle the prompt, ideally native broker can do this part silently
+                }).finally(() => {
+                    this.browserStorage.cleanRequestByState(state);
+                });
+            }
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);

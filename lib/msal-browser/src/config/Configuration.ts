@@ -67,6 +67,7 @@ export type CacheOptions = {
  * - redirectNavigationTimeout    - Time to wait for redirection to occur before resolving promise
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  * - allowRedirectInIframe        - Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
+ * - allowNativeBroker            - Flag to enable native broker support (e.g. acquiring tokens from WAM on Windows)
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -79,6 +80,7 @@ export type BrowserSystemOptions = SystemOptions & {
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
+    allowNativeBroker?: boolean;
 };
 
 /**
@@ -171,7 +173,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         navigateFrameWait: isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
-        allowRedirectInIframe: false
+        allowRedirectInIframe: false,
+        allowNativeBroker: false
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {

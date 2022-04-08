@@ -1198,7 +1198,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1251,7 +1252,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1305,7 +1307,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1358,7 +1361,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1411,7 +1415,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1615,7 +1620,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1669,7 +1675,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
