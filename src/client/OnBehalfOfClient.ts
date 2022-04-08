@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome } from "../utils/Constants";
+import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, AuthenticationScheme } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
@@ -48,7 +48,7 @@ export class OnBehalfOfClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority, this.userAssertionHash);
         }
 
-        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request, this.userAssertionHash);
+        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request);
         if (cachedAuthenticationResult) {
             return cachedAuthenticationResult;
         } else {
@@ -60,10 +60,33 @@ export class OnBehalfOfClient extends BaseClient {
      * look up cache for tokens
      * @param request
      */
-    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest, userAssertionHash: string): Promise<AuthenticationResult | null> {
+    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
 
-        // look for idToken in the cache and generate accountInfo
-        const cachedIdToken = this.readIdTokenFromCache(request);
+        /**
+         * Find idtoken in the cache - what happens if this does not match??
+         * Find accessToken based on user assertion and account info in the cache
+         *   -- If found, return it
+         *   - If found and expired, match refresh token with user assertion, return the access token an d
+         *   - If refresh token is found, make a silent call to fetch new tokens with a network call with refreshToken request type
+         *   - If refresh token is expired, make a new network call with OBO request type
+         */
+
+        // look in the cache for the access_token which matches the incoming_assertion
+        const cachedAccessToken = this.readAccessTokenFromCacheForOBO(this.config.authOptions.clientId, request);
+        if (!cachedAccessToken) {
+            // Must refresh due to non-existent access_token.
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+            this.logger.info("SilentFlowClient:acquireCachedToken - No access token found in cache for the given properties.");
+            throw ClientAuthError.createRefreshRequiredError();
+        } else if (TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+            // Access token expired, will need to renewed
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
+            this.logger.info(`OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`);
+            throw ClientAuthError.createRefreshRequiredError();
+        }
+
+        // fetch the idToken from cache
+        const cachedIdToken = this.readIdTokenFromCache(request, cachedAccessToken.homeAccountId);
         let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
@@ -77,16 +100,12 @@ export class OnBehalfOfClient extends BaseClient {
                 localAccountId: localAccountId || Constants.EMPTY_STRING
             };
 
-            cachedAccount = this.readAccountFromCache(accountInfo);
+            cachedAccount = this.cacheManager.readAccountFromCache(accountInfo);
         }
 
-        // look in the cache for the access_token which matches the incoming_assertion
-        const cachedAccessToken = this.cacheManager.readAccessTokenFromCache(userAssertionHash);
-        if (!cachedAccessToken ||
-            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
-
-            // Update the server telemetry outcome
-            this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+        // increment telemetry cache hit counter
+        if (this.config.serverTelemetryManager) {
+            this.config.serverTelemetryManager.incrementCacheHits();
         }
 
         return await ResponseHandler.generateAuthenticationResult(
@@ -105,16 +124,17 @@ export class OnBehalfOfClient extends BaseClient {
     }
 
     /**
-     * read idtoken from cache TODO: CacheManager API should be used here instead
+     * read idtoken from cache
      * @param request
      */
-    private readIdTokenFromCache(request: CommonOnBehalfOfRequest): IdTokenEntity | null {
+    private readIdTokenFromCache(request: CommonOnBehalfOfRequest, atHomeAccountId: string): IdTokenEntity | null {
+
         const idTokenFilter: CredentialFilter = {
+            homeAccountId: atHomeAccountId,
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ID_TOKEN,
             clientId: this.config.authOptions.clientId,
-            realm: this.authority.tenant,
-            oboAssertion: request.oboAssertion
+            realm: this.authority.tenant
         };
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(idTokenFilter);
@@ -127,11 +147,41 @@ export class OnBehalfOfClient extends BaseClient {
     }
 
     /**
-     * read account from cache, TODO: CacheManager API should be used here instead
-     * @param account
+     * Fetches the cached access token based on incoming assertion
+     * @param clientId
+     * @param request
+     * @param userAssertionHash
      */
-    private readAccountFromCache(account: AccountInfo): AccountEntity | null {
-        return this.cacheManager.readAccountFromCache(account);
+    private readAccessTokenFromCacheForOBO(clientId: string, request: CommonOnBehalfOfRequest) {
+        const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
+        /*
+         * Distinguish between Bearer and PoP/SSH token cache types
+         * Cast to lowercase to handle "bearer" from ADFS
+         */
+        const credentialType = (authScheme && authScheme.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
+
+        const accessTokenFilter: CredentialFilter = {
+            credentialType: credentialType,
+            clientId,
+            target: this.scopeSet.printScopesLowerCase(),
+            tokenType: authScheme,
+            keyId: request.sshKid,
+            requestedClaimsHash: request.requestedClaimsHash,
+            userAssertionHash: this.userAssertionHash
+        };
+
+        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
+
+        const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
+
+        const numAccessTokens = accessTokens.length;
+        if (numAccessTokens < 1) {
+            return null;
+        } else if (numAccessTokens > 1) {
+            throw ClientAuthError.createMultipleMatchingTokensInCacheError();
+        }
+
+        return accessTokens[0] as AccessTokenEntity;
     }
 
     /**
