@@ -195,7 +195,8 @@ export class TokenValidator {
             issuer: this.setIssuerParams(validationParams),
             audience: this.setAudienceParams(validationParams),
             subject: validationParams.subject,
-            typ: validationParams.validTypes[0]
+            typ: validationParams.validTypes[0],
+            clockTolerance: this.config.auth.clockSkew
         };
 
         // Verifies using JOSE's jwtVerify function. Returns payload and header

@@ -15,7 +15,7 @@ export type Configuration = {
 export type TokenValidationOptions = {
     authority?: string,
     protocolMode?: ProtocolMode
-    clockSkew?: Number,
+    clockSkew?: number,
 };
 
 export type SystemOptions = {
