@@ -494,6 +494,34 @@ describe("TokenValidator", () => {
 
     });
 
+    describe("setClockTolerance", () => {
+
+        it("returns clockSkew if set to positive integer", () => {
+            const result = validator.setClockTolerance(300);
+
+            expect(result).toEqual(300);
+        });
+
+        it("returns clockSkew if set to zero", () => {
+            const result = validator.setClockTolerance(0);
+
+            expect(result).toEqual(0);
+        });
+
+        it("throw error if validAudiences is negative integer", () => {
+            try {
+                validator.setClockTolerance(-1)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ValidationConfigurationError);
+
+                const error = e as ValidationConfigurationError;
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.negativeClockSkew.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.negativeClockSkew.desc);
+            }
+        });
+
+    });
+
 
     describe("validateClaims", () => {
 

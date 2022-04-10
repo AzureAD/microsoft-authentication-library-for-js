@@ -32,6 +32,10 @@ export const ValidationConfigurationErrorMessage = {
     invalidAuthenticationScheme: {
         code: "invalid_auth_scheme",
         desc: "Invalid authentication scheme. Only bearer is supported by the library at this time."
+    },
+    negativeClockSkew: {
+        code: "negative_clock_skew",
+        desc: "Invalid clock skew value. Clock skew must be a positive integer."
     }
 };
 
@@ -70,4 +74,7 @@ export class ValidationConfigurationError extends ClientConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code, `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`);
     }
 
+    static createNegativeClockSkewError(): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.negativeClockSkew.code, ValidationConfigurationErrorMessage.negativeClockSkew.desc);
+    }
 }

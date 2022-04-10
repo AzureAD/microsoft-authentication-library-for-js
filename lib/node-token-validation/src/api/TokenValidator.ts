@@ -196,7 +196,7 @@ export class TokenValidator {
             audience: this.setAudienceParams(validationParams),
             subject: validationParams.subject,
             typ: validationParams.validTypes[0],
-            clockTolerance: this.config.auth.clockSkew
+            clockTolerance: this.setClockTolerance(this.config.auth.clockSkew)
         };
 
         // Verifies using JOSE's jwtVerify function. Returns payload and header
@@ -272,6 +272,22 @@ export class TokenValidator {
         }
 
         return options.validAudiences;
+    }
+
+    /**
+     * Function to check that the clockSkew configuration is a positive integer. Throws negativeClockSkew error if not.
+     * @param config 
+     * @returns 
+     */
+    setClockTolerance(clockSkew: number): number {
+        this.logger.trace("TokenValidator.setClockTolerance called");
+
+        // Check that the clockSkew value is a positive integer
+        if (clockSkew < 0) {
+            throw ValidationConfigurationError.createNegativeClockSkewError();
+        }
+
+        return clockSkew;
     }
  
     /**
