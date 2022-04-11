@@ -6,7 +6,7 @@
 import { StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { Algorithms } from "../utils/CryptoConstants";
+import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
 
 /**
  * JOSE Header Parameter specification
@@ -72,8 +72,13 @@ export class JsonWebEncryption {
         const length = str.length;
         const data = new Uint8Array(length);
 
-        /* mapping... */
+        // Maps authenticaed data string into unicode byte array
         for (let charIndex = 0; charIndex < length; charIndex++) {
+            /**
+             * Decode character at index and truncate to the
+             * last 8 bits (& 255) before assigning since
+             * it's a Uint8 Array
+             */
             data[charIndex] = str.charCodeAt(charIndex) & 255;
         }
 
@@ -93,7 +98,7 @@ export class JsonWebEncryption {
     async unwrap(unwrappingKey: CryptoKey, keyUsages: KeyUsage[]): Promise<CryptoKey> {
         const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
         const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, encryptedKeyBuffer);
-        return await window.crypto.subtle.importKey("raw", contentEncryptionKey, this.unwrappingAlgorithms.encryption , false, keyUsages);
+        return await window.crypto.subtle.importKey(CryptoKeyFormats.raw, contentEncryptionKey, this.unwrappingAlgorithms.encryption , false, keyUsages);
     }
 
     /**

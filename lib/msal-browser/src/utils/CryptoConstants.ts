@@ -26,7 +26,8 @@ export const PUBLIC_EXPONENT = new Uint8Array([0x01, 0x00, 0x01]);
  * JWK Key Format string (Type MUST be defined for window crypto APIs)
  */
 export enum CryptoKeyFormats  {
-    jwk = "jwk"
+    jwk = "jwk",
+    raw = "raw"
 }
 
 // Crypto Key Usage sets
