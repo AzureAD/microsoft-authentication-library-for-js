@@ -38,7 +38,7 @@ export class TokenValidator {
      */
     constructor(configuration?: Configuration) {
         // Set the configuration
-        this.config = configuration ? buildConfiguration(configuration) : buildConfiguration();
+        this.config = buildConfiguration(configuration);
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
