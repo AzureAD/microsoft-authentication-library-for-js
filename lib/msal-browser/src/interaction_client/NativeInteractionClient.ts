@@ -168,7 +168,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
         let responseAccessToken;
         let responseTokenType: AuthenticationScheme = AuthenticationScheme.BEARER;
-        switch (request.tokenType) {
+        switch (request.token_type) {
             case AuthenticationScheme.POP: {
                 // Set the token type to POP in the response
                 responseTokenType = AuthenticationScheme.POP;
