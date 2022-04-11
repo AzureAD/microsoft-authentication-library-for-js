@@ -279,7 +279,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            instanceAware: instanceAware,
+            instance_aware: instanceAware,
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
@@ -301,7 +301,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const cnf = await popTokenGenerator.generateCnf(shrParameters);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.reqCnf = await popTokenGenerator.generateCnfHash(cnf);
+            validatedRequest.req_cnf = await popTokenGenerator.generateCnfHash(cnf);
         }
 
         if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
