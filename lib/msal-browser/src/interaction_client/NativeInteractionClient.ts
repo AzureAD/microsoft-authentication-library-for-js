@@ -280,6 +280,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
             instance_aware: instanceAware,
+            token_type: request.authenticationScheme,
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
