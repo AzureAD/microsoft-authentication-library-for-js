@@ -146,6 +146,17 @@ export class TokenValidator {
                     this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response but idTokenOptions not passed. Id token is not validated");
                 } else {
                     this.logger.verbose("TokenValidator.validateTokenFromResponse - id token present on response, validating");
+
+                    // Add code for validating c_hash if present
+                    if (response.code) {
+                        idTokenOptions.code = response.code;
+                    }
+
+                    // Add access token for validating at_hash if present
+                    if (response.accessToken) {
+                        idTokenOptions.accessTokenForAtHash = response.accessToken;
+                    }
+
                     const validateIdTokenResponse: TokenValidationResponse = await this.validateToken(response.idToken, idTokenOptions);
                     validateResponse.push(validateIdTokenResponse);
                 }

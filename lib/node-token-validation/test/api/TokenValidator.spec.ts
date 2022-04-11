@@ -235,7 +235,7 @@ describe("TokenValidator", () => {
             expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
-        it("does not validate id token if present but idTokenOptions not passed in ", async () => {
+        it("does not validate id token if present but idTokenOptions not passed in", async () => {
             const msalResponse = {
                 idToken: "id-token",
                 tokenType: "Bearer"
@@ -248,6 +248,72 @@ describe("TokenValidator", () => {
             expect(result).toEqual([]);
 
             expect(validateTokenSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("validates id token with code if code returned in response", async () => {
+            const msalResponse = {
+                idToken: "id-token",
+                tokenType: "Bearer",
+                code: "code1234"
+            } as AuthenticationResult;
+
+            const validateTokenResponse = {
+                token: "id-token",
+                tokenType: "JWT"
+            };
+
+            const idTokenOptions = {
+                validIssuers: ["issuer"],
+                validAudiences: ["audiences"]
+            };
+
+            const validateTokenOptionsWithCode = {
+                ...idTokenOptions,
+                code: "code1234"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromResponse(msalResponse, idTokenOptions);
+
+            expect(result).toEqual([validateTokenResponse]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith('id-token', validateTokenOptionsWithCode);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+        it("validates id token with accessToken if accessToken returned in response", async () => {
+            const msalResponse = {
+                idToken: "id-token",
+                tokenType: "Bearer",
+                accessToken: "access-token"
+            } as AuthenticationResult;
+
+            const validateTokenResponse = {
+                token: "id-token",
+                tokenType: "JWT"
+            };
+
+            const idTokenOptions = {
+                validIssuers: ["issuer"],
+                validAudiences: ["audiences"]
+            };
+
+            const validateTokenOptionsWithAccessToken = {
+                ...idTokenOptions,
+                accessTokenForAtHash: "access-token"
+            }
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromResponse(msalResponse, idTokenOptions);
+
+            expect(result).toEqual([validateTokenResponse]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith('id-token', validateTokenOptionsWithAccessToken);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
         it("validates access token if present on msal response and options provided", async () => {
