@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-node_v1.8.0",
+      "version": "1.8.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "prithviraj.kanherkar@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b3cc863ed0decc5a088d16ee0c9489dbb44a4bff",
+            "comment": "Add Client Application telemetry parameters to MSAL #4616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "561749e626ffa0ac14e0708dda0eb3b7ea208780",
+            "comment": "Use IGuidGenerator interface for GuidGenerator class #4570"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Mar 2022 23:28:43 GMT",
       "tag": "@azure/msal-node_v1.7.0",
       "version": "1.7.0",
