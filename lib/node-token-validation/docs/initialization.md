@@ -3,7 +3,6 @@
 In this document:
 - [Initializing the TokenValidator](#initializing-the-tokenvalidator)
   - [Configuration Basics](#configuration-basics)
-  - [Advanced Configuration](#advanced-configuration)
 - [Next Steps](#next-steps)
 
 ## Initializing the TokenValidator
@@ -18,7 +17,7 @@ const tokenValidator = new nodeTokenValidation.TokenValidator();
 
 ### Configuration Basics
 
-Configurations for the `TokenValidator` are optional, and will be instantiated with defaults if not passed in. 
+Configurations for the `TokenValidator` are optional, and will be instantiated with defaults if not passed in. Details on configuration
 
 See below for an example initialization and configuration:
 
@@ -46,9 +45,6 @@ const config = {
 
 const tokenValidator = new nodeTokenValidation.TokenValidator(config);
 ```
-
-### Advanced Configuration
-More configuration options are documented [here](./configuration.md).
 
 ## Next steps
 

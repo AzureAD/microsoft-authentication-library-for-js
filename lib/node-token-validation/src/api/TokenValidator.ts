@@ -15,7 +15,8 @@ import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { ValidationError } from "../error/ValidationError";
 
 /**
- * The TokenValidator class is the object exposed by the library to perform token validation.
+ * The TokenValidator class is the object exposed by the library to perform token validation and contains APIs for token validation.
+ * 
  */
 export class TokenValidator {
 
@@ -32,11 +33,13 @@ export class TokenValidator {
     protected openIdConfigProvider: OpenIdConfigProvider;
 
     /**
-     * Constructor for the TokenValidator class
-     * @param configuration Object for the TokenValidator instance
+     * Constructor for the TokenValidator class used to instantiate the TokenValidator object.
+     * 
+     * The Configuration object is optional, and default configuration options will be used when passed in. See Configuration.ts for more details on configuration options..
+     * @param {@link (Configuration:type)}
      */
     constructor(configuration: Configuration) {
-        // Set the configuration
+        // Build configurations from options passed in or defaults
         this.config = buildConfiguration(configuration);
 
         // Initialize logger
@@ -50,7 +53,45 @@ export class TokenValidator {
     }
 
     /**
-     * Base function that validates tokens against options provided.
+     * Base function for token validation.
+     * 
+     * VALIDATION
+     * 
+     * `validateToken` takes in a JWT token and options in the form of TokenValidationParameters, which must be set for the token to be validated.
+     * `validateToken` may be called directly, or called by other TokenValidator APIs.
+     * 
+     * `TokenValidationParameters` are built and defaults added if not already set.
+     * See TokenValidationParameters for more details.
+     * 
+     * The following operations are then performed on the token by the JOSE library:
+     * - Verifies the JWT format
+     * - Verifies the JWS signature
+     * - Validates the JWT claims set
+     * See documentation for more details on JOSE: https://github.com/panva/jose
+     * 
+     * `validateToken also performs the following additional operations on the token:
+     * - Validates additional claims for id tokens (nonce, c_hash, at_hash)
+     * 
+     * RETURNS
+     * 
+     * `validateToken` returns a `TokenValidationResponse`. See doc for more details.
+     * 
+     * ERRORS
+     * 
+     * The following configuration errors from the Node Token Validation library may be thrown. Ensure the missing token/claims are present before validating.
+     * - Missing token error
+     * - Empty issuer error
+     * - Empty audience error
+     * - Missing nonce error
+     * - Invalid metadata error
+     * 
+     * The following validation errors from the Node Token Validation library may be thrown. This indicates an invalid token.
+     * - Invalid nonce error
+     * - Invalid c_hash error
+     * - Invalid at_hash error
+     * 
+     * Additional errors regarding the JWS signature or JWT claims may be thrown by the JOSE library. These errors indicate an invalid token.
+     * 
      * @param token JWT token to be validated
      * @param {@link (TokenValidationParameters:type)}
      * @returns {Promise.<TokenValidationResponse>}
@@ -94,7 +135,7 @@ export class TokenValidator {
     }
     
     /**
-     * Function to return JWKS (JSON Web Key Set) from parameters provided, jwks_uri provided, or from well-known endpoint
+     * Function to return JWKS (JSON Web Key Set) from parameters provided, jwks_uri provided, or from well-known endpoint.
      * @param {@link (BaseValidationParameters:type)}
      * @returns 
      */
@@ -155,6 +196,11 @@ export class TokenValidator {
  
     /**
      * Function to validate additional claims on token, including nonce, c_hash, and at_hash. No return, throws error if invalid.
+     * 
+     * OIDC specification for validating nonce on id tokens: https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
+     * 
+     * OIDC specification for c_hash and at_hash validation: https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
+     * 
      * @param payload JWT payload
      * @param {@link (BaseValidationParameters:type)} 
      */
@@ -202,7 +248,7 @@ export class TokenValidator {
     }
 
     /**
-     * Function to check hash per OIDC spec, section 3.3.2.11 https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
+     * Function to check hash for c_hash and at_hash per OIDC spec, section 3.3.2.11 https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
      * @param content 
      * @param hashProvided 
      * @returns 

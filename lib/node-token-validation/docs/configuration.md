@@ -34,7 +34,7 @@ const config = {
 | ------ | ----------- | ------ | ------------- |
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints. | string | `"OIDC"` |
-| `clockSkew` | | number | 0 |
+| `clockSkew` | Clock skew (in seconds) allowed in token validation. Must be a positive integer. | number | 0 |
 
 ### System Config Options
 
