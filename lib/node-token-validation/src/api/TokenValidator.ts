@@ -100,7 +100,7 @@ export class TokenValidator {
 
         // Validates token if found in authorization header
         if (request.headers && request.headers.authorization) {
-            const authComponents = request.headers.authorization.split(" ");
+            const [ scheme, token ] = request.headers.authorization.split(" ");
             
             // Validates token if authorization header is bearer
             if (authComponents.length === 2 && authComponents[0].toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
@@ -114,7 +114,7 @@ export class TokenValidator {
         } 
         
         // Validates token if found in request body
-        if (request.body && request.body.access_token) {
+        if (request.body?.access_token) {
             this.logger.verbose("Token extracted from request body");
             return this.validateToken(request.body.access_token, options);
         }
