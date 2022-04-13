@@ -39,7 +39,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - acquireToken called.");
-        const nativeRequest = this.initializeNativeRequest(request);
+        const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
@@ -58,7 +58,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         this.logger.trace("NativeInteractionClient - acquireTokenRedirect called.");
-        const nativeRequest = this.initializeNativeRequest(request);
+        const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
@@ -167,14 +167,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
         let responseAccessToken;
-        switch (request.tokenType) {
+        let responseTokenType: AuthenticationScheme = AuthenticationScheme.BEARER;
+        switch (request.token_type) {
             case AuthenticationScheme.POP: {
+                // Set the token type to POP in the response
+                responseTokenType = AuthenticationScheme.POP;
+
                 // Check if native layer returned an SHR token
                 if (response.shr) {
                     this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
                     responseAccessToken = response.shr;
                     break;
                 }
+
                 // Generate SHR in msal js if WAM does not compute it when POP is enabled
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.browserCrypto);
                 const shrParameters: SignedHttpRequestParameters = {
@@ -204,7 +209,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             accessToken: responseAccessToken,
             fromCache: false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
-            tokenType: AuthenticationScheme.BEARER,
+            tokenType: responseTokenType,
             correlationId: this.correlationId,
             state: response.state,
             fromNativeBroker: true
@@ -241,7 +246,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
-    protected initializeNativeRequest(request: PopupRequest|SsoSilentRequest): NativeTokenRequest {
+    protected async initializeNativeRequest(request: PopupRequest|SsoSilentRequest): Promise<NativeTokenRequest> {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
 
         const authority = request.authority || this.config.auth.authority;
@@ -265,6 +270,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         }
 
         const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
+
         const validatedRequest: NativeTokenRequest = {
             ...request,
             accountId: this.accountId,
@@ -273,13 +279,31 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            instanceAware: instanceAware,
+            instance_aware: instanceAware,
+            token_type: request.authenticationScheme,
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
             },
             extendedExpiryToken: false // Make this configurable?
         };
+
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+
+            // add POP request type
+            const shrParameters: SignedHttpRequestParameters = {
+                resourceRequestUri: request.resourceRequestUri,
+                resourceRequestMethod: request.resourceRequestMethod,
+                shrClaims: request.shrClaims,
+                shrNonce: request.shrNonce
+            };
+
+            const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
+            const cnf = await popTokenGenerator.generateCnf(shrParameters);
+
+            // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+            validatedRequest.req_cnf = await popTokenGenerator.generateCnfHash(cnf);
+        }
 
         if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
             validatedRequest.prompt = PromptValue.NONE;
