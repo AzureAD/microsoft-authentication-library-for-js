@@ -372,26 +372,31 @@ export abstract class ClientApplication {
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
+        const validRequest = {
+            ...request,
+            prompt: PromptValue.NONE,
+            correlationId: correlationId
+        };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
         this.logger.verbose("ssoSilent called", correlationId);
-        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(request)) {
-            result = this.acquireTokenNative(request, ApiId.ssoSilent).catch((e: AuthError) => {
+        if (this.canUseNative(validRequest)) {
+            result = this.acquireTokenNative(validRequest, ApiId.ssoSilent).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                    return silentIframeClient.acquireToken(request);
+                    const silentIframeClient = this.createSilentIframeClient(validRequest.correlationId);
+                    return silentIframeClient.acquireToken(validRequest);
                 }
                 throw e;
             });
         } else {
-            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-            result = silentIframeClient.acquireToken(request);
+            const silentIframeClient = this.createSilentIframeClient(validRequest.correlationId);
+            result = silentIframeClient.acquireToken(validRequest);
         }
 
         return result.then((response) => {
@@ -471,8 +476,6 @@ export abstract class ClientApplication {
                         // If native token acquisition fails for availability reasons fallback to standard flow
                         if (e instanceof NativeAuthError && e.isFatal()) {
                             this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                            return silentIframeClient.acquireToken(request);
                         }
                         throw e;
                     });
