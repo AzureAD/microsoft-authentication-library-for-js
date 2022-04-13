@@ -1597,14 +1597,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
-                throw new Error("testError");
+                throw new NativeAuthError("ContentError", "something went wrong in the extension");
             });
 
             await pca.acquireTokenByCode({
                 scopes: ["User.Read"],
                 nativeAccountId: "test-nativeAccountId"
             }).catch(e => {
-                expect(e.message).toEqual("testError");
+                expect(e.errorCode).toEqual("ContentError");
             });
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
         });
