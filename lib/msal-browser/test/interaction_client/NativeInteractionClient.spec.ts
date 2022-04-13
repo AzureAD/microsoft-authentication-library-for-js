@@ -12,7 +12,7 @@ import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS } from "../utils/StringConstants";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { AuthenticationResult } from "@azure/msal-common";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { PromptValue } from "@azure/msal-common";
 import { NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
 

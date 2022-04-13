@@ -29,6 +29,10 @@ import { AuthorizationCodeRequest, BrowserConfigurationAuthError, EndSessionRequ
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
+import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
+import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest";
+import { NativeAuthError } from "../../src/error/NativeAuthError";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -37,6 +41,7 @@ const cacheConfig = {
 };
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
+    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
     beforeEach(() => {
         pca = new PublicClientApplication({
@@ -64,6 +69,60 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca).not.toBe(null);
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
+        });
+    });
+
+    describe("intialize tests", () => {
+        it("creates extension provider if allowNativeBroker is true", async () => {
+            const createProviderSpy = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+            });
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+            await pca.initialize();
+            expect(createProviderSpy.called).toBeTruthy();
+            // @ts-ignore
+            expect(pca.nativeExtensionProvider).toBeInstanceOf(NativeMessageHandler);
+        });
+
+        it("does not create extension provider if allowNativeBroker is false", async () => {
+            const createProviderSpy = sinon.spy(NativeMessageHandler, "createProvider");
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: false
+                }
+            });
+            await pca.initialize();
+            expect(createProviderSpy.called).toBeFalsy();
+            // @ts-ignore
+            expect(pca.nativeExtensionProvider).toBeUndefined();
+        });
+
+        it("catches error if extension provider fails to initialize", async () => {
+            const createProviderSpy = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                throw new Error("testError");
+            });
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+            await pca.initialize();
+            expect(createProviderSpy.called).toBeTruthy();
+            // @ts-ignore
+            expect(pca.nativeExtensionProvider).toBeUndefined();
         });
     });
 
@@ -100,6 +159,70 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     loginSuccessFired = true;
                 }
             });
+            const response = await pca.handleRedirectPromise();
+            expect(response).toEqual(testTokenResponse);
+            expect(redirectClientSpy.calledOnce).toBe(true);
+            expect(loginSuccessFired).toBe(true);
+        });
+
+        it("Calls NativeInteractionClient.handleRedirectPromise and returns its response", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+                fromNativeBroker: true
+            };
+
+            const nativeRequest: NativeTokenRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                accountId: testAccount.nativeAccountId!,
+                redirectUri: window.location.href,
+                correlationId: RANDOM_TEST_GUID
+            }
+            // @ts-ignore
+            pca.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(nativeRequest), true);
+            const redirectClientSpy = sinon.stub(NativeInteractionClient.prototype, "handleRedirectPromise").callsFake(() => {
+                sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+                return Promise.resolve(testTokenResponse);
+            });
+            let loginSuccessFired = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.LOGIN_SUCCESS) {
+                    loginSuccessFired = true;
+                }
+            });
+            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+            });
+            await pca.initialize();
             const response = await pca.handleRedirectPromise();
             expect(response).toEqual(testTokenResponse);
             expect(redirectClientSpy.calledOnce).toBe(true);
@@ -341,6 +464,123 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenRedirect", () => {
+        it("goes directly to the native broker if nativeAccountId is present", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId"
+            };
+
+            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+            });
+            await pca.initialize();
+            const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
+                return;
+            });
+            const redirectSpy = sinon.stub(RedirectClient.prototype, "acquireToken").callsFake(async () => {
+                return;
+            });
+            await pca.acquireTokenRedirect({
+                scopes: ["User.Read"],
+                account: testAccount
+            });
+
+            expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
+            expect(redirectSpy.calledOnce).toBeFalsy();
+        });
+
+        it("falls back to web flow if native broker call fails due to fatal error", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId"
+            };
+
+            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+            });
+            await pca.initialize();
+            const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
+                throw new NativeAuthError("ContentError", "error in extension");
+            });
+            const redirectSpy = sinon.stub(RedirectClient.prototype, "acquireToken").callsFake(async () => {
+                return;
+            });
+            await pca.acquireTokenRedirect({
+                scopes: ["User.Read"],
+                account: testAccount
+            });
+
+            expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
+            expect(redirectSpy.calledOnce).toBeTruthy();
+        });
+
+        it("throws error if native broker call fails due to non-fatal error", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com",
+                nativeAccountId: "test-nativeAccountId"
+            };
+
+            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+            });
+            await pca.initialize();
+            const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
+                throw new Error("testError");
+            });
+            const redirectSpy = sinon.stub(RedirectClient.prototype, "acquireToken").callsFake(async () => {
+                return;
+            });
+
+            await pca.acquireTokenRedirect({
+                scopes: ["User.Read"],
+                account: testAccount
+            }).catch(e => {
+                expect(e.message).toEqual("testError");
+            });
+            expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
+            expect(redirectSpy.calledOnce).toBeFalsy();
+
+        });
+
         it("doesnt mutate request correlation id", async () => {
             const request: SilentRequest = {
                 scopes: []
