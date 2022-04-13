@@ -12,6 +12,7 @@ import { ValidationConfigurationError } from "../error/ValidationConfigurationEr
 import { ValidationError } from "../error/ValidationError";
 import { ExpressNextFunction, ExpressRequest, ExpressResponse } from "../request/MiddlewareTypes";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
+import { TokenValidationMiddlewareResponse } from "../response/TokenValidationMiddlewareResponse";
 import { name, version } from "../packageMetadata";
 import crypto from "crypto";
 
@@ -56,7 +57,7 @@ export class TokenValidator {
      * @param resource Optional resource to retrieve access token from session 
      * @returns 
      */
-    validateTokenMiddleware(options: TokenValidationParameters, resource?: string): Function {
+    validateTokenMiddleware(options: TokenValidationParameters, resource?: string): TokenValidationMiddlewareResponse {
 
         // @ts-ignore 
         return (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
@@ -103,8 +104,7 @@ export class TokenValidator {
             const [ scheme, token ] = request.headers.authorization.split(" ");
             
             // Validates token if authorization header is bearer
-            if (authComponents.length === 2 && authComponents[0].toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
-                const token: string = authComponents[1];
+            if (scheme.toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
                 this.logger.verbose("Bearer token extracted from request authorization headers");
                 return this.validateToken(token, options);
             } else {
@@ -132,7 +132,7 @@ export class TokenValidator {
         this.logger.trace("TokenValidator.validateTokenFromResponse called");
 
         // Only validates token if tokenType from response is Bearer
-        if (response.tokenType === AuthenticationScheme.BEARER) {
+        if (response.tokenType.toLowerCase() === AuthenticationScheme.BEARER.toLowerCase()) {
             this.logger.verbose("TokenValidator - Bearer authentication scheme confirmed");
             const validateResponse:TokenValidationResponse[] = [];
 
