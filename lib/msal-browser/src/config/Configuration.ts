@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ApplicationTelemetry } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -21,11 +21,11 @@ export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
- * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
- * - postLogoutRedirectUri      - The redirect URI where the window navigates after a successful logout.
- * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
- * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
- * - protocolMode               - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * - redirectUri                 - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
+ * - postLogoutRedirectUri       - The redirect URI where the window navigates after a successful logout.
+ * - navigateToLoginRequestUrl   - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
+ * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
+ * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -38,14 +38,15 @@ export type BrowserAuthOptions = {
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
  * Use this to configure the below cache configuration options:
  *
- * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
- * - storeAuthStateInCookie   - If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
- * - secureCookies            - If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
+ * - cacheLocation              - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
+ * - storeAuthStateInCookie     - If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - secureCookies              - If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
  */
 export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
@@ -81,23 +82,36 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 /**
+ * Telemetry Options
+ * - application: Telemetry information sent on request
+ *     - appName: Unique string name of an application
+ *     - appVersion: Version of the application using MSAL
+ */
+export type BrowserTelemetryOptions = {
+    application?: ApplicationTelemetry;
+};
+
+/**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
  * This object allows you to configure important elements of MSAL functionality:
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location and whether to store cache in cookies
  * - system: this is where you can configure the network client, logger, token renewal offset
+ * - telemetry: this is where you can configure telemetry data and options
  */
 export type Configuration = {
     auth: BrowserAuthOptions,
     cache?: CacheOptions,
-    system?: BrowserSystemOptions
+    system?: BrowserSystemOptions,
+    telemetry?: BrowserTelemetryOptions
 };
 
 export type BrowserConfiguration = {
     auth: Required<BrowserAuthOptions>,
     cache: Required<CacheOptions>,
-    system: Required<BrowserSystemOptions>
+    system: Required<BrowserSystemOptions>,
+    telemetry: Required<BrowserTelemetryOptions>
 };
 
 /**
@@ -109,20 +123,24 @@ export type BrowserConfiguration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, telemetry: userInputTelemetry }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
 
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
-        clientId: "",
+        clientId: Constants.EMPTY_STRING,
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
-        cloudDiscoveryMetadata: "",
-        authorityMetadata: "",
-        redirectUri: "",
-        postLogoutRedirectUri: "",
+        cloudDiscoveryMetadata: Constants.EMPTY_STRING,
+        authorityMetadata: Constants.EMPTY_STRING,
+        redirectUri: Constants.EMPTY_STRING,
+        postLogoutRedirectUri: Constants.EMPTY_STRING,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD
+        protocolMode: ProtocolMode.AAD,
+        azureCloudOptions: {
+            azureCloudInstance: AzureCloudInstance.None,
+            tenant: Constants.EMPTY_STRING
+        },
     };
 
     // Default cache options for browser
@@ -156,10 +174,18 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         allowRedirectInIframe: false
     };
 
+    const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
+        application: {
+            appName: Constants.EMPTY_STRING,
+            appVersion: Constants.EMPTY_STRING
+        }
+    };
+
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem }
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem },
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
     };
     return overlayedConfig;
 }

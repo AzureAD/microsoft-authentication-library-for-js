@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clear hash only if it contains known response properties #4415",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

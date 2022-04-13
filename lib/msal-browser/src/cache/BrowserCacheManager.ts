@@ -20,18 +20,18 @@ import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 export class BrowserCacheManager extends CacheManager {
 
     // Cache configuration, either set by user or default values.
-    private cacheConfig: Required<CacheOptions>;
+    protected cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
-    private browserStorage: IWindowStorage<string>;
+    protected browserStorage: IWindowStorage<string>;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
-    private internalStorage: MemoryStorage<string>;
+    protected internalStorage: MemoryStorage<string>;
     // Temporary cache
-    private temporaryCacheStorage: IWindowStorage<string>;
+    protected temporaryCacheStorage: IWindowStorage<string>;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
-    private logger: Logger;
+    protected logger: Logger;
 
     // Cookie life calculation (hours * minutes * seconds * ms)
-    private readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
+    protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
     constructor(clientId: string, cacheConfig: Required<CacheOptions>, cryptoImpl: ICrypto, logger: Logger) {
         super(clientId, cryptoImpl);
@@ -50,7 +50,7 @@ export class BrowserCacheManager extends CacheManager {
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
      * @param cacheLocation
      */
-    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
+    protected setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
@@ -73,7 +73,7 @@ export class BrowserCacheManager extends CacheManager {
      *
      * @param cacheLocation
      */
-    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
+    protected setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
@@ -94,7 +94,7 @@ export class BrowserCacheManager extends CacheManager {
      * Migrate all old cache entries to new schema. No rollback supported.
      * @param storeAuthStateInCookie
      */
-    private migrateCacheEntries(): void {
+    protected migrateCacheEntries(): void {
         const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
         const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
         const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
@@ -117,7 +117,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      * @param storeAuthStateInCookie
      */
-    private migrateCacheEntry(newKey: string, value: string|null): void {
+    protected migrateCacheEntry(newKey: string, value: string|null): void {
         if (value) {
             this.setTemporaryCache(newKey, value, true);
         }
@@ -127,7 +127,7 @@ export class BrowserCacheManager extends CacheManager {
      * Parses passed value as JSON object, JSON.parse() will throw an error.
      * @param input
      */
-    private validateAndParseJson(jsonValue: string): object | null {
+    protected validateAndParseJson(jsonValue: string): object | null {
         try {
             const parsedJson = JSON.parse(jsonValue);
             /**
@@ -381,8 +381,8 @@ export class BrowserCacheManager extends CacheManager {
      * Returns wrapper metadata from in-memory storage
      */
     getWrapperMetadata(): [string, string] {
-        const sku = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) || "";
-        const version = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) || "";
+        const sku = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) || Constants.EMPTY_STRING;
+        const version = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) || Constants.EMPTY_STRING;
         return [sku, version];
     }
 
@@ -621,7 +621,7 @@ export class BrowserCacheManager extends CacheManager {
                 return decodeURIComponent(cookie.substring(name.length, cookie.length));
             }
         }
-        return "";
+        return Constants.EMPTY_STRING;
     }
 
     /**
@@ -647,7 +647,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param cookieName
      */
     clearItemCookie(cookieName: string): void {
-        this.setItemCookie(cookieName, "", -1);
+        this.setItemCookie(cookieName, Constants.EMPTY_STRING, -1);
     }
 
     /**
@@ -821,7 +821,7 @@ export class BrowserCacheManager extends CacheManager {
             const stateKey = this.generateStateKey(stateString);
             const cachedState = this.temporaryCacheStorage.getItem(stateKey);
             this.logger.infoPii(`BrowserCacheManager.cleanRequestByState: Removing temporary cache items for state: ${cachedState}`);
-            this.resetRequestCache(cachedState || "");
+            this.resetRequestCache(cachedState || Constants.EMPTY_STRING);
         }
         this.clearMsalCookies();
     }
@@ -909,13 +909,16 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     setInteractionInProgress(inProgress: boolean): void {
-        const clientId = this.getInteractionInProgress();
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
-        if (inProgress && !clientId) {
-            // No interaction is in progress
-            this.setTemporaryCache(key, this.clientId, false);
-        } else if (!inProgress && clientId === this.clientId) {
+        if (inProgress) {
+            if (this.getInteractionInProgress()) {
+                throw BrowserAuthError.createInteractionInProgressError();
+            } else {
+                // No interaction is in progress
+                this.setTemporaryCache(key, this.clientId, false);
+            }
+        } else if (!inProgress && this.getInteractionInProgress() === this.clientId) {
             this.removeItem(key);
         }
     }

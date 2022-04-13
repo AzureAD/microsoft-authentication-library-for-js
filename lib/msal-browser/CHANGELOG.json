@@ -2,6 +2,143 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-browser_v2.23.0",
+      "version": "2.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "561749e626ffa0ac14e0708dda0eb3b7ea208780",
+            "comment": "Add performance telemetry API #4570"
+          },
+          {
+            "author": "prithviraj.kanherkar@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b3cc863ed0decc5a088d16ee0c9489dbb44a4bff",
+            "comment": "Add Client Application telemetry parameters to MSAL #4616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be68c190f5561e1a8e7c3144cfee35a5dbc5f109",
+            "comment": "Fix persistent key store deletion on logout #4617"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/msal-browser_v2.22.1",
+      "version": "2.22.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "131bde21ec44897898a8f461e80d3865129b6b6e",
+            "comment": "Clear temporary cache when back button is clicked during redirect flow #4513"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8fba82a563a25eb92f5d071f0358ef24c4304595",
+            "comment": "Don't reassign request object properties #4563"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a67bd3b8d476268e1ac18840e6b03828c87f34d5",
+            "comment": "Unit tests only"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Feb 2022 00:41:06 GMT",
+      "tag": "@azure/msal-browser_v2.22.0",
+      "version": "2.22.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4c7418a6a76f29706ff0e5f7efd890d22fa4af0b",
+            "comment": "Add support for logout_hint #4450"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d576b7d35f8f24e53946c72bc78c0401a8d2dc86",
+            "comment": "Add AzureCloudInstance to JS libraries"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.1.0",
+            "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
+            "comment": "Test changes #4383"
+          },
+          {
+            "author": "sgo_2001@hotmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "27c04e7adc601b0855714540c2d55ab3dc8e5256",
+            "comment": "Fix typo in logger message #4385"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "5767008f8ef9f3b05aeba421cc4aa6c6bb616e86",
+            "comment": "fix: update package-lock files"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "67ce881faa2a6931320541d99de2efe4e9ba6a3f",
+            "comment": "Expose OIDC_DEFAULT_SCOPES constant #4280"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "729c4a180f8c4f8ba97856af9ad3d626ffad6416",
+            "comment": "Improve reliability of interaction_in_progress #4460"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6808be4858c97d4f7d31eda2b6d2a8403f8c6e0f",
+            "comment": "Clear hash only if it contains known response properties #4415"
+          },
+          {
+            "author": "prkanher@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "597d8d95e15f1bfc7e62a6346733661cc2454d12",
+            "comment": "Adding exports and other changes for extensibility #4459"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Jan 2022 00:20:29 GMT",
       "tag": "@azure/msal-browser_v2.21.0",
       "version": "2.21.0",

@@ -1,8 +1,48 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Apr 2022 21:12:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.23.0
+
+Mon, 04 Apr 2022 21:12:42 GMT
+
+### Minor changes
+
+- Add performance telemetry API #4570 (janutter@microsoft.com)
+- Add Client Application telemetry parameters to MSAL #4616 (prithviraj.kanherkar@microsoft.com)
+- Bump @azure/msal-common to v6.2.0
+
+### Patches
+
+- Fix persistent key store deletion on logout #4617 (hemoral@microsoft.com)
+
+## 2.22.1
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Clear temporary cache when back button is clicked during redirect flow #4513 (thomas.norling@microsoft.com)
+- Don't reassign request object properties #4563 (thomas.norling@microsoft.com)
+
+## 2.22.0
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Minor changes
+
+- Add support for logout_hint #4450 (hemoral@microsoft.com)
+- Add AzureCloudInstance to JS libraries (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v6.1.0
+
+### Patches
+
+- Expose OIDC_DEFAULT_SCOPES constant #4280 (thomas.norling@microsoft.com)
+- Improve reliability of interaction_in_progress #4460 (thomas.norling@microsoft.com)
+- Clear hash only if it contains known response properties #4415 (thomas.norling@microsoft.com)
+- Adding exports and other changes for extensibility #4459 (prkanher@microsoft.com)
 
 ## 2.21.0
 

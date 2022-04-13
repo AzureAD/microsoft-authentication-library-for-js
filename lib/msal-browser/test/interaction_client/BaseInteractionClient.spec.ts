@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import sinon from "sinon";
 import { AccountInfo, AccountEntity, TokenClaims } from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
-import sinon from "sinon";
 
 class testInteractionClient extends BaseInteractionClient {
     acquireToken(): Promise<void> {
@@ -25,13 +30,13 @@ describe("BaseInteractionClient", () => {
         });
 
         // @ts-ignore
-        testClient = new testInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler);
+        testClient = new testInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.performanceClient);
     });
 
     afterEach(() => {
         sinon.restore();
     });
-    
+
     describe("clearCacheOnLogout", () => {
         let testAccountInfo1: AccountInfo;
         let testAccountInfo2: AccountInfo;
@@ -104,7 +109,7 @@ describe("BaseInteractionClient", () => {
             expect(pca.getActiveAccount()).toBe(null);
         });
 
-        it("Removes account provided", async () => { 
+        it("Removes account provided", async () => {
             expect(pca.getAllAccounts().length).toBe(2);
             expect(pca.getActiveAccount()).toMatchObject(testAccountInfo1);
             await testClient.logout({account: testAccountInfo1});

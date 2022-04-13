@@ -1,8 +1,33 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Apr 2022 21:12:41 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.2.0
+
+Mon, 04 Apr 2022 21:12:41 GMT
+
+### Minor changes
+
+- Add support for rxjs v7 and Angular 13 #4605 (rginsburg@microsoft.com)
+- Bump @azure/msal-browser to v2.23.0
+
+## 2.1.2
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.22.1
+
+## 2.1.1
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.22.0
 
 ## 2.1.0
 

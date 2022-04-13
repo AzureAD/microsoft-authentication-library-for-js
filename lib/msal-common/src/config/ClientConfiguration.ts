@@ -10,6 +10,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../packageMetadata";
 import { Authority } from "../authority/Authority";
+import { AzureCloudInstance } from "../authority/AuthorityOptions";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
@@ -25,6 +26,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - authOptions                - Authentication for application
  * - cryptoInterface            - Implementation of crypto functions
  * - libraryInfo                - Library metadata
+ * - telemetry                  - Telemetry options and data
  * - loggerOptions              - Logging for application
  * - networkInterface           - Network implementation
  * - storageInterface           - Storage implementation
@@ -40,6 +42,7 @@ export type ClientConfiguration = {
     cryptoInterface?: ICrypto,
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
+    telemetry?: TelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
     serializableCache?: ISerializableTokenCache | null
@@ -53,6 +56,7 @@ export type CommonClientConfiguration = {
     networkInterface : INetworkModule,
     cryptoInterface : Required<ICrypto>,
     libraryInfo : LibraryInfo,
+    telemetry: Required<TelemetryOptions>,
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
@@ -73,6 +77,7 @@ export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
@@ -83,6 +88,7 @@ export type AuthOptions = {
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
+    proxyUrl?: string;
 };
 
 /**
@@ -121,9 +127,35 @@ export type ClientCredentials = {
     };
 };
 
+/**
+ * AzureCloudInstance specific options
+ *
+ * - azureCloudInstance             - string enum providing short notation for soverign and public cloud authorities
+ * - tenant                         - provision to provide the tenant info
+ */
+export type AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance;
+    tenant?: string,
+};
+
+export type TelemetryOptions = {
+    application: ApplicationTelemetry;
+};
+
+/**
+ * Telemetry information sent on request
+ * - appName: Unique string name of an application
+ * - appVersion: Version of the application using MSAL
+ */
+export type ApplicationTelemetry = {
+    appName: string;
+    appVersion: string;
+};
+
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false
+    preventCorsPreflight: false,
+    proxyUrl: Constants.EMPTY_STRING
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -132,7 +164,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: ""
+    correlationId: Constants.EMPTY_STRING
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
@@ -149,13 +181,25 @@ const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: Constants.SKU,
     version: version,
-    cpu: "",
-    os: ""
+    cpu: Constants.EMPTY_STRING,
+    os: Constants.EMPTY_STRING
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
-    clientSecret: "",
+    clientSecret: Constants.EMPTY_STRING,
     clientAssertion: undefined
+};
+
+const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance.None,
+    tenant: `${Constants.DEFAULT_COMMON_TENANT}`
+};
+
+const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
+    application: {
+        appName: "",
+        appVersion: ""
+    }
 };
 
 /**
@@ -175,13 +219,14 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation,
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
+        telemetry: telemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
     }: ClientConfiguration): CommonClientConfiguration {
-    
+
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
-    
+
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
@@ -191,6 +236,7 @@ export function buildClientConfiguration(
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
         serializableCache: serializableCache || null
@@ -204,6 +250,7 @@ export function buildClientConfiguration(
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
+        azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         ...authOptions
     };
 }

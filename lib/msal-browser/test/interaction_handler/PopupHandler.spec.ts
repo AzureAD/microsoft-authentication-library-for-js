@@ -155,7 +155,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             expect(() => popupHandler.initiateAuthRequest(null, {})).toThrow(BrowserAuthError);
         });
 
-        it("opens a popup window", () => {
+        it("opens a popup window", (done) => {
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -171,12 +171,13 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             window.open = (url?: string, target?: string, features?: string, replace?: boolean): Window => {
+                expect(url?.startsWith(TEST_URIS.ALTERNATE_INSTANCE)).toBe(true);
+                done();
                 return window;
             };
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
             popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name", popupWindowAttributes: {}});
-            expect(browserStorage.isInteractionInProgress(true)).toBe(true);
         });
     });
 

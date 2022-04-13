@@ -16,7 +16,8 @@ import {
     StringUtils,
     ClientAuthError,
     AzureRegionConfiguration,
-    AuthError
+    AuthError,
+    Constants
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -60,11 +61,11 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
-            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE] 
+            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE]
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
@@ -73,6 +74,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 validRequest.correlationId,
                 serverTelemetryManager,
                 azureRegionConfiguration,
+                request.azureCloudOptions
             );
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
             this.logger.verbose("Client credential client created", validRequest.correlationId);
@@ -101,12 +103,15 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ... await this.initializeBaseRequest(request)
         };
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
-                validRequest.correlationId
+                validRequest.correlationId,
+                undefined,
+                undefined,
+                request.azureCloudOptions
             );
             const oboClient = new OnBehalfOfClient(clientCredentialConfig);
             this.logger.verbose("On behalf of client created", validRequest.correlationId);
@@ -124,8 +129,8 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
         const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
         const certificate = configuration.auth.clientCertificate || {
-            thumbprint: "",
-            privateKey: ""
+            thumbprint: Constants.EMPTY_STRING,
+            privateKey: Constants.EMPTY_STRING
         };
         const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
 

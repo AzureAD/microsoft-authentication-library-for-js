@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, RequestThumbprint } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, PerformanceEvents, Constants, RequestThumbprint } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -61,8 +61,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
-        this.logger.verbose("loginRedirect called");
-        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginRedirect called", correlationId);
+        return this.acquireTokenRedirect({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
     }
 
     /**
@@ -73,8 +77,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("loginPopup called");
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginPopup called", correlationId);
+        return this.acquireTokenPopup({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
     }
 
     /**
@@ -84,15 +92,17 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        const correlationId = this.getRequestCorrelationId(request);
+        const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("acquireTokenSilent called", request.correlationId);
+        this.logger.verbose("acquireTokenSilent called", correlationId);
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
-            authority: request.authority || "",
+            authority: request.authority || Constants.EMPTY_STRING,
             scopes: request.scopes,
             homeAccountIdentifier: account.homeAccountId,
             claims: request.claims,
@@ -105,20 +115,37 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
-            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
-            const response = this.acquireTokenSilentAsync(request, account)
+            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
+            const response = this.acquireTokenSilentAsync({
+                ...request,
+                correlationId
+            }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: result.fromCache
+                    });
+                    atsMeasurement.flushMeasurement();
                     return result;
                 })
                 .catch((error) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        success: false
+                    });
+                    atsMeasurement.flushMeasurement();
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
             return response;
         } else {
-            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
+            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
+            atsMeasurement.endMeasurement({
+                success: true
+            });
+            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
+            atsMeasurement.discardMeasurement();
             return cachedResponse;
         }
     }
@@ -129,20 +156,36 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (AccountInfo:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
-    private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult> {
+        const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, request.correlationId);
         const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
-        return silentCacheClient.acquireToken(silentRequest).catch(async () => {
-            try {
-                const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
-                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
-                return tokenRenewalResult;
-            } catch (tokenRenewalError) {
-                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-                throw tokenRenewalError;
-            }
-        });
+        return silentCacheClient.acquireToken(silentRequest)
+            .then((result: AuthenticationResult) => {
+                astsAsyncMeasurement.endMeasurement({
+                    success: true,
+                    fromCache: result.fromCache
+                });
+                return result;
+            })
+            .catch(async () => {
+                try {
+                    const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
+                    this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                    astsAsyncMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: tokenRenewalResult.fromCache
+                    });
+                    return tokenRenewalResult;
+                } catch (tokenRenewalError) {
+                    this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                    astsAsyncMeasurement.endMeasurement({
+                        success: false
+                    });
+                    throw tokenRenewalError;
+                }
+            });
     }
 }

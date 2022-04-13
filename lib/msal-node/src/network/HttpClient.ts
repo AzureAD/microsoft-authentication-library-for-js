@@ -4,12 +4,14 @@
  */
 
 import {
+    Constants,
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
 import { HttpMethod } from "../utils/Constants";
 import axios, { AxiosRequestConfig } from "axios";
+import createHttpsProxyAgent from "https-proxy-agent";
 
 /**
  * This class implements the API for network requests.
@@ -23,7 +25,7 @@ export class HttpClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
@@ -31,8 +33,14 @@ export class HttpClient implements INetworkModule {
             /* istanbul ignore next */
             headers: options && options.headers,
             /* istanbul ignore next */
-            validateStatus: () => true
+            validateStatus: () => true,
         };
+
+        if (options && options.proxyUrl) {
+            // for axios, this has to be disabled
+            request.proxy = false;
+            request.httpsAgent = createHttpsProxyAgent(options.proxyUrl);
+        }
 
         const response = await axios(request);
         return {
@@ -50,19 +58,25 @@ export class HttpClient implements INetworkModule {
     async sendPostRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions,
-        cancellationToken?: number 
+        cancellationToken?: number,
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
             url: url,
             /* istanbul ignore next */
-            data: (options && options.body) || "",
+            data: (options && options.body) || Constants.EMPTY_STRING,
             timeout: cancellationToken,
             /* istanbul ignore next */
             headers: options && options.headers,
             /* istanbul ignore next */
             validateStatus: () => true
         };
+
+        if (options && options.proxyUrl) {
+            // for axios, this has to be disabled
+            request.proxy = false;
+            request.httpsAgent = createHttpsProxyAgent(options.proxyUrl);
+        }
 
         const response = await axios(request);
         return {

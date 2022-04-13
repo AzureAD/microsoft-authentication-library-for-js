@@ -32,24 +32,27 @@ jobs:
           # browser/node filter will match any path under common as well as their own
           # angular/react filter will match any path under common and browser as well as their own
           filters: |
-            core:
+            msal-core:
               - 'lib/msal-core/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
-            common: &common
+            msal-common: &common
               - 'lib/msal-common/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
-            browser: &browser
+            msal-browser: &browser
               - *common
               - 'lib/msal-browser/**/**.!(md)'
-            node:
+            msal-node:
               - *common
               - 'lib/msal-node/**/**.!(md)'
-            angular:
+            msal-angular:
               - *browser
               - 'lib/msal-angular/**/**.!(md)'
-            react:
+            msal-react:
               - *browser
               - 'lib/msal-react/**/**.!(md)'
+            node-token-validation:
+              - *common
+              - 'lib/node-token-validation/**/**.!(md)'
 
       - uses: dorny/paths-filter@v2
         id: extensions-filter
@@ -71,7 +74,7 @@ jobs:
           # e.g. ['package1', 'package2'] if both package folders contains changes
           library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
   
-    name: msal-${{ matrix.library }}
+    name: ${{ matrix.library }}
     
     steps:
     - uses: actions/checkout@v2
@@ -95,27 +98,27 @@ jobs:
       run: npm ci
 
     - name: Build packages
-      working-directory: lib/msal-${{ matrix.library }}
+      working-directory: lib/${{ matrix.library }}
       run: npm run build:all
 
     - name: Lint
-      working-directory: lib/msal-${{ matrix.library }}
+      working-directory: lib/${{ matrix.library }}
       run: npm run lint
 
     - name: Unit Tests with coverage
-      working-directory: lib/msal-${{ matrix.library }}
+      working-directory: lib/${{ matrix.library }}
       run: npm run test:coverage
 
     - name: Upload Test Coverage to CodeCov
       if: success()
       uses: codecov/codecov-action@v2
       with:
-        files: lib/msal-${{matrix.library}}/coverage/lcov.info
-        flags: msal-${{ matrix.library }}
+        files: lib/${{matrix.library}}/coverage/lcov.info
+        flags: ${{ matrix.library }}
 
   extensions-build-test:
     needs: pre-check
-    runs-on: windows-latest
+    runs-on: windows-2019
     if: needs.pre-check.outputs.extensions == 'true'
   
     name: msal-node-extensions

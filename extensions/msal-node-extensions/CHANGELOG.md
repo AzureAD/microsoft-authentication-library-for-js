@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Apr 2022 21:12:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.16
+
+Mon, 04 Apr 2022 21:12:42 GMT
+
+### Changes
+
+- Bump @azure/msal-common to v6.2.0
+
+## 1.0.0-alpha.15
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Changes
+
+- Update keytar dependency to ^7.8.0 #4483 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v6.1.0
 
 ## 1.0.0-alpha.14
 

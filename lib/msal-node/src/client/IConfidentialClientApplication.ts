@@ -48,4 +48,7 @@ export interface IConfidentialClientApplication {
 
     /** Replaces the default logger set in configurations with new Logger with new configurations */
     setLogger(logger: Logger): void;
+
+    /** Clear the cache */
+    clearCache(): void;
 }

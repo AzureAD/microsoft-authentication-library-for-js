@@ -8,7 +8,11 @@ import {
     INetworkModule,
     LogLevel,
     ProtocolMode,
-    ICachePlugin, Constants
+    ICachePlugin,
+    Constants,
+    AzureCloudInstance,
+    AzureCloudOptions,
+    ApplicationTelemetry
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -34,9 +38,10 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    authorityMetadata?: string,
+    authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
@@ -59,6 +64,11 @@ export type CacheOptions = {
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
+    proxyUrl?: string;
+};
+
+export type NodeTelemetryOptions = {
+    application?: ApplicationTelemetry;
 };
 
 /**
@@ -73,23 +83,28 @@ export type Configuration = {
     auth: NodeAuthOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
+    telemetry?: NodeTelemetryOptions;
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
-    clientId: "",
+    clientId: Constants.EMPTY_STRING,
     authority: Constants.DEFAULT_AUTHORITY,
-    clientSecret: "",
-    clientAssertion: "",
+    clientSecret: Constants.EMPTY_STRING,
+    clientAssertion: Constants.EMPTY_STRING,
     clientCertificate: {
-        thumbprint: "",
-        privateKey: "",
-        x5c: ""
+        thumbprint: Constants.EMPTY_STRING,
+        privateKey: Constants.EMPTY_STRING,
+        x5c: Constants.EMPTY_STRING
     },
     knownAuthorities: [],
-    cloudDiscoveryMetadata: "",
-    authorityMetadata: "",
+    cloudDiscoveryMetadata: Constants.EMPTY_STRING,
+    authorityMetadata: Constants.EMPTY_STRING,
     clientCapabilities: [],
-    protocolMode: ProtocolMode.AAD
+    protocolMode: ProtocolMode.AAD,
+    azureCloudOptions: {
+        azureCloudInstance: AzureCloudInstance.None,
+        tenant: Constants.EMPTY_STRING
+    }
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
@@ -105,12 +120,21 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),
+    proxyUrl: Constants.EMPTY_STRING,
+};
+
+const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
+    application: {
+        appName: Constants.EMPTY_STRING,
+        appVersion: Constants.EMPTY_STRING
+    }
 };
 
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
+    telemetry: Required<NodeTelemetryOptions>;
 };
 
 /**
@@ -119,6 +143,7 @@ export type NodeConfiguration = {
  * @param auth - Authentication options
  * @param cache - Cache options
  * @param system - System options
+ * @param telemetry - Telemetry options
  *
  * @returns Configuration
  * @public
@@ -127,10 +152,13 @@ export function buildAppConfiguration({
     auth,
     cache,
     system,
+    telemetry
 }: Configuration): NodeConfiguration {
+
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
     };
 }
