@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "acquireTokenByUsernamePassword will now return an id_token in Azure AD B2C (fixes #3883)",
+  "comment": "acquireTokenByUsernamePassword will now return an id_token in Azure AD B2C #4694",
   "packageName": "@azure/msal-common",
   "email": "christian.kumpe@diva-e.com",
   "dependentChangeType": "patch"
