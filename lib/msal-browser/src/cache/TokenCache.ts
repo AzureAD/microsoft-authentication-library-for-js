@@ -135,7 +135,7 @@ export class TokenCache implements ITokenCache {
         }
 
         const scopes = new ScopeSet(request.scopes).printScopes();
-        const expiresOn = response.expires_in;
+        const expiresOn = response.expires_in + new Date().getTime() / 1000;
         const extendedExpiresOn = options.extendedExpiresOn;
 
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(homeAccountId, environment, response.access_token, this.config.auth.clientId, tenantId, scopes, expiresOn, extendedExpiresOn, this.cryptoObj);
