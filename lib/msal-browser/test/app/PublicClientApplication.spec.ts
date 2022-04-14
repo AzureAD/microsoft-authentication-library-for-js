@@ -1618,6 +1618,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+            await pca.initialize();
 
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
 

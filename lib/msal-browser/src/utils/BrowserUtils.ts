@@ -129,6 +129,17 @@ export class BrowserUtils {
     }
 
     /**
+     * Throws error if native brokering is enabled but initialize hasn't been called
+     * @param allowNativeBroker 
+     * @param initialized 
+     */
+    static blockNativeBrokerCalledBeforeInitialized(allowNativeBroker: boolean, initialized: boolean): void {
+        if (allowNativeBroker && !initialized) {
+            throw BrowserAuthError.createNativeBrokerCalledBeforeInitialize();
+        }
+    }
+
+    /**
      * Returns boolean of whether current browser is an Internet Explorer or Edge browser.
      */
     static detectIEOrEdge(): boolean {

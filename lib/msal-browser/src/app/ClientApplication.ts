@@ -77,6 +77,9 @@ export abstract class ClientApplication {
     // Performance telemetry client
     protected performanceClient: IPerformanceClient;
 
+    // Flag representing whether or not the initialize API has been called and completed
+    protected initialized: boolean;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -107,6 +110,7 @@ export abstract class ClientApplication {
         this.isBrowserEnvironment = typeof window !== "undefined";
         // Set the configuration.
         this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
+        this.initialized = false;
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
@@ -147,6 +151,11 @@ export abstract class ClientApplication {
      */
     async initialize(): Promise<void> {
         this.logger.trace("initialize called");
+        if (this.initialized) {
+            this.logger.warning("initialize has already been called. This function only needs to be run once.");
+            return;
+        }
+        this.eventHandler.emitEvent(EventType.INITIALIZE_START);
         if (this.config.system.allowNativeBroker) {
             try {
                 this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
@@ -154,6 +163,8 @@ export abstract class ClientApplication {
                 this.logger.verbose(e);
             }
         }
+        this.initialized = true;
+        this.eventHandler.emitEvent(EventType.INITIALIZE_END);
     }
 
     // #region Redirect Flow
@@ -167,6 +178,9 @@ export abstract class ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
+        // Block token acquisition before initialize has been called if native brokering is enabled
+        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
+
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             /**
@@ -721,6 +735,9 @@ export abstract class ClientApplication {
 
         // Block redirectUri opened in a popup from calling MSAL APIs
         BrowserUtils.blockAcquireTokenInPopups();
+
+        // Block token acquisition before initialize has been called if native brokering is enabled
+        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
 
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (interactionType === InteractionType.Redirect &&
