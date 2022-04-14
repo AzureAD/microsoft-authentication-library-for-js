@@ -1,0 +1,7 @@
+{
+  "comment": "Add typedoc comments #4688",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "joliuac@gmail.com",
+  "dependentChangeType": "none"
+}
