@@ -149,7 +149,7 @@ export abstract class ClientApplication {
         this.logger.trace("initialize called");
         if (this.config.system.allowNativeBroker) {
             try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
             } catch (e) {
                 this.logger.verbose(e);
             }

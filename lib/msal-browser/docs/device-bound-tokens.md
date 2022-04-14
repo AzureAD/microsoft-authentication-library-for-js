@@ -36,7 +36,10 @@ const pca = new PublicClientApplication(msalConfig);
 // Initialize will establish a connection with the browser extension, if present
 await pca.initialize();
 
-// After initialize has completed, you may call any of the other APIs as you would without this feature
+// Call handleRedirectPromise, after initialization is complete
+await pca.handleRedirectPromise();
+
+// After initialize and handleRedirectPromise have completed, you may call any of the other APIs as you would without this feature
 pca.acquireTokenSilent();
 ```
 

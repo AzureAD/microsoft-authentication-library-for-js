@@ -48,8 +48,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
-        this.validateNativeResponse(response);
-        return this.handleNativeResponse(response as NativeResponse, nativeRequest, reqTimestamp);
+        const validatedResponse: NativeResponse = this.validateNativeResponse(response);
+        return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp);
     }
 
     /**
@@ -227,7 +227,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Validates native platform response before processing
      * @param response
      */
-    private validateNativeResponse(response: object): void {
+    private validateNativeResponse(response: object): NativeResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -236,7 +236,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response.hasOwnProperty("scopes") &&
             response.hasOwnProperty("expires_in")
         ) {
-            return;
+            return response as NativeResponse;
         } else {
             throw NativeAuthError.createUnexpectedError("Response missing expected properties.");
         }

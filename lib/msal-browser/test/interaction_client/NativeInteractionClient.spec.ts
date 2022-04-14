@@ -24,7 +24,7 @@ describe("NativeInteractionClient Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
         }
     });
-    const wamProvider = new NativeMessageHandler(pca.getLogger());
+    const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000);
     // @ts-ignore
     const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
     let postMessageSpy: sinon.SinonSpy;

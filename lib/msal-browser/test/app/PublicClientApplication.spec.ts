@@ -75,7 +75,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("intialize tests", () => {
         it("creates extension provider if allowNativeBroker is true", async () => {
             const createProviderSpy = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             pca = new PublicClientApplication({
                 auth: {
@@ -220,7 +220,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const response = await pca.handleRedirectPromise();
@@ -484,7 +484,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
@@ -522,7 +522,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireTokenRedirect");
@@ -559,7 +559,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireTokenRedirect");
@@ -596,7 +596,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
@@ -634,7 +634,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
@@ -917,7 +917,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -970,7 +970,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
@@ -1022,7 +1022,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
@@ -1074,7 +1074,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1113,7 +1113,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1376,7 +1376,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1429,7 +1429,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1468,7 +1468,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1567,7 +1567,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1593,7 +1593,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1814,7 +1814,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1867,7 +1867,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
@@ -1906,7 +1906,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
 
             sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), "test-extensionId");
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
             });
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
