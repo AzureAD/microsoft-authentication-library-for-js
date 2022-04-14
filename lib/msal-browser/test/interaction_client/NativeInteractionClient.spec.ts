@@ -14,7 +14,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { AuthenticationResult } from "@azure/msal-common";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { PromptValue } from "@azure/msal-common";
-import { NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
+import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
 
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -38,6 +38,8 @@ describe("NativeInteractionClient Tests", () => {
     afterEach(() => {
         mcPort && mcPort.close();
         sinon.restore();
+        sessionStorage.clear();
+        localStorage.clear();
     });
 
     describe("acquireToken Tests", () => {
@@ -211,11 +213,11 @@ describe("NativeInteractionClient Tests", () => {
             });
             nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"]
-        }).catch (e => {
-            expect(e.errorCode).toBe(NativeAuthErrorMessage.userSwitch.code);
-            expect(e.errorMessage).toBe(NativeAuthErrorMessage.userSwitch.desc);
-            done();
-        });
+            }).catch (e => {
+                expect(e.errorCode).toBe(NativeAuthErrorMessage.userSwitch.code);
+                expect(e.errorMessage).toBe(NativeAuthErrorMessage.userSwitch.desc);
+                done();
+            });
         });
     });
 
@@ -241,6 +243,16 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(mockWamResponse);
             });
             nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]});
+        });
+
+        it("throws if native token acquisition fails with fatal error", (done) => {
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
+                return Promise.reject(new NativeAuthError("ContentError", "problem getting response from extension"));
+            });
+            nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]}).catch((e) => {
+                expect(e.errorCode).toBe("ContentError");
+                done();
+            });
         });
     });
 
@@ -298,6 +310,77 @@ describe("NativeInteractionClient Tests", () => {
                 fromNativeBroker: true
             };
             expect(response).toEqual(testTokenResponse);
+        });
+
+        it("clears interaction in progress if native broker call fails", (done) => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scopes: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                }
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
+                expect(url).toBe(window.location.href);
+                return Promise.resolve(true);
+            });
+            let firstTime = true;
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
+                if (firstTime) {
+                    firstTime = false;
+                    return Promise.resolve(mockWamResponse); // The acquireTokenRedirect call should succeed
+                }
+                return Promise.reject(new NativeAuthError("ContentError", "extension call failed")); // handleRedirectPromise call should fail
+            });
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]}).then(() => {
+                // @ts-ignore
+                const inProgress = pca.browserStorage.getInteractionInProgress();
+                expect(inProgress).toBeTruthy();
+                nativeInteractionClient.handleRedirectPromise().catch((e) => {
+                    expect(e.errorCode).toBe("ContentError");
+                    // @ts-ignore
+                    const isInProgress = pca.browserStorage.getInteractionInProgress();
+                    expect(isInProgress).toBeFalsy();
+                    done();
+                });
+            })
+        });
+
+        it("returns null if interaction is not in progress", async () => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scopes: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                }
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
+                expect(url).toBe(window.location.href);
+                return Promise.resolve(true);
+            });
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
+                return Promise.resolve(mockWamResponse);
+            });
+            await nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]});
+            const response = await nativeInteractionClient.handleRedirectPromise();
+            expect(response).toBe(null);
+        });
+
+        it("returns null if native request is not cached", async () => {
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            const response = await nativeInteractionClient.handleRedirectPromise();
+            expect(response).toBe(null);
         });
     });
 
