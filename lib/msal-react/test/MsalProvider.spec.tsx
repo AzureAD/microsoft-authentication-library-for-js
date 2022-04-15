@@ -5,7 +5,7 @@
 
 /* eslint-disable react/no-multi-comp */
 import React from "react";
-import { act, render, screen } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { AccountInfo, Configuration, EventCallbackFunction, EventMessage, EventType, InteractionType, InteractionStatus, PublicClientApplication } from "@azure/msal-browser";
 import { testAccount, TEST_CONFIG } from "./TestConstants";
@@ -21,6 +21,7 @@ describe("MsalProvider tests", () => {
 
     let eventCallbacks: EventCallbackFunction[];
     let cachedAccounts: AccountInfo[] = [];
+    let handleRedirectSpy: jest.SpyInstance;
 
     beforeEach(() => {
         eventCallbacks = [];
@@ -31,7 +32,7 @@ describe("MsalProvider tests", () => {
             eventId += 1;
             return eventId.toString();
         });
-        jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
+        handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
             const eventStart: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
                 interactionType: InteractionType.Redirect,
@@ -87,6 +88,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
@@ -164,6 +167,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             cachedAccounts = [];
 
             const eventMessage = {
@@ -200,6 +205,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             cachedAccounts = [testAccount];
 
@@ -239,6 +246,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
@@ -292,6 +301,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
                 interactionType: InteractionType.Redirect,
@@ -343,6 +354,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_START,
@@ -412,6 +425,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_START,
                 interactionType: InteractionType.Popup,
@@ -466,6 +481,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.LOGIN_START,
                 interactionType: InteractionType.Popup,
@@ -508,7 +525,7 @@ describe("MsalProvider tests", () => {
                 } else if (accounts.length === 0 && inProgress === InteractionStatus.SsoSilent) {
                     return <p>In Progress</p>;
                 }
-                
+
                 return null;
             };
     
@@ -519,6 +536,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.SSO_SILENT_START,
@@ -574,6 +593,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.SSO_SILENT_START,
                 interactionType: InteractionType.Silent,
@@ -628,6 +649,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.LOGOUT_START,
                 interactionType: InteractionType.Redirect,
@@ -681,6 +704,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
@@ -740,6 +765,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Redirect,
@@ -793,6 +820,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
@@ -848,6 +877,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Popup,
@@ -902,6 +933,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
                 interactionType: InteractionType.Silent,
@@ -955,6 +988,8 @@ describe("MsalProvider tests", () => {
                     </MsalConsumer>
                 </MsalProvider>
             );
+
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
 
             let eventMessage: EventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_START,
