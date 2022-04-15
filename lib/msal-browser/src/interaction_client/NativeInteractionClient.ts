@@ -51,10 +51,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
-        this.validateNativeResponse(response, nativeATMeasurement);
+        const validatedResponse: NativeResponse = this.validateNativeResponse(response, nativeATMeasurement);
 
         // generate the authentication result
-        const authResult = await this.handleNativeResponse(response as NativeResponse, nativeRequest, reqTimestamp, nativeATMeasurement);
+        const authResult = await this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp, nativeATMeasurement);
 
         // end the perf measurement
         nativeATMeasurement.endMeasurement({
@@ -248,7 +248,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Validates native platform response before processing
      * @param response
      */
-    private validateNativeResponse(response: object, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): void {
+    private validateNativeResponse(response: object, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): NativeResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -257,7 +257,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response.hasOwnProperty("scopes") &&
             response.hasOwnProperty("expires_in")
         ) {
-            return;
+            return response as NativeResponse;
         } else {
             if (nativeAcquireTokenMeasurement) {
                 nativeAcquireTokenMeasurement.endMeasurement({

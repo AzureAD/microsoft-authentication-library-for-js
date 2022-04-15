@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PromptValue, PerformanceEvents } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -164,10 +164,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
-            const silentRequest = {
+            const silentRequest: SilentRequest = {
                 ...request,
-                account,
-                prompt: PromptValue.NONE
+                account
             };
             result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(async (e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to web flow

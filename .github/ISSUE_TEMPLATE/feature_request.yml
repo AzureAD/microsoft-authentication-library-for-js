@@ -1,6 +1,6 @@
 name: Feature request
 description: Suggest a feature for one of our libraries.
-labels: [feature]
+labels: [feature-unconfirmed, question]
 body:
 - type: dropdown
   attributes:

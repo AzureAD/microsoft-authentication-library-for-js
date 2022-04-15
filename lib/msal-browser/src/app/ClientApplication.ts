@@ -77,6 +77,9 @@ export abstract class ClientApplication {
     // Performance telemetry client
     protected performanceClient: IPerformanceClient;
 
+    // Flag representing whether or not the initialize API has been called and completed
+    protected initialized: boolean;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -107,6 +110,7 @@ export abstract class ClientApplication {
         this.isBrowserEnvironment = typeof window !== "undefined";
         // Set the configuration.
         this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
+        this.initialized = false;
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
@@ -147,13 +151,20 @@ export abstract class ClientApplication {
      */
     async initialize(): Promise<void> {
         this.logger.trace("initialize called");
+        if (this.initialized) {
+            this.logger.warning("initialize has already been called. This function only needs to be run once.");
+            return;
+        }
+        this.eventHandler.emitEvent(EventType.INITIALIZE_START);
         if (this.config.system.allowNativeBroker) {
             try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
             } catch (e) {
                 this.logger.verbose(e);
             }
         }
+        this.initialized = true;
+        this.eventHandler.emitEvent(EventType.INITIALIZE_END);
     }
 
     // #region Redirect Flow
@@ -167,6 +178,9 @@ export abstract class ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
+        // Block token acquisition before initialize has been called if native brokering is enabled
+        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
+
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             /**
@@ -372,26 +386,31 @@ export abstract class ClientApplication {
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
+        const validRequest = {
+            ...request,
+            prompt: PromptValue.NONE,
+            correlationId: correlationId
+        };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         const ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
         this.logger.verbose("ssoSilent called", correlationId);
-        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.canUseNative(request)) {
-            result = this.acquireTokenNative(request, ApiId.ssoSilent).catch((e: AuthError) => {
+        if (this.canUseNative(validRequest)) {
+            result = this.acquireTokenNative(validRequest, ApiId.ssoSilent).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                    return silentIframeClient.acquireToken(request);
+                    const silentIframeClient = this.createSilentIframeClient(validRequest.correlationId);
+                    return silentIframeClient.acquireToken(validRequest);
                 }
                 throw e;
             });
         } else {
-            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-            result = silentIframeClient.acquireToken(request);
+            const silentIframeClient = this.createSilentIframeClient(validRequest.correlationId);
+            result = silentIframeClient.acquireToken(validRequest);
         }
 
         return result.then((response) => {
@@ -471,8 +490,6 @@ export abstract class ClientApplication {
                         // If native token acquisition fails for availability reasons fallback to standard flow
                         if (e instanceof NativeAuthError && e.isFatal()) {
                             this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
-                            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                            return silentIframeClient.acquireToken(request);
                         }
                         throw e;
                     });
@@ -718,6 +735,9 @@ export abstract class ClientApplication {
 
         // Block redirectUri opened in a popup from calling MSAL APIs
         BrowserUtils.blockAcquireTokenInPopups();
+
+        // Block token acquisition before initialize has been called if native brokering is enabled
+        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
 
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (interactionType === InteractionType.Redirect &&

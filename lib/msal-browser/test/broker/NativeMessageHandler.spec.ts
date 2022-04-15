@@ -49,7 +49,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}));
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000);
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
@@ -83,14 +83,14 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}));
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000);
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
 
         it("Throws if no extension is installed", (done) => {
-            NativeMessageHandler.createProvider(new Logger({})).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativeExtensionNotInstalled.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc);
@@ -105,7 +105,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({})).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativeHandshakeTimeout.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativeHandshakeTimeout.desc);
@@ -158,7 +158,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}));
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000);
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             const response = await wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken});
@@ -207,7 +207,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000).then((wamMessageHandler) => {
                 wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(NativeAuthError);
                     expect(e.errorCode).toEqual(testResponse.code);
@@ -261,7 +261,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000).then((wamMessageHandler) => {
                 wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(NativeAuthError);
                     expect(e.errorCode).toEqual(testResponse.result.code);
@@ -311,7 +311,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({})).then((wamMessageHandler) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000).then((wamMessageHandler) => {
                 wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(AuthError);
                     expect(e.errorCode).toEqual(AuthErrorMessage.unexpectedError.code);

@@ -13,14 +13,16 @@ import { BrowserConfiguration } from "../../config/Configuration";
 export class NativeMessageHandler {
     private extensionId: string | undefined;
     private logger: Logger;
+    private handshakeTimeoutMs: number;
     private responseId: number;
     private timeoutId: number | undefined;
     private resolvers: object;
     private messageChannel: MessageChannel;
     private windowListener: (event: MessageEvent) => void;
 
-    constructor(logger: Logger, extensionId?: string) {
+    constructor(logger: Logger, handshakeTimeoutMs: number, extensionId?: string) {
         this.logger = logger;
+        this.handshakeTimeoutMs = handshakeTimeoutMs;
         this.extensionId = extensionId;
         this.resolvers = {};
         this.responseId = 0;
@@ -54,16 +56,17 @@ export class NativeMessageHandler {
     /**
      * Returns an instance of the MessageHandler that has successfully established a connection with an extension
      * @param logger 
+     * @param handshakeTimeoutMs
      */
-    static async createProvider(logger: Logger): Promise<NativeMessageHandler> {
+    static async createProvider(logger: Logger, handshakeTimeoutMs: number): Promise<NativeMessageHandler> {
         logger.trace("NativeMessageHandler - createProvider called.");
         try {
-            const preferredProvider = new NativeMessageHandler(logger, NativeConstants.PREFERRED_EXTENSION_ID);
+            const preferredProvider = new NativeMessageHandler(logger, handshakeTimeoutMs, NativeConstants.PREFERRED_EXTENSION_ID);
             await preferredProvider.sendHandshakeRequest();
             return preferredProvider;
         } catch (e) {
             // If preferred extension fails for whatever reason, fallback to using any installed extension
-            const backupProvider = new NativeMessageHandler(logger);
+            const backupProvider = new NativeMessageHandler(logger, handshakeTimeoutMs);
             await backupProvider.sendHandshakeRequest();
             return backupProvider;
         }
@@ -105,7 +108,7 @@ export class NativeMessageHandler {
                 this.messageChannel.port2.close();
                 reject(BrowserAuthError.createNativeHandshakeTimeoutError());
                 delete this.resolvers[req.responseId];
-            }, 2000); // Use a reasonable timeout in milliseconds here
+            }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
         });
     }
 
@@ -177,7 +180,8 @@ export class NativeMessageHandler {
             } 
             // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
-            this.logger.error(`Error parsing response from WAM Extension: ${err.toString()}`);
+            this.logger.error("Error parsing response from WAM Extension");
+            this.logger.errorPii(`Error parsing response from WAM Extension: ${err.toString()}`);
             this.logger.errorPii(`Unable to parse ${event}`);
 
             if (request.responseId) {
