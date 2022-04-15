@@ -10,13 +10,19 @@ import { NativeAuthError } from "../../error/NativeAuthError";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
 import { BrowserConfiguration } from "../../config/Configuration";
 
+type ResponseResolvers<T> = {
+    resolve: (value:T|PromiseLike<T>) => void;
+    reject: (value:AuthError|Error|PromiseLike<Error>|PromiseLike<AuthError>)  => void;
+};
+
 export class NativeMessageHandler {
     private extensionId: string | undefined;
     private logger: Logger;
     private handshakeTimeoutMs: number;
     private responseId: number;
     private timeoutId: number | undefined;
-    private resolvers: object;
+    private resolvers: Map<number, ResponseResolvers<object>>;
+    private handshakeResolvers: Map<number, ResponseResolvers<void>>;
     private messageChannel: MessageChannel;
     private windowListener: (event: MessageEvent) => void;
 
@@ -24,7 +30,8 @@ export class NativeMessageHandler {
         this.logger = logger;
         this.handshakeTimeoutMs = handshakeTimeoutMs;
         this.extensionId = extensionId;
-        this.resolvers = {};
+        this.resolvers = new Map(); // Used for non-handshake messages
+        this.handshakeResolvers = new Map(); // Used for handshake messages
         this.responseId = 0;
         this.messageChannel = new MessageChannel();
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
@@ -34,9 +41,9 @@ export class NativeMessageHandler {
      * Sends a given message to the extension and resolves with the extension response
      * @param body 
      */
-    async sendMessage<T>(body: NativeExtensionRequestBody): Promise<T> {
+    async sendMessage(body: NativeExtensionRequestBody): Promise<object> {
         this.logger.trace("NativeMessageHandler - sendMessage called.");
-        const req = {
+        const req: NativeExtensionRequest = {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: this.responseId++,
@@ -49,7 +56,7 @@ export class NativeMessageHandler {
         this.messageChannel.port1.postMessage(req);
 
         return new Promise((resolve, reject) => {
-            this.resolvers[req.responseId] = {resolve, reject};
+            this.resolvers.set(req.responseId, {resolve, reject});
         });
     }
 
@@ -97,7 +104,7 @@ export class NativeMessageHandler {
         window.postMessage(req, window.origin, [this.messageChannel.port2]);
 
         return new Promise((resolve, reject) => {
-            this.resolvers[req.responseId] = {resolve, reject};
+            this.handshakeResolvers.set(req.responseId, {resolve, reject});
             this.timeoutId = window.setTimeout(() => {
                 /*
                  * Throw an error if neither HandshakeResponse or original Handshake request are received in a reasonable timeframe.
@@ -107,7 +114,7 @@ export class NativeMessageHandler {
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
                 reject(BrowserAuthError.createNativeHandshakeTimeoutError());
-                delete this.resolvers[req.responseId];
+                this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
         });
     }
@@ -140,7 +147,10 @@ export class NativeMessageHandler {
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
-            this.resolvers[request.responseId].reject(BrowserAuthError.createNativeExtensionNotInstalledError());
+            const handshakeResolver = this.handshakeResolvers.get(request.responseId);
+            if (handshakeResolver) {
+                handshakeResolver.reject(BrowserAuthError.createNativeExtensionNotInstalledError());
+            }
         }
     }
 
@@ -151,32 +161,43 @@ export class NativeMessageHandler {
     private onChannelMessage(event: MessageEvent): void {
         this.logger.trace("NativeMessageHandler - onChannelMessage called.");
         const request = event.data;
+        
+        const resolver = this.resolvers.get(request.responseId);
+        const handshakeResolver = this.handshakeResolvers.get(request.responseId);
+
         try {
             const method = request.body.method;
-
+            
             if (method === NativeExtensionMethod.Response) {
+                if (!resolver) {
+                    return;
+                }
                 const response = request.body.response;
                 this.logger.trace("NativeMessageHandler - Received response from browser extension");
                 this.logger.tracePii(`NativeMessageHandler - Received response from browser extension: ${JSON.stringify(response)}`);
                 if (response.status !== "Success") {
-                    this.resolvers[request.responseId].reject(NativeAuthError.createError(response.code, response.description, response.ext));
+                    resolver.reject(NativeAuthError.createError(response.code, response.description, response.ext));
                 } else if (response.result) {
                     if (response.result["code"] && response.result["description"]) {
-                        this.resolvers[request.responseId].reject(NativeAuthError.createError(response.result["code"], response.result["description"], response.result["ext"]));
+                        resolver.reject(NativeAuthError.createError(response.result["code"], response.result["description"], response.result["ext"]));
                     } else {
-                        this.resolvers[request.responseId].resolve(response.result);
+                        resolver.resolve(response.result);
                     }
                 } else {
                     throw AuthError.createUnexpectedError("Event does not contain result.");
                 }
-                delete this.resolvers[request.responseId];
+                this.resolvers.delete(request.responseId);
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
+                if (!handshakeResolver) {
+                    return;
+                }
                 clearTimeout(this.timeoutId); // Clear setTimeout
                 window.removeEventListener("message", this.windowListener, false); // Remove 'No extension' listener
                 this.extensionId = request.extensionId;
                 this.logger.verbose(`NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
-                this.resolvers[request.responseId].resolve();
-                delete this.resolvers[request.body.responseId];
+
+                handshakeResolver.resolve();
+                this.handshakeResolvers.delete(request.responseId);
             } 
             // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
@@ -184,10 +205,10 @@ export class NativeMessageHandler {
             this.logger.errorPii(`Error parsing response from WAM Extension: ${err.toString()}`);
             this.logger.errorPii(`Unable to parse ${event}`);
 
-            if (request.responseId) {
-                this.resolvers[request.responseId].reject(err);
-            } else {
-                throw err;
+            if (resolver) {
+                resolver.reject(err as AuthError);
+            } else if (handshakeResolver) {
+                handshakeResolver.reject(err as AuthError);
             }
         }
     }
