@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, InProgressPerformanceEvent } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -42,7 +42,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
-        const nativeRequest = await this.initializeNativeRequest(request, nativeATMeasurement);
+        const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
@@ -51,18 +51,27 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
-        const validatedResponse: NativeResponse = this.validateNativeResponse(response, nativeATMeasurement);
+        const validatedResponse: NativeResponse = this.validateNativeResponse(response);
 
         // generate the authentication result
-        const authResult = await this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp, nativeATMeasurement);
+        let authResult: AuthenticationResult;
+        try {
+            authResult = await this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp);
+            // end the perf measurement for success
+            nativeATMeasurement.endMeasurement({
+                success: true,
+                isNativeBroker: true
+            });
+        } catch (e) {
+            // end the perf measurement for failure
+            nativeATMeasurement.endMeasurement({
+                success: false,
+                isNativeBroker: true
+            });
+            throw e;
+        }
 
-        // end the perf measurement
-        nativeATMeasurement.endMeasurement({
-            success: true,
-            isNativeBroker: true
-        });
         nativeATMeasurement.flushMeasurement();
-
         return authResult;
     }
 
@@ -152,17 +161,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      * @param reqTimestamp
      */
-    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): Promise<AuthenticationResult> {
+    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
         if (response.account.id !== request.accountId) {
-            if (nativeAcquireTokenMeasurement) {
-                nativeAcquireTokenMeasurement.endMeasurement({
-                    success: false,
-                    isNativeBroker: true
-                });
-                nativeAcquireTokenMeasurement.flushMeasurement();
-            }
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw NativeAuthError.createUserSwitchError();
         }
@@ -248,7 +250,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Validates native platform response before processing
      * @param response
      */
-    private validateNativeResponse(response: object, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): NativeResponse {
+    private validateNativeResponse(response: object): NativeResponse {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -259,13 +261,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
         ) {
             return response as NativeResponse;
         } else {
-            if (nativeAcquireTokenMeasurement) {
-                nativeAcquireTokenMeasurement.endMeasurement({
-                    success: false,
-                    isNativeBroker: true
-                });
-                nativeAcquireTokenMeasurement.flushMeasurement();
-            }
             throw NativeAuthError.createUnexpectedError("Response missing expected properties.");
         }
     }
@@ -274,7 +269,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
-    protected async initializeNativeRequest(request: PopupRequest|SsoSilentRequest, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): Promise<NativeTokenRequest> {
+    protected async initializeNativeRequest(request: PopupRequest|SsoSilentRequest): Promise<NativeTokenRequest> {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
 
         const authority = request.authority || this.config.auth.authority;
@@ -293,13 +288,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     break;
                 default:
                     this.logger.trace(`initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow, returning false`);
-                    if (nativeAcquireTokenMeasurement) {
-                        // end the measurement
-                        nativeAcquireTokenMeasurement.endMeasurement({
-                            success: false,
-                            isNativeBroker: true
-                        });
-                    }
                     throw BrowserAuthError.createNativePromptParameterNotSupportedError();
             }
         }
