@@ -1846,38 +1846,128 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
+            browserStorage.setInteractionInProgress(true);
             redirectClient.logout({
                 onRedirectNavigate: (url: string) => {
                     expect(url).toEqual(testLogoutUrl);
-                    done();
                     return false;
                 }
-            });
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
+        });
+
+        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "",
+                username: "",
+                idTokenClaims: {}
             };
-            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
+                done();
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true);
+            redirectClient.logout({
+                account: testAccountInfo,
+                onRedirectNavigate: (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return false;
+                }
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
         });
 
         it("does navigate if onRedirectNavigate returns true", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(browserStorage.getInteractionInProgress()).toBeTruthy();
                 expect(urlNavigate).toEqual(testLogoutUrl);
-                done();
+                
                 return Promise.resolve(true);
             });
+            browserStorage.setInteractionInProgress(true);
             redirectClient.logout({
                 onRedirectNavigate: (url) => {
                     expect(url).toEqual(testLogoutUrl);
                     return true;
                 }
-            });
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeTruthy();
+
+                    // Reset after testing it was properly set
+                    browserStorage.setInteractionInProgress(false);
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
+        });
+
+        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "",
+                username: "",
+                idTokenClaims: {}
             };
-            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toEqual(testLogoutUrl);
+                
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true);
+            redirectClient.logout({
+                account: testAccountInfo,
+                onRedirectNavigate: (url) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return true;
+                }
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeTruthy();
+
+                    // Reset after testing it was properly set
+                    browserStorage.setInteractionInProgress(false);
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
@@ -1954,7 +2044,8 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo), JSON.stringify(testAccount));
 
             await redirectClient.logout(validatedLogoutRequest).then(() => {
-                expect(window.sessionStorage.length).toBe(0);
+                // Interaction in progress
+                expect(window.sessionStorage.length).toBe(1);
             });
         });
     });
