@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -97,10 +97,17 @@ export class PopupClient extends StandardInteractionClient {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
+            const isNativeBroker = NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme);
+            // Start measurement for server calls with native brokering enabled
+            let fetchNativeAccIdMeasurement;
+            if (isNativeBroker) {
+                fetchNativeAccIdMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.FetchAccountIdWithNativeBroker, request.correlationId);
+            }
+
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
                 ...validRequest,
-                nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme)
+                nativeBroker: isNativeBroker
             });
 
             // Create popup interaction handler.
@@ -125,6 +132,15 @@ export class PopupClient extends StandardInteractionClient {
 
             if (serverParams.accountId) {
                 this.logger.verbose("Account id found in hash, calling WAM for token");
+                // end measurement for server call with native brokering enabled
+                if (fetchNativeAccIdMeasurement) {
+                    fetchNativeAccIdMeasurement.endMeasurement({
+                        success: true,
+                        isNativeBroker: true
+                    });
+                    fetchNativeAccIdMeasurement.flushMeasurement();
+                }
+
                 if (!this.nativeMessageHandler) {
                     throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }

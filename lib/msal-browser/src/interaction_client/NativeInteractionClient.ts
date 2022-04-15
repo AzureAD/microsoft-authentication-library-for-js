@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -39,7 +39,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - acquireToken called.");
-        const nativeRequest = await this.initializeNativeRequest(request);
+
+        // start the perf measurement
+        const nativeATMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
+        const nativeRequest = await this.initializeNativeRequest(request, nativeATMeasurement);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
@@ -48,8 +51,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
-        this.validateNativeResponse(response);
-        return this.handleNativeResponse(response as NativeResponse, nativeRequest, reqTimestamp);
+        this.validateNativeResponse(response, nativeATMeasurement);
+
+        // generate the authentication result
+        const authResult = await this.handleNativeResponse(response as NativeResponse, nativeRequest, reqTimestamp, nativeATMeasurement);
+
+        // end the perf measurement
+        nativeATMeasurement.endMeasurement({
+            success: true,
+            isNativeBroker: true
+        });
+        nativeATMeasurement.flushMeasurement();
+
+        return authResult;
     }
 
     /**
@@ -138,10 +152,17 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      * @param reqTimestamp
      */
-    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
         if (response.account.id !== request.accountId) {
+            if (nativeAcquireTokenMeasurement) {
+                nativeAcquireTokenMeasurement.endMeasurement({
+                    success: false,
+                    isNativeBroker: true
+                });
+                nativeAcquireTokenMeasurement.flushMeasurement();
+            }
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw NativeAuthError.createUserSwitchError();
         }
@@ -227,7 +248,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Validates native platform response before processing
      * @param response
      */
-    private validateNativeResponse(response: object): void {
+    private validateNativeResponse(response: object, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): void {
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -238,6 +259,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
         ) {
             return;
         } else {
+            if (nativeAcquireTokenMeasurement) {
+                nativeAcquireTokenMeasurement.endMeasurement({
+                    success: false,
+                    isNativeBroker: true
+                });
+                nativeAcquireTokenMeasurement.flushMeasurement();
+            }
             throw NativeAuthError.createUnexpectedError("Response missing expected properties.");
         }
     }
@@ -246,7 +274,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
-    protected async initializeNativeRequest(request: PopupRequest|SsoSilentRequest): Promise<NativeTokenRequest> {
+    protected async initializeNativeRequest(request: PopupRequest|SsoSilentRequest, nativeAcquireTokenMeasurement?: InProgressPerformanceEvent): Promise<NativeTokenRequest> {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
 
         const authority = request.authority || this.config.auth.authority;
@@ -265,6 +293,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     break;
                 default:
                     this.logger.trace(`initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow, returning false`);
+                    if (nativeAcquireTokenMeasurement) {
+                        // end the measurement
+                        nativeAcquireTokenMeasurement.endMeasurement({
+                            success: false,
+                            isNativeBroker: true
+                        });
+                    }
                     throw BrowserAuthError.createNativePromptParameterNotSupportedError();
             }
         }
