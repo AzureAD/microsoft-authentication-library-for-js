@@ -308,7 +308,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        const atPopupMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.acquireTokenPopup, correlationId);
+        const atPopupMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenPopup, correlationId);
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
