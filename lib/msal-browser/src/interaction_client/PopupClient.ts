@@ -99,9 +99,9 @@ export class PopupClient extends StandardInteractionClient {
 
             const isNativeBroker = NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme);
             // Start measurement for server calls with native brokering enabled
-            let fetchNativeAccIdMeasurement;
+            let fetchNativeAccountIdMeasurement;
             if (isNativeBroker) {
-                fetchNativeAccIdMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.FetchAccountIdWithNativeBroker, request.correlationId);
+                fetchNativeAccountIdMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.FetchAccountIdWithNativeBroker, request.correlationId);
             }
 
             // Create acquire token url.
@@ -133,12 +133,11 @@ export class PopupClient extends StandardInteractionClient {
             if (serverParams.accountId) {
                 this.logger.verbose("Account id found in hash, calling WAM for token");
                 // end measurement for server call with native brokering enabled
-                if (fetchNativeAccIdMeasurement) {
-                    fetchNativeAccIdMeasurement.endMeasurement({
+                if (fetchNativeAccountIdMeasurement) {
+                    fetchNativeAccountIdMeasurement.endMeasurement({
                         success: true,
                         isNativeBroker: true
                     });
-                    fetchNativeAccIdMeasurement.flushMeasurement();
                 }
 
                 if (!this.nativeMessageHandler) {

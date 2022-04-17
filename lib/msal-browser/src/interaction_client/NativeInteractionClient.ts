@@ -71,7 +71,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             throw e;
         }
 
-        nativeATMeasurement.flushMeasurement();
         return authResult;
     }
 

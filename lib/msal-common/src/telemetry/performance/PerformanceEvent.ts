@@ -36,6 +36,12 @@ export enum PerformanceEvents {
     AcquireTokenSilentAsync = "acquireTokenSilentAsync",
 
     /**
+     * acquireTokenPopup (msal-browser).
+     * Used to acquire a new access token interactively through pop ups
+     */
+    AcquireTokenPopup = "acquireTokenPopup",
+
+    /**
      * getPublicKeyThumbprint API in CryptoOpts class (msal-browser).
      * Used to generate a public/private keypair and generate a public key thumbprint for pop requests.
      */
