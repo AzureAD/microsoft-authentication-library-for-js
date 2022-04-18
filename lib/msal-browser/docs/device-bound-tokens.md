@@ -8,7 +8,7 @@ This feature is currently only supported in the following environment:
 
 - A machine running a Windows build that supports the feature (more to come on this)
 - Chrome and Edge browsers or Teams
-- [Windows Accounts extension](https://chrome.google.com/webstore/detail/windows-accounts/ppnbnpeolgkicgegkbkbjmhlideopiji) is installed if using Chrome or Edge
+- [Windows Accounts extension](https://chrome.google.com/webstore/detail/windows-accounts/ppnbnpeolgkicgegkbkbjmhlideopiji) (version 1.0.5 or higher) is installed if using Chrome or Edge
 - App must be hosted on `https`
 
 Additionally, this feature is currently only supported for Work and School Accounts
