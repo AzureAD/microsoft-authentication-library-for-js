@@ -1045,6 +1045,8 @@ describe("MsalProvider tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
             const eventMessage = {
                 eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
                 interactionType: null,
@@ -1061,6 +1063,7 @@ describe("MsalProvider tests", () => {
 
             expect(inProgressRenders).toEqual([
                 InteractionStatus.Startup,
+                InteractionStatus.HandleRedirect,
                 InteractionStatus.None
             ]);
         });
