@@ -22,7 +22,7 @@ export type Configuration = {
 /**
  * Used this to configure the auth options in the Configuration object
  * - authority          - Specific authority, used for obtaining keys from the metadata endpoint. Usually takes the form of `https://{uri}/{tenantid}`.
- * - protocolMode       - Enum that represents the protocol used by the TokenValidator. Used for configuring proper endpoints. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints.
+ * - protocolMode       - Enum that represents the protocol used by the TokenValidator. Used for configuring proper endpoints. When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata. When set to `AAD`, the library will include `/v2.0/` in the authority path when fetching authority metadata.
  * - clockSkew          - Clock skew (in seconds) allowed in token validation. Must be a positive integer.
  */
 export type TokenValidationOptions = {

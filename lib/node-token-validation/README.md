@@ -40,11 +40,54 @@ Any major MSAL Node release:
 
 ## Installation
 
+### Building the package locally
+
+To build the `@azure/node-token-validation` library, you can do the following:
+
+```bash
+// Install dev dependencies from root of repo
+npm install
+// Change to the node-token-validation package directory
+cd lib/node-token-validation/
+// Install package dependencies
+npm install
+// To run build only for node-token-validation package
+npm run build
+```
+
+To build both the `@azure/node-token-validation` library and `@azure/msal-common` libraries, you can do the following:
+
+```bash
+// Install dev dependencies from root of repo
+npm install
+// Change to the node-token-validation package directory
+cd lib/node-token-validation/
+// Install package dependencies
+npm install
+// To run build for node-token-validation and common packages
+npm run build:all
+```
+
+### Installing the package locally (current)
+
+Install the package locally in your project
+
+```json
+"dependencies": {
+  "@azure/node-token-validation": "file:{path}/lib/node-token-validation"
+}
+```
+
+### Via NPM (forthcoming)
+
+```javascript
+npm install @azure/node-token-validation
+```
+
 ## Usage
 
 1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/node-token-validation/docs/initialization.md)
 1. [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/node-token-validation/docs/configuration.md)
-1. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/node-token-validation/docs/public-apis.md)
 
 ## Samples
 
@@ -54,7 +97,22 @@ There are multiple [samples](https://github.com/AzureAD/microsoft-authentication
 - [express-sample](ttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples/express-sample): Express.js MVC web application using MSAL Node to acquire tokens, and middleware-style token validation
 - [response-sample](ttps://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples/response-sample): Express application using MSAL Node 0Auth2.0 authorization code flow to acquire tokens, and validating tokens from response
 
-## Build Library
+## Build and Test
+
+### Build
+
+See build instructions under [Installation](#installation).
+
+### Running Tests
+
+`@azure/node-token-validation` uses [jest](https://jestjs.io/) to run unit tests and coverage.
+
+```bash
+// To run tests
+npm test
+// To run tests with code coverage
+npm run test:coverage
+```
 
 ## Security Reporting
 
