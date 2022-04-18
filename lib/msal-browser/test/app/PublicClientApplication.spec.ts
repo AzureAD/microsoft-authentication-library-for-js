@@ -720,6 +720,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
         });
 
+        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            })
+            await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
+        });
+
         it("throws error if cacheLocation is Memory Storage and storeAuthStateInCookie is false", async () =>{
             pca = new PublicClientApplication({
                 auth: {
@@ -1156,6 +1168,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.acquireTokenPopup({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
+        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            })
+            await expect(pca.acquireTokenPopup({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
+        });
+
         it("Calls PopupClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1502,6 +1526,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(request.correlationId).toBe(undefined);
         });
 
+        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            })
+            await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
+        });
+
         it("Calls SilentIframeClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1646,6 +1682,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(request.correlationId).toBe(undefined);
         });
 
+        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            })
+            await expect(pca.acquireTokenByCode({})).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
+        });
+
         it("Calls SilentAuthCodeClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1779,6 +1827,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("acquireTokenSilent", () => {
         it("throws No Account error if no account is provided", async () => {
             await expect(pca.acquireTokenSilent({scopes: []})).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
+        });
+
+        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            })
+            await expect(pca.acquireTokenSilent({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
         });
 
         it("goes directly to the native broker if nativeAccountId is present", async () => {

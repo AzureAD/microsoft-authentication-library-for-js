@@ -2,7 +2,7 @@
 
 This sample demonstrates a Node.js & Express web application that authenticates users against [Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) (Azure AD) and obtains [Access Tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) to call the [Microsoft Graph API](https://docs.microsoft.com/graph/overview) (Graph API) and the [Azure Resource Manager API](https://docs.microsoft.com/azure/azure-resource-manager/management/overview) (ARM API), with the help of [Microsoft Authentication Library for Node.js](https://aka.ms/msalnode) (MSAL Node). It uses Redis for caching session and tokens.
 
-See also: [Caching](../../../lib/msal-node/docs/caching.md)
+See also: [Caching](../../../../lib/msal-node/docs/caching.md)
 
 ## Scenario
 
