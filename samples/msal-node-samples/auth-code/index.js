@@ -58,7 +58,21 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             
         if (req.query) {
             // Check for the state parameter
-            if(req.query.state) authCodeUrlParameters.state = req.query.state;
+             /**
+             * MSAL Node supports the OAuth2.0 state parameter which is used to prevent CSRF attacks.
+             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
+             * used to populate the state value if none is provided.
+             * 
+             * The generated state is then cached and passed as part of authCodeUrlParameters during authentication request.
+             * 
+             * For more information about state,
+             * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
+             */
+            if(req.query.state) {
+                authCodeUrlParameters.state = req.query.state;
+            } else {
+                authCodeUrlParameters.state = cryptoProvider.createNewGuid()
+            }
             // Check for nonce parameter
             /**
              * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
@@ -88,6 +102,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         }
 
         req.session.nonce = authCodeUrlParameters.nonce //switch to a more persistent storage method.
+        req.session.state = authCodeUrlParameters.state
         
         /**
          * MSAL Usage
@@ -105,8 +120,21 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     app.get("/redirect", (req, res) => {
-        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
-        const authCodeResponse = { nonce: req.session.nonce, code: req.query.code }
+        const state = req.query.state
+        const cachedState = req.session.state
+
+        /**
+         * MSAL Node provides the ClientApplication.validateSate API, which validates the state string received when 
+         * authorization code is returned.
+         *
+         */
+        clientApplication.validateState(state, cachedState)
+        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state:req.query.state };
+        const authCodeResponse = { 
+            nonce: req.session.nonce, 
+            code: req.query.code 
+        }
+
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.
