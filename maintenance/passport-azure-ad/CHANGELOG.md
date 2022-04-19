@@ -1,7 +1,7 @@
 <a name="4.0.0"></a>
 
 # 4.3.2
-- Update `async` to resolve dependency alert
+- Update `async` to resolve dependency alert: #4724
 
 # 4.3.1
 
