@@ -30,6 +30,7 @@ import {
     AzureCloudOptions,
     AuthorizationCodePayload,
     StringUtils,
+    ClientAuthError,
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -43,6 +44,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { NodeAuthError } from "../error/NodeAuthError";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -136,6 +138,7 @@ export abstract class ClientApplication {
             ... await this.initializeBaseRequest(request),
             authenticationScheme: AuthenticationScheme.BEARER
         };
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId);
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
@@ -278,6 +281,20 @@ export abstract class ClientApplication {
     getTokenCache(): TokenCache {
         this.logger.info("getTokenCache called");
         return this.tokenCache;
+    }
+
+    /**
+     * @param state
+     * @param cachedState
+     */
+    validateState(state:string, cachedState:string): void {
+        if(!state) {
+            throw NodeAuthError.createHashDoesNotContainStateError();
+        }
+
+        if(state !== cachedState) {
+            throw ClientAuthError.createStateMismatchError();
+        }
     }
 
     /**
