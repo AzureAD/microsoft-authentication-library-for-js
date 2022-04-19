@@ -53,39 +53,21 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
         const validatedResponse: NativeResponse = this.validateNativeResponse(response);
 
-        // generate the authentication result
-        let authResult: AuthenticationResult;
-        try {
-            authResult = await this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp);
-            // end the perf measurement for success
-            nativeATMeasurement.endMeasurement({
-                success: true,
-                isNativeBroker: true
-            });
-        } catch (e) {
-            // end the perf measurement for failure
-            nativeATMeasurement.endMeasurement({
-                success: false,
-                isNativeBroker: true
-            });
-            throw e;
-        }
-
         return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp)
-          .then((result: AuthenticationResult) => {
-            nativeATMeasurement.endMeasurement({
-                success: true,
-                isNativeBroker: true
+            .then((result: AuthenticationResult) => {
+                nativeATMeasurement.endMeasurement({
+                    success: true,
+                    isNativeBroker: true
+                });
+                return result;
+            })
+            .catch((error) => {
+                nativeATMeasurement.endMeasurement({
+                    success: false,
+                    isNativeBroker: true
+                });
+                throw error;
             });
-            return result;
-          })
-          .catch((error) => {
-            nativeATMeasurement.endMeasurement({
-                success: false,
-                isNativeBroker: true
-            });
-            throw e;
-          });
     }
 
     /**
