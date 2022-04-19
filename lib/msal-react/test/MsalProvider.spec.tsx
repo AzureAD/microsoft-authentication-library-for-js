@@ -148,7 +148,7 @@ describe("MsalProvider tests", () => {
         });
 
         test("Account Added", async () => {              
-            const TestComponent = ({accounts}: IMsalContext) => {    
+            const TestComponent = ({accounts}: IMsalContext) => {
                 if (accounts.length === 1) {
                     return <p>Test Success!</p>;
                 }
@@ -989,6 +989,45 @@ describe("MsalProvider tests", () => {
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
+        });
+
+        test("Doesnt rerender when accounts or in progress dont change", async () => { 
+            let inProgressRenders: string[] = [];            
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {
+                inProgressRenders.push(inProgress);
+                if (accounts.length === 1) {
+                    return <p>Test Success!</p>;
+                }
+
+                return null;
+            };
+
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
+
+            const eventMessage = {
+                eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
+                interactionType: null,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+
+            expect(inProgressRenders).toEqual([
+                InteractionStatus.Startup,
+                InteractionStatus.None
+            ]);
         });
     });
 

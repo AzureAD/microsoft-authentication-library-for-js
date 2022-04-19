@@ -34,7 +34,7 @@ export class BrowserUtils {
     static replaceHash(url: string): void {
         const urlParts = url.split("#");
         urlParts.shift(); // Remove part before the hash
-        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : "";
+        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : Constants.EMPTY_STRING;
     }
 
     /**
