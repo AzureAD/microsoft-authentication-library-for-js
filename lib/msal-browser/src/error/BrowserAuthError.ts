@@ -175,11 +175,11 @@ export const BrowserAuthErrorMessage = {
     },
     nativeConnectionNotEstablished: {
         code: "native_connection_not_established",
-        desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize()."
+        desc: "Connection to native platform has not been established. Please install a compatible browser extension and run initialize(). For more please visit aka.ms/msaljs/browser-errors."
     },
     nativeBrokerCalledBeforeInitialize: {
         code: "native_broker_called_before_initialize",
-        desc: "You must call and await the initialize function before attempting to call any other MSAL API when native brokering is enabled."
+        desc: "You must call and await the initialize function before attempting to call any other MSAL API when native brokering is enabled. For more please visit aka.ms/msaljs/browser-errors."
     },
     nativePromptNotSupported: {
         code: "native_prompt_not_supported",

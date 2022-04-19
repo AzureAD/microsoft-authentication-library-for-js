@@ -11,6 +11,9 @@
 1. [interaction_in_progress](#interaction_in_progress)
 1. [block_iframe_reload](#block_iframe_reload)
 1. [monitor_window_timeout](#monitor_window_timeout)
+1. [unable_to_acquire_token_from_native_platform](#unable_to_acquire_token_from_native_platform)
+1. [native_connection_not_established](#native_connection_not_established)
+1. [native_broker_called_before_initialize](#native_broker_called_before_initialize)
 
 **[Other](#other)**
 
@@ -219,6 +222,66 @@ const msalConfig = {
         loadFrameTimeout: 9000 // Applies to both silent and popup calls - In milliseconds
     }
 };
+```
+
+### unable_to_acquire_token_from_native_platform
+
+**Error Messages**:
+
+- Unable to acquire token from native platform.
+
+This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquiring tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
+
+### native_connection_not_established
+
+**Error Messages**:
+
+- Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
+
+This error is thrown when the user signed in with the native broker but no connection to the native broker currently exists. This can happen for the following reasons:
+
+- The Windows Accounts extension was uninstalled or disabled
+- The `initialize` API has not been called or was not awaited before invoking another MSAL API
+
+### native_broker_called_before_initialize
+
+**Error Messages**:
+
+- You must call and await the initialize function before attempting to call any other MSAL API when native brokering is enabled.
+
+This error is thrown when the `allowNativeBroker` flag is set to `true` in the `PublicClientApplication` config and a `login`, `acquireToken` or `handleRedirectPromise` API is invoked before the `initialize` API has been called. The `initialize` API must be called and awaited before attempting to acquire tokens.
+
+❌ The following example will throw this error because `handleRedirectPromise` is called before initialize has completed:
+
+```javascript
+const msalInstance = new PublicClientApplication({
+    auth: {
+        clientId: "your-client-id"
+    },
+    system: {
+        allowNativeBroker: true
+    }
+});
+
+await msalInstance.handleRedirectPromise(); // This will throw
+msalInstance.acquireTokenSilent(); // This will also throw
+```
+
+✔️ To resolve, you should wait for `initialize` to resolve before calling any other MSAL API:
+
+```javascript
+const msalInstance = new PublicClientApplication({
+    auth: {
+        clientId: "your-client-id"
+    },
+    system: {
+        allowNativeBroker: true
+    }
+});
+
+await msalInstance.initialize();
+await msalInstance.handleRedirectPromise(); // This will no longer throw this error since initialize completed before this was invoked
+msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ```
 
 ## Other
