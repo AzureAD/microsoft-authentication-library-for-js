@@ -71,7 +71,21 @@ export class NativeInteractionClient extends BaseInteractionClient {
             throw e;
         }
 
-        return authResult;
+        return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp)
+          .then((result: AuthenticationResult) => {
+            nativeATMeasurement.endMeasurement({
+                success: true,
+                isNativeBroker: true
+            });
+            return result;
+          })
+          .catch((error) => {
+            nativeATMeasurement.endMeasurement({
+                success: false,
+                isNativeBroker: true
+            });
+            throw e;
+          });
     }
 
     /**
