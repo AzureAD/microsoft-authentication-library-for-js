@@ -59,8 +59,7 @@ export class TokenValidator {
      */
     validateTokenMiddleware(options: TokenValidationParameters, resource?: string): TokenValidationMiddlewareResponse {
 
-        // @ts-ignore 
-        return (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {
+        return (req: ExpressRequest, _res: ExpressResponse, next: ExpressNextFunction) => {
 
             // Adding access token to authorization header from session
             if (resource && req.session && req.session.protectedResources) {

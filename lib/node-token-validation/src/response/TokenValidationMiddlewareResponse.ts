@@ -11,4 +11,4 @@ import { ExpressNextFunction, ExpressRequest, ExpressResponse } from "../request
  * - res          - Express Response object
  * - next         - Express Next function
  */
-export type TokenValidationMiddlewareResponse = (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => {};
+export type TokenValidationMiddlewareResponse = (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => void;
