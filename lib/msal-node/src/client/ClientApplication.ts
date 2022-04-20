@@ -290,7 +290,7 @@ export abstract class ClientApplication {
      */
     validateState(state:string, cachedState:string): void {
         if(!state) {
-            throw NodeAuthError.createHashDoesNotContainStateError();
+            throw NodeAuthError.createStateNotFoundError();
         }
 
         if(state !== cachedState) {

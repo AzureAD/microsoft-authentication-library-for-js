@@ -13,9 +13,9 @@ export const NodeAuthErrorMessage = {
         code: "hash_empty_error",
         desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash."
     },
-    hashDoesNotContainStateError: {
-        code: "no_state_in_hash",
-        desc: "Hash does not contain state. Please verify that the request originated from msal."
+    StateNotFoundError: {
+        code: "state_not_found",
+        desc: "State not found. Please verify that the request originated from msal."
     },
    
     unableToParseStateError: {
@@ -45,10 +45,10 @@ export class NodeAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the hash string value is unexpectedly empty.
+     * Creates an error thrown when the state is not present.
      */
-    static createHashDoesNotContainStateError(): NodeAuthError {
-        return new NodeAuthError(NodeAuthErrorMessage.hashDoesNotContainStateError.code, NodeAuthErrorMessage.hashDoesNotContainStateError.desc);
+    static createStateNotFoundError(): NodeAuthError {
+        return new NodeAuthError(NodeAuthErrorMessage.StateNotFoundError.code, NodeAuthErrorMessage.StateNotFoundError.desc);
     }
 
 }
