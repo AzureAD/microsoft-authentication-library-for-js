@@ -2,6 +2,6 @@
   "type": "patch",
   "comment": "Use keyId from cache to find binding key #4730",
   "packageName": "@azure/msal-common",
-  "email": "hectormg@hey.com",
+  "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
 }
