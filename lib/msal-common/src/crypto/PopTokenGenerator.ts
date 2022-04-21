@@ -4,11 +4,8 @@
  */
 
 import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
-import { AuthToken } from "../account/AuthToken";
-import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
-import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * See eSTS docs for more info.
@@ -49,16 +46,11 @@ export class PopTokenGenerator {
         };
     }
 
-    async signPopToken(accessToken: string, request: SignedHttpRequestParameters): Promise<string> {
-        const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
-        if (!tokenClaims?.cnf?.kid) {
-            throw ClientAuthError.createTokenClaimsRequiredError();
-        }
-        
-        return this.signPayload(accessToken, tokenClaims.cnf.kid, request);
+    async signPopToken(accessToken: string, keyId: string, request: SignedHttpRequestParameters): Promise<string> {
+        return this.signPayload(accessToken, keyId, request);
     }
 
-    async signPayload(payload: string, kid: string, request: SignedHttpRequestParameters, claims?: object): Promise<string> {
+    async signPayload(payload: string, keyId: string, request: SignedHttpRequestParameters, claims?: object): Promise<string> {
         // Deconstruct request to extract SHR parameters
         const { resourceRequestMethod, resourceRequestUri, shrClaims, shrNonce } = request;
 
@@ -75,6 +67,6 @@ export class PopTokenGenerator {
             q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
             client_claims: shrClaims || undefined,
             ...claims
-        }, kid, request.correlationId);
+        }, keyId, request.correlationId);
     }
 }

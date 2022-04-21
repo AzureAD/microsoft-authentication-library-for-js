@@ -320,7 +320,13 @@ export class ResponseHandler {
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
+                const { secret, keyId } = cacheRecord.accessToken;
+
+                if (!keyId) {
+                    throw ClientAuthError.createKeyIdMissingError();
+                }
+
+                accessToken = await popTokenGenerator.signPopToken(secret, keyId, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
