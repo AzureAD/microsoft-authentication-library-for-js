@@ -13,7 +13,7 @@ export const NodeAuthErrorMessage = {
         code: "hash_empty_error",
         desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash."
     },
-    StateNotFoundError: {
+    stateNotFoundError: {
         code: "state_not_found",
         desc: "State not found. Please verify that the request originated from msal."
     },
