@@ -328,11 +328,14 @@ Token lifetimes are 1 hour and the session lifetime is 24 hours. This means that
 
 Please see the documentation on [Tenancy in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps#who-can-sign-in-to-your-app)
 
-# Scopes & Resources
+# Scopes & Resources - [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/ellymakuba-patch-1/lib/msal-angular/docs/v2-docs/msal-interceptor.md#protected-resource-map)
 
 ## My application has multiple resources it needs to access to. How should I handle scopes for access tokens?
 
 Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
+
+## Register custom scopes for a web API
+[How to register custom scopes for my web API](https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-expose-web-apis).
 
 # B2C
 
@@ -407,5 +410,4 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 
 In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
 
-## Register custom scopes for a web API
-[How to register custom scopes for my web API](https://docs.microsoft.com/en-us/azure/active-directory/develop/quickstart-configure-app-expose-web-apis).
+
