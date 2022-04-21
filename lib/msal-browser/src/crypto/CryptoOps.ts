@@ -199,12 +199,15 @@ export class CryptoOps implements ICrypto {
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
+        
+        // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "eyJ....." })
+        const encodedKeyIdThumbprint = this.b64Encode.urlEncode(JSON.stringify({ kid: kid }));
 
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
             type: KEY_FORMAT_JWK,
-            kid: kid
+            kid: encodedKeyIdThumbprint
         };
         
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
