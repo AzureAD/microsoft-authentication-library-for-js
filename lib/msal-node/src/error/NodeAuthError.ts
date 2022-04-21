@@ -9,10 +9,6 @@ import { AuthError } from "@azure/msal-common";
  * NodeAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const NodeAuthErrorMessage = {
-    hashEmptyError: {
-        code: "hash_empty_error",
-        desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash."
-    },
     stateNotFoundError: {
         code: "state_not_found",
         desc: "State not found. Please verify that the request originated from msal."
@@ -37,18 +33,10 @@ export class NodeAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the hash string value is unexpectedly empty.
-     * @param hashValue 
-     */
-    static createEmptyHashError(hashValue: string): NodeAuthError {
-        return new NodeAuthError(NodeAuthErrorMessage.hashEmptyError.code, `${NodeAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
-    }
-
-    /**
      * Creates an error thrown when the state is not present.
      */
     static createStateNotFoundError(): NodeAuthError {
-        return new NodeAuthError(NodeAuthErrorMessage.StateNotFoundError.code, NodeAuthErrorMessage.StateNotFoundError.desc);
+        return new NodeAuthError(NodeAuthErrorMessage.stateNotFoundError.code, NodeAuthErrorMessage.stateNotFoundError.desc);
     }
 
 }
