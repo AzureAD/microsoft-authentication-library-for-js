@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use keyId from cache to find binding key instead of cracking open the bound token to extrac the cnf claim",
+  "packageName": "@azure/msal-common",
+  "email": "hectormg@hey.com",
+  "dependentChangeType": "patch"
+}
