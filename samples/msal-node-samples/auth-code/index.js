@@ -128,7 +128,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * authorization code is returned.
          *
          */
-        clientApplication.validateState(state, cachedState)
+        clientApplication.validateState(state, cachedState);
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state:req.query.state };
         const authCodeResponse = { 
             nonce: req.session.nonce, 
