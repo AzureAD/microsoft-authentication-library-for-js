@@ -203,8 +203,10 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMAT_JWK
+            type: KEY_FORMAT_JWK,
+            kid: kid
         };
+        
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 
         // Generate payload
