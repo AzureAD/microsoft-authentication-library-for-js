@@ -133,7 +133,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         const authCodeResponse = { 
             nonce: req.session.nonce, 
             code: req.query.code 
-        }
+        };
 
         /**
          * MSAL Usage
