@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Removed hash error from msal node, fixed missing commas",
+  "packageName": "@azure/msal-react",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
