@@ -230,7 +230,7 @@ const msalConfig = {
 
 - Unable to acquire token from native platform.
 
-This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquiring tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
+This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
 
 ### native_connection_not_established
 
