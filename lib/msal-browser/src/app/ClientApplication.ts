@@ -880,7 +880,7 @@ export abstract class ClientApplication {
      * Returns new instance of the Silent AuthCode Interaction Client
      */
      protected createSilentAuthCodeClient(correlationId?: string): SilentAuthCodeClient {
-        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
