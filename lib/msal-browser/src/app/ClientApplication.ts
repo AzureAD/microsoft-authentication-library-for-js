@@ -532,7 +532,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
-        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, this.nativeExtensionProvider, request.correlationId);
+        const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
         return silentTokenResult;
     }
@@ -554,7 +554,7 @@ export abstract class ClientApplication {
         const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
-        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, request.correlationId);
+        const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
 
         return silentRefreshClient.acquireToken(request)
             .then((result: AuthenticationResult) => {
@@ -622,7 +622,7 @@ export abstract class ClientApplication {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
     }
 
@@ -867,6 +867,20 @@ export abstract class ClientApplication {
      */
     protected createSilentCacheClient(correlationId?: string): SilentCacheClient {
         return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+    }
+
+    /**
+     * Returns new instance of the Silent Refresh Interaction Client
+     */
+     protected createSilentRefreshClient(correlationId?: string): SilentRefreshClient {
+        return new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+    }
+
+    /**
+     * Returns new instance of the Silent AuthCode Interaction Client
+     */
+     protected createSilentAuthCodeClient(correlationId?: string): SilentAuthCodeClient {
+        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
