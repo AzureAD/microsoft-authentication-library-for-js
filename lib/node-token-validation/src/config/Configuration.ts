@@ -15,7 +15,7 @@ import { NetworkUtils } from "../utils/NetworkUtils";
  * - system             - Configure the logger and network client.
  */
 export type Configuration = {
-    auth: TokenValidationOptions,
+    auth?: TokenValidationOptions,
     system?: SystemOptions
 };
 
@@ -26,7 +26,6 @@ export type Configuration = {
  * - clockSkew          - Clock skew (in seconds) allowed in token validation. Must be a positive integer.
  */
 export type TokenValidationOptions = {
-    clientId: string,
     authority?: string,
     protocolMode?: ProtocolMode
     clockSkew?: number,
@@ -65,7 +64,6 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
  * Default auth options
  */
 const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
-    clientId: "",
     authority: Constants.DEFAULT_AUTHORITY,
     protocolMode: ProtocolMode.OIDC,
     clockSkew: 0
@@ -85,12 +83,9 @@ const DEFAULT_SYSTEM_OPTIONS = {
  * @param {@link (Configuration:type)} 
  * @returns 
  */
-export function buildConfiguration({
-    auth,
-    system,
-}: Configuration): TokenValidationConfiguration {
+export function buildConfiguration(config?: Configuration): TokenValidationConfiguration {
     return {
-        auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...auth },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...config?.auth },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...config?.system },
     };
 }
