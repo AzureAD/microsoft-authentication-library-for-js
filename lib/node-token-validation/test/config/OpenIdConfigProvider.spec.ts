@@ -10,7 +10,6 @@ import { HttpClient } from "../../src/network/HttpClient";
 describe("OpenIdConfigProvider", () => {
     let config = buildConfiguration({
         auth: {
-            clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: TEST_CONSTANTS.DEFAULT_AUTHORITY
         }
     });
@@ -79,7 +78,6 @@ describe("OpenIdConfigProvider", () => {
         it("returns a well-known endpoint", async () => {
             const config = buildConfiguration({
                 auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
                     authority: TEST_CONSTANTS.DEFAULT_AUTHORITY
                 }
             });
@@ -93,7 +91,6 @@ describe("OpenIdConfigProvider", () => {
         it("returns an AAD endpoint if ProtocolMode.AAD is configured", async () => {
             const config = buildConfiguration({
                 auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
                     authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
                     protocolMode: ProtocolMode.AAD
                 }
@@ -108,7 +105,6 @@ describe("OpenIdConfigProvider", () => {
         it("returns valid endpoint even when authority does not end with /", async () => {
             const config = buildConfiguration({
                 auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
                     authority: TEST_CONSTANTS.AUTHORITY
                 }
             });
