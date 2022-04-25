@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -39,6 +39,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - acquireToken called.");
+
+        // start the perf measurement
+        const nativeATMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
         const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
@@ -49,7 +52,22 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
         const validatedResponse: NativeResponse = this.validateNativeResponse(response);
-        return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp);
+
+        return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp)
+            .then((result: AuthenticationResult) => {
+                nativeATMeasurement.endMeasurement({
+                    success: true,
+                    isNativeBroker: true
+                });
+                return result;
+            })
+            .catch((error) => {
+                nativeATMeasurement.endMeasurement({
+                    success: false,
+                    isNativeBroker: true
+                });
+                throw error;
+            });
     }
 
     /**

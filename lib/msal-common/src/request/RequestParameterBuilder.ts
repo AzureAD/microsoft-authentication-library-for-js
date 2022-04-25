@@ -31,6 +31,15 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * add response_type = token id_token
+     */
+    addResponseTypeForTokenAndIdToken(): void {
+        this.parameters.set(
+            AADServerParamKeys.RESPONSE_TYPE, encodeURIComponent(`${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`)
+        );
+    }
+
+    /**
      * add response_mode. defaults to query.
      * @param responseMode
      */
@@ -114,7 +123,7 @@ export class RequestParameterBuilder {
 
     /**
      * Adds the CCS (Cache Credential Service) query parameter for login_hint
-     * @param loginHint 
+     * @param loginHint
      */
     addCcsUpn(loginHint: string): void {
         this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`UPN:${loginHint}`));
@@ -122,7 +131,7 @@ export class RequestParameterBuilder {
 
     /**
      * Adds the CCS (Cache Credential Service) query parameter for account object
-     * @param loginHint 
+     * @param loginHint
      */
     addCcsOid(clientInfo: ClientInfo): void {
         this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`Oid:${clientInfo.uid}@${clientInfo.utid}`));
@@ -172,13 +181,13 @@ export class RequestParameterBuilder {
 
     /**
      * Add client telemetry parameters
-     * @param appTelemetry 
+     * @param appTelemetry
      */
     addApplicationTelemetry(appTelemetry: ApplicationTelemetry): void {
         if (appTelemetry?.appName) {
             this.parameters.set(AADServerParamKeys.X_APP_NAME, appTelemetry.appName);
         }
-        
+
         if (appTelemetry?.appVersion) {
             this.parameters.set(AADServerParamKeys.X_APP_VER, appTelemetry.appVersion);
         }
@@ -386,7 +395,7 @@ export class RequestParameterBuilder {
     }
 
     /**
-     * add SSH JWK and key ID to query params 
+     * add SSH JWK and key ID to query params
      */
     addSshJwk(sshJwkString: string): void {
         if(!StringUtils.isEmpty(sshJwkString)) {
@@ -397,7 +406,7 @@ export class RequestParameterBuilder {
 
     /**
      * add server telemetry fields
-     * @param serverTelemetryManager 
+     * @param serverTelemetryManager
      */
     addServerTelemetry(serverTelemetryManager: ServerTelemetryManager): void {
         this.parameters.set(AADServerParamKeys.X_CLIENT_CURR_TELEM, serverTelemetryManager.generateCurrentRequestHeaderValue());

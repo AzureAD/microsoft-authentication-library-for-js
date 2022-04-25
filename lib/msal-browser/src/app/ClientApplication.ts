@@ -126,10 +126,10 @@ export abstract class ClientApplication {
 
         // Initial hybrid spa map
         this.hybridAuthCodeResponses = new Map();
-        
+
         // Initialize performance client
-        this.performanceClient = this.isBrowserEnvironment ? 
-            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application) : 
+        this.performanceClient = this.isBrowserEnvironment ?
+            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application) :
             new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
 
         // Initialize the crypto class.
@@ -193,7 +193,7 @@ export abstract class ClientApplication {
             if (typeof response === "undefined") {
                 this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
-                
+
                 const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
@@ -308,6 +308,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
+        const atPopupMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenPopup, correlationId);
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
@@ -330,6 +331,11 @@ export abstract class ClientApplication {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup).then((response) => {
                 this.browserStorage.setInteractionInProgress(false);
+                atPopupMeasurement.endMeasurement({
+                    success: true,
+                    isNativeBroker: true
+                });
+                atPopupMeasurement.flushMeasurement();
                 return response;
             }).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
@@ -353,6 +359,10 @@ export abstract class ClientApplication {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
             }
 
+            atPopupMeasurement.endMeasurement({
+                success: true
+            });
+            atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e) => {
             if (loggedInAccounts.length > 0) {
@@ -360,6 +370,12 @@ export abstract class ClientApplication {
             } else {
                 this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
             }
+
+            atPopupMeasurement.endMeasurement({
+                success: false
+            });
+            atPopupMeasurement.flushMeasurement();
+
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         });
@@ -516,7 +532,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
-        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, this.nativeExtensionProvider, request.correlationId);
+        const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
         return silentTokenResult;
     }
@@ -538,7 +554,7 @@ export abstract class ClientApplication {
         const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
-        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, request.correlationId);
+        const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
 
         return silentRefreshClient.acquireToken(request)
             .then((result: AuthenticationResult) => {
@@ -606,7 +622,7 @@ export abstract class ClientApplication {
         const correlationId = this.getRequestCorrelationId(logoutRequest);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        const redirectClient = this.createRedirectClient(correlationId);
         return redirectClient.logout(logoutRequest);
     }
 
@@ -813,8 +829,8 @@ export abstract class ClientApplication {
 
     /**
      * Get the native accountId from the account
-     * @param request 
-     * @returns 
+     * @param request
+     * @returns
      */
     protected getNativeAccountId(request: RedirectRequest|PopupRequest|SsoSilentRequest): string {
         const account = request.account || this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid) || this.getActiveAccount();
@@ -854,6 +870,20 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Returns new instance of the Silent Refresh Interaction Client
+     */
+     protected createSilentRefreshClient(correlationId?: string): SilentRefreshClient {
+        return new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+    }
+
+    /**
+     * Returns new instance of the Silent AuthCode Interaction Client
+     */
+     protected createSilentAuthCodeClient(correlationId?: string): SilentAuthCodeClient {
+        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, this.nativeExtensionProvider, correlationId);
+    }
+
+    /**
      * Adds event callbacks to array
      * @param callback
      */
@@ -868,7 +898,7 @@ export abstract class ClientApplication {
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
     }
-    
+
     /**
      * Registers a callback to receive performance events.
      *
@@ -878,7 +908,7 @@ export abstract class ClientApplication {
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         return this.performanceClient.addPerformanceCallback(callback);
     }
-    
+
     /**
      * Removes a callback registered with addPerformanceCallback.
      *
@@ -949,7 +979,7 @@ export abstract class ClientApplication {
     getConfiguration(): BrowserConfiguration {
         return this.config;
     }
-    
+
     /**
      * Generates a correlation id for a request if none is provided.
      *
