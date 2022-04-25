@@ -13,4 +13,5 @@ export {
     // Logger
     Logger,
     LogLevel,
+    ProtocolMode
 } from "@azure/msal-common";
