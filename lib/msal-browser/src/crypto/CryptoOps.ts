@@ -206,7 +206,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMAT_JWK,
+            typ: "JWT",
             kid: encodedKeyIdThumbprint
         };
         
