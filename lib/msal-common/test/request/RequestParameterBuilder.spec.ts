@@ -76,7 +76,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addPopToken("");
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(Object.keys(requestQueryString)).toHaveLength(0);
-        
+
         const requestParameterBuilder2 = new RequestParameterBuilder();
         //@ts-ignore
         requestParameterBuilder.addPopToken(undefined);
@@ -97,7 +97,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addSshJwk("");
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(Object.keys(requestQueryString)).toHaveLength(0);
-        
+
         const requestParameterBuilder2 = new RequestParameterBuilder();
         //@ts-ignore
         requestParameterBuilder.addSshJwk(undefined);
@@ -150,6 +150,13 @@ describe("RequestParameterBuilder unit tests", () => {
         );
     });
 
+    it("addResponseTypeForIdToken does add response_type correctly", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addResponseTypeForTokenAndIdToken();
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`)).toBe(true);
+    });
+
     it("throws error if claims is not stringified JSON object", () => {
         const claims = "not-a-valid-JSON-object";
         sinon.stub(RequestParameterBuilder.prototype, "addClientCapabilitiesToClaims").returns(claims);
@@ -169,7 +176,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const requestQueryString = requestParameterBuilder.createQueryString();
             expect(requestQueryString.includes(`${HeaderNames.CCS_HEADER}=${encodeURIComponent(`Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`)}`)).toBeTruthy();
         });
-        
+
         it("adds CCS parameter from given UPN", () => {
             const requestParameterBuilder = new RequestParameterBuilder();
             const testUpn = "AbeLi@microsoft.com";
