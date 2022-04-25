@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Tests for SilentFlowClient- when claims are passed #4672",
+  "packageName": "@azure/msal-node",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
