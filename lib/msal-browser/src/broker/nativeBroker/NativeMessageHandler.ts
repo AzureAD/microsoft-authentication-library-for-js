@@ -47,7 +47,6 @@ export class NativeMessageHandler {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: this.responseId++,
-
             body: body
         };
 
@@ -107,7 +106,7 @@ export class NativeMessageHandler {
             this.handshakeResolvers.set(req.responseId, {resolve, reject});
             this.timeoutId = window.setTimeout(() => {
                 /*
-                 * Throw an error if neither HandshakeResponse or original Handshake request are received in a reasonable timeframe.
+                 * Throw an error if neither HandshakeResponse nor original Handshake request are received in a reasonable timeframe.
                  * This typically suggests an event handler stopped propagation of the Handshake request but did not respond to it on the MessageChannel port
                  */
                 window.removeEventListener("message", this.windowListener, false);
