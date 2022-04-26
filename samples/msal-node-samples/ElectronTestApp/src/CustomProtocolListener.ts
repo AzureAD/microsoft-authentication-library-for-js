@@ -4,34 +4,31 @@
 import { AuthCodeListener } from './AuthCodeListener';
 
 import { protocol } from 'electron';
-import * as path from 'path';
 
 /**
- * CustomFileProtocolListener can be instantiated in order
- * to register and unregister a custom file protocol on which
+ * CustomProtocolListener can be instantiated in order
+ * to register and unregister a custom typed protocol on which
  * MSAL can listen for Auth Code reponses.
+ * 
+ * For information on available protocol types, check the Electron
+ * protcol docs: https://www.electronjs.org/docs/latest/api/protocol/
  */
-export class CustomFileProtocolListener extends AuthCodeListener {
+export class CustomProtocolListener extends AuthCodeListener {
     constructor(hostName: string) {
         super(hostName);
     }
 
     /**
-     * Registers a custom file protocol on which the library will
+     * Registers a custom string protocol on which the library will
      * listen for Auth Code response.
      */
     public start(): Promise<string> {
         const codePromise = new Promise<string>((resolve, reject) => {
-            protocol.registerFileProtocol(this.host, (req, callback) => {
+            protocol.registerStringProtocol(this.host, (req, callback) => {
                 const requestUrl = new URL(req.url);
                 const authCode = requestUrl.searchParams.get('code');
-                if (authCode) {
-                    resolve(authCode);
-                }
-                else {
-                    reject(new Error("no code in URL"));
-                }
-                callback(path.normalize(`${__dirname}/${requestUrl.pathname}`));
+
+                (authCode) ? resolve(authCode) : reject(new Error("No code found in URL"));
             });
         });
 
