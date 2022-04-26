@@ -1526,7 +1526,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(request.correlationId).toBe(undefined);
         });
 
-        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
+        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
