@@ -135,7 +135,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 done();
                 return Promise.resolve("");
             };
-            popTokenGenerator.signPopToken(accessToken, popRequest);
+            popTokenGenerator.signPopToken(accessToken, TEST_POP_VALUES.KID, popRequest);
         });
 
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
@@ -159,7 +159,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 done();
                 return Promise.resolve("");
             };
-            popTokenGenerator.signPopToken(accessToken, testRequest);
+            popTokenGenerator.signPopToken(accessToken, TEST_POP_VALUES.KID, testRequest);
         });
     });
 });
