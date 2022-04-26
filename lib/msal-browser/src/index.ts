@@ -33,31 +33,12 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 
 // Cache
 export { LoadTokenOptions } from "./cache/TokenCache";
-export { BrowserCacheManager } from "./cache/BrowserCacheManager";
-
-// Clients
-export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient";
-export { RedirectClient } from "./interaction_client/RedirectClient";
-export { PopupClient } from "./interaction_client/PopupClient";
-export { SilentIframeClient } from "./interaction_client/SilentIframeClient";
-export { SilentCacheClient } from "./interaction_client/SilentCacheClient";
-export { SilentRefreshClient } from "./interaction_client/SilentRefreshClient";
-
-// Handlers
-export { RedirectHandler } from "./interaction_handler/RedirectHandler";
 
 // Events
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
-export { EventHandler } from "./event/EventHandler";
 
 export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
-
-// Utilities
-export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
-export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
-export { PopupUtils } from "./utils/PopupUtils";
-export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
 
 // Common Object Formats
 export {
@@ -103,3 +84,6 @@ export {
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
+
+// Internals used by other MSAL libraries
+export * as internals from "./internals";
