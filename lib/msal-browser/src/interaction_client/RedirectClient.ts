@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, ThrottlingUtils } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -13,6 +13,8 @@ import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
+import { NativeInteractionClient } from "./NativeInteractionClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 export class RedirectClient extends StandardInteractionClient {
     /**
@@ -44,7 +46,10 @@ export class RedirectClient extends StandardInteractionClient {
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.browserCrypto);
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
+            const navigateUrl = await authClient.getAuthCodeUrl({
+                ...validRequest,
+                nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme)
+            });
 
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
@@ -94,7 +99,9 @@ export class RedirectClient extends StandardInteractionClient {
 
             let state: string;
             try {
-                state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
+                // Deserialize hash fragment response parameters.
+                const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
+                state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Redirect);
                 this.logger.verbose("State extracted from hash");
             } catch (e) {
                 this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
@@ -200,6 +207,24 @@ export class RedirectClient extends StandardInteractionClient {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
         this.logger.verbose("handleHash called, retrieved cached request");
 
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+
+        if (serverParams.accountId) {
+            this.logger.verbose("Account id found in hash, calling WAM for token");
+            if (!this.nativeMessageHandler) {
+                throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+            }
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, cachedRequest.correlationId);
+            const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
+            return nativeInteractionClient.acquireToken({
+                ...cachedRequest,
+                state: userRequestState,
+                prompt: undefined // Server should handle the prompt, ideally native broker can do this part silently
+            }).finally(() => {
+                this.browserStorage.cleanRequestByState(state);
+            });
+        }
+
         // Hash contains known properties - handle and return in callback
         const currentAuthority = this.browserStorage.getCachedAuthority(state);
         if (!currentAuthority) {
@@ -208,8 +233,9 @@ export class RedirectClient extends StandardInteractionClient {
 
         const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
+        ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, cachedRequest);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
-        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
+        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
     }
 
     /**
