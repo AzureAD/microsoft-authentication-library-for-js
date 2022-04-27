@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "MSAL-Node: Making Network Requests Behind a Proxy",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
