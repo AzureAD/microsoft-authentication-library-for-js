@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "MSAL-Node: Making Network Requests Behind a Proxy",
+  "comment": "Use native http modules instead of axios for regular and proxied network requests #4744",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

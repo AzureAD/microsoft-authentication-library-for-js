@@ -33,7 +33,7 @@ export class HttpClient implements INetworkModule {
         const destinationUrl = new URL(url);
         const proxyUrl = new URL(options.proxyUrl);
 
-        const tunnelRequestOptions = {
+        const tunnelRequestOptions: https.RequestOptions = {
             host: proxyUrl.hostname,
             port: proxyUrl.port,
             method: "CONNECT",
@@ -43,8 +43,8 @@ export class HttpClient implements INetworkModule {
 
         const outgoingRequestString = `${HttpMethod.GET.toUpperCase()} ${destinationUrl.href} HTTP/1.1\r\n` +
             `Host: ${destinationUrl.host}\r\n` +
-            'Connection: close\r\n' +
-            '\r\n';
+            "Connection: close\r\n" +
+            "\r\n";
 
         return networkRequestViaProxy(tunnelRequestOptions, outgoingRequestString);
     }
@@ -66,7 +66,7 @@ export class HttpClient implements INetworkModule {
         const destinationUrl = new URL(url);
         const proxyUrl = new URL(options.proxyUrl);
 
-        const tunnelRequestOptions = {
+        const tunnelRequestOptions: https.RequestOptions = {
             host: proxyUrl.hostname,
             port: proxyUrl.port,
             method: "CONNECT",
@@ -95,11 +95,11 @@ const networkRequestViaProxy = <T>(
         const request = http.request(tunnelRequestOptions);
         request.end();
 
-        request.on("connect", (_res, socket, _head) => {
+        request.on("connect", (_res, socket) => {
             // make a request over an HTTP tunnel
             socket.write(outgoingRequestString);
 
-            let data: Buffer[] = [];
+            const data: Buffer[] = [];
             socket.on("data", (chunk) => {
                 data.push(chunk);
             });
@@ -120,17 +120,19 @@ const networkRequestViaProxy = <T>(
                 // build an object out of all the headers
                 const entries = new Map();
                 headersArray.forEach((header) => {
-                    // the header might look like "Content-Length: 1531", but that is just a string
-                    // it needs to be converted to a key/value pair
-                    // split the string at the first instance of ":"
-                    // there may be more than one ":" if the value of the header is supposed to be a JSON object
+                    /**
+                     * the header might look like "Content-Length: 1531", but that is just a string
+                     * it needs to be converted to a key/value pair
+                     * split the string at the first instance of ":"
+                     * there may be more than one ":" if the value of the header is supposed to be a JSON object
+                     */
                     const headerKeyValue = header.split(new RegExp(/:\s(.*)/s));
                     const headerKey = headerKeyValue[0];
                     let headerValue = headerKeyValue[1];
 
                     // check if the value of the header is supposed to be a JSON object
                     try {
-                        let object = JSON.parse(headerValue);
+                        const object = JSON.parse(headerValue);
 
                         // if it is, then convert it from a string to a JSON object
                         if (object && (typeof object === "object")) {
@@ -209,7 +211,7 @@ const networkRequestViaHttps = <T>(
                 return reject(new Error(`HTTP status code ${statusCode}`));
             }
 
-            let data: Buffer[] = [];
+            const data: Buffer[] = [];
             response.on("data", (chunk) => {
                 data.push(chunk);
             });
