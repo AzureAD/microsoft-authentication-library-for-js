@@ -15,6 +15,7 @@ import {
 import { Observable } from "rxjs";
 
 export interface IMsalService {
+    initialize(): Observable<void>;
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Observable<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult>;

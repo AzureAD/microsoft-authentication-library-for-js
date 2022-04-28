@@ -5,8 +5,8 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES } from "../utils/StringConstants";
-import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError } from "@azure/msal-common";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
+import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError, Authority } from "@azure/msal-common";
 import { TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -14,11 +14,17 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
+import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
+import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
+import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { FetchClient } from "../../src/network/FetchClient";
 
 describe("PopupClient", () => {
+    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
+    let pca: PublicClientApplication;
     beforeEach(() => {
-        const pca = new PublicClientApplication({
+        pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -42,6 +48,15 @@ describe("PopupClient", () => {
             };
             // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(FetchClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                console.log("HERE")
+                if (url.startsWith("https://login.microsoftonline.com/common/discovery/instance?")) {
+                    return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
+                } else {
+                    return Promise.reject({headers: {}, status: 404, body: {}});
+                }
+            });
         });
 
         afterEach(() => {
@@ -147,6 +162,152 @@ describe("PopupClient", () => {
             expect(popupSpy.getCall(0).args[0]).toContain(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`login_hint=${encodeURIComponent(request.loginHint || "")}`);
+        });
+
+        it("calls native broker if server responds with accountId", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                correlationId: RANDOM_TEST_GUID,
+                fromCache: false,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
+            sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
+                expect(requestUrl).toEqual(testNavUrl);
+                return window;
+            });
+            sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
+            sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            // @ts-ignore
+            const nativeMessageHandler = new NativeMessageHandler(pca.logger);
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, nativeMessageHandler);
+            const tokenResp = await popupClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES
+            });
+            expect(tokenResp).toEqual(testTokenResponse);
+        });
+
+        it("throws if server responds with accountId but extension message handler is not instantiated", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                correlationId: RANDOM_TEST_GUID,
+                fromCache: false,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
+            sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
+                expect(requestUrl).toEqual(testNavUrl);
+                return window;
+            });
+            sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
+            sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            
+            popupClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES
+            }).catch(e => {
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code);
+                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
+                done();
+            });
         });
 
         it("resolves the response successfully", async () => {
