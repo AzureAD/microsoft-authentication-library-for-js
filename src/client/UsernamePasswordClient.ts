@@ -94,6 +94,8 @@ export class UsernamePasswordClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
 
+        parameterBuilder.addResponseTypeForTokenAndIdToken();
+
         parameterBuilder.addGrantType(GrantType.RESOURCE_OWNER_PASSWORD_GRANT);
         parameterBuilder.addClientInfo();
 

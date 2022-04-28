@@ -40,6 +40,7 @@ import { TokenClaims } from "../../account/TokenClaims";
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
  *      idTokenClaims: Object containing claims parsed from ID token
+ *      nativeAccountId: Account identifier on the native device
  * }
  */
 export class AccountEntity {
@@ -56,6 +57,7 @@ export class AccountEntity {
     cloudGraphHostName?: string;
     msGraphHost?: string;
     idTokenClaims?: TokenClaims;
+    nativeAccountId?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -108,7 +110,8 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
-            idTokenClaims: this.idTokenClaims
+            idTokenClaims: this.idTokenClaims,
+            nativeAccountId: this.nativeAccountId
         };
     }
 
@@ -141,13 +144,15 @@ export class AccountEntity {
         oboAssertion?: string,
         cloudGraphHostName?: string,
         msGraphHost?: string,
-        environment?: string
+        environment?: string,
+        nativeAccountId?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
         account.authorityType = CacheAccountType.MSSTS_ACCOUNT_TYPE;
         account.clientInfo = clientInfo;
         account.homeAccountId = homeAccountId;
+        account.nativeAccountId = nativeAccountId;
 
         const env = environment || (authority && authority.getPreferredCache());
 
@@ -303,6 +308,7 @@ export class AccountEntity {
             (accountA.username === accountB.username) &&
             (accountA.tenantId === accountB.tenantId) &&
             (accountA.environment === accountB.environment) &&
+            (accountA.nativeAccountId === accountB.nativeAccountId) &&
             claimsMatch;
     }
 }
