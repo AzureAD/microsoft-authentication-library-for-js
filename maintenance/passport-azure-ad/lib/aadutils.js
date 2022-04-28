@@ -13,7 +13,7 @@ exports.getLibraryProduct = () => { return "passport-azure-ad" };
 exports.getLibraryVersionParameterName = () => { return "x-client-Ver" };
 exports.getLibraryProductParameterName = () => { return "x-client-SKU" };
 exports.getLibraryVersion = () => {
-  return "4.3.0";
+  return "4.3.2";
 };
 
 exports.getElement = (parentElement, elementName) => {
