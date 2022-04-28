@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger, ServerError } from "@azure/msal-common";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
@@ -82,7 +82,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         this.browserRequestLogger.verbose("RedirectHandler.handleCodeResponse called");
 
         // Check that location hash isn't empty.
@@ -99,7 +99,18 @@ export class RedirectHandler extends InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        let authCodeResponse;
+        try {
+            authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        } catch (e) {
+            if (e instanceof ServerError && e.subError === BrowserAuthErrorMessage.userCancelledError.code) {
+                // Translate server error caused by user closing native prompt to corresponding first class MSAL error
+                throw BrowserAuthError.createUserCancelledError();
+            } else {
+                throw e;
+            }
+        }
 
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
@@ -124,11 +135,6 @@ export class RedirectHandler extends InteractionHandler {
             if (cachedCcsCred) {
                 this.authCodeRequest.ccsCredential = cachedCcsCred;
             }
-        }
-
-        // Remove throttle if it exists
-        if (clientId) {
-            ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest);
         }
 
         // Acquire token with retrieved code.
