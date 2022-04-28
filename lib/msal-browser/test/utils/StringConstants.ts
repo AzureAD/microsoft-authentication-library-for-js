@@ -149,6 +149,9 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
     TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
 };
 
 // Test Crypto Values
