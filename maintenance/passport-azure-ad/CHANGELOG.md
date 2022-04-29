@@ -2,6 +2,7 @@
 
 # 4.3.2
 - Update `async` to resolve dependency alert: #4724
+- Update `cache-manager` to 3.6.1 to resolve the same `async` dependency
 
 # 4.3.1
 
