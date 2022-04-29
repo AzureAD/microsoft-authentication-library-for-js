@@ -62,7 +62,7 @@ const msalConfig = {
 };
 ```
 
-**Note**: The `protocolMode` configuration option changes the following behavior:
+**Note**: The `protocolMode` configuration option, which tells MSAL whether to enable AAD-specific quirks, changes the following behavior:
 
 - Authority metadata (since `v2.4.0`):
   - When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata.
