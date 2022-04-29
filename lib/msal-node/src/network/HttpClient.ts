@@ -88,7 +88,7 @@ export class HttpClient implements INetworkModule {
 }
 
 const networkRequestViaProxy = <T>(
-    tunnelRequestOptions: any,
+    tunnelRequestOptions: https.RequestOptions,
     outgoingRequestString: string,
 ): Promise<NetworkResponse<T>> => {
     return new Promise<NetworkResponse<T>>(((resolve, reject) => {
@@ -160,10 +160,8 @@ const networkRequestViaProxy = <T>(
             });
         });
 
-        if (tunnelRequestOptions.cancellationToken) {
-            request.on("timeout", () => {
-                reject(new Error("Request time out"));
-            });
+        if (tunnelRequestOptions.timeout) {
+            request.setTimeout(tunnelRequestOptions.timeout);
         }
 
         request.on("error", (chunk) => {
@@ -176,7 +174,7 @@ const networkRequestViaHttps = <T>(
     url: string,
     httpMthod: string,
     options?: NetworkRequestOptions,
-    cancellationToken?: number,
+    timeout?: number,
 ): Promise<NetworkResponse<T>> => {
     const isPostRequest = httpMthod === HttpMethod.POST;
     const body: string = options?.body || "";
@@ -194,11 +192,6 @@ const networkRequestViaHttps = <T>(
             ...customOptions.headers,
             "Content-Length": body.length,
         };
-    }
-
-    if (cancellationToken) {
-        // needed for post request to work
-        customOptions.timeout = cancellationToken;
     }
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
@@ -233,10 +226,8 @@ const networkRequestViaHttps = <T>(
             reject(new Error(chunk.toString()));
         });
 
-        if (cancellationToken) {
-            request.on("timeout", () => {
-                reject(new Error("Request time out"));
-            });
+        if (timeout) {
+            request.setTimeout(timeout);
         }
 
         if (isPostRequest) {
