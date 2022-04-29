@@ -66,7 +66,7 @@ const msalConfig = {
 
 - Authority metadata (since `v2.4.0`):
   - When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata.
-  - When set to `AAD`, the library will include `/v2.0/` in the authority path when fetching authority metadata.
+  - When set to `AAD` (the default value), the library will include `/v2.0/` in the authority path when fetching authority metadata.
 
 ## (Optional) Configure Redirect URI
 
