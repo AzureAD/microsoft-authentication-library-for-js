@@ -299,6 +299,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             correlationId: this.correlationId,
             instance_aware: instanceAware,
             token_type: request.authenticationScheme,
+            windowTitleSubstring: document.title,
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
