@@ -1,5 +1,4 @@
-import { Logger } from "../../src";
-import { ApplicationTelemetry, PerformanceEvents } from "@azure/msal-common";
+import { ApplicationTelemetry, Logger, PerformanceEvents } from "@azure/msal-common";
 import { name, version } from "../../src/packageMetadata";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
