@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Move internals needed for msal-browser-1p to separate export #4742",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
