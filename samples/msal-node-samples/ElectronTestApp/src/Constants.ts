@@ -10,14 +10,14 @@ export const GRAPH_CONFIG = {
 };
 
 
-export const IPC_MESSAGES = {
-    SHOW_WELCOME_MESSAGE: "SHOW_WELCOME_MESSAGE",
-    LOGIN: "LOGIN",
-    LOGOUT: "LOGOUT",
-    GET_PROFILE: "GET_PROFILE",
-    SET_PROFILE: "SET_PROFILE",
-    GET_MAIL: "GET_MAIL",
-    SET_MAIL: "SET_MAIL"
+export enum IpcMessages {
+    SHOW_WELCOME_MESSAGE = "SHOW_WELCOME_MESSAGE",
+    LOGIN = "LOGIN",
+    LOGOUT = "LOGOUT",
+    GET_PROFILE = "GET_PROFILE",
+    SET_PROFILE = "SET_PROFILE",
+    GET_MAIL = "GET_MAIL",
+    SET_MAIL = "SET_MAIL"
 }
 
 export const CACHE_LOCATION = "./data/cache.json";
