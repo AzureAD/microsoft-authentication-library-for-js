@@ -1,6 +1,7 @@
-import { BrowserPerformanceClient, Logger } from "../../src";
+import { Logger } from "../../src";
 import { ApplicationTelemetry, PerformanceEvents } from "@azure/msal-common";
 import { name, version } from "../../src/packageMetadata";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const clientId = "test-client-id";
 const authority = "https://login.microsoftonline.com";
