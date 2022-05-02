@@ -86,7 +86,7 @@ export {
 export { version } from "./packageMetadata";
 
 /**
- * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable and we strongly recommend against relying on them directly, and instead using the main export.
+ * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 export * as internals from "./internals";
