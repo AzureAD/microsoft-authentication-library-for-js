@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Bump caniuse-lite from 1.0.30001323 to 1.0.30001334 in /lib/msal-angular #4766",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

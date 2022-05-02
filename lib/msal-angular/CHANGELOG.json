@@ -2,6 +2,41 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-angular_v2.3.0",
+      "version": "2.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "cb93cc7e0deadefac126b23c3326c4b2aa4be142",
+            "comment": "Add support for acquiring tokens from the native broker #4531"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.24.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ],
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "94372ab043804ccd56334d87f7cfa6306fcb1115",
+            "comment": "Created Angular 14 RxJS 6/7 Sample Apps #4642"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "55adbfb3cc8c84aa64a11936da3cdf8602aa490b",
+            "comment": "Bump caniuse-lite from 1.0.30001323 to 1.0.30001334 in /lib/msal-angular #4766"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Apr 2022 21:12:41 GMT",
       "tag": "@azure/msal-angular_v2.2.0",
       "version": "2.2.0",
