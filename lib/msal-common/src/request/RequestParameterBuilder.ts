@@ -51,6 +51,16 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * Add flag to indicate STS should attempt to use WAM if available
+     */
+    addNativeBroker(): void {
+        this.parameters.set(
+            AADServerParamKeys.NATIVE_BROKER,
+            encodeURIComponent("1")
+        );
+    }
+
+    /**
      * add scopes. set addOidcScopes to false to prevent default scopes in non-user scenarios
      * @param scopeSet
      * @param addOidcScopes

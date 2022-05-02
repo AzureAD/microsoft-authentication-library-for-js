@@ -359,7 +359,8 @@ export class ResponseHandler {
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
-            code
+            code,
+            fromNativeBroker: false
         };
     }
 }

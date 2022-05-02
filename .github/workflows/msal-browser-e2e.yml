@@ -14,6 +14,7 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - 'samples/e2eTestUtils/**/*'
+      - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-browser-e2e.yml'
 
