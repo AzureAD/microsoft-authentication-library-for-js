@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure interaction status is properly set during logout with onRedirectNavigate #4719",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
