@@ -22,6 +22,7 @@ export { SilentRefreshClient } from "./interaction_client/SilentRefreshClient";
 // Handlers
 export { RedirectHandler } from "./interaction_handler/RedirectHandler";
 export { EventHandler } from "./event/EventHandler";
+export { NativeMessageHandler } from "./broker/nativeBroker/NativeMessageHandler";
 
 // Utilities
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
