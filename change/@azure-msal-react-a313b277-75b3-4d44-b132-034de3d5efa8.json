@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Ensure MsalProvider doesnt rerender if inProgress or accounts do not change #4713",
+  "packageName": "@azure/msal-react",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}

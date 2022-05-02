@@ -573,7 +573,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * returns a boolean if the given account is removed
+     * Removes credentials associated with the provided account
      * @param account
      */
     async removeAccountContext(account: AccountEntity): Promise<boolean> {
