@@ -41,7 +41,7 @@
 /maintenance/adal-angular @jasonnutter @sameerag @peterzenz
 
 # Build
-/build/ @pkanher617 @jasonnutter @tnorling @bmahall @peterzenz
+/build/ @jasonnutter @tnorling @bmahall @peterzenz
 /release-scripts/ @pkanher617 @jasonnutter @tnorling @bmahall @peterzenz
 /.github/ @pkanher617 @jasonnutter @tnorling @bmahall @peterzenz
 
