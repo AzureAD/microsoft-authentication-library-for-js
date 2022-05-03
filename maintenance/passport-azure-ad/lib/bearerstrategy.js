@@ -21,7 +21,7 @@ const Log = require("./logging").getLogger;
 const UrlValidator = require("valid-url");
 
 const log = new Log("AzureAD: Bearer Strategy");
-const memoryCache = cacheManager.caching({ store: "memory", max: 3600, ttl: 1800 /* seconds */ });
+const memoryCache = cacheManager.caching({ store: "memory", max: 3600, shouldCloneBeforeSet: false, ttl: 1800 /* seconds */ });
 const ttl = 1800; // 30 minutes cache
 
 /**
