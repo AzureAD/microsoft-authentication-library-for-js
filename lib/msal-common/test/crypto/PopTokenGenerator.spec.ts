@@ -77,8 +77,10 @@ describe("PopTokenGenerator Unit Tests", () => {
         };
         it("Generates the req_cnf correctly", async () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-            const req_cnf = await popTokenGenerator.generateCnf(testRequest);
-            expect(req_cnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            const reqCnfData = await popTokenGenerator.generateCnf(testRequest);
+            expect(reqCnfData.reqCnfString).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
+            expect(reqCnfData.reqCnfHash).toBe(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
         });
     });
 
