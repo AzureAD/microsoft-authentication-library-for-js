@@ -19,6 +19,12 @@ type ReqCnf = {
     xms_ksl: KeyLocation;
 };
 
+export type ReqCnfData = {
+    kid: string;
+    reqCnfString: string;
+    reqCnfHash: string;
+};
+
 enum KeyLocation {
     SW = "sw",
     UHW = "uhw"
@@ -34,21 +40,19 @@ export class PopTokenGenerator {
 
     /**
      * Generates the req_cnf validated at the RP in the POP protocol for SHR parameters
+     * and returns an object containing the keyid, the full req_cnf string and the req_cnf string hash
      * @param request
      * @returns
      */
-    async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
+    async generateCnf(request: SignedHttpRequestParameters): Promise<ReqCnfData> {
         const reqCnf = await this.generateKid(request);
-        return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
-    }
+        const reqCnfString: string = this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
 
-    /**
-     * Generates the hash of the req_cnf
-     * @param cnf
-     * @returns
-     */
-    async generateCnfHash(cnf: string): Promise<string> {
-        return this.cryptoUtils.hashString(cnf);
+        return {
+            kid: reqCnf.kid,
+            reqCnfString, 
+            reqCnfHash: await this.cryptoUtils.hashString(reqCnfString) 
+        };
     }
 
     /**

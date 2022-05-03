@@ -21,6 +21,7 @@ export type NativeTokenRequest = {
     claims?: string;
     state?: string;
     req_cnf?: string;
+    keyId?: string;
     token_type?: string;
     shrClaims?: string;
     shrNonce?: string;
