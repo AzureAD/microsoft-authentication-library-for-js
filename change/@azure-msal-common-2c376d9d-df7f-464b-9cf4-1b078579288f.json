@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Use keyId from cache to find binding key #4730",
+  "type": "minor",
+  "comment": "Add PoP support for Encrypted Access Tokens #4730",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"

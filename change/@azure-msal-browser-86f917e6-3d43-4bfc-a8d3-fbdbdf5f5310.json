@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Use keyId from cache or native request to find binding key #4730",
+  "comment": "Add PoP support for Encrypted Access Tokens #4730",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
