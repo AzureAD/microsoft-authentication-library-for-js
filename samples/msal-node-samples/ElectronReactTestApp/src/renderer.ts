@@ -15,5 +15,5 @@
  * flag
  */
 
-import './app/index.tsx';
+import './app/Index.tsx';
 import './index.css';

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Route, Routes, HashRouter } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import React from 'react';
 import { IpcMessages } from '../Constants';
 import PageLayout from './components/PageLayout';
@@ -25,7 +25,7 @@ function App() {
             setAccount(res);
         });
 
-        ipcRenderer.on(IpcMessages.REMOVE_ACCOUNT, (event, org) => {
+        ipcRenderer.on(IpcMessages.REMOVE_ACCOUNT, () => {
             setAccount(null);
         });
     }, []);

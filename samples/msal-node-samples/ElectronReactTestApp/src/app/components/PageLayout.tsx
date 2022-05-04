@@ -1,9 +1,5 @@
 import React from 'react';
 import { NavigationBar } from './NavigationBar';
-import { IpcMessages } from '../../Constants';
-import { useEffect, useState } from 'react';
-
-const { ipcRenderer } = window.require('electron');
 
 function PageLayout(props: any) {
     return (
