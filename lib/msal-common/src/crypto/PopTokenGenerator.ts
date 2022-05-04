@@ -35,11 +35,30 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
+    /**
+     * Generates the req_cnf validated at the RP in the POP protocol for SHR parameters
+     * @param request
+     * @returns
+     */
     async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
         const reqCnf = await this.generateKid(request);
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
+    /**
+     * Generates the hash of the req_cnf
+     * @param cnf
+     * @returns
+     */
+    async generateCnfHash(cnf: string): Promise<string> {
+        return this.cryptoUtils.hashString(cnf);
+    }
+
+    /**
+     * Generates key_id for a SHR token request
+     * @param request
+     * @returns
+     */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
@@ -49,17 +68,32 @@ export class PopTokenGenerator {
         };
     }
 
+    /**
+     * Signs the POP access_token with the local generated key-pair
+     * @param accessToken
+     * @param request
+     * @returns
+     */
     async signPopToken(accessToken: string, request: SignedHttpRequestParameters): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
         if (!tokenClaims?.cnf?.kid) {
             throw ClientAuthError.createTokenClaimsRequiredError();
         }
-        
+
         return this.signPayload(accessToken, tokenClaims.cnf.kid, request);
     }
 
+    /**
+     * Utility function to generate the signed JWT for an access_token
+     * @param payload
+     * @param kid
+     * @param request
+     * @param claims
+     * @returns
+     */
     async signPayload(payload: string, kid: string, request: SignedHttpRequestParameters, claims?: object): Promise<string> {
         // Deconstruct request to extract SHR parameters
+
         const { resourceRequestMethod, resourceRequestUri, shrClaims, shrNonce } = request;
 
         const resourceUrlString = (resourceRequestUri) ? new UrlString(resourceRequestUri) : undefined;

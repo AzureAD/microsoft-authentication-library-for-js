@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -11,6 +11,7 @@ import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -454,6 +455,34 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Checks the cache for accounts matching loginHint or SID
+     * @param loginHint 
+     * @param sid 
+     */
+    getAccountInfoByHints(loginHint?: string, sid?: string): AccountInfo | null {
+        const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
+            if (sid) {
+                const accountSid = accountInfo.idTokenClaims && accountInfo.idTokenClaims["sid"];
+                return sid === accountSid;
+            }
+
+            if (loginHint) {
+                return loginHint === accountInfo.username;
+            }
+
+            return false;
+        });
+
+        if (matchingAccounts.length === 1) {
+            return matchingAccounts[0];
+        } else if (matchingAccounts.length > 1) {
+            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
+        }
+
+        return null;
+    }
+
+    /**
      * fetch throttling entity from the platform cache
      * @param throttlingCacheKey
      */
@@ -807,6 +836,7 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
         this.setInteractionInProgress(false);
     }
 
@@ -888,6 +918,26 @@ export class BrowserCacheManager extends CacheManager {
                 throw BrowserAuthError.createNoCachedAuthorityError();
             }
             parsedRequest.authority = cachedAuthority;
+        }
+
+        return parsedRequest;
+    }
+
+    /**
+     * Gets cached native request for redirect flows
+     */
+    getCachedNativeRequest(): NativeTokenRequest | null {
+        this.logger.trace("BrowserCacheManager.getCachedNativeRequest called");
+        const cachedRequest = this.getTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, true);
+        if (!cachedRequest) {
+            this.logger.trace("BrowserCacheManager.getCachedNativeRequest: No cached native request found");
+            return null;
+        }
+
+        const parsedRequest = this.validateAndParseJson(cachedRequest) as NativeTokenRequest;
+        if (!parsedRequest) {
+            this.logger.error("BrowserCacheManager.getCachedNativeRequest: Unable to parse native request");
+            return null;
         }
 
         return parsedRequest;

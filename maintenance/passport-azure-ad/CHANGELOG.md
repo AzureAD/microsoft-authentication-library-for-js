@@ -1,5 +1,9 @@
 <a name="4.0.0"></a>
 
+# 4.3.2
+- Update `async` to resolve dependency alert: #4724
+- Update `cache-manager` to resolve dependency alert: #4781
+
 # 4.3.1
 
 ## Bugs

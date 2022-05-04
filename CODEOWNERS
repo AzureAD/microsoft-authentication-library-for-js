@@ -1,4 +1,4 @@
-* @jasonnutter @tnorling @sameerag @pkanher617 @jo-arroyo @hectormmg @samuelkubai @bmahall @peterzenz
+* @jasonnutter @tnorling @sameerag @jo-arroyo @hectormmg @samuelkubai @bmahall @peterzenz
 
 # MSAL Angular
 /lib/msal-angular/ @jasonnutter @jo-arroyo @tnorling @peterzenz
@@ -8,11 +8,11 @@
 /samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo @tnorling @peterzenz
 
 # MSAL Browser
-/lib/msal-browser/ @pkanher617 @jasonnutter @tnorling @peterzenz
-/samples/msal-browser-samples/ @pkanher617 @jasonnutter @tnorling @peterzenz
+/lib/msal-browser/ @jasonnutter @tnorling @peterzenz
+/samples/msal-browser-samples/ @jasonnutter @tnorling @peterzenz
 
 # MSAL Common
-/lib/msal-common/ @sameerag @pkanher617 @tnorling @peterzenz
+/lib/msal-common/ @sameerag @tnorling @peterzenz
 
 # MSAL Core
 /lib/msal-core/ @jasonnutter @sameerag @tnorling @peterzenz
@@ -24,26 +24,26 @@
 /extensions/msal-node-extensions/ @sameerag @hectormmg @samuelkubai @bmahall @peterzenz
 
 # ADAL Node
-/maintenance/adal-node @sameerag @pkanher617 @samuelkubai @peterzenz
+/maintenance/adal-node @sameerag @samuelkubai @peterzenz
 
 # Passport Azure Ad
-/maintenance/passport-azure-ad @pkanher617 @samuelkubai @sameerag @peterzenz
+/maintenance/passport-azure-ad @samuelkubai @sameerag @peterzenz
 
 # MSAL React
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo @peterzenz
 
 # Node Token Validation
-/lib/node-token-validation @jo-arroyo @pkanher617 @peterzenz
-/samples/node-token-validation @jo-arroyo @pkanher617 @peterzenz
+/lib/node-token-validation @jo-arroyo @peterzenz
+/samples/node-token-validation @jo-arroyo @peterzenz
 
 ## ADAL.js
-/maintenance/adal-angular @jasonnutter @sameerag @pkanher617 @peterzenz
+/maintenance/adal-angular @jasonnutter @sameerag @peterzenz
 
 # Build
-/build/ @pkanher617 @jasonnutter @tnorling @bmahall @peterzenz
-/release-scripts/ @pkanher617 @jasonnutter @tnorling @bmahall @peterzenz
-/.github/ @pkanher617 @jasonnutter @tnorling @bmahall @peterzenz
+/build/ @jasonnutter @tnorling @bmahall @peterzenz
+/release-scripts/ @jasonnutter @tnorling @bmahall @peterzenz
+/.github/ @jasonnutter @tnorling @bmahall @peterzenz
 
 # Filepaths to ignore
 /change/
