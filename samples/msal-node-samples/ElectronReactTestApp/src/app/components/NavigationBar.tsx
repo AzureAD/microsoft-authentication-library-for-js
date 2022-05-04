@@ -3,9 +3,14 @@ import { Navbar, Button } from 'react-bootstrap';
 import { IpcMessages } from '../../Constants';
 import { Link } from 'react-router-dom';
 import '../styles/Nav.css';
+import { AccountInfo } from '@azure/msal-common';
 const { ipcRenderer } = window.require('electron');
 
-export const NavigationBar = (props: any) => {
+type NavigationBarProps = {
+    account: AccountInfo;
+};
+
+export const NavigationBar = (props: NavigationBarProps) => {
     const login = () => {
         ipcRenderer.send(IpcMessages.LOGIN);
     };
