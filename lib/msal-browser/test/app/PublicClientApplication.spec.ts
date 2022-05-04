@@ -205,7 +205,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
                 accountId: testAccount.nativeAccountId!,
                 redirectUri: window.location.href,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                windowTitleSubstring: "test window"
             }
             // @ts-ignore
             pca.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(nativeRequest), true);
