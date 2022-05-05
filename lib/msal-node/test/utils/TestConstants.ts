@@ -41,6 +41,35 @@ line4
 -----END CERTIFICATE-----
     `,
     CLAIMS: 'claim1 claim2',
+    SNI_CERTIFICATE:
+    `-----BEGIN PRIVATE KEY-----
+line1
+line2
+line3
+line4
+line5
+-----END PRIVATE KEY-----
+-----BEGIN CERTIFICATE-----
+line1
+line2
+line3
+line4
+line5
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+line1
+line2
+line3
+line4
+line5
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+line1
+line2
+line3
+line4
+line5
+-----END CERTIFICATE-----`
 };
 
 export const AUTHENTICATION_RESULT = {
