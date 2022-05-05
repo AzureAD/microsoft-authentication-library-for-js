@@ -159,6 +159,8 @@ This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquir
 1. You are being throttled by your identity provider
 1. Your identity provider did not redirect back to your `redirectUri`.
 
+Note: If you are using a router, please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. When possible it's best if your `redirectUri` page does not invoke the router at all.
+
 #### Issues caused by the redirectUri page
 
 When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL instance running in the frame or window that originally made the request will extract this response hash and process it. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL has extracted it you will receive this timeout error.
