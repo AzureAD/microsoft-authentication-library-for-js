@@ -8,16 +8,15 @@ import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
 import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError, Authority } from "@azure/msal-common";
 import { TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
-import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
-import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
+import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 
 describe("PopupClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -114,7 +113,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+            const popupSpy = sinon.stub(PopupClient.prototype, "openSizedPopup");
 
             try {
                 await popupClient.acquireToken(request);
@@ -151,7 +150,7 @@ describe("PopupClient", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+            const popupSpy = sinon.stub(PopupClient.prototype, "openSizedPopup");
 
             try {
                 await popupClient.acquireToken(request);
@@ -214,11 +213,11 @@ describe("PopupClient", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
-            sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
+            sinon.stub(PopupClient.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
+            sinon.stub(PopupClient.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
             sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -286,11 +285,11 @@ describe("PopupClient", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
-            sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
+            sinon.stub(PopupClient.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
+            sinon.stub(PopupClient.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
             sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -352,12 +351,12 @@ describe("PopupClient", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
-            sinon.stub(PopupHandler.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
+            sinon.stub(PopupClient.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
                 expect(requestUrl).toEqual(testNavUrl);
                 return window;
             });
-            sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
-            sinon.stub(PopupHandler.prototype, "handleCodeResponseFromHash").resolves(testTokenResponse);
+            sinon.stub(PopupClient.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            sinon.stub(InteractionHandler.prototype, "handleCodeResponseFromHash").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
@@ -376,7 +375,7 @@ describe("PopupClient", () => {
                 errorMessage: "Error in creating a login url"
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
-            sinon.stub(PopupHandler.prototype, "initiateAuthRequest").throws(testError);
+            sinon.stub(PopupClient.prototype, "initiateAuthRequest").throws(testError);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
@@ -417,7 +416,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popup window before network request by default", async () => {
-            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+            const popupSpy = sinon.stub(PopupClient.prototype, "openSizedPopup");
 
             try {
                 await popupClient.logout();
@@ -437,7 +436,7 @@ describe("PopupClient", () => {
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate, popupName) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate, popupName) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBeTruthy();
                 done();
@@ -480,7 +479,7 @@ describe("PopupClient", () => {
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
                 done();
@@ -508,7 +507,7 @@ describe("PopupClient", () => {
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
                 done();
@@ -530,7 +529,7 @@ describe("PopupClient", () => {
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
                 done();
@@ -554,7 +553,7 @@ describe("PopupClient", () => {
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
             const logoutHint = "test@user.com";
 
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
                 done();
                 throw "Stop Test";
@@ -600,7 +599,7 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims
             };
 
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
                 done();
                 throw "Stop Test";
@@ -646,7 +645,7 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims
             };
 
-            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
                 expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
                 done();
@@ -661,9 +660,9 @@ describe("PopupClient", () => {
 
         it("redirects main window when logout is complete", (done) => {
             const popupWindow = {...window};
-            sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
-            sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
-            sinon.stub(PopupUtils.prototype, "cleanPopup");
+            sinon.stub(PopupClient.prototype, "openSizedPopup").returns(popupWindow);
+            sinon.stub(PopupClient.prototype, "openPopup").returns(popupWindow);
+            sinon.stub(PopupClient.prototype, "cleanPopup");
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
                 expect(url.endsWith("/home")).toBeTruthy();
                 expect(navigationOptions.apiId).toEqual(ApiId.logoutPopup);
@@ -680,10 +679,10 @@ describe("PopupClient", () => {
 
         it("closing the popup does not throw", (done) => {
             const popupWindow = {...window};
-            sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
+            sinon.stub(PopupClient.prototype, "openSizedPopup").returns(popupWindow);
             popupWindow.closed = true;
-            sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
-            sinon.stub(PopupUtils.prototype, "cleanPopup");
+            sinon.stub(PopupClient.prototype, "openPopup").returns(popupWindow);
+            sinon.stub(PopupClient.prototype, "cleanPopup");
 
             popupClient.logout().then(() => {
                 done();
@@ -727,9 +726,9 @@ describe("PopupClient", () => {
             };
 
             const popupWindow = {...window};
-            sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
-            sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
-            sinon.stub(PopupUtils.prototype, "cleanPopup").callsFake((popup) => {
+            sinon.stub(PopupClient.prototype, "openSizedPopup").returns(popupWindow);
+            sinon.stub(PopupClient.prototype, "openPopup").returns(popupWindow);
+            sinon.stub(PopupClient.prototype, "cleanPopup").callsFake((popup) => {
                 window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
             });
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
