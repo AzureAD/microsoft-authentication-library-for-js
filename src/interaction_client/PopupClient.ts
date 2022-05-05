@@ -123,7 +123,7 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await interactionHandler.monitorPopupForHash(popupWindow);
+            const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
             const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Popup, validRequest.correlationId);
@@ -209,7 +209,7 @@ export class PopupClient extends StandardInteractionClient {
 
             try {
                 // Don't care if this throws an error (User Cancelled)
-                await popupUtils.monitorPopupForSameOrigin(popupWindow);
+                await popupUtils.monitorPopupForSameOrigin(popupWindow, this.config.system.windowHashTimeout);
                 this.logger.verbose("Popup successfully redirected to postLogoutRedirectUri");
             } catch (e) {
                 this.logger.verbose(`Error occurred while monitoring popup for same origin. Session on server may remain active. Error: ${e}`);
