@@ -52,22 +52,21 @@ export class PopupHandler extends InteractionHandler {
      * @param popupWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
      */
-    monitorPopupForHash(popupWindow: Window): Promise<string> {
-        return this.popupUtils.monitorPopupForSameOrigin(popupWindow).then(() => {
-            const contentHash = popupWindow.location.hash;
-            BrowserUtils.clearHash(popupWindow);
-            this.popupUtils.cleanPopup(popupWindow);
+    monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
+        return this.popupUtils.monitorPopupForSameOrigin(popupWindow, timeout)
+            .then((contentHash: string) => {
+                BrowserUtils.clearHash(popupWindow);
+                this.popupUtils.cleanPopup(popupWindow);
 
-            if (!contentHash) {
-                throw BrowserAuthError.createEmptyHashError(popupWindow.location.href);
-            }
+                if (!contentHash) {
+                    throw BrowserAuthError.createEmptyHashError(popupWindow.location.href);
+                }
 
-            if (UrlString.hashContainsKnownProperties(contentHash)) {
-                return contentHash;
-            } else {
-                throw BrowserAuthError.createHashDoesNotContainKnownPropertiesError();
-            }
-        }
-        );
+                if (UrlString.hashContainsKnownProperties(contentHash)) {
+                    return contentHash;
+                } else {
+                    throw BrowserAuthError.createHashDoesNotContainKnownPropertiesError();
+                }
+            });
     }
 }

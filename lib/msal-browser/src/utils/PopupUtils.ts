@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CommonEndSessionRequest, Constants, Logger, StringUtils } from "@azure/msal-common";
+import { AuthError, CommonEndSessionRequest, Constants, Logger, StringUtils } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { PopupParams } from "../interaction_handler/PopupHandler";
@@ -79,9 +79,9 @@ export class PopupUtils {
 
             return popupWindow;
         } catch (e) {
-            this.logger.error("error opening popup " + e.message);
+            this.logger.error("error opening popup " + (e as AuthError).message);
             this.browserStorage.setInteractionInProgress(false);
-            throw BrowserAuthError.createPopupWindowError(e.toString());
+            throw BrowserAuthError.createPopupWindowError((e as AuthError).toString());
         }
     }
 
@@ -165,12 +165,23 @@ export class PopupUtils {
     /**
      * Monitors a window until it loads a url with the same origin.
      * @param popupWindow - window that is being monitored
+     * @param timeout - timeout for processing hash once popup is redirected back to application
      */
-    monitorPopupForSameOrigin(popupWindow: Window): Promise<void> {
+    monitorPopupForSameOrigin(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
+            /*
+             * Polling for popups needs to be tick-based,
+             * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
+             */
+            const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
+            let ticks = 0;
+
+            this.logger.verbose("monitorPopupForSameOrigin polling started");
+
             const intervalId = setInterval(() => {
+                // Window is closed
                 if (popupWindow.closed) {
-                    // Window is closed
+                    this.logger.error("monitorPopupForSameOrigin window closed");
                     this.cleanPopup();
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createUserCancelledError());
@@ -178,6 +189,7 @@ export class PopupUtils {
                 }
 
                 let href: string = Constants.EMPTY_STRING;
+                let hash: string = Constants.EMPTY_STRING;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -185,15 +197,29 @@ export class PopupUtils {
                      * since we need the interval to keep running while on STS UI.
                      */
                     href = popupWindow.location.href;
+                    hash = popupWindow.location.hash;
                 } catch (e) {}
-
+                
                 // Don't process blank pages or cross domain
                 if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
                 }
 
-                clearInterval(intervalId);
-                resolve();
+                /*
+                 * Only run clock when we are on same domain for popups
+                 * as popup operations can take a long time.
+                 */
+                ticks++;
+
+                if (href) {
+                    this.logger.verbose("monitorPopupForSameOrigin found url in hash");
+                    clearInterval(intervalId);
+                    resolve(hash);
+                } else if (ticks > maxTicks) {
+                    this.logger.error("monitorPopupForSameOrigin unable to find hash in url, timing out");
+                    clearInterval(intervalId);
+                    reject(BrowserAuthError.createMonitorPopupTimeoutError());
+                }
             }, BrowserConstants.POLL_INTERVAL_MS);
         });
     }
