@@ -82,8 +82,8 @@ describe('Client assertion test', () => {
     })
 
     test('parseCertificate finds all valid certs for SNI certificate', () => {
-    const parsedCert = ['line1line2line3line4line5','line1line2line3line4line5','line1line2line3line4line5'];
-    expect(ClientAssertion.parseCertificate(TEST_CONSTANTS.SNI_CERTIFICATE)).toEqual(parsedCert);
+        const parsedCert = ['line1line2line3line4line5','line1line2line3line4line5','line1line2line3line4line5'];
+        expect(ClientAssertion.parseCertificate(TEST_CONSTANTS.SNI_CERTIFICATE)).toEqual(parsedCert);
     })
 
 });
