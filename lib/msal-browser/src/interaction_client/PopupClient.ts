@@ -141,7 +141,7 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await this.monitorPopupForHash(popupWindow, );
+            const hash = await this.monitorPopupForHash(popupWindow);
             // Deserialize hash fragment response parameters.
             const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
             const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Popup, validRequest.correlationId);
@@ -334,8 +334,11 @@ export class PopupClient extends StandardInteractionClient {
                     this.cleanPopup(popupWindow);
     
                     if (UrlString.hashContainsKnownProperties(hash)) {
+                        this.logger.verbose("PopupHandler.monitorPopupForHash - hash contains known properties, returning.");
                         resolve(hash);
                     } else {
+                        this.logger.error("PopupHandler.monitorPopupForHash - found hash in url but it does not contain known properties. Check that your router is not changing the hash prematurely.");
+                        this.logger.errorPii(`PopupHandler.monitorPopupForHash - hash found: ${hash}`);
                         reject(BrowserAuthError.createHashDoesNotContainKnownPropertiesError());
                     }
                 } else if (ticks > maxTicks) {

@@ -11,6 +11,8 @@
 1. [interaction_in_progress](#interaction_in_progress)
 1. [block_iframe_reload](#block_iframe_reload)
 1. [monitor_window_timeout](#monitor_window_timeout)
+1. [hash_empty_error](#hash_empty_error)
+1. [hash_does_not_contain_known_properties](#hash_does_not_contain_known_properties)
 1. [unable_to_acquire_token_from_native_platform](#unable_to_acquire_token_from_native_platform)
 1. [native_connection_not_established](#native_connection_not_established)
 1. [native_broker_called_before_initialize](#native_broker_called_before_initialize)
@@ -223,6 +225,25 @@ const msalConfig = {
     }
 };
 ```
+
+### hash_empty_error
+
+**Error Messages**:
+
+- Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
+
+This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
+
+To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
+
+### hash_does_not_contain_known_properties
+
+**Error Messages**:
+
+- Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.
+
+Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
+
 
 ### unable_to_acquire_token_from_native_platform
 
