@@ -6,17 +6,24 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
-import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError, Authority } from "@azure/msal-common";
-import { TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
+import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError, Authority, CommonAuthorizationCodeRequest, AuthError } from "@azure/msal-common";
+import { TemporaryCacheKeys, ApiId, BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
-import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+
+const testPopupWondowDefaults = {
+    height: BrowserConstants.POPUP_HEIGHT,
+    width: BrowserConstants.POPUP_WIDTH,
+    top: 84,
+    left: 270.5
+};
 
 describe("PopupClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -29,7 +36,7 @@ describe("PopupClient", () => {
             }
         });
         //@ts-ignore
-        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, undefined, TEST_CONFIG.CORRELATION_ID);
     });
 
     afterEach(() => {
@@ -118,7 +125,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.acquireToken(request);
             } catch(e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(4);
+            expect(popupSpy.getCall(0).args).toHaveLength(3);
         });
 
         it("opens popups asynchronously if configured", async () => {
@@ -156,7 +163,7 @@ describe("PopupClient", () => {
                 await popupClient.acquireToken(request);
             } catch(e) {}
             expect(popupSpy.calledOnce).toBeTruthy();
-            expect(popupSpy.getCall(0).args).toHaveLength(4);
+            expect(popupSpy.getCall(0).args).toHaveLength(3);
             expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).toBeTruthy();
             expect(popupSpy.getCall(0).args[0]).toContain(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
@@ -421,7 +428,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.logout();
             } catch(e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(4);
+            expect(popupSpy.getCall(0).args).toHaveLength(3);
         });
 
         it("opens popups asynchronously if configured", (done) => {
@@ -741,6 +748,443 @@ describe("PopupClient", () => {
             await popupClient.logout(validatedLogoutRequest).then(() => {
                 expect(window.sessionStorage.length).toBe(0);
             });
+        });
+    });
+
+    describe("openSizedPopup", () => {
+        it("opens a popup with urlNavigate", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("http://localhost/", "popup", {});
+
+            expect(windowOpenSpy.calledWith("http://localhost/", "popup")).toBe(true);
+        });
+
+        it("opens a popup with about:blank", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", {});
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
+        });
+
+        it("opens a popup with popupWindowAttributes set", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 100,
+                    width: 100,
+                },
+                popupPosition: {
+                    top: 100,
+                    left: 100
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=100, left=100, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with default size and position if empty object passed in for popupWindowAttributes", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", {});
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with default size and position if attributes are set to zero", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 0,
+                    width: 0,
+                },
+                popupPosition: {
+                    top: 0,
+                    left: 0
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with set popupSize and default popupPosition", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 100,
+                    width: 100,
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with set popupPosition and default popupSize", () => {
+            const testPopupWindowAttributes = {
+                popupPosition: {
+                    top: 100,
+                    left: 100
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=100, left=100, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with default size when invalid popupSize height and width passed in", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: -1,
+                    width: 99999,
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with default position when invalid popupPosition top and left passed in", () => {
+            const testPopupWindowAttributes = {
+                popupPosition: {
+                    top: -1,
+                    left: 99999
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            popupClient.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+    });
+
+    describe("unloadWindow", () => {
+        it("closes window and removes temporary cache", (done) => {
+            // @ts-ignore
+            pca.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            const popupWindow: Window = {
+                ...window,
+                //@ts-ignore
+                location: {
+                    assign: () => {}
+                },
+                focus: () => {},
+                close: () => {
+                    // @ts-ignore
+                    expect(pca.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY)).toBe(null);
+                    done();
+                }
+            }
+            const popupParams = {
+                popupName: "name",
+                popupWindowAttributes: {},
+                popup: popupWindow
+            };
+            popupClient.openPopup("http://localhost", popupParams);
+            popupClient.unloadWindow(new Event("test"));
+        });
+    });
+
+    describe("monitorPopupForHash", () => {
+        it("throws if popup is closed", (done) => {
+            const popup: Window = {
+                //@ts-ignore
+                location: {
+                    href: "about:blank",
+                    hash: ""
+                },
+                close: () => {},
+                closed: false
+            };
+            popupClient.monitorPopupForHash(popup)
+                .catch((error) => {
+                    expect(error.errorCode).toEqual("user_cancelled");
+                    done();
+                });
+
+            setTimeout(() => {
+                //@ts-ignore
+                popup.closed = true;
+            }, 50);
+        });
+
+        it("resolves when popup is same origin and has a hash", (done) => {
+            const popup: Window = {
+                //@ts-ignore
+                location: {
+                    href: "about:blank",
+                    hash: ""
+                },
+                close: () => {},
+                closed: false
+            };
+            popupClient.monitorPopupForHash(popup).then((hash) => {
+                expect(hash).toEqual("code=testCode");
+                done();
+            });
+
+            setTimeout(() => {
+                popup.location.href = "http://localhost";
+                popup.location.hash = "code=testCode"
+            }, 50);
+        });
+
+        it("throws when popup has a hash but does not contain known properties", (done) => {
+            const popup: Window = {
+                //@ts-ignore
+                location: {
+                    href: "http://localhost",
+                    hash: "testHash"
+                },
+                close: () => {},
+                closed: false
+            };
+            popupClient.monitorPopupForHash(popup).catch((e) => {
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError.code);
+                done();
+            });
+        });
+
+        it("throws timeout if popup is same origin but no hash is present", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {}
+            };
+
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    windowHashTimeout: 10
+                }
+            });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, undefined, TEST_CONFIG.CORRELATION_ID);
+
+            // @ts-ignore
+            popupClient.monitorPopupForHash(popup).catch((e) => {
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.monitorPopupTimeoutError.code);
+                done();
+            });
+        });
+
+        it("returns hash", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost/#/code=hello",
+                    hash: "#code=hello"
+                },
+                history: {
+                    replaceState: () => { return }
+                },
+                close: () => {}
+            };
+
+            // @ts-ignore
+            popupClient.monitorPopupForHash(popup)
+                .then((hash: string) => {
+                    expect(hash).toEqual("#code=hello");
+                    done();
+                });
+        });
+
+        it("closed", done => {
+            const popup = {
+                location: {
+                    href: "http://localhost",
+                    hash: ""
+                },
+                close: () => {},
+                closed: true
+            };
+
+            // @ts-ignore
+            popupClient.monitorPopupForHash(popup)
+                .catch((error: AuthError) => {
+                    expect(error.errorCode).toEqual("user_cancelled");
+                    done();
+                });
+        });
+    });
+
+    describe("Name generation functions", () => {
+        it("generatePopupName generates expected name", () => {
+            const popupName = popupClient.generatePopupName([ "scope1", "scope2"], "https://login.microsoftonline.com/common");
+
+            expect(popupName).toEqual(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}.scope1-scope2.https://login.microsoftonline.com/common.${TEST_CONFIG.CORRELATION_ID}`);
+        });
+
+        it("generateLogoutPopupName generates expected name when account passed in", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: "homeAccountId",
+                localAccountId: "localAccountId",
+                environment: "environment",
+                tenantId: "tenant",
+                username: "user"
+            };
+            const popupName = popupClient.generateLogoutPopupName({
+                account: testAccount,
+                correlationId: TEST_CONFIG.CORRELATION_ID
+            });
+
+            expect(popupName).toEqual(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}.homeAccountId.${TEST_CONFIG.CORRELATION_ID}`);
+        });
+
+        it("generateLogoutPopupName generates expected name when account not passed in", () => {
+            const popupName = popupClient.generateLogoutPopupName({
+                correlationId: TEST_CONFIG.CORRELATION_ID
+            });
+
+            expect(popupName).toEqual(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}.undefined.${TEST_CONFIG.CORRELATION_ID}`);
+        });
+    });
+
+    describe("initiateAuthRequest()", () => {
+
+        it("throws error if request uri is empty", () => {
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+            expect(() => popupClient.initiateAuthRequest("", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupClient.initiateAuthRequest("", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthError);
+
+            //@ts-ignore
+            expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            //@ts-ignore
+            expect(() => popupClient.initiateAuthRequest(null, {})).toThrow(BrowserAuthError);
+        });
+
+        it("opens a popup window", (done) => {
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+            // sinon.stub(window, "open").returns(window);
+            window.focus = (): void => {
+                return;
+            };
+
+            window.open = (url?: string, target?: string, features?: string, replace?: boolean): Window => {
+                expect(url?.startsWith(TEST_URIS.ALTERNATE_INSTANCE)).toBe(true);
+                done();
+                return window;
+            };
+
+            popupClient.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name", popupWindowAttributes: {}});
+        });
+    });
+
+    describe("openPopup", () => {
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("assigns urlNavigate if popup passed in", () => {
+            const assignSpy = sinon.spy();
+            const focusSpy = sinon.spy();
+
+            const windowObject = {
+                location: {
+                    assign: assignSpy
+                },
+                focus: focusSpy
+            };
+
+            const testRequest: CommonAuthorizationCodeRequest = {
+                redirectUri: "",
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            const popupWindow = popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
+                // @ts-ignore
+                popup: windowObject
+            });
+
+            expect(assignSpy.calledWith("http://localhost/#/code=hello")).toBe(true);
+            expect(popupWindow).toEqual(windowObject);
+        });
+
+        it("opens popup if no popup window is passed in", () => {
+            sinon.stub(window, "open").returns(window);
+            sinon.stub(window, "focus");
+
+            const testRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.BEARER,
+                redirectUri: "",
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID
+            };
+
+            const popupWindow = popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
+                popupName: "name", 
+                popupWindowAttributes: {}
+            });
+
+            expect(popupWindow).toEqual(window);
+        });
+
+        it("throws error if no popup passed in but window.open returns null", () => {
+            sinon.stub(window, "open").returns(null);
+
+            const testRequest: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            expect(() => popupClient.initiateAuthRequest("http://localhost/#/code=hello", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
+        });
+
+        it("throws error if popup passed in is null", () => {
+            const testRequest: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            expect(() => popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
+                popup: null,
+                popupName: "name", 
+                popupWindowAttributes: {}
+            })).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
+                popup: null,
+                popupName: "name", 
+                popupWindowAttributes: {}
+            })).toThrow(BrowserAuthError);
         });
     });
 });
