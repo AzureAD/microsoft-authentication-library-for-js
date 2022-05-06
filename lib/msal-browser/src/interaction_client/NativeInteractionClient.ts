@@ -186,7 +186,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
         let responseAccessToken;
         let responseTokenType: AuthenticationScheme = AuthenticationScheme.BEARER;
-        switch (request.token_type) {
+        switch (request.tokenType) {
             case AuthenticationScheme.POP: {
                 // Set the token type to POP in the response
                 responseTokenType = AuthenticationScheme.POP;
@@ -287,8 +287,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         }
 
-        const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
-
         const validatedRequest: NativeTokenRequest = {
             ...request,
             accountId: this.accountId,
@@ -297,8 +295,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            instance_aware: instanceAware,
-            token_type: request.authenticationScheme,
+            tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
                 ...request.extraQueryParameters,
@@ -321,7 +318,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const cnf = await popTokenGenerator.generateCnf(shrParameters);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.req_cnf = await popTokenGenerator.generateCnfHash(cnf);
+            validatedRequest.reqCnf = await popTokenGenerator.generateCnfHash(cnf);
         }
 
         if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
