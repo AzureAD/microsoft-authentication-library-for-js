@@ -153,7 +153,5 @@ npm start
 1. After running the sample, the desktop app window will appear automatically
 1. Select the **Sign In** button in the top right.
 ![Screenshot](./ReadmeFiles/sign-in.png)
-3. Select the **Profile** button on the navigation bar. This will make a call to the Microsoft Graph API.
+1. Select the **Profile** button on the navigation bar. This will make a call to the Microsoft Graph API.
 ![Screenshot](./ReadmeFiles/profile.png)
-
-
