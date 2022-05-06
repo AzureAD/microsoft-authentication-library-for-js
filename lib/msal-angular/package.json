@@ -16,7 +16,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:all": "npm run build:common && npm run build:browser && npm run build",
+    "build:all": "npm run build:all --workspaces && npm run build",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "build:pack": "npm run build && cd dist && npm pack",
@@ -50,10 +50,10 @@
     "@angular/platform-browser-dynamic": "~11.2.12",
     "@angular/router": "~11.2.12",
     "@azure/msal-browser": "^2.24.0",
-    "@types/jasmine": "~3.6.0",
+    "@types/jasmine": "~3.8.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
-    "jasmine-core": "~3.6.0",
+    "jasmine-core": "~3.8.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.3.2",
     "karma-chrome-launcher": "~3.1.0",
@@ -72,5 +72,8 @@
     "@azure/msal-browser": "^2.24.0",
     "rxjs": "^6.0.0 || ^7.0.0"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "workspaces": [
+      "../msal-browser"
+  ]
 }
