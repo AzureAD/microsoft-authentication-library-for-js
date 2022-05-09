@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 04 Apr 2022 21:12:42 GMT and should not be manually modified.
+This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.24.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Move internals needed for msal-browser-1p to separate export #4742 (janutter@microsoft.com)
+- Add support for acquiring tokens from the native broker #4531 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v6.3.0
+
+### Patches
+
+- Fix for WAM window parenting #4755 (thomas.norling@microsoft.com)
+- Ensure interaction status is properly set during logout with onRedirectNavigate #4719 (janutter@microsoft.com)
 
 ## 2.23.0
 

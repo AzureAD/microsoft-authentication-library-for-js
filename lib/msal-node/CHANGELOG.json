@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-node_v1.9.0",
+      "version": "1.9.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "13023439+WikiRik@users.noreply.github.com",
+            "package": "@azure/msal-node",
+            "commit": "7cdb0217f4a0ef29dc8c255d8351ac586956fbed",
+            "comment": "Add Node 18 to msal-node supported versions #4727"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v6.3.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ],
+        "none": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "679deb37f3a49a804a95863fc9398fabd46e4494",
+            "comment": "Tests for SilentFlowClient- when claims are passed #4672"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Apr 2022 21:12:42 GMT",
       "tag": "@azure/msal-node_v1.8.0",
       "version": "1.8.0",
