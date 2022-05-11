@@ -5,9 +5,7 @@
 
 "use strict";
 
-const http = require("http");
-const url = require("url");
-const async = require("async");
+const https = require("https");
 const aadutils = require("./aadutils");
 const HttpsProxyAgent = require("https-proxy-agent");
 const Log = require("./logging").getLogger;
@@ -84,8 +82,9 @@ Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, callbac
     log.info("User info endpoint we will use is: ", self.oidc.userinfo_endpoint);
     log.info("The logout endpoint we will use is: ", self.oidc.end_session_endpoint);
   }
+
   // fetch the signing keys
-  http.request(setFiddlerEverywhereProxy(jwksUri), (res) => {
+  https.get(jwksUri, { agent: self.httpsProxyAgent }, (res) => {
     let data = "";
     res.on("data", (chunk) => {
       data += chunk;
@@ -174,36 +173,10 @@ Metadata.prototype.generateOidcPEM = function generateOidcPEM(kid) {
   return pubKey;
 };
 
-const setFiddlerEverywhereProxy = (options) => {
-  const fiddlerEverywhereProxy = {
-    protocol: "http:",
-    hostname: "127.0.0.1",
-    port: 8866,
-  };
-  if (typeof options === "string") { // Options can be URL string.
-      options = url.parse(options);
-  }
-  if (!options.host && !options.hostname) {
-      throw new Error("host or hostname must have value.");
-  }
-  options.path = url.format(options);
-  options.headers = options.headers || {};
-  options.headers.Host = options.host || url.format({
-      hostname: options.hostname,
-      port: options.port
-  });
-  options.protocol = fiddlerEverywhereProxy.protocol;
-  options.hostname = fiddlerEverywhereProxy.hostname;
-  options.port = fiddlerEverywhereProxy.port;
-  options.href = null;
-  options.host = null;
-  return options;
-};
-
 Metadata.prototype.fetch = function fetch(callback) {
   const self = this;
   
-  http.request(setFiddlerEverywhereProxy(self.url), (res) => {
+  https.request(self.url, { agent: self.httpsProxyAgent } , (res) => {
     let data = "";
     res.on("data", (chunk) => {
       data += chunk;
