@@ -2,6 +2,47 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-browser_v2.24.0",
+      "version": "2.24.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa",
+            "comment": "Fix for WAM window parenting #4755"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2a0deb2d8bdced83ea9eae67cfe61defec6944d",
+            "comment": "Ensure interaction status is properly set during logout with onRedirectNavigate #4719"
+          }
+        ],
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "87dc6cdf90ab29668dfb82ba27ab6ed80743312b",
+            "comment": "Move internals needed for msal-browser-1p to separate export #4742"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cb93cc7e0deadefac126b23c3326c4b2aa4be142",
+            "comment": "Add support for acquiring tokens from the native broker #4531"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.3.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Apr 2022 21:12:42 GMT",
       "tag": "@azure/msal-browser_v2.23.0",
       "version": "2.23.0",

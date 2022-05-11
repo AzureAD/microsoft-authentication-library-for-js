@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-common_v6.3.0",
+      "version": "6.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "1292510+svrooij@users.noreply.github.com",
+            "package": "@azure/msal-common",
+            "commit": "ec4033ba16db2b07b7269570efd4308cbfa093ce",
+            "comment": "fix: Allow direct access to Identity Token Claims #4680"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "cb93cc7e0deadefac126b23c3326c4b2aa4be142",
+            "comment": "Add support for acquiring tokens from the native broker #4531"
+          }
+        ],
+        "patch": [
+          {
+            "author": "christian.kumpe@diva-e.com",
+            "package": "@azure/msal-common",
+            "commit": "4bb642a2029a28770fe3bb2049d8e97b102d66b1",
+            "comment": "acquireTokenByUsernamePassword will now return an id_token in Azure AD B2C #4694"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Apr 2022 21:12:42 GMT",
       "tag": "@azure/msal-common_v6.2.0",
       "version": "6.2.0",
