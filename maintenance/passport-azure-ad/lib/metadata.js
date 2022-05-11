@@ -5,7 +5,8 @@
 
 "use strict";
 
-const request = require("request");
+const http = require("http");
+const url = require("url");
 const async = require("async");
 const aadutils = require("./aadutils");
 const HttpsProxyAgent = require("https-proxy-agent");
@@ -58,7 +59,7 @@ Object.defineProperty(Metadata, "httpsProxyAgent", {
   }
 });
 
-Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, next) {
+Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, callback) {
   log.info("Request to update the Open ID Connect Metadata");
 
   const self = this;
@@ -83,18 +84,27 @@ Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, next) {
     log.info("User info endpoint we will use is: ", self.oidc.userinfo_endpoint);
     log.info("The logout endpoint we will use is: ", self.oidc.end_session_endpoint);
   }
-
   // fetch the signing keys
-  request.get({ uri: jwksUri, agent: self.httpsProxyAgent, json: true }, (err, response, body) => {
-    if (err) {
-      return next(err);
+  http.request(setFiddlerEverywhereProxy(jwksUri), (res) => {
+    let data = "";
+    res.on("data", (chunk) => {
+      data += chunk;
+    });
+
+    res.on("end", () => {
+      // use json parser for oidc authType
+      log.info("Parsing JSON retreived from the endpoint");
+      self.oidc.keys = JSON.parse(data).keys;
+      callback();
+    })
+
+    if (res.statusCode !== 200) {
+      callback(new Error(`Error: ${res.statusCode} Cannot get AAD Signing Keys`));
     }
-    if (response.statusCode !== 200) {
-      return next(new Error(`Error: ${response.statusCode} Cannot get AAD Signing Keys`));
-    }
-    self.oidc.keys = body.keys;
-    return next();
-  });
+
+  }).on("error", (error) => {
+      callback(error);
+  }).end();
 };
 
 Metadata.prototype.generateOidcPEM = function generateOidcPEM(kid) {
@@ -164,44 +174,63 @@ Metadata.prototype.generateOidcPEM = function generateOidcPEM(kid) {
   return pubKey;
 };
 
+const setFiddlerEverywhereProxy = (options) => {
+  const fiddlerEverywhereProxy = {
+    protocol: "http:",
+    hostname: "127.0.0.1",
+    port: 8866,
+  };
+  if (typeof options === "string") { // Options can be URL string.
+      options = url.parse(options);
+  }
+  if (!options.host && !options.hostname) {
+      throw new Error("host or hostname must have value.");
+  }
+  options.path = url.format(options);
+  options.headers = options.headers || {};
+  options.headers.Host = options.host || url.format({
+      hostname: options.hostname,
+      port: options.port
+  });
+  options.protocol = fiddlerEverywhereProxy.protocol;
+  options.hostname = fiddlerEverywhereProxy.hostname;
+  options.port = fiddlerEverywhereProxy.port;
+  options.href = null;
+  options.host = null;
+  return options;
+};
+
 Metadata.prototype.fetch = function fetch(callback) {
   const self = this;
+  
+  http.request(setFiddlerEverywhereProxy(self.url), (res) => {
+    let data = "";
+    res.on("data", (chunk) => {
+      data += chunk;
+    });
 
-  async.waterfall([
-    // fetch the Federation metadata for the AAD tenant
-    (next) => {
-      request.get({ uri: self.url, agent: self.httpsProxyAgent }, (err, response, body) => {
-        if (err) {
-          return next(err);
-        }
-        if (response.statusCode !== 200) {
-          if (self.loggingNoPII) {
-            log.error("cannot get AAD Federation metadata from endpoint you specified");
-            return next(new Error("Cannot get AAD Federation metadata"));
-          } else {
-            log.error("Cannot get AAD Federation metadata from endpoint you specified", self.url);
-            return next(new Error(`Error: ${response.statusCode} Cannot get AAD Federation metadata
-              from ${self.url}`));
-          }
-        }
-        return next(null, body);
-      });
-    },
-    // parse retrieved metadata
-    (body, next) => {
-      // use json parser for oidc authType
-      log.info("Parsing JSON retreived from the endpoint");
-      self.metadata = JSON.parse(body);
-      return next(null);
-    },
-    // call update method for parsed metadata and authType
-    (next) => {
-      return self.updateOidcMetadata(self.metadata, next);
-    },
-  ], (waterfallError) => {
-    // return err or success (err === null) to callback
-    callback(waterfallError);
-  });
+    res.on("end", () => {
+      if (res.statusCode === 200) {
+        // use json parser for oidc authType
+        log.info("Parsing JSON retreived from the endpoint");
+        self.metadata = JSON.parse(data);
+        return self.updateOidcMetadata(self.metadata, callback);
+      }
+    })
+
+    if (res.statusCode !== 200) {
+      if (self.loggingNoPII) {
+        log.error("cannot get AAD Federation metadata from endpoint you specified");
+        callback(new Error("Cannot get AAD Federation metadata"));
+      } else {
+        log.error("Cannot get AAD Federation metadata from endpoint you specified", self.url);
+        callback(new Error(`Error: ${res.statusCode} Cannot get AAD Federation metadata
+          from ${self.url}`));
+      } 
+    }
+  }).on("error", (error) => {
+    callback(error);
+  }).end();
 };
 
 exports.Metadata = Metadata;
