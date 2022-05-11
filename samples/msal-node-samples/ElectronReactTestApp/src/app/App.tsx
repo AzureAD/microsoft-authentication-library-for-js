@@ -4,6 +4,8 @@ import React from 'react';
 import { IpcMessages } from '../Constants';
 import PageLayout from './components/PageLayout';
 import { Profile } from './pages/Profile';
+import { Home } from './pages/Home';
+
 import './styles/App.css';
 
 //The ipcRenderer module is an EventEmitter. It provides a few methods so you can send synchronous and asynchronous messages
@@ -13,6 +15,7 @@ const Pages = () => {
     return (
         <Routes>
             <Route path="/profile" element={<Profile />} />
+            <Route path="/" element={<Home />} />
         </Routes>
     );
 };

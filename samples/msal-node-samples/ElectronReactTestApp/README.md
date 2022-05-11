@@ -1,6 +1,6 @@
 # MSAL Node Electron & React Sample
 
-An Electron and React application built with TypeScript that uses the MSAL Node library to acquire and store access tokens to authenticate with the Microsoft Graph API.
+An Electron and React application built with Electron Forge and TypeScript that uses the [MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) library to acquire and store access tokens to authenticate with the Microsoft Graph API.
 
 ## Should I use this sample
 
@@ -45,7 +45,7 @@ $ cd samples/msal-node-samples/standalone-samples/ElectronTestApp
 
 ### Configure the application'
 
-The MSAL configuration object in the `ElectronTestApp` is defined in the `AuthProvider.ts` file. However, the configuration values used to build the object are defined in and imported from JSON files in the `config/` directory. The `ElectronTestApp` loads the `config/customConfig.json` configuration by default. You can update the configuration attributes to match your [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) directly in the `config/customConfg.json` file, or you can add your own configuration file and change the import path like so:
+The MSAL configuration object in the `ElectronReactTestApp` is defined in the `AuthProvider.ts` file. However, the configuration values used to build the object are defined in and imported from JSON files in the `config/` directory. The `ElectronReactTestApp` loads the `config/customConfig.json` configuration by default. You can update the configuration attributes to match your [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) directly in the `config/customConfg.json` file, or you can add your own configuration file and change the import path like so:
 
 AuthProvider.ts
 ```javascript
