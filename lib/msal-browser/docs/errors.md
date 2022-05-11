@@ -161,7 +161,7 @@ This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquir
 1. You are being throttled by your identity provider
 1. Your identity provider did not redirect back to your `redirectUri`.
 
-Note: If you are using a router, please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. When possible it's best if your `redirectUri` page does not invoke the router at all.
+**Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
 
 #### Issues caused by the redirectUri page
 
@@ -232,7 +232,7 @@ const msalConfig = {
 
 **Error Messages**:
 
-- Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
+> Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
 
 This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
 
@@ -242,7 +242,7 @@ To resolve this error we recommend using a dedicated redirectUri page which is n
 
 **Error Messages**:
 
-- Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.
+> Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.
 
 Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
 
