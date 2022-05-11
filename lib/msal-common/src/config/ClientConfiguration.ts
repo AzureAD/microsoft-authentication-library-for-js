@@ -119,12 +119,15 @@ export type LibraryInfo = {
 /**
  * Credentials for confidential clients
  */
+
+export type ClientAssertion = {
+    assertion: string,
+    assertionType: string
+};
+
 export type ClientCredentials = {
     clientSecret?: string,
-    clientAssertion? : {
-        assertion: string,
-        assertionType: string
-    };
+    clientAssertion?: ClientAssertion
 };
 
 /**
