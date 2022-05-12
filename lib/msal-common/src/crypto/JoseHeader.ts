@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { JoseHeaderError } from "../error/JoseHeaderError";
+import { JsonTypes } from "../utils/Constants";
+
+export type JoseHeaderOptions = {
+    typ?: JsonTypes,
+    alg?: string,
+    kid?: string
+};
+
+export class JoseHeader {
+    public typ?: JsonTypes;
+    public alg?: string;
+    public kid?: string;
+
+    constructor (options: JoseHeaderOptions) {
+        this.typ = options.typ;
+        this.alg = options.alg;
+        this.kid = options.kid;
+    }
+
+    /**
+     * Builds SignedHttpRequest formatted JOSE Header from the
+     * JOSE Header options provided or previously set on the object and returns
+     * the stringified header object.
+     * Throws if keyId or algorithm aren't provided.
+     * @param shrHeaderOptions 
+     * @returns 
+     */
+    getShrHeaderString(shrHeaderOptions?: JoseHeaderOptions): string {
+        // SHR assertions must have type "JWT"
+        this.typ = JsonTypes.Jwt;
+
+        this.kid = shrHeaderOptions?.kid || this.kid;
+        if (!this.kid) {
+            throw JoseHeaderError.createMissingKidError();
+        }
+
+        this.alg = shrHeaderOptions?.alg || this.alg;
+        if (!this.alg) {
+            throw JoseHeaderError.createMissingAlgError();
+        }
+
+        return JSON.stringify(this);
+    }
+}

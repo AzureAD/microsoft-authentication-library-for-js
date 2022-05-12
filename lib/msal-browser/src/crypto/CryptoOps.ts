@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, IPerformanceClient, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, IPerformanceClient, JoseHeader, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { JsonTypes } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
@@ -204,13 +203,9 @@ export class CryptoOps implements ICrypto {
         const encodedKeyIdThumbprint = this.b64Encode.urlEncode(JSON.stringify({ kid: kid }));
 
         // Generate header
-        const header = {
-            alg: publicKeyJwk.alg,
-            typ: JsonTypes.Jwt,
-            kid: encodedKeyIdThumbprint
-        };
-        
-        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
+        const joseHeader = new JoseHeader({ kid: encodedKeyIdThumbprint, alg: publicKeyJwk.alg });
+        const shrHeader = joseHeader.getShrHeaderString();
+        const encodedShrHeader = this.b64Encode.urlEncode(shrHeader);
 
         // Generate payload
         payload.cnf = {
@@ -219,7 +214,7 @@ export class CryptoOps implements ICrypto {
         const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
 
         // Form token string
-        const tokenString = `${encodedHeader}.${encodedPayload}`;
+        const tokenString = `${encodedShrHeader}.${encodedPayload}`;
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
