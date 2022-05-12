@@ -167,6 +167,11 @@ export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
  */
 export const KEY_FORMAT_JWK = "jwk";
 
+export enum JsonTypes {
+    Jwt = "JWT",
+    Jwk = "JWK"
+}   
+
 // Supported wrapper SKUs
 export enum WrapperSKU {
     React = "@azure/msal-react",

@@ -102,8 +102,9 @@ export class PopTokenGenerator {
             at: payload,
             ts: TimeUtils.nowSeconds(),
             m: resourceRequestMethod?.toUpperCase(),
-            u: resourceRequestUri,
+            u: resourceUrlComponents?.HostNameAndPort,
             nonce: shrNonce || this.cryptoUtils.createNewGuid(),
+            p: resourceUrlComponents?.AbsolutePath,
             q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
             client_claims: shrClaims || undefined,
             ...claims

@@ -10,7 +10,7 @@ import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { JsonTypes } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
@@ -206,7 +206,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            typ: "JWT",
+            typ: JsonTypes.Jwt,
             kid: encodedKeyIdThumbprint
         };
         
