@@ -1,8 +1,6 @@
 {
   "type": "patch",
-  "comment": {
-    "title": "Updated the regex and added a test for detecting public cert for SNI #4790"
-  },
+  "comment": "Updated the regex and added a test for detecting public cert for SNI #4790",
   "packageName": "@azure/msal-node",
   "email": "email not defined",
   "dependentChangeType": "patch"
