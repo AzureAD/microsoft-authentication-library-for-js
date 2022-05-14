@@ -4,19 +4,20 @@ import { IpcMessages } from '../../Constants';
 import { Link } from 'react-router-dom';
 import '../styles/Nav.css';
 import { AccountInfo } from '@azure/msal-common';
-const { ipcRenderer } = window.require('electron');
 
 type NavigationBarProps = {
     account: AccountInfo;
 };
 
+declare const window: any;
+
 export const NavigationBar = (props: NavigationBarProps) => {
     const login = () => {
-        ipcRenderer.send(IpcMessages.LOGIN);
+        window.api.send(IpcMessages.LOGIN);
     };
 
     const logout = () => {
-        ipcRenderer.send(IpcMessages.LOGOUT);
+        window.api.send(IpcMessages.LOGOUT);
     };
     return (
         <>

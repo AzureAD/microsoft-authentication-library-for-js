@@ -19,10 +19,3 @@ export type UserInfo = {
     surname?: string;
     userPrincipalName?: string;
 };
-
-/**
- * Mail data from MS Graph
- */
-export type MailInfo = {
-    value?: Array<any>;
-};

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UserInfo, MailInfo } from './GraphReponseTypes';
+import { UserInfo } from './GraphReponseTypes';
 import * as axios from 'axios';
 
 /**
@@ -15,7 +15,7 @@ export class FetchManager {
      * @param endpoint
      * @param accessToken
      */
-    async callEndpointWithToken(endpoint: string, accessToken: string): Promise<UserInfo | MailInfo> {
+    async callEndpointWithToken(endpoint: string, accessToken: string): Promise<UserInfo> {
         const options = {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
@@ -26,6 +26,6 @@ export class FetchManager {
 
         const response = await axios.default.get(endpoint, options);
 
-        return (await response.data) as UserInfo | MailInfo;
+        return (await response.data) as UserInfo;
     }
 }

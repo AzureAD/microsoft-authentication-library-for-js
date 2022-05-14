@@ -52,11 +52,8 @@ export default class Main {
         this.mainWindow = new BrowserWindow({
             height: 600,
             width: 800,
-            // frame: false,
             title: 'MSAL Node Electron Sample App',
             webPreferences: {
-                nodeIntegration: true,
-                contextIsolation: false,
                 preload: path.join(__dirname, '../renderer/main_window/preload.js'),
             },
         });
@@ -82,7 +79,9 @@ export default class Main {
 
     private static async getAccount(): Promise<void> {
         const account = Main.authProvider.currentAccount;
-        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
+        if (account) {
+            Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
+        }
     }
 
     private static registerSubscriptions(): void {
