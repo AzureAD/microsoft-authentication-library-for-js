@@ -26,27 +26,11 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
-        if (!options?.proxyUrl) {
+        if (options?.proxyUrl) {
+            return networkRequestViaProxy(url, HttpMethod.GET, options);
+        } else {
             return networkRequestViaHttps(url, HttpMethod.GET, options);
         }
-
-        const destinationUrl = new URL(url);
-        const proxyUrl = new URL(options.proxyUrl);
-
-        const tunnelRequestOptions: https.RequestOptions = {
-            host: proxyUrl.hostname,
-            port: proxyUrl.port,
-            method: "CONNECT",
-            path: destinationUrl.hostname,
-            headers: options?.headers || {},
-        };
-
-        const outgoingRequestString = `${HttpMethod.GET.toUpperCase()} ${destinationUrl.href} HTTP/1.1\r\n` +
-            `Host: ${destinationUrl.host}\r\n` +
-            "Connection: close\r\n" +
-            "\r\n";
-
-        return networkRequestViaProxy(tunnelRequestOptions, outgoingRequestString);
     }
 
     /**
@@ -59,62 +43,82 @@ export class HttpClient implements INetworkModule {
         options?: NetworkRequestOptions,
         cancellationToken?: number,
     ): Promise<NetworkResponse<T>> {
-        if (!options?.proxyUrl) {
+        if (options?.proxyUrl) {
+            return networkRequestViaProxy(url, HttpMethod.POST, options, cancellationToken);
+        } else {
             return networkRequestViaHttps(url, HttpMethod.POST, options, cancellationToken);
         }
-
-        const destinationUrl = new URL(url);
-        const proxyUrl = new URL(options.proxyUrl);
-
-        const tunnelRequestOptions: https.RequestOptions = {
-            host: proxyUrl.hostname,
-            port: proxyUrl.port,
-            method: "CONNECT",
-            path: destinationUrl.hostname,
-            headers: options?.headers || {},
-        };
-
-        if (cancellationToken) {
-            tunnelRequestOptions.timeout = cancellationToken;
-        }
-
-        const objString = options?.body || "";
-        const outgoingRequestString = `${HttpMethod.POST.toUpperCase()} ${destinationUrl.href} HTTP/1.1\r\n` +
-            `Host: ${destinationUrl.host}\r\n` +
-            "Content-Type: application/x-www-form-urlencoded\r\n" +
-            `Content-Length: ${objString.length}\r\n` +
-            "Connection: close\r\n" +
-            `\r\n${objString}\r\n`;
-
-        return networkRequestViaProxy(tunnelRequestOptions, outgoingRequestString);
     }
 }
 
 const networkRequestViaProxy = <T>(
-    tunnelRequestOptions: https.RequestOptions,
-    outgoingRequestString: string,
+    url: string,
+    httpMethod: string,
+    options: NetworkRequestOptions,
+    timeout?: number,
 ): Promise<NetworkResponse<T>> => {
+    const headers = options?.headers || {} as Record<string, string>;
+    const proxyUrl = new URL(options?.proxyUrl || "");
+    const destinationUrl = new URL(url);
+
+    // "method: connect" must be used to establish a connection to the proxy
+    const tunnelRequestOptions: https.RequestOptions = {
+        host: proxyUrl.hostname,
+        port: proxyUrl.port,
+        method: "CONNECT",
+        path: destinationUrl.hostname,
+        headers: headers,
+    };
+
+    if (timeout) {
+        tunnelRequestOptions.timeout = timeout;
+    }
+
+    // compose a request string for the socket
+    let postRequestStringContent: string = "";
+    if (httpMethod === HttpMethod.POST) {
+        const body = options?.body || "";
+        postRequestStringContent =
+            "Content-Type: application/x-www-form-urlencoded\r\n" +
+            `Content-Length: ${body.length}\r\n` +
+            `\r\n${body}`;
+    }
+    const outgoingRequestString = `${httpMethod.toUpperCase()} ${destinationUrl.href} HTTP/1.1\r\n` +
+        `Host: ${destinationUrl.host}\r\n` +
+        "Connection: close\r\n" +
+        postRequestStringContent +
+        "\r\n";
+
     return new Promise<NetworkResponse<T>>(((resolve, reject) => {
         const request = http.request(tunnelRequestOptions);
-        
+
         if (tunnelRequestOptions.timeout) {
             request.on("timeout", () => {
                 request.destroy();
                 reject(new Error("Request time out"));
             });
         }
-        
+
         request.end();
 
-        request.on("connect", (_res, socket) => {
+        // establish connection to the proxy
+        request.on("connect", (response, socket) => {
+            const statusCode = response?.statusCode || 500;
+            if (statusCode < 200 || statusCode > 299) {
+                request.destroy();
+                socket.destroy();
+                reject(new Error(`HTTP status code ${statusCode}`));
+            }
+
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
                 socket.on("timeout", () => {
+                    request.destroy();
                     socket.destroy();
                     reject(new Error("Request time out"));
                 });
             }
-            
+
             // make a request over an HTTP tunnel
             socket.write(outgoingRequestString);
 
@@ -131,6 +135,11 @@ const networkRequestViaProxy = <T>(
                 const dataStringArray = dataString.split("\r\n");
                 // the first entry will contain the statusCode
                 const statusCode = parseInt(dataStringArray[0].split(" ")[1]);
+                if (statusCode < 200 || statusCode > 299) {
+                    request.destroy();
+                    socket.destroy();
+                    reject(new Error(`HTTP status code ${statusCode}`));
+                }
                 // the last entry will contain the body
                 const body = JSON.parse(dataStringArray[dataStringArray.length - 1]);
                 // everything in between the first and last entries are the headers
@@ -175,6 +184,7 @@ const networkRequestViaProxy = <T>(
             });
 
             socket.on("error", (chunk) => {
+                request.destroy();
                 socket.destroy();
                 reject(new Error(chunk.toString()));
             });
@@ -196,9 +206,10 @@ const networkRequestViaHttps = <T>(
     const isPostRequest = httpMethod === HttpMethod.POST;
     const body: string = options?.body || "";
 
+    const emptyHeaders: Record<string, string> = {};
     const customOptions: https.RequestOptions = {
         method: httpMethod,
-        headers: options?.headers || {},
+        headers: options?.headers || emptyHeaders,
     };
 
     if (timeout) {
@@ -228,14 +239,14 @@ const networkRequestViaHttps = <T>(
         }
 
         request.end();
-        
+
         request.on("response", (response) => {
             const headers = response.headers;
             const statusCode = response.statusCode as number;
 
-            // axios: validateStatus: () => true
             if (statusCode < 200 || statusCode > 299) {
-                return reject(new Error(`HTTP status code ${statusCode}`));
+                request.destroy();
+                reject(new Error(`HTTP status code ${statusCode}`));
             }
 
             const data: Buffer[] = [];
