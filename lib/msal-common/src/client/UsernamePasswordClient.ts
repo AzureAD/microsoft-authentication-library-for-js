@@ -90,7 +90,7 @@ export class UsernamePasswordClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
         parameterBuilder.addUsername(request.username);
-        parameterBuilder.addPassword(encodeURIComponent(request.password));
+        parameterBuilder.addPassword(request.password);
 
         parameterBuilder.addScopes(request.scopes);
 
