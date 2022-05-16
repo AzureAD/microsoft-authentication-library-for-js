@@ -254,12 +254,6 @@ export class BrowserCrypto {
      * @param jwk 
      */
     static getJwkString(jwk: JsonWebKey): string {
-        const cnf = {
-            kty: jwk.kty, 
-            n: jwk.n,
-            e: jwk.e,
-            alg: jwk.alg
-        };
-        return JSON.stringify(cnf, Object.keys(jwk).sort());
+        return JSON.stringify(jwk, Object.keys(jwk).sort());
     }
 }
