@@ -372,7 +372,7 @@ export class RequestParameterBuilder {
      * @param username
      */
     addUsername(username: string): void {
-        this.parameters.set(PasswordGrantConstants.username, username);
+        this.parameters.set(PasswordGrantConstants.username, encodeURIComponent(username));
     }
 
     /**
@@ -380,7 +380,7 @@ export class RequestParameterBuilder {
      * @param password
      */
     addPassword(password: string): void {
-        this.parameters.set(PasswordGrantConstants.password, password);
+        this.parameters.set(PasswordGrantConstants.password, encodeURIComponent(password));
     }
 
     /**
