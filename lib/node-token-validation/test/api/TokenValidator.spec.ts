@@ -1,20 +1,25 @@
-import { AuthenticationResult } from '@azure/msal-common';
-import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
-import { mocked } from 'jest-mock';
-import { TokenValidator } from './../../src/api/TokenValidator';
-import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from './../utils/TestConstants';
-import { TokenValidationParameters } from '../../src';
-import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from '../../src/error/ValidationConfigurationError';
-import { TokenType } from '../../src/utils/Constants';
-import { BaseValidationParameters } from '../../src/config/TokenValidationParameters';
-import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
-import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
-import 'regenerator-runtime';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-jest.mock('jose');
+import { AuthenticationResult } from "@azure/msal-common";
+import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from "jose";
+import { mocked } from "jest-mock";
+import { TokenValidator } from "../../src/api/TokenValidator";
+import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from "../utils/TestConstants";
+import { TokenValidationParameters } from "../../src";
+import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from "../../src/error/ValidationConfigurationError";
+import { TokenType } from "../../src/utils/Constants";
+import { BaseValidationParameters } from "../../src/config/TokenValidationParameters";
+import { ValidationError, ValidationErrorMessage } from "../../src/error/ValidationError";
+import { OpenIdConfigProvider } from "../../src/config/OpenIdConfigProvider";
+import "regenerator-runtime";
+
+jest.mock("jose");
 
 describe("TokenValidator", () => {
-    let joseMockResult: (JWTVerifyResult & ResolvedKey) = {
+    const joseMockResult: (JWTVerifyResult & ResolvedKey) = {
         payload: {
             aud: "audience"
         },
@@ -26,12 +31,12 @@ describe("TokenValidator", () => {
         }
     };
 
-    let defaultOptions: TokenValidationParameters = {
+    const defaultOptions: TokenValidationParameters = {
         validIssuers: ["issuer"],
         validAudiences: ["audiences"]
     };
 
-    let defaultValidationParams: BaseValidationParameters = {
+    const defaultValidationParams: BaseValidationParameters = {
         validIssuers: ["issuer"],
         validAudiences: ["audiences"],
         validAlgorithms: [TEST_CONSTANTS.DEFAULT_ALGORITHM],
@@ -40,9 +45,9 @@ describe("TokenValidator", () => {
         requireSignedTokens: true,
     };
 
-    let defaultPayload: JWTPayload = {
+    const defaultPayload: JWTPayload = {
         aud: "audience"
-    }
+    };
     let validator: TokenValidator;
 
     beforeEach(() => {
@@ -70,7 +75,7 @@ describe("TokenValidator", () => {
                     }
                 },
                 headers: {
-                    authorization: ''
+                    authorization: ""
                 }
             };
 
@@ -91,7 +96,7 @@ describe("TokenValidator", () => {
 
             const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
             
-            middlewareFunction(req, {}, next)
+            middlewareFunction(req, {}, next);
         });
 
         it("calls next with missing token error if resource exists but has no access token in req sessions", (done) => {
@@ -102,7 +107,7 @@ describe("TokenValidator", () => {
                     }
                 },
                 headers: {
-                    authorization: ''
+                    authorization: ""
                 }
             };
 
@@ -115,7 +120,7 @@ describe("TokenValidator", () => {
 
             const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
             
-            middlewareFunction(req, {}, next)
+            middlewareFunction(req, {}, next);
         });
 
         it("calls next with missing token error if resource does not exist in req sessions", (done) => {
@@ -126,7 +131,7 @@ describe("TokenValidator", () => {
                     }
                 },
                 headers: {
-                    authorization: ''
+                    authorization: ""
                 }
             };
 
@@ -139,7 +144,7 @@ describe("TokenValidator", () => {
 
             const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
             
-            middlewareFunction(req, {}, next)
+            middlewareFunction(req, {}, next);
         });
 
     });
@@ -231,7 +236,7 @@ describe("TokenValidator", () => {
             expect(result).toEqual([validateTokenResponse]);
 
             expect(validateTokenSpy).toHaveBeenCalledTimes(1);
-            expect(validateTokenSpy).toHaveBeenCalledWith('id-token', defaultOptions);
+            expect(validateTokenSpy).toHaveBeenCalledWith("id-token", defaultOptions);
             expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
@@ -279,7 +284,7 @@ describe("TokenValidator", () => {
             expect(result).toEqual([validateTokenResponse]);
 
             expect(validateTokenSpy).toHaveBeenCalledTimes(1);
-            expect(validateTokenSpy).toHaveBeenCalledWith('id-token', validateTokenOptionsWithCode);
+            expect(validateTokenSpy).toHaveBeenCalledWith("id-token", validateTokenOptionsWithCode);
             expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
@@ -303,7 +308,7 @@ describe("TokenValidator", () => {
             const validateTokenOptionsWithAccessToken = {
                 ...idTokenOptions,
                 accessTokenForAtHash: "access-token"
-            }
+            };
 
             const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
 
@@ -312,7 +317,7 @@ describe("TokenValidator", () => {
             expect(result).toEqual([validateTokenResponse]);
 
             expect(validateTokenSpy).toHaveBeenCalledTimes(1);
-            expect(validateTokenSpy).toHaveBeenCalledWith('id-token', validateTokenOptionsWithAccessToken);
+            expect(validateTokenSpy).toHaveBeenCalledWith("id-token", validateTokenOptionsWithAccessToken);
             expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
@@ -334,7 +339,7 @@ describe("TokenValidator", () => {
             expect(result).toEqual([validateTokenResponse]);
 
             expect(validateTokenSpy).toHaveBeenCalledTimes(1);
-            expect(validateTokenSpy).toHaveBeenCalledWith('access-token', defaultOptions);
+            expect(validateTokenSpy).toHaveBeenCalledWith("access-token", defaultOptions);
             expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
         });
 
@@ -432,7 +437,7 @@ describe("TokenValidator", () => {
             };
             const testJSONWebKeySet: JSONWebKeySet = {
                 keys: TEST_CONSTANTS.ISSUER_SIGNING_KEYS
-            }
+            };
 
             const mock = mocked(createLocalJWKSet);
 
@@ -458,14 +463,13 @@ describe("TokenValidator", () => {
         });
         
         it("calls createRemoteJWKSet with uri retrieved from metadata endpoint if no issuerSigningKeys or issuerSigningJwksUri provided in params", async () => {
-            jest.spyOn(OpenIdConfigProvider.prototype, 'fetchJwksUriFromEndpoint').mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
+            jest.spyOn(OpenIdConfigProvider.prototype, "fetchJwksUriFromEndpoint").mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
             const mock = mocked(createRemoteJWKSet);
 
             await validator.getJWKS(defaultValidationParams);
 
             expect(mock).toHaveBeenCalledTimes(1);
             expect(mock).toHaveBeenCalledWith(new URL(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
-
 
         });
 
@@ -486,7 +490,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setIssuerParams(testValidationParams)
+                validator.setIssuerParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -503,7 +507,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setIssuerParams(testValidationParams)
+                validator.setIssuerParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -531,7 +535,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setAudienceParams(testValidationParams)
+                validator.setAudienceParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -548,7 +552,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setAudienceParams(testValidationParams)
+                validator.setAudienceParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -576,7 +580,7 @@ describe("TokenValidator", () => {
 
         it("throw error if validAudiences is negative integer", () => {
             try {
-                validator.setClockTolerance(-1)
+                validator.setClockTolerance(-1);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -587,7 +591,6 @@ describe("TokenValidator", () => {
         });
 
     });
-
 
     describe("validateClaims", () => {
 

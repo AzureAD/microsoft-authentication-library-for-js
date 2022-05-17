@@ -3,6 +3,9 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Express.js request object used in in {@link validateTokenMiddleware}.
+ */
 export type ExpressRequest = {
     headers: {
         authorization?: string
@@ -15,6 +18,12 @@ export type ExpressRequest = {
     }
 };
 
+/**
+ * Express.js response object used in {@link validateTokenMiddleware}.
+ */
 export type ExpressResponse = object;
 
+/**
+ * Express.js next function used in {@link validateTokenMiddleware}.
+ */
 export type ExpressNextFunction = (err?: Error) => void;

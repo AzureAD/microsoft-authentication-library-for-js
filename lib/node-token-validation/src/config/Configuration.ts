@@ -8,36 +8,51 @@ import { Constants } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
 /**
- * Use the configuration object to configure the TokenValidator.
- * 
- * This object allows you to configure elements of the TokenValidator's functionality:
- * - auth               - Configure auth elements like the authority used, the protocol used, and whether there is a clock skew.
- * - system             - Configure the logger and network client.
+ * This object allows you to configure elements of the TokenValidator's functionality, and is passed into the constructor of TokenValidator.
  */
 export type Configuration = {
+    /**
+     * This is where you configure auth elements like the authority used, the protocol used, and whether there is a clock skew.
+     */
     auth?: TokenValidationOptions,
+    /**
+     * This is where you configure the logger and network client.
+     */
     system?: SystemOptions
 };
 
 /**
  * Used this to configure the auth options in the Configuration object
- * - authority          - Specific authority, used for obtaining keys from the metadata endpoint. Usually takes the form of `https://{uri}/{tenantid}`.
- * - protocolMode       - Enum that represents the protocol used by the TokenValidator. Used for configuring proper endpoints. When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata. When set to `AAD`, the library will include `/v2.0/` in the authority path when fetching authority metadata.
- * - clockSkew          - Clock skew (in seconds) allowed in token validation. Must be a positive integer.
  */
 export type TokenValidationOptions = {
+    /**
+     * Specific authority, used for obtaining keys from the metadata endpoint. Usually takes the form of `https://{uri}/{tenantid}`.
+     */
     authority?: string,
-    protocolMode?: ProtocolMode
+    /**
+     * Enum that represents the protocol used by the TokenValidator. 
+     * Used for configuring proper endpoints. 
+     * When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata. 
+     * When set to `AAD`, the library will include `/v2.0/` in the authority path when fetching authority metadata.
+     */
+    protocolMode?: ProtocolMode,
+    /**
+     * Clock skew (in seconds) allowed in token validation. Must be a positive integer.
+     */
     clockSkew?: number,
 };
 
 /**
- * System options
- * - loggerOptions      - Used to initialize the Logger object
- * - networkClient      - Network interface implementation
+ * Use this to configure the system options in the Configuration object
  */
 export type SystemOptions = {
+    /**
+     * Used to initialize the Logger object
+     */
     loggerOptions?: LoggerOptions;
+    /**
+     * Network interface implementation
+     */
     networkClient?: INetworkModule;
 };
 
