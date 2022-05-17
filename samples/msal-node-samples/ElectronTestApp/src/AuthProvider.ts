@@ -2,41 +2,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { 
+import {
     PublicClientApplication,
-    Configuration,
     LogLevel,
     AccountInfo,
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    SilentFlowRequest, 
-    CryptoProvider} from "@azure/msal-node";
+    SilentFlowRequest,
+    CryptoProvider
+} from "@azure/msal-node";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomProtocolListener } from "./CustomProtocolListener";
-
-// Change this to load the desired MSAL Client Configuration
-import * as APP_CONFIG from "./config/customConfig.json";
-
-// Redirect URL registered in Azure PPE Lab App
-const CUSTOM_PROTOCOL_NAME = APP_CONFIG.customProtocol.name;
-
-const MSAL_CONFIG: Configuration = {
-    auth: APP_CONFIG.authOptions,
-    cache: {
-        cachePlugin
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Info,
-        }
-    }
-};
 
 export default class AuthProvider {
 
@@ -46,8 +24,27 @@ export default class AuthProvider {
     private authCodeRequest: AuthorizationCodeRequest;
     private silentProfileRequest: SilentFlowRequest;
     private silentMailRequest: SilentFlowRequest;
-    constructor() {
-        this.clientApplication = new PublicClientApplication(MSAL_CONFIG);
+    private authConfig: any;
+
+    constructor(authConfig: any) {
+        this.authConfig = authConfig
+
+        this.clientApplication = new PublicClientApplication({
+            auth: this.authConfig.authOptions,
+            cache: {
+                cachePlugin: cachePlugin(this.authConfig.cache.cacheLocation)
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback(loglevel, message, containsPii) {
+                        console.log(message);
+                    },
+                    piiLoggingEnabled: false,
+                    logLevel: LogLevel.Info,
+                }
+            }
+        });
+
         this.account = null;
         this.setRequestObjects();
     }
@@ -56,11 +53,11 @@ export default class AuthProvider {
         return this.account;
     }
 
-    // Creates a  "popup" window for interactive authentication
+    // Creates a "popup" window for interactive authentication
     private static createAuthWindow(): BrowserWindow {
         return new BrowserWindow({
             width: 400,
-            height: 600
+            height: 600,
         });
     }
 
@@ -70,14 +67,14 @@ export default class AuthProvider {
     private setRequestObjects(): void {
 
         const baseSilentRequest = {
-            account: null, 
+            account: null,
             forceRefresh: false
         };
 
-        this.authCodeUrlParams = APP_CONFIG.request.authCodeUrlParameters;
+        this.authCodeUrlParams = this.authConfig.request.authCodeUrlParameters;
 
         this.authCodeRequest = {
-            ...APP_CONFIG.request.authCodeRequest,
+            ...this.authConfig.request.authCodeRequest,
             code: null
         };
 
@@ -107,7 +104,7 @@ export default class AuthProvider {
             request.account = account;
             authResponse = await this.getTokenSilent(request);
         } else {
-            const authCodeRequest = {...this.authCodeUrlParams, ...request };
+            const authCodeRequest = { ...this.authCodeUrlParams, ...request };
             authResponse = await this.getTokenInteractive(authCodeRequest);
         }
 
@@ -119,7 +116,7 @@ export default class AuthProvider {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
             console.log("Silent token acquisition failed, acquiring token using pop up");
-            const authCodeRequest = {...this.authCodeUrlParams, ...tokenRequest };
+            const authCodeRequest = { ...this.authCodeUrlParams, ...tokenRequest };
             return await this.getTokenInteractive(authCodeRequest);
         }
     }
@@ -131,11 +128,11 @@ export default class AuthProvider {
         const authWindow = AuthProvider.createAuthWindow();
 
         // Add PKCE params to Auth Code URL request
-        const authCodeUrlParams = { 
+        const authCodeUrlParams = {
             ...this.authCodeUrlParams,
             scopes: tokenRequest.scopes,
             codeChallenge: challenge,
-            codeChallengeMethod: "S256" 
+            codeChallengeMethod: "S256"
         };
 
         try {
@@ -150,7 +147,7 @@ export default class AuthProvider {
                 code: authCode,
                 codeVerifier: verifier
             });
-            
+
             authWindow.close();
             return authResult;
         } catch (error) {
@@ -181,7 +178,7 @@ export default class AuthProvider {
 
     private async listenForAuthCode(navigateUrl: string, authWindow: BrowserWindow): Promise<string> {
         // Set up custom file protocol to listen for redirect response
-        const authCodeListener = new CustomProtocolListener(CUSTOM_PROTOCOL_NAME);
+        const authCodeListener = new CustomProtocolListener(this.authConfig.customProtocol.name);
         const codePromise = authCodeListener.start();
         authWindow.loadURL(navigateUrl);
         const code = await codePromise;
@@ -189,10 +186,10 @@ export default class AuthProvider {
         return code;
     }
 
-        /**
-     * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
-     * @param response 
-     */
+    /**
+ * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
+ * @param response
+ */
     private async handleResponse(response: AuthenticationResult) {
         if (response !== null) {
             this.account = response.account;
@@ -206,7 +203,7 @@ export default class AuthProvider {
     /**
      * Calls getAllAccounts and determines the correct account to sign into, currently defaults to first account found in cache.
      * TODO: Add account chooser code
-     * 
+     *
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
      */
     private async getAccount(): Promise<AccountInfo> {
