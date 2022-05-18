@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest]
         sample:
           - 'ElectronTestApp'
 
@@ -86,7 +86,6 @@ jobs:
         npm run install:local
         npm install
       env:
-        DEBUG: pw:browser
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
     - name: Build Sample
@@ -107,6 +106,7 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        DEBUG: pw:browser
       run: npm test
 
     - name: E2E Tests
@@ -117,6 +117,7 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        DEBUG: pw:browser
       run: xvfb-run --auto-servernum --server-args="-screen 0 1280x960x24" -- npm test
 
     - name: Upload E2E Test Screenshots

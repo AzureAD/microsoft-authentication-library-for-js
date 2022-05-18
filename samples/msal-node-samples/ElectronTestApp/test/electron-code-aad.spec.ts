@@ -20,10 +20,10 @@ import {
     validateCacheLocation,
 } from '../../testUtils'
 
-import config from '../src/config/AAD.json';
+import config from '../src/config/customConfig.json';
 
 // Set test cache name/location
-const TEST_CACHE_LOCATION = `${__dirname}/../data/aad.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/../data/cache.json`;
 
 test.describe('Electron Auth Code AAD PPE Tests ', () => {
     let electronApp: ElectronApplication;
@@ -42,10 +42,12 @@ test.describe('Electron Auth Code AAD PPE Tests ', () => {
             appType: AppTypes.CLOUD
         };
 
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
+        // const labClient = new LabClient();
+        // const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        // [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
+        [username, accountPwd] = ["testuser@msaltestingjs.onmicrosoft.com", "zAbo0432"];
 
         electronApp = await electron.launch({
             args: [path.join(__dirname, "../dist/App.js"),
