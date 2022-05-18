@@ -2,10 +2,12 @@
 const welcomeDiv = document.getElementById("WelcomeMessage");
 const signInButton = document.getElementById("SignIn");
 const cardDiv = document.getElementById("card-div");
-const mailButton = document.getElementById("readMail");
+const popCardDiv = document.getElementById("pop-card-div");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 const popTokenAcquired = document.getElementById("PopTokenAcquired");
+const jwtBodyView = document.getElementById("jwtBodyView");
+const jwtHeaderView = document.getElementById("jwtHeaderView");
 
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
@@ -18,21 +20,19 @@ function showWelcomeMessage(account) {
 }
 
 function showPopTokenAcquired(encodedJwt) {
+    popCardDiv.style.display = 'initial';
     const popTokenAcquired = document.createElement('p');
     popTokenAcquired.setAttribute("id", "PopTokenAcquired");
     popTokenAcquired.innerHTML = "Successfully acquired PoP Token";
     profileDiv.appendChild(popTokenAcquired);
 
     const jwtWindow = document.getElementById("jwtWindow");
-    const jwtHeaderView = document.createElement('pre');
-    const jwtBodyView = document.createElement('pre');
     const splitJwt = encodedJwt.split(".");
     const jwtHeader = JSON.stringify(JSON.parse(atob(splitJwt[0])), null, 4);
     const jwtBody = JSON.stringify(JSON.parse(atob(splitJwt[1])), null, 4);
+    jwtBodyView.style = "white-space: pre-wrap";
     jwtHeaderView.textContent = jwtHeader;
     jwtBodyView.textContent = jwtBody;
-    jwtWindow.appendChild(jwtHeaderView);
-    jwtWindow.appendChild(jwtBodyView)
 }
 
 function updateUI(data, endpoint) {
