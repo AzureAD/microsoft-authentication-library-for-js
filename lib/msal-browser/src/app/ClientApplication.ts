@@ -152,7 +152,7 @@ export abstract class ClientApplication {
     async initialize(): Promise<void> {
         this.logger.trace("initialize called");
         if (this.initialized) {
-            this.logger.info("initialize has already been called, this is a no-op.");
+            this.logger.info("initialize has already been called, exiting early.");
             return;
         }
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
