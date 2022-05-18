@@ -8,7 +8,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse,
 } from "@azure/msal-common";
-import { HttpMethod } from "../utils/Constants";
+import { HttpMethod, Constants } from "../utils/Constants";
 import http from "http";
 import https from "https";
 
@@ -135,11 +135,6 @@ const networkRequestViaProxy = <T>(
                 const dataStringArray = dataString.split("\r\n");
                 // the first entry will contain the statusCode
                 const statusCode = parseInt(dataStringArray[0].split(" ")[1]);
-                if (statusCode < 200 || statusCode > 299) {
-                    request.destroy();
-                    socket.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
-                }
                 // the last entry will contain the body
                 let body = dataStringArray[dataStringArray.length - 1];
                 // check if the value of the body is already a JSON object
@@ -187,6 +182,14 @@ const networkRequestViaProxy = <T>(
                     body: JSON.parse(body) as T,
                     status: statusCode as number,
                 };
+
+                if ((statusCode < 200 || statusCode > 299) &&
+                    // do not destroy the request for the device code flow
+                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
+                    request.destroy();
+                    socket.destroy();
+                    reject(new Error(`HTTP status code ${statusCode}`));
+                }
 
                 resolve(networkResponse);
             });
@@ -252,11 +255,6 @@ const networkRequestViaHttps = <T>(
             const headers = response.headers;
             const statusCode = response.statusCode as number;
 
-            if (statusCode < 200 || statusCode > 299) {
-                request.destroy();
-                reject(new Error(`HTTP status code ${statusCode}`));
-            }
-
             const data: Buffer[] = [];
             response.on("data", (chunk) => {
                 data.push(chunk);
@@ -279,6 +277,14 @@ const networkRequestViaHttps = <T>(
                     body: JSON.parse(body) as T,
                     status: statusCode,
                 };
+
+                if ((statusCode < 200 || statusCode > 299) &&
+                    // do not destroy the request for the device code flow
+                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
+                    request.destroy();
+                    reject(new Error(`HTTP status code ${statusCode}`));
+                }
+
                 resolve(networkResponse);
             });
         });
