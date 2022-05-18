@@ -39,7 +39,7 @@ import { JWK } from "jose";
  * https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
  * https://openid.net/specs/openid-connect-core-1_0.html#ImplicitTokenValidation
  */
-export type TokenValidationParameters = Partial<BaseValidationParameters> & {
+export type TokenValidationParameters = {
     /**
      * An array of valid issuers used to check against the token's `iss` (issuer) claim. 
      * The `iss` claim is the principal that issued the token and is usually a case-sensitive URL with the secure token service that constructs and returns the token, and your Directory (tenant) id.
@@ -49,41 +49,21 @@ export type TokenValidationParameters = Partial<BaseValidationParameters> & {
      */
     validIssuers: Required<Array<string>>,
     /**
-     * And array of valid audiences used to check against the token's `aud` (audience) claim. 
-     * The `aud` is the intended recipient of the token and is usually a string that is or contains the Application (client) ID of your application. 
-     * Example: "CLIENT_ID" or "api://YOUR_CLIENT_ID"
-     */
-    validAudiences: Required<Array<string>>
-};
-
-/**
- * Validation parameters used in validating tokens. Includes the user-input parameters with defaults.
- */
-export type BaseValidationParameters = {
-    /**
-     * An array of valid algorithms used to check against the token's algorithm. 
-     * Optional, defaults to RS256.
-     */
-    validAlgorithms: Array<string>,
-    /**
-     * An array of valid issuers used to check against the token's `iss` (issuer) claim. 
-     * The `iss` claim is the principal that issued the token and is usually a case-sensitive URL with the secure token service that constructs and returns the token, and your Directory (tenant) id.
-     * If the token was issued by the v2.0 endpoint, the URI will end in /v2.0.
-     * Id Token issuer example: "https://login.windows-ppe.net/TENANT_ID/v2.0"
-     * Access token issuer example: "https://sts.windows.net/TENANT_ID/"
-     */
-    validIssuers: Array<string>,
-    /**
      * An array of valid audiences used to check against the token's `aud` (audience) claim. 
      * The `aud` is the intended recipient of the token and is usually a string that is or contains the Application (client) ID of your application. 
      * Example: "CLIENT_ID" or "api://YOUR_CLIENT_ID"
      */
-    validAudiences: Array<string>,
+    validAudiences: Required<Array<string>>,
+    /**
+     * An array of valid algorithms used to check against the token's algorithm. 
+     * Optional, defaults to RS256.
+     */
+    validAlgorithms?: Array<string>,
     /**
      * An array of valid types used to check against the token `typ` (type) header parameter value.
      * Optional, currently defaults to "JWT".
      */
-    validTypes: Array<string>,
+    validTypes?: Array<string>,
     /**
      * JSON Web Key Set for token decryption.
      * Optional, can be created with jose.createLocalJWKSet(). Will default to retrieving keys from well-known endpoint.
@@ -100,12 +80,12 @@ export type BaseValidationParameters = {
      * Boolean for whether tokens must have expiration value.
      * Optional, defaults to true.
      */
-    requireExpirationTime: boolean,
+    requireExpirationTime?: boolean,
     /**
      * Boolean for whether tokens must be signed. 
      * Optional, defaults to true.
      */
-    requireSignedTokens: boolean,
+    requireSignedTokens?: boolean,
     /**
      * Subject used to check against token's `sub` (subject) claim.
      * The `sub` claim is the principal that is the subject of the token and is usually a case-sensitive string.
@@ -124,6 +104,47 @@ export type BaseValidationParameters = {
      * Access token used to check against an id token's at_hash.
      */
     accessTokenForAtHash?: string,
+};
+
+/**
+ * Base validation parameters type used in validating tokens. 
+ * Includes the same fields as {@link TokenValidationParameters}, with required fields set to defaults if not provided.
+ */
+export type BaseValidationParameters = Partial<TokenValidationParameters> & {
+    /**
+     * An array of valid issuers used to check against the token's `iss` (issuer) claim. 
+     * The `iss` claim is the principal that issued the token and is usually a case-sensitive URL with the secure token service that constructs and returns the token, and your Directory (tenant) id.
+     * If the token was issued by the v2.0 endpoint, the URI will end in /v2.0.
+     * Id Token issuer example: "https://login.windows-ppe.net/TENANT_ID/v2.0"
+     * Access token issuer example: "https://sts.windows.net/TENANT_ID/"
+     */
+    validIssuers: Required<Array<string>>,
+    /**
+     * An array of valid audiences used to check against the token's `aud` (audience) claim. 
+     * The `aud` is the intended recipient of the token and is usually a string that is or contains the Application (client) ID of your application. 
+     * Example: "CLIENT_ID" or "api://YOUR_CLIENT_ID"
+     */
+    validAudiences: Required<Array<string>>,
+    /**
+     * An array of valid algorithms used to check against the token's algorithm. 
+     * Currently defaults to RS256.
+     */
+    validAlgorithms: Required<Array<string>>,
+    /**
+     * An array of valid types used to check against the token `typ` (type) header parameter value.
+     * Currently defaults to "JWT".
+     */
+    validTypes: Required<Array<string>>,
+    /**
+     * Boolean for whether tokens must have expiration value.
+     * Defaults to true.
+     */
+    requireExpirationTime: Required<boolean>,
+    /**
+     * Boolean for whether tokens must be signed. 
+     * Defaults to true.
+     */
+    requireSignedTokens: Required<boolean>
 };
 
 /**
