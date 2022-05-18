@@ -25,11 +25,15 @@ import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"; 
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * OAuth2.0 refresh token client
  */
 export class RefreshTokenClient extends BaseClient {
+
+    protected performanceClient: IPerformanceClient;
 
     constructor(configuration: ClientConfiguration) {
         super(configuration);
@@ -133,7 +137,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-
+        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NetworkPerformance, request.correlationId);    
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -150,7 +154,19 @@ export class RefreshTokenClient extends BaseClient {
         };
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
+        .then((result) =>{
+            acquireTokenMeasurement.endMeasurement({
+                success: true
+            })
+            return result;
+        })
+        .catch((error) =>{
+            acquireTokenMeasurement.endMeasurement({
+                success: false
+            })
+            return error;
+        });
     }
 
     /**

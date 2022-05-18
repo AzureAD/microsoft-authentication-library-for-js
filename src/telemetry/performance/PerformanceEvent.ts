@@ -94,6 +94,9 @@ export enum PerformanceEvents {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+
+
+    NetworkPerformance = "networkPerformance"
 }
 
 /**
