@@ -98,7 +98,7 @@ jobs:
     - name: Install Playwright
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |
-        run: npx playwright install --with-deps chromium
+        npx playwright install --with-deps chromium
 
     - name: E2E Tests
       if: matrix.os != 'ubuntu-latest'
