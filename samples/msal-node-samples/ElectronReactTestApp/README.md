@@ -40,7 +40,7 @@ npm run build:package
 ```
 - From the repository's root directory, navigate to the Electron sample application:
 ```bash
-$ cd samples/msal-node-samples/standalone-samples/ElectronTestApp
+$ cd samples/msal-node-samples/ElectronReactTestApp
 ```
 
 ### Configure the application'
