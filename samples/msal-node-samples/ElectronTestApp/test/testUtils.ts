@@ -70,7 +70,6 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
         await screenshot.takeScreenshot(page, "errorPage").catch(() => { });
         throw e;
     });
-    await screenshot.takeScreenshot(page, "pwdSubmitted");
 }
 
 export async function clickSignIn(electronApp: ElectronApplication, page: Page, screenshot: Screenshot): Promise<Page> {
