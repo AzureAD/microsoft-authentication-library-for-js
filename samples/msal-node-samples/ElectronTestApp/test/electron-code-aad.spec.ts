@@ -49,13 +49,13 @@ test.describe('Electron Auth Code AAD PPE Tests ', () => {
 
         electronApp = await electron.launch({
             args: [path.join(__dirname, "../dist/App.js"),
-            '--enable-logging',
             '--skip-welcome',
             '--disable-telemetry',
             '--no-cached-data',
             ],
             env: {
-                authConfig: JSON.stringify(config)
+                automation: "1",
+                authConfig: JSON.stringify(config),
             }
         });
 

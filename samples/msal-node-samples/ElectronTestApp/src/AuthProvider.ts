@@ -54,11 +54,18 @@ export default class AuthProvider {
     }
 
     // Creates a "popup" window for interactive authentication
-    private static createAuthWindow(): BrowserWindow {
-        return new BrowserWindow({
+    private static async createAuthWindow(): Promise<BrowserWindow> {
+        const popupWindow = new BrowserWindow({
             width: 400,
             height: 600,
         });
+
+        // if the app is run by test automation, clear the cache
+        if (process.env.automation === "1") {
+            await popupWindow.webContents.session.clearStorageData();
+        }
+
+        return popupWindow;
     }
 
     /**
@@ -125,7 +132,7 @@ export default class AuthProvider {
         // Generate PKCE Challenge and Verifier before request
         const cryptoProvider = new CryptoProvider();
         const { challenge, verifier } = await cryptoProvider.generatePkceCodes();
-        const authWindow = AuthProvider.createAuthWindow();
+        const authWindow = await AuthProvider.createAuthWindow();
 
         // Add PKCE params to Auth Code URL request
         const authCodeUrlParams = {
