@@ -49,6 +49,7 @@ test.describe('Electron Auth Code AAD PPE Tests ', () => {
 
         electronApp = await electron.launch({
             args: [path.join(__dirname, "../dist/App.js"),
+            '--enable-logging',
             '--skip-welcome',
             '--disable-telemetry',
             '--no-cached-data',
@@ -60,10 +61,6 @@ test.describe('Electron Auth Code AAD PPE Tests ', () => {
         });
 
         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
-    });
-
-    test.afterAll(async () => {
-        await electronApp.close();
     });
 
     test.describe('Acquire token', () => {

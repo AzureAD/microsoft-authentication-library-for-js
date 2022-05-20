@@ -116,7 +116,7 @@ jobs:
         sample:
           - 'ElectronTestApp'
 
-    name: ${{ matrix.sample }} - OS ${{ matrix.os }}
+    name: ${{ matrix.sample }} - ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v2
@@ -155,10 +155,6 @@ jobs:
       working-directory: samples
       run: npm ci
 
-    - name: Install Playwright
-      run: |
-        npx playwright install --with-deps chromium
-
     - name: Restore node_modules for sample
       uses: actions/cache@v2
       id: sample-cache
@@ -174,6 +170,11 @@ jobs:
         npm install
       env:
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+    - name: Install Playwright
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: |
+        npx playwright install --with-deps chromium
 
     - name: Build Sample
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
