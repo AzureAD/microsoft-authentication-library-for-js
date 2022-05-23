@@ -35,8 +35,9 @@ export class RefreshTokenClient extends BaseClient {
 
     protected performanceClient: IPerformanceClient;
 
-    constructor(configuration: ClientConfiguration) {
+    constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient) {
         super(configuration);
+        this.performanceClient = performanceClient;
     }
 
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
