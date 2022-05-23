@@ -15,6 +15,8 @@ import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { TokenValidationMiddlewareResponse } from "../response/TokenValidationMiddlewareResponse";
 import { name, version } from "../packageMetadata";
 import crypto from "crypto";
+import { NodeCacheManager } from "../cache/NodeCacheManager";
+import { CryptoProvider } from "../crypto/CryptoProvider";
 
 /**
  * The TokenValidator class is the object exposed by the library to perform token validation.
@@ -30,8 +32,14 @@ export class TokenValidator {
     // Network interface implementation
     protected networkInterface: INetworkModule;
 
+    // Crypto Provider
+    protected cryptoProvider: CryptoProvider;
+
     // OpenIdConfig Provider implementation
     protected openIdConfigProvider: OpenIdConfigProvider;
+
+    // Platform storage object
+    protected storage: NodeCacheManager;
 
     /**
      * Constructor for the TokenValidator class
@@ -47,8 +55,14 @@ export class TokenValidator {
         // Initialize network client
         this.networkInterface = this.config.system.networkClient,
 
+        // Initialize crypto provider
+        this.cryptoProvider = new CryptoProvider();
+        
+        // Initialize storage
+        this.storage = new NodeCacheManager(this.logger, "client-id-here?", this.cryptoProvider);
+
         // Initialize OpenId configuration provider
-        this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
+        this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.storage, this.logger);
     }
 
     /**

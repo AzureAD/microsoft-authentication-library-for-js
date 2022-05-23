@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CacheManager, ICrypto, Logger, ValidCacheType } from "@azure/msal-common";
+import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType } from "@azure/msal-common";
 import { CacheKVStore } from "./CacheTypes";
 
 export class NodeCacheManager extends CacheManager {
@@ -148,67 +148,91 @@ export class NodeCacheManager extends CacheManager {
     }
 
     setAccessTokenCredential(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setAccessTokenCredential");
     }
 
     getIdTokenCredential(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. getIdTokenCredential");
     }
 
     setIdTokenCredential(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setIdTokenCredential");
     }
 
     getRefreshTokenCredential(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. getRefreshTokenCredential");
     }
 
     setRefreshTokenCredential(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setRefreshTokenCredential");
     }
 
     getAccount(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. getAccount");
     }
 
     setAccount(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setAccount");
     }
 
     getAppMetadata(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. getAppMetadata");
     }
 
     setAppMetadata(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setAppMetadata");
     }
 
-    getAuthorityMetadata(): null {
-        throw new Error("Method not implemented.");
+    /**
+     * Fetch authority metadata entity from the cache
+     * @param key Lookup key to fetch cache type AuthorityMetadataEntity
+     * @returns 
+     */
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
+        const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(key) as AuthorityMetadataEntity;
+        if (authorityMetadataEntity && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, authorityMetadataEntity)) {
+            return authorityMetadataEntity;
+        }
+        return null;
     }
 
+    /**
+     * Get authority metadata keys
+     * @returns
+     */
     getAuthorityMetadataKeys(): string[] {
-        throw new Error("Method not implemented.");
+        return this.getKeys().filter((key) => {
+            return this.isAuthorityMetadata(key);
+        });
     }
 
-    setAuthorityMetadata(): null {
-        throw new Error("Method not implemented.");
+    /**
+     * Set authority metadata entity to the cache
+     * @param key Lookup key to fetch cache type AuthorityMetadataEntity
+     * @param metadata Cache value to be set type AuthorityMetadataEntity
+     */
+    setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void {
+        this.setItem(key, metadata);
     }
 
     getServerTelemetry(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. getServerTelemetry");
     }
 
     setServerTelemetry(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setServerTelemetry");
     }
 
     getThrottlingCache(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. getThrottlingCache");
     }
 
     setThrottlingCache(): null {
-        throw new Error("Method not implemented.");
+        throw new Error("Method not implemented. setThrottlingCache");
+    }
+
+    updateCredentialCacheKey(): string {
+        throw new Error("Method not implemented. setThrottlingCache");
     }
 }
 
