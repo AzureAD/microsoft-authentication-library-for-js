@@ -18,6 +18,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
 
 export interface IPublicClientApplication {
+    initialize(): Promise<void>;
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
@@ -50,6 +51,9 @@ export interface IPublicClientApplication {
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
+    initialize: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
+    },
     acquireTokenPopup: () => {
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
     },

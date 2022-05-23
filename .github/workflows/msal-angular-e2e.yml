@@ -15,6 +15,7 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-angular-v2-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
+      - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-angular-e2e.yml'
 

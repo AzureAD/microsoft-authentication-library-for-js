@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 04 Apr 2022 21:12:42 GMT and should not be manually modified.
+This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.9.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Add Node 18 to msal-node supported versions #4727 (13023439+WikiRik@users.noreply.github.com)
+- Bump @azure/msal-common to v6.3.0
 
 ## 1.8.0
 

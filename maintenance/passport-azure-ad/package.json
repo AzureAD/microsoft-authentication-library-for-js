@@ -1,6 +1,6 @@
 {
   "name": "passport-azure-ad",
-  "version": "4.3.1",
+  "version": "4.3.3",
   "license": "MIT",
   "keywords": [
     "azure active directory",
@@ -35,22 +35,21 @@
     "nodeunit": "^0.11.3"
   },
   "dependencies": {
-    "async": "^1.5.2",
+    "async": "^3.2.3",
     "base64url": "^3.0.0",
     "bunyan": "^1.8.14",
-    "cache-manager": "2.10.2",
+    "cache-manager": "^3.6.1",
     "https-proxy-agent": "^5.0.0",
     "jws": "^3.1.3",
     "lodash": "^4.11.2",
     "node-jose": "^2.0.0",
     "oauth": "0.9.15",
     "passport": "^0.4.1",
-    "request": "^2.72.0",
     "valid-url": "^1.0.6"
   },
   "scripts": {
     "test": "grunt run_tests",
-    "lint": "./node_modules/.bin/eslint lib/**"
+    "lint": "eslint lib/**"
   },
   "engines": {
     "node": ">= 8.0.0"
