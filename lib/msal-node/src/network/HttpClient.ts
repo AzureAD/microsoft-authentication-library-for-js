@@ -255,7 +255,7 @@ const networkRequestViaHttps = <T>(
 
             response.on("end", () => {
                 // combine all received buffer streams into one buffer, and then into a string
-                let body = Buffer.concat([...data]).toString();
+                const body = Buffer.concat([...data]).toString();
 
                 const networkResponse: NetworkResponse<T> = {
                     headers: headers as Record<string, string>,
