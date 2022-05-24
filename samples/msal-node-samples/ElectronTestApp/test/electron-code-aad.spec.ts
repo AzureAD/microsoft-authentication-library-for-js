@@ -13,7 +13,7 @@ import {
     Screenshot,
     clickSignIn,
     enterCredentials,
-} from './testUtils';
+} from '../../../e2eTestUtils/ElectronPlaywrightTestUtils';
 
 import {
     SCREENSHOT_BASE_FOLDER_NAME,
