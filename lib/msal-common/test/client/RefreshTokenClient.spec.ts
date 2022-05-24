@@ -101,6 +101,15 @@ describe("RefreshTokenClient unit tests", () => {
     describe("executeTokenRequest", () => {
         let config: ClientConfiguration;
 
+        const refreshTokenRequest: CommonRefreshTokenRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+            claims: TEST_CONFIG.CLAIMS,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+        };
+
         beforeEach(async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             config = await ClientTestUtils.createTestClientConfiguration();
@@ -128,6 +137,28 @@ describe("RefreshTokenClient unit tests", () => {
             client.acquireToken(refreshTokenRequest).catch(e => {
                 // Catch errors thrown after the function call this test is testing    
             });
+        });
+
+        it("Checks whether performance telemetry startMeasurement method is called",async () => {
+            const spy = jest.spyOn(stubPerformanceClient, 'startMeasurement');
+            
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            
+            await client.acquireToken(refreshTokenRequest);
+            expect(spy).toHaveBeenCalledTimes(1)
+            spy.mockClear();
+        });
+
+        it("Checks whether performance telemetry endMeasurement method is called",async () => {
+            const spy = jest.spyOn(stubPerformanceClient, 'endMeasurement');
+            
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            
+            await client.acquireToken(refreshTokenRequest);
+            expect(spy).toHaveBeenCalledTimes(1)
+            spy.mockClear();
         });
     });
 
