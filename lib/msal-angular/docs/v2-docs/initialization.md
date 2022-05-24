@@ -71,11 +71,29 @@ See our [`MsalGuard` doc](https://github.com/AzureAD/microsoft-authentication-li
 See this example of a route defined with the `MsalGuard`:
 
 ```js
-  {
-    path: 'profile',
-    component: ProfileComponent,
-    canActivate: [MsalGuard]
-  },
+import { NgModule } from '@angular/core';
+import { Routes, RouterModule } from '@angular/router';
+import { HomeComponent } from './home/home.component';
+import { ProfileComponent } from './profile/profile.component';
+import { MsalGuard } from '@azure/msal-angular';
+
+const routes: Routes = [
+    {
+        path: 'profile',
+        component: ProfileComponent,
+        canActivate: [MsalGuard]
+    },
+    {
+        path: '',
+        component: HomeComponent
+    },
+];
+
+@NgModule({
+    imports: [RouterModule.forRoot(routes)],
+    exports: [RouterModule]
+})
+export class AppRoutingModule { }
 ```
 
 ## Get tokens for Web API calls
@@ -145,6 +163,7 @@ MSAL provides an event system, which emits events related to auth and MSAL, an c
 
 ```js
 import { EventMessage, EventType } from '@azure/msal-browser';
+import { filter } from 'rxjs/operators';
 
 this.msalBroadcastService.msalSubject$
     .pipe(
@@ -164,6 +183,9 @@ The list of events available to MSAL can be found in the [`@azure/msal-browser` 
 It is extremely important to unsubscribe. Implement `ngOnDestroy()` in your component and unsubscribe.
 
 ```js
+import { EventMessage, EventType } from '@azure/msal-browser';
+import { filter, Subject, takeUntil } from 'rxjs';
+
 private readonly _destroying$ = new Subject<void>();
 
 this.msalBroadcastService.msalSubject$
