@@ -107,7 +107,7 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
-            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
                 done();
             });
@@ -166,7 +166,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Does not add headers that do not qualify for a simple request", (done) => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
                     expect(CORS_SIMPLE_REQUEST_HEADERS.includes(name.toLowerCase())).toBe(true);
@@ -241,7 +241,7 @@ describe("RefreshTokenClient unit tests", () => {
                 }
             }
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
@@ -279,7 +279,7 @@ describe("RefreshTokenClient unit tests", () => {
                 }
             }
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
-            const client = new RefreshTokenClient(config);
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
