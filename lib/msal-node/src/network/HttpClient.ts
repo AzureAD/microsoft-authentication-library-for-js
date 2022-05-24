@@ -136,14 +136,7 @@ const networkRequestViaProxy = <T>(
                 // the first entry will contain the statusCode
                 const statusCode = parseInt(dataStringArray[0].split(" ")[1]);
                 // the last entry will contain the body
-                let body = dataStringArray[dataStringArray.length - 1];
-                // check if the value of the body is already a JSON object
-                try {
-                    JSON.parse(body);
-                } catch (e) {
-                    // if it is, then convert it to a JSON string
-                    body = JSON.stringify(body);
-                }
+                const body = dataStringArray[dataStringArray.length - 1];
 
                 // everything in between the first and last entries are the headers
                 const headersArray = dataStringArray.slice(1, dataStringArray.length - 2);
@@ -263,14 +256,6 @@ const networkRequestViaHttps = <T>(
             response.on("end", () => {
                 // combine all received buffer streams into one buffer, and then into a string
                 let body = Buffer.concat([...data]).toString();
-
-                // check if the value of the body is already a JSON object
-                try {
-                    JSON.parse(body);
-                } catch (e) {
-                    // if it is, then convert it to a JSON string
-                    body = JSON.stringify(body);
-                }
 
                 const networkResponse: NetworkResponse<T> = {
                     headers: headers as Record<string, string>,
