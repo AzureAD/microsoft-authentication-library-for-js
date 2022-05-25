@@ -67,7 +67,7 @@ describe("TokenCache tests", () => {
 
             scopeString = new ScopeSet(TEST_CONFIG.DEFAULT_SCOPES).printScopes();
             testAccessToken = TEST_TOKENS.ACCESS_TOKEN,
-            accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testEnvironment, testAccessToken, configuration.auth.clientId, TEST_CONFIG.TENANT, scopeString, TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, cryptoObj);
+            accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testEnvironment, testAccessToken, configuration.auth.clientId, TEST_CONFIG.TENANT, scopeString, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, cryptoObj);
             accessTokenKey = accessTokenEntity.generateCredentialKey();
         });
 
@@ -253,10 +253,12 @@ describe("TokenCache tests", () => {
                 expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
             };
             const options: LoadTokenOptions = {
+                expiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP
             };
             tokenCache.loadExternalTokens(request, response, options); 
 
+            expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
         });
 
