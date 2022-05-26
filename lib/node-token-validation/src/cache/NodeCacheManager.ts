@@ -120,7 +120,7 @@ export class NodeCacheManager extends CacheManager {
      * @returns 
      */
     getKeys(): string[] {
-        this.logger.trace("Retrieving all cache keys");
+        this.logger.trace("NodeCacheManager - Retrieving all cache keys");
 
         // Read cache
         const cache = this.getCache();
@@ -189,6 +189,7 @@ export class NodeCacheManager extends CacheManager {
      * @returns 
      */
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
+        this.logger.trace("NodeCacheManager.getAuthorityMetadata called");
         const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(key) as AuthorityMetadataEntity;
         if (authorityMetadataEntity && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, authorityMetadataEntity)) {
             return authorityMetadataEntity;
@@ -201,6 +202,7 @@ export class NodeCacheManager extends CacheManager {
      * @returns
      */
     getAuthorityMetadataKeys(): string[] {
+        this.logger.trace("NodeCacheManager.getAuthorityMetadataKeys called");
         return this.getKeys().filter((key) => {
             return this.isAuthorityMetadata(key);
         });
@@ -212,6 +214,7 @@ export class NodeCacheManager extends CacheManager {
      * @param metadata Cache value to be set type AuthorityMetadataEntity
      */
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void {
+        this.logger.trace("NodeCacheManager.setAuthorityMetadata called");
         this.setItem(key, metadata);
     }
 

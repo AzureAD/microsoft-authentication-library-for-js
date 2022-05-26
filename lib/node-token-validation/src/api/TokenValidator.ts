@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationResult, AuthenticationScheme, INetworkModule, Logger } from "@azure/msal-common";
-import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
+import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWTPayload, JWTVerifyResult, errors } from "jose";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { buildTokenValidationParameters, TokenValidationParameters, BaseValidationParameters } from "../config/TokenValidationParameters";
@@ -17,6 +17,7 @@ import { name, version } from "../packageMetadata";
 import crypto from "crypto";
 import { NodeCacheManager } from "../cache/NodeCacheManager";
 import { CryptoProvider } from "../crypto/CryptoProvider";
+import { SigningMethod } from "../utils/Constants";
 
 /**
  * The TokenValidator class is the object exposed by the library to perform token validation.
@@ -41,6 +42,11 @@ export class TokenValidator {
     // Platform storage object
     protected storage: NodeCacheManager;
 
+    // Signing key acquisition method
+    private signingKeyAcquisitionMethod: string;
+
+    private retryCounter: number;
+
     /**
      * Constructor for the TokenValidator class
      * @param configuration Object for the TokenValidator instance
@@ -63,6 +69,8 @@ export class TokenValidator {
 
         // Initialize OpenId configuration provider
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.storage, this.logger);
+
+        this.retryCounter = 0;
     }
 
     /**
@@ -224,7 +232,7 @@ export class TokenValidator {
         };
 
         // Verifies using JOSE's jwtVerify function. Returns payload and header
-        const { payload, protectedHeader } = await jwtVerify(token, jwks, jwtVerifyParams);
+        const { payload, protectedHeader } = await this.verifyHelper(token, jwks, jwtVerifyParams, validationParams.issuerSigningJwksUri);
 
         // Validates additional claims not verified by jwtVerify
         this.validateClaims(payload, validationParams);
@@ -237,6 +245,66 @@ export class TokenValidator {
             tokenType: validationParams.validTypes[0]
         } as TokenValidationResponse;
     }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private async verifyHelper(token: string, jwks: any, jwtVerifyParams: JWTVerifyOptions, jwks_uri?: string): Promise<JWTVerifyResult> {
+        this.logger.trace("TokenValidator.verifyHelper called");
+
+        try {
+            // JWS signature and claims validation using JOSE
+            const verifyResult = await jwtVerify(token, jwks, jwtVerifyParams);
+            this.logger.verbose("JOSE verification successful");
+            return verifyResult;
+        } catch (e) {
+            // Signature validation failed with key store provided, no retry
+            if (this.signingKeyAcquisitionMethod === SigningMethod.KEYSTORE) {
+                throw ValidationConfigurationError.createInvalidSigningKeysProvided();
+            }
+
+            // Retry on network error or validation error, TODO: how to check network error?
+            if (e instanceof errors.JWSInvalid && this.signingKeyAcquisitionMethod === SigningMethod.URI) {
+                this.logger.verbose("Signature validation failed with signing key provided, retrying");
+                return await this.handleRetry(token, jwtVerifyParams, jwks_uri);
+            }
+
+            // Retry for well-known endpoint
+            if (e instanceof errors.JWSInvalid && this.signingKeyAcquisitionMethod === SigningMethod.DEFAULT) {
+                this.logger.verbose("Signature validation failed with well-known endpoint, getting metadata and retrying");
+                return await this.handleRetry(token, jwtVerifyParams);
+            }
+
+            throw e;
+        }
+    }
+
+    private async handleRetry(token: string, jwtVerifyParams: JWTVerifyOptions, jwks_uri?: string): Promise<JWTVerifyResult> {
+        if (this.retryCounter > 1) {
+            this.retryCounter = 0;
+            throw Error("Retry maxed out, unable to validate signature");
+        }
+
+        this.retryCounter++;
+        this.logger.verbose(`TokenValidator.handleRetry - retry attempt ${this.retryCounter}`);
+
+        const newKeyStore = await this.getRemoteJWKS(jwks_uri);
+        return await this.verifyHelper(token, newKeyStore, jwtVerifyParams, jwks_uri);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private async getRemoteJWKS(jwks_uri?: string): Promise<any> {
+        this.logger.trace("TokenValidator.getRemoteJWKS called");
+
+        if (jwks_uri) {
+            this.logger.verbose("TokenValidator - Creating JWKS from JwksUri");
+            this.signingKeyAcquisitionMethod = SigningMethod.URI;
+            return createRemoteJWKSet(new URL(jwks_uri)); 
+        }
+
+        const retrievedJwksUri: string = await this.openIdConfigProvider.fetchJwksUriFromEndpoint();
+        this.logger.verbose("TokenValidator - Creating JWKS from default");
+        this.signingKeyAcquisitionMethod = SigningMethod.DEFAULT;
+        return createRemoteJWKSet(new URL(retrievedJwksUri));
+    }
     
     /**
      * Function to return JWKS (JSON Web Key Set) from parameters provided, jwks_uri provided, or from well-known endpoint
@@ -244,26 +312,19 @@ export class TokenValidator {
      * @returns 
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async getJWKS(validationParams: BaseValidationParameters): Promise<any> {
+    private async getJWKS(validationParams: BaseValidationParameters): Promise<any> {
         this.logger.trace("TokenValidator.getJWKS called");
         
         // Prioritize keystore or jwksUri if provided
         if (validationParams.issuerSigningKeys) {
             this.logger.verbose("TokenValidator - issuerSigningKeys provided");
+            this.signingKeyAcquisitionMethod = SigningMethod.KEYSTORE;
             return createLocalJWKSet({
                 keys: validationParams.issuerSigningKeys
             });
         } 
-        
-        if (validationParams.issuerSigningJwksUri) {
-            this.logger.verbose("TokenValidator - Creating JWKS from JwksUri");
-            return createRemoteJWKSet(new URL(validationParams.issuerSigningJwksUri));
-        }
 
-        // Do resiliency well-known endpoint thing here
-        const retrievedJwksUri: string = await this.openIdConfigProvider.fetchJwksUriFromEndpoint();
-        this.logger.verbose("TokenValidator - Creating JWKS from default");
-        return createRemoteJWKSet(new URL(retrievedJwksUri));
+        return await this.getRemoteJWKS(validationParams.issuerSigningJwksUri);
     }
 
     /**

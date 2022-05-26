@@ -33,6 +33,10 @@ export const ValidationConfigurationErrorMessage = {
         code: "invalid_auth_scheme",
         desc: "Invalid authentication scheme. Only bearer is supported by the library at this time."
     },
+    invalidSigningKeysProvided: {
+        code: "invalid_keys",
+        desc: "Signing keys provided were invalid. Check keys passed in TokenValidationParameters and try again."
+    },
     negativeClockSkew: {
         code: "negative_clock_skew",
         desc: "Invalid clock skew value. Clock skew must be a positive integer."
@@ -72,6 +76,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
 
     static createInvalidAuthenticationScheme(appendError?: string): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code, `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`);
+    }
+
+    static createInvalidSigningKeysProvided(appendError?: string): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidSigningKeysProvided.code, `${ValidationConfigurationErrorMessage.invalidSigningKeysProvided.desc} Detail: ${appendError}`);
     }
 
     static createNegativeClockSkewError(): ValidationConfigurationError {

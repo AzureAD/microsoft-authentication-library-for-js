@@ -38,3 +38,9 @@ export const JwtConstants = {
 export const TokenType = {
     JWT: "JWT"
 };
+
+export const SigningMethod = {
+    KEYSTORE: "keystore",
+    URI: "uri",
+    DEFAULT: "default"
+};
