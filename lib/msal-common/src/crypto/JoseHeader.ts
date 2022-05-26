@@ -27,24 +27,28 @@ export class JoseHeader {
      * Builds SignedHttpRequest formatted JOSE Header from the
      * JOSE Header options provided or previously set on the object and returns
      * the stringified header object.
-     * Throws if keyId or algorithm aren't provided.
+     * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
      * @param shrHeaderOptions 
      * @returns 
      */
-    getShrHeaderString(shrHeaderOptions?: JoseHeaderOptions): string {
-        // SHR assertions must have type "JWT"
-        this.typ = JsonTypes.Jwt;
-
-        this.kid = shrHeaderOptions?.kid || this.kid;
-        if (!this.kid) {
+    static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string {
+        // KeyID is required on the SHR header
+        if (!shrHeaderOptions.kid) {
             throw JoseHeaderError.createMissingKidError();
         }
 
-        this.alg = shrHeaderOptions?.alg || this.alg;
-        if (!this.alg) {
+        // Alg is required on the SHR header
+        if (!shrHeaderOptions.alg) {
             throw JoseHeaderError.createMissingAlgError();
         }
 
-        return JSON.stringify(this);
+        const shrHeader = new JoseHeader({
+            // Access Token PoP headers must have type JWT, but the type header can be overriden for special cases
+            typ: shrHeaderOptions.typ || JsonTypes.Jwt,
+            kid: shrHeaderOptions.kid,
+            alg: shrHeaderOptions.alg
+        });
+
+        return JSON.stringify(shrHeader);
     }
 }

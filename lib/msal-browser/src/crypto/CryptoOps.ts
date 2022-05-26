@@ -203,8 +203,7 @@ export class CryptoOps implements ICrypto {
         const encodedKeyIdThumbprint = this.b64Encode.urlEncode(JSON.stringify({ kid: kid }));
 
         // Generate header
-        const joseHeader = new JoseHeader({ kid: encodedKeyIdThumbprint, alg: publicKeyJwk.alg });
-        const shrHeader = joseHeader.getShrHeaderString();
+        const shrHeader = JoseHeader.getShrHeaderString({ kid: encodedKeyIdThumbprint, alg: publicKeyJwk.alg });
         const encodedShrHeader = this.b64Encode.urlEncode(shrHeader);
 
         // Generate payload
