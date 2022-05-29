@@ -27,8 +27,8 @@ import { MsalRedirectComponent } from "./msal.redirect.component";
 export class MsalModule {
     static forRoot(
         msalInstance: IPublicClientApplication,
-        guardConfig: MsalGuardConfiguration,
-        interceptorConfig: MsalInterceptorConfiguration
+        guardConfig: MsalGuardConfiguration | null,
+        interceptorConfig: MsalInterceptorConfiguration | null
     ): ModuleWithProviders<MsalModule> {
         return {
             ngModule: MsalModule,
