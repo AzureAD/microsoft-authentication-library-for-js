@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Make guardConfig and interceptorConfig nullable",
+  "packageName": "@azure/msal-angular",
+  "email": "eman@onlythebible.com",
+  "dependentChangeType": "patch"
+}
