@@ -5,7 +5,7 @@
 
 import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { IPublicClientApplication } from "@azure/msal-browser";
+import { IPublicClientApplication, InteractionType } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
 import { MsalGuard } from "./msal.guard";
@@ -25,6 +25,7 @@ import { MsalRedirectComponent } from "./msal.redirect.component";
     ]
 })
 export class MsalModule {
+    private static _defaultInteractionType = InteractionType.Popup;
     static forRoot(
         msalInstance: IPublicClientApplication,
         guardConfig: MsalGuardConfiguration | null,
@@ -39,11 +40,11 @@ export class MsalModule {
                 },
                 {
                     provide: MSAL_GUARD_CONFIG,
-                    useValue: guardConfig
+                    useValue: guardConfig ?? { interactionType: MsalModule._defaultInteractionType }
                 },
                 {
                     provide: MSAL_INTERCEPTOR_CONFIG,
-                    useValue: interceptorConfig
+                    useValue: interceptorConfig ?? { interactionType: MsalModule._defaultInteractionType, protectedResourceMap: new Map() }
                 },
                 MsalService
             ]
