@@ -116,7 +116,7 @@ export abstract class CacheManager implements ICacheManager {
     abstract getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
 
     /**
-     * 
+     *
      */
     abstract getAuthorityMetadataKeys(): Array<string>;
 
@@ -186,7 +186,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
 
                 return accountInfo;
-                
+
             });
             return allAccounts;
         }
@@ -278,7 +278,8 @@ export abstract class CacheManager implements ICacheManager {
     private getAccountsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
-        realm?: string
+        realm?: string,
+        nativeAccountId?: string,
     ): AccountCache {
         const allCacheKeys = this.getKeys();
         const matchingAccounts: AccountCache = {};
@@ -299,6 +300,10 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (!!realm && !this.matchRealm(entity, realm)) {
+                return;
+            }
+
+            if (!!nativeAccountId && !this.matchNativeAccountId(entity, nativeAccountId)) {
                 return;
             }
 
@@ -363,7 +368,7 @@ export abstract class CacheManager implements ICacheManager {
             accessTokens: {},
             refreshTokens: {},
         };
-        
+
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
@@ -414,7 +419,7 @@ export abstract class CacheManager implements ICacheManager {
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
             }
-            
+
             // If request OR cached entity has requested Claims Hash, check if they match
             if (requestedClaimsHash || entity.requestedClaimsHash) {
                 // Don't match if either is undefined or they are different
@@ -537,7 +542,7 @@ export abstract class CacheManager implements ICacheManager {
             matchedEntity = entity;
 
         });
-        
+
         return matchedEntity;
     }
 
@@ -555,7 +560,7 @@ export abstract class CacheManager implements ICacheManager {
             }
             removedAccounts.push(this.removeAccount(cacheKey));
         });
-        
+
         await Promise.all(removedAccounts);
         return true;
     }
@@ -610,7 +615,7 @@ export abstract class CacheManager implements ICacheManager {
             if(credential.tokenType === AuthenticationScheme.POP) {
                 const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
                 const kid = accessTokenWithAuthSchemeEntity.keyId;
-    
+
                 if (kid) {
                     try {
                         await this.cryptoImpl.removeTokenBindingKey(kid);
@@ -733,9 +738,9 @@ export abstract class CacheManager implements ICacheManager {
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
-        
+
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
-        
+
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             return null;
@@ -875,6 +880,16 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * helper to match nativeAccountId
+     * @param entity
+     * @param nativeAccountId
+     * @returns boolean indicating the match result
+     */
+    private matchNativeAccountId(entity: AccountEntity, nativeAccountId: string): boolean {
+        return !!(entity.nativeAccountId && nativeAccountId === entity.nativeAccountId);
+    }
+
+    /**
      * Returns true if the target scopes are a subset of the current entity's scopes, false otherwise.
      * @param entity
      * @param target
@@ -899,8 +914,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns true if the credential's tokenType or Authentication Scheme matches the one in the request, false otherwise
-     * @param entity 
-     * @param tokenType 
+     * @param entity
+     * @param tokenType
      */
     private matchTokenType(entity: CredentialEntity, tokenType: AuthenticationScheme): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
@@ -908,8 +923,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns true if the credential's keyId matches the one in the request, false otherwise
-     * @param entity 
-     * @param tokenType 
+     * @param entity
+     * @param tokenType
      */
     private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
         return !!(entity.keyId && entity.keyId === keyId);
