@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, AccountInfo, BaseAuthRequest, IdToken } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -42,6 +42,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // start the perf measurement
         const nativeATMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
+        const reqTimestamp = TimeUtils.nowSeconds();
+
+        // Get the preferred_cache domain for the given authority
+        const authority = await this.getDiscoveredAuthority(request.authority);
+
+        // check if the tokens can be retrieved from internal cache
+        try {
+            return this.acquireTokensFromInternalCache(this.config.auth.clientId, request.account, request, reqTimestamp, authority);
+        } catch (e) {
+
+        }
+
         const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
@@ -49,7 +61,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             request: nativeRequest
         };
 
-        const reqTimestamp = TimeUtils.nowSeconds();
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
         const validatedResponse: NativeResponse = this.validateNativeResponse(response);
 
@@ -68,6 +79,48 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
                 throw error;
             });
+    }
+
+    /**
+     * 54
+     * @param account
+     */
+    protected acquireTokensFromInternalCache(clientId: string, request: PopupRequest | SilentRequest | SsoSilentRequest, reqTimestamp: number, authority: Authority): AuthenticationResult {
+        this.logger.trace("NativeInteractionClient - acquireTokensFromInternalCache called");
+
+        // fetch account from memory
+        const cachedAccount: AccountInfo = this.browserStorage.getAccountInfoByFilter(account.nativeAccountId);
+
+        // fetch tokens from memory
+        const idToken: IdTokenEntity = this.browserStorage.readIdTokenFromCache(clientId, account);
+        const accessToken: AccessTokenEntity = this.browserStorage.readAccessTokenFromCache(clientId, account, request);
+
+        const isAccessTokenExpired: boolean = TimeUtils.wasClockTurnedBack(accessToken.cachedAt) ||
+            TimeUtils.isTokenExpired(accessToken.expiresOn, this.config.system.tokenRenewalOffsetSeconds);
+        if (!accessToken || isAccessTokenExpired) {
+            throw NativeAuthError.createTokensNotFoundInCacheError();
+        }
+
+        // construct the authentication result
+        const idTokenObj = new IdToken(idToken.secret, this.browserCrypto);
+
+        // calculate the Authentication Result
+        return {
+            authority: authority.canonicalAuthority,
+            uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING,
+            tenantId: idTokenObj.claims.tid || Constants.EMPTY_STRING,
+            scopes: new ScopeSet(accessToken.target).asArray(),
+            account: account,
+            idToken: idToken.secret,
+            idTokenClaims: idTokenObj.claims,
+            accessToken: accessToken.secret,
+            fromCache: false,
+            expiresOn: new Date(reqTimestamp), // TBD
+            tokenType: accessToken.tokenType,
+            correlationId: this.correlationId,
+            state: "",
+            fromNativeBroker: true
+        };
     }
 
     /**
@@ -233,7 +286,35 @@ export class NativeInteractionClient extends BaseInteractionClient {
             fromNativeBroker: true
         };
 
-        // Remove any existing cached tokens for this account
+        // cache idToken internally
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            homeAccountIdentifier,
+            request.authority,
+            response.id_token || Constants.EMPTY_STRING,
+            request.clientId,
+            idTokenObj.claims.tid || Constants.EMPTY_STRING,
+        );
+        this.browserStorage.setIdTokenCredential(idTokenEntity, true);
+
+        // cache accessToken internally
+        const expiresIn: number =  (responseTokenType === AuthenticationScheme.POP)
+            ? (typeof response.expires_in === "string" ? parseInt(response.expires_in, 10) : response.expires_in) || 0
+            : Constants.SHR_NONCE_VALIDITY;
+        const tokenExpirationSeconds = reqTimestamp + expiresIn;
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            homeAccountIdentifier,
+            request.authority,
+            responseAccessToken,
+            request.clientId,
+            tid,
+            responseScopes.printScopes(),
+            tokenExpirationSeconds,
+            0,
+            this.browserCrypto
+        );
+        this.browserStorage.setAccessTokenCredential(accessTokenEntity, true);
+
+        // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
             this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
         });
