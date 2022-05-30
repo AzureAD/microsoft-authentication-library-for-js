@@ -328,7 +328,7 @@ Token lifetimes are 1 hour and the session lifetime is 24 hours. This means that
 
 Please see the documentation on [Tenancy in Azure Active Directory](https://docs.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps#who-can-sign-in-to-your-app)
 
-# Scopes & Resources - [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/ellymakuba-patch-1/lib/msal-angular/docs/v2-docs/msal-interceptor.md#protected-resource-map)
+# Scopes & Resources
 
 ## My application has multiple resources it needs to access to. How should I handle scopes for access tokens?
 
