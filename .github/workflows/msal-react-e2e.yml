@@ -15,6 +15,7 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-react-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
+      - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-react-e2e.yml'
 
