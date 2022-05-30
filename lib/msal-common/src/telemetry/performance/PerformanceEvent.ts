@@ -95,8 +95,15 @@ export enum PerformanceEvents {
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
 
+    /**
+     * Time spent on the network for refresh token acquisition
+     */
+    NetworkPerformance = "refreshTokenClientExecuteTokenRequest",
 
-    NetworkPerformance = "networkPerformance"
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders"
 }
 
 /**

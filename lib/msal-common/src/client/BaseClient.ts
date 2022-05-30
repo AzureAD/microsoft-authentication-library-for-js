@@ -18,6 +18,8 @@ import { version, name } from "../packageMetadata";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -47,7 +49,10 @@ export abstract class BaseClient {
     // Default authority object
     public authority: Authority;
 
-    protected constructor(configuration: ClientConfiguration) {
+    // Performance telemetry client
+    protected performanceClient?: IPerformanceClient;
+
+    protected constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
 
@@ -71,12 +76,16 @@ export abstract class BaseClient {
 
         // set Authority
         this.authority = this.config.authOptions.authority;
+
+        //set performance telemetry client
+        this.performanceClient = performanceClient;
     }
 
     /**
      * Creates default headers for requests to token endpoint
      */
-    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {
+    protected createTokenRequestHeaders(ccsCred?: CcsCredential,correlationId?: string): Record<string, string> {
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
@@ -95,6 +104,9 @@ export abstract class BaseClient {
                     break;
             }
         }
+        acquireTokenMeasurement?.endMeasurement({
+            success: true
+        })
         return headers;
     }
 

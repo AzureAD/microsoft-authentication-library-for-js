@@ -33,11 +33,9 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
  */
 export class RefreshTokenClient extends BaseClient {
 
-    protected performanceClient: IPerformanceClient;
 
-    constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient) {
-        super(configuration);
-        this.performanceClient = performanceClient;
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration,performanceClient);
     }
 
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
@@ -138,7 +136,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NetworkPerformance, request.correlationId);    
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.NetworkPerformance, request.correlationId);    
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -157,13 +155,13 @@ export class RefreshTokenClient extends BaseClient {
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
         .then((result) =>{
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement?.endMeasurement({
                 success: true
             })
             return result;
         })
         .catch((error) =>{
-            acquireTokenMeasurement.endMeasurement({
+            acquireTokenMeasurement?.endMeasurement({
                 success: false
             })
             return error;
