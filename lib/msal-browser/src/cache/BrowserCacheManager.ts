@@ -193,8 +193,10 @@ export class BrowserCacheManager extends CacheManager {
      * generates idToken entity from a string
      * @param idTokenKey
      */
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
-        const value = this.getItem(idTokenKey);
+    getIdTokenCredential(idTokenKey: string, storeCredentialsInMemory?: boolean): IdTokenEntity | null {
+        const value = storeCredentialsInMemory
+            ? this.internalStorage.getItem(idTokenKey)
+            : this.getItem(idTokenKey);
         if (!value) {
             this.logger.trace("BrowserCacheManager.getIdTokenCredential: called, no cache hit");
             return null;
@@ -214,18 +216,24 @@ export class BrowserCacheManager extends CacheManager {
      * set IdToken credential to the platform cache
      * @param idToken
      */
-    setIdTokenCredential(idToken: IdTokenEntity): void {
+    setIdTokenCredential(idToken: IdTokenEntity, storeCredentialsInMemory?: boolean): void {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = idToken.generateCredentialKey();
-        this.setItem(idTokenKey, JSON.stringify(idToken));
+        if (storeCredentialsInMemory) {
+            this.setItem(idTokenKey, JSON.stringify(idToken));
+        } else {
+            this.internalStorage.setItem(idTokenKey, JSON.stringify(idToken));
+        }
     }
 
     /**
      * generates accessToken entity from a string
      * @param key
      */
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
-        const value = this.getItem(accessTokenKey);
+    getAccessTokenCredential(accessTokenKey: string, storeCredentialsInMemory?: boolean): AccessTokenEntity | null {
+        const value = storeCredentialsInMemory
+            ? this.internalStorage.getItem(accessTokenKey)
+            : this.getItem(accessTokenKey);
         if (!value) {
             this.logger.trace("BrowserCacheManager.getAccessTokenCredential: called, no cache hit");
             return null;
@@ -244,10 +252,15 @@ export class BrowserCacheManager extends CacheManager {
      * set accessToken credential to the platform cache
      * @param accessToken
      */
-    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+    setAccessTokenCredential(accessToken: AccessTokenEntity, storeCredentialsInMemory?: boolean): void {
         this.logger.trace("BrowserCacheManager.setAccessTokenCredential called");
         const accessTokenKey = accessToken.generateCredentialKey();
-        this.setItem(accessTokenKey, JSON.stringify(accessToken));
+        if (storeCredentialsInMemory) {
+            this.internalStorage.setItem(accessTokenKey, JSON.stringify(accessToken));
+        }
+        else {
+            this.setItem(accessTokenKey, JSON.stringify(accessToken));
+        }
     }
 
     /**
@@ -370,8 +383,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Sets wrapper metadata in memory
-     * @param wrapperSKU 
-     * @param wrapperVersion 
+     * @param wrapperSKU
+     * @param wrapperVersion
      */
     setWrapperMetadata(wrapperSKU: string, wrapperVersion: string): void {
         this.internalStorage.setItem(InMemoryCacheKeys.WRAPPER_SKU, wrapperSKU);
@@ -410,7 +423,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Sets the active account's localAccountId in cache
-     * @param account 
+     * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
         const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
@@ -425,7 +438,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Gets a list of accounts that match all of the filters provided
-     * @param account 
+     * @param account
      */
     getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims"|"name">>): AccountInfo[] {
         const allAccounts = this.getAllAccounts();
@@ -449,15 +462,15 @@ export class BrowserCacheManager extends CacheManager {
             if (accountFilter.environment && accountFilter.environment !== accountObj.environment) {
                 return false;
             }
-            
+
             return true;
         });
     }
 
     /**
      * Checks the cache for accounts matching loginHint or SID
-     * @param loginHint 
-     * @param sid 
+     * @param loginHint
+     * @param sid
      */
     getAccountInfoByHints(loginHint?: string, sid?: string): AccountInfo | null {
         const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
@@ -596,6 +609,13 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Get all keys in internal memory
+     */
+    getInternalKeys(): string[] {
+        return this.internalStorage.getKeys();
+    }
+
+    /**
      * Clears all cache entries created by MSAL.
      */
     async clear(): Promise<void> {
@@ -630,7 +650,7 @@ export class BrowserCacheManager extends CacheManager {
         if (this.cacheConfig.secureCookies) {
             cookieStr += "Secure;";
         }
-        
+
         document.cookie = cookieStr;
     }
 
@@ -760,7 +780,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
         return this.generateCacheKey(`${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`);
-    } 
+    }
 
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
@@ -842,7 +862,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Removes temporary cache for the provided state
-     * @param stateString 
+     * @param stateString
      */
     cleanRequestByState(stateString: string): void {
         this.logger.trace("BrowserCacheManager.cleanRequestByState called");
@@ -859,7 +879,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Looks in temporary cache for any state values with the provided interactionType and removes all temporary cache items for that state
      * Used in scenarios where temp cache needs to be cleaned but state is not known, such as clicking browser back button.
-     * @param interactionType 
+     * @param interactionType
      */
     cleanRequestByInteractionType(interactionType: InteractionType): void {
         this.logger.trace("BrowserCacheManager.cleanRequestByInteractionType called");
@@ -869,7 +889,7 @@ export class BrowserCacheManager extends CacheManager {
             if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
                 return;
             }
-            
+
             // Retrieve state value, return if not a valid value
             const stateValue = this.temporaryCacheStorage.getItem(key);
             if (!stateValue) {
