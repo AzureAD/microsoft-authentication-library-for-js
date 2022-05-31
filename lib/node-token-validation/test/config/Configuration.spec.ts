@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Configuration, buildConfiguration, TokenValidationConfiguration } from "../../src/config/Configuration";
 import { HttpClient } from "../../src/network/HttpClient";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { LogLevel, NetworkRequestOptions } from "@azure/msal-common";
-import 'regenerator-runtime';
+import { LogLevel, NetworkRequestOptions, ProtocolMode } from "@azure/msal-common";
+import "regenerator-runtime";
 
 describe("Configuration", () => {
     it("builds configuration and assigns default functions", () => {
@@ -27,39 +32,41 @@ describe("Configuration", () => {
 
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Error,
-            'error',
+            "error",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Info,
-            'info',
+            "info",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Verbose,
-            'verbose',
+            "verbose",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Warning,
-            'warning',
+            "warning",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Warning,
-            'warning',
+            "warning",
             true
         );
 
         // auth options
         expect(config.auth.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+        expect(config.auth.knownAuthorities).toEqual([]);
+        expect(config.auth.protocolMode).toEqual(ProtocolMode.OIDC);
         expect(config.auth.clockSkew).toEqual(TEST_CONSTANTS.DEFAULT_CLOCK_SKEW);
 
     });
 
-    it('builds configuration and assigns default functions', () => {
+    it("builds configuration and assigns default functions", () => {
         const testNetworkResult = {
-            testParam: 'testValue',
+            testParam: "testValue",
         };
 
         const config: Configuration = {
@@ -104,7 +111,7 @@ describe("Configuration", () => {
 
         const testNetworkOptions: NetworkRequestOptions = {
             headers: {},
-            body: '',
+            body: "",
         };
 
         const builtConfig: TokenValidationConfiguration = buildConfiguration(config);
