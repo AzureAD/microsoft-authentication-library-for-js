@@ -12,7 +12,8 @@ import {
     Constants,
     AzureCloudInstance,
     AzureCloudOptions,
-    ApplicationTelemetry
+    ApplicationTelemetry,
+    ClientAssertionCredential
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -30,7 +31,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?:string;
+    clientAssertion?: ClientAssertionCredential;
     clientCertificate?: {
         thumbprint: string,
         privateKey: string,
@@ -90,7 +91,10 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: Constants.EMPTY_STRING,
     authority: Constants.DEFAULT_AUTHORITY,
     clientSecret: Constants.EMPTY_STRING,
-    clientAssertion: Constants.EMPTY_STRING,
+    clientAssertion: {
+        assertion: Constants.EMPTY_STRING,
+        assertionType: Constants.EMPTY_STRING
+    },
     clientCertificate: {
         thumbprint: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,
