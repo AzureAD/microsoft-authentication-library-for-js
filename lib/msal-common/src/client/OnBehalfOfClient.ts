@@ -48,28 +48,23 @@ export class OnBehalfOfClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority, this.userAssertionHash);
         }
 
-        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request);
-        if (cachedAuthenticationResult) {
-            return cachedAuthenticationResult;
-        } else {
+        try {
+            return await this.getCachedAuthenticationResult(request);
+        } catch (e) {
+            // Any failure falls back to interactive request, once we implement distributed cache, we plan to handle `createRefreshRequiredError` to refresh using the RT
             return await this.executeTokenRequest(request, this.authority, this.userAssertionHash);
         }
     }
 
     /**
      * look up cache for tokens
+     * Find idtoken in the cache
+     * Find accessToken based on user assertion and account info in the cache
+     * Please note we are not yet supported OBO tokens refreshed with long lived RT. User will have to send a new assertion if the current access token expires
+     * This is to prevent security issues when the assertion changes over time, however, longlived RT helps retaining the session
      * @param request
      */
     private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
-
-        /**
-         * Find idtoken in the cache - what happens if this does not match??
-         * Find accessToken based on user assertion and account info in the cache
-         *   -- If found, return it
-         *   - If found and expired, match refresh token with user assertion, return the access token an d
-         *   - If refresh token is found, make a silent call to fetch new tokens with a network call with refreshToken request type
-         *   - If refresh token is expired, make a new network call with OBO request type
-         */
 
         // look in the cache for the access_token which matches the incoming_assertion
         const cachedAccessToken = this.readAccessTokenFromCacheForOBO(this.config.authOptions.clientId, request);
