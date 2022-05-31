@@ -4,7 +4,8 @@
  */
 
 import { AuthenticationScheme } from "../utils/Constants";
-import { AzureCloudOptions, ClientAssertion } from "../config/ClientConfiguration";
+import { AzureCloudOptions } from "../config/ClientConfiguration";
+import { ClientAssertionCredential } from "../account/ClientCredentials";
 
 /**
  * BaseAuthRequest
@@ -37,5 +38,5 @@ export type BaseAuthRequest = {
     sshKid?: string,
     azureCloudOptions?: AzureCloudOptions;
     requestedClaimsHash?: string;
-    clientAssertion?: ClientAssertion;
+    clientAssertion?: ClientAssertionCredential;
 };
