@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError, ICrypto, PkceCodes } from "@azure/msal-common";
+
 export const TEST_CONSTANTS = {
     CLIENT_ID: "b41a6fbb-c728-4e03-aa59-d25b0fd383b6",
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
@@ -19,19 +21,19 @@ export const TEST_CONSTANTS = {
     NONCE: "123523",
     ISSUER_SIGNING_KEYS: [
         {
-          kty: 'RSA',
-          e: 'AQAB',
-          n: '12oBZRhCiZFJLcPg59LkZZ9mdhSMTKAQZYq32k_ti5SBB6jerkh-WzOMAO664r_qyLkqHUSp3u5SbXtseZEpN3XPWGKSxjsy-1JyEFTdLSYe6f9gfrmxkUF_7DTpq0gn6rntP05g2-wFW50YO7mosfdslfrTJYWHFhJALabAeYirYD7-9kqq9ebfFMF4sRRELbv9oi36As6Q9B3Qb5_C1rAzqfao_PCsf9EPsTZsVVVkA5qoIAr47lo1ipfiBPxUCCNSdvkmDTYgvvRm6ZoMjFbvOtgyts55fXKdMWv7I9HMD5HwE9uW839PWA514qhbcIsXEYSFMPMV6fnlsiZvQQ',
-          alg: 'PS256'
+            kty: "RSA",
+            e: "AQAB",
+            n: "12oBZRhCiZFJLcPg59LkZZ9mdhSMTKAQZYq32k_ti5SBB6jerkh-WzOMAO664r_qyLkqHUSp3u5SbXtseZEpN3XPWGKSxjsy-1JyEFTdLSYe6f9gfrmxkUF_7DTpq0gn6rntP05g2-wFW50YO7mosfdslfrTJYWHFhJALabAeYirYD7-9kqq9ebfFMF4sRRELbv9oi36As6Q9B3Qb5_C1rAzqfao_PCsf9EPsTZsVVVkA5qoIAr47lo1ipfiBPxUCCNSdvkmDTYgvvRm6ZoMjFbvOtgyts55fXKdMWv7I9HMD5HwE9uW839PWA514qhbcIsXEYSFMPMV6fnlsiZvQQ",
+            alg: "PS256"
         },
         {
-          crv: 'P-256',
-          kty: 'EC',
-          x: 'ySK38C1jBdLwDsNWKzzBHqKYEE5Cgv-qjWvorUXk9fw',
-          y: '_LeQBw07cf5t57Iavn4j-BqJsAD1dpoz8gokd3sBsOo',
-          alg: 'ES256'
+            crv: "P-256",
+            kty: "EC",
+            x: "ySK38C1jBdLwDsNWKzzBHqKYEE5Cgv-qjWvorUXk9fw",
+            y: "_LeQBw07cf5t57Iavn4j-BqJsAD1dpoz8gokd3sBsOo",
+            alg: "ES256"
         }
-      ]
+    ]
 };
 
 export const TEST_HASH_CONSTANTS = {
@@ -41,4 +43,43 @@ export const TEST_HASH_CONSTANTS = {
     ACCESS_TOKEN_FOR_AT_HASH: "ThisIsAnAccessT0ken",
     INVALID_ACCESS_TOKEN_FOR_AT_HASH: "ThisIsNotAnAccessToken",
     AT_HASH: "C3UQODVYE3EWwqgApo3SYA"
+};
+
+export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
+    createNewGuid: (): string => {
+        const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Decode: (): string => {
+        const notImplErr = "Crypto interface - base64Decode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Encode: (): string => {
+        const notImplErr = "Crypto interface - base64Encode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async generatePkceCodes(): Promise<PkceCodes> {
+        const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getPublicKeyThumbprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async removeTokenBindingKey(): Promise<boolean> {
+        const notImplErr = "Crypto interface - removeTokenBindingKey() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async clearKeystore(): Promise<boolean> {
+        const notImplErr = "Crypto interface - clearKeystore() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signJwt(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async hashString(): Promise<string> {
+        const notImplErr = "Crypto interface - hashString() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
 };

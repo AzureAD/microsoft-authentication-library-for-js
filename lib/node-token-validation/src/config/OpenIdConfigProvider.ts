@@ -38,8 +38,6 @@ export class OpenIdConfigProvider {
 
         const authority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkInterface, this.storage, authorityOptions);
 
-        authority.resolveEndpointsAsync();
-
         if (!authority.jwksUri) {
             throw ValidationConfigurationError.createInvalidMetadataError();
         }
