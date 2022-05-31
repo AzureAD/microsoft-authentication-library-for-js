@@ -10,7 +10,8 @@
     "test": "playwright test",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
     "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "install:local": "npm install ../../../lib/msal-node",
+    "postinstall": "npx playwright install --with-deps chromium"
   },
   "keywords": [
     "msal-node",
