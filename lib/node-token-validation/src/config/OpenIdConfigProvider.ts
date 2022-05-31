@@ -31,7 +31,7 @@ export class OpenIdConfigProvider {
 
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
-            knownAuthorities: [],
+            knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: Constants.EMPTY_STRING,
             authorityMetadata: Constants.EMPTY_STRING
         };
