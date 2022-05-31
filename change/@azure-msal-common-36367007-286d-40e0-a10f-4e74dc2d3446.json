@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Fix ClientAssertion configuration typing between common and node #4846",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
