@@ -256,7 +256,8 @@ If you set `passReqToCallback` option to true, you can use one of the following 
 
   ```javascript
 
-    jweKeyStore: [ 
+    jweKeyStore: [
+      //[SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="Fake credentials in sample docs")] 
       { 'kid': 'sym_key_256', 'kty': 'oct', 'k': 'WIVds2iwJPwNhgUgwZXmn/46Ql1EkiL+M+QqDRdQURE=' }, 
       { 'kid': 'sym_key_128', 'kty': 'oct', 'k': 'GawgguFyGrWKav7AX4VKUg'}, 
       { 'kid': 'sym_key_384', 'kty': 'oct', 'k': 'AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8gISIjJCUmJygpKissLS4v'},
