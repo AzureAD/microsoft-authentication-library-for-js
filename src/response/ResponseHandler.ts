@@ -111,7 +111,7 @@ export class ResponseHandler {
         reqTimestamp: number,
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
-        oboAssertion?: string,
+        userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)

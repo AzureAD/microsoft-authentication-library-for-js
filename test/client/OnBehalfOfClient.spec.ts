@@ -104,7 +104,7 @@ describe("OnBehalfOf unit tests", () => {
             done();
             return AUTHENTICATION_RESULT_DEFAULT_SCOPES;
         });
-        
+
         const client = new OnBehalfOfClient(config);
         const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -168,7 +168,7 @@ describe("OnBehalfOf unit tests", () => {
 
         // mock id token
         const expectedIdTokenEntity: IdTokenEntity = IdTokenEntity.createIdTokenEntity(
-            "", "login.windows.net", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_TOKENS.ACCESS_TOKEN
+            "", "login.windows.net", TEST_TOKENS.IDTOKEN_V2, config.authOptions.clientId, TEST_CONFIG.TENANT
         );
         sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCache").returns(expectedIdTokenEntity);
 

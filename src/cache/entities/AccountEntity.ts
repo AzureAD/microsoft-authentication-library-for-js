@@ -141,7 +141,6 @@ export class AccountEntity {
         homeAccountId: string,
         idToken: AuthToken,
         authority?: Authority,
-        oboAssertion?: string,
         cloudGraphHostName?: string,
         msGraphHost?: string,
         environment?: string,
@@ -163,7 +162,6 @@ export class AccountEntity {
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm = idToken?.claims?.tid || Constants.EMPTY_STRING;
-        account.oboAssertion = oboAssertion;
 
         if (idToken) {
             account.idTokenClaims = idToken.claims;
