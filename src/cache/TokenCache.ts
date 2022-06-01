@@ -98,8 +98,8 @@ export class TokenCache implements ITokenCache {
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(homeAccountId, environment, idToken, this.config.auth.clientId, tenantId);
         const idAuthToken = new AuthToken(idToken, this.cryptoObj);
         const accountEntity = options.clientInfo ?
-            AccountEntity.createAccount(options.clientInfo, homeAccountId, idAuthToken, undefined, undefined, undefined, undefined, environment) :
-            AccountEntity.createGenericAccount(homeAccountId, idAuthToken, undefined, undefined, undefined, undefined, environment);
+            AccountEntity.createAccount(options.clientInfo, homeAccountId, idAuthToken, undefined, undefined, undefined, environment) :
+            AccountEntity.createGenericAccount(homeAccountId, idAuthToken, undefined, undefined, undefined, environment);
 
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading id token");
