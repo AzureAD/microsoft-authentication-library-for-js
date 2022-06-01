@@ -822,7 +822,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param value
      * @param oboAssertion
      */
-    private matchUserAssertionHash(entity: AccountEntity | CredentialEntity, userAssertionHash: string): boolean {
+    private matchUserAssertionHash(entity: CredentialEntity, userAssertionHash: string): boolean {
         return !!(entity.userAssertionHash && userAssertionHash === entity.userAssertionHash);
     }
 
