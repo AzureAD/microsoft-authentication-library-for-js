@@ -4,7 +4,7 @@
  */
 
 import { CommonEndSessionRequest } from "@azure/msal-common";
-import { PopupWindowAttributes } from "../utils/PopupUtils";
+import { PopupWindowAttributes } from "./PopupWindowAttributes";
 
 /**
  * EndSessionPopupRequest

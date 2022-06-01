@@ -13,7 +13,6 @@ import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
-import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EventMessage } from "../../src/event/EventMessage";
 import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
@@ -2843,9 +2842,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve(true);
                 });
                 const popupWindow = {...window};
-                sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
-                sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
-                sinon.stub(PopupUtils.prototype, "cleanPopup");
+                sinon.stub(PopupClient.prototype, "openPopup").returns(popupWindow);
+                sinon.stub(PopupClient.prototype, "openSizedPopup").returns(popupWindow);
+                sinon.stub(PopupClient.prototype, "cleanPopup");
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
