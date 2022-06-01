@@ -29,35 +29,37 @@
     <br>
     <div class="row" style="margin:auto" >
     <div id="card-div" class="col-md-3" style="display:none">
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
-        <div id="profile-div"></div>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="readMail" onclick="readMail()">Read Mails</button>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="popToken" onclick="fetchPopToken()">Acquire PoP Token</button>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="popRequest" onclick="popRequest()">Use PoP Token</button>
-      </div>
-    </div>
-    </div>
-    <br>
-    <br>
-      <div class="col-md-4">
-        <div class="list-group" id="list-tab" role="tablist">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
+          <div id="profile-div"></div>
+          <br>
+          <br>
+          <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
+          <br>
+          <br>
+          <button class="btn btn-primary" id="popToken" onclick="fetchPopToken()">Acquire PoP Token</button>
+          <br>
+          <br>
+          <button class="btn btn-primary" id="popRequest" onclick="popRequest()">Use PoP Token</button>
         </div>
       </div>
-      <div class="col-md-5">
-        <div class="tab-content" id="nav-tabContent">
+    </div>
+    <div id="pop-card-div" class="col-md-9" style="display: none">
+      <div class="card">
+        <div class="card-body">
+        <h5 class="card-title text-center">Signed HTTP Request:</h5>
+        <div class="tab-content right" id="jwtWindow">
+          <strong>Header</strong>
+          <pre id="jwtHeaderView" style="white-space: pre-wrap;">
+          </pre>
+          <strong>Body</strong>
+          <pre id="jwtBodyView" style="white-space: pre-wrap;">
+          </pre>
         </div>
       </div>
+      </div>
+    </div>
     </div>
     <br>
     <br>
