@@ -31,6 +31,8 @@ import {
     AuthorizationCodePayload,
     StringUtils,
     Constants,
+    IPerformanceClient,
+    PerformanceEvents
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -44,6 +46,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { NodePerformanceClient } from "../telemetry/NodePerformanceClient";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -75,6 +78,8 @@ export abstract class ClientApplication {
      */
     protected clientSecret: string;
 
+    protected performanceClient: IPerformanceClient;
+
     /**
      * Constructor for the ClientApplication
      */
@@ -88,6 +93,7 @@ export abstract class ClientApplication {
             this.logger,
             this.config.cache.cachePlugin
         );
+        this.performanceClient = new NodePerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
     }
 
     /**
@@ -207,6 +213,7 @@ export abstract class ClientApplication {
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
+        const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, request.correlationId);
         const validRequest: CommonSilentFlowRequest = {
             ...request,
             ... await this.initializeBaseRequest(request),
@@ -226,12 +233,18 @@ export abstract class ClientApplication {
                 silentFlowClientConfig
             );
             this.logger.verbose("Silent flow client created", validRequest.correlationId);
+            atsMeasurement.endMeasurement({
+                success: true
+            });
             return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
             serverTelemetryManager.cacheFailedRequest(e);
+            atsMeasurement.endMeasurement({
+                success: false
+            });
             throw e;
         }
     }
