@@ -81,7 +81,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         // fetch the idToken from cache
-        const cachedIdToken = this.readIdTokenFromCache(request, cachedAccessToken.homeAccountId);
+        const cachedIdToken = this.readIdTokenFromCacheForOBO(request, cachedAccessToken.homeAccountId);
         let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
@@ -119,10 +119,11 @@ export class OnBehalfOfClient extends BaseClient {
     }
 
     /**
-     * read idtoken from cache
+     * read idtoken from cache, this is a specific implementation for OBO as the requirements differ from a generic lookup in the cacheManager
+     * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
      * @param request
      */
-    private readIdTokenFromCache(request: CommonOnBehalfOfRequest, atHomeAccountId: string): IdTokenEntity | null {
+    private readIdTokenFromCacheForOBO(request: CommonOnBehalfOfRequest, atHomeAccountId: string): IdTokenEntity | null {
 
         const idTokenFilter: CredentialFilter = {
             homeAccountId: atHomeAccountId,
