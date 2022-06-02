@@ -94,7 +94,7 @@ const config = {
 const cca = new msal.ConfidentialClientApplication(config);
 ```
 
-Both `thumbprint` and `privateKey` are expected to be strings. `privateKey` is further expected to be in the following form:
+Both `thumbprint` and `privateKey` are expected to be strings. `privateKey` is further expected to be in the following form (pkcs #8):
 
 ```text
 -----BEGIN ENCRYPTED PRIVATE KEY-----
