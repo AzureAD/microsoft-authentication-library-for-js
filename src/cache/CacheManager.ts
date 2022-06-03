@@ -711,7 +711,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param scopes
      * @param authScheme
      */
-    readAccessTokenFromCache(clientId: string, account: AccountInfo, request: BaseAuthRequest, hash?: string): AccessTokenEntity | null {
+    readAccessTokenFromCache(clientId: string, account: AccountInfo, request: BaseAuthRequest): AccessTokenEntity | null {
         const scopes =  new ScopeSet(request.scopes || []);
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         /*
@@ -730,7 +730,6 @@ export abstract class CacheManager implements ICacheManager {
             tokenType: authScheme,
             keyId: request.sshKid,
             requestedClaimsHash: request.requestedClaimsHash,
-            userAssertionHash: hash
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
@@ -753,7 +752,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      * @param familyRT
      */
-    readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean, hash?: string): RefreshTokenEntity | null {
+    readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean): RefreshTokenEntity | null {
         const id = familyRT ? THE_FAMILY_ID : undefined;
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
@@ -761,7 +760,6 @@ export abstract class CacheManager implements ICacheManager {
             credentialType: CredentialType.REFRESH_TOKEN,
             clientId: clientId,
             familyId: id,
-            userAssertionHash: hash
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
