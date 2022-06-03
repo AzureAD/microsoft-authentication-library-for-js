@@ -203,6 +203,13 @@ export type PerformanceEvent = {
     success?: boolean | null,
 
     /**
+     * Add specific error code in case of failure
+     *
+     * @type {string}
+     */
+    errorCode?: string,
+
+    /**
      * Name of the library used for the operation.
      *
      * @type {string}
