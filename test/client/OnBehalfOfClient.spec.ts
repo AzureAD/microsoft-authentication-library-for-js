@@ -10,7 +10,6 @@ import {
     TEST_URIS,
     ID_TOKEN_CLAIMS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    AUTHENTICATION_RESULT,
     TEST_TOKENS
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
@@ -39,26 +38,25 @@ testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
 
-
 const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testAccessTokenEntity.environment = testAccountEntity.environment;
-testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
-testAccessTokenEntity.secret = AUTHENTICATION_RESULT.body.access_token;
+testAccessTokenEntity.homeAccountId = `home_account_id`;
+testAccessTokenEntity.clientId = 'client_id';
+testAccessTokenEntity.environment = 'env';
+testAccessTokenEntity.realm = 'this_is_tid';
+testAccessTokenEntity.secret = 'access_token'
 testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ") + " " + TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
 testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
 testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
 testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
+testAccessTokenEntity.userAssertionHash = "user_assertion_hash";
 
-testAccessTokenEntity.userAssertionHash = "9d877133a898932f050e66fdd36f61718f28a602417e5cb649fa388fd2c33e51";
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
-testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-testIdToken.environment = testAccountEntity.environment;
-testIdToken.realm = ID_TOKEN_CLAIMS.tid;
-testIdToken.secret = AUTHENTICATION_RESULT.body.id_token;
+testIdToken.homeAccountId = `home_account_id`;
+testIdToken.clientId = 'client_id_for_id_token';
+testIdToken.environment = 'env_id_token';
+testIdToken.realm = 'this_is_tid_id_token';
+testIdToken.secret = 'id_token';
 testIdToken.credentialType = CredentialType.ID_TOKEN;
 
 
@@ -115,7 +113,6 @@ describe("OnBehalfOf unit tests", () => {
 
     });
 
-
     describe("Constructor", () => {
 
         it("creates a OnBehalfOf", async () => {
@@ -127,7 +124,7 @@ describe("OnBehalfOf unit tests", () => {
     });
 
 
-    describe("BaseClient.ts Class Unit Tests", () => {
+    describe("OnBehalfOfClient.ts Class Unit Tests", () => {
 
         afterEach(() => {
             sinon.restore();
@@ -143,15 +140,13 @@ describe("OnBehalfOf unit tests", () => {
                 skipCache: false
             };
 
-            const mockIdTokenCached = sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCache").returns(testIdToken);
+            const mockIdTokenCached = sinon.stub(OnBehalfOfClient.prototype, <any>"readIdTokenFromCacheForOBO").returns(testIdToken);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new OnBehalfOfClient(config);
             const idToken: AuthToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface!);
             const expectedAccountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "123-test-uid.456-test-uid", idToken, config.authOptions.authority);
 
             sinon.stub(CacheManager.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
-
-
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
 
@@ -163,24 +158,13 @@ describe("OnBehalfOf unit tests", () => {
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
             expect(mockIdTokenCached.calledWith(oboRequest)).toBe(true);
-
-
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
-            expect(authResult.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
-            expect(authResult.state).toHaveLength(0);
             expect(authResult.fromCache).toBe(true);
-            expect(authResult.uniqueId).toBe(idToken.claims.oid);
-            expect(authResult.tenantId).toBe(idToken.claims.tid);
             expect(authResult.account!.homeAccountId).toBe(expectedAccountEntity.homeAccountId);
             expect(authResult.account!.environment).toBe(expectedAccountEntity.environment);
-            expect(authResult.account!.tenantId).toBe(expectedAccountEntity.realm);
-
-
-
-
-
+            expect(authResult.account!.tenantId).toBe(expectedAccountEntity.realm);     
         });
-
     });
 });
