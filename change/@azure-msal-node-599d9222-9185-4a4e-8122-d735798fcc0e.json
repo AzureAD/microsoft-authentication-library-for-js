@@ -1,6 +1,6 @@
 {
-  "type": "none",
-  "comment": "Modified test for OBO Client",
+  "type": "patch",
+  "comment": "Add strict assertion checks for OBO clients",
   "packageName": "@azure/msal-node",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "none"
