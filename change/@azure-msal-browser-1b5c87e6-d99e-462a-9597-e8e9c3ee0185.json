@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Modified test for OBO Client",
+  "packageName": "@azure/msal-browser",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "none"
+}
