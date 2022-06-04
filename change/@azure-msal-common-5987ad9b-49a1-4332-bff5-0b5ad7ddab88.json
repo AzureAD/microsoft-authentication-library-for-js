@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "support caching rt flow response in migration scenarios",
+  "packageName": "@azure/msal-common",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "patch"
+}
