@@ -420,7 +420,7 @@ export abstract class ClientApplication {
             azureRegionConfiguration
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
     }
 
     /**
