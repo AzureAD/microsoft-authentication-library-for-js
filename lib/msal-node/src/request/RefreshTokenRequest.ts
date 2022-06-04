@@ -18,4 +18,5 @@ import { CommonRefreshTokenRequest } from "@azure/msal-common";
 export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes"|"refreshToken"|"authenticationScheme"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
     scopes: Array<string>;
     refreshToken: string;
+    forceCache?: boolean;
 };

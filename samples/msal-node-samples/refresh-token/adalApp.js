@@ -80,11 +80,11 @@ app.get('/redirect', function (req, res) {
         clientId,
         clientSecret,
         function (err, response) {
-            if (err) console.log(err);
+            if (err) throw err;
 
             // cache the response
             authenticationContext.cache.add([response], (err, result) => {
-                if (err) console.log(err);
+                if (err) throw err;
 
                 console.log(result);
             });

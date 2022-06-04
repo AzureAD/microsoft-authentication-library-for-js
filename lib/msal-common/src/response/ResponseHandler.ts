@@ -112,13 +112,14 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
         oboAssertion?: string,
-        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
+        handlingRefreshTokenResponse?: boolean,
+        forceCacheRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-            
+
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -150,9 +151,10 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
              */
-            if (handlingRefreshTokenResponse && cacheRecord.account) {
+            if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
@@ -241,7 +243,7 @@ export class ResponseHandler {
                 request.requestedClaimsHash
             );
         }
-        
+
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
@@ -302,10 +304,10 @@ export class ResponseHandler {
      * @param stateString
      */
     static async generateAuthenticationResult(
-        cryptoObj: ICrypto, 
+        cryptoObj: ICrypto,
         authority: Authority,
-        cacheRecord: CacheRecord, 
-        fromTokenCache: boolean, 
+        cacheRecord: CacheRecord,
+        fromTokenCache: boolean,
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,

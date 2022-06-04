@@ -83,7 +83,8 @@ app.get('/', async (req, res, next) => {
 
                         const tokenResponse = await cca.acquireTokenByRefreshToken({
                             refreshToken: data[0].refreshToken,
-                            scopes: ['user.read']
+                            scopes: ['user.read'],
+                            forceCache: true,
                         });
 
                         req.session.account = tokenResponse.account;
