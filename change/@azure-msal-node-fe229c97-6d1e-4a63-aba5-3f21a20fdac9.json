@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "add forceCache property to rt token request",
+  "comment": "add forceCache property to rt token request (#4844)",
   "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
+  "email": "v-derisen@microsoft.com",
   "dependentChangeType": "patch"
 }
