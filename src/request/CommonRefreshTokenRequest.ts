@@ -21,4 +21,5 @@ export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     tokenQueryParameters?: StringDict;
     ccsCredential?: CcsCredential;
+    forceCache?: boolean;
 };
