@@ -278,3 +278,4 @@ samples/**/dist/
 lib/msal-node/temp
 ref/
 .server.pid
+*.pem

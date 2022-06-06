@@ -11,7 +11,7 @@ import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
-import { AuthorizationCodeRequest } from "../../src";
+import { ApiId, AuthorizationCodeRequest } from "../../src";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
@@ -23,7 +23,7 @@ describe("SilentAuthCodeClient", () => {
             }
         });
         // @ts-ignore
-        silentAuthCodeClient = new SilentAuthCodeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+        silentAuthCodeClient = new SilentAuthCodeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient);
     });
 
     afterEach(() => {

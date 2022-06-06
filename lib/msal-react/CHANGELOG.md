@@ -1,8 +1,30 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 07 Mar 2022 23:28:43 GMT and should not be manually modified.
+This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Add support for acquiring tokens from the native broker #4531 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.24.0
+
+### Patches
+
+- Ensure MsalProvider doesnt rerender if inProgress or accounts do not change #4713 (janutter@microsoft.com)
+
+## 1.3.2
+
+Mon, 04 Apr 2022 21:12:41 GMT
+
+### Patches
+
+- Use React 17 for dev deps #4570 (janutter@microsoft.com)
+- Bump @azure/msal-browser to v2.23.0
 
 ## 1.3.1
 

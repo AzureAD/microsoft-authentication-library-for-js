@@ -11,6 +11,11 @@
 1. [interaction_in_progress](#interaction_in_progress)
 1. [block_iframe_reload](#block_iframe_reload)
 1. [monitor_window_timeout](#monitor_window_timeout)
+1. [hash_empty_error](#hash_empty_error)
+1. [hash_does_not_contain_known_properties](#hash_does_not_contain_known_properties)
+1. [unable_to_acquire_token_from_native_platform](#unable_to_acquire_token_from_native_platform)
+1. [native_connection_not_established](#native_connection_not_established)
+1. [native_broker_called_before_initialize](#native_broker_called_before_initialize)
 
 **[Other](#other)**
 
@@ -156,6 +161,8 @@ This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquir
 1. You are being throttled by your identity provider
 1. Your identity provider did not redirect back to your `redirectUri`.
 
+**Important**: If your application uses a router library (e.g. React Router, Angular Router), please make sure it does not strip the hash or auto-redirect while MSAL token acquisition is in progress. If possible, it is best if your `redirectUri` page does not invoke the router at all.
+
 #### Issues caused by the redirectUri page
 
 When you make a silent call, in some cases, an iframe will be opened and will navigate to your identity provider's authorization page. After the identity provider has authorized the user it will redirect the iframe back to the `redirectUri` with the authorization code or error information in the hash fragment. The MSAL instance running in the frame or window that originally made the request will extract this response hash and process it. If your `redirectUri` is removing or manipulating this hash or navigating to a different page before MSAL has extracted it you will receive this timeout error.
@@ -219,6 +226,85 @@ const msalConfig = {
         loadFrameTimeout: 9000 // Applies to both silent and popup calls - In milliseconds
     }
 };
+```
+
+### hash_empty_error
+
+**Error Messages**:
+
+> Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash.
+
+This error occurs when the page you use as your redirectUri is removing the hash, or auto-redirecting to another page. This most commonly happens when the application implements a router which navigates to another route, dropping the hash.
+
+To resolve this error we recommend using a dedicated redirectUri page which is not subject to the router. For silent and popup calls it's best to use a blank page. If this is not possible please make sure the router does not navigate while MSAL token acquisition is in progress. You can do this by detecting if your application is loaded in an iframe for silent calls, in a popup for popup calls or by awaiting `handleRedirectPromise` for redirect calls.
+
+### hash_does_not_contain_known_properties
+
+**Error Messages**:
+
+> Hash does not contain known properites. Please verify that your redirectUri is not changing the hash.
+
+Please see explanation for [hash_empty_error](#hash_empty_error) above. The root cause for this error is similar, the difference being the hash has been changed, rather than dropped.
+
+
+### unable_to_acquire_token_from_native_platform
+
+**Error Messages**:
+
+- Unable to acquire token from native platform.
+
+This error is thrown when calling the `acquireTokenByCode` API with the `nativeAccountId` instead of `code` and the app is running in an environment which does not acquire tokens from the native broker. For a list of pre-requisites please review the doc on [device bound tokens](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/device-bound-tokens.md).
+
+### native_connection_not_established
+
+**Error Messages**:
+
+- Connection to native platform has not been established. Please install a compatible browser extension and run initialize().
+
+This error is thrown when the user signed in with the native broker but no connection to the native broker currently exists. This can happen for the following reasons:
+
+- The Windows Accounts extension was uninstalled or disabled
+- The `initialize` API has not been called or was not awaited before invoking another MSAL API
+
+### native_broker_called_before_initialize
+
+**Error Messages**:
+
+- You must call and await the initialize function before attempting to call any other MSAL API when native brokering is enabled.
+
+This error is thrown when the `allowNativeBroker` flag is set to `true` in the `PublicClientApplication` config and a `login`, `acquireToken` or `handleRedirectPromise` API is invoked before the `initialize` API has been called. The `initialize` API must be called and awaited before attempting to acquire tokens.
+
+❌ The following example will throw this error because `handleRedirectPromise` is called before initialize has completed:
+
+```javascript
+const msalInstance = new PublicClientApplication({
+    auth: {
+        clientId: "your-client-id"
+    },
+    system: {
+        allowNativeBroker: true
+    }
+});
+
+await msalInstance.handleRedirectPromise(); // This will throw
+msalInstance.acquireTokenSilent(); // This will also throw
+```
+
+✔️ To resolve, you should wait for `initialize` to resolve before calling any other MSAL API:
+
+```javascript
+const msalInstance = new PublicClientApplication({
+    auth: {
+        clientId: "your-client-id"
+    },
+    system: {
+        allowNativeBroker: true
+    }
+});
+
+await msalInstance.initialize();
+await msalInstance.handleRedirectPromise(); // This will no longer throw this error since initialize completed before this was invoked
+msalInstance.acquireTokenSilent(); // This will also no longer throw this error
 ```
 
 ## Other

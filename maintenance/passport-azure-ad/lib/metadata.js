@@ -5,8 +5,7 @@
 
 "use strict";
 
-const request = require("request");
-const async = require("async");
+const https = require("https");
 const aadutils = require("./aadutils");
 const HttpsProxyAgent = require("https-proxy-agent");
 const Log = require("./logging").getLogger;
@@ -58,7 +57,7 @@ Object.defineProperty(Metadata, "httpsProxyAgent", {
   }
 });
 
-Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, next) {
+Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, callback) {
   log.info("Request to update the Open ID Connect Metadata");
 
   const self = this;
@@ -85,16 +84,26 @@ Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, next) {
   }
 
   // fetch the signing keys
-  request.get({ uri: jwksUri, agent: self.httpsProxyAgent, json: true }, (err, response, body) => {
-    if (err) {
-      return next(err);
+  https.get(jwksUri, { agent: self.httpsProxyAgent }, (res) => {
+    let data = "";
+    res.on("data", (chunk) => {
+      data += chunk;
+    });
+
+    res.on("end", () => {
+      // use json parser for oidc authType
+      log.info("Parsing JSON retreived from the endpoint");
+      self.oidc.keys = JSON.parse(data).keys;
+      callback();
+    })
+
+    if (res.statusCode !== 200) {
+      callback(new Error(`Error: ${res.statusCode} Cannot get AAD Signing Keys`));
     }
-    if (response.statusCode !== 200) {
-      return next(new Error(`Error: ${response.statusCode} Cannot get AAD Signing Keys`));
-    }
-    self.oidc.keys = body.keys;
-    return next();
-  });
+
+  }).on("error", (error) => {
+      callback(error);
+  }).end();
 };
 
 Metadata.prototype.generateOidcPEM = function generateOidcPEM(kid) {
@@ -166,42 +175,35 @@ Metadata.prototype.generateOidcPEM = function generateOidcPEM(kid) {
 
 Metadata.prototype.fetch = function fetch(callback) {
   const self = this;
+  
+  https.request(self.url, { agent: self.httpsProxyAgent } , (res) => {
+    let data = "";
+    res.on("data", (chunk) => {
+      data += chunk;
+    });
 
-  async.waterfall([
-    // fetch the Federation metadata for the AAD tenant
-    (next) => {
-      request.get({ uri: self.url, agent: self.httpsProxyAgent }, (err, response, body) => {
-        if (err) {
-          return next(err);
-        }
-        if (response.statusCode !== 200) {
-          if (self.loggingNoPII) {
-            log.error("cannot get AAD Federation metadata from endpoint you specified");
-            return next(new Error("Cannot get AAD Federation metadata"));
-          } else {
-            log.error("Cannot get AAD Federation metadata from endpoint you specified", self.url);
-            return next(new Error(`Error: ${response.statusCode} Cannot get AAD Federation metadata
-              from ${self.url}`));
-          }
-        }
-        return next(null, body);
-      });
-    },
-    // parse retrieved metadata
-    (body, next) => {
-      // use json parser for oidc authType
-      log.info("Parsing JSON retreived from the endpoint");
-      self.metadata = JSON.parse(body);
-      return next(null);
-    },
-    // call update method for parsed metadata and authType
-    (next) => {
-      return self.updateOidcMetadata(self.metadata, next);
-    },
-  ], (waterfallError) => {
-    // return err or success (err === null) to callback
-    callback(waterfallError);
-  });
+    res.on("end", () => {
+      if (res.statusCode === 200) {
+        // use json parser for oidc authType
+        log.info("Parsing JSON retreived from the endpoint");
+        self.metadata = JSON.parse(data);
+        return self.updateOidcMetadata(self.metadata, callback);
+      }
+    })
+
+    if (res.statusCode !== 200) {
+      if (self.loggingNoPII) {
+        log.error("cannot get AAD Federation metadata from endpoint you specified");
+        callback(new Error("Cannot get AAD Federation metadata"));
+      } else {
+        log.error("Cannot get AAD Federation metadata from endpoint you specified", self.url);
+        callback(new Error(`Error: ${res.statusCode} Cannot get AAD Federation metadata
+          from ${self.url}`));
+      } 
+    }
+  }).on("error", (error) => {
+    callback(error);
+  }).end();
 };
 
 exports.Metadata = Metadata;

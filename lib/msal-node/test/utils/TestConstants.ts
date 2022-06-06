@@ -6,6 +6,8 @@
 import { ICrypto, AuthError, PkceCodes } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
+    APP_NAME: "MSAL Node.js Unit Test",
+    APP_VERSION: "1.0.0",
     PREFERRED_CACHE: "login.windows.net",
     CLIENT_ID: "b41a6fbb-c728-4e03-aa59-d25b0fd383b6",
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
@@ -38,6 +40,37 @@ line3
 line4
 -----END CERTIFICATE-----
     `,
+    CLAIMS: 'claim1 claim2',
+    SNI_CERTIFICATE:
+    `-----BEGIN PRIVATE KEY-----\r
+line1\r
+line2\r
+line3\r
+line4\r
+line5\r
+-----END PRIVATE KEY-----\r
+-----BEGIN CERTIFICATE-----\r
+line1\r
+line2\r
+line3\r
+line4\r
+line5\r
+-----END CERTIFICATE-----\r
+-----BEGIN CERTIFICATE-----\r
+line1\r
+line2\r
+line3\r
+line4\r
+line5\r
+-----END CERTIFICATE-----\r
+-----BEGIN CERTIFICATE-----\r
+line1\r
+line2\r
+line3\r
+line4\r
+line5\r
+-----END CERTIFICATE-----\r
+`
 };
 
 export const AUTHENTICATION_RESULT = {

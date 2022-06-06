@@ -16,11 +16,13 @@ import { HashUtils } from "./HashUtils";
  */
 export class CryptoProvider implements ICrypto {
     private pkceGenerator: PkceGenerator;
+    private guidGenerator: GuidGenerator;
     private hashUtils: HashUtils;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
         this.pkceGenerator = new PkceGenerator();
+        this.guidGenerator = new GuidGenerator();
         this.hashUtils = new HashUtils();
     }
 
@@ -29,7 +31,7 @@ export class CryptoProvider implements ICrypto {
      * @returns string (GUID)
      */
     createNewGuid(): string {
-        return GuidGenerator.generateGuid();
+        return this.guidGenerator.generateGuid();
     }
 
     /**
