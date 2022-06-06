@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Fix empty hash errors in popups #4793",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

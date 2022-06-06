@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.9.0",
+  "version": "1.9.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -58,7 +58,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^6.3.0",
+    "@azure/msal-common": "^6.4.0",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"
   },
