@@ -22,7 +22,7 @@ import { ClientAssertionCredential } from "../account/ClientCredentials";
  * - sshKid                  - Key ID that uniquely identifies the SSH public key mentioned above.
  * - azureCloudOptions       - Convenience string enums for users to provide public/sovereign cloud ids
  * - requestedClaimsHash     - SHA 256 hash string of the requested claims string, used as part of an access token cache key so tokens can be filtered by requested claims
- * - clientAssertion         - Client assertion strung passed by the user for confidential client flows which is then processed into an object when request is built
+ * - clientAssertion         - Client assertion string passed by the user for confidential client flows which is then processed into an object when request is built
  */
 export type BaseAuthRequest = {
     authority: string;
