@@ -6,7 +6,7 @@
 /**
  * Client Assertion credential for Confidential Clients
  */
-export type ClientAssertion = {
+export type ClientAssertionCredential = {
     assertion: string,
     assertionType: string
 };
@@ -16,5 +16,5 @@ export type ClientAssertion = {
  */
 export type ClientCredentials = {
     clientSecret?: string,
-    clientAssertion?: ClientAssertion
+    clientAssertion?: ClientAssertionCredential
 };

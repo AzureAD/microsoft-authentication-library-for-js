@@ -126,8 +126,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
 
     private setClientCredential(configuration: Configuration): void {
         const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
-        const clientAssertion = configuration.auth.clientAssertion;
-        const clientAssertionNotEmpty = (clientAssertion && !StringUtils.isEmpty(clientAssertion.assertion));
+        const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
         const certificate = configuration.auth.clientCertificate || {
             thumbprint: Constants.EMPTY_STRING,
             privateKey: Constants.EMPTY_STRING
@@ -147,8 +146,8 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             return;
         }
 
-        if (clientAssertion && clientAssertionNotEmpty) {
-            this.clientAssertion = ClientAssertion.fromAssertion(clientAssertion.assertion);
+        if (configuration.auth.clientAssertion) {
+            this.clientAssertion = ClientAssertion.fromAssertion(configuration.auth.clientAssertion);
             return;
         }
 

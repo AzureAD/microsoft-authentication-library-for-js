@@ -24,6 +24,8 @@ export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
+export { ClientAssertionCredential } from "./account/ClientCredentials";
+
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptions";

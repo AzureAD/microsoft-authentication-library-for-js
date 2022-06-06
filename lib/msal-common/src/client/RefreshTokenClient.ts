@@ -201,8 +201,8 @@ export class RefreshTokenClient extends BaseClient {
 
         // Use clientAssertion from request, fallback to client assertion in base configuration
         const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
-
-        if (clientAssertion) {
+        
+        if (clientAssertion && typeof clientAssertion === "object") {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }

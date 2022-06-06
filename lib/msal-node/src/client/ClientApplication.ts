@@ -374,7 +374,16 @@ export abstract class ClientApplication {
         // Set requested claims hash if claims were requested
         if (authRequest.claims && !StringUtils.isEmpty(authRequest.claims)) {
             authRequest.requestedClaimsHash = await this.cryptoProvider.hashString(authRequest.claims);
-        } 
+        }
+
+        if (authRequest.clientAssertion) {
+            if (typeof authRequest.clientAssertion === "string" && !StringUtils.isEmpty(authRequest.clientAssertion)) {
+                authRequest.clientAssertion = {
+                    assertion: authRequest.clientAssertion,
+                    assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
+                };
+            }
+        }
 
         return {
             ...authRequest,

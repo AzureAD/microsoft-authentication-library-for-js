@@ -183,8 +183,7 @@ export class ClientCredentialClient extends BaseClient {
         const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
 
         // Check if clientAssertion object is defined, which means platform library supports client assertions, but not necessarily that the assertion is set
-        if (clientAssertion) {
-            // Assertion and assertion type may be empty, but RequestParameterBuilder will verify that before adding the params to the request
+        if (clientAssertion && typeof clientAssertion === "object") {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
