@@ -105,9 +105,9 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     protocolMode: ProtocolMode.AAD,
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
-        skipLocalMetadataCache: false,
         tenant: Constants.EMPTY_STRING
-    }
+    },
+    skipLocalMetadataCache: false,
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
