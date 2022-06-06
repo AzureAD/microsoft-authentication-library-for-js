@@ -21,7 +21,7 @@ export class FetchClient implements INetworkModule {
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         let response;
         let controller: AbortController | undefined;
-        let timeoutId: NodeJS.Timeout | undefined;
+        let timeoutId: number | undefined;
 
         /*
          * Check if a timeout value is provided via the options and create 
@@ -29,7 +29,7 @@ export class FetchClient implements INetworkModule {
          */
         if (options?.timeout) {
             controller = new AbortController();
-            timeoutId = setTimeout(() => controller?.abort(), options.timeout);
+            timeoutId = window.setTimeout(() => controller?.abort(), options.timeout);
         }
 
         try {
@@ -39,7 +39,7 @@ export class FetchClient implements INetworkModule {
                 signal: controller?.signal
             }).finally(() => { 
                 // Clear the timeout if the request is resolved before the timeout expires
-                if (!!timeoutId) clearTimeout(timeoutId);
+                if (!!timeoutId) window.clearTimeout(timeoutId);
             });
         } catch (e) {
             if (window.navigator.onLine) {
