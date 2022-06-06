@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "feat: adding metadata resiliency",
+  "packageName": "@azure/msal-browser",
+  "email": "kamausamuel11@gmail.com",
+  "dependentChangeType": "patch"
+}
