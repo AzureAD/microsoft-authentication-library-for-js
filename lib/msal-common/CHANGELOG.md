@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Jun 2022 22:13:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 6.4.0
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Minor changes
+
+- Add PoP support for Encrypted Access Tokens #4730 (hemoral@microsoft.com)
+- Add ability to set Client Assertion on a per-request basis #4806 (hemoral@microsoft.com)
+
+### Patches
+
+- Fix password encoding on UsernamePassword flow #4807 (hemoral@microsoft.com)
+- Add keyId to SHR header and make x5c_ca claim type string array #4729 (hemoral@microsoft.com)
 
 ## 6.3.0
 

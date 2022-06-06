@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "export AuthorizationCodePayload type from msal-common #4803",
-  "packageName": "@azure/msal-node",
-  "email": "git@hens.by",
-  "dependentChangeType": "patch"
-}
