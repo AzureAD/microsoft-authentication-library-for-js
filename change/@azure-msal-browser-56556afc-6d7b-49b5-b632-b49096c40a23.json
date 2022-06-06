@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "SHR params renamed as per MSAL JS's naming convention #4794",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
