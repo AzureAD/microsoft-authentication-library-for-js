@@ -152,6 +152,8 @@ describe("OnBehalfOf unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
         expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
         expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
         expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
     });
 
@@ -256,5 +258,78 @@ describe("OnBehalfOf unit tests", () => {
         };
 
         await expect(client.acquireToken(onBehalfOfRequest)).rejects.toMatchObject(ClientAuthError.createMultipleMatchingTokensInCacheError());
+    });
+
+    it("Adds clientAssertion from ClientConfiguration to /token request", async () => {
+        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").resolves(null);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
+
+        const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
+        config.clientCredentials = {
+            ...config.clientCredentials,
+            clientAssertion: {
+                assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
+                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE
+            }
+        }
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
+            skipCache: false
+        };
+
+        const authResult = await client.acquireToken(onBehalfOfRequest) as AuthenticationResult;
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(createTokenRequestBodySpy.calledWith(onBehalfOfRequest)).toBe(true);
+
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(TEST_CONFIG.TEST_CONFIG_ASSERTION)}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ASSERTION_TYPE}=${encodeURIComponent(TEST_CONFIG.TEST_ASSERTION_TYPE)}`)).toBe(true);
+    });
+
+    it("Adds clientAssertion from request to /token request, overriding config assertion", async () => {
+        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").resolves(null);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
+
+        const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
+        config.clientCredentials = {
+            ...config.clientCredentials,
+            clientAssertion: {
+                assertion: TEST_CONFIG.TEST_CONFIG_ASSERTION,
+                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE
+            }
+        }
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
+            skipCache: false,
+            clientAssertion: {
+                assertion: TEST_CONFIG.TEST_REQUEST_ASSERTION,
+                assertionType: TEST_CONFIG.TEST_ASSERTION_TYPE
+            }
+        };
+
+        const authResult = await client.acquireToken(onBehalfOfRequest) as AuthenticationResult;
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(createTokenRequestBodySpy.calledWith(onBehalfOfRequest)).toBe(true);
+
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(TEST_CONFIG.TEST_CONFIG_ASSERTION)}`)).toBe(false);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent(TEST_CONFIG.TEST_REQUEST_ASSERTION)}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ASSERTION_TYPE}=${encodeURIComponent(TEST_CONFIG.TEST_ASSERTION_TYPE)}`)).toBe(true);
     });
 });

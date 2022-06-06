@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
+This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 6.3.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- fix: Allow direct access to Identity Token Claims #4680 (1292510+svrooij@users.noreply.github.com)
+- Add support for acquiring tokens from the native broker #4531 (thomas.norling@microsoft.com)
+
+### Patches
+
+- acquireTokenByUsernamePassword will now return an id_token in Azure AD B2C #4694 (christian.kumpe@diva-e.com)
+
+## 6.2.0
+
+Mon, 04 Apr 2022 21:12:42 GMT
+
+### Minor changes
+
+- Add performance telemetry API #4570 (janutter@microsoft.com)
+- Add Client Application telemetry parameters to MSAL #4616 (prithviraj.kanherkar@microsoft.com)
+
+### Patches
+
+- removed debug dependency from msal-common #4665 (ellymakuba@microsoft.com)
 
 ## 6.1.0
 

@@ -94,11 +94,13 @@ export class UsernamePasswordClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
 
+        parameterBuilder.addResponseTypeForTokenAndIdToken();
+
         parameterBuilder.addGrantType(GrantType.RESOURCE_OWNER_PASSWORD_GRANT);
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager) {
@@ -112,8 +114,10 @@ export class UsernamePasswordClient extends BaseClient {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
         }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
+        // Use clientAssertion from request, fallback to client assertion in base configuration
+        const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
+
+        if (clientAssertion) {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }

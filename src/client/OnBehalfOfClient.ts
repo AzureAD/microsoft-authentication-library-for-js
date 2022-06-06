@@ -78,7 +78,7 @@ export class OnBehalfOfClient extends BaseClient {
                 environment: cachedIdToken.environment,
                 tenantId: cachedIdToken.realm,
                 username: Constants.EMPTY_STRING,
-                localAccountId: localAccountId || ""
+                localAccountId: localAccountId || Constants.EMPTY_STRING
             };
 
             cachedAccount = this.readAccountFromCache(accountInfo);
@@ -215,7 +215,7 @@ export class OnBehalfOfClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
         
         if (this.serverTelemetryManager) {
@@ -233,8 +233,10 @@ export class OnBehalfOfClient extends BaseClient {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
         }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
+        // Use clientAssertion from request, fallback to client assertion in base configuration
+        const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
+
+        if (clientAssertion) {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }

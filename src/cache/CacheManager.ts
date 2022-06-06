@@ -262,9 +262,9 @@ export abstract class CacheManager implements ICacheManager {
      */
     getAccountsFilteredBy(accountFilter?: AccountFilter): AccountCache {
         return this.getAccountsFilteredByInternal(
-            accountFilter ? accountFilter.homeAccountId : "",
-            accountFilter ? accountFilter.environment : "",
-            accountFilter ? accountFilter.realm : ""
+            accountFilter ? accountFilter.homeAccountId : Constants.EMPTY_STRING,
+            accountFilter ? accountFilter.environment : Constants.EMPTY_STRING,
+            accountFilter ? accountFilter.realm : Constants.EMPTY_STRING
         );
     }
 
@@ -573,7 +573,7 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * returns a boolean if the given account is removed
+     * Removes credentials associated with the provided account
      * @param account
      */
     async removeAccountContext(account: AccountEntity): Promise<boolean> {
