@@ -123,7 +123,8 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo
             };
             const testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
-            const testAccount = AccountEntity.createAccount(testClientInfo, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdAuthToken, undefined, undefined, undefined, undefined, testEnvironment);
+            console.log(testEnvironment);
+            const testAccount = AccountEntity.createAccount(testClientInfo, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdAuthToken, undefined, undefined, undefined, testEnvironment, undefined);
             const testAccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: testEnvironment,

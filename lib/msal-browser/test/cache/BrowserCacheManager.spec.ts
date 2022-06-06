@@ -1341,7 +1341,7 @@ describe("BrowserCacheManager tests", () => {
                 try {
                     browserStorage.getAccountInfoByHints(undefined, accountEntity3.idTokenClaims!.sid);
                 } catch (e) {
-                    expect(e as AuthError).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
+                    expect(e).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
                     expect((e as AuthError).errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
                     done();
                 }
