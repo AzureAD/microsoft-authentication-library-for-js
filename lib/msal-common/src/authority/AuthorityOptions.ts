@@ -11,7 +11,7 @@ export type AuthorityOptions = {
     knownAuthorities: Array<string>;
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;
-    skipLocalMetadataCache: boolean;
+    skipLocalMetadataCache?: boolean;
     azureRegionConfiguration?: AzureRegionConfiguration;
 };
 
