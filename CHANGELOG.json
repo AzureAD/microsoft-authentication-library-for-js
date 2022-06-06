@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 06 Jun 2022 22:13:00 GMT",
+      "tag": "@azure/msal-common_v6.4.0",
+      "version": "6.4.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ed983e0712efaeaea8ed278ada97ade9d8c09da5",
+            "comment": "Fix password encoding on UsernamePassword flow #4807"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ce0df0236f729feefce4c85470046e74a7e94961",
+            "comment": "Add keyId to SHR header and make x5c_ca claim type string array #4729"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "90365303db30da0fb4817b3e075db137a1ee3e33",
+            "comment": "Add PoP support for Encrypted Access Tokens #4730"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7b418944d55e71f5b38e2e640a613aab57c9c188",
+            "comment": "Add ability to set Client Assertion on a per-request basis #4806"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 May 2022 22:23:33 GMT",
       "tag": "@azure/msal-common_v6.3.0",
       "version": "6.3.0",
