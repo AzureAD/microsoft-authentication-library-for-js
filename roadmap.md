@@ -22,7 +22,7 @@ If you have feedback or suggestions on our roadmap, please let us know.
 - Ivy Library Distribution of MSAL-angular 
 - Angular 14 support 
 - Sustainable strategy to release adoption drivers like library dependency changes  
-- Software bound RT Pop support  
+- Software Bound Refresh Token Proof-of-Possession Support
 - First Party Sets support  
 
 ### Long Term
