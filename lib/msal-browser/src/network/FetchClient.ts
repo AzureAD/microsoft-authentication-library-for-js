@@ -20,10 +20,26 @@ export class FetchClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         let response;
+        let controller: AbortController | undefined;
+        let timeoutId: NodeJS.Timeout | undefined;
+
+        /*
+         * Check if a timeout value is provided via the options and create 
+         * a timeout based on the value provided to abort the request
+         */
+        if (options?.timeout) {
+            controller = new AbortController();
+            timeoutId = setTimeout(() => controller?.abort(), options.timeout);
+        }
+
         try {
             response = await fetch(url, {
                 method: HTTP_REQUEST_TYPE.GET,
-                headers: this.getFetchHeaders(options)
+                headers: this.getFetchHeaders(options),
+                signal: controller?.signal
+            }).finally(() => { 
+                // Clear the timeout if the request is resolved before the timeout expires
+                if (!!timeoutId) clearTimeout(timeoutId);
             });
         } catch (e) {
             if (window.navigator.onLine) {

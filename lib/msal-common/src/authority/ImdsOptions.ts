@@ -8,4 +8,5 @@ export type ImdsOptions = {
         Metadata: string,
     },
     proxyUrl?: string,
+    timeout?: number,
 };

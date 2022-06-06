@@ -45,7 +45,8 @@ export const Constants = {
     IMDS_TIMEOUT: 2000,
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
-    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
+    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
+    METADATA_TIMEOUT: 1500,
 };
 
 export const OIDC_DEFAULT_SCOPES = [

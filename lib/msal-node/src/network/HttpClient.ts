@@ -33,6 +33,8 @@ export class HttpClient implements INetworkModule {
             headers: options && options.headers,
             /* istanbul ignore next */
             validateStatus: () => true,
+            /* istanbul ignore next */ 
+            timeout: options && options.timeout,
         };
 
         if (options && options.proxyUrl) {
