@@ -46,7 +46,8 @@
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "metadata:check": "node src/scripts/metadata.js"
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
@@ -57,9 +58,11 @@
     "@types/debug": "^4.1.5",
     "@types/jest": "^26.0.23",
     "@types/sinon": "^7.5.0",
+    "axios": "^0.27.2",
     "beachball": "^1.32.2",
     "husky": "^3.0.9",
     "jest": "^27.0.4",
+    "lodash": "^4.17.21",
     "rimraf": "^3.0.2",
     "rollup": "^2.46.0",
     "rollup-plugin-typescript2": "^0.29.0",
@@ -68,7 +71,7 @@
     "ts-jest": "^27.0.2",
     "tslib": "^1.10.0",
     "tslint": "^5.20.0",
-    "typescript": "^3.7.5"
-  },
-  "dependencies": {}
+    "typescript": "^3.7.5",
+    "yargs": "^17.5.1"
+  }
 }
