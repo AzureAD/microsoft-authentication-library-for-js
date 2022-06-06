@@ -272,18 +272,8 @@ export class Authority {
             return AuthorityMetadataSource.CACHE;
         }
 
-        metadata = await this.getEndpointMetadataFromHardcodedValues();
-        if (metadata) {
-            // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                metadata = await this.updateMetadataWithRegionalInformation(metadata);
-            }
-
-            metadataEntity.updateEndpointMetadata(metadata, false);
-            return AuthorityMetadataSource.HARDCODED_VALUES; 
-        }
-
-        metadata = await this.getEndpointMetadataFromNetwork();
+        let harcodedMetadata = await this.getEndpointMetadataFromHardcodedValues();
+        metadata = await this.getEndpointMetadataFromNetwork(!!harcodedMetadata);
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
@@ -292,8 +282,22 @@ export class Authority {
 
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
+        }    
+
+        if (harcodedMetadata && !this.authorityOptions.skipLocalMetadataCache) {
+            // If the user prefers to use an azure region replace the global endpoints with regional information.
+            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                harcodedMetadata = await this.updateMetadataWithRegionalInformation(
+                    harcodedMetadata
+                );
+            }
+
+            metadataEntity.updateEndpointMetadata(harcodedMetadata, false);
+            return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
-            throw ClientAuthError.createUnableToGetOpenidConfigError(this.defaultOpenIdConfigurationEndpoint);
+            throw ClientAuthError.createUnableToGetOpenidConfigError(
+                this.defaultOpenIdConfigurationEndpoint
+            );
         }
     }
 
@@ -326,11 +330,21 @@ export class Authority {
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
+     * 
+     * @param hasHardcodedMetadata boolean
      */
-    private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
+    private async getEndpointMetadataFromNetwork(hasHardcodedMetadata: boolean): Promise<OpenIdConfigResponse | null> {
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
+        }
+
+        /*
+         * Add a timeout if the authority exists in our library's 
+         * hardcoded list of metadata
+         */
+        if (hasHardcodedMetadata) {
+            options.timeout = Constants.METADATA_TIMEOUT;
         }
 
         try {
@@ -348,7 +362,7 @@ export class Authority {
         if (this.canonicalAuthority in EndpointMetadataMap) {
             return EndpointMetadataMap[this.canonicalAuthority];
         }
-       
+
         return null;
     }
 
@@ -396,22 +410,22 @@ export class Authority {
             return AuthorityMetadataSource.CONFIG;
         }
 
-        metadata = await this.getCloudDiscoveryMetadataFromHarcodedValues();
-        if (metadata) {
-            metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
-            return AuthorityMetadataSource.HARDCODED_VALUES;
-        }
-
         // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
         if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
 
-        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
+        const harcodedMetadata = await this.getCloudDiscoveryMetadataFromHarcodedValues();
+        metadata = await this.getCloudDiscoveryMetadataFromNetwork(!!harcodedMetadata);
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
+        } 
+        
+        if (harcodedMetadata && !this.options.skipLocalMetadataCache) {
+            metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
+            return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
             // Metadata could not be obtained from config, cache or network
             throw ClientConfigurationError.createUntrustedAuthorityError();
@@ -445,31 +459,51 @@ export class Authority {
 
     /**
      * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
-     * @param networkInterface
+     * 
+     * @param hasHardcodedMetadata boolean
      */
-    private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
+    private async getCloudDiscoveryMetadataFromNetwork(hasHardcodedMetadata: boolean): Promise<CloudDiscoveryMetadata | null> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
         }
 
+        /*
+         * Add a timeout if the authority exists in our library's
+         * hardcoded list of metadata
+         */
+        if (hasHardcodedMetadata) {
+            options.timeout = Constants.METADATA_TIMEOUT;
+        }
+
         let match = null;
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint, options);
-            const metadata = isCloudInstanceDiscoveryResponse(response.body) ? response.body.metadata : [];
+            const response =
+                await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(
+                    instanceDiscoveryEndpoint,
+                    options
+                );
+            const metadata = isCloudInstanceDiscoveryResponse(response.body)
+                ? response.body.metadata
+                : [];
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted
                 return null;
             }
-            match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(metadata, this.hostnameAndPort);
-        } catch(e) {
+            match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
+                metadata,
+                this.hostnameAndPort
+            );
+        } catch (e) {
             return null;
         }
 
         if (!match) {
             // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
-            match = Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
+            match = Authority.createCloudDiscoveryMetadataFromHost(
+                this.hostnameAndPort
+            );
         }
         return match;
     }
@@ -618,3 +652,4 @@ export class Authority {
         return metadata;
     }
 }
+
