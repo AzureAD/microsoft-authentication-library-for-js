@@ -23,7 +23,8 @@ const authorityOptions: AuthorityOptions = {
     protocolMode: ProtocolMode.AAD,
     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
     cloudDiscoveryMetadata: "",
-    authorityMetadata: ""
+    authorityMetadata: "",
+    skipLocalMetadataCache: true,
 }
 
 describe("Authority.ts Class Unit Tests", () => {
@@ -732,7 +733,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: ""
+                    authorityMetadata: "",
+                    skipLocalMetadataCache: true
                 };
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     throw Error("Unable to get response");
@@ -752,7 +754,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: ""
+                    authorityMetadata: "",
+                    skipLocalMetadataCache: true,
                 };
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return {
@@ -823,3 +826,4 @@ describe("Authority.ts Class Unit Tests", () => {
         })
     });
 });
+
