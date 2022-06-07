@@ -47,7 +47,7 @@
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build",
     "prepack": "npm run build",
-    "metadata:check": "node src/scripts/metadata.js"
+    "metadata:check": "node scripts/metadata.js"
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
