@@ -98,7 +98,7 @@ export enum PerformanceEvents {
     /**
      * Time spent on the network for refresh token acquisition
      */
-    NetworkPerformance = "refreshTokenClientExecuteTokenRequest",
+    RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
 
     /**
      * Time spent creating default headers for requests to token endpoint
