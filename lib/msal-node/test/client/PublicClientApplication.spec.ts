@@ -285,7 +285,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipLocalMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -314,7 +314,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipLocalMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -350,7 +350,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipLocalMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -387,7 +387,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipLocalMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));

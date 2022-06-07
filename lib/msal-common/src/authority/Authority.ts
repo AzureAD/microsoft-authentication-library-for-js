@@ -285,7 +285,7 @@ export class Authority {
             return AuthorityMetadataSource.NETWORK;
         }    
 
-        if (harcodedMetadata && !this.authorityOptions.skipLocalMetadataCache) {
+        if (harcodedMetadata && !this.authorityOptions.skipAuthorityMetadataCache) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
                 harcodedMetadata = await this.updateMetadataWithRegionalInformation(
@@ -421,7 +421,7 @@ export class Authority {
             return AuthorityMetadataSource.NETWORK;
         } 
         
-        if (harcodedMetadata && !this.options.skipLocalMetadataCache) {
+        if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {

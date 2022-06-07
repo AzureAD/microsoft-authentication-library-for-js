@@ -24,7 +24,7 @@ import { NetworkUtils } from "../utils/NetworkUtils";
  * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - skipLocalMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
@@ -43,7 +43,7 @@ export type NodeAuthOptions = {
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
     azureCloudOptions?: AzureCloudOptions;
-    skipLocalMetadataCache?: boolean;
+    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -107,7 +107,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: Constants.EMPTY_STRING
     },
-    skipLocalMetadataCache: false,
+    skipAuthorityMetadataCache: false,
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};

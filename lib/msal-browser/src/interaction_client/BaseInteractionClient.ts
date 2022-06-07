@@ -159,7 +159,7 @@ export abstract class BaseInteractionClient {
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
-            skipLocalMetadataCache: this.config.auth.skipLocalMetadataCache,
+            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
         };
 
         if (requestAuthority) {
