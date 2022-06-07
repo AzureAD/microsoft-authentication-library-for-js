@@ -1,7 +1,7 @@
 {
-  "type": "none",
-  "comment": "feat: adding the metadata npm commands",
+  "type": "minor",
+  "comment": "feat: adding authority metadata resiliency #4536",
   "packageName": "@azure/msal-node",
-  "email": "kamausamuel11@gmail.com",
+  "email": "samuelkamau@microsoft.com",
   "dependentChangeType": "none"
 }
