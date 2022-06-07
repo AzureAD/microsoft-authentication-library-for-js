@@ -136,15 +136,6 @@ export class Authority {
         }
     }
 
-    public get jwksUri(): string {
-        if(this.discoveryComplete()) {
-            const endpoint = this.replacePath(this.metadata.jwks_uri);
-            return this.replaceTenant(endpoint);
-        } else {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
-        }
-    }
-
     /**
      * OAuth /token endpoint for requests
      */
@@ -188,6 +179,18 @@ export class Authority {
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.issuer);
+            return this.replaceTenant(endpoint);
+        } else {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
+        }
+    }
+
+    /**
+     * Jwks_uri
+     */
+    public get jwksUri(): string {
+        if(this.discoveryComplete()) {
+            const endpoint = this.replacePath(this.metadata.jwks_uri);
             return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
