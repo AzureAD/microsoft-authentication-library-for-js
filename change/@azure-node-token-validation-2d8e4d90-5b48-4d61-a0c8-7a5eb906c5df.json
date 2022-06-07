@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Add caching and metadata retry #4875",
+  "packageName": "@azure/node-token-validation",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}

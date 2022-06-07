@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add jwks_uri to Authority and AuthorityMetadataEntity #4875",
+  "packageName": "@azure/msal-common",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
