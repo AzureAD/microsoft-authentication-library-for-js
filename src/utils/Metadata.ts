@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import metadataJson from "./metadata.json";
+import { rawMetdataJSON } from "./RawMetadata";
 
-export const EndpointMetadata = metadataJson.endpointMetadata;
-export const InstanceDiscoveryMetadata = metadataJson.instanceDiscoveryMetadata;
+export const EndpointMetadata = rawMetdataJSON.endpointMetadata;
+export const InstanceDiscoveryMetadata = rawMetdataJSON.instanceDiscoveryMetadata;

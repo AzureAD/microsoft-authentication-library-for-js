@@ -8,6 +8,7 @@ const { isEqual } = require("lodash");
 const fs = require("fs");
 
 const METADATA_JSON_LOCATION = "src/utils/metadata.json";
+const METADATA_TYPESCRIPT_LOCATION = "src/utils/RawMetadata.ts";
 const AUTHORITY_PLACHOLDER = "{AUTHORITY}";
 const METADATA_SOURCES = {
     endpointMetadata: `${AUTHORITY_PLACHOLDER}v2.0/.well-known/openid-configuration`,
@@ -15,8 +16,7 @@ const METADATA_SOURCES = {
 };
 
 async function metadataWatch() {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const arguments = require("yargs")
+    const command = require("yargs")
         .scriptName("metadata:check")
         .usage("$0 <cmd> [args]")
         .option("f", {
@@ -24,9 +24,9 @@ async function metadataWatch() {
             demandOption: false,
             type: "boolean",
         })
-        .help().argv;
+        .help();
 
-    const shouldFix = !!arguments.f;
+    const shouldFix = !!command.argv.f;
 
     // eslint-disable-next-line no-console
     console.log(
@@ -139,7 +139,7 @@ async function metadataWatch() {
 }
 
 async function checkValidityOfMetadata(originalMetadata, url) {
-    const response = await axios.get(url, { timeout: 5000 });
+    const response = await axios.get(url, { timeout: 30000 });
     const newMetadata = response.data;
 
     return [isEqual(originalMetadata, newMetadata), newMetadata];
@@ -147,6 +147,18 @@ async function checkValidityOfMetadata(originalMetadata, url) {
 
 function updateMetadataInformation(metadata) {
     fs.writeFileSync(METADATA_JSON_LOCATION, JSON.stringify(metadata));
+    fs.writeFileSync(
+        METADATA_TYPESCRIPT_LOCATION,
+`/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+export const rawMetdataJSON = ${JSON.stringify(metadata)};
+
+`
+    );
 }
 
 metadataWatch();
+
