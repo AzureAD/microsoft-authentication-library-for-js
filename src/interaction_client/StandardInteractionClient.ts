@@ -207,7 +207,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
-            skipLocalMetadataCache: this.config.auth.skipLocalMetadataCache
+            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority

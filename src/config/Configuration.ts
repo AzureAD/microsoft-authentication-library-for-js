@@ -66,7 +66,7 @@ export type BrowserAuthOptions = {
     /**
      * Flag of whether to use the local metadata cache
      */
-    skipLocalMetadataCache?: boolean;
+    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -206,7 +206,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING
         },
-        skipLocalMetadataCache: false,
+        skipAuthorityMetadataCache: false,
     };
 
     // Default cache options for browser
