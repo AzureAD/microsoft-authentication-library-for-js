@@ -8,7 +8,7 @@ const fs = require("fs");
 const { isEqual } = require("lodash");
 
 const METADATA_JSON_LOCATION = "src/utils/metadata.json";
-const METADATA_TYPESCRIPT_LOCATION = "src/utils/RawMetadata.ts";
+const METADATA_TYPESCRIPT_LOCATION = "src/authority/AuthorityMetadata.ts";
 const AUTHORITY_PLACHOLDER = "{AUTHORITY}";
 const METADATA_SOURCES = {
     endpointMetadata: `${AUTHORITY_PLACHOLDER}v2.0/.well-known/openid-configuration`,
@@ -199,7 +199,7 @@ function networkRequestViaHttps (
             reject(new Error(chunk.toString()));
         });
     });
-};
+}
 
 async function checkValidityOfMetadata(originalMetadata, url) {
     const response = await networkRequestViaHttps(url, {}, 30000);
@@ -212,19 +212,19 @@ function updateMetadataInformation(metadata) {
     fs.writeFileSync(METADATA_JSON_LOCATION, JSON.stringify(metadata));
     fs.writeFileSync(
         METADATA_TYPESCRIPT_LOCATION,
-`/*
+        `/*
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
 
-export const rawMetdataJSON = ${JSON.stringify(metadata)};
+const rawMetdataJSON = ${JSON.stringify(metadata)};
+
+export const EndpointMetadata = rawMetdataJSON.endpointMetadata;
+export const InstanceDiscoveryMetadata = rawMetdataJSON.instanceDiscoveryMetadata;
 
 `
     );
 }
 
-
-
 metadataWatch();
-
 
