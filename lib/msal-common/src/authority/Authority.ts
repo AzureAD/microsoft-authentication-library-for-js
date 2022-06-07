@@ -274,7 +274,7 @@ export class Authority {
         }
 
         let harcodedMetadata = await this.getEndpointMetadataFromHardcodedValues();
-        metadata = await this.getEndpointMetadataFromNetwork(!!harcodedMetadata);
+        metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
@@ -334,19 +334,16 @@ export class Authority {
      * 
      * @param hasHardcodedMetadata boolean
      */
-    private async getEndpointMetadataFromNetwork(hasHardcodedMetadata: boolean): Promise<OpenIdConfigResponse | null> {
+    private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
         }
 
         /*
-         * Add a timeout if the authority exists in our library's 
+         * TODO: Add a timeout if the authority exists in our library's 
          * hardcoded list of metadata
          */
-        if (hasHardcodedMetadata) {
-            options.timeout = Constants.METADATA_TIMEOUT;
-        }
 
         try {
             const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint, options);
@@ -418,7 +415,7 @@ export class Authority {
         }
 
         const harcodedMetadata = await this.getCloudDiscoveryMetadataFromHarcodedValues();
-        metadata = await this.getCloudDiscoveryMetadataFromNetwork(!!harcodedMetadata);
+        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
@@ -463,7 +460,7 @@ export class Authority {
      * 
      * @param hasHardcodedMetadata boolean
      */
-    private async getCloudDiscoveryMetadataFromNetwork(hasHardcodedMetadata: boolean): Promise<CloudDiscoveryMetadata | null> {
+    private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
@@ -471,12 +468,9 @@ export class Authority {
         }
 
         /*
-         * Add a timeout if the authority exists in our library's
+         * TODO: Add a timeout if the authority exists in our library's
          * hardcoded list of metadata
          */
-        if (hasHardcodedMetadata) {
-            options.timeout = Constants.METADATA_TIMEOUT;
-        }
 
         let match = null;
         try {
