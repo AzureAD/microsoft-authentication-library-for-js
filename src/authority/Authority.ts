@@ -9,7 +9,8 @@ import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
-import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes, EndpointMetadataMap, CloudDiscoveryMetadataMap } from "../utils/Constants";
+import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
+import { EndpointMetadata, InstanceDiscoveryMetadata } from "../utils/Metadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
@@ -359,8 +360,8 @@ export class Authority {
      * Get OAuth endpoints for common authorities.
      */
     private async getEndpointMetadataFromHardcodedValues(): Promise<OpenIdConfigResponse | null> {
-        if (this.canonicalAuthority in EndpointMetadataMap) {
-            return EndpointMetadataMap[this.canonicalAuthority];
+        if (this.canonicalAuthority in EndpointMetadata) {
+            return EndpointMetadata[this.canonicalAuthority];
         }
 
         return null;
@@ -512,8 +513,8 @@ export class Authority {
      * Get cloud discovery metadata for common authorities 
      */
     private async getCloudDiscoveryMetadataFromHarcodedValues(): Promise<CloudDiscoveryMetadata | null> {
-        if (this.canonicalAuthority in CloudDiscoveryMetadataMap) {
-            return CloudDiscoveryMetadataMap[this.canonicalAuthority];
+        if (this.canonicalAuthority in InstanceDiscoveryMetadata) {
+            return InstanceDiscoveryMetadata[this.canonicalAuthority];
         }
 
         return null;
