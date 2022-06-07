@@ -13,7 +13,6 @@ export type NetworkRequestOptions = {
     headers?: Record<string, string>,
     body?: string;
     proxyUrl?: string;
-    timeout?: number;
 };
 
 /**
