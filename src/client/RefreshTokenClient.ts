@@ -136,7 +136,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.NetworkPerformance, request.correlationId);    
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);    
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -164,7 +164,7 @@ export class RefreshTokenClient extends BaseClient {
             acquireTokenMeasurement?.endMeasurement({
                 success: false
             })
-            return error;
+            throw error;
         });
     }
 
