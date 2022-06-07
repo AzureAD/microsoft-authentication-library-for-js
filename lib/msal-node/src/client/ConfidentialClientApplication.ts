@@ -125,7 +125,6 @@ export class ConfidentialClientApplication extends ClientApplication implements 
     }
 
     private setClientCredential(configuration: Configuration): void {
-        
         const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
         const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
         const certificate = configuration.auth.clientCertificate || {
