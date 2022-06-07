@@ -2,7 +2,7 @@ var _ = require('underscore');
 var fs = require('fs');
 
 /**
- * Constructs a new in disk token cache.
+ * Constructs a new token cache on disk.
  * This effectively implements the ADAL TokenCache interface.
  * @constructor
  */

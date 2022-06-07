@@ -89,6 +89,7 @@ app.get('/redirect', function (req, res) {
                 console.log(result);
             });
 
+            // create a cookie and store the userId, which will be picked up later on by the MSAL app
             res.cookie('userId', response.userId, { maxAge: 900000, httpOnly: true }).send(response);
         }
     );
