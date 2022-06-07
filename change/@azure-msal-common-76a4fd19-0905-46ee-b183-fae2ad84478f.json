@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "major",
   "comment": "adding network performance measurement",
   "packageName": "@azure/msal-common",
   "email": "ellymakuba@gmail.com",
