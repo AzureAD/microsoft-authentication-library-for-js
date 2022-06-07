@@ -39,7 +39,7 @@ async function metadataWatch() {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const metadataJson = require(`../../${METADATA_JSON_LOCATION}`);
+    const metadataJson = require(`../${METADATA_JSON_LOCATION}`);
     let failedChecks = false;
 
     // Aggregate a list of authorities to perform the checks on.
