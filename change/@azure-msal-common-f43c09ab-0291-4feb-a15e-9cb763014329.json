@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add ability to set Client Assertion on a per-request basis #4806",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
