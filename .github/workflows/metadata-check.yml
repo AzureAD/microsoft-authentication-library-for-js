@@ -19,7 +19,6 @@ concurrency:
 jobs:
   metadata-checker:
     runs-on: ubuntu-latest
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js')
     steps:
     - uses: actions/checkout@v2
 
