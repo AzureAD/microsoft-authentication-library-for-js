@@ -46,7 +46,6 @@ export const Constants = {
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
     KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
-    METADATA_TIMEOUT: 1500,
     TOKEN_RESPONSE_TYPE: "token",
     ID_TOKEN_RESPONSE_TYPE: "id_token"
 };
@@ -396,63 +395,6 @@ export enum CacheOutcome {
     REFRESH_CACHED_ACCESS_TOKEN = "4"
 }
 
-export const EndpointMetadataMap = {
-    "https://login.microsoftonline.com/common/" : {
-        token_endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-        authorization_endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-        end_session_endpoint: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
-        issuer: "https://login.microsoftonline.com/{tenantid}/v2.0",
-    }
-};
-
-export const CloudDiscoveryMetadataMap = {
-    "https://login.microsoftonline.com/common/" :
-    {
-        tenant_discovery_endpoint: "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
-        metadata: [
-            {
-                "preferred_network": "login.microsoftonline.com",
-                "preferred_cache": "login.windows.net",
-                "aliases": [
-                    "login.microsoftonline.com",
-                    "login.windows.net",
-                    "login.microsoft.com",
-                    "sts.windows.net"
-                ]
-            },
-            {
-                "preferred_network": "login.partner.microsoftonline.cn",
-                "preferred_cache": "login.partner.microsoftonline.cn",
-                "aliases": [
-                    "login.partner.microsoftonline.cn",
-                    "login.chinacloudapi.cn"
-                ]
-            },
-            {
-                "preferred_network": "login.microsoftonline.de",
-                "preferred_cache": "login.microsoftonline.de",
-                "aliases": [
-                    "login.microsoftonline.de"
-                ]
-            },
-            {
-                "preferred_network": "login.microsoftonline.us",
-                "preferred_cache": "login.microsoftonline.us",
-                "aliases": [
-                    "login.microsoftonline.us",
-                    "login.usgovcloudapi.net"
-                ]
-            },
-            {
-                "preferred_network": "login-us.microsoftonline.com",
-                "preferred_cache": "login-us.microsoftonline.com",
-                "aliases": [
-                    "login-us.microsoftonline.com"
-                ]
-            }
-        ]
-    }
-};
 export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
