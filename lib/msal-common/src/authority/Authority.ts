@@ -10,7 +10,7 @@ import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
 import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
-import { EndpointMetadata, InstanceDiscoveryMetadata } from "../utils/Metadata";
+import { EndpointMetadata, InstanceDiscoveryMetadata } from "./AuthorityMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
