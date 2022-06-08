@@ -65,6 +65,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.endMeasurement({
                     success: false,
                     errorCode: error.errorCode,
+                    subErrorCode: error.subError,
                     isNativeBroker: true
                 });
                 throw error;

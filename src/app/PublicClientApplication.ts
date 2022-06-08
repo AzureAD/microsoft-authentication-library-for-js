@@ -130,9 +130,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     atsMeasurement.flushMeasurement();
                     return result;
                 })
-                .catch((error) => {
+                .catch((error: AuthError) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.endMeasurement({
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
                         success: false
                     });
                     atsMeasurement.flushMeasurement();
@@ -196,9 +198,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 fromCache: response.fromCache
             });
             return response;
-        }).catch((tokenRenewalError) => {
+        }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
             astsAsyncMeasurement.endMeasurement({
+                errorCode: tokenRenewalError.errorCode,
+                subErrorCode: tokenRenewalError.subError,
                 success: false
             });
             throw tokenRenewalError;
