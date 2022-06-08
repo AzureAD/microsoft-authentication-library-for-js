@@ -364,7 +364,7 @@ export abstract class ClientApplication {
             });
             atPopupMeasurement.flushMeasurement();
             return result;
-        }).catch((e) => {
+        }).catch((e: AuthError) => {
             if (loggedInAccounts.length > 0) {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Popup, null, e);
             } else {
@@ -372,6 +372,8 @@ export abstract class ClientApplication {
             }
 
             atPopupMeasurement.endMeasurement({
+                errorCode: e.errorCode,
+                subErrorCode: e.subError,
                 success: false
             });
             atPopupMeasurement.flushMeasurement();
@@ -436,9 +438,11 @@ export abstract class ClientApplication {
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
-        }).catch ((e) => {
+        }).catch ((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             ssoSilentMeasurement.endMeasurement({
+                errorCode: e.errorCode,
+                subErrorCode: e.subError,
                 success: false
             });
             ssoSilentMeasurement.flushMeasurement();
@@ -482,10 +486,12 @@ export abstract class ClientApplication {
                             atbcMeasurement.flushMeasurement();
                             return result;
                         })
-                        .catch((error: Error) => {
+                        .catch((error: AuthError) => {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, error);
                             atbcMeasurement.endMeasurement({
+                                errorCode: error.errorCode,
+                                subErrorCode: error.subError,
                                 success: false
                             });
                             atbcMeasurement.flushMeasurement();
@@ -519,6 +525,8 @@ export abstract class ClientApplication {
         } catch (e) {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
             atbcMeasurement.endMeasurement({
+                errorCode: e instanceof AuthError && e.errorCode || undefined,
+                subErrorCode: e instanceof AuthError && e.subError || undefined,
                 success: false
             });
             throw e;
@@ -583,6 +591,8 @@ export abstract class ClientApplication {
                         })
                         .catch((error) => {
                             atbrtMeasurement.endMeasurement({
+                                errorCode: error.errorCode,
+                                subErrorCode: error.subError,
                                 success: false
                             });
                             throw error;

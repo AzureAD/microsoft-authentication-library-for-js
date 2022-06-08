@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add basic reliability in client telemetry for native calls (#4863)",
+  "comment": "Add errorCode and subErrorCode to client telemetry events (#4863)",
   "packageName": "@azure/msal-browser",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
