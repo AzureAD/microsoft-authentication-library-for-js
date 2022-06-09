@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add keyId to SHR header and make x5c_ca claim type string array #4729",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

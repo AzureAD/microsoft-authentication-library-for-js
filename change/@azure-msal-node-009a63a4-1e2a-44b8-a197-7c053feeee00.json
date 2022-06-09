@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use native http modules instead of axios for regular and proxied network requests #4744",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

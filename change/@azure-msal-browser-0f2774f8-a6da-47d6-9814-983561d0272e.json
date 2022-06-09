@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixes assignment of expiresOn inside loadExternalTokens to fix issue where all access tokens appear expired during E2E #4711",
-  "packageName": "@azure/msal-browser",
-  "email": "paulrsauer@gmail.com",
-  "dependentChangeType": "patch"
-}
