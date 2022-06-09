@@ -19,7 +19,7 @@ If you have feature requests, please add a Github Issue with specifics of the [F
 
 ### Mid Term
 - Improvements on Node documentation & samples  
-- Ivy Library Distribution of MSAL-angular 
+- Ivy library distribution of MSAL Angular 
 - Angular 14 support 
 - Sustainable strategy to release adoption drivers like library dependency changes  
   
