@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fallback to web flow when native broker throws 'DISABLED' status #4837",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
