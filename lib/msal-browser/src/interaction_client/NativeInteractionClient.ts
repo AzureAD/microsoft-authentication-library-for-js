@@ -12,9 +12,9 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { NativeExtensionMethod, ApiId, TemporaryCacheKeys, NativeConstants, MATS_TELEMETRY_CONSTANTS } from "../utils/BrowserConstants";
+import { NativeExtensionMethod, ApiId, TemporaryCacheKeys, NativeConstants } from "../utils/BrowserConstants";
 import { NativeExtensionRequestBody, NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { NativeResponse } from "../broker/nativeBroker/NativeResponse";
+import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
@@ -275,17 +275,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response 
      * @returns 
      */
-    private getMATSFromResponse(response: NativeResponse): object|null {
-        let mats = null;
-        if (response.properties.hasOwnProperty(NativeConstants.MATS_TELEMETRY)) {
+    private getMATSFromResponse(response: NativeResponse): MATS|null {
+        if (response.properties.MATS) {
             try {
-                mats = JSON.parse(response.properties[NativeConstants.MATS_TELEMETRY]);
+                return JSON.parse(response.properties.MATS);
             } catch (e) {
                 this.logger.error("NativeInteractionClient - Error parsing MATS telemetry, returning null instead");
             }
         }
 
-        return mats;
+        return null;
     }
 
     /**
@@ -296,12 +295,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
     private isResponseFromCache(response: NativeResponse): boolean {
         const mats = this.getMATSFromResponse(response);
 
-        if (!mats || !mats.hasOwnProperty(MATS_TELEMETRY_CONSTANTS.IS_CACHED)) {
+        if (!mats || typeof mats.is_cached === "undefined") {
             this.logger.verbose("NativeInteractionClient - MATS telemetry not found in response or it does not contain field indicating if response was served from cache. Returning false.");
             return false;
         }
 
-        return !!mats[MATS_TELEMETRY_CONSTANTS.IS_CACHED];
+        return !!mats.is_cached;
     }
 
     /**

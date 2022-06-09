@@ -47,10 +47,6 @@ export const NativeConstants = {
     MATS_TELEMETRY: "MATS"
 };
 
-export const MATS_TELEMETRY_CONSTANTS = {
-    IS_CACHED: "is_cached"
-}
-
 export enum NativeExtensionMethod {
     HandshakeRequest = "Handshake",
     HandshakeResponse = "HandshakeResponse",

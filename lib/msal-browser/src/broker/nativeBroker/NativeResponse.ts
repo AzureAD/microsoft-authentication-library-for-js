@@ -21,9 +21,23 @@ export type NativeResponse = {
     client_info: string;
     expires_in: number;
     id_token: string;
-    properties: object;
+    properties: NativeResponseProperties;
     scopes: string;
     state: string;
     shr?: string;
     extendedLifetimeToken?: boolean;
+};
+
+/**
+ * Properties returned under "properties" of the NativeResponse
+ */
+export type NativeResponseProperties = {
+    MATS?: string;
+};
+
+/**
+ * MATS telemetry properties
+ */
+export type MATS = {
+    is_cached?: number;
 };
