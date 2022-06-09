@@ -125,7 +125,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.endMeasurement({
                         success: true,
-                        fromCache: result.fromCache
+                        fromCache: result.fromCache,
+                        isNativeBroker: result.fromNativeBroker
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -195,7 +196,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
             astsAsyncMeasurement.endMeasurement({
                 success: true,
-                fromCache: response.fromCache
+                fromCache: response.fromCache,
+                isNativeBroker: response.fromNativeBroker
             });
             return response;
         }).catch((tokenRenewalError: AuthError) => {

@@ -434,7 +434,8 @@ export abstract class ClientApplication {
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
             ssoSilentMeasurement.endMeasurement({
-                success: true
+                success: true,
+                isNativeBroker: response.fromNativeBroker
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
@@ -481,7 +482,8 @@ export abstract class ClientApplication {
                             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.endMeasurement({
-                                success: true
+                                success: true,
+                                isNativeBroker: result.fromNativeBroker
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
