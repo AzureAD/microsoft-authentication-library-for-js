@@ -167,7 +167,7 @@ For a full implementation, please refer to the app creation scripts in the [Vani
 
 The redirect flow can be confusing, as redirecting away from the page means you are creating a whole new instance of the application when you return. This means that calling a redirect method cannot return anything. Rather, what happens is that the page is redirected away, you enter your credentials, and you are redirected back to your application with the response in the url hash.
 
-If `navigateToRequestUrl` property in MSAL configuration parameters is set to **true**, you will be redirected again to the page you were on when you called `loginRedirect`, unless that page was also set as your `redirectUri`. On the final page your application must call `handleRedirectPromise()` in order to process the hash and cache tokens in local/session storage.
+If `navigateToLoginRequestUrl` property in MSAL configuration parameters is set to **true**, you will be redirected again to the page you were on when you called `loginRedirect`, unless that page was also set as your `redirectUri`. On the final page your application must call `handleRedirectPromise()` in order to process the hash and cache tokens in local/session storage.
 
 As this function returns a promise you can call `.then` and `.catch`, similar to `loginPopup`.
 
@@ -334,6 +334,9 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 
 Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
 
+## Register custom scopes for a web API
+[How to register custom scopes for my web API](https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-expose-web-apis).
+
 # B2C
 
 ## How do I specify which B2C policy/user flow I would like to use?
@@ -406,3 +409,5 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 
 In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
+
+

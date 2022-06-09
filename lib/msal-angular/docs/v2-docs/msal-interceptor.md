@@ -156,3 +156,5 @@ For more information on the optional `authRequest` that can be set in the `MsalI
 * Note that the `unprotectedResourceMap` in MSAL Angular v1's `MsalAngularConfiguration` has been deprecated and no longer works.
 * `protectedResourceMap` has been moved to the `MsalInterceptorConfiguration` object, and can be passed as `Map<string, Array<string|ProtectedResourceScopes>>`. `MsalAngularConfiguration` has been deprecated and no longer works.
 * Putting the root domain in the `protectedResourceMap` to protect all routes is no longer supported. Please use wildcard matching instead.
+
+For more information on how to configure scopes, please see our [FAQs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md). 

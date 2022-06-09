@@ -145,7 +145,9 @@ export const TEST_CONFIG = {
     TEST_APP_VER: "1.0.0",
     TEST_ASSERTION_TYPE: "jwt_bearer",
     THE_FAMILY_ID: "1",
-    DEFAULT_TOKEN_RENEWAL_OFFSET: 300
+    DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
+    TEST_CONFIG_ASSERTION: "DefaultAssertion",
+    TEST_REQUEST_ASSERTION: "RequestAssertion"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -508,4 +510,8 @@ export const TEST_AUTHENTICATION_HEADERS = {
     invalidAuthenticationInfo: `PoP test_challenge="test_challenge"`,
     wwwAuthenticate: `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`,
     invalidWwwAuthenticate: `PoP test_challenge="test_challenge`
+};
+
+export const TEST_CRYPTO_ALGORITHMS = {
+    rsa: "RSA"
 };

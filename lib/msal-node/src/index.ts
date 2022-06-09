@@ -46,6 +46,7 @@ export {
     // Request
     PromptValue,
     ResponseMode,
+    AuthorizationCodePayload,
     // Response
     AuthenticationResult,
     // Cache

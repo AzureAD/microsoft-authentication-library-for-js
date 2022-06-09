@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, ClientAuthError } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -186,7 +186,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
         let responseAccessToken;
         let responseTokenType: AuthenticationScheme = AuthenticationScheme.BEARER;
-        switch (request.token_type) {
+        switch (request.tokenType) {
             case AuthenticationScheme.POP: {
                 // Set the token type to POP in the response
                 responseTokenType = AuthenticationScheme.POP;
@@ -206,7 +206,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     shrClaims: request.shrClaims,
                     shrNonce: request.shrNonce
                 };
-                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, shrParameters);
+
+                /**
+                 * KeyID must be present in the native request from when the PoP key was generated in order for
+                 * PopTokenGenerator to query the full key for signing
+                 */
+                if (!request.keyId) {
+                    throw ClientAuthError.createKeyIdMissingError();
+                }
+
+                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.keyId, shrParameters);
                 break;
 
             }
@@ -287,8 +296,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         }
 
-        const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
-
         const validatedRequest: NativeTokenRequest = {
             ...request,
             accountId: this.accountId,
@@ -297,8 +304,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            instance_aware: instanceAware,
-            token_type: request.authenticationScheme,
+            tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
                 ...request.extraQueryParameters,
@@ -318,10 +324,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const cnf = await popTokenGenerator.generateCnf(shrParameters);
+            const reqCnfData = await popTokenGenerator.generateCnf(shrParameters);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.req_cnf = await popTokenGenerator.generateCnfHash(cnf);
+            validatedRequest.reqCnf = reqCnfData.reqCnfHash;
+            validatedRequest.keyId = reqCnfData.kid;
         }
 
         if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
