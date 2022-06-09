@@ -3,9 +3,10 @@
  * Licensed under the MIT License.
  */
 
-const https = require("https");
-const fs = require("fs");
-const { isEqual } = require("lodash");
+import fs from "fs";
+import https from "https";
+import yargs from "yargs";
+import { isEqual } from "lodash";
 
 const METADATA_TYPESCRIPT_LOCATION = "src/authority/AuthorityMetadata.ts";
 const AUTHORITY_PLACHOLDER = "{AUTHORITY}";
@@ -15,7 +16,7 @@ const METADATA_SOURCES = {
 };
 
 async function metadataWatch() {
-    const command = require("yargs")
+    const command = yargs
         .scriptName("metadata:check")
         .usage("$0 <cmd> [args]")
         .option("f", {
@@ -40,6 +41,7 @@ async function metadataWatch() {
 
     const {
         rawMetdataJSON: metadataJson,
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     } = require(`../${METADATA_TYPESCRIPT_LOCATION}`);
 
     // Aggregate a list of authorities to perform the checks on.
