@@ -15,7 +15,7 @@ If you have feedback or suggestions on our roadmap, please let us know.
 - Node token caching support with Redis 
 - Internal pipeline improvements for easier release cadence 
 - Deprecation of passport-azure-ad and replacement with a new lightweight token validator 
-- Updates required by the recent United States Executive Order on cybersecurity: Executive Order on Improving the Nation's Cybersecurity | The White House 
+- Updates required by the May 2021 United States Executive Order on cybersecurity: [Executive Order on Improving the Nation's Cybersecurity | The White House](https://www.whitehouse.gov/briefing-room/presidential-actions/2021/05/12/executive-order-on-improving-the-nations-cybersecurity/) 
 
 ### Mid Term
 - Improvements on Node documentation & samples  
