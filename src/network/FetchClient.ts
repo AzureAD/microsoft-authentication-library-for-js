@@ -20,7 +20,6 @@ export class FetchClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         let response;
-
         try {
             response = await fetch(url, {
                 method: HTTP_REQUEST_TYPE.GET,
