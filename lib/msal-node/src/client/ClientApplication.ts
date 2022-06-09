@@ -32,7 +32,8 @@ import {
     StringUtils,
     Constants,
     IPerformanceClient,
-    PerformanceEvents
+    PerformanceEvents,
+    PerformanceCallbackFunction
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -441,5 +442,25 @@ export abstract class ClientApplication {
      */
     clearCache(): void {
         this.storage.clear();
+    }
+
+    /**
+     * Registers a callback to receive performance events.
+     *
+     * @param {PerformanceCallbackFunction} callback
+     * @returns {string}
+     */
+     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        return this.performanceClient.addPerformanceCallback(callback);
+    }
+
+    /**
+     * Removes a callback registered with addPerformanceCallback.
+     *
+     * @param {string} callbackId
+     * @returns {boolean}
+     */
+    removePerformanceCallback(callbackId: string): boolean {
+        return this.performanceClient.removePerformanceCallback(callbackId);
     }
 }
