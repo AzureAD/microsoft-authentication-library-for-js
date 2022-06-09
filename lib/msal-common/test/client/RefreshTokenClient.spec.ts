@@ -146,7 +146,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             
             await client.acquireToken(refreshTokenRequest);
-            expect(spy).toHaveBeenCalledTimes(1)
+            expect(spy).toHaveBeenCalled();
             spy.mockClear();
         });
 
@@ -157,7 +157,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             
             await client.acquireToken(refreshTokenRequest);
-            expect(spy).toHaveBeenCalledTimes(1)
+            expect(spy).toHaveBeenCalled();
             spy.mockClear();
         });
     });

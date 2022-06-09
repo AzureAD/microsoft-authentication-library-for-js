@@ -18,9 +18,8 @@ import { CacheOutcome } from "../utils/Constants";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 export class SilentFlowClient extends BaseClient {
-
-    protected performanceClient: IPerformanceClient;
-    constructor(configuration: ClientConfiguration, performanceClient: IPerformanceClient) {
+    
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
         super(configuration);
         this.performanceClient = performanceClient;
     }
