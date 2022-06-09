@@ -94,7 +94,6 @@ export class PopTokenGenerator {
 
         const resourceUrlString = (resourceRequestUri) ? new UrlString(resourceRequestUri) : undefined;
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
-
         return await this.cryptoUtils.signJwt({
             at: payload,
             ts: TimeUtils.nowSeconds(),
