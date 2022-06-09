@@ -7,7 +7,6 @@ const https = require("https");
 const fs = require("fs");
 const { isEqual } = require("lodash");
 
-const METADATA_JSON_LOCATION = "src/utils/metadata.json";
 const METADATA_TYPESCRIPT_LOCATION = "src/authority/AuthorityMetadata.ts";
 const AUTHORITY_PLACHOLDER = "{AUTHORITY}";
 const METADATA_SOURCES = {
@@ -27,6 +26,7 @@ async function metadataWatch() {
         .help();
 
     const shouldFix = !!command.argv.f;
+    let failedChecks = false;
 
     // eslint-disable-next-line no-console
     console.log(
@@ -38,9 +38,9 @@ async function metadataWatch() {
         console.log("🔧 Fixing any mismatches that are going to be found");
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const metadataJson = require(`../${METADATA_JSON_LOCATION}`);
-    let failedChecks = false;
+    const {
+        rawMetdataJSON: metadataJson,
+    } = require(`../${METADATA_TYPESCRIPT_LOCATION}`);
 
     // Aggregate a list of authorities to perform the checks on.
     const listOfAuthorities = [
@@ -139,13 +139,13 @@ async function metadataWatch() {
 }
 
 function networkRequestViaHttps (
-    url,
-    options,
-    timeout,
+    url: string,
+    options?: { [key: string]: any },
+    timeout?: number,
 ) {
-    const customOptions = {
+    const customOptions: { [key: string]: any } = {
         method: "GET",
-        headers: options.headers || {},
+        headers: options?.headers || {},
     };
 
     if (timeout) {
@@ -164,12 +164,12 @@ function networkRequestViaHttps (
 
         request.end();
 
-        request.on("response", (response) => {
+        request.on("response", (response: any) => {
             const headers = response.headers;
             const statusCode = response.statusCode;
 
-            const data = [];
-            response.on("data", (chunk) => {
+            const data: Buffer[] = [];
+            response.on("data", (chunk: any) => {
                 data.push(chunk);
             });
 
@@ -183,9 +183,7 @@ function networkRequestViaHttps (
                     status: statusCode,
                 };
 
-                if ((statusCode < 200 || statusCode > 299) &&
-                    // do not destroy the request for the device code flow
-                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
+                if ((statusCode < 200 || statusCode > 299)) {
                     request.destroy();
                     reject(new Error(`HTTP status code ${statusCode}`));
                 }
@@ -194,22 +192,21 @@ function networkRequestViaHttps (
             });
         });
 
-        request.on("error", (chunk) => {
+        request.on("error", (chunk: any) => {
             request.destroy();
             reject(new Error(chunk.toString()));
         });
     });
 }
 
-async function checkValidityOfMetadata(originalMetadata, url) {
-    const response = await networkRequestViaHttps(url, {}, 30000);
+async function checkValidityOfMetadata(originalMetadata: any, url: string) {
+    const response = await networkRequestViaHttps(url, {}, 30000) as any;
     const newMetadata = response.body;
 
     return [isEqual(originalMetadata, newMetadata), newMetadata];
 }
 
-function updateMetadataInformation(metadata) {
-    fs.writeFileSync(METADATA_JSON_LOCATION, JSON.stringify(metadata));
+function updateMetadataInformation(metadata: any) {
     fs.writeFileSync(
         METADATA_TYPESCRIPT_LOCATION,
         `/*
@@ -217,7 +214,7 @@ function updateMetadataInformation(metadata) {
  * Licensed under the MIT License.
  */
 
-const rawMetdataJSON = ${JSON.stringify(metadata)};
+export const rawMetdataJSON = ${JSON.stringify(metadata)};
 
 export const EndpointMetadata = rawMetdataJSON.endpointMetadata;
 export const InstanceDiscoveryMetadata = rawMetdataJSON.instanceDiscoveryMetadata;
