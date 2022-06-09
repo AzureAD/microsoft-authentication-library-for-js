@@ -35,8 +35,14 @@ concurrency:
   group: publish-packages
 
 # Job will run on a ubuntu instance
+permissions:
+  contents: read
+
 jobs:
   pre-publish:
+    permissions:
+      contents: read  # for dorny/paths-filter to fetch a list of changed files
+      pull-requests: read  # for dorny/paths-filter to read pull requests
     if: (github.event.pull_request.merged == true && github.head_ref == 'release-staging')
     runs-on: ubuntu-latest
 
@@ -65,6 +71,8 @@ jobs:
           list-files: json
 
   publish-msal-core:
+    permissions:
+      contents: none
     name: msal-core
     needs: pre-publish
     if: |
@@ -82,6 +90,8 @@ jobs:
       CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS }}
 
   publish-msal-common:
+    permissions:
+      contents: none
     name: msal-common
     needs: pre-publish
     if: |
@@ -96,6 +106,8 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-msal-browser:
+    permissions:
+      contents: none
     name: msal-browser
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -113,6 +125,8 @@ jobs:
       CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS }}
 
   publish-msal-node:
+    permissions:
+      contents: none
     name: msal-node
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -127,6 +141,8 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-msal-angular:
+    permissions:
+      contents: none
     name: msal-angular
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -141,6 +157,8 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-msal-react:
+    permissions:
+      contents: none
     name: msal-react
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -155,6 +173,8 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   publish-msal-node-extensions:
+    permissions:
+      contents: none
     name: msal-node-extensions
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -169,6 +189,9 @@ jobs:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   post-publish:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
     needs: [
       publish-msal-core, 
       publish-msal-common, 
