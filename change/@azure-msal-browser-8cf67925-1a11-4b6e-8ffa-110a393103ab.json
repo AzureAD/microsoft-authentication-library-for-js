@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Change log message level in initialize from warning to info #4820",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
