@@ -255,7 +255,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      */
     private validateNativeResponse(response: object): NativeResponse {
-        console.log(response);
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
