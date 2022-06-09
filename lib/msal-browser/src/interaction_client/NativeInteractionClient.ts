@@ -12,7 +12,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { NativeExtensionMethod, ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { NativeExtensionMethod, ApiId, TemporaryCacheKeys, NativeConstants } from "../utils/BrowserConstants";
 import { NativeExtensionRequestBody, NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { NativeResponse } from "../broker/nativeBroker/NativeResponse";
 import { NativeAuthError } from "../error/NativeAuthError";
@@ -255,6 +255,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      */
     private validateNativeResponse(response: object): NativeResponse {
+        console.log(response);
         if (
             response.hasOwnProperty("access_token") &&
             response.hasOwnProperty("id_token") &&
@@ -310,6 +311,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             token_type: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
+                telemetry: NativeConstants.MATS_TELEMETRY,
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
             },
