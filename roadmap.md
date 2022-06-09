@@ -1,6 +1,6 @@
 # Roadmap
 
-The MSAL.js team's roadmap is presented as near-term, mid-term, & long-term to give a people a better idea of what we are currently working on, what is up next for us, and what we are considering for the future. These are not guarenteed timelines, but insight into the team's current direction. The roadmap is focused on big features or focus areas; it may not call out each individual work item that is added to the library. 
+The MSAL.js team's roadmap is presented as near-term, mid-term, & long-term to give you a better idea of what we are currently working on, what is up next for us, and what we are considering for the future. These are not guaranteed timelines, but instead intended to provide insight into the team's current direction. The roadmap is focused on big features or focus areas; it may not call out each individual work item that is added to the library. 
 
 If you have feedback or suggestions on our roadmap, please let us know.
 
