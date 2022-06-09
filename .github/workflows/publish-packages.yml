@@ -72,7 +72,7 @@ jobs:
 
   publish-msal-core:
     permissions:
-      contents: none
+      discussions: write
     name: msal-core
     needs: pre-publish
     if: |
@@ -91,7 +91,7 @@ jobs:
 
   publish-msal-common:
     permissions:
-      contents: none
+      discussions: write
     name: msal-common
     needs: pre-publish
     if: |
@@ -107,7 +107,7 @@ jobs:
 
   publish-msal-browser:
     permissions:
-      contents: none
+      discussions: write
     name: msal-browser
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -126,7 +126,7 @@ jobs:
 
   publish-msal-node:
     permissions:
-      contents: none
+      discussions: write
     name: msal-node
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -142,7 +142,7 @@ jobs:
 
   publish-msal-angular:
     permissions:
-      contents: none
+      discussions: write
     name: msal-angular
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -158,7 +158,7 @@ jobs:
 
   publish-msal-react:
     permissions:
-      contents: none
+      discussions: write
     name: msal-react
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -174,7 +174,7 @@ jobs:
 
   publish-msal-node-extensions:
     permissions:
-      contents: none
+      discussions: write
     name: msal-node-extensions
     needs: [pre-publish, publish-msal-common]
     if: |
