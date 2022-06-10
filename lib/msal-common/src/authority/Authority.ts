@@ -273,7 +273,7 @@ export class Authority {
             return AuthorityMetadataSource.CACHE;
         }
 
-        let harcodedMetadata = await this.getEndpointMetadataFromHardcodedValues();
+        let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
@@ -356,7 +356,7 @@ export class Authority {
     /**
      * Get OAuth endpoints for common authorities.
      */
-    private async getEndpointMetadataFromHardcodedValues(): Promise<OpenIdConfigResponse | null> {
+    private getEndpointMetadataFromHardcodedValues(): OpenIdConfigResponse | null {
         if (this.canonicalAuthority in EndpointMetadata) {
             return EndpointMetadata[this.canonicalAuthority];
         }
@@ -414,7 +414,7 @@ export class Authority {
             return AuthorityMetadataSource.CACHE;
         }
 
-        const harcodedMetadata = await this.getCloudDiscoveryMetadataFromHarcodedValues();
+        const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
@@ -506,7 +506,7 @@ export class Authority {
     /**
      * Get cloud discovery metadata for common authorities 
      */
-    private async getCloudDiscoveryMetadataFromHarcodedValues(): Promise<CloudDiscoveryMetadata | null> {
+    private getCloudDiscoveryMetadataFromHarcodedValues(): CloudDiscoveryMetadata | null {
         if (this.canonicalAuthority in InstanceDiscoveryMetadata) {
             return InstanceDiscoveryMetadata[this.canonicalAuthority];
         }
