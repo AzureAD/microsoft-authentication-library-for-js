@@ -77,7 +77,7 @@ export abstract class BaseClient {
         // set Authority
         this.authority = this.config.authOptions.authority;
 
-        //set performance telemetry client
+        // set performance telemetry client
         this.performanceClient = performanceClient;
     }
 
@@ -106,7 +106,7 @@ export abstract class BaseClient {
         }
         acquireTokenMeasurement?.endMeasurement({
             success: true
-        })
+        });
         return headers;
     }
 

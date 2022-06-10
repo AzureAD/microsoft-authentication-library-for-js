@@ -32,8 +32,6 @@ import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
  * OAuth2.0 refresh token client
  */
 export class RefreshTokenClient extends BaseClient {
-
-
     constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
         super(configuration,performanceClient);
     }
@@ -154,18 +152,18 @@ export class RefreshTokenClient extends BaseClient {
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
-        .then((result) =>{
-            acquireTokenMeasurement?.endMeasurement({
-                success: true
+            .then((result) =>{
+                acquireTokenMeasurement?.endMeasurement({
+                    success: true
+                });
+                return result;
             })
-            return result;
-        })
-        .catch((error) =>{
-            acquireTokenMeasurement?.endMeasurement({
-                success: false
-            })
-            throw error;
-        });
+            .catch((error) =>{
+                acquireTokenMeasurement?.endMeasurement({
+                    success: false
+                });
+                throw error;
+            });
     }
 
     /**
