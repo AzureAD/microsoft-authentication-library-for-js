@@ -215,14 +215,14 @@ jobs:
 
     steps:
       # Checkout the code
-      - uses: actions/checkout@v2
-        # Setup node with version 12.x
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+        # Setup node with version 16.x
+      - uses: actions/setup-node@v3
 
       # Save CDN hashes
       - name: Download msal-core Artifacts
         if: needs.publish-msal-core.result == 'success'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with: 
           name: msal-core-artifacts
           path: artifacts/msal-core
@@ -235,7 +235,7 @@ jobs:
 
       - name: Download msal-browser Artifacts
         if: needs.publish-msal-browser.result == 'success'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with: 
           name: msal-browser-artifacts
           path: artifacts/msal-browser
