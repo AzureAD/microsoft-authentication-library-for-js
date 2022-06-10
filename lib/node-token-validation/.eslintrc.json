@@ -1,0 +1,15 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "modules": true
+        }
+    },
+    "plugins": [
+        "jsdoc"
+    ],
+    "extends": [
+        "plugin:jsdoc/recommended"
+    ]
+}

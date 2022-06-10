@@ -149,8 +149,9 @@ export type BaseValidationParameters = Partial<TokenValidationParameters> & {
 
 /**
  * Function that sets default options when not explicity passed in token validation parameters
- * @param params 
- * @returns 
+ *
+ * @param {TokenValidationParameters} params Token validation parameters provided 
+ * @returns {BaseValidationParameters} Validation parameters built with defaults
  */
 export function buildTokenValidationParameters(params: TokenValidationParameters): BaseValidationParameters {
     const DEFAULT_VALIDATION_PARAMS = {

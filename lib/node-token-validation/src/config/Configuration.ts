@@ -95,8 +95,8 @@ const DEFAULT_SYSTEM_OPTIONS = {
 /**
  * Function that sets default configurations when not explicitly configured
  * 
- * @param {@link (Configuration:type)} 
- * @returns 
+ * @param {Configuration} config Configuration
+ * @returns {TokenValidationConfiguration} Configuration built with defaults
  */
 export function buildConfiguration(config?: Configuration): TokenValidationConfiguration {
     return {

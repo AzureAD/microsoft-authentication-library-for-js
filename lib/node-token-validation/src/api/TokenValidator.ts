@@ -48,7 +48,8 @@ export class TokenValidator {
      * Constructor for the TokenValidator class used to instantiate the TokenValidator object.
      * 
      * The Configuration object is optional, and default configuration options will be used when configurations are not passed in.
-     * @param {@link (Configuration:type)}
+     *
+     * @param {Configuration} configuration Optional configuration object
      */
     constructor(configuration?: Configuration) {
         // Build configurations from options passed in or defaults
@@ -125,9 +126,9 @@ export class TokenValidator {
      * 
      * `validateTokenMiddleware` will also call next with any other errors that are thrown in {@link validateTokenFromRequest} and {@link validateToken}.
      * 
-     * @param {@link (TokenValidationParameters:type)}
-     * @param resource Optional resource to retrieve access token from session 
-     * @returns {TokenValidationMiddlewareResponse}
+     * @param {TokenValidationParameters} options Options for validating token
+     * @param {string} resource Optional resource to retrieve access token from session 
+     * @returns {TokenValidationMiddlewareResponse} Returns a response specifically for middleware scenarios, and will call next() when a token is found and successfully validated.
      */
     validateTokenMiddleware(options: TokenValidationParameters, resource?: string): TokenValidationMiddlewareResponse {
 
@@ -215,9 +216,9 @@ export class TokenValidator {
      * At this time, `validateTokenFromRequest` is only validating tokens from the authorization header with the authorization scheme of "Bearer".
      * Tokens extracted from the authorization header that are not "Bearer" tokens will be validated separately from the Node Token Validation library in the future.
      * 
-     * @param request 
-     * @param {@link (TokenValidationParameters:type)}
-     * @returns {Promise.<TokenValidationResponse>}
+     * @param {ExpressRequest} request Express-style request
+     * @param {TokenValidationParameters} options Options for validating token
+     * @returns {Promise.<TokenValidationResponse>} Returns a token validation response
      */
     async validateTokenFromRequest(request: ExpressRequest, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.trace("TokenValidator.validateTokenFromRequest called");
@@ -309,9 +310,10 @@ export class TokenValidator {
      * The Node Token Validation library is currently only handling bearer tokens. 
      * Other types of tokens will be validated separately from the Node Token Validation library in the future.
      * 
-     * @param response 
-     * @param {@link (TokenValidationParameters:type)}
-     * @returns {Promise.<TokenValidationResponse>}
+     * @param {AuthenticationResult} response MSAL authentication result 
+     * @param {TokenValidationParameters} idTokenOptions Options for validating id token from response
+     * @param {TokenValidationParameters} accessTokenOptions Options for validating access token from response
+     * @returns {Promise.<TokenValidationResponse[]>} Array of token validation responses
      */
     async validateTokenFromResponse(response: AuthenticationResult, idTokenOptions?: TokenValidationParameters, accessTokenOptions?: TokenValidationParameters): Promise<TokenValidationResponse[]> {
         this.logger.trace("TokenValidator.validateTokenFromResponse called");
@@ -432,9 +434,9 @@ export class TokenValidator {
      * 
      * Additional errors regarding the JWS signature or JWT claims may be thrown by the JOSE library. These errors indicate an invalid token.
      * 
-     * @param token JWT token to be validated
-     * @param {@link (TokenValidationParameters:type)}
-     * @returns {Promise.<TokenValidationResponse>}
+     * @param {string} token JWT token to be validated
+     * @param {TokenValidationParameters} options Options for validation tokens
+     * @returns {Promise.<TokenValidationResponse>} Returns token validation response
      */
     async validateToken(token: string, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.trace("TokenValidator.validateToken called");
@@ -476,11 +478,11 @@ export class TokenValidator {
     }
     
     /**
-     * @hidden
-     * 
      * Function to return JWKS (JSON Web Key Set) from parameters provided, jwks_uri provided, or from well-known endpoint.
-     * @param {@link (BaseValidationParameters:type)}
-     * @returns 
+     * 
+     * @param {BaseValidationParameters} validationParams Built validation parameters
+     * @returns {Promise<any>} Returns JWKS
+     * @ignore
      */
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getJWKS(validationParams: BaseValidationParameters): Promise<any> {
@@ -506,11 +508,11 @@ export class TokenValidator {
     }
 
     /**
-     * @hidden
-     * 
      * Function to check that validIssuers parameter is not an empty array. Throws emptyIssuerError if empty.
-     * @param {@link (BaseValidationParameters:type)}
-     * @returns 
+     * 
+     * @param {BaseValidationParameters} options Built validation parameters
+     * @returns {string[]} Returns an array of valid issuers
+     * @ignore
      */
     setIssuerParams(options: BaseValidationParameters): string[] {
         this.logger.trace("TokenValidator.setIssuerParams called");
@@ -524,11 +526,11 @@ export class TokenValidator {
     }
 
     /**
-     * @hidden
-     * 
      * Function to check that validAudiences parameter is not an empty array. Throws emptyAudience error if empty.
-     * @param {@link (BaseValidationParameters:type)} 
-     * @returns 
+     * 
+     * @param {BaseValidationParameters} options Built validation parameters
+     * @returns {string[]} Returns an array of valid audiences
+     * @ignore
      */
     setAudienceParams(options: BaseValidationParameters): string[] {
         this.logger.trace("TokenValidator.setAudienceParams called");
@@ -542,11 +544,11 @@ export class TokenValidator {
     }
 
     /**
-     * @hidden
-     * 
      * Function to check that the clockSkew configuration is a positive integer. Throws negativeClockSkew error if not.
-     * @param config 
-     * @returns 
+     * 
+     * @param {number} clockSkew Number from configuration to allow clock skew 
+     * @returns {number} Returns clock tolerance
+     * @ignore
      */
     setClockTolerance(clockSkew: number): number {
         this.logger.trace("TokenValidator.setClockTolerance called");
@@ -560,16 +562,15 @@ export class TokenValidator {
     }
  
     /**
-     * @hidden
-     * 
      * Function to validate additional claims on token, including nonce, c_hash, and at_hash. No return, throws error if invalid.
      * 
      * OIDC specification for validating nonce on id tokens: https://openid.net/specs/openid-connect-core-1_0.html#IDTokenValidation
-     * 
      * OIDC specification for c_hash and at_hash validation: https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
      * 
-     * @param payload JWT payload
-     * @param {@link (BaseValidationParameters:type)} 
+     * @param {JWTPayload} payload JWT payload
+     * @param {BaseValidationParameters} validationParams Validation parameters
+     * @returns {Promise<void>}
+     * @ignore
      */
     async validateClaims(payload: JWTPayload, validationParams: BaseValidationParameters): Promise<void> {
         this.logger.trace("TokenValidator.validateClaims called");
@@ -615,12 +616,12 @@ export class TokenValidator {
     }
 
     /**
-     * @hidden
-     * 
      * Function to check hash for c_hash and at_hash per OIDC spec, section 3.3.2.11 https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
-     * @param content 
-     * @param hashProvided 
-     * @returns 
+     * 
+     * @param {string} content Either code or access token string to be checked against hash
+     * @param {string} hashProvided C_hash or at_hash to be checked
+     * @returns {Promise<boolean>} Whether hash value matches
+     * @ignore
      */
     async checkHashValue(content: string, hashProvided: string): Promise<Boolean> {
         this.logger.trace("TokenValidator.checkHashValue called");
