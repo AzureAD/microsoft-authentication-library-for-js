@@ -311,7 +311,7 @@ export class TokenValidator {
      * @param {@link (BaseValidationParameters:type)}
      * @returns 
      */
-    private async getJWKS(validationParams: BaseValidationParameters): Promise<GetKeyFunction> {
+    async getJWKS(validationParams: BaseValidationParameters): Promise<GetKeyFunction> {
         this.logger.trace("TokenValidator.getJWKS called");
 
         // Prioritize keystore or jwksUri if provided

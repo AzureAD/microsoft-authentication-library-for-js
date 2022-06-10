@@ -1,5 +1,5 @@
 import { AuthenticationResult } from '@azure/msal-common';
-import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
+import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, KeyLike, ResolvedKey } from 'jose';
 import { mocked } from 'jest-mock';
 import { TokenValidator } from './../../src/api/TokenValidator';
 import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from './../utils/TestConstants';
@@ -10,6 +10,7 @@ import { BaseValidationParameters } from '../../src/config/TokenValidationParame
 import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
 import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
 import 'regenerator-runtime';
+import { GetKeyFunction } from '../../src/utils/JoseTypes';
 
 jest.mock('jose');
 
@@ -386,7 +387,13 @@ describe("TokenValidator", () => {
     describe("validateToken", () => {
 
         it("returns defaults", async () => {
-            const getJWKSSpy = jest.spyOn(validator, "getJWKS").mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC));
+            const keyFunction: GetKeyFunction = () => {
+                return {
+                    type: "string"
+                } as KeyLike;
+            };
+
+            const getJWKSSpy = jest.spyOn(validator, "getJWKS").mockReturnValue(Promise.resolve(keyFunction));
 
             mocked(jwtVerify).mockResolvedValue(joseMockResult);
 
@@ -400,7 +407,7 @@ describe("TokenValidator", () => {
 
             expect(getJWKSSpy).toHaveBeenCalledTimes(1);
             expect(getJWKSSpy).toHaveBeenCalledWith(defaultValidationParams);
-            expect(getJWKSSpy).toReturnWith(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC));
+            expect(getJWKSSpy).toReturnWith(Promise.resolve(keyFunction));
 
             expect(validateClaimsSpy).toHaveBeenCalledTimes(1);
             expect(validateClaimsSpy).toHaveBeenCalledWith(joseMockResult.payload, defaultValidationParams);
