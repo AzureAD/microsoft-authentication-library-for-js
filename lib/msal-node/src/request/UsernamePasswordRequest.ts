@@ -17,7 +17,7 @@ import { CommonUsernamePasswordRequest } from "@azure/msal-common";
  * - password               - credentials
  * @public
  */
-export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"username"|"password"|"requestedClaimsHash">> & {
+export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"username"|"password"|"requestedClaimsHash"|"clientAssertion">> & {
     scopes: Array<string>
     username: string,
     password: string

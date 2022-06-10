@@ -376,15 +376,6 @@ export abstract class ClientApplication {
             authRequest.requestedClaimsHash = await this.cryptoProvider.hashString(authRequest.claims);
         }
 
-        if (authRequest.clientAssertion) {
-            if (typeof authRequest.clientAssertion === "string" && !StringUtils.isEmpty(authRequest.clientAssertion)) {
-                authRequest.clientAssertion = {
-                    assertion: authRequest.clientAssertion,
-                    assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
-                };
-            }
-        }
-
         return {
             ...authRequest,
             scopes: [...((authRequest && authRequest.scopes) || []), ...OIDC_DEFAULT_SCOPES],
