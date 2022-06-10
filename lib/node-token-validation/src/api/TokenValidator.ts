@@ -18,6 +18,7 @@ import crypto from "crypto";
 import { NodeCacheManager } from "../cache/NodeCacheManager";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { SigningMethod } from "../utils/Constants";
+import { GetKeyFunction } from "../utils/JoseTypes";
 
 /**
  * The TokenValidator class is the object exposed by the library to perform token validation.
@@ -290,8 +291,7 @@ export class TokenValidator {
         return await this.verifyHelper(token, newKeyStore, jwtVerifyParams, jwks_uri);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private async getRemoteJWKS(jwks_uri?: string): Promise<any> {
+    private async getRemoteJWKS(jwks_uri?: string): Promise<GetKeyFunction> {
         this.logger.trace("TokenValidator.getRemoteJWKS called");
 
         if (jwks_uri) {
@@ -311,10 +311,9 @@ export class TokenValidator {
      * @param {@link (BaseValidationParameters:type)}
      * @returns 
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    private async getJWKS(validationParams: BaseValidationParameters): Promise<any> {
+    private async getJWKS(validationParams: BaseValidationParameters): Promise<GetKeyFunction> {
         this.logger.trace("TokenValidator.getJWKS called");
-        
+
         // Prioritize keystore or jwksUri if provided
         if (validationParams.issuerSigningKeys) {
             this.logger.verbose("TokenValidator - issuerSigningKeys provided");
