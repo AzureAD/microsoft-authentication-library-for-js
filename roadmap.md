@@ -33,7 +33,7 @@ If you have feature requests, please add a Github Issue with specifics of the [F
 
 
 ### Past
-This is not a comprehensive list of all completed features, but rather a way to note when something moved from near term to complete recently. You can view all past [Release Notes of MSAL.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/discussions/categories/releases).
+This is not a comprehensive list of all completed features, but rather a way to note when something moved from near term to complete recently. You can view all past [Release Notes of MSAL.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/releases).
 
 - Angular 13 support 
 - Rxjs 7 support 
