@@ -2,7 +2,7 @@
 
 The MSAL.js team's roadmap is presented as near-term, mid-term, & long-term to give you a better idea of what we are currently working on, what is up next for us, and what we are considering for the future. These are not guaranteed timelines, but instead intended to provide insight into the team's current direction. The roadmap is focused on big features or focus areas; it may not call out each individual work item that is added to the library. While we try to stay consistent with our plans, things can change quickly. Do not write code reliant on these features until they are officially shipped.
 
-If you have feature requests, please add a Github Issue with specifics of the [Feature Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new?assignees=&labels=feature-unconfirmed%2Cquestion&template=feature_request.yml).
+If you don't see a feature listed on the roadmap, check our [Release Notes](https://github.com/AzureAD/microsoft-authentication-library-for-js/releases) to see if it has already been released. If not, please open a [Feature Request](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new?assignees=&labels=feature-unconfirmed%2Cquestion&template=feature_request.yml).
 
 ## Terminology
 - *Near Term*: These items are well-defined and actively in development.
@@ -30,11 +30,4 @@ If you have feature requests, please add a Github Issue with specifics of the [F
 - Reducing package size 
 - Increased support for the AAD Backup Auth Services  
 - Browsers' solutions to federated identity without 3p cookie access (FedCM, Storage Access API, First Party Sets, etc) 
-
-
-### Past
-This is not a comprehensive list of all completed features, but rather a way to note when something moved from near term to complete recently. You can view all past [Release Notes of MSAL.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/releases).
-
-- Angular 13 support 
-- Rxjs 7 support 
 
