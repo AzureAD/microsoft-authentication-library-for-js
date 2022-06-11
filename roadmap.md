@@ -21,7 +21,7 @@ If you don't see a feature listed on the roadmap, check our [Release Notes](http
 - Improvements on Node documentation & samples  
 - Ivy library distribution of MSAL Angular 
 - Angular 14 support 
-- Sustainable strategy to release adoption drivers like library dependency changes  
+- Sustainable strategy for supporting new major versions of frameworks and runtimes (Angular, React, Node, etc.) and other dependencies  
   
 
 ### Long Term
