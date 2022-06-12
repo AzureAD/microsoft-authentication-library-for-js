@@ -73,5 +73,6 @@
     "tslint": "^5.20.0",
     "typescript": "^3.7.5",
     "yargs": "^17.5.1"
-  }
+  },
+  "dependencies": {}
 }
