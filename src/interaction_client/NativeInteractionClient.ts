@@ -175,7 +175,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
-        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, undefined, authorityPreferredCache, response.account.id);
+        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authorityPreferredCache, response.account.id);
         this.browserStorage.setAccount(accountEntity);
 
         // If scopes not returned in server response, use request scopes
