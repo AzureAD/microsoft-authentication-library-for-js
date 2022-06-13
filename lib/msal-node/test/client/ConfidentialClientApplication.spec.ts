@@ -111,6 +111,29 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
+    test.only('acquireTokenByClientCredential with client assertion', async () => {
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: false,
+            clientAssertion: "testAssertion"
+        };
+        setupAuthorityFactory_createDiscoveredInstance_mock();
+        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
+
+        jest.spyOn(msalCommon, 'ClientCredentialClient')
+            .mockImplementation((conf) => new MockClientCredentialClient(conf));
+
+        MockClientCredentialClient.prototype.acquireToken = jest.fn((request: msalCommon.CommonClientCredentialRequest) => {
+            expect(request.clientAssertion).not.toBe(undefined);
+            expect(request.clientAssertion?.assertion).toBe("testAssertion");
+            expect(request.clientAssertion?.assertionType).toBe("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
+            return Promise.resolve(null);
+        });
+
+        const authApp = new ConfidentialClientApplication(appConfig);
+        await authApp.acquireTokenByClientCredential(request);
+    });
+
 
 
     test('acquireTokenOnBehalfOf', async () => {
