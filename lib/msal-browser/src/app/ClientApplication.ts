@@ -733,10 +733,13 @@ export abstract class ClientApplication {
     // #endregion
 
     // #region Helpers
-
+    
     /**
      * Helper to validate app environment before making an auth request
-     * * @param interactionType
+     *
+     * @protected
+     * @param {InteractionType} interactionType What kind of interaction is being used
+     * @param {boolean} [setInteractionInProgress=true] Whether to set interaction in progress temp cache flag
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
@@ -766,11 +769,12 @@ export abstract class ClientApplication {
             this.preflightInteractiveRequest(setInteractionInProgress);
         }
     }
-
+    
     /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
+     * Preflight check for interactive requests
+     *
+     * @protected
+     * @param {boolean} setInteractionInProgress Whether to set interaction in progress temp cache flag
      */
     protected preflightInteractiveRequest(setInteractionInProgress: boolean): void {
         this.logger.verbose("preflightInteractiveRequest called, validating app environment");
