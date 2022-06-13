@@ -71,7 +71,7 @@ export const BrowserAuthErrorMessage = {
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
-        desc: "Code flow is not supported inside an iframe. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
+        desc: "Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
     },
     blockTokenRequestsInHiddenIframeError: {
         code: "block_iframe_reload",
@@ -319,7 +319,7 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when navigateWindow is called inside an iframe.
+     * Creates an error thrown when navigateWindow is called inside an iframe or brokered applications.
      * @param windowParentCheck
      */
     static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
