@@ -738,7 +738,7 @@ export abstract class ClientApplication {
      * Helper to validate app environment before making an auth request
      * * @param interactionType
      */
-    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
+    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
@@ -763,7 +763,7 @@ export abstract class ClientApplication {
         }
 
         if (interactionType === InteractionType.Redirect || interactionType === InteractionType.Popup) {
-            this.preflightInteractiveRequest();
+            this.preflightInteractiveRequest(setInteractionInProgress);
         }
     }
 
@@ -772,13 +772,15 @@ export abstract class ClientApplication {
      * @param request
      * @param interactionType
      */
-    protected preflightInteractiveRequest(): void {
+    protected preflightInteractiveRequest(setInteractionInProgress: boolean): void {
         this.logger.verbose("preflightInteractiveRequest called, validating app environment");
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Set interaction in progress temporary cache or throw if alread set.
-        this.browserStorage.setInteractionInProgress(true);
+        if (setInteractionInProgress) {
+            this.browserStorage.setInteractionInProgress(true);
+        }
     }
 
     /**
