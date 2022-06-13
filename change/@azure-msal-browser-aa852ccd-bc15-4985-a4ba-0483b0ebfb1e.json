@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "preflightBrowserEnvironmentCheck should not always set interaction in progress #4893",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
