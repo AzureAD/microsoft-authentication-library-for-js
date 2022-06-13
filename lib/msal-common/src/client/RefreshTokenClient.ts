@@ -155,7 +155,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Creates query string for the /token request
-     * @param request 
+     * @param request
      */
     private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
@@ -185,7 +185,7 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
