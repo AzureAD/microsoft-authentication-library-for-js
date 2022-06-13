@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Return correct fromCache value when tokens are acquired from native broker #4880",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

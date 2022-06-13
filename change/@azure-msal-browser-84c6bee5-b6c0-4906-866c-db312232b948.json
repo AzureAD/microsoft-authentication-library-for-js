@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update redirect_in_iframe message to include messaging for embedded applications #4895",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
