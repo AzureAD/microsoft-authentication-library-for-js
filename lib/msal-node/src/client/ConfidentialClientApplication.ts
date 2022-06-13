@@ -119,14 +119,14 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             ... await this.initializeBaseRequest(request)
         };
         try {
-            const clientCredentialConfig = await this.buildOauthClientConfiguration(
+            const onBehalfOfConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
                 undefined,
                 undefined,
                 request.azureCloudOptions
             );
-            const oboClient = new OnBehalfOfClient(clientCredentialConfig);
+            const oboClient = new OnBehalfOfClient(onBehalfOfConfig);
             this.logger.verbose("On behalf of client created", validRequest.correlationId);
             return oboClient.acquireToken(validRequest);
         } catch (e) {
