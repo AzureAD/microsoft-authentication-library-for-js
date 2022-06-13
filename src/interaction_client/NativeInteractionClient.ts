@@ -12,9 +12,9 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { NativeExtensionMethod, ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { NativeExtensionMethod, ApiId, TemporaryCacheKeys, NativeConstants } from "../utils/BrowserConstants";
 import { NativeExtensionRequestBody, NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { NativeResponse } from "../broker/nativeBroker/NativeResponse";
+import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
@@ -227,6 +227,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         }
 
+        const mats = this.getMATSFromResponse(response);
+
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
@@ -236,7 +238,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idToken: response.id_token,
             idTokenClaims: idTokenObj.claims,
             accessToken: responseAccessToken,
-            fromCache: false,
+            fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
             tokenType: responseTokenType,
             correlationId: this.correlationId,
@@ -269,6 +271,37 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } else {
             throw NativeAuthError.createUnexpectedError("Response missing expected properties.");
         }
+    }
+
+    /**
+     * Gets MATS telemetry from native response
+     * @param response 
+     * @returns 
+     */
+    private getMATSFromResponse(response: NativeResponse): MATS|null {
+        if (response.properties.MATS) {
+            try {
+                return JSON.parse(response.properties.MATS);
+            } catch (e) {
+                this.logger.error("NativeInteractionClient - Error parsing MATS telemetry, returning null instead");
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns whether or not response came from native cache
+     * @param response 
+     * @returns 
+     */
+    private isResponseFromCache(mats: MATS): boolean {
+        if (typeof mats.is_cached === "undefined") {
+            this.logger.verbose("NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false.");
+            return false;
+        }
+
+        return !!mats.is_cached;
     }
 
     /**
@@ -310,9 +343,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
             windowTitleSubstring: document.title,
             extraParameters: {
                 ...request.extraQueryParameters,
-                ...request.tokenQueryParameters
+                ...request.tokenQueryParameters,
+                telemetry: NativeConstants.MATS_TELEMETRY
             },
             extendedExpiryToken: false // Make this configurable?
+            
         };
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
