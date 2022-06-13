@@ -225,6 +225,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         }
 
+        const mats = this.getMATSFromResponse(response);
+
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
@@ -234,7 +236,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idToken: response.id_token,
             idTokenClaims: idTokenObj.claims,
             accessToken: responseAccessToken,
-            fromCache: this.isResponseFromCache(response),
+            fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
             tokenType: responseTokenType,
             correlationId: this.correlationId,
@@ -291,11 +293,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response 
      * @returns 
      */
-    private isResponseFromCache(response: NativeResponse): boolean {
-        const mats = this.getMATSFromResponse(response);
-
-        if (!mats || typeof mats.is_cached === "undefined") {
-            this.logger.verbose("NativeInteractionClient - MATS telemetry not found in response or it does not contain field indicating if response was served from cache. Returning false.");
+    private isResponseFromCache(mats: MATS): boolean {
+        if (typeof mats.is_cached === "undefined") {
+            this.logger.verbose("NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false.");
             return false;
         }
 
