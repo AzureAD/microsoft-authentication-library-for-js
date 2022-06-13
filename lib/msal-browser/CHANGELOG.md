@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 06 Jun 2022 22:13:00 GMT and should not be manually modified.
+This log was last generated on Mon, 13 Jun 2022 22:28:09 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.26.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Minor changes
+
+- Add errorCode and subErrorCode to client telemetry events (#4863) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v7.0.0
+
+### Patches
+
+- Add strict assertion checks for OBO clients (#4691) (bmahal@microsoft.com)
+- Update redirect_in_iframe message to include messaging for embedded applications #4895 (janutter@microsoft.com)
+- preflightBrowserEnvironmentCheck should not always set interaction in progress #4893 (janutter@microsoft.com)
+- Return correct fromCache value when tokens are acquired from native broker #4880 (thomas.norling@microsoft.com)
 
 ## 2.25.0
 

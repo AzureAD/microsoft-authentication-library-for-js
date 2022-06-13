@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 06 Jun 2022 22:13:00 GMT and should not be manually modified.
+This log was last generated on Mon, 13 Jun 2022 22:28:09 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.0.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Major changes
+
+- Add strict assertion checks for OBO  (#4691) (bmahal@microsoft.com)
+
+### Minor changes
+
+- Fix ClientAssertion configuration typing between common and node #4846 (hemoral@microsoft.com)
+- Add errorCode and subErrorCode to performance telemetry events (#4863) (sameera.gajjarapu@microsoft.com)
 
 ## 6.4.0
 
