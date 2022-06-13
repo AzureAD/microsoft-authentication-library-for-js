@@ -25,7 +25,8 @@ export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthEr
 export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
 
 // Interfaces
-export { IPublicClientApplication, stubbedPublicClientApplication } from "./app/IPublicClientApplication";
+export { stubbedPublicClientApplication } from "./app/IPublicClientApplication";
+export { IPublicClientApplication } from "./interfaces/IPublicClientApplication";
 export { INavigationClient } from "./navigation/INavigationClient";
 export { NavigationClient } from "./navigation/NavigationClient";
 export { NavigationOptions } from "./navigation/NavigationOptions";

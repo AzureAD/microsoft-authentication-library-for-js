@@ -6,7 +6,7 @@
 import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
-import { IPublicClientApplication } from "./IPublicClientApplication";
+import { IPublicClientApplication } from "../interfaces/IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
