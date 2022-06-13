@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Add strict assertion checks for OBO  (#4691)",
+  "packageName": "@azure/msal-common",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "none"
+}
