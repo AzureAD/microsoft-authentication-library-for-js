@@ -27,7 +27,6 @@ import { AuthenticationScheme, CredentialType } from "../../src/utils/Constants"
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ScopeSet } from "../../src/request/ScopeSet";
 
-
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
 testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
@@ -37,28 +36,25 @@ testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
 
-
 const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
-testAccessTokenEntity.homeAccountId = `home_account_id`;
-testAccessTokenEntity.clientId = 'client_id';
-testAccessTokenEntity.environment = 'env';
-testAccessTokenEntity.realm = 'this_is_tid';
-testAccessTokenEntity.secret = 'access_token'
+testAccessTokenEntity.homeAccountId = "home_account_id";
+testAccessTokenEntity.clientId = "client_id";
+testAccessTokenEntity.environment = "env";
+testAccessTokenEntity.realm = "this_is_tid";
+testAccessTokenEntity.secret = "access_token"
 testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ") + " " + TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
 testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
 testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
 testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 testAccessTokenEntity.userAssertionHash = "user_assertion_hash";
 
-
 const testIdToken: IdTokenEntity = new IdTokenEntity();
-testIdToken.homeAccountId = `home_account_id`;
-testIdToken.clientId = 'client_id_for_id_token';
-testIdToken.environment = 'env_id_token';
-testIdToken.realm = 'this_is_tid_id_token';
-testIdToken.secret = 'id_token';
+testIdToken.homeAccountId = "home_account_id";
+testIdToken.clientId = "client_id_for_id_token";
+testIdToken.environment = "env_id_token";
+testIdToken.realm = "this_is_tid_id_token";
+testIdToken.secret = "id_token";
 testIdToken.credentialType = CredentialType.ID_TOKEN;
-
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;
@@ -109,8 +105,6 @@ describe("OnBehalfOf unit tests", () => {
 
     afterEach(() => {
         sinon.restore();
-
-
     });
 
     describe("Constructor", () => {
@@ -122,7 +116,6 @@ describe("OnBehalfOf unit tests", () => {
             expect(client instanceof BaseClient).toBe(true);
         });
     });
-
 
     describe("OnBehalfOfClient.ts Class Unit Tests", () => {
 
@@ -149,10 +142,9 @@ describe("OnBehalfOf unit tests", () => {
             sinon.stub(CacheManager.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
-
             sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns({
                 idTokens: {},
-                accessTokens: { 'foo': testAccessTokenEntity },
+                accessTokens: { "foo": testAccessTokenEntity },
                 refreshTokens: {},
             });
 
@@ -164,7 +156,7 @@ describe("OnBehalfOf unit tests", () => {
             expect(authResult.fromCache).toBe(true);
             expect(authResult.account!.homeAccountId).toBe(expectedAccountEntity.homeAccountId);
             expect(authResult.account!.environment).toBe(expectedAccountEntity.environment);
-            expect(authResult.account!.tenantId).toBe(expectedAccountEntity.realm);     
+            expect(authResult.account!.tenantId).toBe(expectedAccountEntity.realm);
         });
     });
 });
