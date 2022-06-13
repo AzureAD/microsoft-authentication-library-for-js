@@ -962,7 +962,8 @@ export class BrowserCacheManager extends CacheManager {
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
         if (inProgress) {
-            if (this.getInteractionInProgress()) {
+            // For pairwise broker, ensure same frame embedded app can invoke interaction, as both instances will set this flag
+            if (this.isInteractionInProgress(true)) {
                 throw BrowserAuthError.createInteractionInProgressError();
             } else {
                 // No interaction is in progress

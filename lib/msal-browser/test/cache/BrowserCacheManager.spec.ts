@@ -236,6 +236,17 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAccount(testAccount.generateAccountKey())).toEqual(testAccount);
                     expect(browserLocalStorage.getAccount(testAccount.generateAccountKey())).toBeInstanceOf(AccountEntity);
                 });
+
+                it("setInteractionInProgress doesnt throw for different clientids", () => {
+                    // Test needed for same frame pairwise broker scenarios
+                    const cacheManager1 = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+
+                    // Use tenant_id as fake client id
+                    const cacheManager2 = new BrowserCacheManager(TEST_CONFIG.MSAL_TENANT_ID, cacheConfig, browserCrypto, logger);
+
+                    cacheManager1.setInteractionInProgress(true);
+                    cacheManager2.setInteractionInProgress(true);
+                });
             });
 
             describe("IdTokenCredential", () => {
