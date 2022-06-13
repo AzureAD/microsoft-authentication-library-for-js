@@ -304,6 +304,7 @@ describe("Storage tests for msal-node: ", () => {
             testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
             testObj.aliasesFromNetwork = false;
             testObj.endpointsFromNetwork = false;
+            testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
 
             it("getAuthorityMetadata() returns null if key is not in cache", () => {
                 const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
