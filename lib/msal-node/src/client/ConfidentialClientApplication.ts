@@ -6,7 +6,7 @@
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
-import { ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
+import { Constants as NodeConstants, ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
@@ -59,14 +59,27 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByClientCredential called", request.correlationId);
+
+        // If there is a client assertion present in the request, it overrides the one present in the client configuration
+        let clientAssertion;
+        if (request.clientAssertion) {
+            clientAssertion = {
+                assertion: request.clientAssertion,
+                assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
+            };
+        }
+
         const validRequest: CommonClientCredentialRequest = {
             ...request,
-            ... await this.initializeBaseRequest(request)
+            ...await this.initializeBaseRequest(request),
+            clientAssertion
         };
+
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE]
         };
+        
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
@@ -125,7 +138,6 @@ export class ConfidentialClientApplication extends ClientApplication implements 
     }
 
     private setClientCredential(configuration: Configuration): void {
-
         const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
         const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
         const certificate = configuration.auth.clientCertificate || {
