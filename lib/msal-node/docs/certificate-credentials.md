@@ -4,7 +4,7 @@
 
 You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be a:
 
-* `clientSecret`: a secret string generated on the app registration.
+* `clientSecret`: a secret string generated during the app registration, or updated post registration for an existing application.
 * `clientCertificate`: a certificate set on the app registration. The `thumbprint` is a *X.509 SHA-1* thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 * `clientAssertion`: a string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type `urn:ietf:params:oauth:client-assertion-type:jwt-bearer`.
 
@@ -16,7 +16,7 @@ This section covers creating a self-signed certificate and initializing a confid
 
 Download and build **OpenSSL** for your **OS** following the guide at [github.com/openssl](https://github.com/openssl/openssl#build-and-install). If you like to skip building and get a binary distributable from the community instead, check the [OpenSSL Wiki: Binaries](https://wiki.openssl.org/index.php/Binaries) page.
 
-Afterwards, add the path to `OpenSSL` to your **environment variables** so that you can call it from anywhere.
+Afterwards, add the path to **OpenSSL** to your **environment variables** so that you can call it from anywhere.
 
 Type the following in a terminal. You will be prompted to enter a *pass phrase* (this is optional, but recommended):
 
@@ -24,8 +24,8 @@ Type the following in a terminal. You will be prompted to enter a *pass phrase* 
     openssl req -x509 -newkey rsa:2048 -keyout example.key -out example.crt -subj "/CN=example.com"
 ```
 
-> :bulb: Add the *-nodes* parameter above if you don't want to encrypt your private key with a *pass phrase*.
-> :bulb: By default, the self signed certificate will be valid for 32 days. Use the *-days* parameter to specify another number.
+> :bulb: Add the `-nodes` parameter above if you don't want to encrypt your private key with a *pass phrase*.
+> :bulb: The default lifetime of a self-signed certificate is 32 days. The `-days` parameter can be used to change this.
 
 In your terminal, you should see:
 
@@ -41,8 +41,8 @@ In your terminal, you should see:
 
 After that, the following files should be generated:
 
-* `example.crt`: your public key. This is the actual certificate file that you'll upload to Azure AD.
-* `example.key`: your private key.
+* *example.crt*: your public key. This is the actual certificate file that you'll upload to Azure AD.
+* *example.key*: your private key.
 
 > Powershell users can run the [New-SelfSignedCertificate](https://docs.microsoft.com/powershell/module/pkiclient/new-selfsignedcertificate?view=win10-ps) command:
 >
@@ -50,7 +50,7 @@ After that, the following files should be generated:
 >$cert=New-SelfSignedCertificate -Subject "CN=example.com" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
 >```
 >
-> This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key, usually formatted in *PKCS#12*).
+> This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key, usually formatted in *PKCS#12*). For more information, see: [Create a self-signed public certificate to authenticate your application](https://docs.microsoft.com/azure/active-directory/develop/howto-create-self-signed-certificate)
 
 > :information_source: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, you can use *OpenSSL*. See below for [pfx to pem conversion](#optional-converting-pfx-to-pem). For other type of conversions, please refer to: [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
 
@@ -95,7 +95,7 @@ z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
 -----END ENCRYPTED PRIVATE KEY-----
 ```
 
-> :information_source: Alternatively, your private key may begin with `-----BEGIN PRIVATE KEY-----` (unencrypted *PKCS#8*) or `-----BEGIN RSA PRIVATE KEY-----` (*PKCS#1*). These formats are also permissible. If you need, you can ensure that your private key is in *PKCS#8* format by typing:
+> :information_source: Alternatively, your private key may begin with `-----BEGIN PRIVATE KEY-----` (unencrypted *PKCS#8*) or `-----BEGIN RSA PRIVATE KEY-----` (*PKCS#1*). These formats are also permissible. The following can be used to convert any compatible key to the PKCS#8 key type:
 >
 > ```bash
 > openssl pkcs8 -topk8 -inform PEM -outform PEM -in example.key -out example.key
@@ -123,7 +123,7 @@ const privateKey = privateKeyObject.export({
 
 ### (Optional) Converting pfx to pem
 
-OpenSSL can be used for converting `pfx` encoded certificate files to `pem`:
+OpenSSL can be used for converting *pfx* encoded certificate files to *pem*:
 
 ```bash
     openssl pkcs12 -in certificate.pfx -out certificate.pem
@@ -179,7 +179,7 @@ You'll also need to add your self-signed certificates to the *credential manager
 
 * For Windows users, follow the guide here: [How to: View certificates with the MMC snap-in](https://docs.microsoft.com/dotnet/framework/wcf/feature-details/how-to-view-certificates-with-the-mmc-snap-in).
 
-* For Linux and MacOS users, use community guides -with judgment- to learn about how to install certificates.
+* For Linux and MacOS users, please consult your operating system documentation on how to install certificates.
 
 > :warning: You might need **administrator** privileges for running the commands above.
 
@@ -207,7 +207,7 @@ bZq7B+njvcVa7SsWF/WLq5AUbw==
 -----END CERTIFICATE-----
 ```
 
-In such cases, you are responsible for cleaning the strings before you pass them to MSAL Node configuration. For instance:
+In such cases, you are responsible for cleaning the string before you pass them to MSAL Node configuration. For instance:
 
 ```javascript
 const msal = require('@azure/msal-node');
@@ -234,3 +234,5 @@ const cca = new msal.ConfidentialClientApplication(config);
 ## More Information
 
 * [Microsoft identity platform application authentication certificate credentials](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials)
+* [Create a self-signed public certificate to authenticate your application](https://docs.microsoft.com/azure/active-directory/develop/howto-create-self-signed-certificate)
+* [Various SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions)
