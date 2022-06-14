@@ -16,6 +16,10 @@ export const JsonWebEncryptionErrorMessage = {
     headerAlgorithmMismatch: {
         code: "header_algorithm_mismatch",
         desc: "Algorithm with the following label in JOSE Header doesn't match supported key algorithms"
+    },
+    unsupportedJweType: {
+        code: "unsupported_jwe_type",
+        desc: "Unsupported JWE type"
     }
 };
 
@@ -45,5 +49,10 @@ export class JsonWebEncryptionError extends AuthError {
         return new JsonWebEncryptionError(
             JsonWebEncryptionErrorMessage.headerAlgorithmMismatch.code,
             `${JsonWebEncryptionErrorMessage.headerAlgorithmMismatch.desc}: ${label}`);
+    }
+
+    static createUnsupportedJweTypeError(unsupportedType: string, supportedTypes: Array<string>): JsonWebEncryptionError {
+        return new JsonWebEncryptionError(JsonWebEncryptionErrorMessage.unsupportedJweType.code,
+            `${JsonWebEncryptionErrorMessage.unsupportedJweType.desc}: "${unsupportedType}". Supported JWE types are: ${supportedTypes.join(", ")}`);
     }
 }

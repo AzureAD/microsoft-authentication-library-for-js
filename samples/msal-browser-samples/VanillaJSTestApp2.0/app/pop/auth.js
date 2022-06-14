@@ -66,7 +66,7 @@ async function getPopToken() {
         return getTokenPopup(popTokenRequest, currentAcc).then(response => {
             const popToken = response.accessToken;
             if (popToken) {
-                showPopTokenAcquired();
+                showPopTokenAcquired(popToken);
                 return popToken;
             }
         }).catch(error => {

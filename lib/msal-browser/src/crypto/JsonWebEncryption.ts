@@ -3,24 +3,22 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "@azure/msal-common";
+import { JoseHeader, JweHeader, StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
-
-export type JoseHeader = {
-    alg: string,
-    enc: string,
-    ctx: string,
-    label: string
-};
 
 export type UnwrappingAlgorithmPair = {
     decryption: string,
     encryption: string
 };
 
-const KEY_ALGORITHM_MAP: StringDict = {
+export enum JweTypes {
+    SessionKey = "session_key",
+    Response = "response"
+}
+
+const KeyAlgorithmMap: StringDict = {
     "RSA-OAEP-256": Algorithms.RSA_OAEP,
     "A256GCM": Algorithms.AES_GCM,
     "dir": Algorithms.DIRECT
@@ -36,16 +34,17 @@ const KEY_ALGORITHM_MAP: StringDict = {
  */
 
 export class JsonWebEncryption {
-    private header: JoseHeader;
+    private header: JweHeader;
     private encryptedKey: string;
     private initializationVector: string;
     private ciphertext: string;
     private authenticationTag: string;
     private unwrappingAlgorithms: UnwrappingAlgorithmPair;
+    private type?: JweTypes;
 
-    constructor(rawJwe: string) {
+    constructor(rawJwe: string, type?: JweTypes) {
         const jweComponents = rawJwe.split(".");
-        this.header = this.parseJweProtectedHeader(jweComponents[0]);
+        this.header = this.parseJweProtectedHeader(jweComponents[0], type);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
         this.encryptedKey = this.decodeElement(jweComponents[1]);
         this.initializationVector = this.decodeElement(jweComponents[2]);
@@ -53,13 +52,35 @@ export class JsonWebEncryption {
         this.authenticationTag = this.decodeElement(jweComponents[4]);
     }
     
-    get protectedHeader(): JoseHeader {
+    get protectedHeader(): JweHeader {
         return this.header;
     }
 
     /**
+     * Decodes the authenticated data vector into a Uint8Array
+     * @param encodedAuthenticatedData
+     * @returns 
+     */
+    private getAuthenticatedData(encodedAuthenticatedData: string): Uint8Array {
+        const length = encodedAuthenticatedData.length;
+        const data = new Uint8Array(length);
+
+        // Maps authenticaed data string into unicode byte array
+        for (let charIndex = 0; charIndex < length; charIndex++) {
+            /**
+             * Decode character at index and truncate to the
+             * last 8 bits (& 255) before assigning since
+             * it's a Uint8 Array
+             */
+            data[charIndex] = encodedAuthenticatedData.charCodeAt(charIndex) & 255;
+        }
+
+        return data;
+    }
+
+    /**
      * Unwrapping a JWE encrypted key is done in two steps:
-     *  1. Decrypt the base64Url decode encrypted key component using the algorithm
+     *  1. Decrypt the base64Url encoded encrypted key component using the algorithm
      *     specified in the "alg" attribute of the JWE header
      *  2. Import the result of previous step as a CryptoKey, setting the key algorithm to the one
      *     specified in the "enc" attribute of the JWE header
@@ -83,12 +104,25 @@ export class JsonWebEncryption {
             keyUsages);
     }
 
-    private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
+    /**
+     * Decodes and parses the JOSE header out of the JWE
+     * https://datatracker.ietf.org/doc/html/rfc7516#section-4
+     * @param encodedHeader 
+     */
+    private parseJweProtectedHeader(encodedHeader: string, jweType?: JweTypes): JweHeader {
         const decodedHeader = this.decodeElement(encodedHeader);
         try {
-            return JSON.parse(decodedHeader);
+            const jweHeaderOptions = JSON.parse(decodedHeader);
+            switch (jweType) {
+                case JweTypes.SessionKey:
+                    return JoseHeader.getSessionKeyJweHeader(jweHeaderOptions);
+                case JweTypes.Response:
+                    return JoseHeader.getResponseJweHeader(jweHeaderOptions);
+                default:
+                    throw JsonWebEncryptionError.createUnsupportedJweTypeError(jweType || "undefined", Object.values(JweTypes));
+            }
         } catch (error) {
-            throw JsonWebEncryptionError.createJweHeaderNotParsedError();
+            throw error;
         }
     }
 
@@ -100,7 +134,7 @@ export class JsonWebEncryption {
     }
 
     private matchKeyAlgorithm(label: string): string {
-        const matchedAlgorithm = KEY_ALGORITHM_MAP[label];
+        const matchedAlgorithm = KeyAlgorithmMap[label];
 
         if (matchedAlgorithm) {
             return matchedAlgorithm;

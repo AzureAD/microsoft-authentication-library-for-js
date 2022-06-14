@@ -7,7 +7,7 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
 import { Logger } from "..";
-
+import { Constants } from "@azure/msal-common";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -189,11 +189,11 @@ export class BrowserCrypto {
                 const resultBuffer: ArrayBuffer = e.target.result;
 
                 const resultString = BrowserStringUtils.utf8ArrToString(new Uint8Array(resultBuffer))
-                    .replace(/\r/g, "")
-                    .replace(/\n/g, "")
-                    .replace(/\t/g, "")
-                    .split(" ").join("")
-                    .replace("\u0000", "");
+                    .replace(/\r/g, Constants.EMPTY_STRING)
+                    .replace(/\n/g, Constants.EMPTY_STRING)
+                    .replace(/\t/g, Constants.EMPTY_STRING)
+                    .split(" ").join(Constants.EMPTY_STRING)
+                    .replace("\u0000", Constants.EMPTY_STRING);
 
                 try {
                     resolve(JSON.parse(resultString));

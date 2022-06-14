@@ -4,10 +4,11 @@
  */
 
 import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
-import { BrowserAuthError } from "..";
+import { ResponseJweHeader } from "@azure/msal-common/dist/crypto/JoseHeader";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Algorithms, CryptoKeyFormats, CryptoKeyUsageSets, KeyDerivationLabels, Lengths } from "../utils/CryptoConstants";
-import { CryptoKeyStore } from "./CryptoOps";
-import { JsonWebEncryption } from "./JsonWebEncryption";
+import { CryptoKeyStore } from "../cache/CryptoKeyStore";
+import { JsonWebEncryption, JweTypes } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
 
 /**
@@ -23,8 +24,8 @@ export class BoundTokenResponse {
     private keyId: string;
 
     constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: CryptoKeyStore) {
-        this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
-        this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
+        this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe, JweTypes.SessionKey);
+        this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe, JweTypes.Response);
         this.keyDerivation = new KeyDerivation(Lengths.derivedKey, Lengths.prfOutput, Lengths.kdfCounter);
         this.keyStore = keyStore;
 
@@ -67,11 +68,13 @@ export class BoundTokenResponse {
             unwrappingKey,
             CryptoKeyUsageSets.RefreshTokenBinding.DerivationKey
         );
+
+        const responseJweHeader = this.responseJwe.protectedHeader as ResponseJweHeader;
         
         // Derive Session Key
         const sessionKeyBytes = await this.keyDerivation.computeKDFInCounterMode(
             contentEncryptionKey,
-            this.responseJwe.protectedHeader.ctx,
+            responseJweHeader.ctx,
             KeyDerivationLabels.DECRYPTION
         );
 

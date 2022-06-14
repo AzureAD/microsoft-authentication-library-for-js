@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "useMsalAuthentication hook acquires a token if user is already signed in #4280",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

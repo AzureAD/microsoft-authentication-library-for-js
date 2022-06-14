@@ -4,7 +4,7 @@ import {
 } from '../../src/config/Configuration';
 import { HttpClient } from '../../src/network/HttpClient';
 import { TEST_CONSTANTS, AUTHENTICATION_RESULT } from '../utils/TestConstants';
-import { Authority, AuthorityFactory, LogLevel, NetworkRequestOptions, AuthToken } from '@azure/msal-common';
+import { Authority, AuthorityFactory, LogLevel, NetworkRequestOptions, AuthToken, AzureCloudInstance } from '@azure/msal-common';
 import { ClientCredentialRequest, ConfidentialClientApplication } from '../../src';
 
 describe('ClientConfiguration tests', () => {
@@ -66,7 +66,13 @@ describe('ClientConfiguration tests', () => {
 
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+        expect(config.auth!.azureCloudOptions?.azureCloudInstance).toEqual(AzureCloudInstance.None);
+        expect(config.auth!.azureCloudOptions?.tenant).toEqual("");
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+
+        // telemetry
+        expect(config.telemetry!.application!.appName).toEqual("");
+        expect(config.telemetry!.application!.appVersion).toEqual("");
     });
 
     test('builds configuration and assigns default functions', () => {
@@ -114,6 +120,12 @@ describe('ClientConfiguration tests', () => {
                 },
             },
             cache: {},
+            telemetry: {
+                application: {
+                    appName: TEST_CONSTANTS.APP_NAME,
+                    appVersion: TEST_CONSTANTS.APP_VERSION
+                }
+            }
         };
 
         const testNetworkOptions: NetworkRequestOptions = {
@@ -142,6 +154,10 @@ describe('ClientConfiguration tests', () => {
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+
+        // Application telemetry
+        expect(config.telemetry!.application!.appName).toEqual(TEST_CONSTANTS.APP_NAME);
+        expect(config.telemetry!.application!.appVersion).toEqual(TEST_CONSTANTS.APP_VERSION);
     });
 
     test('client capabilities are handled as expected', async () => {
@@ -182,9 +198,9 @@ describe('ClientConfiguration tests', () => {
 
         jest.spyOn(AuthorityFactory, 'createDiscoveredInstance').mockReturnValue(Promise.resolve(authority));
         jest.spyOn(AuthToken, 'extractTokenClaims').mockReturnValue({});
-        
+
         await (new ConfidentialClientApplication(appConfig)).acquireTokenByClientCredential(request);
-        
+
         expect(appConfig.system?.networkClient?.sendPostRequestAsync).toHaveBeenCalledWith(
             undefined,
             expect.objectContaining(

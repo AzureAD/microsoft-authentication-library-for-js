@@ -106,7 +106,8 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers
+                headers: headers,
+                proxyUrl: this.config.systemOptions.proxyUrl
             });
 
         return {
@@ -237,6 +238,7 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
         requestParameters.addLibraryInfo(this.config.libraryInfo);
+        requestParameters.addApplicationTelemetry(this.config.telemetry.application);
         requestParameters.addThrottling();
         
         if (this.serverTelemetryManager) {

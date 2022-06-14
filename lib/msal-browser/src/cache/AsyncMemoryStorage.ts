@@ -17,16 +17,20 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
     private logger: Logger;
+    private storeName: string;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, storeName: string) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
         this.logger = logger;
+        this.storeName = storeName;
     }
 
     private handleDatabaseAccessError(error: unknown): void {
         if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.databaseUnavailable.code) {
             this.logger.error("Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.");
+        } else {
+            throw error;
         }
     }
     /**
@@ -112,12 +116,24 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     /**
      * Clears in-memory Map and tries to delete the IndexedDB database.
      */
-    async clear(): Promise<void> {
+    async clear(): Promise<boolean> {
+        // InMemory cache is a Map instance, clear is straightforward
+        this.logger.verbose(`Deleting in-memory keystore ${this.storeName}`);
         this.inMemoryCache.clear();
+        this.logger.verbose(`In-memory keystore ${this.storeName} deleted`);
+        this.logger.verbose(`Deleting persistent keystore ${this.storeName}`);
+        
         try {
-            await this.indexedDBCache.deleteDatabase();
+            const dbDeleted = await this.indexedDBCache.deleteDatabase();
+            
+            if (dbDeleted) {
+                this.logger.verbose(`Persistent keystore ${this.storeName} deleted`);
+            }
+            
+            return dbDeleted;
         } catch (e) {
             this.handleDatabaseAccessError(e);
+            return false;
         }
     }
 }

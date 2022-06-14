@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType , CredentialType, CacheOutcome } from "../utils/Constants";
+import { GrantType , CredentialType, CacheOutcome, Constants } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
@@ -88,7 +88,7 @@ export class ClientCredentialClient extends BaseClient {
      */
     private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
-            homeAccountId: "",
+            homeAccountId: Constants.EMPTY_STRING,
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
@@ -164,6 +164,7 @@ export class ClientCredentialClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
 
         parameterBuilder.addThrottling();
         
@@ -178,8 +179,10 @@ export class ClientCredentialClient extends BaseClient {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
         }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
+        // Use clientAssertion from request, fallback to client assertion in base configuration
+        const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
+
+        if (clientAssertion) {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }

@@ -2,42 +2,19 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import { 
+import {
     PublicClientApplication,
-    Configuration,
     LogLevel,
     AccountInfo,
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    SilentFlowRequest, 
-    CryptoProvider} from "@azure/msal-node";
-import { AuthCodeListener } from "./AuthCodeListener";
+    SilentFlowRequest,
+    CryptoProvider
+} from "@azure/msal-node";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
-import { CustomFileProtocolListener } from "./CustomFileProtocol";
-
-// Change this to load the desired MSAL Client Configuration
-import * as APP_CONFIG from "./config/customConfig.json";
-
-// Redirect URL registered in Azure PPE Lab App
-const CUSTOM_FILE_PROTOCOL_NAME = APP_CONFIG.fileProtocol.name;
-
-const MSAL_CONFIG: Configuration = {
-    auth: APP_CONFIG.authOptions,
-    cache: {
-        cachePlugin
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Info,
-        }
-    }
-};
+import { CustomProtocolListener } from "./CustomProtocolListener";
 
 export default class AuthProvider {
 
@@ -47,9 +24,27 @@ export default class AuthProvider {
     private authCodeRequest: AuthorizationCodeRequest;
     private silentProfileRequest: SilentFlowRequest;
     private silentMailRequest: SilentFlowRequest;
-    private authCodeListener: AuthCodeListener;
-    constructor() {
-        this.clientApplication = new PublicClientApplication(MSAL_CONFIG);
+    private authConfig: any;
+
+    constructor(authConfig: any) {
+        this.authConfig = authConfig
+
+        this.clientApplication = new PublicClientApplication({
+            auth: this.authConfig.authOptions,
+            cache: {
+                cachePlugin: cachePlugin(this.authConfig.cache.cacheLocation)
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback(loglevel, message, containsPii) {
+                        console.log(message);
+                    },
+                    piiLoggingEnabled: false,
+                    logLevel: LogLevel.Info,
+                }
+            }
+        });
+
         this.account = null;
         this.setRequestObjects();
     }
@@ -58,20 +53,35 @@ export default class AuthProvider {
         return this.account;
     }
 
+    // Creates a "popup" window for interactive authentication
+    private static async createAuthWindow(): Promise<BrowserWindow> {
+        const popupWindow = new BrowserWindow({
+            width: 400,
+            height: 600,
+        });
+
+        // if the app is run by test automation, clear the cache
+        if (process.env.automation === "1") {
+            await popupWindow.webContents.session.clearStorageData();
+        }
+
+        return popupWindow;
+    }
+
     /**
      * Initialize request objects used by this AuthModule.
      */
     private setRequestObjects(): void {
 
         const baseSilentRequest = {
-            account: null, 
+            account: null,
             forceRefresh: false
         };
 
-        this.authCodeUrlParams = APP_CONFIG.request.authCodeUrlParameters;
+        this.authCodeUrlParams = this.authConfig.request.authCodeUrlParameters;
 
         this.authCodeRequest = {
-            ...APP_CONFIG.request.authCodeRequest,
+            ...this.authConfig.request.authCodeRequest,
             code: null
         };
 
@@ -86,69 +96,75 @@ export default class AuthProvider {
         };
     }
 
-    async getProfileToken(authWindow: BrowserWindow): Promise<string> {
-        return await this.getToken(authWindow, this.silentProfileRequest);
+    async getProfileToken(): Promise<string> {
+        return await this.getToken(this.silentProfileRequest);
     }
 
-    async getMailToken(authWindow: BrowserWindow): Promise<string> {
-        return await this.getToken(authWindow, this.silentMailRequest);
+    async getMailToken(): Promise<string> {
+        return await this.getToken(this.silentMailRequest);
     }
 
-    async getToken(authWindow: BrowserWindow, request: SilentFlowRequest): Promise<string> {
+    async getToken(request: SilentFlowRequest): Promise<string> {
         let authResponse: AuthenticationResult;
         const account = this.account || await this.getAccount();
         if (account) {
             request.account = account;
-            authResponse = await this.getTokenSilent(authWindow, request);
+            authResponse = await this.getTokenSilent(request);
         } else {
-            const authCodeRequest = {...this.authCodeUrlParams, ...request };
-            authResponse = await this.getTokenInteractive(authWindow, authCodeRequest);
+            const authCodeRequest = { ...this.authCodeUrlParams, ...request };
+            authResponse = await this.getTokenInteractive(authCodeRequest);
         }
 
         return authResponse.accessToken || null;
     }
 
-    async getTokenSilent(authWindow: BrowserWindow, tokenRequest: SilentFlowRequest): Promise<AuthenticationResult> {
+    async getTokenSilent(tokenRequest: SilentFlowRequest): Promise<AuthenticationResult> {
         try {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
             console.log("Silent token acquisition failed, acquiring token using pop up");
-            const authCodeRequest = {...this.authCodeUrlParams, ...tokenRequest };
-            return await this.getTokenInteractive(authWindow, authCodeRequest);
+            const authCodeRequest = { ...this.authCodeUrlParams, ...tokenRequest };
+            return await this.getTokenInteractive(authCodeRequest);
         }
     }
 
-    async getTokenInteractive(authWindow: BrowserWindow, tokenRequest: AuthorizationUrlRequest ): Promise<AuthenticationResult> {
+    async getTokenInteractive(tokenRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         // Generate PKCE Challenge and Verifier before request
         const cryptoProvider = new CryptoProvider();
         const { challenge, verifier } = await cryptoProvider.generatePkceCodes();
+        const authWindow = await AuthProvider.createAuthWindow();
 
         // Add PKCE params to Auth Code URL request
-        const authCodeUrlParams = { 
+        const authCodeUrlParams = {
             ...this.authCodeUrlParams,
             scopes: tokenRequest.scopes,
             codeChallenge: challenge,
-            codeChallengeMethod: "S256" 
+            codeChallengeMethod: "S256"
         };
 
-        // Get Auth Code URL
-        const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
+        try {
+            // Get Auth Code URL
+            const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
 
-        // Set up custom file protocol to listen for redirect response
-        this.authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
-        this.authCodeListener.start();
-        const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
+            const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
 
-        // Use Authorization Code and PKCE Code verifier to make token request
-        return await this.clientApplication.acquireTokenByCode({
-            ...this.authCodeRequest,
-            code: authCode,
-            codeVerifier: verifier
-        });
+            // Use Authorization Code and PKCE Code verifier to make token request
+            const authResult: AuthenticationResult = await this.clientApplication.acquireTokenByCode({
+                ...this.authCodeRequest,
+                code: authCode,
+                codeVerifier: verifier
+            });
+
+            authWindow.close();
+            return authResult;
+        } catch (error) {
+            authWindow.close();
+            throw error;
+        }
     }
 
-    async login(authWindow: BrowserWindow): Promise<AccountInfo> {
-        const authResult = await this.getTokenInteractive(authWindow, this.authCodeUrlParams);
+    async login(): Promise<AccountInfo> {
+        const authResult = await this.getTokenInteractive(this.authCodeUrlParams);
         return this.handleResponse(authResult);
     }
 
@@ -168,22 +184,19 @@ export default class AuthProvider {
     }
 
     private async listenForAuthCode(navigateUrl: string, authWindow: BrowserWindow): Promise<string> {
+        // Set up custom file protocol to listen for redirect response
+        const authCodeListener = new CustomProtocolListener(this.authConfig.customProtocol.name);
+        const codePromise = authCodeListener.start();
         authWindow.loadURL(navigateUrl);
-        return new Promise((resolve, reject) => {
-            authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                    const parsedUrl = new URL(responseUrl);
-                    const authCode = parsedUrl.searchParams.get('code');
-                    if (authCode) {
-                        resolve(authCode);
-                    }
-            });
-        });
+        const code = await codePromise;
+        authCodeListener.close();
+        return code;
     }
 
-        /**
-     * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
-     * @param response 
-     */
+    /**
+ * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
+ * @param response
+ */
     private async handleResponse(response: AuthenticationResult) {
         if (response !== null) {
             this.account = response.account;
@@ -197,7 +210,7 @@ export default class AuthProvider {
     /**
      * Calls getAllAccounts and determines the correct account to sign into, currently defaults to first account found in cache.
      * TODO: Add account chooser code
-     * 
+     *
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
      */
     private async getAccount(): Promise<AccountInfo> {
