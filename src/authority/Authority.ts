@@ -188,7 +188,7 @@ export class Authority {
     /**
      * Jwks_uri for token signing keys
      */
-     public get jwksUri(): string {
+    public get jwksUri(): string {
         if(this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.jwks_uri);
             return this.replaceTenant(endpoint);
