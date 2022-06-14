@@ -54,10 +54,13 @@ function msalApp(thumbprint, privateKey) {
     // Create Express App and Routes
     const app = express();
 
+    app.use(express.urlencoded({ extended: false }));
+
     app.get('/', (req, res) => {
         const authCodeUrlParameters = {
             scopes: ["user.read"],
             redirectUri: REDIRECT_URI,
+            responseMode: 'form_post',
         };
 
         // get url to sign user in and consent to scopes needed for application
@@ -66,9 +69,9 @@ function msalApp(thumbprint, privateKey) {
         }).catch((error) => console.log(JSON.stringify(error)));
     });
 
-    app.get('/redirect', (req, res) => {
+    app.post('/redirect', (req, res) => {
         const tokenRequest = {
-            code: req.query.code,
+            code: req.body.code,
             scopes: ["user.read"],
             redirectUri: REDIRECT_URI,
         };
@@ -92,14 +95,14 @@ async function main() {
     // Grab the certificate thumbprint
     const certResponse = await certClient.getCertificate(CERTIFICATE_NAME).catch(err => console.log(err));
     const thumbprint = certResponse.properties.x509Thumbprint.toString('hex')
-    
+
     // When you upload a certificate to Key Vault, a secret containing your private key is automatically created
     const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME).catch(err => console.log(err));;
 
     // secretResponse contains both public and private key, but we only need the private key
     const privateKey = secretResponse.value.split('-----BEGIN CERTIFICATE-----\n')[0]
 
-    // Initialize msal and start the server 
+    // Initialize msal and start the server
     msalApp(thumbprint, privateKey);
 }
 
