@@ -250,11 +250,6 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addStkJwk(stkJwk);
         }
 
-        if (request.stkJwk) {
-            const stkJwk = await this.keyManager.retrieveAsymmetricPublicKey(request.stkJwk);
-            parameterBuilder.addStkJwk(stkJwk);
-        }
-
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
