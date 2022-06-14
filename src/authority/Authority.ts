@@ -186,6 +186,18 @@ export class Authority {
     }
 
     /**
+     * Jwks_uri for token signing keys
+     */
+     public get jwksUri(): string {
+        if(this.discoveryComplete()) {
+            const endpoint = this.replacePath(this.metadata.jwks_uri);
+            return this.replaceTenant(endpoint);
+        } else {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
+        }
+    }
+
+    /**
      * Replaces tenant in url path with current tenant. Defaults to common.
      * @param urlString
      */
