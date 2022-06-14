@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { JoseHeader, JoseHeaderOptions, JweHeader, StringDict } from "@azure/msal-common";
+import { JoseHeader, JweHeader, StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
