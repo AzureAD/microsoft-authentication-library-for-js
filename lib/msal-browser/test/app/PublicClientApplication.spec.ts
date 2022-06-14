@@ -2477,7 +2477,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        it("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
+        it.only("Falls back to silent handler if thrown error is a refresh token expired error", async () => {
             const invalidGrantError: ServerError = new ServerError("invalid_grant", "AADSTS700081: The refresh token has expired due to maximum lifetime. The token was issued on xxxxxxx and the maximum allowed lifetime for this application is 1.00:00:00.\r\nTrace ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nCorrelation ID: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxx\r\nTimestamp: 2020-0x-0x XX:XX:XXZ");
             sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").rejects(invalidGrantError);
             const testServerTokenResponse = {
@@ -2534,7 +2534,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 extraQueryParameters: {
                     queryKey: "queryValue"
                 }, 
-                forceRefresh: false
+                forceRefresh: false,
+                stkJwk: TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
             };
             const expectedRequest: CommonAuthorizationUrlRequest = {
                 ...CommonSilentFlowRequest,
