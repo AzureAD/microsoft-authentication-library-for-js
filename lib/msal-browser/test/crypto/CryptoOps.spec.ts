@@ -69,9 +69,11 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
+    let browserCrypto: BrowserCrypto;
     let oldWindowCrypto = window.crypto;
 
     beforeEach(() => {
+        browserCrypto = new BrowserCrypto(new Logger({}))
         cryptoObj = new CryptoOps(new Logger({}));
         oldWindowCrypto = window.crypto;
         //@ts-ignore
@@ -91,7 +93,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("createNewGuid()", () => {
-        expect(GuidGenerator.isGuid(cryptoObj.createNewGuid())).toBe(true);
+        expect(new GuidGenerator(browserCrypto).isGuid(cryptoObj.createNewGuid())).toBe(true);
     });
 
     it("base64Encode()", () => {

@@ -34,7 +34,7 @@ export class BrowserUtils {
     static replaceHash(url: string): void {
         const urlParts = url.split("#");
         urlParts.shift(); // Remove part before the hash
-        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : "";
+        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : Constants.EMPTY_STRING;
     }
 
     /**
@@ -125,6 +125,17 @@ export class BrowserUtils {
     static blockNonBrowserEnvironment(isBrowserEnvironment: boolean): void {
         if (!isBrowserEnvironment) {
             throw BrowserAuthError.createNonBrowserEnvironmentError();
+        }
+    }
+
+    /**
+     * Throws error if native brokering is enabled but initialize hasn't been called
+     * @param allowNativeBroker 
+     * @param initialized 
+     */
+    static blockNativeBrokerCalledBeforeInitialized(allowNativeBroker: boolean, initialized: boolean): void {
+        if (allowNativeBroker && !initialized) {
+            throw BrowserAuthError.createNativeBrokerCalledBeforeInitialize();
         }
     }
 

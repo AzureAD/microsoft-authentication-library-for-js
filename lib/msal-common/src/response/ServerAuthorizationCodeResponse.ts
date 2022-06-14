@@ -24,4 +24,6 @@ export type ServerAuthorizationCodeResponse = {
     error?: string,
     error_description?: string;
     suberror?: string;
+    // Native Account ID
+    accountId?: string;
 };

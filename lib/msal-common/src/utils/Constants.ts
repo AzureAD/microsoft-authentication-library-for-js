@@ -45,7 +45,9 @@ export const Constants = {
     IMDS_TIMEOUT: 2000,
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
-    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
+    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
+    TOKEN_RESPONSE_TYPE: "token",
+    ID_TOKEN_RESPONSE_TYPE: "id_token"
 };
 
 export const OIDC_DEFAULT_SCOPES = [
@@ -125,6 +127,8 @@ export enum AADServerParamKeys {
     X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
     X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
     X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
+    X_APP_NAME = "x-app-name",
+    X_APP_VER = "x-app-ver",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     ID_TOKEN_HINT= "id_token_hint",
     DEVICE_CODE = "device_code",
@@ -140,6 +144,7 @@ export enum AADServerParamKeys {
     FOCI = "foci",
     CCS_HEADER = "X-AnchorMailbox",
     RETURN_SPA_CODE = "return_spa_code",
+    NATIVE_BROKER = "nativebroker",
     LOGOUT_HINT = "logout_hint"
 }
 
@@ -396,4 +401,9 @@ export enum CacheOutcome {
     NO_CACHED_ACCESS_TOKEN = "2",
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
     REFRESH_CACHED_ACCESS_TOKEN = "4"
+}
+
+export enum JsonTypes {
+    Jwt = "JWT",
+    Jwk = "JWK"
 }
