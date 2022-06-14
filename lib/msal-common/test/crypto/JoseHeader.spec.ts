@@ -15,11 +15,11 @@ describe("JoseHeader.ts Unit Tests", () => {
 		});
 
 		it("should throw if kid header is missing", () => {
-			expect(() => JoseHeader.getShrHeaderString({ alg: TEST_CRYPTO_ALGORITHMS.rsa })).toThrowError(JoseHeaderErrorMessage.missingKidError.desc);
+			expect(() => JoseHeader.getShrHeaderString({ alg: TEST_CRYPTO_ALGORITHMS.rsa })).toThrowError(`${JoseHeaderErrorMessage.missingClaimError.desc} Missing claim: "kid"`);
 		});
 
-		it("should throw if kid header is missing", () => {
-			expect(() => JoseHeader.getShrHeaderString({ kid: TEST_POP_VALUES.KID })).toThrowError(JoseHeaderErrorMessage.missingAlgError.desc);
+		it("should throw if alg header is missing", () => {
+			expect(() => JoseHeader.getShrHeaderString({ kid: TEST_POP_VALUES.KID })).toThrowError(`${JoseHeaderErrorMessage.missingClaimError.desc} Missing claim: "alg"`);
 		});
 	});
 });

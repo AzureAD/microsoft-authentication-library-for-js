@@ -79,8 +79,8 @@ export class JoseHeader {
         const shrHeader = new JoseHeader({
             // Access Token PoP headers must have type JWT, but the type header can be overriden for special cases
             typ: shrHeaderOptions.typ || JsonTypes.Jwt,
+            alg: shrHeaderOptions.alg,
             kid: shrHeaderOptions.kid,
-            alg: shrHeaderOptions.alg
         });
 
         return JSON.stringify(shrHeader);

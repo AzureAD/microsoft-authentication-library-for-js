@@ -14,28 +14,15 @@ describe("JoseHeaderError.ts Class Unit Tests", () => {
         expect(err.stack?.includes("JoseHeaderError.spec.ts")).toBe(true);
     });
 
-    it("createMissingKidError creates a JoseHeaderError object", () => {
-        const err: JoseHeaderError = JoseHeaderError.createMissingKidError();
+    it("createMissingClaimError creates a JoseHeaderError object", () => {
+        const err: JoseHeaderError = JoseHeaderError.createMissingClaimError("alg");
 
         expect(err instanceof JoseHeaderError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(JoseHeaderErrorMessage.missingKidError.code);
-        expect(err.errorMessage.includes(JoseHeaderErrorMessage.missingKidError.desc)).toBe(true);
-        expect(err.message.includes(JoseHeaderErrorMessage.missingKidError.desc)).toBe(true);
-        expect(err.name).toBe("JoseHeaderError");
-        expect(err.stack?.includes("JoseHeaderError.spec.ts")).toBe(true);
-    });
-
-    it("createMissingAlgError creates a JoseHeaderError object", () => {
-        const err: JoseHeaderError = JoseHeaderError.createMissingAlgError();
-
-        expect(err instanceof JoseHeaderError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(JoseHeaderErrorMessage.missingAlgError.code);
-        expect(err.errorMessage.includes(JoseHeaderErrorMessage.missingAlgError.desc)).toBe(true);
-        expect(err.message.includes(JoseHeaderErrorMessage.missingAlgError.desc)).toBe(true);
+        expect(err.errorCode).toBe(JoseHeaderErrorMessage.missingClaimError.code);
+        expect(err.errorMessage.includes(`${JoseHeaderErrorMessage.missingClaimError.desc} Missing claim: "alg"`)).toBe(true);
+        expect(err.message.includes(JoseHeaderErrorMessage.missingClaimError.desc)).toBe(true);
         expect(err.name).toBe("JoseHeaderError");
         expect(err.stack?.includes("JoseHeaderError.spec.ts")).toBe(true);
     });
