@@ -182,6 +182,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                await publicClientApplication.clearCache();
             });
         
             afterEach(async () => {

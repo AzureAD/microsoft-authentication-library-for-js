@@ -16,6 +16,8 @@ let clientID;
 let clientSecret;
 let authority;
 
+const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
+
 describe('Client Credentials AAD PPE Tests', () => {
     jest.retryTimes(1);
     jest.setTimeout(90000);
@@ -58,14 +60,14 @@ describe('Client Credentials AAD PPE Tests', () => {
 
         it("Performs acquire token", async () => {
             confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication);
+            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes);
             const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
         });
 
         it("Performs acquire token through regional authorities", async () => {
             confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-            server = await getClientCredentialsToken(confidentialClientApplication, { region: "westus2" });
+            server = await getClientCredentialsToken(confidentialClientApplication, clientCredentialRequestScopes, { region: "westus2" });
             const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
         });

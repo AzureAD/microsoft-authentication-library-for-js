@@ -30,7 +30,7 @@ describe("BaseInteractionClient", () => {
         });
 
         // @ts-ignore
-        testClient = new testInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler);
+        testClient = new testInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.performanceClient);
     });
 
     afterEach(() => {

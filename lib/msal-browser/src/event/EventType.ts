@@ -4,6 +4,8 @@
  */
 
 export enum EventType {
+    INITIALIZE_START = "msal:initializeStart",
+    INITIALIZE_END = "msal:initializeEnd",
     ACCOUNT_ADDED = "msal:accountAdded",
     ACCOUNT_REMOVED = "msal:accountRemoved",
     LOGIN_START = "msal:loginStart",

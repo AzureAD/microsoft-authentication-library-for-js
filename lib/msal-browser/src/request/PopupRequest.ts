@@ -4,7 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
-import { PopupWindowAttributes } from "../utils/PopupUtils";
+import { PopupWindowAttributes } from "./PopupWindowAttributes";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
@@ -31,7 +31,8 @@ import { PopupWindowAttributes } from "../utils/PopupUtils";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  */
-export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod"|"requestedClaimsHash">> & {
+
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod"|"requestedClaimsHash"|"nativeBroker">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
 };

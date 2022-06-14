@@ -171,9 +171,9 @@ export class ServerTelemetryManager {
     getRegionDiscoveryFields(): string {
         const regionDiscoveryFields: string[] = [];
 
-        regionDiscoveryFields.push(this.regionUsed || "");
-        regionDiscoveryFields.push(this.regionSource || "");
-        regionDiscoveryFields.push(this.regionOutcome || "");
+        regionDiscoveryFields.push(this.regionUsed || Constants.EMPTY_STRING);
+        regionDiscoveryFields.push(this.regionSource || Constants.EMPTY_STRING);
+        regionDiscoveryFields.push(this.regionOutcome || Constants.EMPTY_STRING);
 
         return regionDiscoveryFields.join(",");
     }
