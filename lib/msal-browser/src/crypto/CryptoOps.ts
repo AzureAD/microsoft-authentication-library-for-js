@@ -14,26 +14,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 import { CryptoKeyConfig } from "../utils/CryptoConstants";
 import { BoundTokenResponse } from "./BoundTokenResponse";
-
-export type CachedKeyPair = {
-    publicKey: CryptoKey,
-    privateKey: CryptoKey,
-    requestMethod?: string,
-    requestUri?: string
-};
-
-/**
- * MSAL CryptoKeyStore DB Version 2
- */
-export type CryptoKeyStore = {
-    asymmetricKeys: AsyncMemoryStorage<CachedKeyPair>;
-    symmetricKeys: AsyncMemoryStorage<CryptoKey>;
-};
-
-export enum CryptoKeyStoreNames {
-    asymmetricKeys = "asymmetricKeys",
-    symmetricKeys = "symmetricKeys"
-}
+import { CachedKeyPair, CryptoKeyStore, CryptoKeyStoreNames } from "../cache/CryptoKeyStore";
 
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 

@@ -4,9 +4,9 @@
  */
 
 import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
-import { BrowserAuthError } from "..";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { CryptoKeyUsageSets } from "../utils/CryptoConstants";
-import { CryptoKeyStore } from "./CryptoOps";
+import { CryptoKeyStore } from "../cache/CryptoKeyStore";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 
 export class BoundTokenResponse {
@@ -40,7 +40,7 @@ export class BoundTokenResponse {
             sessionTransportKeypair.privateKey,
             CryptoKeyUsageSets.RefreshTokenBinding.SessionKey
         );
-  
+
         // TODO: TEMPORARY CHECK TO GET AROUND LINTER
         if(contentEncryptionKey) {
             return null;

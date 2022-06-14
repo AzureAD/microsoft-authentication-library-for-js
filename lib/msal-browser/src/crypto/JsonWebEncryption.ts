@@ -3,30 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "@azure/msal-common";
+import { JoseHeader, JoseHeaderOptions, JweHeader, StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
-
-/**
- * JOSE Header Parameter specification
- * https://datatracker.ietf.org/doc/html/rfc7516#section-4.1
- */
-export type JoseHeader = {
-    alg: string,
-    enc: string,
-    zip?: string,
-    jku?: string,
-    jwk?: string,
-    kid?: string,
-    x5u?: string,
-    x5c?: string,
-    x5t?: string,
-    x5tS256?: string,
-    typ?: string,
-    cty?: string,
-    crit?: string
-};
 
 export type UnwrappingAlgorithmPair = {
     decryption: string,
@@ -49,7 +29,7 @@ const KeyAlgorithmMap: StringDict = {
  */
 
 export class JsonWebEncryption {
-    private header: JoseHeader;
+    private header: JweHeader;
     private encryptedKey: string;
     private initializationVector: string;
     private ciphertext: string;
@@ -68,8 +48,13 @@ export class JsonWebEncryption {
         this.authenticationTag = this.decodeElement(jweComponents[4]);
     }
 
-    private getAuthenticatedData(str: string): Uint8Array {
-        const length = str.length;
+    /**
+     * Decodes the authenticated data vector into a Uint8Array
+     * @param encodedAuthenticatedData
+     * @returns 
+     */
+    private getAuthenticatedData(encodedAuthenticatedData: string): Uint8Array {
+        const length = encodedAuthenticatedData.length;
         const data = new Uint8Array(length);
 
         // Maps authenticaed data string into unicode byte array
@@ -79,7 +64,7 @@ export class JsonWebEncryption {
              * last 8 bits (& 255) before assigning since
              * it's a Uint8 Array
              */
-            data[charIndex] = str.charCodeAt(charIndex) & 255;
+            data[charIndex] = encodedAuthenticatedData.charCodeAt(charIndex) & 255;
         }
 
         return data;
@@ -106,10 +91,10 @@ export class JsonWebEncryption {
      * https://datatracker.ietf.org/doc/html/rfc7516#section-4
      * @param encodedHeader 
      */
-    private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
+    private parseJweProtectedHeader(encodedHeader: string): JweHeader {
         const decodedHeader = this.decodeElement(encodedHeader);
         try {
-            return JSON.parse(decodedHeader);
+            return JoseHeader.getJweHeader(JSON.parse(decodedHeader));
         } catch (error) {
             throw JsonWebEncryptionError.createJweHeaderNotParsedError();
         }

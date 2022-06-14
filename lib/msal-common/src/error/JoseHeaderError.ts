@@ -9,14 +9,10 @@ import { AuthError } from "./AuthError";
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const JoseHeaderErrorMessage = {
-    missingKidError: {
+    missingClaimError: {
         code: "missing_kid_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided."
-    },
-    missingAlgError: {
-        code: "missing_alg_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided."
-    },
+        desc: "The JOSE Header for the requested JWT, JWS, JWE or JWK object requires a claim that wasn't provided."
+    }
 };
 
 /**
@@ -31,16 +27,9 @@ export class JoseHeaderError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when keyId isn't set on JOSE header.
+     * Creates an error thrown when a specific claim isn't set on the JOSE Header
      */
-    static createMissingKidError(): JoseHeaderError {
-        return new JoseHeaderError(JoseHeaderErrorMessage.missingKidError.code, JoseHeaderErrorMessage.missingKidError.desc);
-    }
-
-    /**
-     * Creates an error thrown when algorithm isn't set on JOSE header.
-     */
-    static createMissingAlgError(): JoseHeaderError {
-        return new JoseHeaderError(JoseHeaderErrorMessage.missingAlgError.code, JoseHeaderErrorMessage.missingAlgError.desc);
+    static createMissingClaimError(claimName: string): JoseHeaderError {
+        return new JoseHeaderError(JoseHeaderErrorMessage.missingClaimError.code, `${JoseHeaderErrorMessage.missingClaimError.desc} Missing claim: "${claimName}"`);
     }
 }

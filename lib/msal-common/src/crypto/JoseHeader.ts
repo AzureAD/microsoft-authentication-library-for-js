@@ -6,27 +6,61 @@
 import { JoseHeaderError } from "../error/JoseHeaderError";
 import { JsonTypes } from "../utils/Constants";
 
+/**
+ * JOSE Header Parameter specification
+ * https://datatracker.ietf.org/doc/html/rfc7516#section-4.1
+ */
 export type JoseHeaderOptions = {
-    typ?: JsonTypes,
     alg?: string,
-    kid?: string
+    enc?: string,
+    zip?: string,
+    jku?: string,
+    jwk?: string,
+    kid?: string,
+    x5u?: string,
+    x5c?: string,
+    x5t?: string,
+    x5tS256?: string,
+    typ?: JsonTypes,
+    cty?: string,
+    crit?: string,
+    ctx?: string
 };
 
+export enum JoseClaims {
+    ALG = "alg",
+    KID = "kid",
+    ENC = "enc"
+}
+
+export interface JweHeader extends JoseHeader {
+    alg: string;
+    enc: string;
+}
+
 export class JoseHeader {
-    public typ?: JsonTypes;
     public alg?: string;
+    public enc?: string;
+    public zip?: string;
+    public jku?: string;
+    public jwk?: string;
     public kid?: string;
+    public x5u?: string;
+    public x5c?: string;
+    public x5t?: string;
+    public x5tS256?: string;
+    public typ?: JsonTypes;
+    public cty?: string;
+    public crit?: string;
+    public ctx?: string;
 
     constructor (options: JoseHeaderOptions) {
-        this.typ = options.typ;
-        this.alg = options.alg;
-        this.kid = options.kid;
+        Object.assign(this, options);
     }
 
     /**
      * Builds SignedHttpRequest formatted JOSE Header from the
-     * JOSE Header options provided or previously set on the object and returns
-     * the stringified header object.
+     * JOSE Header options provided and returns the stringified header object.
      * Throws if keyId or algorithm aren't provided since they are required for Access Token Binding.
      * @param shrHeaderOptions 
      * @returns 
@@ -34,12 +68,12 @@ export class JoseHeader {
     static getShrHeaderString(shrHeaderOptions: JoseHeaderOptions): string {
         // KeyID is required on the SHR header
         if (!shrHeaderOptions.kid) {
-            throw JoseHeaderError.createMissingKidError();
+            throw JoseHeaderError.createMissingClaimError(JoseClaims.KID);
         }
 
         // Alg is required on the SHR header
         if (!shrHeaderOptions.alg) {
-            throw JoseHeaderError.createMissingAlgError();
+            throw JoseHeaderError.createMissingClaimError(JoseClaims.ALG);
         }
 
         const shrHeader = new JoseHeader({
@@ -50,5 +84,26 @@ export class JoseHeader {
         });
 
         return JSON.stringify(shrHeader);
+    }
+
+    /**
+     * Builds JWT formatted JOSE Header from the
+     * JOSE Header options provided and returns the header object.
+     * Throws if alg or enc claims aren't provided since they are required for Refresh Token Binding.
+     * @param jweHeaderOptions
+     * @returns 
+     */
+    static getJweHeader(jweHeaderOptions: JoseHeaderOptions): JweHeader {
+        // KeyID is required on the SHR header
+        if (!jweHeaderOptions.alg) {
+            throw JoseHeaderError.createMissingClaimError(JoseClaims.ALG);
+        }
+
+        // Alg is required on the SHR header
+        if (!jweHeaderOptions.enc) {
+            throw JoseHeaderError.createMissingClaimError(JoseClaims.ENC);
+        }
+
+        return new JoseHeader(jweHeaderOptions) as JweHeader;
     }
 }
