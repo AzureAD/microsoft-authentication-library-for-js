@@ -1,7 +1,13 @@
 import sinon from "sinon";
-import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, BaseAuthRequest, AuthenticationScheme } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
+import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { UrlString } from "../../src/url/UrlString";
+import { AuthenticationScheme, CryptoKeyTypes } from "../../src/utils/Constants";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("PopTokenGenerator Unit Tests", () => {
 
@@ -51,10 +57,51 @@ describe("PopTokenGenerator Unit Tests", () => {
         async signJwt(): Promise<string> {
             return "";
         },
+        async removeTokenBindingKey(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
+        async clearKeystore(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
+        async hashString(): Promise<string> {
+            return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+        },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.KID;
+        },
+        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+            return AUTHENTICATION_RESULT.body;
         }
     };
+
+    let popTokenGenerator: PopTokenGenerator;
+
+    const testPopRequest = {
+        authority: TEST_CONFIG.validAuthority,
+        scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        correlationId: TEST_CONFIG.CORRELATION_ID,
+        authenticationScheme: AuthenticationScheme.POP,
+        resourceRequestMethod:"POST",
+        resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
+    };
+
+    beforeEach(() => {
+        popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+    });
+
+    describe("generateCnf", () => {
+        it("generates the req_cnf correctly", async () => {
+            const reqCnf = await popTokenGenerator.generateCnf(testPopRequest);
+            expect(reqCnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+        });
+    });
+
+    describe("generateKid", () => {
+        it("returns the correct kid and key storage location", async () => {
+            const reqCnf = await popTokenGenerator.generateKid(testPopRequest, CryptoKeyTypes.ReqCnf);
+            expect(reqCnf).toStrictEqual(JSON.parse(TEST_POP_VALUES.DECODED_REQ_CNF));
+        });
+    });
 
     describe("signPopToken", () => {
         let currTime: number;
@@ -79,6 +126,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             const resourceUrlComponents = resourceUrlString.getUrlComponents();
             const currTime = TimeUtils.nowSeconds();
             const shrClaims = TEST_POP_VALUES.CLIENT_CLAIMS;
+            const shrNonce = TEST_POP_VALUES.SHR_NONCE;
 
             // Set PoP parameters in auth request
             const popRequest = {
@@ -86,7 +134,8 @@ describe("PopTokenGenerator Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.POP,
                 resourceRequestMethod: resourceReqMethod,
                 resourceRequestUri: resourceUrl,
-                shrClaims: shrClaims
+                shrClaims: shrClaims,
+                shrNonce: shrNonce
             }
 
 
@@ -97,10 +146,10 @@ describe("PopTokenGenerator Unit Tests", () => {
                     ts: currTime,
                     m: resourceReqMethod,
                     u: resourceUrlComponents.HostNameAndPort,
-                    nonce: RANDOM_TEST_GUID,
+                    nonce: shrNonce,
                     p: resourceUrlComponents.AbsolutePath,
                     q: [[], resourceUrlComponents.QueryString],
-                    client_claims: shrClaims
+                    client_claims: shrClaims,
                 };
                 
                 expect(payload).toEqual(expectedPayload);

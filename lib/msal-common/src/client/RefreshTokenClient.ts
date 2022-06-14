@@ -17,11 +17,13 @@ import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
+import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
-import { KeyManager } from "../crypto/KeyManager";
 import { UrlString } from "../url/UrlString";
+import { CcsCredentialType } from "../account/CcsCredential";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
 
 /**
  * OAuth2.0 refresh token client
@@ -80,7 +82,7 @@ export class RefreshTokenClient extends BaseClient {
             try {
                 return this.acquireTokenWithCachedRefreshToken(request, true);
             } catch (e) {
-                const noFamilyRTInCache = e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code;
+                const noFamilyRTInCache = e instanceof InteractionRequiredAuthError && e.errorCode === InteractionRequiredAuthErrorMessage.noTokensFoundError.code;
                 const clientMismatchErrorWithFamilyRT = e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
 
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
@@ -107,13 +109,17 @@ export class RefreshTokenClient extends BaseClient {
 
         // no refresh Token
         if (!refreshToken) {
-            throw ClientAuthError.createNoTokensFoundError();
+            throw InteractionRequiredAuthError.createNoTokensFoundError();
         }
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
-            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER
+            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER,
+            ccsCredential: {
+                credential: request.account.homeAccountId,
+                type: CcsCredentialType.HOME_ACCOUNT_ID
+            }
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -129,11 +135,17 @@ export class RefreshTokenClient extends BaseClient {
 
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            claims: request.claims,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
         };
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
@@ -193,13 +205,34 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const keyManager = new KeyManager(this.cryptoUtils);
-            const cnfString = await keyManager.generateCnf(request);
+            const cnfString = await this.popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
+        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+            if(request.sshJwk) {
+                parameterBuilder.addSshJwk(request.sshJwk);
+            } else {
+                throw ClientConfigurationError.createMissingSshJwkError();
+            }
         }
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        if (this.config.systemOptions.preventCorsPreflight && request.ccsCredential) {
+            switch (request.ccsCredential.type) {
+                case CcsCredentialType.HOME_ACCOUNT_ID:
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
+                    break;
+                case CcsCredentialType.UPN:
+                    parameterBuilder.addCcsUpn(request.ccsCredential.credential);
+                    break;
+            }
         }
 
         return parameterBuilder.createQueryString();

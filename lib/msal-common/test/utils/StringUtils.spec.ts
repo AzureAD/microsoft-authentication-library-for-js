@@ -138,6 +138,14 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
     });
 
+    it("queryStringToObject correctly deserializes URI encoded query string into decoded object", () => {
+        const serializedObj = "param1=test%2525u00f1";
+        const deserializedObj = {
+            "param1": "test%25u00f1"
+        };
+        expect(StringUtils.queryStringToObject(serializedObj)).toEqual(deserializedObj);        
+    });
+
     describe("jsonParseHelper", () => {
         it("parses json", () => {
             const test = { test: "json" };
@@ -170,6 +178,12 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
         it("multiple wildcards", () => {
             const matches = StringUtils.matchPattern("https://*.myapplication.com/user/*", "https://test.myapplication.com/user/1");
+
+            expect(matches).toBe(true);
+        });
+
+        it("backslash is escaped", () => {
+            const matches = StringUtils.matchPattern("test\\*", "test\\api");
 
             expect(matches).toBe(true);
         });

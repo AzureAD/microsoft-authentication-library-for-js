@@ -3,12 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import React from "react";
+import React, { useState } from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, testResult, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, MsalAuthenticationTemplate, MsalAuthenticationResult, IMsalContext, useMsal } from "../../src/index";
-import { PublicClientApplication, Configuration, InteractionType, EventType, AccountInfo, EventCallbackFunction, EventMessage, PopupRequest, AuthError } from "@azure/msal-browser";
+import { PublicClientApplication, Configuration, InteractionType, EventType, AccountInfo, EventCallbackFunction, EventMessage, PopupRequest, AuthError, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { ReactAuthErrorMessage } from "../../src/error/ReactAuthError";
+import { act } from "react-dom/test-utils";
 
 describe("MsalAuthenticationTemplate tests", () => {
     let pca: PublicClientApplication;
@@ -20,7 +22,8 @@ describe("MsalAuthenticationTemplate tests", () => {
 
     let eventCallbacks: EventCallbackFunction[];
     let handleRedirectSpy: jest.SpyInstance;
-    let accounts: AccountInfo[] = [];  
+    let accounts: AccountInfo[] = [];
+    let activeAccount: AccountInfo | null = null;
 
     beforeEach(() => {
         eventCallbacks = [];
@@ -32,7 +35,19 @@ describe("MsalAuthenticationTemplate tests", () => {
             return eventId.toString();
         });
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            const eventMessage: EventMessage = {
+            const eventStart: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventStart);
+            });
+
+            const eventEnd: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
                 interactionType: InteractionType.Redirect,
                 payload: null,
@@ -41,18 +56,23 @@ describe("MsalAuthenticationTemplate tests", () => {
             };
 
             eventCallbacks.forEach((callback) => {
-                callback(eventMessage);
+                callback(eventEnd);
             });
             return Promise.resolve(null);
         });
 
         jest.spyOn(pca, "getAllAccounts").mockImplementation(() => accounts);
+        jest.spyOn(pca, "getActiveAccount").mockImplementation(() => activeAccount);
+        jest.spyOn(pca, "setActiveAccount").mockImplementation((account) => {
+            activeAccount = account;
+        });
     });
 
     afterEach(() => {
     // cleanup on exiting
         jest.clearAllMocks();
         accounts = [];
+        activeAccount = null;
     });
 
     test("Calls loginPopup if no account is signed in", async () => {              
@@ -66,7 +86,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -100,7 +119,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -134,7 +152,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -172,7 +189,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -210,7 +226,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -247,7 +262,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -273,34 +287,36 @@ describe("MsalAuthenticationTemplate tests", () => {
     test("LoginRedirect is not called if handleRedirectPromise returns an error", async () => {
         const error = new AuthError("login_failed");
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            const eventMessage: EventMessage = {
+            const startMessage: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+            const failureMessage: EventMessage = {
                 eventType: EventType.LOGIN_FAILURE,
                 interactionType: InteractionType.Redirect,
                 payload: null,
                 error: error,
+                timestamp: 10000
+            };
+            const endMessage: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_END,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
                 timestamp: 10000
             };
 
             eventCallbacks.forEach((callback) => {
-                callback(eventMessage);
+                callback(startMessage);
+                callback(failureMessage);
+                callback(endMessage);
             });
             return Promise.reject(error);
         });
-        const loginRedirectSpy = jest.spyOn(pca, "loginRedirect").mockImplementation(() => {
-            const eventMessage: EventMessage = {
-                eventType: EventType.LOGIN_FAILURE,
-                interactionType: InteractionType.Redirect,
-                payload: null,
-                error: error,
-                timestamp: 10000
-            };
-            expect(eventCallbacks.length).toBe(3);
-            eventCallbacks.forEach((callback) => {
-                callback(eventMessage);
-            });
-            
-            return Promise.reject(error);
-        });
+        const loginRedirectSpy = jest.spyOn(pca, "loginRedirect");
 
         const errorMessage = ({error}: MsalAuthenticationResult) => {
             if (error) {
@@ -356,6 +372,266 @@ describe("MsalAuthenticationTemplate tests", () => {
         expect(loginRedirectSpy).not.toHaveBeenCalled();
     });
 
+    describe("AcquireToken tests", () => {
+        test("Calls acquireTokenSilent if a user is signed in and set as the active account", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Popup}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent if a user is signed in and homeAccountId is provided", async () => {
+            accounts = [testAccount];
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Popup} homeAccountId={testAccount.homeAccountId}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent if a user is signed in and localAccountId is provided", async () => {
+            accounts = [testAccount];
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Popup} localAccountId={testAccount.localAccountId}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent if a user is signed in and username is provided", async () => {
+            accounts = [testAccount];
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Popup} username={testAccount.username}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent and falls back to popup", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.reject(new InteractionRequiredAuthError("interaction_required", "Interaction is required"));
+            });
+
+            const acquireTokenPopupSpy = jest.spyOn(pca, "acquireTokenPopup").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Popup}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            await waitFor(() => expect(acquireTokenPopupSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent and falls back to redirect", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.reject(new InteractionRequiredAuthError("interaction_required", "Interaction is required"));
+            });
+
+            const acquireTokenRedirectSpy = jest.spyOn(pca, "acquireTokenRedirect").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve();
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            await waitFor(() => expect(acquireTokenRedirectSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent and falls back to ssoSilent", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.reject(new InteractionRequiredAuthError("interaction_required", "Interaction is required"));
+            });
+
+            const ssoSilentSpy = jest.spyOn(pca, "ssoSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Silent}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent and throws unable to fallback error if interaction is already in progress", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                const eventMessage: EventMessage = {
+                    eventType: EventType.ACQUIRE_TOKEN_START,
+                    interactionType: InteractionType.Redirect,
+                    payload: null,
+                    error: null,
+                    timestamp: 10000
+                };
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+                return Promise.reject(new InteractionRequiredAuthError("interaction_required", "Interaction is required"));
+            });
+
+            const Error = ({error}: MsalAuthenticationResult) => {
+                expect(error && error.errorCode).toBe(ReactAuthErrorMessage.unableToFallbackToInteraction.code);
+                return <span>Error Occurred</span>;
+            }
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Redirect} errorComponent={Error}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            act(() => {
+                const eventMessage: EventMessage = {
+                    eventType: EventType.ACQUIRE_TOKEN_SUCCESS,
+                    interactionType: InteractionType.Redirect,
+                    payload: testResult,
+                    error: null,
+                    timestamp: 10000
+                };
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+            expect(screen.queryByText("Error Occurred")).toBeInTheDocument();
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent and throws unable to fallback error if interaction is already in progress", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.reject(new AuthError("test_error", "AcquireTokenSilent threw a non-interaction required error"));
+            });
+
+            const Error = ({error}: MsalAuthenticationResult) => {
+                expect(error && error.errorCode).toBe("test_error");
+                return <span>Error Occurred</span>;
+            }
+
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Redirect} errorComponent={Error}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("Error Occurred")).toBeInTheDocument();
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+        });
+    });
+
     test("Renders provided error component when an error occurs", async () => {
         const error = new AuthError("login_failed");
         const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation(() => {
@@ -366,7 +642,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -398,6 +673,52 @@ describe("MsalAuthenticationTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
+    test("Throws invalid interaction type error", async () => {
+        const error = new AuthError("login_failed");
+        const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation(() => {
+            const eventMessage: EventMessage = {
+                eventType: EventType.LOGIN_FAILURE,
+                interactionType: InteractionType.Popup,
+                payload: null,
+                error: error,
+                timestamp: 10000
+            };
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
+            
+            return Promise.reject(error);
+        });
+
+        const errorMessage = ({error, login}: MsalAuthenticationResult) => {
+            const [errorCode, setErrorCode] = useState(error && error.errorCode);
+            // @ts-ignore
+            login("invalid_type").catch(error => setErrorCode(error.errorCode));
+
+            if (error) {
+                return <p>Error Occurred: {errorCode}</p>;
+            }
+
+            return null;
+        };
+
+        
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <MsalAuthenticationTemplate interactionType={InteractionType.Popup} errorComponent={errorMessage}>
+                    <span> A user is authenticated!</span>
+                </MsalAuthenticationTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(loginPopupSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(await screen.findByText(`Error Occurred: ${ReactAuthErrorMessage.invalidInteractionType.code}`)).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+    });
+
     test("Provided error component can resolve error by calling login again, child renders after success", async () => {
         const error = new AuthError("login_failed");
         const ssoSilentSpy = jest.spyOn(pca, "ssoSilent").mockImplementation(() => {
@@ -408,7 +729,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -426,7 +746,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -478,7 +797,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });

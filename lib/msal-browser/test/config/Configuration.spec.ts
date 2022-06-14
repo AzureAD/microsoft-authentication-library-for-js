@@ -1,6 +1,6 @@
 import { Configuration, buildConfiguration, DEFAULT_POPUP_TIMEOUT_MS, DEFAULT_IFRAME_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants } from "@azure/msal-common";
+import { LogLevel, Constants, ClientConfigurationError, ClientConfigurationErrorMessage, AzureCloudInstance } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
@@ -24,6 +24,8 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth.redirectUri).toBe("");
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
+        expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(AzureCloudInstance.None);
+        expect(emptyConfig.auth?.azureCloudOptions?.tenant).toBe("");
         // Cache config checks
         expect(emptyConfig.cache).toBeDefined()
         expect(emptyConfig.cache?.cacheLocation).toBeDefined();
@@ -44,6 +46,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.navigateFrameWait).toBe(0);
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.asyncPopups).toBe(false);
+        expect(emptyConfig.system?.refreshTokenBinding).toBe(false);
     });
 
     it("sets timeouts with loadFrameTimeout", () => {
@@ -168,7 +171,8 @@ describe("Configuration.ts Class Unit Tests", () => {
                     loggerCallback: testLoggerCallback,
                     piiLoggingEnabled: true
                 },
-                asyncPopups: true
+                asyncPopups: true,
+                refreshTokenBinding: true
             }
         }, true);
         // Auth config checks
@@ -196,5 +200,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
         expect(newConfig.system?.asyncPopups).toBe(true);
+        expect(newConfig.system?.refreshTokenBinding).toBe(true);
     });
 });

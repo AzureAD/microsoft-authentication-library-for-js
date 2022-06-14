@@ -64,11 +64,17 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
         const queryString = this.createQueryString(request);
-        const headers = this.createDefaultTokenRequestHeaders();
+        const headers = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            claims: request.claims,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
         };
 
         return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
@@ -100,7 +106,8 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers
+                headers: headers,
+                proxyUrl: this.config.systemOptions.proxyUrl
             });
 
         return {
@@ -167,7 +174,7 @@ export class DeviceCodeClient extends BaseClient {
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders();
 
         const userSpecifiedTimeout = request.timeout ? TimeUtils.nowSeconds() + request.timeout : undefined;
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
@@ -181,7 +188,13 @@ export class DeviceCodeClient extends BaseClient {
             const thumbprint: RequestThumbprint = {
                 clientId: this.config.authOptions.clientId,
                 authority: request.authority,
-                scopes: request.scopes
+                scopes: request.scopes,
+                claims: request.claims,
+                authenticationScheme: request.authenticationScheme,
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+                shrClaims: request.shrClaims,
+                sshKid: request.sshKid
             };
             const response = await this.executePostToTokenEndpoint(
                 this.authority.tokenEndpoint,

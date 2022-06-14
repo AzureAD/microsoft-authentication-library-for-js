@@ -4,6 +4,7 @@
  */
 
 import { AccountInfo } from "../account/AccountInfo";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * CommonEndSessionRequest
@@ -11,10 +12,15 @@ import { AccountInfo } from "../account/AccountInfo";
  * - postLogoutRedirectUri  - URI to navigate to after logout page.
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - idTokenHint            - ID Token used by B2C to validate logout if required by the policy
+ * - state                  - A value included in the request to the logout endpoint which will be returned in the query string upon post logout redirection
+ * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
  */
 export type CommonEndSessionRequest = {
     correlationId: string
     account?: AccountInfo | null,
     postLogoutRedirectUri?: string | null,
-    idTokenHint?: string
+    idTokenHint?: string,
+    state?: string,
+    logoutHint?: string,
+    extraQueryParameters?: StringDict 
 };

@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { ValidCredentialType } from "@azure/msal-common";
 import {
     CacheManager,
     AccountEntity,
@@ -131,7 +132,21 @@ export class TestStorageManager extends CacheManager {
     getKeys(): string[] {
         return Object.keys(this.store);
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
+    }
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.store[currentCacheKey];
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.store[updatedCacheKey] = cacheItem;
+                return updatedCacheKey;
+            }
+        }
+
+        return currentCacheKey;
     }
 }

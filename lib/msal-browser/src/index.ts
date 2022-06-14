@@ -9,7 +9,7 @@
  */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
+export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "./config/Configuration";
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
@@ -29,10 +29,34 @@ export { SsoSilentRequest } from "./request/SsoSilentRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
+export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+
+// Cache
+export { LoadTokenOptions } from "./cache/TokenCache";
+export { BrowserCacheManager } from "./cache/BrowserCacheManager";
+
+// Clients
+export { StandardInteractionClient } from "./interaction_client/StandardInteractionClient";
+export { RedirectClient } from "./interaction_client/RedirectClient";
+export { PopupClient } from "./interaction_client/PopupClient";
+export { SilentIframeClient } from "./interaction_client/SilentIframeClient";
+export { SilentCacheClient } from "./interaction_client/SilentCacheClient";
+export { SilentRefreshClient } from "./interaction_client/SilentRefreshClient";
+
+// Handlers
+export { RedirectHandler } from "./interaction_handler/RedirectHandler";
 
 // Events
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
+export { EventHandler } from "./event/EventHandler";
+
+export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
+
+// Utilities
+export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
+export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
+export { PopupUtils } from "./utils/PopupUtils";
 
 // Common Object Formats
 export {
@@ -43,9 +67,15 @@ export {
     // Response
     AuthenticationResult,
     // Error
-    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network
     INetworkModule,
     NetworkResponse,
@@ -56,7 +86,16 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    // Server Response
+    ExternalTokenResponse,
     // Utils
     StringUtils,
-    UrlString
+    UrlString,
+    // AzureCloudInstance enum
+    AzureCloudInstance,
+    AzureCloudOptions,
+    AuthenticationHeaderParser,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";

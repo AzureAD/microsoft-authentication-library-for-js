@@ -24,6 +24,41 @@ export function createFolder(foldername: string) {
     }
 }
 
+export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
+    let clientID = "";
+    let clientSecret = "";
+    let authority = "";
+
+    if (labConfig.app.appId) {
+        clientID = labConfig.app.appId;
+    }
+
+    if (labConfig.lab.authority && labConfig.lab.tenantId) {
+        authority = `${labConfig.lab.authority}${labConfig.lab.tenantId}`;
+    }
+
+    if (isConfidentialClient) {
+        if (!(labConfig.lab.labName && labConfig.app.appName)) {
+            throw Error("No Labname and/or Appname provided!");
+        }
+
+        let secretAppName =`${labConfig.lab.labName}-${labConfig.app.appName}`;
+
+        // Reformat the secret app name to kebab case from snake case
+        while (secretAppName.includes("_")) secretAppName = secretAppName.replace("_", "-");
+
+        const appClientSecret = await labClient.getSecret(secretAppName);
+
+        clientSecret = appClientSecret.value;
+
+        if (!clientSecret) {
+            throw Error("Unable to get the client secret");
+        }
+    }
+
+    return [clientID, clientSecret, authority];
+}
+
 export async function setupCredentials(labConfig: LabConfig, labClient: LabClient): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
@@ -48,34 +83,34 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
 }
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
-        page.waitForSelector("#i0116")
-    ]).catch(async (e) => {
+    try {
+        await page.waitForNavigation({ waitUntil: "networkidle0", timeout: 10000});
+        await page.waitForSelector("input#i0116.input.text-box");
+    } catch (e) {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
-    });
-    await page.type("#i0116", username);
-    await page.waitForSelector("#idSIButton9");
+    };
+    await page.type("input#i0116.input.text-box", username);
+    await page.waitForSelector("input#idSIButton9");
     await screenshot.takeScreenshot(page, "loginPage");
     await Promise.all([
-        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
-        page.click("#idSIButton9")
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.click("input#idSIButton9")
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
     await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await page.waitForSelector("#i0118");
-    await page.waitForSelector("#idSIButton9");
+    await page.waitForSelector("input#i0118.input.text-box");
+    await page.waitForSelector("input#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("#i0118", accountPwd);
+    await page.type("input#i0118.input.text-box", accountPwd);
     await Promise.all([
-        page.click("#idSIButton9"),
+        page.click("input#idSIButton9"),
 
         // Wait either for another navigation to Keep me signed in page or back to redirectUri
         Promise.race([
-            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
+            page.waitForNavigation({ waitUntil: "networkidle0" }),
             page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
         ])
     ]).catch(async (e) => {
@@ -87,12 +122,12 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         return;
     }
 
-    await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
-    await page.waitForSelector("#idSIButton9");
+    await page.waitForSelector('input#KmsiCheckboxField', {timeout: 1000});
+    await page.waitForSelector("input#idSIButton9");
     await screenshot.takeScreenshot(page, "kmsiPage");
     await Promise.all([
         page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost")),
-        page.click('#idSIButton9')
+        page.click('input#idSIButton9')
     ]).catch(async (e) => {
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;

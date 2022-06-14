@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, ServerHashParamKeys} from "../utils/Constants";
+import { Constants, PersistentCacheKeys, TemporaryCacheKeys, ErrorCacheKeys, ServerHashParamKeys, SESSION_STORAGE} from "../utils/Constants";
 import { AccessTokenCacheItem } from "./AccessTokenCacheItem";
 import { CacheLocation } from "../Configuration";
 import { BrowserStorage } from "./BrowserStorage";
@@ -11,6 +11,7 @@ import { RequestUtils } from "../utils/RequestUtils";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { StringUtils } from "../utils/StringUtils";
 import { IdToken } from "../IdToken";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * @hidden
@@ -19,9 +20,11 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     private clientId: string;
     private rollbackEnabled: boolean;
+    private temporaryCache: BrowserStorage;
 
     constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
+        this.temporaryCache = new BrowserStorage(SESSION_STORAGE);
         this.clientId = clientId;
         // This is hardcoded to true for now. We may make this configurable in the future
         this.rollbackEnabled = true;
@@ -158,10 +161,30 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param key
      */
     removeItem(key: string): void {
+        this.temporaryCache.removeItem(this.generateCacheKey(key, true));
         super.removeItem(this.generateCacheKey(key, true));
         if (this.rollbackEnabled) {
             super.removeItem(this.generateCacheKey(key, false));
         }
+    }
+
+    /**
+     * Sets temporary cache value
+     * @param key 
+     * @param value 
+     * @param enableCookieStorage 
+     */
+    setTemporaryItem(key: string, value: string, enableCookieStorage?: boolean): void {
+        this.temporaryCache.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
+    }
+
+    /**
+     * Gets temporary cache value
+     * @param key 
+     * @param enableCookieStorage 
+     */
+    getTemporaryItem(key: string, enableCookieStorage?: boolean): string {
+        return this.temporaryCache.getItem(this.generateCacheKey(key, true), enableCookieStorage);
     }
 
     /**
@@ -197,7 +220,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             });
         }
         // delete the interaction status cache
-        this.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        this.setInteractionInProgress(false);
         this.removeItem(TemporaryCacheKeys.REDIRECT_REQUEST);
     }
 
@@ -282,6 +305,44 @@ export class AuthCache extends BrowserStorage {// Singleton
         const accessTokens = this.getAllAccessTokens(clientId, homeAccountIdentifier);
         const idTokens =  this.getAllIdTokens(clientId, homeAccountIdentifier);
         return [...accessTokens, ...idTokens];
+    }
+
+    /**
+     * Returns whether or not interaction is currently in progress. Optionally scope it to just this clientId
+     * @param forThisClient 
+     */
+    isInteractionInProgress(matchClientId: boolean): boolean {
+        const clientId = this.getInteractionInProgress();
+        if (matchClientId) {
+            return clientId === this.clientId;
+        } else {
+            return !!clientId;
+        }
+    }
+
+    /**
+     * Returns the clientId of the interaction currently in progress
+     */
+    getInteractionInProgress(): string {
+        return this.getTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));
+    }
+
+    /**
+     * Sets interaction in progress state
+     * @param isInProgress 
+     */
+    setInteractionInProgress(newInProgressValue: boolean): void {
+        if (newInProgressValue) {
+            if (this.isInteractionInProgress(false)) {
+                throw ClientAuthError.createAcquireTokenInProgressError();
+            } else {
+                // Ensure we don't overwrite interaction in progress for a different clientId
+                this.setTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false), this.clientId);
+            }
+        } else if (!newInProgressValue && this.isInteractionInProgress(true)) {
+            // Only remove if the current in progress interaction is for this clientId
+            this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));
+        }
     }
 
     /**

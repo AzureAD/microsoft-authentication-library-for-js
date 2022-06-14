@@ -4,30 +4,39 @@
  */
 
 const express = require("express");
-const msal = require("@azure/msal-node");
-const extensions = require("@azure/msal-node-extensions");
-const process = require("process");
 const path = require("path");
+const process = require("process");
+const msal = require("@azure/msal-node");
+const { 
+    DataProtectionScope,
+    Environment,
+    PersistenceCreator,
+    PersistenceCachePlugin,
+} = require("@azure/msal-node-extensions");
 
 const SERVER_PORT = process.env.PORT || 3000;
-const cachePath = path.join(__dirname, "./cache.json");
+const cachePath = path.join(Environment.getUserRootDirectory(), "./cache.json");
 
-createPersistence().then((filePersistence) => {
+const persistenceConfiguration = {
+    cachePath,
+    dataProtectionScope: DataProtectionScope.CurrentUser,
+    serviceName: "serviceName",
+    accountName: "accountName",
+    usePlaintextFileOnLinux: false,
+}
 
+PersistenceCreator
+.createPersistence(persistenceConfiguration)
+.then(async (persistence) => {
     const publicClientConfig = {
         auth: {
-            clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
-            authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
+            clientId: "<CLIENT_ID>",
+            authority: "https://login.microsoftonline.com/<TENANT_ID>",
+        },
+        cache: {
+            cachePlugin: new PersistenceCachePlugin(persistence)
         }
     };
-
-    const persistenceVerified = await filePersistence.verifyPersistence();
-    if (persistenceVerified) {
-        console.log("Persistence verified...");
-        publicClientConfig.cache = {
-            cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
-        }
-    }
 
     const pca = new msal.PublicClientApplication(publicClientConfig);
 
@@ -64,25 +73,3 @@ createPersistence().then((filePersistence) => {
 
     app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample app listening on port ${SERVER_PORT}!`));
 });
-
-/**
- * Builds persistence based on operating system. Falls back to storing in plain text.
- */
-async function createPersistence() {
-    // On Windows, uses a DPAPI encrypted file
-    if (process.platform === "win32") {
-        return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.CurrentUser);
-    }
-
-    // On Mac, uses keychain.
-    if (process.platform === "darwin") {
-        return extensions.KeychainPersistence.create(cachePath, "serviceName", "accountName"); // Replace serviceName and accountName
-    }
-
-    // On Linux, uses  libsecret to store to secret service. Libsecret has to be installed.
-    if (process.platform === "linux") {
-        return extensions.LibSecretPersistence.create(cachePath, "serviceName", "accountName"); // Replace serviceName and accountName
-    }
-
-    throw new Error("Could not create persistence. Platform not supported");
-}

@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { TEST_CONFIG } from "../TestConstants";
 import sinon from "sinon";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
@@ -27,7 +26,7 @@ describe("TrustedAuthority.ts Class", function () {
             TrustedAuthority.setTrustedAuthoritiesFromConfig(true, TEST_CONFIG.knownAuthorities);
 
             TEST_CONFIG.knownAuthorities.forEach(function(authority) {
-                expect(TrustedAuthority.IsInTrustedHostList(authority)).to.be.true;
+                expect(TrustedAuthority.IsInTrustedHostList(authority)).toBe(true);
             });
         });
 
@@ -35,7 +34,7 @@ describe("TrustedAuthority.ts Class", function () {
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
             TrustedAuthority.setTrustedAuthoritiesFromConfig(true, ["contoso.b2clogin.com"]);
 
-            expect(TrustedAuthority.IsInTrustedHostList("contoso.b2clogin.com")).to.be.false;
+            expect(TrustedAuthority.IsInTrustedHostList("contoso.b2clogin.com")).toBe(false);
         });
     });
 
@@ -44,12 +43,12 @@ describe("TrustedAuthority.ts Class", function () {
             const countBefore = TrustedAuthority.getTrustedHostList().length;
             await TrustedAuthority.setTrustedAuthoritiesFromNetwork(TEST_CONFIG.validAuthority, stubbedTelemetryManager);
             const countAfter = TrustedAuthority.getTrustedHostList().length;
-            expect(countBefore).to.be.lessThan(countAfter);
+            expect(countBefore).toBeLessThan(countAfter);
         });
 
         it("Sets TrustedHostList with Custom Domain known to Microsoft via Instance Discovery Network Call", async () => {
             await TrustedAuthority.setTrustedAuthoritiesFromNetwork("https://login.windows-ppe.net/common/", stubbedTelemetryManager);
-            expect(TrustedAuthority.IsInTrustedHostList("login.windows-ppe.net")).to.be.true;
+            expect(TrustedAuthority.IsInTrustedHostList("login.windows-ppe.net")).toBe(true);
         });
     });
 });

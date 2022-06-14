@@ -3,9 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
+import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 
 export type InteractionParams = {};
 
@@ -36,7 +38,7 @@ export abstract class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         this.browserRequestLogger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
@@ -51,6 +53,27 @@ export abstract class InteractionHandler {
         }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
+        return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
+    }
+
+    /**
+     * Process auth code response from AAD
+     * @param authCodeResponse 
+     * @param state 
+     * @param authority 
+     * @param networkModule 
+     * @returns 
+     */
+    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true): Promise<AuthenticationResult> {
+        this.browserRequestLogger.trace("InteractionHandler.handleCodeResponseFromServer called");
+
+        // Handle code response.
+        const stateKey = this.browserStorage.generateStateKey(state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
+        
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
@@ -63,8 +86,22 @@ export abstract class InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce || undefined;
+        // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
+        if (validateNonce) {
+            authCodeResponse.nonce = cachedNonce || undefined;
+        }
+        
         authCodeResponse.state = requestState;
+
+        // Add CCS parameters if available
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
+        }
 
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
@@ -72,9 +109,32 @@ export abstract class InteractionHandler {
         return tokenResponse;
     }
 
+    /**
+     * Updates authority based on cloudInstanceHostname
+     * @param cloudInstanceHostname 
+     * @param authority 
+     * @param networkModule 
+     */
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
         const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
         this.authModule.updateAuthority(cloudInstanceAuthority);
+    }
+
+    /**
+     * Looks up ccs creds in the cache
+     */
+    protected checkCcsCredentials(): CcsCredential | null {
+        // Look up ccs credential in temp cache
+        const cachedCcsCred = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, true);
+        if (cachedCcsCred) {
+            try {
+                return JSON.parse(cachedCcsCred) as CcsCredential;
+            } catch (e) {
+                this.authModule.logger.error("Cache credential could not be parsed");
+                this.authModule.logger.errorPii(`Cache credential could not be parsed: ${cachedCcsCred}`);
+            }
+        }
+        return null;
     }
 }

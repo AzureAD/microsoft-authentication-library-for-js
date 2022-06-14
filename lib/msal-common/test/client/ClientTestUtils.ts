@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, ServerAuthorizationTokenResponse } from "../../src";
+import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -114,8 +114,22 @@ export class MockStorageClass extends CacheManager {
     getAuthorityMetadataKeys(): string[] {
         return this.getKeys();
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
+    }
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.store[currentCacheKey];
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.store[updatedCacheKey] = cacheItem;
+                return updatedCacheKey;
+            }
+        }
+
+        return currentCacheKey;
     }
 }
 
@@ -124,6 +138,9 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
+        if (AUTHENTICATION_RESULT.body.id_token.includes(input)) {
+            return JSON.stringify(ID_TOKEN_CLAIMS);
+        }
         switch (input) {
             case TEST_POP_VALUES.ENCODED_REQ_CNF:
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -150,11 +167,23 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async getAsymmetricPublicKey(): Promise<string> {
-        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+    async removeTokenBindingKey(keyId: string): Promise<boolean> {
+        return Promise.resolve(true);
     },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async hashString(): Promise<string> {
+        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+    },
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        return AUTHENTICATION_RESULT.body;
     }
 };
 
@@ -198,6 +227,9 @@ export class ClientTestUtils {
             cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
+            },
+            systemOptions: {
+                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
             },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,

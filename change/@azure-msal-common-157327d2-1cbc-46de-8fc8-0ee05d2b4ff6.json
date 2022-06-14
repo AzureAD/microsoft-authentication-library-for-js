@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Bound RT #1 - Generate Session Transport Key #3487",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

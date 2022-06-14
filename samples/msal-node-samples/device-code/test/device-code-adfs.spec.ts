@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import "jest";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -11,7 +10,7 @@ import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import { 
-    enterCredentialsADFS,
+    enterCredentialsADFSWithConsent,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
@@ -33,6 +32,7 @@ const config = require("../config/ADFS.json");
 
 describe('Device Code ADFS PPE Tests', () => {
     jest.setTimeout(45000);
+    jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -91,7 +91,7 @@ describe('Device Code ADFS PPE Tests', () => {
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
                 const { userCode, verificationUri} = deviceCodeResponse;
                 await enterDeviceCode(page, screenshot, userCode, verificationUri);
-                await enterCredentialsADFS(page, screenshot, username, accountPwd);
+                await enterCredentialsADFSWithConsent(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };

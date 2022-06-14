@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, TEST_TOKEN_LIFETIMES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, TEST_TOKEN_LIFETIMES, TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
@@ -72,8 +72,20 @@ const cryptoInterface: ICrypto = {
     async signJwt(): Promise<string> {
         return signedJwt;
     },
-    getAsymmetricPublicKey: async(): Promise<string> => {
+    async removeTokenBindingKey(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async hashString(): Promise<string> {
+        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
         return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+    },
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        return AUTHENTICATION_RESULT.body;
     }
 };
 
@@ -104,7 +116,7 @@ const testIdTokenClaims: TokenClaims = {
     "nonce": "123523",
 };
 const testAccount: AccountInfo = {
-    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
     localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
@@ -137,7 +149,7 @@ describe("ResponseHandler.ts", () => {
         });
         sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
         sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",
             tenantId: "testTenantId",
@@ -192,6 +204,7 @@ describe("ResponseHandler.ts", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: "",
                 fromCache: false,
+                correlationId: "CORRELATION_ID",
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -229,6 +242,7 @@ describe("ResponseHandler.ts", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
+                correlationId: "CORRELATION_ID",
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -265,6 +279,7 @@ describe("ResponseHandler.ts", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
+                correlationId: "CORRELATION_ID",
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -283,7 +298,27 @@ describe("ResponseHandler.ts", () => {
             });
 
             const timestamp = TimeUtils.nowSeconds();
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest)
+        });
+
+        it("includes spa_code in response as code", async () => {
+            const testSpaCode = "sample-spa-code";
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                spa_code: testSpaCode
+            };
+
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
+
+            const timestamp = TimeUtils.nowSeconds();
+            const response = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
+            expect(response.code).toEqual(testSpaCode);
         });
     });
 

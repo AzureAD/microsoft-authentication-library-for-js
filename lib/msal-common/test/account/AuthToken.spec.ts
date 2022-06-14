@@ -1,8 +1,10 @@
 import { AuthToken } from "../../src/account/AuthToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../test_kit/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
+import { StringUtils } from "../../src/utils/StringUtils";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 // Set up stubs
 const idTokenClaims = {
@@ -63,8 +65,20 @@ describe("AuthToken.ts Class Unit Tests", () => {
             async signJwt(): Promise<string> {
                 return "";
             },
-            getAsymmetricPublicKey: async(): Promise<string> => {
+            async removeTokenBindingKey(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async clearKeystore(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async hashString(): Promise<string> {
+                return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+            },
+            async getAsymmetricPublicKey(): Promise<string> {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+            },
+            async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+                return AUTHENTICATION_RESULT.body;
             }
         };
     });

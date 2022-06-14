@@ -115,9 +115,9 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof BrowserAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowError.code);
-        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
-        expect(err.message?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.popupWindowError.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popupWindowError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.popupWindowError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
@@ -129,10 +129,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof BrowserAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowError.code);
-        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.popupWindowError.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popupWindowError.desc)).toBe(true);
         expect(err.errorMessage?.includes(testErrMessage)).toBe(true);
-        expect(err.message?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.popupWindowError.desc)).toBe(true);
         expect(err.message?.includes(testErrMessage)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
@@ -229,20 +229,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
-    it("createSilentSSOInsufficientInfoError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createSilentSSOInsufficientInfoError();
-
-        expect(err instanceof BrowserAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code);
-        expect(err.errorMessage.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
-        expect(err.message.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
-        expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
-    });
-
-    it("createSilentSSOInsufficientInfoError()", () => {
+    it("createSilentPromptValueError()", () => {
         const promptVal = "notAPrompt";
         const err: BrowserAuthError = BrowserAuthError.createSilentPromptValueError(promptVal);
 
@@ -280,6 +267,53 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.invalidCacheType.code);
         expect(err.errorMessage?.includes(BrowserAuthErrorMessage.invalidCacheType.desc)).toBe(true);
         expect(err.message?.includes(BrowserAuthErrorMessage.invalidCacheType.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createUnableToLoadTokenError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createUnableToLoadTokenError("Load Token Error Detail");
+
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.unableToLoadTokenError.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.unableToLoadTokenError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.unableToLoadTokenError.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createDatabaseUnavailableError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createDatabaseUnavailableError();
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.databaseUnavailable.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.databaseUnavailable.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.databaseUnavailable.desc)).toBe(true);
+    });
+
+    it("createSigningKeyNotFoundInStorageError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createKeyGenerationFailedError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createKeyGenerationFailedError();
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.keyGenerationFailed.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.keyGenerationFailed.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.keyGenerationFailed.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });

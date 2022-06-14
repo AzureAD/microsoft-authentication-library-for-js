@@ -2,6 +2,298 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 08 Feb 2022 00:41:06 GMT",
+      "tag": "@azure/msal-angular_v2.1.1",
+      "version": "2.1.1",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
+            "comment": "Test changes #4383"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-angular",
+            "commit": "5767008f8ef9f3b05aeba421cc4aa6c6bb616e86",
+            "comment": "fix: update package-lock files"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.22.0",
+            "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-angular_v2.1.0",
+      "version": "2.1.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.21.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-angular_v2.0.6",
+      "version": "2.0.6",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-angular",
+            "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
+            "comment": "deps: audit fix on msal-angular"
+          }
+        ],
+        "patch": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "13ac4c3dc5a50648b2e462c71d4285b2a320e225",
+            "comment": "Fix angular guard /code check to ensure proper length #4249"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.20.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Nov 2021 23:53:22 GMT",
+      "tag": "@azure/msal-angular_v2.0.5",
+      "version": "2.0.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "4e6070227590e3ce147546718b59026dac988df2",
+            "comment": "Fix redirect processing when allowRedirectInIframe: true #4142"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "a554867901e8b830de5e55d312da8540117f9823",
+            "comment": "Ensure code is in fragment for Angular guard #4190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.19.0",
+            "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
+          }
+        ],
+        "none": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "c5a8de4a5dc7acb9bdf1759eb3cb9811459c3d82",
+            "comment": "Update package-locks to fix dependantbot alerts #4181"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Oct 2021 23:12:35 GMT",
+      "tag": "@azure/msal-angular_v2.0.4",
+      "version": "2.0.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "comment": "Export library version #4124",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.18.0",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "comment": "Disallow major bumps",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "prkanher@microsoft.com",
+            "package": "@azure/msal-angular",
+            "comment": "docs update for ssoSilent #4123",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-angular",
+            "comment": "fix: add forked bindings library to node-extensions",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "comment": "Docs #3981",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-angular_v2.0.3",
+      "version": "2.0.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix inProgress state bug when returning from a redirect #4013",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e5189470fb0c9b58ceec24769eccbfd478941eee",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Fix infinite reload on route protected by MsalGuard when '#code=' appears in the url #3995",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "2964454a86fec796bb01f8a5bc3992b423d47009",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add missing fields to package.json #3977",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "18a4d771253e1821a3bce77199b632cd8cc0b2a0",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update docs with self-service sign up FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "patch fix",
+            "author": "ellymakuba@microsoft.com",
+            "commit": "6f6c1fa9987d62a68583c513c4baabe4041eaf17",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 22:50:22 GMT",
+      "tag": "@azure/msal-angular_v2.0.2",
+      "version": "2.0.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "allow unprotect resources on certain http methods #3878",
+            "author": "daniel.vargastr@gmail.com",
+            "commit": "2ba05427101893edf907d3469dbce81756577d2f",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "fix: fixing the npm audit issues",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "9b19470078b65bedf2b69246ba764b32b533a268",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Remove note from FAQ about active accounts not persisting",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db59cc072e50f201f09e03a09a1b7b8355e10ee1",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-angular_v2.0.1",
+      "version": "2.0.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Don't use normalized url in Angular custom nav client #3757",
+            "author": "janutter@microsoft.com",
+            "commit": "267087aa1443bdd8a1b0208f300f56e9b8b5b8d5",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "MsalInterceptor relative url fix #3729",
+            "author": "joarroyo@microsoft.com",
+            "commit": "18e0a6e4e96c640216759547c2945da46182e4ea",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add window check to msal-guard #3664",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e4ee6981f042308d44f97590454b548a0197c3f1",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Unit test updates",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f0c574a8c2ffeb3132703e7e9e17d01e1898abaa",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Regenerate package-lock #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "d06ce5f5f4aa774e447d01e9cbf17d05a730bc47",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "@azure/msal-angular_v2.0.0",
       "version": "2.0.0",

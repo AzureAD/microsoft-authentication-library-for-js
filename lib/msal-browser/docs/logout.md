@@ -16,7 +16,14 @@ msalInstance.logoutRedirect();
 msalInstance.logoutPopup();
 ```
 
-These APIs will clear the token cache of any user and session data, then navigate the browser window or popup window to the server's logout page. The server will then prompt the user to select the account they would like to be signed out of and redirect back to the page the url provided as `postLogoutRedirectUri`.
+These APIs will clear the token cache of any user and session data, then navigate the browser window or popup window to the server's logout page. The server will then prompt the user to select the account they would like to be signed out of and redirect back to your `postLogoutRedirectUri` as long as the following conditions are met:
+
+1. The URI is registered as a reply url on the app registration
+1. The URI is provided as the `postLogoutRedirectUri` on either the `PublicClientApplication` config or the logout request
+1. The user has an active session with the identity provider
+1. (MSA Scenarios) A front channel logout url is configured on the app registration
+
+If any of the above conditions are not met the page (or the popup window) will remain on the identity provider's logout page.
 
 **IMPORTANT:** If this logout navigation is interrupted in any way, your MSAL cache may be cleared but the session may still persist on the server. Ensure the navigation fully completes before returning to your application.
 
@@ -82,22 +89,60 @@ const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
 await msalInstance.logoutPopup({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
-    mainWindowRedirectUri: "https://contoso.com/homePage"
+    mainWindowRedirectUri: "https://contoso.com/homePage",
+    popupWindowAttributes: {
+        popupSize: {
+            height: 100,
+            width: 100
+        },
+        popupPosition: {
+            top: 100,
+            left: 100
+        }
+    }
 });
 ```
+
+## Promptless logout
+
+If your client application has the [login_hint optional claim](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) enabled for ID Tokens, you can leverage the ID Token's `login_hint` claim to perform a "silent" or promptless logout while using either `logoutRedirect` or `logoutPopup`. There are two ways to achieve a promptless logout:
+
+### Option 1: Let MSAL automatically parse the login_hint out of the account's ID token claims
+
+The first and simplest option is to provide the account object you want to end the session for to the logout API. MSAL will check to see if the `login_hint` claim is available in the account's ID token and automatically add it to the end session request as `logout_hint` to skip the account picker prompt.
+
+```javascript
+const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+// The account's ID Token must contain the login_hint optional claim to avoid the account picker
+await msalInstance.logoutRedirect({ account: currentAccount});
+```
+
+### Option 2: Manually set the logoutHint option in the logout request
+
+Alternatively, if you prefer to manually set the `logoutHint`, you can extract the `login_hint` claim in your app and set it as the `logoutHint` in the logout request: 
+
+```javascript
+const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+
+// Extract login hint to use as logout hint
+const logoutHint = currentAccount.idTokenClaims.login_hint;
+await msalInstance.logoutPopup({ logoutHint: logoutHint });
+```
+
+***Note: Depending on the API you choose (redirect/popup), the app will still redirect or open a popup to terminate the server session. The difference is that the user will not see or have to interact with the server's account picker prompt.***
 
 ## Front-channel logout
 
 Azure AD and Azure AD B2C support the [OAuth front-channel logout feature](https://openid.net/specs/openid-connect-frontchannel-1_0.html), which enables single-sign out across all applications when a user initiates logout. To take advantage of this feature with MSAL.js, perform the following steps:
 
-1. In your application, create a dedicated logout page (see below for details). Note, this page will be loaded in a hidden iframe, and for Azure AD and MSA users, will include the `iss` and `sid` query parameters.
+1. In your application, create a dedicated logout page. This page **should not** perform any other function, such as acquiring tokens on page load (see below for details). Note, this page will be loaded in a hidden iframe, and for Azure AD and MSA users, will include the `iss` and `sid` query parameters.
 2. In the Azure Portal, navigate to the **Authentication** page for your application, and register the page from step one under **Front-channel logout URL**. Note, this page must be loaded via `https`.
 
 ### Requirements for front-channel logout page
 
 The page used for front-channel logout should be built as follows:
 
-1. On page load, automatically invoke the MSAL `logout` or `logoutRedirect` API. 
+1. On page load, automatically invoke the MSAL `logoutRedirect` API.
 2. In the `PublicClientApplication` configuration, set `system.allowRedirectInIframe` to `true`.
 3. When invoking `logout`, we recommend preventing the redirect in the iframe to the logout page (see [above](#skipping-the-server-sign-out)).
 

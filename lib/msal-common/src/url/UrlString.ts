@@ -20,7 +20,7 @@ export class UrlString {
     public get urlString(): string {
         return this._urlString;
     }
-    
+
     constructor(url: string) {
         this._urlString = url;
         if (StringUtils.isEmpty(this._urlString)) {
@@ -35,7 +35,7 @@ export class UrlString {
 
     /**
      * Ensure urls are lower case and end with a / character.
-     * @param url 
+     * @param url
      */
     static canonicalizeUri(url: string): string {
         if (url) {
@@ -81,26 +81,9 @@ export class UrlString {
     }
 
     /**
-     * Function to remove query string params from url. Returns the new url.
-     * @param url
-     * @param name
-     */
-    urlRemoveQueryStringParameter(name: string): string {
-        let regex = new RegExp("(\\&" + name + "=)[^\&]+");
-        this._urlString = this.urlString.replace(regex, "");
-        // name=value&
-        regex = new RegExp("(" + name + "=)[^\&]+&");
-        this._urlString = this.urlString.replace(regex, "");
-        // name=value
-        regex = new RegExp("(" + name + "=)[^\&]+");
-        this._urlString = this.urlString.replace(regex, "");
-        return this.urlString;
-    }
-
-    /**
      * Given a url and a query string return the url with provided query string appended
-     * @param url 
-     * @param queryString 
+     * @param url
+     * @param queryString
      */
     static appendQueryString(url: string, queryString: string): string {
         if (StringUtils.isEmpty(queryString)) {
@@ -112,7 +95,7 @@ export class UrlString {
 
     /**
      * Returns a url with the hash removed
-     * @param url 
+     * @param url
      */
     static removeHashFromUrl(url: string): string {
         return UrlString.canonicalizeUri(url.split("#")[0]);
@@ -190,13 +173,13 @@ export class UrlString {
 
             return baseComponents.Protocol + "//" + baseComponents.HostNameAndPort + relativeUrl;
         }
-        
+
         return relativeUrl;
     }
-    
+
     /**
      * Parses hash string from given string. Returns empty string if no hash symbol is found.
-     * @param hashString 
+     * @param hashString
      */
     static parseHash(hashString: string): string {
         const hashIndex1 = hashString.indexOf("#");
@@ -236,7 +219,8 @@ export class UrlString {
      * Check if the hash of the URL string contains known properties
      */
     static hashContainsKnownProperties(hash: string): boolean {
-        if (StringUtils.isEmpty(hash)) {
+        if (StringUtils.isEmpty(hash) || hash.indexOf("=") < 0) {
+            // Hash doesn't contain key/value pairs
             return false;
         }
 

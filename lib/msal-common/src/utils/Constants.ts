@@ -11,6 +11,7 @@ export const Constants = {
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
+    DEFAULT_COMMON_TENANT: "common",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
@@ -42,7 +43,7 @@ export const Constants = {
     IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
     IMDS_VERSION: "2020-06-01",
     IMDS_TIMEOUT: 2000,
-    AZURE_REGION_AUTO_DISCOVER_FLAG: "AUTO_DISCOVER",
+    AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
     KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
 };
@@ -63,7 +64,10 @@ export const OIDC_SCOPES = [
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
-    RETRY_AFTER = "Retry-After"
+    RETRY_AFTER = "Retry-After",
+    CCS_HEADER = "X-AnchorMailbox",
+    WWWAuthenticate = "WWW-Authenticate",
+    AuthenticationInfo = "Authentication-Info"
 }
 
 /**
@@ -74,7 +78,8 @@ export enum PersistentCacheKeys {
     CLIENT_INFO = "client.info",
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
-    ERROR_DESC = "error.description"
+    ERROR_DESC = "error.description",
+    ACTIVE_ACCOUNT = "active-account"
 }
 
 /**
@@ -132,7 +137,10 @@ export enum AADServerParamKeys {
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
-    FOCI = "foci"
+    FOCI = "foci",
+    CCS_HEADER = "X-AnchorMailbox",
+    RETURN_SPA_CODE = "return_spa_code",
+    LOGOUT_HINT = "logout_hint"
 }
 
 /**
@@ -153,6 +161,7 @@ export const PromptValue = {
     SELECT_ACCOUNT: "select_account",
     CONSENT: "consent",
     NONE: "none",
+    CREATE: "create"
 };
 
 /**
@@ -281,7 +290,7 @@ export enum CacheType {
  * More Cache related constants
  */
 export const APP_METADATA = "appmetadata";
-export const ClientInfo = "client_info";
+export const CLIENT_INFO = "client_info";
 export const THE_FAMILY_ID = "1";
 
 export const AUTHORITY_METADATA_CONSTANTS = {
@@ -296,7 +305,7 @@ export enum AuthorityMetadataSource {
 }
 
 export const SERVER_TELEM_CONSTANTS = {
-    SCHEMA_VERSION: 2,
+    SCHEMA_VERSION: 5,
     MAX_CUR_HEADER_BYTES: 80, // ESTS limit is 100B, set to 80 to provide a 20B buffer
     MAX_LAST_HEADER_BYTES: 330, // ESTS limit is 350B, set to 330 to provide a 20B buffer,
     MAX_CACHED_ERRORS: 50, // Limit the number of errors that can be stored to prevent uncontrolled size gains
@@ -312,8 +321,9 @@ export const SERVER_TELEM_CONSTANTS = {
  * Type of the authentication request
  */
 export enum AuthenticationScheme {
+    BEARER = "Bearer",
     POP = "pop",
-    BEARER = "Bearer"
+    SSH = "ssh-cert"
 }
 
 /**
@@ -347,8 +357,8 @@ export enum PasswordGrantConstants {
  * Supported Cryptographic Key Types
  */
 export enum CryptoKeyTypes {
-    req_cnf = "req_cnf",
-    stk_jwk = "stk_jwk"
+    ReqCnf = "req_cnf",
+    StkJwk = "stk_jwk"
 }
 
 /**
@@ -357,4 +367,33 @@ export enum CryptoKeyTypes {
 export enum  ResponseCodes {
     httpSuccess = 200,
     httpBadRequest = 400
+}
+
+/**
+ * Region Discovery Sources
+ */
+export enum RegionDiscoverySources {
+    FAILED_AUTO_DETECTION = "1",
+    INTERNAL_CACHE = "2",
+    ENVIRONMENT_VARIABLE = "3",
+    IMDS = "4",
+}
+
+/**
+ * Region Discovery Outcomes
+ */
+export enum RegionDiscoveryOutcomes {
+    CONFIGURED_MATCHES_DETECTED = "1",
+    CONFIGURED_NO_AUTO_DETECTION = "2",
+    CONFIGURED_NOT_DETECTED = "3",
+    AUTO_DETECTION_REQUESTED_SUCCESSFUL = "4",
+    AUTO_DETECTION_REQUESTED_FAILED = "5"
+}
+
+export enum CacheOutcome {
+    NO_CACHE_HIT = "0",
+    FORCE_REFRESH = "1",
+    NO_CACHED_ACCESS_TOKEN = "2",
+    CACHED_ACCESS_TOKEN_EXPIRED = "3",
+    REFRESH_CACHED_ACCESS_TOKEN = "4"
 }

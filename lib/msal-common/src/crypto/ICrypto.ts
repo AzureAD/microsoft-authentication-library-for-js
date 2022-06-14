@@ -5,8 +5,10 @@
 
 import { AuthError } from "../error/AuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { SignedHttpRequest } from "./SignedHttpRequest";
+import { CryptoKeyTypes } from "../utils/Constants";
 
 /**
  * The PkceCodes type describes the structure
@@ -17,6 +19,8 @@ export type PkceCodes = {
     verifier: string,
     challenge: string
 };
+
+export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce">;
 
 /**
  * Interface for crypto functions used by library
@@ -44,12 +48,26 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string>;
+    getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string>;
+    /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    removeTokenBindingKey(kid: string): Promise<boolean>;
+    /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    clearKeystore(): Promise<boolean>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
+    /**
+     * Returns the SHA-256 hash of an input string
+     * @param plainText
+     */
+    hashString(plainText: string): Promise<string>;
     /**
      * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
      * public key thumbprint parameter
@@ -58,8 +76,9 @@ export interface ICrypto {
     getAsymmetricPublicKey(keyThumbprint: string): Promise<string>;
     /**
      * Decrypts a bound token response
+     * @param boundServerTokenResponse
      */
-    decryptBoundTokenResponse(boundServerTokenResponse: ServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null>;
+    decryptBoundTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -83,8 +102,20 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
+    async removeTokenBindingKey(): Promise<boolean> {
+        const notImplErr = "Crypto interface - removeTokenBindingKey() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async clearKeystore(): Promise<boolean> {
+        const notImplErr = "Crypto interface - clearKeystore() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async hashString(): Promise<string> {
+        const notImplErr = "Crypto interface - hashString() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async getAsymmetricPublicKey(): Promise<string> {

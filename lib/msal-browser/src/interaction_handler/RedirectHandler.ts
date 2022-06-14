@@ -5,7 +5,7 @@
 
 import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { ApiId, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -42,7 +42,7 @@ export class RedirectHandler extends InteractionHandler {
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.authCodeRequest.correlationId, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
             this.browserRequestLogger.infoPii(`RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`);
             const navigationOptions: NavigationOptions = {
@@ -82,7 +82,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
         this.browserRequestLogger.verbose("RedirectHandler.handleCodeResponse called");
 
         // Check that location hash isn't empty.
@@ -91,7 +91,7 @@ export class RedirectHandler extends InteractionHandler {
         }
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+        this.browserStorage.setInteractionInProgress(false);
 
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
@@ -116,9 +116,19 @@ export class RedirectHandler extends InteractionHandler {
         authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
+        // Add CCS parameters if available
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
+        }
+
         // Remove throttle if it exists
         if (clientId) {
-            ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
+            ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest);
         }
 
         // Acquire token with retrieved code.

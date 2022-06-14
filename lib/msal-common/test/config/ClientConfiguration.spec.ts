@@ -3,11 +3,12 @@ import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
-import { Constants } from "../../src";
 import { version } from "../../src/packageMetadata";
-import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
+import {AUTHENTICATION_RESULT, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES} from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
+import { Constants } from "../../src/utils/Constants";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
@@ -35,10 +36,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
-        expect(() => emptyConfig.storageInterface.clear()).toThrowError(
-            "Unexpected error in authentication.: Storage interface - clear() has not been implemented"
-        );
-        expect(() => emptyConfig.storageInterface.clear()).toThrowError(AuthError);
+        await expect(emptyConfig.storageInterface.clear()).rejects.toMatchObject(AuthError.createUnexpectedError("Storage interface - clear() has not been implemented for the cacheStorage interface."))
         expect(emptyConfig.storageInterface.containsKey).not.toBeNull();
         expect(() => emptyConfig.storageInterface.containsKey("testKey")).toThrowError(
             "Unexpected error in authentication.: Storage interface - containsKey() has not been implemented"
@@ -118,8 +116,20 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 async signJwt(): Promise<string> {
                     return "signedJwt";
                 },
-                getAsymmetricPublicKey: async(): Promise<string> => {
+                async removeTokenBindingKey(): Promise<boolean> {
+                    return Promise.resolve(true);
+                },
+                async clearKeystore(): Promise<boolean> {
+                    return Promise.resolve(true);
+                },
+                async hashString(): Promise<string> {
+                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+                },
+                async getAsymmetricPublicKey(): Promise<string> {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+                },
+                async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             storageInterface: cacheStorageMock,
@@ -151,6 +161,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Encode("testString")).toBe("testEncodedString");
         expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
         expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(testPkceCodes);
+        expect(newConfig.cryptoInterface.removeTokenBindingKey).not.toBeNull();
+        expect(newConfig.cryptoInterface.removeTokenBindingKey("testString")).resolves.toBe(true);
         // Storage interface tests
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.storageInterface.clear).not.toBeNull();

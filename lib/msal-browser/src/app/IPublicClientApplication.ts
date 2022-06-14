@@ -13,13 +13,19 @@ import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuth
 import { WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
+import { ITokenCache } from "../cache/ITokenCache";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { BrowserConfiguration } from "../config/Configuration";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
+    enableAccountStorageEvents(): void;
+    disableAccountStorageEvents(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
@@ -31,12 +37,14 @@ export interface IPublicClientApplication {
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    getTokenCache(): ITokenCache;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
+    getConfiguration(): BrowserConfiguration;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -48,7 +56,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },	
     acquireTokenSilent: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
-    },	
+    },
+    acquireTokenByCode: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
+    },
     getAllAccounts: () => {
         return [];	
     },	
@@ -88,6 +99,15 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     removeEventCallback: () => {
         return;
     },
+    enableAccountStorageEvents: () => {
+        return;
+    },
+    disableAccountStorageEvents: () => {
+        return;
+    },
+    getTokenCache: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
+    },
     getLogger: () => {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     },
@@ -105,5 +125,8 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     setNavigationClient: () => {
         return;
+    },
+    getConfiguration: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     }
 };

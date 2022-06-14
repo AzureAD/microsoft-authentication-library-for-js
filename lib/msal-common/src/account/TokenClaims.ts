@@ -15,6 +15,7 @@ export type TokenClaims = {
     ver?: string,
     upn?: string,
     preferred_username?: string,
+    login_hint?: string,
     emails?: string[],
     name?: string,
     nonce?: string,
@@ -25,5 +26,10 @@ export type TokenClaims = {
     cnf?: {
         kid: string;
     };
-    x5c_ca?: string
+    x5c_ca?: string,
+    ts?: number,
+    at?: string,
+    u?: string,
+    p?: string,
+    m?: string
 };

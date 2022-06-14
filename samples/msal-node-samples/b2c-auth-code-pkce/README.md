@@ -1,12 +1,6 @@
-# MSAL Node standalone samples
+# MSAL Node Standalone Sample: Authorization Code Grant (PKCE) on Azure AD B2C
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. To get started with this sample, first follow the general instructions [here](../readme.md).
-
-Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
-
-## Web app using auth code flow with PKCE on Azure AD B2C
-
-This sample demonstrates a [public client application](https://docs.microsoft.com/azure/active-directory-b2c/application-types) registered on Azure AD B2C. It features:
+This sample demonstrates a [public client application](../../../lib/msal-node/docs/initialize-public-client-application.md) registered on Azure AD B2C. It features:
 
 1. using [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
 
@@ -14,15 +8,15 @@ This sample demonstrates a [public client application](https://docs.microsoft.co
 
 2. using [authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) and call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C)
 
-### Registration
+## Registration
 
-This sample comes with a pre-registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
+This sample comes with a registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
 
 1. [Create an Azure Active Directory B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
 2. [Register a web application in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-applications?tabs=app-reg-ga)
 3. [Create user flows in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
 
-### Configuration
+## Configuration
 
 In `policies.js`, we create a `b2cPolicies` object to store authority strings for initiating each user-flow:
 
@@ -105,25 +99,25 @@ const tokenRequest = {
 };
 ```
 
-### Usage
+## Usage
 
-#### Initialize MSAL Node
+### Initialize MSAL Node
 
 ```javascript
 const pca = new msal.PublicClientApplication(publicClientConfig);
 ```
 
-#### Sign-in a user
+### Sign-in a user
 
 Setup an Express route for initiating the sign-in flow:
 
 ```javascript
-app.get("/signin", (req, res) => {
-    getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.SIGN_IN, res);
+app.get("/login", (req, res) => {
+    getAuthCode(policies.authorities.signUpSignIn.authority, [], APP_STATES.SIGN_IN, res);
 })
 ```
 
-#### Get an authorization code
+### Get an authorization code
 
 Create a helper method to prepare request parameters that will be passed to MSAL Node's `getAuthCodeUrl()` method, which triggers the first leg of auth code flow.
 
@@ -148,7 +142,7 @@ const getAuthCode = (authority, scopes, state, res) => {
 }
 ```
 
-#### Handle redirect response
+### Handle redirect response
 
 The second leg of the auth code flow consists of handling the redirect response from the B2C server. We do this in the `/redirect` route, responding appropriately to the `state` parameter in the query string.
 
@@ -162,7 +156,7 @@ app.get("/redirect", (req, res) => {
     if (req.query.state === APP_STATES.SIGN_IN) {
 
         // prepare the request for authentication
-        tokenRequest.scopes = SCOPES.oidc;
+        tokenRequest.scopes = [];
         tokenRequest.code = req.query.code;
 
         pca.acquireTokenByCode(tokenRequest)
@@ -177,14 +171,14 @@ app.get("/redirect", (req, res) => {
 
         // prepare the request for calling the web API
         tokenRequest.authority = policies.authorities.signUpSignIn.authority;
-        tokenRequest.scopes = SCOPES.resource1;
+        tokenRequest.scopes = apiConfig.webApiScopes;
         tokenRequest.code = req.query.code;
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
 
                 // store access token somewhere
-                app.locals.accessToken = response.accessToken;
+                req.session.accessToken = response.accessToken;
 
                 // call the web API
                 api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
@@ -203,18 +197,18 @@ app.get("/redirect", (req, res) => {
 });
 ```
 
-#### Acquire an access token
+### Acquire an access token
 
 Check if there is a stored access token in memory; if not, initiate the first leg of auth code flow to request an access token. Otherwise, call the web API.
 
 ```javascript
 app.get("/api", async (req, res) => {
     // If no accessToken in store, request authorization code to exchange for a token
-    if (!app.locals.accessToken) {
-        getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.resource1, APP_STATES.CALL_API, res);
+    if (!req.session.accessToken) {
+        getAuthCode(policies.authorities.signUpSignIn.authority, apiConfig.webApiScopes, APP_STATES.CALL_API, req, res);
     } else {
         // else, call the web API
-        api.callWebApi(apiConfig.webApiUri, app.locals.accessToken, (response) => {
+        api.callWebApi(apiConfig.webApiUri, req.session.accessToken, (response) => {
             const templateParams = { showLoginButton: false, profile: JSON.stringify(response, null, 4) };
             res.render("api", templateParams);
         });
@@ -222,4 +216,4 @@ app.get("/api", async (req, res) => {
 });
 ```
 
-> :warning: silent flows are not used with the this scenario. See [this sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/b2c-silent-flow) for how to setup a silent token request in MSAL Node
+> :warning: silent flow is not used with the this scenario. See [this sample](../b2c-silent-flow/README.md) for how to setup a silent token request in MSAL Node

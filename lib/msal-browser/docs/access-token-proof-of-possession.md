@@ -4,7 +4,7 @@ In order to increase the protection of OAuth 2.0 access tokens stored in the bro
 
 It is important to understand that for `AT PoP` to work end-to-end and provide the security upgrade intended, both the **authorization service** that issues the access tokens and the **resource server** that they are provide access to must support `AT PoP`.
 
-## Bearer Access Token vs PoP Access Token
+## Bearer Access Token vs Bound (PoP) Access Token
 
 ### Bearer Access Token
 
@@ -23,17 +23,17 @@ headers.append("Authorization", authHeader);
 ```
 
 
-### PoP Access Token (Signed HTTP Request)
+### Bound Access Token
 
-When the `POP` authorization scheme is enabled in an MSAL token request, the authorization server will still provide a JSON Web Token access token secret that looks like a `Bearer` access token, which MSAL will also cache. The main difference is that when using the `POP` scheme, MSAL will sign the access token secret before returning it to the client application.
+A.K.A `PoP Token` or `Signed HTTP Request`. When the `POP` authorization scheme is enabled in an MSAL token request, the authorization server will still provide a JSON Web Token access token secret that looks like a `Bearer` access token, which MSAL will also cache. The main difference is that when using the `POP` scheme, that access token secret will be bound to the user's browser through an asymmetric cryptographic keypair.
 
-The access token secret is wrapped in a new JSON Web Token, which will be signed using the `HMAC` (Hash-based Message Authentication Code) hashing algorithm and a private key that MSAL generates, stores and manages. The signed JWT is then added to the `AuthorizationResult` object under the `accessToken` property and returned from the MSAL v2 API called.
+The access token secret is wrapped in a new JSON Web Token, which will be signed using the `HMAC` (Hash-based Message Authentication Code) hashing algorithm and the private key from the keypair that MSAL generates, stores and manages. The signed JWT is then added to the `AuthorizationResult` object under the `accessToken` property and returned from the MSAL v2 API called.
 
 Once the client application receives the returned authentication result, it can extract the `accessToken` value from the authentication result and add it to the `Authorization` header of a PoP-protected resource request, using the `PoP` label instead of the `Bearer` label.
 
 **Note: The signed JWT (called a Signed HTTP Request or SHR) is never cached by MSAL. Everytime an MSAL v2 API is called, MSAL will either retrieve a valid raw access token secret from the cache or request a new access token from the authorization server. MSAL will then sign said access token and return it in the authentication result.**
 
-Example PoP Access Token Usage:
+Example Bound (PoP) Access Token Usage:
 
 ```typescript
 // Using the POP scheme (default), acquireTokenRedirect returns an AuthenticationResult object containing the Signed HTTP Request (PoP Token)
@@ -51,13 +51,16 @@ Once you have determined the authorization service and resource server support a
 
 ### AT PoP Request Parameters
 
-|           Name          |                      Description                            |
-|-------------------------| ----------------------------------------------------------- |
-|  `authenticationScheme` | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`. |
-| `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.)|
-| `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued |
-|       `shrClaims`       | A stringified JSON object containing custom client claims to be added to the SignedHTTPRequest. Check out the [Custom SHR Claims](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-client-claims.md) documentation for more information. |
+|           Name          |                      Description                            | Required |
+|-------------------------| ----------------------------------------------------------- | -------- |
+|  `authenticationScheme` | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`. | **Required** |
+| `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.) | **Required** |
+| `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued | **Required** |
+|       `shrClaims`       | A stringified JSON object containing custom client claims to be added to the SignedHTTPRequest. Check out the [Custom SHR Claims](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-client-claims.md) documentation for more information. | *Optional* |
+|      `shrNonce`         | A server-generated, signed timestamp that is Base64URL encoded as a string. This nonce is used to mitigate clock-skew and time-travel attacks meant to enable PoP token pre-generation. Check out the [SHR Server Nonce](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md) documentation for more information.| *Optional* |
 
+
+*Note: While this document shows how to add an `shrNonce` to the `SignedHttpRequest`, the server nonce acquisition pattern is out of scope. Please review the [SHR Server Nonce dcoumentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md#acquiring-a-server-nonce) for more information on acquiring server-generated nonces.*
 
 ### Acquire Token Redirect Request Example
 
@@ -66,7 +69,9 @@ const popTokenRequest = {
     scopes: ["User.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
     resourceRequestMethod: "POST",
-    resourceRequestUri: "YOUR_RESOURCE_ENDPOINT"
+    resourceRequestUri: "YOUR_RESOURCE_ENDPOINT",
+    shrClaims: "{\"shrClaim1\": \"claimValue\"}",
+    shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER"
 }
 
 ```
@@ -104,7 +109,9 @@ const silentPopTokenRequest = {
     scopes: ["User.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP, // Default is "BEARER"
     resourceRequestMethod: "POST",
-    resourceRequestUri: "YOUR_RESOURCE_ENDPOINT"
+    resourceRequestUri: "YOUR_RESOURCE_ENDPOINT",
+    shrClaims: "{\"shrClaim1\": \"claimValue\"}",
+    shrNonce: "NONCE_ACQUIRED_FROM_RESOURCE_SERVER"
 }
 
 // Try to acquire token silently
@@ -137,6 +144,18 @@ fetch(endpoint, options)
     .catch(error => console.log(error));
 });
 ```
+
+## PoP Key Management
+
+The Proof-of-Possession authentication scheme relies on an asymmetric cryptographic keypair to bind the access token to the user's browser. MSAL Browser generates this keypair when initially requesting an access token from the authorization service and stores it using [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). This cryptographic keypair is then used to sign the `SHR` every time the bound access token is requested silently.
+
+In the event of refreshing a bound access token, MSAL will delete the cryptographic keypair that was generated when requesting the expired bound access token, generate a new cryptographic keypair for the new access token, and store the new keypair in the keystore.
+
+### Why access tokens are saved asynchronously
+
+Most MSAL credentials and cache items, like `ID Tokens` for example, can be stored and removed synchronously. This is because these cache items are stored in either `localStorage` or `sessionStorage` (which can be manipulated synchronously), and they have no dependencies on other stored items that have asynchronous access restrictions.
+
+Unlike other cache items, `Access Tokens` are saved to the cache asynchronously. The reason for this is that in the case of an access token being bound to a cryptographic keypair, which is stored in `IndexedDB`, replacing the access token also involves replacing the cryptographic keypair. Given that removing and writing keys to `IndexedDB` are asynchronous operations, the process for saving an access token inevitably becomes asyncrhonous by extension.
 
 ## Code samples
 

@@ -73,6 +73,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
 | `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request | Array of strings | [] |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints. | string | `"AAD"` |
+| `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)
 
 ### Cache Config Options
 
@@ -88,7 +89,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | ------ | ----------- | ------ | ------------- |
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
 | `windowHashTimeout` | Timeout in milliseconds to wait for popup operations to resolve. | integer (milliseconds) | `60000` |
-| `iframeHashTimeout` | Timeout in milliseconds to wait for iframe opeations to resolve. | integer (milliseconds) | `6000` |
+| `iframeHashTimeout` | Timeout in milliseconds to wait for iframe operations to resolve. | integer (milliseconds) | `6000` |
 | `loadFrameTimeout` | Timeout in milliseconds to wait for iframe/popup operations resolve. If provided, will set default values for `windowHashTimeout` and `iframeHashTimeout`. | integer (milliseconds) | `undefined` |
 | `navigateFrameWait ` | Delay in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |

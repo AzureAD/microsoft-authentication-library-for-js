@@ -1,10 +1,7 @@
-import {
-    ClientConfigurationError
-} from "../../src";
-
 import { PromptValue } from "../../src/utils/Constants";
 import { RequestValidator } from "../../src/request/RequestValidator";
 import {TEST_CONFIG} from "../test_kit/StringConstants";
+import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 
 describe("RequestValidator unit tests", () => {
 
@@ -28,6 +25,9 @@ describe("RequestValidator unit tests", () => {
         });
         it("PromptValue none", () => {
             RequestValidator.validatePrompt(PromptValue.NONE);
+        });
+        it("PromptValue create", () => {
+            RequestValidator.validatePrompt(PromptValue.CREATE);
         });
         it("Throws InvalidPromptError if invalid prompt value passed in", () => {
             expect(function() { RequestValidator.validatePrompt("")}).toThrowError(ClientConfigurationError.createInvalidPromptError("").message);

@@ -10,6 +10,7 @@ import { ILoggerCallback, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../packageMetadata";
 import { Authority } from "../authority/Authority";
+import { AzureCloudInstance } from "../authority/AuthorityOptions";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
@@ -73,15 +74,20 @@ export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
  * Use this to configure token renewal info in the Configuration object
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
+ * - refreshTokenBinding          - Boolean that enables refresh token binding (a.k.a refresh token proof-of-possession) for authorization requests
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
+    preventCorsPreflight?: boolean;
+    proxyUrl?: string;
+    refreshTokenBinding?: boolean;
 };
 
 /**
@@ -120,8 +126,22 @@ export type ClientCredentials = {
     };
 };
 
+/**
+ * AzureCloudInstance specific options
+ *
+ * - azureCloudInstance             - string enum providing short notation for soverign and public cloud authorities
+ * - tenant                         - provision to provide the tenant info
+ */
+export type AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance;
+    tenant?: string,
+};
+
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    preventCorsPreflight: false,
+    proxyUrl: "",
+    refreshTokenBinding: false
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -156,6 +176,11 @@ const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
     clientAssertion: undefined
 };
 
+const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
+    azureCloudInstance: AzureCloudInstance.None,
+    tenant: `${Constants.DEFAULT_COMMON_TENANT}`
+};
+
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
@@ -178,10 +203,12 @@ export function buildClientConfiguration(
         serializableCache: serializableCache
     }: ClientConfiguration): CommonClientConfiguration {
 
+    const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
+
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
-        loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
+        loggerOptions: loggerOptions,
         storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
@@ -200,6 +227,7 @@ export function buildClientConfiguration(
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
+        azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         ...authOptions
     };
 }

@@ -12,12 +12,22 @@ const { promises: fs } = require("fs");
 const cachePath = "./data/cache.json"; // Replace this string with the path to your valid cache file.
 
 const beforeCacheAccess = async (cacheContext) => {
-    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
+    try {
+        const cacheFile = await fs.readFile(cachePath, "utf-8");
+        cacheContext.tokenCache.deserialize(cacheFile);
+    } catch (error) {
+        // if cache file doesn't exists, create it
+        cacheContext.tokenCache.deserialize(await fs.writeFile(cachePath, ""));
+    }
 };
 
 const afterCacheAccess = async (cacheContext) => {
     if (cacheContext.cacheHasChanged) {
-        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+        try {
+            await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+        } catch (error) {
+            console.log(error);
+        }
     }
 };
 
@@ -28,11 +38,20 @@ const cachePlugin = {
 
 const msalConfig = {
     auth: {
-        clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
-        authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com",
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
     },
     cache: {
         cachePlugin
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
     }
 };
 
@@ -59,8 +78,7 @@ const tokenCalls = async () => {
         }).catch((error) => {
             console.log(error);
         });
-    // fall back to username password if there is no account
-    } else {
+    } else { // fall back to username password if there is no account
         const usernamePasswordRequest = {
             scopes: ["user.read"],
             username: "", // Add your username here

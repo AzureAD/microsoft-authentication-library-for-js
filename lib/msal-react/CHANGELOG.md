@@ -1,8 +1,72 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 13 May 2021 18:34:08 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Feb 2022 00:41:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.0
+
+Tue, 08 Feb 2022 00:41:07 GMT
+
+### Minor changes
+
+- useMsalAuthentication hook acquires a token if user is already signed in #4280 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.22.0
+
+## 1.2.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v2.21.0
+
+## 1.1.2
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Patches
+
+- Fix inProgress stuck in startup state #4302 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.20.0
+
+## 1.1.1
+
+Mon, 01 Nov 2021 23:53:22 GMT
+
+### Patches
+
+- Support React version 16.8.0+ (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.19.0
+
+## 1.1.0
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Minor changes
+
+- Update account state when user logs in or out from a different tab or window #3981 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.18.0
+
+### Patches
+
+- Export library version #4124 (thomas.norling@microsoft.com)
+
+## 1.0.2
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Patches
+
+- Fix inProgress state bug when returning from a redirect #4013 (thomas.norling@microsoft.com)
+
+## 1.0.1
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Patches
+
+- Change accounts context type to AccountInfo[] #3677 (thomas.norling@microsoft.com)
 
 ## 1.0.0
 

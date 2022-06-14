@@ -5,10 +5,11 @@ import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
 import { AuthorityType } from "../../src/authority/AuthorityType";
-import { ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { MockCache } from "../cache/MockCache";
 import { mockCrypto } from "../client/ClientTestUtils";
 import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
+import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
@@ -41,8 +42,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         }
     });
 
-    afterEach(() => {
-        mockCache.clearCache();
+    afterEach(async () => {
+        await mockCache.clearCache();
         jest.clearAllMocks();
     });
 

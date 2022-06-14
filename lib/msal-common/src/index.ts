@@ -15,7 +15,7 @@ export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
-export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS } from "./config/ClientConfiguration";
+export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo } from "./account/AccountInfo";
@@ -23,9 +23,10 @@ export { AuthToken } from "./account/AuthToken";
 export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
+export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 // Authority
 export { Authority } from "./authority/Authority";
-export { AuthorityOptions } from "./authority/AuthorityOptions";
+export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
@@ -52,7 +53,7 @@ export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
-export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION } from "./crypto/ICrypto";
+export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
@@ -71,17 +72,21 @@ export { AuthenticationResult } from "./response/AuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
+export { BoundServerAuthorizationTokenResponse } from "./response/BoundServerAuthorizationTokenResponse";
+export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
+export { ScopeSet } from "./request/ScopeSet";
+export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
-export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
+export { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CryptoKeyTypes } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
@@ -89,3 +94,5 @@ export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
+export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
+export { version } from "./packageMetadata";

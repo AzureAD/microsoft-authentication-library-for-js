@@ -4,14 +4,28 @@
  */
 
 import { StringDict } from "@azure/msal-common";
-import { Base64Decode } from "../encode/Base64Decode";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
-import { BROWSER_CRYPTO } from "../utils/BrowserConstants";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
 
+/**
+ * JOSE Header Parameter specification
+ * https://datatracker.ietf.org/doc/html/rfc7516#section-4.1
+ */
 export type JoseHeader = {
     alg: string,
-    enc: string
+    enc: string,
+    zip?: string,
+    jku?: string,
+    jwk?: string,
+    kid?: string,
+    x5u?: string,
+    x5c?: string,
+    x5t?: string,
+    x5tS256?: string,
+    typ?: string,
+    cty?: string,
+    crit?: string
 };
 
 export type UnwrappingAlgorithmPair = {
@@ -19,10 +33,10 @@ export type UnwrappingAlgorithmPair = {
     encryption: string
 };
 
-const KEY_ALGORITHM_MAP: StringDict = {
-    "RSA-OAEP-256": BROWSER_CRYPTO.RSA_OAEP,
-    "A256GCM": BROWSER_CRYPTO.AES_GCM,
-    "dir": BROWSER_CRYPTO.DIRECT
+const KeyAlgorithmMap: StringDict = {
+    "RSA-OAEP-256": Algorithms.RSA_OAEP,
+    "A256GCM": Algorithms.AES_GCM,
+    "dir": Algorithms.DIRECT
 };
 
 /**
@@ -35,7 +49,6 @@ const KEY_ALGORITHM_MAP: StringDict = {
  */
 
 export class JsonWebEncryption {
-    private base64Decode: Base64Decode;
     private header: JoseHeader;
     private encryptedKey: string;
     private initializationVector: string;
@@ -45,23 +58,27 @@ export class JsonWebEncryption {
     private unwrappingAlgorithms: UnwrappingAlgorithmPair;
 
     constructor(rawJwe: string) {
-        this.base64Decode = new Base64Decode();
         const jweComponents = rawJwe.split(".");
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
-        this.encryptedKey = this.base64Decode.base64URLdecode(jweComponents[1]);
-        this.initializationVector = this.base64Decode.base64URLdecode(jweComponents[2]);
-        this.ciphertext = this.base64Decode.base64URLdecode(jweComponents[3]);
-        this.authenticationTag = this.base64Decode.base64URLdecode(jweComponents[4]);
+        this.encryptedKey = this.decodeElement(jweComponents[1]);
+        this.initializationVector = this.decodeElement(jweComponents[2]);
+        this.ciphertext = this.decodeElement(jweComponents[3]);
+        this.authenticationTag = this.decodeElement(jweComponents[4]);
     }
 
-    getAuthenticatedData(str: string): Uint8Array {
+    private getAuthenticatedData(str: string): Uint8Array {
         const length = str.length;
         const data = new Uint8Array(length);
 
-        /* mapping... */
+        // Maps authenticaed data string into unicode byte array
         for (let charIndex = 0; charIndex < length; charIndex++) {
+            /**
+             * Decode character at index and truncate to the
+             * last 8 bits (& 255) before assigning since
+             * it's a Uint8 Array
+             */
             data[charIndex] = str.charCodeAt(charIndex) & 255;
         }
 
@@ -70,7 +87,7 @@ export class JsonWebEncryption {
 
     /**
      * Unwrapping a JWE encrypted key is done in two steps:
-     *  1. Decrypt the base64Url decode encrypted key component using the algorithm
+     *  1. Decrypt the base64Url encoded encrypted key component using the algorithm
      *     specified in the "alg" attribute of the JWE header
      *  2. Import the result of previous step as a CryptoKey, setting the key algorithm to the one
      *     specified in the "enc" attribute of the JWE header
@@ -81,11 +98,16 @@ export class JsonWebEncryption {
     async unwrap(unwrappingKey: CryptoKey, keyUsages: KeyUsage[]): Promise<CryptoKey> {
         const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
         const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, encryptedKeyBuffer);
-        return await window.crypto.subtle.importKey("raw", contentEncryptionKey, this.unwrappingAlgorithms.encryption , false, keyUsages);
+        return await window.crypto.subtle.importKey(CryptoKeyFormats.raw, contentEncryptionKey, this.unwrappingAlgorithms.encryption , false, keyUsages);
     }
 
+    /**
+     * Decodes and parses the JOSE header out of the JWE
+     * https://datatracker.ietf.org/doc/html/rfc7516#section-4
+     * @param encodedHeader 
+     */
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
-        const decodedHeader = this.base64Decode.base64URLdecode(encodedHeader);
+        const decodedHeader = this.decodeElement(encodedHeader);
         try {
             return JSON.parse(decodedHeader);
         } catch (error) {
@@ -101,12 +123,21 @@ export class JsonWebEncryption {
     }
 
     private matchKeyAlgorithm(label: string): string {
-        const matchedAlgorithm = KEY_ALGORITHM_MAP[label];
+        const matchedAlgorithm = KeyAlgorithmMap[label];
 
         if (matchedAlgorithm) {
             return matchedAlgorithm;
         } else {
             throw JsonWebEncryptionError.createHeaderAlgorithmMismatch(label);
         }
+    }
+
+    /**
+     * Performs Base64URL decoding on a Base54URL encoded JWE fragment
+     * @param encodedFragment 
+     */
+    private decodeElement(encodedFragment: string): string {
+        const encodedString = encodedFragment.replace(/-/g, "+").replace(/_/g, "/");
+        return atob(encodedString);
     }
 }

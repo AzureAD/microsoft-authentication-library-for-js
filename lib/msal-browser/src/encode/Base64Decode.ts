@@ -35,16 +35,6 @@ export class Base64Decode {
     }
 
     /**
-     * Returns a plaintext decoded string from base64Url encoded input.
-     * @param input 
-     */
-    base64URLdecode(input: string): string {
-        const encodedString = input.replace(/-/g, "+").replace(/_/g, "/");
-        // TODO: atob will not work on all browsers, the base64URL decoding needs to be revised
-        return atob(encodedString);
-    }
-
-    /**
      * Decodes base64 into Uint8Array
      * @param base64String 
      * @param nBlockSize 

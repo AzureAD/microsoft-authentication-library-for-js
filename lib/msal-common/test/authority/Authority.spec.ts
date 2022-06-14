@@ -10,8 +10,12 @@ import {
     B2C_OPENID_CONFIG_RESPONSE
 } from "../test_kit/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
-import { AuthorityMetadataEntity, AuthorityOptions, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
+import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
+import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 
 let mockStorage: MockStorageClass;
 
@@ -286,6 +290,21 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(authority.discoveryComplete()).toBe(true);
         });
 
+        it("discoveryComplete returns true if resolveEndpointsAsync resolves successfully without end_session_endpoint", async () => {
+            const metadata: OpenIdConfigResponse = {
+                authorization_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
+                issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+                token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+            }
+            networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                return {
+                    body: metadata
+                };
+            };
+            await authority.resolveEndpointsAsync();
+            expect(authority.discoveryComplete()).toBe(true);
+        });
+
         
         describe("Endpoint Metadata", () => {
             it("Gets endpoints from config", async () => {
@@ -338,6 +357,24 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(e.errorMessage).toBe(ClientConfigurationErrorMessage.invalidAuthorityMetadata.desc);
                     done();
                 });
+            });
+
+            it("Throws error if authority does not containn end_session_endpoint but calls logout", async () => {
+                const authorityJson = {
+                    ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                    end_session_endpoint: undefined
+                }
+
+                const options = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: JSON.stringify(authorityJson)
+                };
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options);
+                await authority.resolveEndpointsAsync();
+
+                expect(() => authority.endSessionEndpoint).toThrowError(ClientAuthError.createLogoutNotSupportedError())
             });
 
             it("Gets endpoints from cache", async () => {
@@ -771,6 +808,18 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
+        })
+    });
+
+    describe("replaceWithRegionalInformation", () => {
+        it("doesnt set end_session_endpoint if not included", () => {
+            const originResponse: OpenIdConfigResponse = {
+                ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                end_session_endpoint: undefined
+            };
+
+            const regionalResponse = Authority.replaceWithRegionalInformation(originResponse, "westus2.login.microsoft.com");
+            expect(regionalResponse.end_session_endpoint).toBeUndefined();
         })
     });
 });

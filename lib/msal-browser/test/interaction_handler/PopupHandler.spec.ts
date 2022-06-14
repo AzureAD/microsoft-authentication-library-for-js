@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, AuthError } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, AuthError, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -47,7 +47,6 @@ describe("PopupHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
     let browserRequestLogger: Logger;
-    const cryptoOps = new CryptoOps();
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -90,8 +89,20 @@ describe("PopupHandler.ts Unit Tests", () => {
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
                 },
-                getAsymmetricPublicKey: async(): Promise<string> => {
-                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+                removeTokenBindingKey: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
+                },
+                clearKeystore: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
+                },
+                hashString: async (): Promise<string> => {
+                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+                },
+                getAsymmetricPublicKey: async (): Promise<string> => {
+                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
+                },
+                decryptBoundTokenResponse: async (): Promise<ServerAuthorizationTokenResponse | null> => {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             networkInterface: {
@@ -110,6 +121,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!);
         authCodeModule = new AuthorizationCodeClient(authConfig);
         const logger = new Logger(authConfig.loggerOptions!);
+        const cryptoOps = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });
@@ -140,8 +152,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID
             };
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
-            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name"})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name"})).toThrow(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthError);
 
             //@ts-ignore
             expect(() => popupHandler.initiateAuthRequest(null, {})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
@@ -149,7 +161,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             expect(() => popupHandler.initiateAuthRequest(null, {})).toThrow(BrowserAuthError);
         });
 
-        it("opens a popup window", () => {
+        it("opens a popup window", (done) => {
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -165,12 +177,13 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             window.open = (url?: string, target?: string, features?: string, replace?: boolean): Window => {
+                expect(url?.startsWith(TEST_URIS.ALTERNATE_INSTANCE)).toBe(true);
+                done();
                 return window;
             };
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
-            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name"});
-            expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).toEqual(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name", popupWindowAttributes: {}});
         });
     });
 
@@ -285,7 +298,8 @@ describe("PopupHandler.ts Unit Tests", () => {
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest, browserRequestLogger);
             const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
-                popupName: "name"
+                popupName: "name", 
+                popupWindowAttributes: {}
             });
 
             expect(popupWindow).toEqual(window);
@@ -305,7 +319,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest, browserRequestLogger);
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {popupName: "name"})).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
         });
 
         it("throws error if popup passed in is null", () => {
@@ -322,11 +336,13 @@ describe("PopupHandler.ts Unit Tests", () => {
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest, browserRequestLogger);
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null,
-                popupName: "name"
+                popupName: "name", 
+                popupWindowAttributes: {}
             })).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null,
-                popupName: "name"
+                popupName: "name", 
+                popupWindowAttributes: {}
             })).toThrow(BrowserAuthError);
         });
     });
