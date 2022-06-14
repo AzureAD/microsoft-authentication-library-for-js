@@ -16,7 +16,14 @@ msalInstance.logoutRedirect();
 msalInstance.logoutPopup();
 ```
 
-These APIs will clear the token cache of any user and session data, then navigate the browser window or popup window to the server's logout page. The server will then prompt the user to select the account they would like to be signed out of and redirect back to the page the url provided as `postLogoutRedirectUri`.
+These APIs will clear the token cache of any user and session data, then navigate the browser window or popup window to the server's logout page. The server will then prompt the user to select the account they would like to be signed out of and redirect back to your `postLogoutRedirectUri` as long as the following conditions are met:
+
+1. The URI is registered as a reply url on the app registration
+1. The URI is provided as the `postLogoutRedirectUri` on either the `PublicClientApplication` config or the logout request
+1. The user has an active session with the identity provider
+1. (MSA Scenarios) A front channel logout url is configured on the app registration
+
+If any of the above conditions are not met the page (or the popup window) will remain on the identity provider's logout page.
 
 **IMPORTANT:** If this logout navigation is interrupted in any way, your MSAL cache may be cleared but the session may still persist on the server. Ensure the navigation fully completes before returning to your application.
 
@@ -82,9 +89,65 @@ const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
 await msalInstance.logoutPopup({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
-    mainWindowRedirectUri: "https://contoso.com/homePage"
+    mainWindowRedirectUri: "https://contoso.com/homePage",
+    popupWindowAttributes: {
+        popupSize: {
+            height: 100,
+            width: 100
+        },
+        popupPosition: {
+            top: 100,
+            left: 100
+        }
+    }
 });
 ```
+
+## Front-channel logout
+
+Azure AD and Azure AD B2C support the [OAuth front-channel logout feature](https://openid.net/specs/openid-connect-frontchannel-1_0.html), which enables single-sign out across all applications when a user initiates logout. To take advantage of this feature with MSAL.js, perform the following steps:
+
+1. In your application, create a dedicated logout page. This page **should not** perform any other function, such as acquiring tokens on page load (see below for details). Note, this page will be loaded in a hidden iframe, and for Azure AD and MSA users, will include the `iss` and `sid` query parameters.
+2. In the Azure Portal, navigate to the **Authentication** page for your application, and register the page from step one under **Front-channel logout URL**. Note, this page must be loaded via `https`.
+
+### Requirements for front-channel logout page
+
+The page used for front-channel logout should be built as follows:
+
+1. On page load, automatically invoke the MSAL `logoutRedirect` API.
+2. In the `PublicClientApplication` configuration, set `system.allowRedirectInIframe` to `true`.
+3. When invoking `logout`, we recommend preventing the redirect in the iframe to the logout page (see [above](#skipping-the-server-sign-out)).
+
+Example:
+
+```typescript
+const msal = new PublicClientApplication({
+    auth: {
+        clientId: "my-client-id"
+    },
+    system: {
+        allowRedirectInIframe: true
+    }
+})
+
+// Automatically on page load
+msal.logoutRedirect({
+    onRedirectNavigate: () => {
+        // Return false to stop navigation after local logout
+        return false;
+    }
+});
+```
+
+Now when a user logouts out of another application, your application's front-channel logout url will be loaded in a hidden iframe, and MSAL.js will clear its cache to complete single-sign out.
+
+
+### Front-channel logout samples
+
+The following samples demonstrate how to implement front-channel logout using MSAL.js:
+
+- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
+- MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
 
 ## Events
 

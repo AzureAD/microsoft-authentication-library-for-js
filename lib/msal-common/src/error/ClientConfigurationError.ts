@@ -47,7 +47,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidPrompt: {
         code: "invalid_prompt_value",
-        desc: "Supported prompt values are 'login', 'select_account', 'consent' and 'none'.  Please see here for valid configuration options: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-js-initializing-client-applications#configuration-options",
+        desc: "Supported prompt values are 'login', 'select_account', 'consent', 'create' and 'none'.  Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest",
     },
     invalidClaimsRequest: {
         code: "invalid_claims",
@@ -71,15 +71,31 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
-        desc: "Invalid cloudDiscoveryMetadata provided. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
+        desc: "Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields"
     },
     invalidAuthorityMetadata: {
         code: "invalid_authority_metadata",
-        desc: "Invalid authorityMetadata provided. Must by a JSON object containing authorization_endpoint, token_endpoint, end_session_endpoint, issuer fields."
+        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, issuer fields."
     },
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
+    },
+    missingSshJwk: {
+        code: "missing_ssh_jwk",
+        desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme."
+    },
+    missingSshKid: {
+        code: "missing_ssh_kid",
+        desc: "Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme."
+    },
+    missingNonceAuthenticationHeader: {
+        code: "missing_nonce_authentication_header",
+        desc: "Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce."
+    },
+    invalidAuthenticationHeader: {
+        code: "invalid_authentication_header",
+        desc: "Invalid authentication header provided"
     }
 };
 
@@ -146,21 +162,12 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Error thrown when scopes are not an array
-     * @param inputScopes
-     */
-    static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
-            `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes}`);
-    }
-
-    /**
      * Error thrown when scopes are empty.
      * @param scopesValue
      */
-    static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
+    static createEmptyScopesArrayError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
-            `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes}`);
+            `${ClientConfigurationErrorMessage.emptyScopesError.desc}`);
     }
 
     /**
@@ -251,5 +258,36 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
+    }
+    /*
+     * Throws an error when the authentication scheme is set to SSH but the SSH public key is omitted from the request
+     */
+    static createMissingSshJwkError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshJwk.code,
+            ClientConfigurationErrorMessage.missingSshJwk.desc);
+    }
+
+    /**
+     * Throws an error when the authentication scheme is set to SSH but the SSH public key ID is omitted from the request
+     */
+    static createMissingSshKidError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshKid.code,
+            ClientConfigurationErrorMessage.missingSshKid.desc);
+    }
+
+    /**
+     * Throws error when provided headers don't contain a header that a server nonce can be extracted from
+     */
+    static createMissingNonceAuthenticationHeadersError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingNonceAuthenticationHeader.code,
+            ClientConfigurationErrorMessage.missingNonceAuthenticationHeader.desc);
+    }
+
+    /**
+     * Throws error when a provided header is invalid in any way
+     */
+    static createInvalidAuthenticationHeaderError(invalidHeaderName: string, details: string): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthenticationHeader.code,
+            `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. Invalid header: ${invalidHeaderName}. Details: ${details}`);
     }
 }

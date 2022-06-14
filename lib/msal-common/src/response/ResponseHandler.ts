@@ -32,6 +32,7 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { BoundServerAuthorizationTokenResponse } from "./BoundServerAuthorizationTokenResponse";
 
 /**
  * Class that handles response parsing.
@@ -123,8 +124,11 @@ export class ResponseHandler {
         let decryptedTokenResponse: ServerAuthorizationTokenResponse;
 
         if (serverTokenResponse.session_key_jwe && serverTokenResponse.response_jwe && request.stkJwk) {
-            decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(serverTokenResponse, request) || serverTokenResponse;
-
+            const boundServerTokenResponse: BoundServerAuthorizationTokenResponse = {
+                session_key_jwe: serverTokenResponse.session_key_jwe,
+                response_jwe: serverTokenResponse.response_jwe
+            };
+            decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(boundServerTokenResponse, request) || serverTokenResponse;
         } else {
             decryptedTokenResponse = serverTokenResponse;
         }
@@ -155,7 +159,7 @@ export class ResponseHandler {
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-    
+            
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -173,7 +177,10 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
+        // Add keyId from request to serverTokenResponse if defined
+        serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
+
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -194,14 +201,14 @@ export class ResponseHandler {
                     return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
                 }
             }
-            this.cacheStorage.saveCacheRecord(cacheRecord);
+            await this.cacheStorage.saveCacheRecord(cacheRecord);
         } finally {
             if (this.persistencePlugin && this.serializableCache && cacheContext) {
                 this.logger.verbose("Persistence enabled, calling afterCacheAccess");
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
     }
 
     /**
@@ -210,7 +217,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, idTokenObj?: AuthToken, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -243,7 +250,7 @@ export class ResponseHandler {
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
 
             // If scopes not returned in server response, use request scopes
-            const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
+            const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(request.scopes || []);
 
             /*
              * Use timestamp calculated before request
@@ -269,10 +276,13 @@ export class ResponseHandler {
                 this.cryptoObj,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
-                oboAssertion
+                oboAssertion,
+                serverTokenResponse.key_id,
+                request.claims,
+                request.requestedClaimsHash
             );
         }
-
+        
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
@@ -309,7 +319,7 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion, cloudGraphHostName, msGraphhost);
+            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -318,8 +328,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, authority, idToken, oboAssertion, cloudGraphHostName, msGraphhost) :
-            AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion, cloudGraphHostName, msGraphhost);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost) :
+            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
     }
 
     /**
@@ -339,7 +349,9 @@ export class ResponseHandler {
         fromTokenCache: boolean, 
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
-        requestState?: RequestStateObject): Promise<AuthenticationResult> {
+        requestState?: RequestStateObject,
+        code?: string
+    ): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
@@ -375,12 +387,14 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            correlationId: request.correlationId,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
-            msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING
+            msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
+            code
         };
     }
 }

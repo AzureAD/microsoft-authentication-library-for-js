@@ -16,7 +16,9 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { version, name } from "../packageMetadata";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { KeyManager } from "../crypto/KeyManager";
+import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -46,8 +48,8 @@ export abstract class BaseClient {
     // Default authority object
     public authority: Authority;
 
-    // Define Key Manager object
-    protected keyManager: KeyManager;
+    // Define PopTokenGenerator object
+    protected popTokenGenerator: PopTokenGenerator;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -74,17 +76,32 @@ export abstract class BaseClient {
         // set Authority
         this.authority = this.config.authOptions.authority;
 
-        // set KeyManager
-        this.keyManager = new KeyManager(this.cryptoUtils);
+        // set PopTokenGenerator
+        this.popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
     }
 
     /**
      * Creates default headers for requests to token endpoint
      */
-    protected createDefaultTokenRequestHeaders(): Record<string, string> {
+    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
+        if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
+            switch (ccsCred.type) {
+                case CcsCredentialType.HOME_ACCOUNT_ID:
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(ccsCred.credential);
+                        headers[HeaderNames.CCS_HEADER] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
+                    break;
+                case CcsCredentialType.UPN:
+                    headers[HeaderNames.CCS_HEADER] = `UPN: ${ccsCred.credential}`;
+                    break;
+            }
+        }
         return headers;
     }
 

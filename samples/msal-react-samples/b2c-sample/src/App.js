@@ -19,7 +19,7 @@ function App({ pca }) {
 			<ThemeProvider theme={theme}>
 				<MsalProvider instance={pca}>
 					<PageLayout>
-						<Grid container justify="center">
+						<Grid container justifyContent="center">
 							<Pages />
 						</Grid>
 					</PageLayout>

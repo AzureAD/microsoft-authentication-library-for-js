@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from "@azure/msal-common";
+import { ICrypto, PkceCodes, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { EncodingUtils } from "../utils/EncodingUtils";
 import { PkceGenerator } from "./PkceGenerator";
@@ -60,6 +60,21 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    removeTokenBindingKey(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Removes all cryptographic keys from Keystore
+     */
+    clearKeystore(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
      */
     signJwt(): Promise<string> {
@@ -67,11 +82,25 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
+     * Returns the SHA-256 hash of an input string
+     */
+    hashString(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
+    
+    /**
      * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
      * public key thumbprint parameter
      * @param keyThumbprint
      */
     getAsymmetricPublicKey(): Promise<string> {
         throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Decrypts a bound token response
+     */
+    decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        throw new Error("Method not implemented");
     }
 }

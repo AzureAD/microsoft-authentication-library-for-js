@@ -9,7 +9,7 @@ import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
-import { AuthorityMetadataSource, Constants } from "../utils/Constants";
+import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
@@ -18,6 +18,7 @@ import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
+import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -39,6 +40,8 @@ export class Authority {
     private metadata: AuthorityMetadataEntity;
     // Region discovery service
     private regionDiscovery: RegionDiscovery;
+    // Region discovery metadata
+    public regionDiscoveryMetadata: RegionDiscoveryMetadata;
 
     constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
         this.canonicalAuthority = authority;
@@ -47,6 +50,7 @@ export class Authority {
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
         this.regionDiscovery = new RegionDiscovery(networkInterface);
+        this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
     }
 
     // See above for AuthorityType
@@ -153,6 +157,10 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
+            // ROPC policies may not have end_session_endpoint set
+            if (!this.metadata.end_session_endpoint) {
+                throw ClientAuthError.createLogoutNotSupportedError();
+            }
             const endpoint = this.replacePath(this.metadata.end_session_endpoint);
             return this.replaceTenant(endpoint);
         } else {
@@ -263,13 +271,28 @@ export class Authority {
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion);
+                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion, this.regionDiscoveryMetadata);
 
                 const azureRegion = this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG 
                     ? autodetectedRegionName 
                     : this.authorityOptions.azureRegionConfiguration.azureRegion;
 
+                if (this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG) {
+                    this.regionDiscoveryMetadata.region_outcome = autodetectedRegionName ?
+                        RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL :
+                        RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
+                } else {
+                    if (autodetectedRegionName) {
+                        this.regionDiscoveryMetadata.region_outcome = (this.authorityOptions.azureRegionConfiguration.azureRegion === autodetectedRegionName) ?
+                            RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED :
+                            RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED;
+                    } else {
+                        this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
+                    }
+                }
+
                 if (azureRegion) {
+                    this.regionDiscoveryMetadata.region_used = azureRegion;
                     metadata = Authority.replaceWithRegionalInformation(metadata, azureRegion);
                 }
             }
@@ -464,7 +487,7 @@ export class Authority {
      * @returns bool
      */
     static isPublicCloudAuthority(host: string): boolean {
-        return Constants.KNOWN_PUBLIC_CLOUDS.includes(host);
+        return Constants.KNOWN_PUBLIC_CLOUDS.indexOf(host) >= 0;
     }
 
     /**
@@ -508,7 +531,10 @@ export class Authority {
         metadata.authorization_endpoint = Authority.buildRegionalAuthorityString(metadata.authorization_endpoint, azureRegion);
         // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
         metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion, "allowestsrnonmsi=true");
-        metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
+
+        if (metadata.end_session_endpoint) {
+            metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
+        }
         
         return metadata;
     }

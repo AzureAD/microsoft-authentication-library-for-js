@@ -5,17 +5,28 @@
  */
 const express = require("express");
 const msal = require('@azure/msal-node');
-const http = require('http')
+const http = require('http');
 
 const SERVER_PORT = process.env.PORT || 3000;
+const REDIRECT_URI = "http://localhost:3000/redirect";
+const WEB_API_SCOPE = "api://ENTER_WEB_API_CLIENT_ID/.default";
 
 // Before running the sample, you will need to replace the values in the config, 
 // including the clientSecret
 const config = {
     auth: {
-        clientId: "12d77c73-d09d-406a-ae0d-3d4e576f7d9b",
-        authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-        clientSecret: "",
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+        clientSecret: "ENTER_CLIENT_SECRET",
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
     }
 };
 
@@ -28,11 +39,11 @@ let accessToken = null;
 
 app.get('/', (req, res) => {
     const authCodeUrlParameters = {
-        scopes: ["api://81f752bc-1fd5-4ecf-bd58-74b556e9b46e/OboScope"],
-        redirectUri: "http://localhost:3000/redirect",
+        scopes: [WEB_API_SCOPE],
+        redirectUri: REDIRECT_URI,
     };
 
-    // get url to sign user in and consent to scopes needed for applicatio
+    // get url to sign user in and consent to scopes needed for application
     cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
@@ -41,8 +52,8 @@ app.get('/', (req, res) => {
 app.get('/redirect', (req, res) => {
     const tokenRequest = {
         code: req.query.code,
-        scopes: ["api://81f752bc-1fd5-4ecf-bd58-74b556e9b46e/OboScope"],
-        redirectUri: "http://localhost:3000/redirect",
+        scopes: [WEB_API_SCOPE],
+        redirectUri: REDIRECT_URI,
     };
 
     cca.acquireTokenByCode(tokenRequest).then((response) => {
@@ -50,7 +61,7 @@ app.get('/redirect', (req, res) => {
         accessToken = response.accessToken;
         callWebApi(response.accessToken, (oboResponse) => {
             console.log(oboResponse);
-            res.sendStatus(200);
+            res.status(200).send(oboResponse);
         });
     }).catch((error) => {
         console.log(error);

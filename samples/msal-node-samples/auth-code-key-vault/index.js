@@ -4,7 +4,6 @@
  */
 
 const express = require('express');
-const forge = require('node-forge');
 
 const msal = require('@azure/msal-node');
 const identity = require("@azure/identity");
@@ -13,12 +12,13 @@ const keyvaultSecret = require('@azure/keyvault-secrets');
 
 // App constants
 const SERVER_PORT = process.env.PORT || 3000;
-const CERTIFICATE_NAME = process.env["CERTIFICATE_NAME"] || "NAME_OF_YOUR_CERTIFICATE_ON_KEY_VAULT";
 const REDIRECT_URI = process.env["REDIRECT_URI"] || "http://localhost:3000/redirect";
 
 // Importing from key vault
-const KEY_VAULT_NAME = process.env["KEY_VAULT_NAME"] || "YOUR_KEY_VAULT_NAME";
+const KEY_VAULT_NAME = process.env["KEY_VAULT_NAME"] || "ENTER_YOUR_KEY_VAULT_NAME";
 const KVUri = "https://" + KEY_VAULT_NAME + ".vault.azure.net";
+
+const CERTIFICATE_NAME = process.env["CERTIFICATE_NAME"] || "ENTER_THE_NAME_OF_YOUR_CERTIFICATE_ON_KEY_VAULT";
 
 // Initialize Azure SDKs
 const credential = new identity.DefaultAzureCredential();
@@ -31,7 +31,7 @@ function msalApp(thumbprint, privateKey) {
     const config = {
         auth: {
             clientId: "ENTER_CLIENT_ID",
-            authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
+            authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
             clientCertificate: {
                 thumbprint: thumbprint,
                 privateKey: privateKey,

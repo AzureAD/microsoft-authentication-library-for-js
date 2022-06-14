@@ -5,6 +5,7 @@
 
 import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
+import { TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -23,8 +24,8 @@ export class MockCache {
     }
 
     // clear the cache
-    clearCache(): void {
-        this.cacheManager.clear();
+    async clearCache(): Promise<void> {
+        await this.cacheManager.clear();
     }
 
     // create account entries in the cache
@@ -91,7 +92,28 @@ export class MockCache {
         const atTwo = CacheManager.toObject(new AccessTokenEntity(), atTwoData);
         this.cacheManager.setAccessTokenCredential(atTwo);
 
-        const atWithAuthSchemeData = {
+        // With requested claims
+        const atThreeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope4 scope5",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "Bearer",
+            "requestedClaims": JSON.stringify({ claim: "claim" }),
+            "requestedClaimsHash": TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+        };
+        
+        const atThree = CacheManager.toObject(new AccessTokenEntity(), atThreeData);
+        this.cacheManager.setAccessTokenCredential(atThree);
+
+        // POP Token
+        const popAtWithAuthSchemeData = {
             "environment": "login.microsoftonline.com",
             "credentialType": "AccessToken_With_AuthScheme",
             "secret": "an access token",
@@ -102,10 +124,29 @@ export class MockCache {
             "homeAccountId": "uid.utid",
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
-            "tokenType": "pop"
+            "tokenType": "pop",
+            "keyId": "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y"
         };
-        const atWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), atWithAuthSchemeData);
-        this.cacheManager.setAccessTokenCredential(atWithAuthScheme);
+        const popAtWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), popAtWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(popAtWithAuthScheme);
+
+        // SSH Certificate
+        const sshAtWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken_With_AuthScheme",
+            "secret": "an SSH Cert",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "ssh-cert",
+            "keyId": "some_key_id"
+        };
+        const sshAtWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), sshAtWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
     }
 
     // create refresh token entries in the cache

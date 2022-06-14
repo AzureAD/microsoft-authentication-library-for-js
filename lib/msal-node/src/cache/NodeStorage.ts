@@ -15,7 +15,8 @@ import {
     Logger,
     ValidCacheType,
     ICrypto,
-    AuthorityMetadataEntity
+    AuthorityMetadataEntity,
+    ValidCredentialType
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -106,7 +107,7 @@ export class NodeStorage extends CacheManager {
      * gets the current in memory cache for the client
      */
     getInMemoryCache(): InMemoryCache {
-        this.logger.verbose("Getting in-memory cache");
+        this.logger.trace("Getting in-memory cache");
 
         // convert the cache key value store to inMemoryCache
         const inMemoryCache = this.cacheToInMemoryCache(this.getCache());
@@ -118,7 +119,7 @@ export class NodeStorage extends CacheManager {
      * @param inMemoryCache - key value map in memory
      */
     setInMemoryCache(inMemoryCache: InMemoryCache): void{
-        this.logger.verbose("Setting in-memory cache");
+        this.logger.trace("Setting in-memory cache");
 
         // convert and append the inMemoryCache to cacheKVStore
         const cache = this.inMemoryCacheToCache(inMemoryCache);
@@ -131,7 +132,7 @@ export class NodeStorage extends CacheManager {
      * get the current cache key-value store
      */
     getCache(): CacheKVStore {
-        this.logger.verbose("Getting cache key-value store");
+        this.logger.trace("Getting cache key-value store");
         return this.cache;
     }
 
@@ -140,7 +141,7 @@ export class NodeStorage extends CacheManager {
      * @param cacheMap - key value map
      */
     setCache(cache: CacheKVStore): void {
-        this.logger.verbose("Setting cache key value store");
+        this.logger.trace("Setting cache key value store");
         this.cache = cache;
 
         // mark change in cache
@@ -152,7 +153,7 @@ export class NodeStorage extends CacheManager {
      * @param key - lookup key for the cache entry
      */
     getItem(key: string): ValidCacheType {
-        this.logger.verbosePii(`Item key: ${key}`);
+        this.logger.tracePii(`Item key: ${key}`);
 
         // read cache
         const cache = this.getCache();
@@ -165,7 +166,7 @@ export class NodeStorage extends CacheManager {
      * @param value - value of the cache entry
      */
     setItem(key: string, value: ValidCacheType): void {
-        this.logger.verbosePii(`Item key: ${key}`);
+        this.logger.tracePii(`Item key: ${key}`);
 
         // read cache
         const cache = this.getCache();
@@ -358,7 +359,7 @@ export class NodeStorage extends CacheManager {
      * @param inMemory - key value map of the cache
      */
     removeItem(key: string): boolean {
-        this.logger.verbosePii(`Item key: ${key}`);
+        this.logger.tracePii(`Item key: ${key}`);
 
         // read inMemoryCache
         let result: boolean = false;
@@ -389,7 +390,7 @@ export class NodeStorage extends CacheManager {
      * Gets all keys in window.
      */
     getKeys(): string[] {
-        this.logger.verbose("Retrieving all cache keys");
+        this.logger.trace("Retrieving all cache keys");
 
         // read cache
         const cache = this.getCache();
@@ -399,8 +400,8 @@ export class NodeStorage extends CacheManager {
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
-    clear(): void {
-        this.logger.verbose("Clearing cache entries created by MSAL");
+    async clear(): Promise<void> {
+        this.logger.trace("Clearing cache entries created by MSAL");
 
         // read inMemoryCache
         const cacheKeys = this.getKeys();
@@ -428,5 +429,26 @@ export class NodeStorage extends CacheManager {
      */
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
         return Serializer.serializeAllCache(inMemoryCache);
+    }
+
+    /**
+     * Updates a credential's cache key if the current cache key is outdated
+     */
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.getItem(currentCacheKey);
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.setItem(updatedCacheKey, cacheItem);
+                this.logger.verbose(`Updated an outdated ${credential.credentialType} cache key`);
+                return updatedCacheKey;
+            } else {
+                this.logger.error(`Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`);
+            }
+        }
+
+        return currentCacheKey;
     }
 }

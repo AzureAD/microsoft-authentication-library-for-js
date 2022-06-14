@@ -4,7 +4,6 @@
  */
 
 import { AuthError } from "./AuthError";
-import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
@@ -111,6 +110,10 @@ export const ClientAuthErrorMessage = {
         code: "device_code_expired",
         desc: "Device code is expired."
     },
+    DeviceCodeUnknownError: {
+        code: "device_code_unknown_error",
+        desc: "Device code stopped polling for unknown reasons."
+    },
     NoAccountInSilentRequest: {
         code: "no_account_in_silent_request",
         desc: "Please pass an account object, silent flow is not supported without account information"
@@ -178,6 +181,14 @@ export const ClientAuthErrorMessage = {
     accessTokenEntityNullError: {
         code: "access_token_entity_null",
         desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
+    },
+    bindingKeyNotRemovedError: {
+        code: "binding_key_not_removed",
+        desc: "Could not remove the credential's binding key from storage."
+    },
+    logoutNotSupported: {
+        code: "end_session_endpoint_not_supported",
+        desc: "Provided authority does not support logout."
     }
 };
 
@@ -306,13 +317,6 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the authorization code required for a token request is null or empty.
-     */
-    static createNoTokensFoundError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, ClientAuthErrorMessage.noTokensFoundError.desc);
-    }
-
-    /**
      * Throws error when multiple tokens are in cache.
      */
     static createMultipleMatchingTokensInCacheError(): ClientAuthError {
@@ -371,8 +375,8 @@ export class ClientAuthError extends AuthError {
      * Throws error if ScopeSet is null or undefined.
      * @param givenScopeSet
      */
-    static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
+    static createEmptyInputScopeSetError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc}`);
     }
 
     /**
@@ -387,6 +391,13 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error if device code is expired
+     */
+    static createDeviceCodeUnknownError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**
@@ -493,5 +504,16 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+    }
+
+    static createBindingKeyNotRemovedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.bindingKeyNotRemovedError.code, ClientAuthErrorMessage.bindingKeyNotRemovedError.desc);
+    }
+
+    /**
+     * Thrown when logout is attempted for an authority that doesnt have an end_session_endpoint
+     */
+    static createLogoutNotSupportedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.logoutNotSupported.code, ClientAuthErrorMessage.logoutNotSupported.desc);
     }
 }

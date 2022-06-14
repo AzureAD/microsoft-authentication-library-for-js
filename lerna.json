@@ -26,7 +26,7 @@
   },
   "packages": [
     "lib/*",
-    "experimental/*"
+    "extensions/*"
   ],
   "version": "independent",
   "concurrency": 3

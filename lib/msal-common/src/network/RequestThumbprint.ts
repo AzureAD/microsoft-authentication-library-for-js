@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AuthenticationScheme } from "../utils/Constants";
+
 /**
  * Type representing a unique request thumbprint.
  */
@@ -11,4 +13,10 @@ export type RequestThumbprint = {
     authority: string;
     scopes: Array<string>;
     homeAccountIdentifier?: string;
+    claims?: string;
+    authenticationScheme?: AuthenticationScheme;
+    resourceRequestMethod?: string;
+    resourceRequestUri?: string;
+    shrClaims?: string;
+    sshKid?: string;
 };

@@ -2,6 +2,7 @@ import * as puppeteer from "puppeteer";
 
 import { LabConfig } from "./LabConfig";
 import { Configuration } from "../../lib/msal-browser";
+import { ServerTelemetryEntity } from "../../lib/msal-common";
 
 export type tokenMap = {
     idTokens: string[],
@@ -10,12 +11,19 @@ export type tokenMap = {
 };
 
 export function buildConfig(labConfig: LabConfig): Configuration {
+    if (!labConfig.app.appId) {
+        throw Error("No ClientId Received from Lab!")
+    }
     const msalConfig: Configuration = {
         auth: {
             clientId: labConfig.app.appId
         }
     };
 
+    if (!labConfig.lab.authority) {
+        throw Error("No Authority received from Lab!");
+    }
+    
     if (labConfig.lab.authority.endsWith("/")) {
         msalConfig.auth.authority = labConfig.lab.authority + labConfig.user.tenantID;
     } else {
@@ -153,13 +161,13 @@ export class BrowserCacheUtils {
         return null;
     }
 
-    async getTelemetryCacheEntry(clientId: string): Promise<object> {
+    async getTelemetryCacheEntry(clientId: string): Promise<ServerTelemetryEntity|null> {
         const storage = await this.getWindowStorage();
         const telemetryKey = BrowserCacheUtils.getTelemetryKey(clientId);
 
         const telemetryVal = storage[telemetryKey];
 
-        return telemetryVal ? JSON.parse(telemetryVal): null;
+        return telemetryVal ? JSON.parse(telemetryVal) as ServerTelemetryEntity: null;
     }
 
     static getTelemetryKey(clientId: string): string {

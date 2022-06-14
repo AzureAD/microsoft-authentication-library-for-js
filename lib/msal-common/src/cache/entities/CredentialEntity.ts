@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
+import { Separators, CredentialType, CacheType, Constants, AuthenticationScheme } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
@@ -11,7 +11,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *
  * Key:Value Schema:
  *
- * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
+ * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<requestedClaims*>-<scheme*>
  *
  * Value Schema:
  * {
@@ -24,6 +24,8 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
  *      oboAssertion: access token passed in as part of OBO request
+ *      tokenType: Matches the authentication scheme for which the token was issued (i.e. Bearer or pop)
+ *      requestedClaimsHash: Matches the SHA 256 hash of the claims object included in the token request
  * }
  */
 export class CredentialEntity {
@@ -36,6 +38,9 @@ export class CredentialEntity {
     realm?: string;
     target?: string;
     oboAssertion?: string;
+    tokenType?: AuthenticationScheme;
+    keyId?: string;
+    requestedClaimsHash?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -74,7 +79,9 @@ export class CredentialEntity {
             this.clientId,
             this.realm,
             this.target,
-            this.familyId
+            this.familyId,
+            this.tokenType,
+            this.requestedClaimsHash
         );
     }
 
@@ -86,6 +93,7 @@ export class CredentialEntity {
             case CredentialType.ID_TOKEN:
                 return CacheType.ID_TOKEN;
             case CredentialType.ACCESS_TOKEN:
+            case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                 return CacheType.ACCESS_TOKEN;
             case CredentialType.REFRESH_TOKEN:
                 return CacheType.REFRESH_TOKEN;
@@ -118,6 +126,7 @@ export class CredentialEntity {
 
     /**
      * generates credential key
+     * <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
      */
     static generateCredentialCacheKey(
         homeAccountId: string,
@@ -126,12 +135,16 @@ export class CredentialEntity {
         clientId: string,
         realm?: string,
         target?: string,
-        familyId?: string
+        familyId?: string,
+        tokenType?: AuthenticationScheme,
+        requestedClaimsHash?: string
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
             this.generateTargetForCacheKey(target),
+            this.generateClaimsHashForCacheKey(requestedClaimsHash),
+            this.generateSchemeForCacheKey(tokenType)
         ];
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -181,5 +194,23 @@ export class CredentialEntity {
      */
     private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();
+    }
+
+    /**
+     * Generate requested claims key component as per schema: <requestedClaims>
+     */
+    private static generateClaimsHashForCacheKey(requestedClaimsHash?: string): string {
+        return(requestedClaimsHash || "").toLowerCase();
+    }
+
+    /**
+     * Generate scheme key componenet as per schema: <scheme>
+     */
+    private static generateSchemeForCacheKey(tokenType?: string): string {
+        /*
+         * PoP Tokens and SSH certs include scheme in cache key
+         * Cast to lowercase to handle "bearer" from ADFS
+         */
+        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : "";
     }
 }

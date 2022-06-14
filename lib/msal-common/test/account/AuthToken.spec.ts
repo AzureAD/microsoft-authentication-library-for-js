@@ -1,10 +1,10 @@
-import { expect } from "chai";
 import { AuthToken } from "../../src/account/AuthToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../test_kit/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import sinon from "sinon";
-import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
+import { StringUtils } from "../../src/utils/StringUtils";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 // Set up stubs
 const idTokenClaims = {
@@ -24,90 +24,106 @@ const testTokenPayload = "eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc2
 describe("AuthToken.ts Class Unit Tests", () => {
 
     let cryptoInterface: ICrypto;
-        beforeEach(() => {
-            cryptoInterface = {
-                createNewGuid(): string {
-                    return RANDOM_TEST_GUID;
-                },
-                base64Decode(input: string): string {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case testTokenPayload:
-                            return JSON.stringify(idTokenClaims);
-                        default:
-                            return input;
-                    }
-                },
-                base64Encode(input: string): string {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-uid":
-                            return "NDU2LXRlc3QtdWlk";
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                },
-                async generatePkceCodes(): Promise<PkceCodes> {
-                    return {
-                        challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER
-                    }
-                },
-                async getPublicKeyThumbprint(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
-                },
-                async signJwt(): Promise<string> {
-                    return "";
+    beforeEach(() => {
+        cryptoInterface = {
+            createNewGuid(): string {
+                return RANDOM_TEST_GUID;
+            },
+            base64Decode(input: string): string {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case testTokenPayload:
+                        return JSON.stringify(idTokenClaims);
+                    default:
+                        return input;
                 }
-            };
-        });
+            },
+            base64Encode(input: string): string {
+                switch (input) {
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-uid":
+                        return "NDU2LXRlc3QtdWlk";
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    default:
+                        return input;
+                }
+            },
+            async generatePkceCodes(): Promise<PkceCodes> {
+                return {
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                }
+            },
+            async getPublicKeyThumbprint(): Promise<string> {
+                return TEST_POP_VALUES.KID;
+            },
+            async signJwt(): Promise<string> {
+                return "";
+            },
+            async removeTokenBindingKey(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async clearKeystore(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async hashString(): Promise<string> {
+                return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+            },
+            async getAsymmetricPublicKey(): Promise<string> {
+                return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+            },
+            async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+                return AUTHENTICATION_RESULT.body;
+            }
+        };
+    });
 
-        afterEach(() => {
-            sinon.restore();
-        });
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
 
     describe("Constructor", () => {
 
         it("Throws error if rawIdToken is null or empty", () => {
-            expect(() => new AuthToken("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-            expect(() => new AuthToken("", cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => new AuthToken("", cryptoInterface)).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => new AuthToken("", cryptoInterface)).toThrowError(ClientAuthError);
+
             // @ts-ignore
-            expect(() => new AuthToken(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => new AuthToken(null, cryptoInterface)).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             // @ts-ignore
-            expect(() => new AuthToken(null, cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => new AuthToken(null, cryptoInterface)).toThrowError(ClientAuthError);
         });
 
         it("Successfully sets the rawidToken and claims fields", () => {
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            //jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue(idTokenClaims);
 
             const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
-            expect(idToken.rawToken).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
-            expect(idToken.claims).to.be.deep.eq(idTokenClaims);
+            expect(idToken.rawToken).toBe(TEST_TOKENS.IDTOKEN_V2);
+            expect(idToken.claims).toEqual(idTokenClaims);
         });
     });
 
     describe("extractIdToken()", () => {
 
         it("Throws error if idToken is null or empty", () => {
-            expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-            expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).toThrowError(ClientAuthError);
 
             // @ts-ignore
-            expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             // @ts-ignore
-            expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).toThrowError(ClientAuthError);
         });
 
         it("throws if decodeJwt returns null", () => {
             // @ts-ignore
-            sinon.stub(StringUtils, "decodeAuthToken").returns(null);
-            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthErrorMessage.tokenParsingError.desc);
+            jest.spyOn(StringUtils, "decodeAuthToken").mockReturnValue(null);
+            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).toThrowError(ClientAuthErrorMessage.tokenParsingError.desc);
         });
 
         it("Throws error if payload cannot be parsed", () => {
@@ -116,10 +132,10 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 JWSPayload: "jws payload",
                 JWSSig: "signature"
             };
-            sinon.stub(StringUtils, "decodeAuthToken").returns(decodedJwt);
+            jest.spyOn(StringUtils, "decodeAuthToken").mockReturnValue(decodedJwt);
 
-            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthErrorMessage.tokenParsingError.desc);
-            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).toThrowError(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).toThrowError(ClientAuthError);
         });
 
         it("Successfully extracts the idTokenClaims from the decodedJwt", () => {
@@ -132,8 +148,8 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 JWSPayload: testTokenPayload,
                 JWSSig: "signature"
             };
-            sinon.stub(StringUtils, "decodeAuthToken").returns(decodedJwt);
-            expect(AuthToken.extractTokenClaims(decodedJwt.JWSPayload, cryptoInterface)).to.be.deep.eq(idTokenClaims);
+            jest.spyOn(StringUtils, "decodeAuthToken").mockReturnValue(decodedJwt);
+            expect(AuthToken.extractTokenClaims(decodedJwt.JWSPayload, cryptoInterface)).toEqual(idTokenClaims);
         });
     });
 });

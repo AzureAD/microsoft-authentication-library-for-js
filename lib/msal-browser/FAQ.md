@@ -7,18 +7,28 @@
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
-1. [Is MSAL.js 2.x compatibile with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
+1. [Is MSAL.js 2.x compatible with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
+1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
+1. [Can I provision a single-page application via command-line?](#can-i-provision-a-single-page-application-via-command-line)
 
 **[Authentication](#Authentication)**
 
 1. [I don't understand the redirect flow. How does the handleRedirectPromise function work?](#i-dont-understand-the-redirect-flow-how-does-the-handleredirectpromise-function-work)
 1. [How can I support authentication with personal Microsoft accounts only?](#how-can-i-support-authentication-with-personal-microsoft-accounts-only)
 1. [How do I get an authorization code from the library?](#how-do-i-get-an-authorization-code-from-the-library)
+1. [How do I implement self-service sign-up?](#how-do-i-implement-self-service-sign-up)
 
 **[Single-Sign-On](#Single-Sign-On)**
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
+
+**[Accounts](#Accounts)**
+
+1. [In what scenarios will getAllAccounts return multiple accounts?](#in-what-scenarios-will-getallaccounts-return-multiple-accounts)
+1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
+1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
+1. [How can I switch between multiple logged in users?](#how-can-i-switch-between-multiple-logged-in-users)
 
 **[Configuration](#Configuration)**
 
@@ -27,10 +37,12 @@
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
 1. [What should I set my redirectUri to?](#what-should-i-set-my-redirecturi-to)
 1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
+1. [How do I configure the position and dimensions of popups?](#how-do-i-configure-the-position-and-dimensions-of-popups)
 
 **[Tokens](#Tokens)**
 
 1. [How do I acquire an access token? How do I use it?](#how-do-i-acquire-an-access-token-how-do-i-use-it)
+1. [How do I acquire a refresh token?](#how-do-i-acquire-a-refresh-token)
 1. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
 1. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
 1. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
@@ -79,9 +91,9 @@ Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with 
 MSAL.js also supports the following environments:
 
 - WebViews
-- Chromium Extensions
-- Office Add-ins
-- Teams Applications
+- Office Add-ins (see the [sample](https://github.com/OfficeDev/PnP-OfficeAddins/tree/main/Samples/auth/Office-Add-in-Microsoft-Graph-React))
+- Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
+- Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
 
 ### Known Issues with Certain Browsers
 
@@ -96,7 +108,9 @@ Please refer to our migration guide [here](https://github.com/AzureAD/microsoft-
 
 ## Does this library work for iframed applications?
 
-We are currently working on support for iframed applications as well as solutions for applications affected by ITP 2.x changes. You can monitor the first of those tickets [here](#1410).
+MSAL.js can be used in iframed applications under certain conditions. For more information, please refer to: [Using MSAL in iframed apps](./docs/iframe-usage.md)
+
+We are also working on solutions for applications affected by ITP 2.x changes.
 
 ## Will MSAL 2.x support B2C?
 
@@ -105,6 +119,47 @@ MSAL.js v2 supports B2C of October 2020.
 ## Is MSAL.js 2.x compatible with Azure App Proxy?
 
 Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy](https://docs.microsoft.com/azure/active-directory/app-proxy/application-proxy). Single-page applications will need to use MSAL.js 1.x as a workaround. We will post an update when this incompatibility has been fixed. See [this issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3420) for more information.
+
+## Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?
+
+Yes, MSAL.js 2.x can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [JavaScript SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/2-Authorization-I/1-call-graph).
+
+## Can I provision a single-page application via command-line?
+
+Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. For instance, the script below creates an Azure AD application with redirect URI of type **SPA** and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
+
+```Powershell
+Import-Module Microsoft.Graph.Applications
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Connect-MgGraph -TenantId "ENTER_TENANT_ID_HERE" -Scopes "Application.ReadWrite.All"
+
+# User.Read delegated permission for Microsoft Graph
+$mgUserReadScope = @{
+    "Id" = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" # permission Id
+    "Type" = "Scope"
+}
+
+# Add additional permissions to array below
+$mgResourceAccess = @($mgUserReadScope)
+
+[object[]]$requiredResourceAccess = @{
+    "ResourceAppId" = "00000003-0000-0000-c000-000000000000" # MS Graph App Id
+    "ResourceAccess" = $mgResourceAccess
+}
+
+# Create the application
+$msalApplication = New-MgApplication -displayName myMsalSpa `
+    -SignInAudience AzureADMyOrg `
+    -Spa @{RedirectUris = "http://localhost:3000", "http://localhost:3000/redirect"} `
+    -RequiredResourceAccess $requiredResourceAccess
+
+# Provision the service principal
+New-MgServicePrincipal -AppId $msalApplication.AppId
+```
+
+For a full implementation, please refer to the app creation scripts in the [Vanilla JS Quickstart Sample](https://github.com/Azure-Samples/ms-identity-javascript-v2/blob/master/AppCreationScripts/AppCreationScripts.md)
 
 # Authentication
 
@@ -128,6 +183,9 @@ Simply set your `authority` in your MSAL app configuration to **consumers** tena
 
 Currently the msal-browser package is designed for Single-Page Applications that are handling all authentication through the browser client. We have not yet optimized this to work with server-side components. As such, requests to retrieve the authorization code from the first leg of the flow can't be met currently. We are currently working on an [implementation of msal that will run in node libraries](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4), and as part of that we will explore options to make msal-browser work with server-side components.
 
+## How do I implement self-service sign-up?
+MSAL Browser supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
+
 # Single Sign-On
 
 ## How to get single sign-on in my application with MSAL.js?
@@ -143,6 +201,29 @@ loginPopup().then((response) => {
     const uniqueID = response.account.homeAccountId;
 })
 ```
+
+# Accounts
+
+## In what scenarios will `getAllAccounts` return multiple accounts?
+
+`getAllAccounts` will return multiple accounts when your app has made multiple interactive token requests using either an `acquireToken` or `login` API and the user has selected different accounts on the server's account selection screen. Each successful call to an `acquireToken` or `login` API will return exactly one account which can be the same or different from the account returned in a previous call. Each account is saved in local or sessionStorage, depending on how you've configured MSAL, and will be available to any page that lives on the same domain.
+
+If you would like to force the server account selection screen you can pass `prompt: "select_account"` or `prompt: "login"` to the `acquireToken` or `login` API.
+
+## Is the result of `getAllAccounts` sorted in any order?
+
+No, accounts are not sorted nor are they guaranteed to maintain any particular order across multiple calls.
+
+## If an account is returned by `getAllAccounts` does that mean the user has an active session on the server?
+
+No, the account APIs reflect local account state only. If you need to ensure the user has an active session on the server you should call `acquireTokenSilent` or `ssoSilent` and fallback to interaction if needed.
+
+### How can I switch between multiple logged in users?
+
+Deciding which account to use to acquire tokens is app dependent, however, `@azure/msal-browser` provides 2 convenient APIs to help you keep track of which account is currently "active" and should be used for token requests. Once you've determined which account you wish to use you can call the `setActiveAccount()` API to make sure MSAL uses this account for all subsequent requests. If you would like to switch to a different account, simply call `setActiveAccount()` again and pass it the new account you would like to use. If you need to know which account is currently "active" you can use the `getActiveAccount()` API.
+
+You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md).
+You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
 
 # Configuration
 
@@ -179,11 +260,43 @@ Additional notes:
 
 The library is built to specifically use the fragment response mode. This is a security consideration as the fragment of the URL is not sent to the server and modifying/clearing the fragment does not result in a new page load. We are considering implementing support for other `responseMode` types in the future, specifically to use multiple libraries in the same app.
 
+## How do I configure the position and dimensions of popups?
+
+A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. If no configurations are passed, MSAL defaults will be used. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details. 
+
+Note that popup dimensions should be positioned on screen and sized smaller than the parent window. Popups that are positioned off-screen or larger than the parent window will use MSAL defaults instead.
+
+```javascript
+const loginRequest = {
+    scopes: ["user.read", "mail.send"],
+    popupWindowAttributes: {
+        popupSize: {
+            height: 100,
+            width: 100
+        },
+        popupPosition: {
+            top: 100,
+            left: 100
+        }
+    }
+};
+
+try {
+    const loginResponse = await msalInstance.loginPopup(loginRequest);
+} catch (err) {
+    // handle error
+}
+```
+
 # Tokens
 
 ## How do I acquire an access token? How do I use it?
 
-Please refer to token guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md). 
+Please refer to token guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md).
+
+## How do I acquire a refresh token?
+
+MSAL.js abstracts away all refresh token complexity and thus refresh tokens are not exposed by MSAL APIs by design. When you need an access token please call the `acquireTokenSilent` API which will return to you a valid token from the cache or internally use the refresh token to acquire a new access token. If you have a backend that needs to be able to use access tokens to call other APIs, your backend should use a server-side library, such as MSAL Node, to acquire tokens for itself.
 
 ## How do I renew tokens with MSAL.js?
 

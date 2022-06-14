@@ -9,6 +9,7 @@ import { IPersistence } from "./IPersistence";
 import { Constants } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
 import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common";
+import { BasePersistence } from "./BasePersistence";
 
 /**
  * Reads and writes data to file specified by file location. File contents are not
@@ -17,7 +18,7 @@ import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common";
  * If file or directory has not been created, it FilePersistence.create() will create
  * file and any directories in the path recursively.
  */
-export class FilePersistence implements IPersistence {
+export class FilePersistence extends BasePersistence implements IPersistence {
 
     private filePath: string;
     private logger: Logger;
@@ -86,6 +87,11 @@ export class FilePersistence implements IPersistence {
 
     public getLogger(): Logger {
         return this.logger;
+    }
+
+    public createForPersistenceValidation(): Promise<FilePersistence> {
+        const testCacheFileLocation = `${dirname(this.filePath)}/test.cache`;
+        return FilePersistence.create(testCacheFileLocation);
     }
 
     private static createDefaultLoggerOptions(): LoggerOptions {

@@ -34,7 +34,10 @@ We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppCo
 The `MsalModule` class contains a static method that can be called in your `app.module.ts` file:
 
 ```typescript
-import { MsalModule, MsalService, MsalGuard, MsalInterceptor } from "@azure/msal-angular";
+import { NgModule } from '@angular/core';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AppComponent } from './app.component';
+import { MsalModule, MsalService, MsalGuard, MsalInterceptor, MsalBroadcastService, MsalRedirectComponent } from "@azure/msal-angular";
 import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
 
 @NgModule({
@@ -57,7 +60,7 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
                     piiLoggingEnabled: false
                 }
             }
-        }, {
+        }), {
             interactionType: InteractionType.Popup, // MSAL Guard Configuration
             authRequest: {
               scopes: ['user.read']
@@ -70,12 +73,13 @@ import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "
     ],
     providers: [
         {
-          provide: HTTP_INTERCEPTORS,
-          useClass: MsalInterceptor,
-          multi: true
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
         },
         MsalGuard
-    ]
+    ],
+    bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule {}
 ```
@@ -89,9 +93,11 @@ import {
   MsalModule,
   MsalService,
   MsalInterceptor,
-  MsalInterceptorConfig,
+  MsalInterceptorConfiguration,
   MsalGuard,
-  MsalGuardConfig
+  MsalGuardConfiguration,
+  MsalBroadcastService, 
+  MsalRedirectComponent
 } from "@azure/msal-angular";
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
 
@@ -109,7 +115,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
   protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
 
@@ -152,10 +158,10 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
       useFactory: MSALInterceptorConfigFactory
     },
     MsalGuard,
-    MsalBroadcastService
+    MsalBroadcastService,
     MsalService
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule { }
 ```

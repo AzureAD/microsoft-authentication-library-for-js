@@ -9,7 +9,7 @@
  */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
+export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration } from "./config/Configuration";
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
@@ -29,10 +29,15 @@ export { SsoSilentRequest } from "./request/SsoSilentRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
+export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
+
+export { LoadTokenOptions } from "./cache/TokenCache";
 
 // Events
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
+
+export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
 
 // Common Object Formats
 export {
@@ -43,9 +48,15 @@ export {
     // Response
     AuthenticationResult,
     // Error
-    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network
     INetworkModule,
     NetworkResponse,
@@ -56,7 +67,13 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    // Server Response
+    ExternalTokenResponse,
     // Utils
     StringUtils,
-    UrlString
+    UrlString,
+    AuthenticationHeaderParser,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";

@@ -58,4 +58,44 @@ export class PersistenceError extends Error {
     static createCrossPlatformLockError(errorMessage: string): PersistenceError {
         return new PersistenceError("CrossPlatformLockError", errorMessage);
     }
+
+    /**
+     * Throw cache persistence error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createCachePersistenceError(errorMessage: string): PersistenceError {
+        return new PersistenceError("CachePersistenceError", errorMessage);
+    }
+
+    /**
+     * Throw unsupported error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createNotSupportedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("NotSupportedError", errorMessage);
+    }
+
+    /**
+     * Throw persistence not verified error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createPersistenceNotVerifiedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("PersistenceNotVerifiedError", errorMessage);
+    }
+
+    /**
+     * Throw persistence creation validation error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createPersistenceNotValidatedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("PersistenceNotValidatedError", errorMessage);
+    }
 }
