@@ -6,6 +6,9 @@
 import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType } from "@azure/msal-common";
 import { CacheKVStore } from "./CacheTypes";
 
+/**
+ * This class class implements storage for node-token-validation.
+ */
 export class NodeCacheManager extends CacheManager {
     private logger: Logger;
     private cache: CacheKVStore = {};
@@ -18,7 +21,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Queue up callbacks
-     * @param func - a callback function for cache change indication
+     * @param func A callback function for cache change indication
      */
     registerChangeEmitter(func: () => void): void {
         this.changeEmitters.push(func);
@@ -33,7 +36,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Gets the current cache key-value store
-     * @returns 
+     * @returns {CacheKVStore} Key Value store for in-memory storage
      */
     getCache(): CacheKVStore {
         this.logger.trace("Getting cache");
@@ -42,7 +45,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Sets the current cache key-value store
-     * @param cache 
+     * @param {CacheKVStore} cache 
      */
     setCache(cache: CacheKVStore): void {
         this.logger.trace("Setting cache");
@@ -54,8 +57,8 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Gets cache item with given key-value
-     * @param key Lookup key for the cache entry
-     * @returns 
+     * @param {string} key Lookup key for the cache entry
+     * @returns {ValidCacheType} Cache entry
      */
     getItem(key: string): ValidCacheType {
         this.logger.tracePii(`Item key: ${key}`);
@@ -67,8 +70,8 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Sets cache item with given key-value
-     * @param key Lookup key for the cache entry
-     * @param value Value for the cache entry
+     * @param {string} key Lookup key for the cache entry
+     * @param {ValidCacheType} value Value for the cache entry
      */
     setItem(key: string, value: ValidCacheType): void {
         this.logger.tracePii(`Item key: ${key}`);
@@ -83,8 +86,8 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Removes the cache item from memory with the given key
-     * @param key Lookup key to remove a cache entity
-     * @returns 
+     * @param {string} key Lookup key to remove a cache entity
+     * @returns {boolean} Boolean indicating whether cache item was deleted
      */
     removeItem(key: string): boolean {
         this.logger.tracePii(`Item key: ${key}`);
@@ -108,8 +111,8 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Checks whether key is in cache
-     * @param key Lookup key for a cache entity
-     * @returns 
+     * @param {string} key Lookup key for a cache entity
+     * @returns {boolean} Boolean indicating whether cache contains key
      */
     containsKey(key: string): boolean {
         return this.getKeys().includes(key);
@@ -117,7 +120,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Gets all cache keys
-     * @returns 
+     * @returns {string[]} Array of cache keys
      */
     getKeys(): string[] {
         this.logger.trace("NodeCacheManager - Retrieving all cache keys");
@@ -185,8 +188,8 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Fetch authority metadata entity from the cache
-     * @param key Lookup key to fetch cache type AuthorityMetadataEntity
-     * @returns 
+     * @param {string} key Lookup key to fetch cache type AuthorityMetadataEntity
+     * @returns {AuthorityMetadataEntity} Authority metadata entity 
      */
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
         this.logger.trace("NodeCacheManager.getAuthorityMetadata called");
@@ -199,7 +202,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Get authority metadata keys
-     * @returns
+     * @returns {string[]} Array of authority metadata keys
      */
     getAuthorityMetadataKeys(): string[] {
         this.logger.trace("NodeCacheManager.getAuthorityMetadataKeys called");
@@ -210,8 +213,8 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Set authority metadata entity to the cache
-     * @param key Lookup key to fetch cache type AuthorityMetadataEntity
-     * @param metadata Cache value to be set type AuthorityMetadataEntity
+     * @param {string} key Lookup key to fetch cache type AuthorityMetadataEntity
+     * @param {AuthorityMetadataEntity} metadata Cache value to be set type AuthorityMetadataEntity
      */
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void {
         this.logger.trace("NodeCacheManager.setAuthorityMetadata called");
