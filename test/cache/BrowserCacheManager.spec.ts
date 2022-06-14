@@ -516,6 +516,7 @@ describe("BrowserCacheManager tests", () => {
                 testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
                 testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
                 testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
+                testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
                 testObj.aliasesFromNetwork = false;
                 testObj.endpointsFromNetwork = false;
 
