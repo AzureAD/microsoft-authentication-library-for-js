@@ -3,73 +3,44 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger, NetworkResponse, ProtocolMode } from "@azure/msal-common";
+import { AuthorityFactory, AuthorityOptions, INetworkModule, Logger } from "@azure/msal-common";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
-import { OpenIdConfigResponse } from "../response/OpenIdConfigResponse";
 import { TokenValidationConfiguration } from "./Configuration";
+import { Constants } from "../utils/Constants";
+import { NodeCacheManager } from "../cache/NodeCacheManager";
 
 export class OpenIdConfigProvider {
-    protected configuration: TokenValidationConfiguration;
+    protected config: TokenValidationConfiguration;
     protected networkInterface: INetworkModule;
+    protected storage: NodeCacheManager;
     protected logger: Logger;
 
-    constructor(configuration: TokenValidationConfiguration, networkInterface: INetworkModule, logger: Logger) {
-        this.configuration = configuration;
+    constructor(config: TokenValidationConfiguration, networkInterface: INetworkModule, storage: NodeCacheManager, logger: Logger) {
+        this.config = config;
         this.networkInterface = networkInterface;
+        this.storage = storage;
         this.logger = logger;
     }
 
     /**
      * Function to fetch JWKS uri from metadata endpoint.
-     * @returns - A promise that is fulfilled when this function has completed. Returns the jwks_uri string.
+     * @returns {string} A promise that is fulfilled when this function has completed. Returns the jwks_uri string.
      */
     async fetchJwksUriFromEndpoint(): Promise<string> {
         this.logger.trace("OpenIdConfigProvider.fetchJwksUriFromEndpoint called");
 
-        const endpointMetadata = await this.getMetadata();
-        return endpointMetadata.body.jwks_uri;
-    }
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: this.config.auth.protocolMode,
+            knownAuthorities: this.config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: Constants.EMPTY_STRING,
+            authorityMetadata: Constants.EMPTY_STRING
+        };
 
-    /**
-     * Function to fetch metadata from OpenId endpoint.
-     * @returns - Endpoint metadata
-     */
-    async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
-        this.logger.trace("OpenIdConfigProvider.getMetadata called");
+        const authority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkInterface, this.storage, authorityOptions);
 
-        const endpoint = await this.getOpenIdConfigurationEndpoint(this.configuration.auth.authority, this.configuration.auth.protocolMode);
-        this.logger.verbose(`OpenIdConfigProvider - openIdConfigurationEndpoint: ${endpoint}`);
-        const endpointMetadata = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(endpoint);
-
-        if (OpenIdConfigProvider.isOpenIdConfigResponse(endpointMetadata.body)) {
-            return endpointMetadata;
-        } else {
+        if (!authority.jwksUri) {
             throw ValidationConfigurationError.createInvalidMetadataError();
         }
-    }
-
-    /**
-     * Function to get OpenIdConfiguration endpoint, depending on protocol mode set in configuration.
-     * @param authority 
-     * @param protocolMode 
-     * @returns 
-     */
-    async getOpenIdConfigurationEndpoint(authority: string, protocolMode: ProtocolMode): Promise<string> {
-        const normalizedAuthority = authority.endsWith("/") ? authority : `${authority}/`;
-
-        if (protocolMode === ProtocolMode.AAD) {
-            return `${normalizedAuthority}v2.0/.well-known/openid-configuration`;
-        } else {
-            return `${normalizedAuthority}.well-known/openid-configuration`;
-        }
-    }
-
-    /**
-     * Function to check if response object contains jwks_uri property
-     * @param response 
-     * @returns 
-     */
-    static isOpenIdConfigResponse(response: object): boolean {
-        return response.hasOwnProperty("jwks_uri");
+        return authority.jwksUri;
     }
 }
