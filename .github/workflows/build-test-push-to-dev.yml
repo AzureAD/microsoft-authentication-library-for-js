@@ -13,6 +13,9 @@ concurrency:
   group: dev-ci-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lib-build-test:
     runs-on: ubuntu-latest
