@@ -168,7 +168,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Creates query string for the /token request
-     * @param request 
+     * @param request
      */
     private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
@@ -198,7 +198,7 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
@@ -212,10 +212,8 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
         }
 
-        // Use clientAssertion from request, fallback to client assertion in base configuration
-        const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
-
-        if (clientAssertion) {
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
