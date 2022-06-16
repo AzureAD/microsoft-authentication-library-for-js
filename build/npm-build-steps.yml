@@ -1,0 +1,50 @@
+# Steps to build and test npm project
+
+steps:
+- task: NodeTool@0
+  inputs:
+    versionSpec: '10.x'
+  displayName: 'Install Node.js'
+
+- task: Npm@1
+  displayName: 'npm ci & lerna bootstrap'
+  env:
+    RUNNING_NODE_CI: $(RUNNING_NODE_CI)
+  inputs:
+    command: 'custom'
+    customCommand: 'ci'
+    verbose: true
+
+- task: Npm@1
+  displayName: 'Build Packages'
+  inputs:
+    command: 'custom'
+    customCommand: 'run build'
+
+- task: Npm@1
+  displayName: 'Unit Tests'
+  inputs:
+    command: 'custom'
+    customCommand: 'run test:coverage'
+
+- task: Npm@1
+  displayName: 'Lint'
+  inputs:
+    command: 'custom'
+    customCommand: 'run lint'
+
+- task: Npm@1
+  displayName: 'Code Coverage Reporting'
+  env:
+    COVERALLS_REPO_TOKEN: $(COVERALLS_REPO_TOKEN)
+  inputs:
+    command: 'custom'
+    customCommand: 'run test:report'
+
+- task: Npm@1
+  displayName: 'End-to-End Tests'
+  env:
+    AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+  inputs:
+    command: 'custom'
+    customCommand: 'run test:e2e'

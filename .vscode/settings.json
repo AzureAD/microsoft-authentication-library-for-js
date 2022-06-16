@@ -1,0 +1,19 @@
+{
+    "editor.formatOnSave": false,
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact",
+        "typescript"
+    ],
+    "eslint.quiet": true,
+    "files.eol": "\n",
+    "github-pr.targetBranch": "dev",
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    },
+    "files.associations": {
+        "**/build/*.yml": "azure-pipelines",
+        "*.json": "jsonc"
+    },
+    "java.configuration.updateBuildConfiguration": "interactive"
+}

@@ -1,0 +1,59 @@
+{
+  "name": "@azure/msal-angularjs",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "version": "0.1.2",
+  "description": "Angular JS Wrapper for MSAL JS",
+  "keywords": [
+    "implicit",
+    "angularJs",
+    "AAD",
+    "msal",
+    "oauth"
+  ],
+  "main": "./lib/msal-angular.js",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "dependencies": {
+    "msal": "^0.2.4"
+  },
+  "devDependencies": {
+    "angular": "^1.7.0",
+    "angular-mocks": "^1.7.0",
+    "angular-resource": "^1.7.0",
+    "angular-route": "^1.7.0",
+    "angular-ui-router": "^1.0.18",
+    "browserify": "^16.2.2",
+    "install": "^0.11.0",
+    "jasmine-core": "^3.1.0",
+    "karma": "^5.2.3",
+    "karma-browserify": "^5.2.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-jasmine": "^1.1.2",
+    "karma-jasmine-ajax": "^0.1.13",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "phantomjs-prebuilt": "^2.1.16",
+    "puppeteer": "^1.5.0",
+    "unminified-webpack-plugin": "^2.0.0",
+    "webpack": "^5.3.2",
+    "webpack-cli": "^4.1.0"
+  },
+  "scripts": {
+    "test": "webpack && karma start --browsers ChromeHeadlessNoSandbox karma.conf.js",
+    "lint": "cd ../../ && npm run lint:angularjs",
+    "lint:fix": "npm run lint -- -- --fix",
+    "build": "webpack",
+    "build:modules": "npm run build",
+    "build:all": "npm run build:core && npm run build",
+    "build:core": "cd ../msal-core && npm run build"
+  }
+}

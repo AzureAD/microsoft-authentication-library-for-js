@@ -1,0 +1,15 @@
+{
+    "entryPoints": [
+        "lib/msal-common/src/index.ts",
+        "lib/msal-browser/src/index.ts", 
+        "lib/msal-node/src/index.ts",
+        "lib/msal-react/src/index.ts", 
+        "lib/msal-angular/src/public-api.ts",
+        "lib/msal-core/src/index.ts"
+    ],
+    "out": "./ref",
+    "excludePrivate": true,
+    "excludeProtected": true,
+    "excludeExternals": true,
+    "readme": "./README.md"
+}

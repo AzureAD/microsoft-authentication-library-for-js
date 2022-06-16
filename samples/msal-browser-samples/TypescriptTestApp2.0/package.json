@@ -1,0 +1,47 @@
+{
+  "name": "typescript-test-app-2.0",
+  "version": "1.0.0",
+  "description": "Sample app written in typescript that shows how to use the @azure/msal-browser package",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "clean": "npm run clean:build && rimraf dist",
+    "clean:build": "rimraf build-tsc build-babel",
+    "copy-views": "node utils/copyViews",
+    "build:babel": "babel build-tsc --out-dir build-babel --source-maps",
+    "build:webpack": "webpack",
+    "build": "tsc && npm run build:babel && npm run build:webpack && npm run clean:build",
+    "prestart": "npm run clean && npm run build && npm run copy-views",
+    "start": "node ."
+  },
+  "keywords": [
+    "msal",
+    "@azure/msal-browser",
+    "typescript",
+    "oauth2",
+    "msal-browser"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-browser": "file:../../../lib/msal-browser",
+    "@babel/runtime": "^7.10.4",
+    "express": "^4.17.1",
+    "fs": "0.0.1-security",
+    "morgan": "^1.10.0",
+    "path": "^0.12.7",
+    "yargs": "^15.4.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.10.4",
+    "@babel/core": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
+    "@types/shelljs": "^0.8.8",
+    "rimraf": "^3.0.2",
+    "shelljs": "^0.8.4",
+    "ts-loader": "^8.0.0",
+    "typescript": "^3.9.6",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.12"
+  }
+}

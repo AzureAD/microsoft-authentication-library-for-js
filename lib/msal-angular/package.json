@@ -1,0 +1,76 @@
+{
+  "name": "@azure/msal-angular",
+  "version": "2.3.2",
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "description": "Microsoft Authentication Library for Angular",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "build:all": "npm run build:common && npm run build:browser && npm run build",
+    "build:browser": "cd ../msal-browser && npm run build",
+    "build:common": "cd ../msal-common && npm run build",
+    "build:pack": "npm run build && cd dist && npm pack",
+    "deploy": "npm run build:all && npm publish ./dist",
+    "test": "ng test",
+    "test:coverage": "npm test",
+    "lint": "cd ../../ && npm run lint:angular",
+    "lint:fix": "npm run lint -- -- --fix",
+    "e2e": "ng e2e",
+    "prepack": "npm run build:all",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-angular",
+    "prepublishOnly": "echo Use npm run deploy && exit 1"
+  },
+  "main": "./dist/bundles/azure-msal-angular.umd.js",
+  "typings": "./dist/azure-msal-angular.d.ts",
+  "beachball": {
+    "disallowedChangeTypes": [
+      "major"
+    ]
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.1102.11",
+    "@angular/animations": "~11.2.12",
+    "@angular/cli": "~11.2.11",
+    "@angular/common": "~11.2.12",
+    "@angular/compiler": "~11.2.12",
+    "@angular/compiler-cli": "~11.2.12",
+    "@angular/core": "~11.2.12",
+    "@angular/forms": "~11.2.12",
+    "@angular/platform-browser": "~11.2.12",
+    "@angular/platform-browser-dynamic": "~11.2.12",
+    "@angular/router": "~11.2.12",
+    "@azure/msal-browser": "^2.26.0",
+    "@types/jasmine": "~3.6.0",
+    "@types/jasminewd2": "~2.0.3",
+    "@types/node": "^12.11.1",
+    "jasmine-core": "~3.6.0",
+    "jasmine-spec-reporter": "~5.0.0",
+    "karma": "~6.3.2",
+    "karma-chrome-launcher": "~3.1.0",
+    "karma-coverage-istanbul-reporter": "~3.0.2",
+    "karma-jasmine": "~4.0.0",
+    "karma-jasmine-html-reporter": "^1.5.0",
+    "ng-packagr": "^11.2.4",
+    "protractor": "~7.0.0",
+    "rxjs": "~6.5.5",
+    "ts-node": "~8.3.0",
+    "tslib": "^2.0.0",
+    "typescript": "~4.1.5",
+    "zone.js": "~0.10.3"
+  },
+  "peerDependencies": {
+    "@azure/msal-browser": "^2.26.0",
+    "rxjs": "^6.0.0 || ^7.0.0"
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,21 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "modules": true
+        }
+    },
+    "plugins": [
+        "@typescript-eslint/eslint-plugin-tslint",
+        "security"
+    ],
+    "extends": [
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+        "plugin:security/recommended"
+    ],
+    "rules": {
+        "no-console": 1
+    }
+}

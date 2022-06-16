@@ -1,0 +1,6 @@
+{
+	"appId": "io.ionic.starter",
+	"appName": "windows-native-sample",
+	"webDir": "build",
+	"bundledWebRuntime": false
+}

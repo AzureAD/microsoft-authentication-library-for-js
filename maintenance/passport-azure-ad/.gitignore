@@ -1,0 +1,8 @@
+node_modules/
+test/End_to_end_test/node_modules/
+test/End_to_end_test/debug.log
+.idea/
+npm-debug.log
+federationmetadata.xml
+*.sublime-workspace
+package-lock.json

@@ -1,0 +1,21 @@
+{
+  "name": "msal-node-b2c-confidential",
+  "version": "1.0.0",
+  "description": "sample for msal-node confidential client application using using auth code flow to sign-in users on azure ad b2c",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node ./index.js",
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "file:../../../lib/msal-node",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "express-handlebars": "^4.0.4",
+    "express-session": "^1.17.2"
+  }
+}

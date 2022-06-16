@@ -1,0 +1,39 @@
+{
+  "include": ["src", "test"],
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
+    "declaration": true,
+    "declarationMap": true,
+    "lib": ["dom", "esnext"],
+    "importHelpers": true,
+    "sourceMap": true,
+    "rootDir": "./",
+    "outDir": "./dist",
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictPropertyInitialization": false,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "experimentalDecorators": true
+  },
+  "compileOnSave": false,
+  "buildOnSave": false,
+  "references": [
+    {
+      "path": "../msal-common"
+    }
+  ]
+}

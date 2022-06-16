@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Suite</title>
+  
+    <script type="text/javascript" src="../bower_components/jasmine/lib/jasmine-core/jasmine.js"></script>
+    <script type="text/javascript" src="../bower_components/jasmine/lib/jasmine-core/jasmine-html.js"></script>
+    <script type="text/javascript" src="../bower_components/jasmine/lib/jasmine-core/boot.js"></script>
+    <script type="text/javascript" src="../bower_components/angular/angular.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-route/angular-route.js"></script>
+	<script type="text/javascript" src="../bower_components/angular-ui-router/release/angular-ui-router.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-resource/angular-resource.js"></script>
+    <script type="text/javascript" src="../bower_components/angular-mocks/angular-mocks.js"></script>
+    <script type="text/javascript" src="../lib/adal.js"></script>
+    <script type="text/javascript" src="../lib/adal-angular.js"></script>
+    <script type="text/javascript" src="./testApp.js"></script>
+	<script type="text/javascript" src="./stateApp.js"></script>
+    <script type="text/javascript" src="./angularModuleSpec.js"></script>
+    <link rel="stylesheet" href="../bower_components/jasmine/lib/jasmine-core/jasmine.css" />
+</head>
+<body>
+    <!-- This is using Jasmine to run and display test results -->
+    <script type="text/javascript">
+        // Install bower components first before running this
+        // This is provided to debug adal issues in chrome browser, while running tests
+        var jasmineEnv = jasmine.getEnv();
+        jasmineEnv.addReporter(new jasmine.HtmlReporter());
+        jasmineEnv.execute();
+    </script>
+</body>
+</html>

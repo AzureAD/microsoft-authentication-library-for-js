@@ -1,0 +1,39 @@
+{
+  "name": "b2c-sample",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@azure/msal-browser": "^2.14.2",
+    "@azure/msal-react": "^1.0.0",
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.1"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:package": "cd ../../../lib/msal-react && npm run build:all",
+    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-browser ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom",
+    "install:published": "npm install @azure/msal-react@latest @azure/msal-browser@latest react@^17 react-dom@^17"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

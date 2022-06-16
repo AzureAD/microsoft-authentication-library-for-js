@@ -1,0 +1,17 @@
+{
+  "name": "msal-node-refresh-token",
+  "version": "1.0.0",
+  "description": "Command line app showing how to use a refresh token to acquire new tokens from Azure AD",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node ./index.js",
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "file:../../../lib/msal-node"
+  }
+}

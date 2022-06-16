@@ -1,0 +1,21 @@
+<div class="container">
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">MSAL Angular Sample App</a>
+      </div>
+      <ul class="nav navbar-nav">
+        <li><a [routerLink]="['home']">Home</a></li>
+        <li><a [routerLink]="['product']">Product</a></li>
+        <li><a [routerLink]="['userProfile']">User Profile</a></li>
+        <li><a [routerLink]="['todoList']">Web API Call</a></li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li><a  *ngIf="!loggedIn"   (click)="login()"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+        <li><a  *ngIf="loggedIn" (click)="logout()"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+      </ul>
+    </div>
+  </nav>
+  <!--This is to avoid reload during acquireTokenSilent() because of hidden iframe -->
+<router-outlet *ngIf="!isIframe"></router-outlet>
+</div>

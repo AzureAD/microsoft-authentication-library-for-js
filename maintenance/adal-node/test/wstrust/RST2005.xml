@@ -1,0 +1,31 @@
+﻿<s:Envelope xmlns:s='http://www.w3.org/2003/05/soap-envelope' xmlns:wsa='http://www.w3.org/2005/08/addressing' xmlns:wsu='http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd'>
+  <s:Header>
+    <wsa:Action s:mustUnderstand='1'>http://schemas.xmlsoap.org/ws/2005/02/trust/RST/Issue</wsa:Action>
+    <wsa:messageID>%MESSAGE_ID%</wsa:messageID>
+    <wsa:ReplyTo>
+      <wsa:Address>http://www.w3.org/2005/08/addressing/anonymous</wsa:Address>
+    </wsa:ReplyTo>
+    <wsa:To s:mustUnderstand='1'>%WSTRUST_ENDPOINT%</wsa:To>
+    <wsse:Security s:mustUnderstand='1' xmlns:wsse='http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd'>
+      <wsu:Timestamp wsu:Id='_0'>
+        <wsu:Created>%CREATED%</wsu:Created>
+        <wsu:Expires>%EXPIRES%</wsu:Expires>
+      </wsu:Timestamp>
+      <wsse:UsernameToken wsu:Id='ADALUsernameToken'>
+        <wsse:Username>%USERNAME%</wsse:Username>
+        <wsse:Password>%PASSWORD%</wsse:Password>
+      </wsse:UsernameToken>
+    </wsse:Security>
+  </s:Header>
+  <s:Body>
+    <wst:RequestSecurityToken xmlns:wst='http://schemas.xmlsoap.org/ws/2005/02/trust'>
+      <wsp:AppliesTo xmlns:wsp='http://schemas.xmlsoap.org/ws/2004/09/policy'>
+        <wsa:EndpointReference>
+          <wsa:Address>%APPLIES_TO%</wsa:Address>
+        </wsa:EndpointReference>
+      </wsp:AppliesTo>
+      <wst:KeyType>http://schemas.xmlsoap.org/ws/2005/05/identity/NoProofKey</wst:KeyType>
+      <wst:RequestType>http://schemas.xmlsoap.org/ws/2005/02/trust/Issue</wst:RequestType>
+    </wst:RequestSecurityToken>
+  </s:Body>
+</s:Envelope>

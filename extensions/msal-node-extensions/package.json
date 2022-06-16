@@ -1,0 +1,65 @@
+{
+  "name": "@azure/msal-node-extensions",
+  "version": "1.0.0-alpha.19",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "keywords": [
+    "js",
+    "ts",
+    "node",
+    "AAD",
+    "msal",
+    "extensions"
+  ],
+  "files": [
+    "dist",
+    "src",
+    "binding.gyp"
+  ],
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "build:common": "cd ../../lib/msal-common && npm run build",
+    "build:all": "npm run build:common && npm run build",
+    "test": "tsdx test",
+    "test:coverage": "tsdx test --coverage",
+    "lint": "cd ../../ && npm run lint:node:extensions",
+    "lint:fix": "npm run lint -- -- --fix",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
+    "prepack": "npm run build:all"
+  },
+  "author": {
+    "name": "Microsoft",
+    "email": "nugetaad@microsoft.com",
+    "url": "https://www.microsoft.com"
+  },
+  "module": "dist/test.esm.js",
+  "beachball": {
+    "disallowedChangeTypes": [
+      "patch",
+      "minor",
+      "major"
+    ]
+  },
+  "dependencies": {
+    "@azure/msal-common": "^7.0.0",
+    "bindings": "git+https://github.com/samuelkubai/node-bindings.git#v1.6.0",
+    "keytar": "^7.8.0",
+    "nan": "^2.13.2"
+  },
+  "devDependencies": {
+    "husky": "^4.2.5",
+    "node-gyp": "^9.0.0",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.0.0",
+    "typescript": "^3.9.3"
+  }
+}

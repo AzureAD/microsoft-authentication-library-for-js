@@ -1,0 +1,76 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: npm audit
+
+on:
+  pull_request:
+    branches:  
+      - dev
+    paths:
+      - 'lib/**/*'
+      - 'extensions/**/*'
+      - '**/package-lock.json'
+      - '!**.md'
+      - '.github/workflows/npm-audit.yml'
+  push:
+    branches:
+      - 'master'
+      - 'npm-audit'
+      - 'fix-node-extension-audit'
+
+concurrency:
+  group: audit-${{github.ref}}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  audit-root:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: npm audit (root)
+      run: npm audit --production
+
+  audit-extensions:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: npm audit (node-extensions)
+      working-directory: extensions/msal-node-extensions
+      run: npm audit --production
+
+  audit-lib:
+    runs-on: ubuntu-latest
+    strategy:
+        fail-fast: false
+        matrix:
+          library:
+            - msal-core
+            - msal-common
+            - msal-browser
+            - msal-node
+            - msal-angular
+            - msal-react
+  
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: npm audit (lib)
+      working-directory: lib/${{ matrix.library }}
+      run: npm audit --production

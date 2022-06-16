@@ -1,0 +1,15 @@
+{
+  "name": "windows-native-sample",
+  "integrations": {
+    "capacitor": {},
+    "enterprise": {
+      "keyId": 7575,
+      "appId": "9d475d72",
+      "orgId": "d813beb4-8c7d-495d-922e-28e498986e70",
+      "registries": [
+        "@ionic-enterprise;https://registry.ionicframework.com/"
+      ]
+    }
+  },
+  "type": "react"
+}

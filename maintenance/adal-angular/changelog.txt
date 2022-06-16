@@ -1,0 +1,148 @@
+Version 1.0.18
+=========================
+* Properly reject requests with mismatched nonce.
+
+Version 1.0.17
+=========================
+* Added sid support. When the session id parameter is provided in the id_token, use that instead of the upn
+* Add GDPR compliant logging. You can now set a flag piiLoggingEnabled by calling Logging.piiLoggingEnabled = true which when set, Adal JS will not log messages that contain the user's personal identifier.
+* Removed const keyword to support ES5 compatibility.
+* Other bug fixes and updates
+
+Version 1.0.16
+=========================
+* Added ability to login in multiple tabs simultaneously when using localStorage where data is shared across tabs. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/639.
+* Added ablity to pass prompt parameter specifically to login method of adal which was not possible in previous versions. You can set extraQueryParameter:'prompt=select_account' in the adal config and this
+  value will only get appended to login url. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/636.
+* Added support for ui-router versions > 1.0 in which all state change events were deprecated and replaced with transition events. Please see this : https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/574.
+* Added ability to make loadFrameTimeout property of adal configurable. This is the time adal waits to receive a response for the token renewal request in case of acquireToken. 
+  The default value is 6 seconds but there were several instances where increasing the timeout to 10 seconds helped reduce network latency errors.
+* Added error condition to cover the case when user opens the popup window for login and then closes it without entering their credentials. The same error is thrown when popup window handle is destroyed during cross zone
+  navigation in IE/Edge. The error message ('Popup Window closed by UI action/ Popup Window handle destroyed due to cross zone navigation in IE/Edge') is broadcasted as an event in case adal-angular is used and it is 
+  passed to the callback function in the config in case plain adalJs is used.
+* In the case where user already has an existing session with AAD and just wants to acquire a token for a resource for the same user using Adal, he can set  extraQueryParameter:'login_hint=xxx' in the adal config and
+  directly call acquireToken without calling login first. In this scenario, adal will send the request with responseType = 'id_token token' in a hidden iframe to receive both an id_token to estabilish user context 
+  as well as an access_token for the specified resource. 
+  This feature allows silent login as opposed to showing a UI in the case where the user has an existing session with AAD.
+* Other bug fixes and updates
+
+Version 1.0.15
+=========================
+* Added acquireTokenRedirect and acquireTokenPopup api's to acquire a token for resource interactively (MFA) and support conditional access.
+* Fixed a bug in acquireToken method that was happening when Adaljs was consumed as a module using loaders such as webpack.
+* Added custom event polyfill to support IE
+* Other bug fixes and updates
+
+Version 1.0.14
+=========================
+* Adding ability to specify anonymous sub-urls for a configured endpoint
+* Adding api documentation
+* Adding ability to turn off default navigation to start page after login. Set navigateToLoginRequestUrl:false.
+* Fixing http interceptor to look into templateCache first
+* Fixing infinite loop issues when using popUp for angular versions 1.5.8 or above
+* Fixing silent exception error in case of user defined callback function
+* Fixing double error pipeline in angular acquireToken method
+* Updating the default token expiry offset from 2 minutes to 5 minutes
+* Other bug fixes and updates
+
+Version 1.0.13
+=========================
+* Pass 'error' parameter to the callback besides 'error_description': #424
+* Adding API documentation of adal.js
+* Adding 'acquireTokenSuccess' and 'acquireTokenFailure' events in adal-angular.js
+* Other bug fixes and updates
+
+Version 1.0.12
+==========================
+* Adding support for Login using a pop-up instead of a full redirect. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/60
+* Updating anonymousEndpoints feature to handle nested states in ui-router. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/345
+* Fix bug in anonymousEndpoints allowing templateUrl property of the route/state to be declared as a function. Thanks @dhodgin for the Pull Request. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/368 
+* Using window.crypto.getRandomValues API to generate version 4 UUID as per RFC 4122. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/88
+* Fix bug in handleWindowCallback to call the callback defined on config after Login operation is completed. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/issues/324
+* Other bug fixes and updates.
+
+Version 1.0.11
+==========================
+* Adding support for using a special html for iFrames. This prevents app reloading in the iframe. Please see this: https://github.com/AzureAD/azure-activedirectory-library-for-js/wiki/FAQs#q1-my-app-is-re-loading-every-time-adal-renews-a-token
+* Fixing multiple root causes for infinte loops at the time of login or token renewal.
+* Fixing url paramters getting dropped after login.
+* Adding timeout to token renewal requests. Thanks @dmxfee for the Pull Request.
+* Use module pattern in adal.js
+
+Version 1.0.10
+==========================
+Fixing infinite loop when refreshing tokens, adding extensibility for specifying anonymous endpoints
+
+Version 1.0.9
+==========================
+Adding events for state mismatch and error responses. Fix for token renewal for app's backend. Making library available on NPM
+
+Version 1.0.8
+==========================
+Fix for persisting route parameters of protected state
+
+Version 1.0.7
+==========================
+Fix for checking if interceptor call comes from app backend
+
+Version 1.0.6
+==========================
+Fix issue#159, support base64 decoding in ie9
+Remove UTF-8 BOM headers from files
+Ignore inceptor call if the url is not app backend or not listed in the endpoints list
+Fix issue #153, proivde logging level, and user needs to specify logging way
+
+Version 1.0.5
+==========================
+check domain_hint query param existence before adding
+
+Version 1.0.4
+==========================
+Fix infinite loop when specifying login resource
+Fix #139: Queue callbacks for renewals
+Fix constant definitions and use global in unit tests
+
+Version 1.0.3
+==========================
+Revert the change from prevous release "Move the check for the boolean value isEndPoint in AdalAngular interceptor (issue #127)"
+update minified version of adal and adal_angular. 
+
+Version 1.0.2
+==========================
+Move the check for the boolean value isEndPoint in AdalAngular interceptor (issue #127)
+
+Version 0.0.7
+==========================
+idtoken fix
+
+Version 0.0.6
+==========================
+Fix to refresh token for external endpoints
+Ui router
+
+
+Version 0.0.5
+==========================
+Storage option for localStorage and sessionStorage.
+Simple js sample
+
+Version 0.0.4
+==========================
+Split adal.js to adal.js and adal-angular.js
+Fix interceptor reject message
+Use location.path for route params
+Add grunt minify task
+
+Version 0.0.3
+==========================
+Apply changes for DI strict, 
+Token interceptor fixes.
+
+Version 0.0.2
+==========================
+Fix DI strict mode issue for latest version of Angular
+Fix unknown header errors from token interceptor
+
+Version 0.0.1
+==========================
+Preview Release 

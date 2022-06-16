@@ -1,0 +1,12 @@
+{
+    "name": "msal-angular-v2-samples",
+    "version": "1.0.0",
+    "description": "End-to-end test suite for msal-angular-v2",
+    "scripts": {
+        "test": "jest",
+        "preinstall": "cd .. && npm install"
+    },
+    "devDependencies": {
+        "jest": "^27.0.4"
+    }
+}

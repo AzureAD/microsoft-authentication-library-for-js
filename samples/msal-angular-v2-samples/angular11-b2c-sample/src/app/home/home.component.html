@@ -1,0 +1,10 @@
+<div *ngIf="!loginDisplay">
+    <p class="welcome">Welcome to the MSAL.js v2 Angular Quickstart!</p>
+    <p>This sample demonstrates how to configure MSAL Angular to login, logout, protect a route, and acquire an access token for a protected resource such as a B2C protected web API.</p>
+    <p>Please sign-in to acquire a token and make an API call.</p>
+</div>
+
+<div *ngIf="loginDisplay">
+    <p>Login successful!</p>
+    <p>Request your profile information by clicking Web API above.</p>
+</div>

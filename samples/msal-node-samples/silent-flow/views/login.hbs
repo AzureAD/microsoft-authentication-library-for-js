@@ -1,0 +1,11 @@
+<div id="card-div" class="col-md-3">
+  <div class="card text-center">
+    <div class="card-body">
+        <h5 class="card-title">Please sign-in to acquire a token silently</h5>
+        <a class="btn btn-primary" href="/silentLogin" id="acquireTokenSilent">Attempt silent login</a>
+        {{#if failedSilentLogin}}
+        <h5 class="card-title">Could not acquire token silently. Please sign in.</h5>
+        {{/if}}
+    </div>
+  </div>
+</div>

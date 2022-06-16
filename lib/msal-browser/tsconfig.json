@@ -1,0 +1,31 @@
+{
+    "extends": "./tsconfig.base.json",
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "es6",
+        "target": "es5",
+        "lib": [
+            "es2015",
+            "dom",
+            "es2015.promise"
+        ],
+        "outDir": "./dist",
+        "allowUnusedLabels": false,
+        "noImplicitReturns": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true
+    },
+    "references": [
+        {
+            "path": "../msal-common"
+        }
+    ],
+    "include": ["src", "test"],
+    "exclude": [
+        "node_modules"
+    ],
+    "types": [
+        "node",
+        "jest"
+    ]
+}

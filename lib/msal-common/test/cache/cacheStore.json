@@ -1,0 +1,63 @@
+{
+    "uid.utid-login.microsoftonline.com-microsoft": {
+        "username": "John Doe",
+        "localAccountId": "object1234",
+        "realm": "microsoft",
+        "environment": "login.microsoftonline.com",
+        "homeAccountId": "uid.utid",
+        "authorityType": "MSSTS",
+        "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+    },
+    "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id--": {
+        "environment": "login.microsoftonline.com",
+        "credentialType": "RefreshToken",
+        "secret": "a refresh token",
+        "clientId": "mock_client_id",
+        "homeAccountId": "uid.utid"
+    },
+    "uid.utid-login.microsoftonline.com-refreshtoken-1--": {
+        "environment": "login.microsoftonline.com",
+        "credentialType": "RefreshToken",
+        "secret": "a refresh token",
+        "clientId": "mock_client_id_1",
+        "homeAccountId": "uid.utid",
+        "familyId": "1"
+    },
+    "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3": {
+        "environment": "login.microsoftonline.com",
+        "credentialType": "AccessToken",
+        "secret": "an access token",
+        "realm": "microsoft",
+        "target": "scope1 scope2 scope3",
+        "clientId": "mock_client_id",
+        "cachedAt": "1000",
+        "homeAccountId": "uid.utid",
+        "extendedExpiresOn": "4600",
+        "expiresOn": "4600"
+    },
+    "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5": {
+        "environment": "login.microsoftonline.com",
+        "credentialType": "AccessToken",
+        "secret": "an access token",
+        "realm": "microsoft",
+        "target": "scope4 scope5",
+        "clientId": "mock_client_id",
+        "cachedAt": "1000",
+        "homeAccountId": "uid.utid",
+        "extendedExpiresOn": "4600",
+        "expiresOn": "4600"
+    },
+    "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-": {
+        "realm": "microsoft",
+        "environment": "login.microsoftonline.com",
+        "credentialType": "IdToken",
+        "secret": "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
+        "clientId": "mock_client_id",
+        "homeAccountId": "uid.utid"
+    },
+    "appmetadata-login.microsoftonline.com-mock_client_id_1": {
+        "environment": "login.microsoftonline.com",
+        "familyId": "1",
+        "clientId": "mock_client_id_1"
+    }
+}

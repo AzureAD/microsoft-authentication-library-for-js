@@ -1,0 +1,31 @@
+{
+  "name": "msal-browser-testing-sample",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "jest --runInBand"
+  },
+  "dependencies": {
+    "@azure/msal-node": "^1.0.0-beta.3",
+    "@babel/core": "^7.8.7",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-proposal-object-rest-spread": "^7.8.3",
+    "@babel/polyfill": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
+    "@babel/preset-typescript": "^7.8.3",
+    "@babel/register": "^7.8.6",
+    "@types/expect-puppeteer": "^4.4.5",
+    "@types/jest-environment-puppeteer": "^4.4.0",
+    "@types/puppeteer": "^5.4.0",
+    "express": "^4.12.3",
+    "jest": "^26.6.3",
+    "jest-puppeteer": "^4.4.0",
+    "path": "^0.11.14",
+    "puppeteer": "^2.1.1",
+    "ts-jest": "^26.4.4",
+    "typescript": "^3.8.3"
+  }
+}

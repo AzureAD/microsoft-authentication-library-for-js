@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "suppressImplicitAnyIndexErrors": true,
+        "sourceMap": true,
+        "experimentalDecorators": true,
+        "importHelpers": true,
+        "noImplicitAny": true
+    },
+    "compileOnSave": false,
+    "buildOnSave": false
+}

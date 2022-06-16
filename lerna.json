@@ -1,0 +1,44 @@
+{
+  "lerna": "3.16.4",
+  "command": {
+    "run": {
+      "scope": [
+        "msal",
+        "@azure/msal-common",
+        "@azure/msal-browser",
+        "@azure/msal-react",
+        "@azure/msal-angular",
+        "@azure/msal-node"
+      ],
+      "stream": true
+    },
+    "exec": {
+        "scope": [
+            "msal",
+            "@azure/msal-browser",
+            "@azure/msal-common",
+            "@azure/msal-node",
+            "@azure/msal-react",
+            "@azure/msal-angular"
+        ],
+        "stream": true
+    },
+    "bootstrap": {
+        "scope": [
+            "msal",
+            "@azure/msal-browser",
+            "@azure/msal-common",
+            "@azure/msal-node",
+            "@azure/msal-react",
+            "@azure/msal-angular"
+      ],
+      "stream": true
+    }
+  },
+  "packages": [
+    "lib/*",
+    "extensions/*"
+  ],
+  "version": "independent",
+  "concurrency": 3
+}

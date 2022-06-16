@@ -1,0 +1,6 @@
+{
+  "appId": "com.example.app",
+  "appName": "windows-native-sample",
+  "webDir": "windows-native-sample/build",
+  "bundledWebRuntime": false
+}

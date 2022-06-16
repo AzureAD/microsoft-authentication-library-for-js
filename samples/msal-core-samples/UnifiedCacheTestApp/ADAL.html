@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Vanilla ADAL.JS</title>
+        <meta charset="utf-8" />
+        <style type="text/css">body { font-family: Tahoma; padding: 3em; }</style>
+        <script src="adal/adal.js"></script>
+    </head>
+
+    <body>
+        <a href=".\">&lt; Back</a>
+        <h4>ADAL</h4>
+        <p>
+            <a id="login_button" href="#" onclick="authContext.login(); return false;">Log in</a>
+            <a id="logout_button" href="#" onclick="authContext.logOut(); return false;">Log out</a>
+        </p>
+
+        <p id="username"></p>
+        <pre id="api_response"></pre>
+
+        <script type="text/javascript">
+            document.getElementById('login_button').style.display = "none";
+            document.getElementById('logout_button').style.display = "none";
+
+            // Set up ADAL
+            var applicationConfig = {
+                clientID: '9f064d41-aa20-4561-9aa5-d1a63f2c6130',
+                graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
+                graphScopes: ["user.read", "mail.send"],
+                authority: "https://login.microsoftonline.com/microsoft.onmicrosoft.com/"
+            };
+
+            // initialize logger object
+            window.Logging = {
+                piiLoggingEnabled: true,
+                level: 3,
+                log: function (message) {
+                    console.log(message);
+                }
+            };
+
+            // app context for auth
+            var authContext = new AuthenticationContext({
+                clientId: applicationConfig.clientID,
+                cacheLocation: 'localStorage'
+
+            });
+
+            // on a redirect(302) from the service, call ADAL to handle the response
+            if (authContext.isCallback(window.location.hash)) {
+                // Handle redirect after token requests
+                authContext.handleWindowCallback();
+                console.log("handled callback");
+                var err = authContext.getLoginError();
+                if (err) {
+                    document.getElementById('api_response').textContent = 'ERROR:\n\n' + err;
+                }
+            //
+            } else {
+                // If logged in, get access token and make an API request
+                var user = authContext.getCachedUser();
+                console.log(JSON.stringify(user));
+                if (user) {
+                    document.getElementById('logout_button').style.display = "block";
+                    document.getElementById('username').textContent = 'Signed in as: ' + user.userName;
+
+                    document.getElementById('api_response').textContent = 'Calling Graph API...';
+
+                    // get access token for graph
+                    authContext.acquireToken('https://graph.microsoft.com', function(a, access_token, c) {
+                        var xhr = new XMLHttpRequest();
+
+                        xhr.open('GET', 'https://graph.microsoft.com/v1.0/me', true);
+                        xhr.setRequestHeader('Authorization', 'Bearer ' + access_token);
+
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                document.getElementById('api_response').textContent = JSON.stringify(JSON.parse(xhr.responseText), null, '  ');
+                            } else {
+                                document.getElementById('api_response').textContent = 'ERROR:\n\n' + xhr.responseText;
+                            }
+                        };
+
+                        xhr.send();
+                    });
+                } else {
+                    document.getElementById('login_button').style.display = "block";
+                    document.getElementById('username').textContent = 'Not signed in.';
+                    document.getElementById('api_response').textContent = '';
+                }
+            }
+        </script>
+    </body>
+</html>
