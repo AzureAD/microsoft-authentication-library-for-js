@@ -52,7 +52,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -123,7 +124,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -164,7 +166,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -205,7 +208,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "different-nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
@@ -231,7 +235,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
@@ -266,7 +271,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -321,7 +327,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
@@ -361,7 +368,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
