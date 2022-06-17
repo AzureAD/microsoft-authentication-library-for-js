@@ -11,7 +11,7 @@ import { CacheKVStore } from "./CacheTypes";
  */
 export class NodeCacheManager extends CacheManager {
     private logger: Logger;
-    private cache: CacheKVStore = {};
+    private cache: CacheKVStore = new Map();
     private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {

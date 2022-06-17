@@ -47,13 +47,10 @@ describe("NodeCacheManager", () => {
         nodeStorage.setItem(key, "item");
 
         expect(nodeStorage.getItem(key)).toEqual("item");
-        expect(nodeStorage.getCache()).toEqual({"key": "item"});
 
         nodeStorage.clear();
 
         expect(nodeStorage.getItem(key)).toBeUndefined();
-        expect(nodeStorage.getCache()).toEqual({});
-
     });
 
     describe("AuthoritMetadata", () => {

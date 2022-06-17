@@ -9,4 +9,4 @@ import { ValidCacheType } from "@azure/msal-common";
  * Key value store for in-memory cache
  * @public
  */
-export type CacheKVStore = Record<string, ValidCacheType>;
+export type CacheKVStore = Map<string, ValidCacheType>;
