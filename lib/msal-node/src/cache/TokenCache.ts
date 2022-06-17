@@ -4,11 +4,18 @@
  */
 
 import { NodeStorage } from "./NodeStorage";
-import { StringUtils, AccountEntity, AccountInfo, Logger, ISerializableTokenCache, ICachePlugin, TokenCacheContext } from "@azure/msal-common";
+import { StringUtils, AccountEntity, AccountInfo, Logger, ISerializableTokenCache, ICachePlugin, TokenCacheContext, AuthToken, AuthorityFactory, AuthorityOptions, Constants } from "@azure/msal-common";
 import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity, CacheKVStore } from "./serializer/SerializerTypes";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { ITokenCache } from "./ITokenCache";
+import { CryptoProvider } from "../crypto/CryptoProvider";
+import { NodeConfiguration } from "../config/Configuration";
+
+export type AddAccountOptions = {
+    idToken: string;
+    clientInfo?: string;
+};
 
 const defaultSerializedCache: JsonCache = {
     Account: {},
@@ -24,20 +31,24 @@ const defaultSerializedCache: JsonCache = {
  */
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
+    private config: NodeConfiguration;
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
+    private cryptoProvider: CryptoProvider;
 
-    constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin) {
+    constructor(config: NodeConfiguration, storage: NodeStorage, logger: Logger, cryptoProvider: CryptoProvider) {
+        this.config = config;
         this.cacheHasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));
-        if (cachePlugin) {
-            this.persistence = cachePlugin;
-        }
         this.logger = logger;
+        if (config.cache.cachePlugin) {
+            this.persistence = config.cache.cachePlugin;
+        }
+        this.cryptoProvider = cryptoProvider;
     }
 
     /**
@@ -160,6 +171,45 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
             await this.storage.removeAccount(AccountEntity.generateAccountCacheKey(account));
+        } finally {
+            if (this.persistence && cacheContext) {
+                await this.persistence.afterCacheAccess(cacheContext);
+            }
+        }
+    }
+
+    /**
+     * API to add a specific account and the relevant data to cache
+     * @param options - options passed by the user, including raw ID token
+     */
+    async addAccount(options: AddAccountOptions): Promise<void> {
+        this.logger.trace("addAccount called");
+        let cacheContext;
+
+        try {
+            if (this.persistence) {
+                cacheContext = new TokenCacheContext(this, true);
+                await this.persistence.beforeCacheAccess(cacheContext);
+            }
+
+            const authorityOptions: AuthorityOptions = {
+                protocolMode: this.config.auth.protocolMode,
+                knownAuthorities: this.config.auth.knownAuthorities,
+                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+                authorityMetadata: this.config.auth.authorityMetadata,
+            };
+
+            const discoveredInstance = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.storage, authorityOptions);
+
+            const idAuthToken = new AuthToken(options.idToken, this.cryptoProvider);
+
+            const homeAccountId = AccountEntity.generateHomeAccountId(options.clientInfo || Constants.EMPTY_STRING, discoveredInstance.authorityType, this.logger, this.cryptoProvider, idAuthToken);
+
+            const accountEntity = options.clientInfo ?
+                AccountEntity.createAccount(options.clientInfo, homeAccountId, idAuthToken, discoveredInstance) :
+                AccountEntity.createGenericAccount(homeAccountId, idAuthToken, discoveredInstance);
+
+            await this.storage.setAccount(accountEntity);
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);

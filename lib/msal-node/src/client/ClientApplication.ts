@@ -84,9 +84,10 @@ export abstract class ClientApplication {
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
         this.storage = new NodeStorage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
+            this.config,
             this.storage,
             this.logger,
-            this.config.cache.cachePlugin
+            this.cryptoProvider,
         );
     }
 
