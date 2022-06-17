@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "add createAccount API to msal-node TokenCache",
+  "comment": "createAccount API for msal-node TokenCache (#4917)",
   "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
+  "email": "v-derisen@microsoft.com",
   "dependentChangeType": "patch"
 }
