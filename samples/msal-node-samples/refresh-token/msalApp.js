@@ -74,74 +74,77 @@ app.get('/', async (req, res, next) => {
         });
     } catch (error) {
         if (error instanceof msal.InteractionRequiredAuthError) {
-                /**
-                 * If the silent token acquisition throws an interaction_required error,
-                 * we catch it and attempt to find a refresh token for this user from ADAL cache.
-                 * If no cached refresh token is found or if the refresh token is expired,
-                 * we fallback to interactive flow via getAuthCodeUrl -> acquireTokenByCode.
-                 */
-                diskCache.find({ upn: req.cookies.userId }, async (err, data) => {
-                    try {
-                        if (err || !data || !data.length) throw new Error('Could not retrieve user cache');
+            /**
+             * If the silent token acquisition throws an interaction_required error,
+             * we catch it and attempt to find a refresh token for this user from ADAL cache.
+             * If no cached refresh token is found or if the refresh token is expired,
+             * we fallback to interactive flow via getAuthCodeUrl -> acquireTokenByCode.
+             */
+            diskCache.find({ oid: req.cookies.userId }, async (err, data) => {
+                try {
+                    if (err || !data || !data.length) throw new Error('Could not retrieve user cache');
 
-                        const msalCache = await cca.getTokenCache();
+                    const msalCache = await cca.getTokenCache();
 
-                        /**
-                         * API to add a new account to MSAL cache
-                         * using an ID token and optionally a clientIfo string
-                         */
-                        await msalCache.addAccount({
-                            idToken: data[0].idToken,
-                            clientInfo: Buffer.from(JSON.stringify({
-                                uid: data[0].oid,
-                                utid: data[0].tid,
-                            })).toString('base64')
-                        });
+                    /**
+                     * API to create a new account to MSAL cache using an ID token
+                     * and optionally a base64 encoded clientIfo object.
+                     */
+                    await msalCache.createAccount({
+                        idToken: data[0].idToken, // raw ID token string
+                        clientInfo: Buffer.from(JSON.stringify({
+                            uid: data[0].oid, // oid of the user
+                            utid: data[0].tid, // tenant ID of the user
+                        })).toString('base64')
+                    });
 
-                        const tokenResponse = await cca.acquireTokenByRefreshToken({
-                            refreshToken: data[0].refreshToken,
-                            scopes: ['user.read']
-                        });
+                    /**
+                     * You can add the /.default scope suffix to the resource to help migrate your apps
+                     * from the v1.0 endpoint (ADAL) to the Microsoft identity platform (MSAL).
+                     * For example, for the resource value of https://graph.microsoft.com,
+                     * the equivalent scope value is https://graph.microsoft.com/.default
+                     */
+                    const tokenResponse = await cca.acquireTokenByRefreshToken({
+                        refreshToken: data[0].refreshToken,
+                        scopes: ['https://graph.microsoft.com/.default']
+                    });
 
-                        req.session.account = tokenResponse.account;
+                    req.session.account = tokenResponse.account;
+
+                    /**
+                     * Once you successfully acquire an access token using a refresh token,
+                     * we recommend to clear the ADAL cache for this user.
+                     */
+
+                    diskCache.remove(data, (err, data) => {
+                        if (err) return next(err);
 
                         res.json({
                             message: 'successful refresh token flow token acquisition',
                             response: tokenResponse
                         });
+                    })
+                } catch (error) {
+                    // create a random string of characters against csrf
+                    req.session.state = cryptoProvider.createNewGuid();
 
-                        /**
-                         * Once you successfully acquire an access token using a refresh token,
-                         * we recommend to clear the ADAL cache for this user.
-                         */
+                    // Construct a request object for auth code url
+                    const authCodeUrlParameters = {
+                        scopes: ["user.read"],
+                        responseMode: 'form_post',
+                        redirectUri: REDIRECT_URI,
+                        state: req.session.state,
+                    };
 
-                        diskCache.remove(data, (err, data) => {
-                            if (err) console.log(err)
-                            res.send(tokenResponse);
-                        })
+                    try {
+                        // Request auth code url, then redirect
+                        const authCodeUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
+                        res.redirect(authCodeUrl);
                     } catch (error) {
-                        console.log(error);
-
-                        // create a random string of characters against csrf
-                        req.session.state = cryptoProvider.createNewGuid();
-
-                        // Construct a request object for auth code url
-                        const authCodeUrlParameters = {
-                            scopes: ["user.read"],
-                            responseMode: 'form_post',
-                            redirectUri: REDIRECT_URI,
-                            state: req.session.state,
-                        };
-
-                        try {
-                            // Request auth code url, then redirect
-                            const authCodeUrl = await cca.getAuthCodeUrl(authCodeUrlParameters);
-                            res.redirect(authCodeUrl);
-                        } catch (error) {
-                            next(error);
-                        }
+                        next(error);
                     }
-                });
+                }
+            });
         } else {
             next(error);
         }
@@ -149,7 +152,7 @@ app.get('/', async (req, res, next) => {
 });
 
 app.post('/redirect', async (req, res, next) => {
-    if(req.body.state) {
+    if (req.body.state) {
         if (req.session.state === req.body.state) {
             try {
                 // Exchange the auth code for tokens

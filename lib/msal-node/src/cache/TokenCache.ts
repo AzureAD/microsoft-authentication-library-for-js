@@ -12,7 +12,7 @@ import { ITokenCache } from "./ITokenCache";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { NodeConfiguration } from "../config/Configuration";
 
-export type AddAccountOptions = {
+export type CreateAccountOptions = {
     idToken: string;
     clientInfo?: string;
 };
@@ -179,10 +179,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     }
 
     /**
-     * API to add a specific account and the relevant data to cache
-     * @param options - options passed by the user, including raw ID token
+     * API to create an account and the relevant data in cache
+     * @param options - options passed by the user, including ID token
      */
-    async addAccount(options: AddAccountOptions): Promise<void> {
+    async createAccount(options: CreateAccountOptions): Promise<void> {
         this.logger.trace("addAccount called");
         let cacheContext;
 

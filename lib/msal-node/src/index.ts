@@ -23,7 +23,7 @@ export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOption
 export { ClientAssertion } from "./client/ClientAssertion";
 
 // Cache and Storage
-export { TokenCache } from "./cache/TokenCache";
+export { TokenCache, CreateAccountOptions as AddAccountOptions } from "./cache/TokenCache";
 export { NodeStorage } from "./cache/NodeStorage";
 export { CacheKVStore, JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedAppMetadataEntity, SerializedRefreshTokenEntity } from "./cache/serializer/SerializerTypes";
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";

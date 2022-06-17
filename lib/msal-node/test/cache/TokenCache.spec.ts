@@ -1,10 +1,10 @@
 import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from '@azure/msal-common';
 import { NodeStorage } from '../../src/cache/NodeStorage';
-import { TokenCache } from '../../src/cache/TokenCache';
+import { CreateAccountOptions, TokenCache } from '../../src/cache/TokenCache';
 import { CryptoProvider } from "../../src/crypto/CryptoProvider";
 import { promises as fs } from 'fs';
 import { version, name } from '../../package.json';
-import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
+import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS, TEST_DATA_CLIENT_INFO } from '../utils/TestConstants';
 import * as msalCommon from '@azure/msal-common';
 import { Deserializer } from '../../src/cache/serializer/Deserializer';
 import { JsonCache } from '../../src';
@@ -175,5 +175,44 @@ describe("TokenCache tests", () => {
             })
         })
     })
+
+    it('should create a default account entity in cache', async () => {
+        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const tokenCache = new TokenCache(config, storage, logger, cryptoProvider);
+
+        const options: CreateAccountOptions = {
+            idToken: TEST_CONSTANTS.RAW_ID_TOKEN,
+            clientInfo: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+        }
+
+        await tokenCache.createAccount(options);
+
+        const accounts = await tokenCache.getAllAccounts();
+        expect(accounts.length).toBe(1);
+
+        const cacheKeys = storage.getKeys()
+        const accountEntity = storage.getAccount(cacheKeys[1]);
+        expect(accountEntity?.authorityType).toBe(msalCommon.CacheAccountType.MSSTS_ACCOUNT_TYPE);
+    })
+
+    it('should create a generic account entity in cache', async () => {
+        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const tokenCache = new TokenCache(config, storage, logger, cryptoProvider);
+
+        const options: CreateAccountOptions = {
+            idToken: TEST_CONSTANTS.RAW_ID_TOKEN,
+        }
+
+        await tokenCache.createAccount(options);
+
+        const accounts = await tokenCache.getAllAccounts();
+        expect(accounts.length).toBe(1);
+
+        const cacheKeys = storage.getKeys()
+        const accountEntity = storage.getAccount(cacheKeys[1]);
+        expect(accountEntity?.authorityType).toBe(msalCommon.CacheAccountType.GENERIC_ACCOUNT_TYPE);
+    })
+
+
 
 });

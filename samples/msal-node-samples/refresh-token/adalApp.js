@@ -2,6 +2,7 @@
 var express = require('express');
 var session = require('express-session');
 var crypto = require('crypto');
+var { v4: uuid } = require('uuid');
 var adal = require('adal-node');
 
 const config = require('./config/customConfig.json');
@@ -59,7 +60,7 @@ app.get('/', function (req, res) {
         // Construct auth code request URL
         var authorizationUrl = templateAuthzUrl
             .replace('<state>', req.session.state)
-            .replace('<nonce>', '123');
+            .replace('<nonce>', uuid());
 
         res.redirect(authorizationUrl);
     });
@@ -72,7 +73,6 @@ app.post('/redirect', function (req, res, next) {
     }
 
     var idTokenClaims = getIdTokenClaims(req.body.id_token);
-    console.log(idTokenClaims);
 
     // Initialize an AuthenticationContext object
     var authenticationContext = new adal.AuthenticationContext(authorityUrl, true, diskCache);
@@ -101,8 +101,8 @@ app.post('/redirect', function (req, res, next) {
                 console.log(result);
             });
 
-            // create a cookie and store the userId, which will be picked up later on by the MSAL app
-            res.cookie('userId', userCache.upn, { maxAge: 900000, httpOnly: true }).send(response);
+            // create a cookie and store the upn as userId, which will be picked up later on by the MSAL app
+            res.cookie('userId', userCache.oid, { maxAge: 900000, httpOnly: true }).send(response);
         }
     );
 });

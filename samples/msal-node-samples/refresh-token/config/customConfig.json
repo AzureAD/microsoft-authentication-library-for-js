@@ -1,6 +1,6 @@
 {
     "authority": "https://login.microsoftonline.com",
-    "tenantInfo": "ENTER_TENANT_ID",
+    "tenantInfo": "ENTER_TENANT_INFO",
     "clientId": "ENTER_CLIENT_ID",
     "clientSecret": "ENTER_CLIENT_SECRET",
     "redirectUri": "http://localhost:3000/redirect",

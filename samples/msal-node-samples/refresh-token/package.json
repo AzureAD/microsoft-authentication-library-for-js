@@ -18,7 +18,8 @@
         "cookie-parser": "^1.4.6",
         "express": "^4.17.1",
         "express-session": "^1.17.2",
-        "underscore": "^1.13.3"
+        "underscore": "^1.13.3",
+        "uuid": "^8.3.2"
     },
     "devDependencies": {
         "jest": "^27.0.4"
