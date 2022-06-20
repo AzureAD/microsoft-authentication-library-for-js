@@ -11,12 +11,14 @@ export type OpenIdConfigResponse = {
     token_endpoint: string;
     end_session_endpoint?: string;
     issuer: string;
+    jwks_uri: string;
 };
 
 export function isOpenIdConfigResponse(response: object): boolean {
     return (
         response.hasOwnProperty("authorization_endpoint") &&
         response.hasOwnProperty("token_endpoint") && 
-        response.hasOwnProperty("issuer")
+        response.hasOwnProperty("issuer") &&
+        response.hasOwnProperty("jwks_uri")
     );
 }
