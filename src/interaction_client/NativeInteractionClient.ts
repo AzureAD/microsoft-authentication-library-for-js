@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, AccountInfo, BaseAuthRequest, IdToken } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, AccountInfo, IdToken, ClientAuthError, AuthError } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -12,9 +12,9 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { NativeExtensionMethod, ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { NativeExtensionMethod, ApiId, TemporaryCacheKeys, NativeConstants } from "../utils/BrowserConstants";
 import { NativeExtensionRequestBody, NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { NativeResponse } from "../broker/nativeBroker/NativeResponse";
+import { MATS, NativeResponse } from "../broker/nativeBroker/NativeResponse";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
@@ -72,9 +72,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 });
                 return result;
             })
-            .catch((error) => {
+            .catch((error: AuthError) => {
                 nativeATMeasurement.endMeasurement({
                     success: false,
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
                     isNativeBroker: true
                 });
                 throw error;
@@ -226,7 +228,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
-        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, undefined, authorityPreferredCache, response.account.id);
+        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authorityPreferredCache, response.account.id);
         this.browserStorage.setAccount(accountEntity);
 
         // If scopes not returned in server response, use request scopes
@@ -239,7 +241,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
         let responseAccessToken;
         let responseTokenType: AuthenticationScheme = AuthenticationScheme.BEARER;
-        switch (request.token_type) {
+        switch (request.tokenType) {
             case AuthenticationScheme.POP: {
                 // Set the token type to POP in the response
                 responseTokenType = AuthenticationScheme.POP;
@@ -259,7 +261,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     shrClaims: request.shrClaims,
                     shrNonce: request.shrNonce
                 };
-                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, shrParameters);
+
+                /**
+                 * KeyID must be present in the native request from when the PoP key was generated in order for
+                 * PopTokenGenerator to query the full key for signing
+                 */
+                if (!request.keyId) {
+                    throw ClientAuthError.createKeyIdMissingError();
+                }
+
+                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.keyId, shrParameters);
                 break;
 
             }
@@ -268,6 +279,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 responseAccessToken = response.access_token;
             }
         }
+
+        const mats = this.getMATSFromResponse(response);
 
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,
@@ -278,7 +291,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             idToken: response.id_token,
             idTokenClaims: idTokenObj.claims,
             accessToken: responseAccessToken,
-            fromCache: false,
+            fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
             tokenType: responseTokenType,
             correlationId: this.correlationId,
@@ -342,6 +355,37 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
+     * Gets MATS telemetry from native response
+     * @param response
+     * @returns
+     */
+    private getMATSFromResponse(response: NativeResponse): MATS|null {
+        if (response.properties.MATS) {
+            try {
+                return JSON.parse(response.properties.MATS);
+            } catch (e) {
+                this.logger.error("NativeInteractionClient - Error parsing MATS telemetry, returning null instead");
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns whether or not response came from native cache
+     * @param response
+     * @returns
+     */
+    private isResponseFromCache(mats: MATS): boolean {
+        if (typeof mats.is_cached === "undefined") {
+            this.logger.verbose("NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false.");
+            return false;
+        }
+
+        return !!mats.is_cached;
+    }
+
+    /**
      * Translates developer provided request object into NativeRequest object
      * @param request
      */
@@ -368,8 +412,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
         }
 
-        const instanceAware: boolean = !!(request.extraQueryParameters && request.extraQueryParameters.instance_aware);
-
         const validatedRequest: NativeTokenRequest = {
             ...request,
             accountId: this.accountId,
@@ -378,14 +420,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            instance_aware: instanceAware,
-            token_type: request.authenticationScheme,
+            tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
             extraParameters: {
                 ...request.extraQueryParameters,
-                ...request.tokenQueryParameters
+                ...request.tokenQueryParameters,
+                telemetry: NativeConstants.MATS_TELEMETRY
             },
             extendedExpiryToken: false // Make this configurable?
+
         };
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
@@ -399,10 +442,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
             };
 
             const popTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            const cnf = await popTokenGenerator.generateCnf(shrParameters);
+            const reqCnfData = await popTokenGenerator.generateCnf(shrParameters);
 
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.req_cnf = await popTokenGenerator.generateCnfHash(cnf);
+            validatedRequest.reqCnf = reqCnfData.reqCnfHash;
+            validatedRequest.keyId = reqCnfData.kid;
         }
 
         if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
