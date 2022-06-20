@@ -155,7 +155,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Creates query string for the /token request
-     * @param request 
+     * @param request
      */
     private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
@@ -185,7 +185,7 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
@@ -207,8 +207,9 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
-            parameterBuilder.addPopToken(cnfString);
+            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
+            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if(request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);

@@ -15,6 +15,7 @@ import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
+import { ClientCredentials } from "../account/ClientCredentials";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -114,17 +115,6 @@ export type LibraryInfo = {
     version: string,
     cpu: string,
     os: string
-};
-
-/**
- * Credentials for confidential clients
- */
-export type ClientCredentials = {
-    clientSecret?: string,
-    clientAssertion? : {
-        assertion: string,
-        assertionType: string
-    };
 };
 
 /**

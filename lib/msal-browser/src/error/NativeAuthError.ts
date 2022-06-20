@@ -20,6 +20,7 @@ export enum NativeStatusCode {
     NO_NETWORK = "NO_NETWORK",
     TRANSIENT_ERROR = "TRANSIENT_ERROR",
     PERSISTENT_ERROR = "PERSISTENT_ERROR",
+    DISABLED = "DISABLED"
 }
 
 export const NativeAuthErrorMessage = {
@@ -51,7 +52,7 @@ export class NativeAuthError extends AuthError {
      * These errors should result in a fallback to the 'standard' browser based auth flow.
      */
     isFatal(): boolean {
-        if (this.ext && this.ext.status && this.ext.status === NativeStatusCode.PERSISTENT_ERROR) {
+        if (this.ext && this.ext.status && (this.ext.status === NativeStatusCode.PERSISTENT_ERROR || this.ext.status === NativeStatusCode.DISABLED)) {
             return true;
         }
 

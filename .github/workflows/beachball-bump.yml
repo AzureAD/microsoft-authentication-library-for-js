@@ -11,8 +11,14 @@ concurrency:
   group: beachball-bump
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   bump:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
     if: github.event.pull_request.merged == true && !contains(github.head_ref, 'release')
     name: Bump versions and create changelogs
     runs-on: ubuntu-latest

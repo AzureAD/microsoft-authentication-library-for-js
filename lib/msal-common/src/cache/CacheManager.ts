@@ -331,7 +331,7 @@ export abstract class CacheManager implements ICacheManager {
             filter.familyId,
             filter.realm,
             filter.target,
-            filter.oboAssertion,
+            filter.userAssertionHash,
             filter.tokenType,
             filter.keyId,
             filter.requestedClaimsHash
@@ -346,7 +346,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param realm
      * @param target
-     * @param oboAssertion
+     * @param userAssertionHash
      * @param tokenType
      */
     private getCredentialsFilteredByInternal(
@@ -357,7 +357,7 @@ export abstract class CacheManager implements ICacheManager {
         familyId?: string,
         realm?: string,
         target?: string,
-        oboAssertion?: string,
+        userAssertionHash?: string,
         tokenType?: AuthenticationScheme,
         keyId?: string,
         requestedClaimsHash?: string
@@ -384,7 +384,7 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!!oboAssertion && !this.matchOboAssertion(entity, oboAssertion)) {
+            if (!!userAssertionHash && !this.matchUserAssertionHash(entity, userAssertionHash)) {
                 return;
             }
 
@@ -734,7 +734,7 @@ export abstract class CacheManager implements ICacheManager {
             target: scopes.printScopesLowerCase(),
             tokenType: authScheme,
             keyId: request.sshKid,
-            requestedClaimsHash: request.requestedClaimsHash
+            requestedClaimsHash: request.requestedClaimsHash,
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
@@ -764,7 +764,7 @@ export abstract class CacheManager implements ICacheManager {
             environment: account.environment,
             credentialType: CredentialType.REFRESH_TOKEN,
             clientId: clientId,
-            familyId: id
+            familyId: id,
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(refreshTokenFilter);
@@ -825,8 +825,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param value
      * @param oboAssertion
      */
-    private matchOboAssertion(entity: AccountEntity | CredentialEntity, oboAssertion: string): boolean {
-        return !!(entity.oboAssertion && oboAssertion === entity.oboAssertion);
+    private matchUserAssertionHash(entity: CredentialEntity, userAssertionHash: string): boolean {
+        return !!(entity.userAssertionHash && userAssertionHash === entity.userAssertionHash);
     }
 
     /**
