@@ -865,7 +865,7 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Returns new instance of the Popup Interaction Client
+     * Returns new instance of the Redirect Interaction Client
      * @param correlationId
      */
     protected createRedirectClient(correlationId?: string): RedirectClient {
