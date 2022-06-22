@@ -55,49 +55,75 @@ extends:
       #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
 
     stages:
-    - stage: build_and_release
+    - stage: pre_release
+      displayName: Pre-Publish
       jobs:
-      - job: build_and_release
-        pool:
-          type: linux
-        variables:
-          ob_outputDirectory: '$(REPOROOT)\out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
-          ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
-        steps:
-          - checkout: MSAL_JS
-          # Build and release MSAL Core
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-core'
-              cdn: true
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-common'
-              cdn: false
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-browser'
-              cdn: true
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-node'
-              cdn: false
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-react'
-              cdn: false
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-angular'
-              cdn: false
-          - template: .pipelines/custom-templates/publish-template.yml@self
-            parameters:
-              path: 'lib'
-              libName: 'msal-node-extensionsgit'
-              cdn: false
+        - job: filter
+          pool:
+            type: linux
+          variables:
+            repoName: 'microsoft-authentication-library-for-js'
+            ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+            ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+          steps:
+            - checkout: MSAL_JS
+            - bash: |
+                git diff-tree --no-commit-id --name-only -r 
+              displayName: 'Diff'
+              workingDirectory: '${{ variables.repoName }}/lib/msal-core'
+    - stage: build_and_release
+      displayName: 'Publish'
+      jobs:
+      # Release MSAL Core
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_core'
+            path: 'lib'
+            libName: 'msal-core'
+            cdn: true
+
+      # Release MSAL Common
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_common'
+            path: 'lib'
+            libName: 'msal-common'
+            cdn: false
+      # Release MSAL Browser
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_browser'
+            path: 'lib'
+            libName: 'msal-browser'
+            dependsOn: 'release_msal_common'
+            cdn: true
+      # Release MSAL Node
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_node'
+            path: 'lib'
+            libName: 'msal-node'
+            dependsOn: 'release_msal_common'
+            cdn: false
+      # Release MSAL React
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_react'
+            path: 'lib'
+            libName: 'msal-react'
+            dependsOn: 'release_msal_browser'
+            cdn: false
+      # Release MSAL Angular
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_angular'
+            path: 'lib'
+            libName: 'msal-angular'
+            dependsOn: 'release_msal_browser'
+            cdn: false
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_node_extensions'
+            path: 'extensions'
+            libName: 'msal-node-extensions'
+            cdn: false
