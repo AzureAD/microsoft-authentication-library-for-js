@@ -16,13 +16,13 @@ jobs:
     if: ((github.event.pull_request.merged == true && contains(github.head_ref,'post-release')) || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-18.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           submodules: true  # Fetch Hugo themes (true OR recursive)
           fetch-depth: 0    # Fetch all history for .GitInfo and .Lastmod
 
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
 
       - name: Install
         env:
