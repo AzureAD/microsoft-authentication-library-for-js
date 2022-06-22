@@ -19,7 +19,6 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -84,8 +83,7 @@ export abstract class BaseClient {
     /**
      * Creates default headers for requests to token endpoint
      */
-    protected createTokenRequestHeaders(ccsCred?: CcsCredential,correlationId?: string): Record<string, string> {
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
+    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {        
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
@@ -103,10 +101,7 @@ export abstract class BaseClient {
                     headers[HeaderNames.CCS_HEADER] = `UPN: ${ccsCred.credential}`;
                     break;
             }
-        }
-        acquireTokenMeasurement?.endMeasurement({
-            success: true
-        });
+        }        
         return headers;
     }
 
