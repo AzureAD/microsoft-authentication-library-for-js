@@ -185,6 +185,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -202,8 +204,7 @@ export class RefreshTokenClient extends BaseClient {
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
-
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        
         parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
@@ -227,6 +228,9 @@ export class RefreshTokenClient extends BaseClient {
             if(request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
+                acquireTokenMeasurement?.endMeasurement({
+                    success: false
+                });
                 throw ClientConfigurationError.createMissingSshJwkError();
             }
         }
@@ -250,7 +254,9 @@ export class RefreshTokenClient extends BaseClient {
                     break;
             }
         }
-
+        acquireTokenMeasurement?.endMeasurement({
+            success: true
+        });
         return parameterBuilder.createQueryString();
     }
 }
