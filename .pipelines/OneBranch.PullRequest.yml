@@ -33,11 +33,6 @@ resources:
       type: git
       name: OneBranch.Pipelines/GovernedTemplates
       ref: refs/heads/main
-    - repository: MSAL_JS
-      type: github
-      name: AzureAD/microsoft-authentication-library-for-js
-      ref: refs/heads/dev
-      endpoint: MSALJS_GitHub
 
 extends:
   template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
@@ -62,7 +57,7 @@ extends:
           pool:
             type: linux
           variables:
-            repoName: 'microsoft-authentication-library-for-js'
+            repoName: 'msal-javascript-internal'
             ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
             ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
           steps:
