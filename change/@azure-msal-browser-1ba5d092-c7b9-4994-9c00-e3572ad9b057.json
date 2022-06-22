@@ -1,10 +1,10 @@
 {
   "type": "none",
   "comment": {
-    "title": "",
+    "title": "updated the function description for createRedirectClient()",
     "value": ""
   },
   "packageName": "@azure/msal-browser",
-  "email": "email not defined",
+  "email": "azamfahmy@gmail.com",
   "dependentChangeType": "none"
 }
