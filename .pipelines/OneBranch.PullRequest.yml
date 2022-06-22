@@ -1,5 +1,5 @@
 #################################################################################
-#                               OneBranch Pipelines                             #
+#                      OneBranch Pipelines - PR Build                           #
 # This pipeline was created by EasyStart from a sample located at:              #
 #   https://aka.ms/obpipelines/easystart/samples                                #
 # Documentation:  https://aka.ms/obpipelines                                    #
@@ -8,12 +8,24 @@
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
 
-trigger: none
+trigger: none # https://aka.ms/obpipelines/triggers
+
+parameters: # parameters are shown up in ADO UI in a build queue time
+- name: 'debug'
+  displayName: 'Enable debug output'
+  type: boolean
+  default: false
 
 variables:
   CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
-  LinuxContainerImage: 'centos:centos7' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
-  DEBIAN_FRONTEND: noninteractive
+  system.debug: ${{ parameters.debug }}
+  ENABLE_PRS_DELAYSIGN: 0
+  ROOT: $(Build.SourcesDirectory)
+  REPOROOT: $(Build.SourcesDirectory)
+  OUTPUTROOT: $(REPOROOT)\out
+  NUGET_XMLDOC_MODE: none
+
+  LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-2004:latest' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
 
 resources:
   repositories: 
@@ -21,60 +33,71 @@ resources:
       type: git
       name: OneBranch.Pipelines/GovernedTemplates
       ref: refs/heads/main
+    - repository: MSAL_JS
+      type: github
+      name: AzureAD/microsoft-authentication-library-for-js
+      ref: refs/heads/dev
+      endpoint: MSALJS_GitHub
 
 extends:
   template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
   parameters:
     globalSdl: # https://aka.ms/obpipelines/sdl
-      # tsa:
-      #  enabled: true # SDL results of non-official builds aren't uploaded to TSA by default.
+      tsa:
+        enabled: false # onebranch publish all sdl results to TSA. If TSA is disabled all SDL tools will forced into 'break' build mode.
       # credscan:
       #   suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+      binskim:
+        break: true # always break the build on binskim issues. You can disable it by setting to 'false'
       policheck:
         break: true # always break the build on policheck issues. You can disable it by setting to 'false'
       # suppression:
       #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
 
     stages:
-    - stage: linux_stage
+    - stage: build_and_release
       jobs:
-      - job: linux_job
+      - job: build_and_release
         pool:
           type: linux
-
-        variables: # More settings at https://aka.ms/obpipelines/yaml/jobs
-          ob_outputDirectory: '$(Build.SourcesDirectory)/out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
-
-        steps: # These steps will be run in unrestricted container's network
-          - task: onebranch.pipeline.version@1
-            displayName: 'Setup BuildNumber'
-            inputs:
-              system: 'RevisionCounter'
-              major: '1'
-              minor: '0'
-              exclude_commit: true
-
-          - task: Bash@3
-            displayName: 'Restore'
-            inputs:
-              filePath: '$(Build.SourcesDirectory)/restore.sh'
-
-          - task: Bash@3
-            displayName: 'Build'
-            inputs:
-              filePath: '$(Build.SourcesDirectory)/build.sh'
-
-          - task: Bash@3
-            displayName: 'Package'
-            inputs:
-              filePath: '$(Build.SourcesDirectory)/package.sh'
-
-          - task: Bash@3
-            displayName: 'Copy Extra Files'
-            inputs:
-              targetType: 'inline'
-              script: |
-                mkdir -p $(Build.SourcesDirectory)/out
-                cp -a $(Build.SourcesDirectory)/linux_deploy $(Build.SourcesDirectory)/out
-                cp $(Build.SourcesDirectory)/*.tgz $(Build.SourcesDirectory)/out
-                cp $(Build.SourcesDirectory)/*.tgz.sha256 $(Build.SourcesDirectory)/out
+        variables:
+          ob_outputDirectory: '$(REPOROOT)\out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+          ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+        steps:
+          - checkout: MSAL_JS
+          # Build and release MSAL Core
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-core'
+              cdn: true
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-common'
+              cdn: false
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-browser'
+              cdn: true
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-node'
+              cdn: false
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-react'
+              cdn: false
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-angular'
+              cdn: false
+          - template: .pipelines/custom-templates/publish-template.yml@self
+            parameters:
+              path: 'lib'
+              libName: 'msal-node-extensionsgit'
+              cdn: false
