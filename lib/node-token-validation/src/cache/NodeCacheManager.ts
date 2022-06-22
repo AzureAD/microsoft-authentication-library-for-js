@@ -12,26 +12,10 @@ import { CacheKVStore } from "./CacheTypes";
 export class NodeCacheManager extends CacheManager {
     private logger: Logger;
     private cache: CacheKVStore = new Map();
-    private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
         super(clientId, cryptoImpl);
         this.logger = logger;
-    }
-
-    /**
-     * Queue up callbacks
-     * @param func A callback function for cache change indication
-     */
-    registerChangeEmitter(func: () => void): void {
-        this.changeEmitters.push(func);
-    }
-    
-    /**
-     * Invoke the callback when cache changes
-     */
-    emitChange(): void {
-        this.changeEmitters.forEach(func => func.call(null));
     }
 
     /**
@@ -50,9 +34,6 @@ export class NodeCacheManager extends CacheManager {
     setCache(cache: CacheKVStore): void {
         this.logger.trace("Setting cache");
         this.cache = cache;
-
-        // Mark change in cache
-        this.emitChange();
     }
 
     /**
@@ -104,7 +85,6 @@ export class NodeCacheManager extends CacheManager {
         // Write to the cache after removal
         if (result) {
             this.setCache(cache);
-            this.emitChange();
         }
         return result;
     }
@@ -143,7 +123,6 @@ export class NodeCacheManager extends CacheManager {
         cacheKeys.forEach(key => {
             this.removeItem(key);
         });
-        this.emitChange();
     }
 
     getAccessTokenCredential(): null {
