@@ -64,7 +64,7 @@ extends:
             - bash: |
                 git diff-tree --no-commit-id --name-only -r 
               displayName: 'Diff'
-              workingDirectory: '${{ variables.repoName }}/lib/msal-core'
+              workingDirectory: '$(REPOROOT)/${{ variables.repoName }}/lib/msal-core'
     - stage: build_and_release
       displayName: 'Publish'
       jobs:
