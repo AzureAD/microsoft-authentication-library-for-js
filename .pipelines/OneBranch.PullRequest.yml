@@ -57,15 +57,14 @@ extends:
           pool:
             type: linux
           variables:
-            repoName: 'msal-javascript-internal'
+            repoName: msal-javascript-internal
             ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
             ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
           steps:
-            - checkout: MSAL_JS
             - bash: |
                 git diff-tree --no-commit-id --name-only -r 
               displayName: 'Diff'
-              workingDirectory: '${{ variables.repoName }}/lib/msal-core'
+              workingDirectory: '$(REPOROOT)/${{ variables.repoName }}/lib/msal-core'
     - stage: build_and_release
       displayName: 'Publish'
       jobs:
