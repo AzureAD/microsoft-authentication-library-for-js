@@ -1,0 +1,80 @@
+#################################################################################
+#                               OneBranch Pipelines                             #
+# This pipeline was created by EasyStart from a sample located at:              #
+#   https://aka.ms/obpipelines/easystart/samples                                #
+# Documentation:  https://aka.ms/obpipelines                                    #
+# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
+# Retail Tasks:   https://aka.ms/obpipelines/tasks                              #
+# Support:        https://aka.ms/onebranchsup                                   #
+#################################################################################
+
+trigger: none
+
+variables:
+  CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
+  LinuxContainerImage: 'centos:centos7' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+  DEBIAN_FRONTEND: noninteractive
+
+resources:
+  repositories: 
+    - repository: templates
+      type: git
+      name: OneBranch.Pipelines/GovernedTemplates
+      ref: refs/heads/main
+
+extends:
+  template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+  parameters:
+    globalSdl: # https://aka.ms/obpipelines/sdl
+      # tsa:
+      #  enabled: true # SDL results of non-official builds aren't uploaded to TSA by default.
+      # credscan:
+      #   suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+      policheck:
+        break: true # always break the build on policheck issues. You can disable it by setting to 'false'
+      # suppression:
+      #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
+
+    stages:
+    - stage: linux_stage
+      jobs:
+      - job: linux_job
+        pool:
+          type: linux
+
+        variables: # More settings at https://aka.ms/obpipelines/yaml/jobs
+          ob_outputDirectory: '$(Build.SourcesDirectory)/out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+
+        steps: # These steps will be run in unrestricted container's network
+          - task: onebranch.pipeline.version@1
+            displayName: 'Setup BuildNumber'
+            inputs:
+              system: 'RevisionCounter'
+              major: '1'
+              minor: '0'
+              exclude_commit: true
+
+          - task: Bash@3
+            displayName: 'Restore'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/restore.sh'
+
+          - task: Bash@3
+            displayName: 'Build'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/build.sh'
+
+          - task: Bash@3
+            displayName: 'Package'
+            inputs:
+              filePath: '$(Build.SourcesDirectory)/package.sh'
+
+          - task: Bash@3
+            displayName: 'Copy Extra Files'
+            inputs:
+              targetType: 'inline'
+              script: |
+                mkdir -p $(Build.SourcesDirectory)/out
+                cp -a $(Build.SourcesDirectory)/linux_deploy $(Build.SourcesDirectory)/out
+                cp $(Build.SourcesDirectory)/*.tgz $(Build.SourcesDirectory)/out
+                cp $(Build.SourcesDirectory)/*.tgz.sha256 $(Build.SourcesDirectory)/out
