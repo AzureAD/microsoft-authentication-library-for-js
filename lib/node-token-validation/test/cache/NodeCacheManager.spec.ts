@@ -30,16 +30,6 @@ describe("NodeCacheManager", () => {
         expect(Object.keys(cache).length).toBe(0);
     });
 
-    it('emits a change event when changeEmitter is registered', () => {
-        const nodeStorage = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
-        const changeEmitter = jest.fn();
-
-        nodeStorage.registerChangeEmitter(changeEmitter);
-        nodeStorage.clear();
-
-        expect(changeEmitter).toHaveBeenCalledTimes(1);
-    });
-
     it('should remove all keys from the cache when clear() is called', () => {
         const nodeStorage = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const key = "key"
@@ -47,13 +37,10 @@ describe("NodeCacheManager", () => {
         nodeStorage.setItem(key, "item");
 
         expect(nodeStorage.getItem(key)).toEqual("item");
-        expect(nodeStorage.getCache()).toEqual({"key": "item"});
 
         nodeStorage.clear();
 
         expect(nodeStorage.getItem(key)).toBeUndefined();
-        expect(nodeStorage.getCache()).toEqual({});
-
     });
 
     describe("AuthoritMetadata", () => {
