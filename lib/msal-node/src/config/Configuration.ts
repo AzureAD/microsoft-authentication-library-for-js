@@ -12,8 +12,8 @@ import {
     Constants,
     AzureCloudInstance,
     AzureCloudOptions,
-    ApplicationTelemetry
-} from "@azure/msal-common";
+    ApplicationTelemetry,        
+    IAppTokenProvider} from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
 /**
@@ -41,7 +41,7 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
-    azureCloudOptions?: AzureCloudOptions;
+    azureCloudOptions?: AzureCloudOptions; 
 };
 
 /**
@@ -72,6 +72,16 @@ export type NodeTelemetryOptions = {
 };
 
 /**
+ * Use this type to configure advanced options, used for extensibility.
+ * 
+ * - appTokenCacheProvider  - Used to allow apps to respond with tokens to MSAL's client_credentials request. 
+ *  This extensibility point is meant for Azure SDK to provide support for Managed Identity tokens.
+ */
+export type NodeExtensibilityOptions = {
+    appTokenCacheProvider?: IAppTokenProvider;
+};
+
+/**
  * Use the configuration object to configure MSAL and initialize the client application object
  *
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
@@ -84,6 +94,7 @@ export type Configuration = {
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
+    extensibility?: NodeExtensibilityOptions;
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
@@ -104,7 +115,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: Constants.EMPTY_STRING
-    }
+    },      
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
@@ -130,11 +141,14 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
     }
 };
 
+const DEFAULT_EXTENSIBILITY_OPTIONS: NodeExtensibilityOptions = {};
+
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
     telemetry: Required<NodeTelemetryOptions>;
+    extensibility: NodeExtensibilityOptions;
 };
 
 /**
@@ -152,13 +166,15 @@ export function buildAppConfiguration({
     auth,
     cache,
     system,
-    telemetry
+    telemetry, 
+    extensibility
 }: Configuration): NodeConfiguration {
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
-        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }, 
+        extensibility: { ...DEFAULT_EXTENSIBILITY_OPTIONS, ...extensibility }
     };
 }

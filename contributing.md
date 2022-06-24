@@ -64,6 +64,11 @@ npm run build
 npm run build -- --scope <package-name>
 ```
 
+### Build all libraries
+
+Link the libraries toghether: from the root of the repo `npx lerna bootstrap`
+Then, run `npm run build:all` from the library (e.g. msal-node) folder after you make any changes.
+
 ### Test and Test Coverage
 
 Bug fixes and features should come with automated tests.  Add your tests in the

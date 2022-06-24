@@ -19,7 +19,7 @@ export { IPartitionManager } from "./cache/distributed/IPartitionManager";
 export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
 export { ClientApplication } from "./client/ClientApplication";
-export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOptions, CacheOptions } from "./config/Configuration";
+export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOptions, CacheOptions, NodeExtensibilityOptions } from "./config/Configuration";
 export { ClientAssertion } from "./client/ClientAssertion";
 
 // Cache and Storage

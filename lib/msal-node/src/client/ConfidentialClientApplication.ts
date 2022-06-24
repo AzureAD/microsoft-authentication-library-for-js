@@ -134,6 +134,12 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         };
         const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
 
+        // If app developer configures this callback, they don't need a credential (e.g. AzureSDK can get token from Managed Identity without a cert / secret)                
+        if (configuration.extensibility?.appTokenCacheProvider)
+        {            
+            return;
+        }
+
         // Check that at most one credential is set on the application
         if (
             clientSecretNotEmpty && clientAssertionNotEmpty ||
