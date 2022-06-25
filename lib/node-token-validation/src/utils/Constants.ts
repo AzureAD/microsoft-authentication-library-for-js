@@ -4,7 +4,8 @@
  */
 
 export const Constants = {
-    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/"
+    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
+    EMPTY_STRING: ""
 };
 
 /**
