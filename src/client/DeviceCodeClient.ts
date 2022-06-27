@@ -54,7 +54,10 @@ export class DeviceCodeClient extends BaseClient {
             response,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            undefined,
+            undefined,
+            undefined,
         );
     }
 

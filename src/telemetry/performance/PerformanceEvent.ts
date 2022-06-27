@@ -196,5 +196,7 @@ export type PerformanceEvent = {
      *
      * @type {string}
      */
-    libraryVersion: string
+    libraryVersion: string,
+
+    httpVer?: string
 };

@@ -144,7 +144,11 @@ export class ClientCredentialClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request
+            request,
+            undefined,
+            undefined,
+            undefined,
+            response.headers["x-ms-httpver"],
         );
 
         return tokenResponse;

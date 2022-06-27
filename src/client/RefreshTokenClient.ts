@@ -38,7 +38,7 @@ export class RefreshTokenClient extends BaseClient {
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
-
+        console.log("RESPONSE RTC",response);
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -56,7 +56,8 @@ export class RefreshTokenClient extends BaseClient {
             request,
             undefined,
             undefined,
-            true
+            true,
+            response.headers["x-ms-httpver"],
         );
     }
 

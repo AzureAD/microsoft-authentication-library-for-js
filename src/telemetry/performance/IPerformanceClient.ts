@@ -26,4 +26,5 @@ export interface IPerformanceClient {
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
     startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
+    setHttpVer(httpVer?: string): void;
 }
