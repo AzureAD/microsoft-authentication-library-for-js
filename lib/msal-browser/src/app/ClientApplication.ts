@@ -161,6 +161,8 @@ export abstract class ClientApplication {
                 response = redirectClient.handleRedirectPromise(hash)
                     .then((result: AuthenticationResult | null) => {
                         if (result) {
+                            this.performanceClient.setHttpVer(result.httpVer);
+                            //console.log("RESULT HRR:",result);
                             // Emit login event if number of accounts change
                             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                             if (isLoggingIn) {
@@ -224,6 +226,9 @@ export abstract class ClientApplication {
         return redirectClient.acquireToken({
             ...request,
             correlationId
+        }).then((result)=>{
+            console.log("RESULT REDIRECT",result);
+
         }).catch((e) => {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -271,6 +276,8 @@ export abstract class ClientApplication {
             ...request,
             correlationId
         }).then((result) => {
+            this.performanceClient.setHttpVer(result.httpVer);
+            console.log("ATPOPUP RESULT:",result);
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
@@ -323,6 +330,7 @@ export abstract class ClientApplication {
                 ...request,
                 correlationId
             });
+            console.log("SILTENTOJENRESULT in SSOSILENT:",silentTokenResult);
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             ssoSilentMeasurement.endMeasurement({
                 success: true
@@ -369,6 +377,7 @@ export abstract class ClientApplication {
                     correlationId
                 })
                     .then((result: AuthenticationResult) => {
+                        //console.log("RESPONSE ATC:",response);
                         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                         this.hybridAuthCodeResponses.delete(request.code);
                         atbcMeasurement.endMeasurement({
@@ -415,6 +424,7 @@ export abstract class ClientApplication {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
         const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+        console.log("RESULT ATC:",silentTokenResult);
         return silentTokenResult;
     }
 
