@@ -25,6 +25,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse(resp) {
+    console.log("Now handling response");
     if(resp)
     {
         accountId = resp.account.homeAccountId;
