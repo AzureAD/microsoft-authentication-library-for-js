@@ -143,7 +143,7 @@ export async function approveConsent(page: Page, screenshot: Screenshot): Promis
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await screenshot.takeScreenshot(page, 'consentApproved'); 
+    await screenshot.takeScreenshot(page, 'consentApproved');
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
@@ -205,6 +205,14 @@ export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: 
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
 }
 
 export async function validateCacheLocation(cacheLocation: string): Promise<void> {
