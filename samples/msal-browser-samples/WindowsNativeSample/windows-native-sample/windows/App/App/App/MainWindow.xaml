@@ -1,4 +1,4 @@
-﻿<Window
+<Window
     x:Class="App.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -24,7 +24,12 @@
             Grid.Row="1"
             Grid.ColumnSpan="2" 
             HorizontalAlignment="Stretch"
-            VerticalAlignment="Stretch" />
+            VerticalAlignment="Stretch"
+            NavigationStarting="CapacitorWebView_NavigationStarting"
+            WebMessageReceived="CapacitorWebView_WebMessageReceived"
+            CoreWebView2Initialized="CapacitorWebView_CoreWebView2Initialized"
+            />
+            
 
     </Grid>
 

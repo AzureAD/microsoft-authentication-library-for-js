@@ -9,10 +9,9 @@ public class Extension
     {
         await WebView.EnsureCoreWebView2Async();
     }
-    public async Task AddExtensionAsync(WebView2 WebView, Task InitializeExtensionTask)
+    public async Task AddExtensionAsync(WebView2 WebView)
     {
         //await WebView.EnsureCoreWebView2Async();
-        //InitializeExtensionTask.Wait();
         await WebView.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("alert(window.document.URL);");
     }
 }
