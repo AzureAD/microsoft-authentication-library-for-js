@@ -10,7 +10,7 @@ export const b2cPolicies = {
             authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi_reset_v2"
         },
         editProfile: {
-            authority: ""//"insert edit profile path"
+            authority: ""//"insert edit user flow information"
         }
     },
     authorityDomain: "fabrikamb2c.b2clogin.com"
