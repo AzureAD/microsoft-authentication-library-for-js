@@ -22,9 +22,10 @@ const ProtectedContent = () => {
         if (!atsResponse && account && inProgress === InteractionStatus.None) {
             const request = {
                 ...loginRequest,
-                account: account
+                loginHint: account.username
             };
-            instance.acquireTokenSilent(request).then((response) => {
+
+            instance.ssoSilent(request).then((response) => {
                 setAtsResponse(response);
             }).catch((e) => {
                 if (e instanceof InteractionRequiredAuthError) {

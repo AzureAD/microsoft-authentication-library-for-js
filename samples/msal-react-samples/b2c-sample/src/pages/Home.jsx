@@ -1,4 +1,5 @@
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
+import { EditProfileButton } from "../ui-components/EditProfileButton";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import { Link as RouterLink } from "react-router-dom";
@@ -7,6 +8,7 @@ export function Home() {
 	return (
 		<>
 			<AuthenticatedTemplate>
+				<EditProfileButton/>&nbsp;
 				<Button component={RouterLink} to="/protected" variant="contained" color="primary">Request Access Token</Button>
 			</AuthenticatedTemplate>
 
