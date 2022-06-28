@@ -80,7 +80,7 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.SessionStorage:
                 try {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    return new BrowserStorage(BrowserCacheLocation.SessionStorage);
+                    return new BrowserStorage(cacheLocation); // TODO: Add new configuration option for temp cache location
                 } catch (e) {
                     this.logger.verbose(e);
                     return this.internalStorage;

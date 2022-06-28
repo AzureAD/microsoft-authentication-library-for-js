@@ -1,9 +1,9 @@
 {
-    "$schema": "http://json.schemastore.org/chrome-manifest",
+    "$schema": "https://json.schemastore.org/chrome-manifest.json",
     "name": "MSAL Browser Sample Chromium Extension",
     "version": "1.0",
     "description": "Sample extension demonstrating how to use MSAL Browser",
-    "manifest_version": 2,
+    "manifest_version": 3,
     "permissions": [
         "activeTab",
         "storage",
@@ -11,11 +11,16 @@
         "identity",
         "identity.email"
     ],
-    "browser_action": {
+    "action": {
         "default_popup": "index.html"
     },
-    "web_accessible_resources": [
-        "index.html"
-    ],
+    "web_accessible_resources": [{
+        "resources": ["index.html"],
+        "matches": [],
+        "extension_ids": []
+      }],
+    "background": {
+        "service_worker": "background.js"
+    },
     "incognito": "not_allowed"
   }

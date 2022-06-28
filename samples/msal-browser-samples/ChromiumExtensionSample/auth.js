@@ -9,8 +9,8 @@ console.log("This url must be registered in the Azure portal as a single-page ap
 const msalInstance = new msal.PublicClientApplication({
     auth: {
         authority: "https://login.microsoftonline.com/common/",
-        clientId: "your-client-id-here",
-        redirectUri,
+        clientId: "36cb3b59-915a-424e-bc06-f8f557baa72f",
+        redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient", // Page hosted by MSFT that can be used as a redirect uri. Must be a SPA redirect (not native)
         postLogoutRedirectUri: redirectUri
     },
     cache: {
@@ -54,6 +54,27 @@ document.getElementById("sign-in").addEventListener("click", async () => {
     const result = await launchWebAuthFlow(url);
 
     document.getElementById("username").innerHTML = result.account.username;
+});
+
+document.getElementById("sign-in-browser").addEventListener("click", async () => {
+    const url = await getLoginUrl();
+
+    await launchWebAuthFlow(url, true);
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.url) {
+        msalInstance.handleRedirectPromise(`#${message.url.split("#")[1]}`)
+            .then((result) => {
+                if (result) {
+                    document.getElementById("username").innerHTML = result.account.username;
+                    chrome.tabs.remove(message.tabId);
+                }
+            })
+            .catch((error) => {
+                
+            })
+    }
 });
 
 /**
@@ -171,24 +192,37 @@ async function getAcquireTokenUrl(request) {
 /**
  * Launch the Chromium web auth UI.
  * @param {*} url AAD url to navigate to.
- * @param {*} interactive Whether or not the flow is interactive
+ * @param {*} inBrowser Whether to perform login in the browser
  */
-async function launchWebAuthFlow(url) {
+async function launchWebAuthFlow(url, inBrowser) {
     return new Promise((resolve, reject) => {
-        chrome.identity.launchWebAuthFlow({
-            interactive: true,
-            url
-        }, (responseUrl) => {
-            // Response urls includes a hash (login, acquire token calls)
-            if (responseUrl.includes("#")) {
-                msalInstance.handleRedirectPromise(`#${responseUrl.split("#")[1]}`)
-                    .then(resolve)
-                    .catch(reject)
-            } else {
-                // Logout calls
-                resolve();
-            }
-        })
+        if (inBrowser) {
+            chrome.tabs.create({
+                url,
+                //active: false // useful for debugging
+            }, (newTab) => {
+                chrome.runtime.sendMessage({
+                    tabId: newTab.id
+                }, (message) => {
+                    resolve();
+                })
+            });
+        } else {
+            chrome.identity.launchWebAuthFlow({
+                interactive: true,
+                url
+            }, (responseUrl) => {
+                // Response urls includes a hash (login, acquire token calls)
+                if (responseUrl.includes("#")) {
+                    msalInstance.handleRedirectPromise(`#${responseUrl.split("#")[1]}`)
+                        .then(resolve)
+                        .catch(reject)
+                } else {
+                    // Logout calls
+                    resolve();
+                }
+            })
+        }
     })
 }
 
