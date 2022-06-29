@@ -2,7 +2,9 @@
 
 This sample demonstrates how to implement an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) to exchange a refresh token for an access token when the said access token has expired, using the [OAuth 2.0 Refresh Token](https://oauth.net/2/grant-types/refresh-token/) grant.
 
-Note that MSAL does not expose refresh tokens by default and developers are not expected to build logic around them, as MSAL handles the token refreshing process itself. However, the `acquireTokenByRefreshToken()` API is useful in certain cases: for instance, if you are storing refresh tokens in a separate location (e.g. in an encrypted cache file) and you would like to use it to renew an access token or if you're migrating from ADAL Node to MSAL Node and you would like to make use of your previously acquired (and still valid) refresh tokens. With respect to the latter, this sample also demonstrates one possible strategy for migration below.
+Note that MSAL does not expose refresh tokens by default and developers are not expected to build logic around them, as MSAL handles the token refreshing process itself. However, the `acquireTokenByRefreshToken` API is useful in certain cases: for instance, if you are storing refresh tokens in a separate location (e.g. in an encrypted cache file) and you would like to use it to renew an access token or if you're migrating from ADAL Node to MSAL Node and you would like to make use of your previously acquired (and still valid) refresh tokens. With respect to the latter, this sample also demonstrates one possible strategy for migration below.
+
+> :warning: Confidential client applications should not share cache and we do not recommend cache sharing between an ADAL app and an MSAL app. msal-node will not be able to directly read from an ADAL app's cache. Make sure to isolate cache locations and provide only the relevant refresh token string to msal-node's `acquireTokenByRefreshToken` API.
 
 ## Setup
 
@@ -85,9 +87,16 @@ app.get('/acquireToken', async (req, res, next) => {
                     try {
                         if (err || !data || !data.length) throw new Error('Could not retrieve user cache');
 
+                        /**
+                         * You can add the /.default scope suffix to the resource to help migrate your apps
+                         * from the v1.0 endpoint (ADAL) to the Microsoft identity platform (MSAL).
+                         * For example, for the resource value of https://graph.microsoft.com,
+                         * the equivalent scope value is https://graph.microsoft.com/.default
+                         */
                         const tokenResponse = await cca.acquireTokenByRefreshToken({
                             refreshToken: data[0].refreshToken,
-                            scopes: ['user.read']
+                            scopes: ['https://graph.microsoft.com/.default'],
+                            forceCache: true,
                         });
 
                         req.session.account = tokenResponse.account;

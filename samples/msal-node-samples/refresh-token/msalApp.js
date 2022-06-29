@@ -7,7 +7,9 @@ const msal = require('@azure/msal-node');
 const config = require('./config/customConfig.json');
 
 const DiskCache = require('./adalCustomCache');
-const diskCache = new DiskCache(config.cacheLocation);
+const diskCache = new DiskCache(config.adalCacheLocation);
+
+const msalCachePlugin = require('./msalCachePlugin');
 
 const REDIRECT_URI = config.redirectUri;
 
@@ -16,6 +18,9 @@ const msalConfig = {
         clientId: config.clientId,
         authority: `${config.authority}/${config.tenantInfo}`,
         clientSecret: config.clientSecret,
+    },
+    cache: {
+        cachePlugin: msalCachePlugin(config.msalCacheLocation)
     },
     system: {
         loggerOptions: {
@@ -68,7 +73,10 @@ app.get('/', async (req, res, next) => {
             scopes: ["user.read"],
         });
 
-        res.send(tokenResponse);
+        res.json({
+            message: 'successful silent flow token acquisition',
+            response: tokenResponse
+        });
     } catch (error) {
         if (error instanceof msal.InteractionRequiredAuthError) {
                 /**
@@ -81,9 +89,15 @@ app.get('/', async (req, res, next) => {
                     try {
                         if (err || !data || !data.length) throw new Error('Could not retrieve user cache');
 
+                        /**
+                         * You can add the /.default scope suffix to the resource to help migrate your apps
+                         * from the v1.0 endpoint (ADAL) to the Microsoft identity platform (MSAL).
+                         * For example, for the resource value of https://graph.microsoft.com,
+                         * the equivalent scope value is https://graph.microsoft.com/.default
+                         */
                         const tokenResponse = await cca.acquireTokenByRefreshToken({
                             refreshToken: data[0].refreshToken,
-                            scopes: ['user.read'],
+                            scopes: ['https://graph.microsoft.com/.default'],
                             forceCache: true,
                         });
 
@@ -94,8 +108,12 @@ app.get('/', async (req, res, next) => {
                          * we recommend to clear the ADAL cache for this user.
                          */
                         diskCache.remove(data, (err, data) => {
-                            if (err) console.log(err)
-                            res.send(tokenResponse);
+                            if (err) return next(err);
+
+                            res.json({
+                                message: 'successful refresh token flow token acquisition',
+                                response: tokenResponse
+                            });
                         })
                     } catch (error) {
                         // create a random string of characters against csrf
@@ -137,7 +155,10 @@ app.post('/redirect', async (req, res, next) => {
 
                 req.session.account = tokenResponse.account;
 
-                res.send(tokenResponse);
+                res.json({
+                    message: 'successful code flow token acquisition',
+                    response: tokenResponse
+                });
             } catch (error) {
                 next(error);
             }

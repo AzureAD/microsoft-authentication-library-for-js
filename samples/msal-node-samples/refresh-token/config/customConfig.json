@@ -1,10 +1,10 @@
 {
-    "authority": "https://login.microsoftonline.com",
     "tenantInfo": "ENTER_TENANT_INFO",
     "clientId": "ENTER_CLIENT_ID",
     "clientSecret": "ENTER_CLIENT_SECRET",
+    "authority": "https://login.microsoftonline.com",
     "redirectUri": "http://localhost:3000/redirect",
-    "cacheLocation": "./data/cache.json",
-    "resource": "https://graph.microsoft.com",
-    "scopes": ["User.Read"]
+    "adalCacheLocation": "./data/adal.cache.json",
+    "msalCacheLocation": "./data/msal.cache.json",
+    "resource": "https://graph.microsoft.com"
 }

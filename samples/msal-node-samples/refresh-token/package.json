@@ -7,8 +7,7 @@
         "start:msal": "node ./msalApp.js",
         "start:adal": "node ./adalApp.js",
         "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-        "install:local": "npm install ../../../lib/msal-node",
-        "test": "jest"
+        "install:local": "npm install ../../../lib/msal-node"
     },
     "author": "Microsoft",
     "license": "MIT",
@@ -19,8 +18,5 @@
         "express": "^4.17.1",
         "express-session": "^1.17.2",
         "underscore": "^1.13.3"
-    },
-    "devDependencies": {
-        "jest": "^27.0.4"
     }
 }

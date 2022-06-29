@@ -4,10 +4,10 @@ var session = require('express-session');
 var crypto = require('crypto');
 var adal = require('adal-node');
 
-const config = require('./config/customConfig.json');
+var config = require('./config/customConfig.json');
 
 var DiskCache = require('./adalCustomCache');
-var diskCache = new DiskCache(config.cacheLocation);
+var diskCache = new DiskCache(config.adalCacheLocation);
 
 // Authentication parameters
 var clientId = config.clientId;
@@ -63,7 +63,7 @@ app.get('/', function (req, res) {
     });
 });
 
-app.get('/redirect', function (req, res) {
+app.get('/redirect', function (req, res, next) {
     // Compare state parameter against XSRF
     if (req.session.state !== req.query.state) {
         res.send('error: state does not match');
@@ -80,16 +80,15 @@ app.get('/redirect', function (req, res) {
         clientId,
         clientSecret,
         function (err, response) {
-            if (err) throw err;
+            if (err) return next(err);
 
             // cache the response
             authenticationContext.cache.add([response], (err, result) => {
-                if (err) throw err;
-
+                if (err) return next(err);
                 console.log(result);
             });
 
-            // create a cookie and store the userId, which will be picked up later on by the MSAL app
+            // create a cookie and store the userId (oid), which will be picked up later on by the MSAL app
             res.cookie('userId', response.userId, { maxAge: 900000, httpOnly: true }).send(response);
         }
     );
