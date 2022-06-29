@@ -331,6 +331,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
             }
 
             // If request is interactive, check if prompt is allowed to go directly to native broker
+            if (!request.prompt) {
+                this.logger.trace("initializeNativeRequest: prompt was not provided");
+                return undefined;
+            }
+
             switch (request.prompt) {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
