@@ -25,17 +25,10 @@ namespace App {
             
             this.Extension = new Extension();
 
-            Task InitializeExtensionTask = this.Extension.InitializeExtensionAsync(CapacitorWebView);
 
             CapacitorAppInstance = new CapacitorApp(this, CapacitorWebView);
             CapacitorAppInstance.LoadDefaultPlugins();
             CapacitorAppInstance.Load();
-
-        }
-
-        private void CapacitorWebView_NavigationStarting(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationStartingEventArgs args)
-        {
-
         }
 
         private void CapacitorWebView_WebMessageReceived(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
@@ -43,10 +36,9 @@ namespace App {
             //Console.WriteLine(args.TryGetWebMessageAsString());
         }
 
-        private void CapacitorWebView_CoreWebView2Initialized(WebView2 sender, CoreWebView2InitializedEventArgs args)
+        private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args)
         {
-            CapacitorAppInstance.Load();
-            Task AddExtensionTask = this.Extension.AddExtensionAsync(CapacitorWebView);
+            Task t = this.Extension.ExecuteExtensionAsync(CapacitorWebView);
         }
     }
 }
