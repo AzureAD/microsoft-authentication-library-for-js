@@ -502,43 +502,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(redirectSpy.calledOnce).toBeFalsy();
         });
 
-        it("falls back to web flow if prompt is login", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId"
-            };
-
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
-            await pca.initialize();
-            const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireTokenRedirect");
-            const redirectSpy = sinon.stub(RedirectClient.prototype, "acquireToken").callsFake(async () => {
-                return;
-            });
-            await pca.acquireTokenRedirect({
-                scopes: ["User.Read"],
-                account: testAccount,
-                prompt: "login"
-            });
-
-            expect(nativeAcquireTokenSpy.calledOnce).toBeFalsy();
-            expect(redirectSpy.calledOnce).toBeTruthy();
-        });
-
         it("falls back to web flow if prompt is select_account", async () => {
             pca = new PublicClientApplication({
                 auth: {
@@ -946,58 +909,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(response).toEqual(testTokenResponse);
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
             expect(popupSpy.calledOnce).toBeFalsy();
-        });
-
-        it("falls back to web flow if prompt is login", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                username: "AbeLi@microsoft.com",
-                nativeAccountId: "test-nativeAccountId"
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testAccount.localAccountId,
-                tenantId: testAccount.tenantId,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                idToken: "test-idToken",
-                idTokenClaims: {},
-                accessToken: "test-accessToken",
-                fromCache: false,
-                correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + 3600000),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER
-            };
-
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
-            await pca.initialize();
-            const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
-            const popupSpy = sinon.stub(PopupClient.prototype, "acquireToken").callsFake(async () => {
-                return testTokenResponse;
-            });
-            const response = await pca.acquireTokenPopup({
-                scopes: ["User.Read"],
-                account: testAccount,
-                prompt: "login"
-            });
-
-            expect(response).toBe(testTokenResponse);
-            expect(nativeAcquireTokenSpy.calledOnce).toBeFalsy();
-            expect(popupSpy.calledOnce).toBeTruthy();
         });
 
         it("falls back to web flow if prompt is select_account", async () => {

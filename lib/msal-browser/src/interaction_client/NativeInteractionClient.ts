@@ -319,7 +319,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
-        const prompt = () => {
+        const getPrompt = () => {
             // If request is silent, prompt is always none
             switch (this.apiId) {
                 case ApiId.ssoSilent:
@@ -330,12 +330,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     break;
             }
 
-            // If request is interactive, check if prompt is allowed to go directly to native broker
+            // Prompt not provided, request may proceed and native broker decides if it needs to prompt
             if (!request.prompt) {
                 this.logger.trace("initializeNativeRequest: prompt was not provided");
                 return undefined;
             }
-
+            
+            // If request is interactive, check if prompt provided is allowed to go directly to native broker
             switch (request.prompt) {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
@@ -355,7 +356,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             authority: canonicalAuthority.urlString,
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
-            prompt: prompt(),
+            prompt: getPrompt(),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,

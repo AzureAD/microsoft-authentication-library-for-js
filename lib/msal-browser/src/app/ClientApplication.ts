@@ -829,6 +829,7 @@ export abstract class ClientApplication {
             switch (request.prompt) {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
+                case PromptValue.LOGIN:
                     this.logger.trace("canUseNative: prompt is compatible with native flow");
                     break;
                 default:
