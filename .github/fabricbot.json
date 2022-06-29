@@ -14,7 +14,6 @@
             {
               "name": "activitySenderHasAssociation",
               "parameters": {
-                "user": "tnorling,",
                 "permissions": "write",
                 "association": "MEMBER"
               }
