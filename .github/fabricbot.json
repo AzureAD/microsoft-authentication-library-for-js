@@ -1299,19 +1299,6 @@
   ],
   "userGroups": [
     {
-      "_id": "60998390a1e2062fc455db48",
-      "groupType": "GitHub",
-      "name": "MSAL.js",
-      "githubUserNames": [
-        "tnorling"
-      ],
-      "description": "MSAL.js team",
-      "modifiedBy": {
-        "upn": "thnorlin@microsoft.com",
-        "timestamp": "2021-05-10T19:03:44.518Z"
-      }
-    },
-    {
       "_id": "60ddfa574ab5702958084812",
       "groupType": "ICM",
       "name": "MSAL.js Team",
