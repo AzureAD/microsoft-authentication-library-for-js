@@ -277,6 +277,7 @@ export abstract class ClientApplication {
                     const redirectClient = this.createRedirectClient(request.correlationId);
                     return redirectClient.acquireToken(request);
                 }
+                this.browserStorage.setInteractionInProgress(false);
                 throw e;
             });
         } else {
@@ -343,6 +344,7 @@ export abstract class ClientApplication {
                     const popupClient = this.createPopupClient(request.correlationId);
                     return popupClient.acquireToken(request);
                 }
+                this.browserStorage.setInteractionInProgress(false);
                 throw e;
             });
         } else {
