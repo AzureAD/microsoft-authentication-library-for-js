@@ -398,4 +398,4 @@ export enum CacheOutcome {
 export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
-}   
+}
