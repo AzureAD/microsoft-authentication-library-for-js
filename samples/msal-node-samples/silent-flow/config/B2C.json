@@ -16,10 +16,8 @@
             "redirectUri": "http://localhost:3006",
             "scopes": ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
         },
-        "silentRequest": [
-            {
-                "scopes": ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"],
-            }
-        ]
+        "silentRequest": {
+            "scopes": ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
+        }
     }
 }

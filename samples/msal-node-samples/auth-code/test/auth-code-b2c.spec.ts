@@ -123,6 +123,18 @@ describe("Auth Code B2C PPE Tests", () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
+        it("Performs acquire token with prompt = 'select_account'", async () => {
+            const screenshot = new Screenshot(`${screenshotFolder}/PromptSelectAccount`);
+            await page.goto(`${homeRoute}/?prompt=select_account`);
+            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
+
         it("Performs acquire token with prompt = 'none'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
             // First log the user in first

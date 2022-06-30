@@ -41,13 +41,16 @@ const config = require(`./config/${scenario}.json`);
  */
 function configureExpressApp(app, router) {
     // Set handlebars view engine
-    app.engine('.hbs', exphbs({extname: '.hbs'}));
+    app.engine('.hbs', exphbs({ extname: '.hbs' }));
     app.set('view engine', '.hbs');
     app.set('views', path.join(__dirname, '/views'));
     app.use(router);
 
     // Set homeAccountId in memory
     app.locals.homeAccountId = null;
+
+    // Set token response in memory
+    app.locals.authResponse = null;
 }
 
 /**
@@ -60,6 +63,7 @@ function callResourceApi(res, authResponse, templateParams, scenarioConfig) {
     // Get scenario specific resource API
     const resourceApi = require(RESOURCE_API_PATH)(scenarioConfig.resourceApi);
     const username = authResponse.account.username;
+
     // Call graph after successfully acquiring token
     resourceApi.call(authResponse.accessToken, (authResponse, endpoint) => {
         // Successful silent request
@@ -86,11 +90,11 @@ function callResourceApi(res, authResponse, templateParams, scenarioConfig) {
  *  2. To show the usage pattern in which a Node application acquires a token silently from the cache (without user interaction)
  *     and uses said access token to authenticate against a resource API (such as MS Graph).
  */
-const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTokenCache)  {
+const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTokenCache) {
     // Initialize express application object
     const app = express();
     // Initialize express router
-    const router = require("express-promise-router")( );
+    const router = require("express-promise-router")();
     configureExpressApp(app, router);
 
     // Set the port that the express server will listen on
@@ -103,11 +107,11 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
      * App Routes
      */
 
-     // Home Route
+    // Home Route
     router.get('/', (req, res) => {
-        if (req.query.code) return res.redirect(url.format({pathname:"/redirect", query:req.query}));
+        if (req.query.code) return res.redirect(url.format({ pathname: "/redirect", query: req.query }));
 
-        res.render("login", { showSignInButton: true});
+        res.render("login", { showSignInButton: true });
     });
 
     // This route performs interactive login to acquire and cache an Access Token/ID Token
@@ -125,8 +129,8 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
      * This route attempts to login a user silently by checking
      * the persisted cache for accounts.
      */
-    router.get('/silentLogin', async (req, res) => {
-       // Retrieve all cached accounts
+    router.get('/silentAcquireToken', async (req, res) => {
+        // Retrieve all cached accounts
         const accounts = await msalTokenCache.getAllAccounts();
 
         if (accounts.length > 0) {
@@ -148,7 +152,9 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
              */
             clientApplication.acquireTokenSilent(silentRequest)
                 .then((authResponse) => {
-                    callResourceApi(res, authResponse, templateParams, scenarioConfig);
+                    app.locals.authResponse = authResponse;
+                    templateParams.acquiredTokenSilently = true
+                    res.render("authenticated", templateParams);
                 })
                 .catch((error) => {
                     console.log(error);
@@ -166,7 +172,7 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
             app.locals.homeAccountId = response.account.homeAccountId;
-            const templateParams = { showLoginButton: false, username: response.account.username, profile: false};
+            const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
             res.render("authenticated", templateParams);
         }).catch((error) => {
             console.log(error);
@@ -180,7 +186,7 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
 
         if (accounts.length > 0) {
             res.render("authenticated", { accounts: JSON.stringify(accounts, null, 4) })
-        } else if(accounts.length === 0) {
+        } else if (accounts.length === 0) {
             res.render("authenticated", { accounts: JSON.stringify(accounts), noAccounts: true, showSignInButton: true });
         } else {
             res.render("authenticated", { failedToGetAccounts: true, showSignInButton: true })
@@ -189,51 +195,31 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
 
     // Call a resource API with an Access Token silently obtained from the MSAL Cache
     router.get('/graphCall', async (req, res) => {
-        // get Accounts
-        const account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
-        /**
-         * Account index must match the account's position in the cache. The sample cache file contains a dummy account
-         * entry in index 0, hence the actual account that is logged in will be index 1
-         */
-        const silentRequest = { ...requestConfig.silentRequest, account: account };
+
+        if (!app.locals.authResponse) {
+            return res.redirect('/silentAcquireToken');
+        }
 
         let templateParams = { showLoginButton: false };
-
-        /**
-         * MSAL Usage
-         * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenSilent API.
-         *
-         * In this code block, the application uses MSAL to obtain an Access Token from the MSAL Cache. If successful,
-         * the response contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
-         * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
-         */
-        clientApplication.acquireTokenSilent(silentRequest)
-            .then((authResponse) => {
-                callResourceApi(res, authResponse, templateParams, scenarioConfig);
-            })
-            .catch((error) => {
-                console.log(error);
-                templateParams.couldNotAcquireToken = true;
-                res.render("authenticated", templateParams)
-            });
+        return callResourceApi(res, app.locals.authResponse, templateParams, scenarioConfig);
     });
 
     return app.listen(serverPort, () => console.log(`Msal Node Silent Flow Sample app listening on port ${serverPort}!`));
 };
 
 
- /**
- * The code below checks if the script is being executed manually or in automation.
- * If the script was executed manually, it will initialize a PublicClientApplication object
- * and execute the sample application.
- */
- if(argv.$0 === "index.js") {
-    const loggerOptions = {
-        loggerCallback(loglevel, message, containsPii) {
-            console.log(message);
+/**
+* The code below checks if the script is being executed manually or in automation.
+* If the script was executed manually, it will initialize a PublicClientApplication object
+* and execute the sample application.
+*/
+if (argv.$0 === "index.js") {
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
         },
-            piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
     }
 
     // Build MSAL ClientApplication Configuration object
@@ -256,6 +242,6 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
 
     // Execute sample application with the configured MSAL PublicClientApplication
     return getTokenSilent(config, publicClientApplication, null, msalTokenCache);
- }
+}
 // The application code is exported so it can be executed in automation environments
- module.exports = getTokenSilent;
+module.exports = getTokenSilent;

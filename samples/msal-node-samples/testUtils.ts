@@ -11,6 +11,7 @@ import fs from "fs";
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 export const SAMPLE_HOME_URL = "http://localhost";
 export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+export const SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID = "token-acquired-silently";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {

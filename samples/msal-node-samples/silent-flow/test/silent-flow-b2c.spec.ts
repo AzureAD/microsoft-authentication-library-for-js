@@ -115,10 +115,10 @@ describe("Silent Flow B2C PPE Tests", () => {
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
-            await page.waitForSelector("#graph-called-successfully");
+            await page.waitForSelector("#token-acquired-silently");
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
-            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+            expect(htmlBody).toContain('Silent token acquisition successful');
         });
 
         it("Refreshes an expired access token", async () => {
@@ -133,13 +133,13 @@ describe("Silent Flow B2C PPE Tests", () => {
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const expiredAccessToken = tokens.accessTokens[0];
             await page.click("#acquireTokenSilent");
-            await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
+            await page.waitForSelector('#token-acquired-silently');
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const refreshedAccessToken = tokens.accessTokens[0];
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
 
-            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+            expect(htmlBody).toContain('Silent token acquisition successful');
             expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
             expect(Number(expiredAccessToken.expiresOn)).toBe(0);
             expect(Number(refreshedAccessToken.expiresOn)).toBeGreaterThan(0);
