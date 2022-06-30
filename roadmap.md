@@ -13,7 +13,6 @@ If you don't see a feature listed on the roadmap, check our [Release Notes](http
 
 ### Near Term
 - Node token caching support with Redis 
-- Internal pipeline improvements for easier release cadence 
 - Deprecation of passport-azure-ad and replacement with a new lightweight token validator 
 - Updates required by the May 2021 United States Executive Order on cybersecurity: [Executive Order on Improving the Nation's Cybersecurity | The White House](https://www.whitehouse.gov/briefing-room/presidential-actions/2021/05/12/executive-order-on-improving-the-nations-cybersecurity/) 
 
