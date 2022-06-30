@@ -1,0 +1,1312 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssueCommentResponder",
+      "version": "1.0",
+      "id": "CQBypI3kv",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "activitySenderHasAssociation",
+              "parameters": {
+                "permissions": "write",
+                "association": "MEMBER"
+              }
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "question"
+              }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isActivitySender",
+                  "parameters": {
+                    "user": {
+                      "type": "author"
+                    }
+                  }
+                }
+              ]
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isCloseAndComment",
+                  "parameters": {}
+                }
+              ]
+            },
+            {
+              "name": "isOpen",
+              "parameters": {}
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issue_comment"
+        ],
+        "taskName": "Add Needs: Author Feedback and answered labels when AzureAD member comments on issue",
+        "actions": [
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "answered"
+            }
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ]
+      },
+      "disabled": false
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssueCommentResponder",
+      "version": "1.0",
+      "id": "mC75gHvIk",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "created"
+              }
+            },
+            {
+              "name": "isActivitySender",
+              "parameters": {
+                "user": {
+                  "type": "author"
+                },
+                "association": "MEMBER"
+              }
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "Needs: Author Feedback"
+              }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isCloseAndComment",
+                  "parameters": {}
+                }
+              ]
+            },
+            {
+              "name": "isOpen",
+              "parameters": {}
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issue_comment"
+        ],
+        "taskName": "Add Needs: Attention label when author comments on issue",
+        "actions": [
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "no-issue-activity"
+            }
+          }
+        ]
+      },
+      "disabled": false
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "id": "OpJxYJEc3",
+      "config": {
+        "conditions": {
+          "operator": "or",
+          "operands": [
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "bug"
+              }
+            },
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "p1"
+              }
+            },
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "p2"
+              }
+            },
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "enhancement"
+              }
+            },
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "feature"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "bug-unconfirmed"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "question"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "answered"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "no-issue-activity"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "feature-unconfirmed"
+            }
+          }
+        ],
+        "taskName": "Remove extraneous labels when bug, p1, p2, enhancement or feature labels added"
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "id": "nODiqBd1T",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "closed"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Remove status labels when issue is closed",
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "ReleaseAnnouncement",
+      "subCapability": "ReleaseAnnouncement",
+      "version": "1.0",
+      "config": {
+        "taskName": "Announce a fix has been released",
+        "prReply": ":tada:`@azure/${pkgName}@${version}` has been released which incorporates this pull request.:tada:\n\nHandy links:\n* [Release Notes](https://github.com/${owner}/${repo}/releases/tag/${pkgName}-${version})\n* [Official NPM Release](https://www.npmjs.com/package/@azure/${pkgName}/v/${versionNumber})",
+        "conditionalPrReplies": [
+          {
+            "reply": ":tada:`${pkgName}@${version}` has been released which incorporates this pull request.:tada:\n\nHandy links:\n* [Release Notes](https://github.com/${owner}/${repo}/releases/tag/${pkgName}-${version})\n* [Official NPM Release](https://www.npmjs.com/package/${pkgName}/v/${versionNumber})",
+            "condition": {
+              "placeholder": "${pkgName}",
+              "operator": "equals",
+              "value": "msal"
+            }
+          },
+          {
+            "reply": ":tada:`@azure/${pkgName}@${version}` has been released which incorporates this pull request.:tada:\n\nWe recommend upgrading to the latest version of `@azure/msal-browser` or `@azure/msal-node` to take advantage of this change.\n\nHandy links:\n* [Release Notes](https://github.com/${owner}/${repo}/releases/tag/${pkgName}-${version})\n* [Official NPM Release](https://www.npmjs.com/package/@azure/${pkgName}/v/${versionNumber})",
+            "condition": {
+              "placeholder": "${pkgName}",
+              "operator": "equals",
+              "value": "msal-common"
+            }
+          }
+        ],
+        "issueReply": ":tada:This issue was addressed in #${prNumber}, which has now been successfully released as `@azure/${pkgName}@${version}`.:tada:\n\nHandy links:\n* [Release Notes](https://github.com/${owner}/${repo}/releases/tag/${pkgName}-${version})\n* [Official NPM Release](https://www.npmjs.com/package/@azure/${pkgName}/v/${versionNumber})",
+        "conditionalIssueReplies": [
+          {
+            "reply": ":tada:This issue was addressed in #${prNumber}, which has now been successfully released as `${pkgName}@${version}`.:tada:\n\nHandy links:\n* [Release Notes](https://github.com/${owner}/${repo}/releases/tag/${pkgName}-${version})\n* [Official NPM Release](https://www.npmjs.com/package/${pkgName}/v/${versionNumber})",
+            "condition": {
+              "placeholder": "${pkgName}",
+              "operator": "equals",
+              "value": "msal"
+            }
+          },
+          {
+            "condition": {
+              "placeholder": "${pkgName}",
+              "operator": "equals",
+              "value": "msal-common"
+            },
+            "reply": ":tada:This issue was addressed in #${prNumber}, which has now been successfully released as `@azure/${pkgName}@${version}`.:tada:\n\nWe recommend upgrading to the latest version of `@azure/msal-browser` or `@azure/msal-node` to take advantage of this change.\n\nHandy links:\n* [Release Notes](https://github.com/${owner}/${repo}/releases/tag/${pkgName}-${version})\n* [Official NPM Release](https://www.npmjs.com/package/@azure/${pkgName}/v/${versionNumber})"
+          }
+        ],
+        "referencedPrsRegex": "#(\\d+)",
+        "referencedPrsGroup": 1,
+        "packageRegex": "(@azure\\/)?(.+)\\s(v.*)",
+        "packageNameGroup": 2,
+        "packageVersionGroup": 3
+      },
+      "id": "4vek5a3rA"
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssueCommentResponder",
+      "version": "1.0",
+      "id": "9hXtgM3mL",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isOpen",
+                  "parameters": {}
+                }
+              ]
+            },
+            {
+              "name": "isActivitySender",
+              "parameters": {
+                "user": {
+                  "type": "author"
+                }
+              }
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "no-issue-activity"
+              }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isCloseAndComment",
+                  "parameters": {}
+                }
+              ]
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issue_comment"
+        ],
+        "actions": [
+          {
+            "name": "reopenIssue",
+            "parameters": {}
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "no-issue-activity"
+            }
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          }
+        ],
+        "taskName": "Reopen issue if the issue was closed due to inactivity and original author comments"
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "id": "c9NE9mRpmqH2uKiC8BP-T",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "question"
+            }
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 5
+            }
+          },
+          {
+            "name": "isIssue",
+            "parameters": {}
+          },
+          {
+            "name": "noLabel",
+            "parameters": {
+              "label": "no-issue-activity"
+            }
+          }
+        ],
+        "taskName": "Mark questions stale after 5 days of inactivity by the author",
+        "actions": [
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "@${issueAuthor} This issue has been automatically marked as stale because it is marked as requiring author feedback but has not had any activity for **5 days**. If your issue has been resolved please let us know by closing the issue. If your issue has **not** been resolved please leave a comment to keep this open. It will be closed automatically in **7 days** if it remains stale."
+            }
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "no-issue-activity"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "id": "UCLDq74lwGtd92JIUfv2D",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "no-issue-activity"
+            }
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 7
+            }
+          },
+          {
+            "name": "isIssue",
+            "parameters": {}
+          }
+        ],
+        "taskName": "Close stale issues after 7 days",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "id": "BDSD7hoCDFDeSkKbii8A5",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              6,
+              18
+            ],
+            "timezoneOffset": -7
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "isIssue",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 5
+            }
+          }
+        ],
+        "taskName": "Remind MSAL.js team to respond to issues after 5 days of inactivity",
+        "actions": [
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "This issue requires attention from the MSAL.js team and has not seen activity in **5 days**. ${assignees} please follow up."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "id": "2x-EuGmpFi6h5M95IEGb7",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 1,
+            "hours": [],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 2,
+            "hours": [],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 3,
+            "hours": [],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 4,
+            "hours": [],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 5,
+            "hours": [],
+            "timezoneOffset": -8
+          },
+          {
+            "weekDay": 6,
+            "hours": [],
+            "timezoneOffset": -8
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isClosed",
+            "parameters": {}
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 7
+            }
+          },
+          {
+            "name": "isIssue",
+            "parameters": {}
+          }
+        ],
+        "taskName": "Lock closed issues after 7 days of inactivity",
+        "actions": [
+          {
+            "name": "lockIssue",
+            "parameters": {
+              "reason": "resolved"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "id": "W3yxmbeKpyCbjvM71F7sp",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isOpen",
+              "parameters": {}
+            },
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "Needs: Author Feedback"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Removes Needs: Attention Label when Needs: Author Feedback is added",
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "id": "RSurH_0VeAGrCHYi8_sGx",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isOpen",
+              "parameters": {}
+            },
+            {
+              "name": "labelAdded",
+              "parameters": {
+                "label": "Needs: Attention :wave:"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Removes Needs: Author Feedback label when Needs: Attention is added",
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Author Feedback"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestResponder",
+      "version": "1.0",
+      "id": "Yw4oejkcGU4b8AXoTajc8",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "opened"
+              }
+            },
+            {
+              "name": "isActivitySender",
+              "parameters": {
+                "user": "dependabot[bot]"
+              }
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request",
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Auto approve dependabot PRs",
+        "actions": [
+          {
+            "name": "approvePullRequest"
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "id": "RJFdy7myBqhrZ57KDZdTS",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "question"
+              }
+            },
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "opened"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "On question issue open assign to On-call Engineer and add Needs: Attention label",
+        "actions": [
+          {
+            "name": "assignToIcmUserGroup",
+            "parameters": {
+              "groupId": "60ddfa574ab5702958084812",
+              "assignmentTarget": "Primary"
+            }
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssueCommentResponder",
+      "version": "1.0",
+      "id": "LSQ8Ia8RDF0mVqQovOWqO",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isAssignedToSomeone",
+                  "parameters": {}
+                }
+              ]
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "question"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issue_comment"
+        ],
+        "taskName": "Assign question issues to On-Call Engineer if issue does not have an assignee",
+        "actions": [
+          {
+            "name": "assignToIcmUserGroup",
+            "parameters": {
+              "groupId": "60ddfa574ab5702958084812",
+              "assignmentTarget": "Primary"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestResponder",
+      "version": "1.0",
+      "id": "ltdFO5wgfwQwPvoTUTmx_",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "opened"
+              }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "activitySenderHasAssociation",
+                  "parameters": {
+                    "association": "MEMBER"
+                  }
+                }
+              ]
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isActivitySender",
+                  "parameters": {
+                    "user": "github-actions[bot]"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request",
+          "issues",
+          "project_card"
+        ],
+        "actions": [
+          {
+            "name": "assignToIcmUserGroup",
+            "parameters": {
+              "groupId": "60ddfa574ab5702958084812",
+              "assignmentTarget": "Primary"
+            }
+          },
+          {
+            "name": "assignToIcmUserGroup",
+            "parameters": {
+              "groupId": "60ddfa574ab5702958084812",
+              "assignmentTarget": "FirstBackup"
+            }
+          }
+        ],
+        "taskName": "Assign on-call engineers to PRs opened by external contributors"
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestResponder",
+      "version": "1.0",
+      "id": "Fx9Oh5LWgyOqeXhhlaoii",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "opened"
+              }
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "activitySenderHasAssociation",
+                  "parameters": {
+                    "association": "MEMBER"
+                  }
+                }
+              ]
+            },
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "prIncludesModifiedFile",
+                  "parameters": {
+                    "pathFilter": "change/"
+                  }
+                }
+              ]
+            },
+            {
+              "name": "prTargetsBranch",
+              "parameters": {
+                "branchName": "dev"
+              }
+            },
+            {
+              "name": "prMatchesPattern",
+              "parameters": {
+                "pathFilter": "**.md",
+                "exclude": [],
+                "matchRegex": "lib\\/.*\\/src\\/"
+              }
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request",
+          "issues",
+          "project_card"
+        ],
+        "actions": [
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "Thank you for your contribution! Please generate change files by running `npm run beachball:change` from the root of the repo, then answer each prompt and push up the generated files."
+            }
+          }
+        ],
+        "taskName": "Prompt external contributors to generate changefiles if not yet included in the PR"
+      },
+      "disabled": false
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "id": "kBg1npmdbXeBk9nFBacbd",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 1,
+            "hours": [
+              8
+            ],
+            "timezoneOffset": -7,
+            "restrictions": [
+              {
+                "name": "isLastInMonth",
+                "parameters": {}
+              }
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "isDraftPr",
+            "parameters": {
+              "value": "false"
+            }
+          },
+          {
+            "name": "isPr",
+            "parameters": {}
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 7
+            }
+          },
+          {
+            "name": "noLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ],
+        "actions": [
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "Reminder: The next release is scheduled for next week and this PR appears to be stale :( \n\nIf changes have been requested please address feedback. \nIf this PR is still a work in progress please mark as draft."
+            }
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ],
+        "taskName": "Post reminder message on stale PRs"
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestResponder",
+      "version": "1.0",
+      "id": "FqwsbN9U20Ecn2Dh374pb",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "Needs: Attention :wave:"
+              }
+            },
+            {
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "isAction",
+                  "parameters": {
+                    "action": "merged"
+                  }
+                },
+                {
+                  "name": "isAction",
+                  "parameters": {
+                    "action": "synchronize"
+                  }
+                },
+                {
+                  "name": "isAction",
+                  "parameters": {
+                    "action": "closed"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request",
+          "issues",
+          "project_card"
+        ],
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ],
+        "taskName": "Remove Needs: Attention label when PR is no longer stale"
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "PullRequestReviewResponder",
+      "version": "1.0",
+      "id": "p0lUILIZheatyXWH9VcVr",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "Needs: Attention :wave:"
+              }
+            }
+          ]
+        },
+        "eventType": "pull_request",
+        "eventNames": [
+          "pull_request_review"
+        ],
+        "taskName": "Remove Needs: Attention label on Pull Request review",
+        "actions": [
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs: Attention :wave:"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "userGroups": [
+    {
+      "_id": "60ddfa574ab5702958084812",
+      "groupType": "ICM",
+      "name": "MSAL.js Team",
+      "onCallTeamId": 80279,
+      "modifiedBy": {
+        "upn": "thnorlin@microsoft.com",
+        "timestamp": "2021-07-01T17:24:39.347Z"
+      }
+    }
+  ]
+}

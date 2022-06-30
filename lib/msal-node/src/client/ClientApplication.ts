@@ -374,7 +374,7 @@ export abstract class ClientApplication {
         // Set requested claims hash if claims were requested
         if (authRequest.claims && !StringUtils.isEmpty(authRequest.claims)) {
             authRequest.requestedClaimsHash = await this.cryptoProvider.hashString(authRequest.claims);
-        } 
+        }
 
         return {
             ...authRequest,
