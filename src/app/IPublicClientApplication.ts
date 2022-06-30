@@ -72,11 +72,9 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     getAccountByHomeId: () => {
         return null;
     },
-    // eslint-disable-next-line react/no-multi-comp
     getAccountByUsername: () => {	
         return null;	
     },	
-    // eslint-disable-next-line react/no-multi-comp
     getAccountByLocalId: () => {
         return null;
     },
@@ -101,7 +99,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     ssoSilent: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },
-    // eslint-disable-next-line react/no-multi-comp
     addEventCallback: () => {
         return null;
     },
@@ -132,7 +129,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     setActiveAccount: () => {
         return;
     },
-    // eslint-disable-next-line react/no-multi-comp
     getActiveAccount: () => {
         return null;
     },
