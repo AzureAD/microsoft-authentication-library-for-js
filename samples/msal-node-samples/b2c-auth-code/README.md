@@ -64,9 +64,7 @@ Implementing B2C user-flows is a matter of initiating token requests against the
 
 > :information_source: This sample demonstrates the legacy password-reset user-flow. There's now a [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) that is part of the sign-up or sign-in policy. As such, you don't need a separate policy for password reset anymore. See the [b2c-auth-code-pkce](../b2c-auth-code-pkce/README.md) sample for how this works.
 
-In order to keep track of these *flows*, we create some global objects and manipulate these in the rest of the application.
-
-> :warning: In a real-world scenario, these objects will be specific to each request or user. As such, you might want to store them in a **session** variable.
+In order to keep track of these *flows*, we create request objects, attach them to session variable and manipulate them in the rest of the application.
 
 ```javascript
 const APP_STATES = {
@@ -222,5 +220,3 @@ app.get("/api", async (req, res) => {
     }
 });
 ```
-
-> :warning: silent flow is not used with the this scenario. See [this sample](../b2c-silent-flow/README.md) for how to setup a silent token request in MSAL Node

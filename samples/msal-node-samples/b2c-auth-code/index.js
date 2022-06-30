@@ -4,224 +4,390 @@
  */
 const express = require('express');
 const session = require('express-session');
-const exphbs = require('express-handlebars');
+const hbs = require('express-handlebars');
 const msal = require('@azure/msal-node');
 
-const api = require('./api');
-const policies = require('./policies');
-
-const SERVER_PORT = process.env.PORT || 3000;
+const fetch = require('./fetch');
+const config = require('./config/customConfig.json');
 
 /**
- * Confidential Client Application Configuration
+ * Command line arguments can be used to configure:
+ * - The port the application runs on
+ * - The cache file location
+ * - The authentication scenario/configuration file name
  */
-const confidentialClientConfig = {
-    auth: {
-        clientId: 'ENTER_CLIENT_ID', 
-        authority: policies.authorities.signUpSignIn.authority, 
-        clientSecret: 'ENTER_CLIENT_SECRET',
-        knownAuthorities: [policies.authorityDomain], 
-        redirectUri: 'http://localhost:3000/redirect',
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
+const argv = require("../cliArgs");
+
+const SERVER_PORT = argv.p || 3000;
+const cacheLocation = argv.c || "./data/cache.json";
+const cachePlugin = require('../cachePlugin')(cacheLocation);
+
+const REDIRECT_URI = 'http://localhost:3000/redirect';
+
+const APP_STAGES = {
+    SIGN_IN: 'sign_in',
+    PASSWORD_RESET: 'password_reset',
+    EDIT_PROFILE: 'edit_profile',
+    ACQUIRE_TOKEN: 'acquire_token'
+};
+
+function main(scenarioConfig, clientApplication, port) {
+
+    const cryptoProvider = new msal.CryptoProvider();
+
+    // Set the port that the express server will listen on
+    const serverPort = port || SERVER_PORT;
+
+    // Create an express instance
+    const app = express();
+
+    /**
+     * Using express-session middleware. Be sure to familiarize yourself with available options
+     * and set them as desired. Visit: https://www.npmjs.com/package/express-session
+     */
+    const sessionConfig = {
+        secret: 'ENTER_YOUR_SECRET_HERE',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+            secure: false, // set this to true on production
         }
     }
-};
 
-// Current web API coordinates were pre-registered in a B2C tenant.
-const apiConfig = {
-    webApiScopes: ['https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read'],
-    webApiUri: 'https://fabrikamb2chello.azurewebsites.net/hello'
-};
+    app.use(session(sessionConfig));
+    app.use(express.urlencoded({ extended: false }));
+    app.use(express.json());
 
-/**
- * The MSAL.js library allows you to pass your custom state as state parameter in the Request object
- * By default, MSAL.js passes a randomly generated unique state parameter value in the authentication requests.
- * The state parameter can also be used to encode information of the app's state before redirect. 
- * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
- * For more information, visit: https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request
- */
-const APP_STATES = {
-    LOGIN: 'login',
-    CALL_API: 'call_api',
-    PASSWORD_RESET: 'password_reset',
-}
+    // Set handlebars view engine
+    app.engine('.hbs', hbs({ extname: '.hbs' }));
+    app.set('view engine', '.hbs');
 
-/** 
- * Request Configuration
- * We manipulate these two request objects below 
- * to acquire a token with the appropriate claims.
- */
-const authCodeRequest = {
-    redirectUri: confidentialClientConfig.auth.redirectUri,
-};
+    /**
+     * Prepares the auth code request parameters and initiates the first leg of auth code flow
+     * by redirecting the app to the authorization code url.
+     * @param req: Express request object
+     * @param res: Express response object
+     * @param next: Express next function
+     * @param authCodeUrlRequestParams: parameters for requesting an auth code url
+     * @param authCodeRequestParams: parameters for requesting tokens using auth code
+     */
+    const redirectToAuthCodeUrl = async (req, res, next, authCodeUrlRequestParams, authCodeRequestParams) => {
 
-const tokenRequest = {
-    redirectUri: confidentialClientConfig.auth.redirectUri,
-};
+        // Generate PKCE Codes before starting the authorization flow
+        const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
 
-// Initialize MSAL Node
-const cca = new msal.ConfidentialClientApplication(confidentialClientConfig);
+        // Set generated PKCE codes and method as session vars
+        req.session.pkceCodes = {
+            challengeMethod: 'S256',
+            verifier: verifier,
+            challenge: challenge,
+        };
 
-// Create an express instance
-const app = express();
+        /**
+         * By manipulating the request objects below before each request, we can obtain
+         * auth artifacts with desired claims. For more information, visit:
+         * https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationurlrequest
+         * https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationcoderequest
+         **/
 
-// Set handlebars view engine
-app.engine('.hbs', exphbs({ extname: '.hbs' }));
-app.set('view engine', '.hbs');
+        req.session.authCodeUrlRequest = {
+            redirectUri: REDIRECT_URI,
+            codeChallenge: req.session.pkceCodes.challenge,
+            codeChallengeMethod: req.session.pkceCodes.challengeMethod,
+            responseMode: 'form_post', // recommended for confidential clients
+            ...authCodeUrlRequestParams,
+        };
 
-/**
- * Using express-session middleware. Be sure to familiarize yourself with available options
- * and set them as desired. Visit: https://www.npmjs.com/package/express-session
- */
- const sessionConfig = {
-    secret: 'ENTER_YOUR_SECRET_HERE',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false, // set this to true on production
-    }
-}
+        req.session.authCodeRequest = {
+            redirectUri: REDIRECT_URI,
+            code: "",
+            ...authCodeRequestParams,
+        };
 
-if (app.get('env') === 'production') {
-    app.set('trust proxy', 1) // trust first proxy e.g. App Service
-    sessionConfig.cookie.secure = true // serve secure cookies
-}
+        // Get url to sign user in and consent to scopes needed for application
+        try {
+            const authCodeUrlResponse = await clientApplication.getAuthCodeUrl(req.session.authCodeUrlRequest);
+            res.redirect(authCodeUrlResponse);
+        } catch (error) {
+            next(error);
+        }
+    };
 
-app.use(session(sessionConfig));
-
-/**
- * This method is used to generate an auth code request
- * @param {string} authority: the authority to request the auth code from 
- * @param {array} scopes: scopes to request the auth code for 
- * @param {string} state: state of the application
- * @param {Object} res: express middleware response object
- */
-const getAuthCode = (authority, scopes, state, res) => {
-
-    // prepare the request
-    authCodeRequest.authority = authority;
-    authCodeRequest.scopes = scopes;
-    authCodeRequest.state = state;
-
-    tokenRequest.authority = authority;
-
-    // request an authorization code to exchange for a token
-    return cca.getAuthCodeUrl(authCodeRequest)
-        .then((response) => {
-            res.redirect(response);
-        })
-        .catch((error) => {
-            res.status(500).send(error);
+    app.get('/', function (req, res, next) {
+        res.render('index', {
+            title: 'MSAL Node & Express Web App',
+            isAuthenticated: req.session.isAuthenticated,
+            username: req.session.account?.username,
         });
-}
+    });
 
-/**
- * App Routes
- */
-app.get('/', (req, res) => {
-    res.render('login', { showSignInButton: true });
-});
+    app.get('/id', (req, res) => {
+        if (!req.session.account) {
+            return res.redirect('/sign-in');
+        }
 
-// Initiates auth code grant for LOGIN
-app.get('/login', (req, res) => {
-    if (authCodeRequest.state === APP_STATES.PASSWORD_RESET) {
-        // if coming for password reset, set the authority to password reset
-        getAuthCode(policies.authorities.resetPassword.authority, [], APP_STATES.PASSWORD_RESET, res);
-    } else {
-        // else, LOGIN as usual
-        getAuthCode(policies.authorities.signUpSignIn.authority, [], APP_STATES.LOGIN, res);
+        res.render('id', { idTokenClaims: req.session.account.idTokenClaims });
+    });
+
+    // Initiates auth code grant for LOGIN
+    app.get('/sign-in', (req, res, next) => {
+        // create a GUID against crsf
+        req.session.csrfToken = cryptoProvider.createNewGuid();
+
+        /**
+         * The MSAL Node library allows you to pass your custom state as state parameter in the Request object.
+         * The state parameter can also be used to encode information of the app's state before redirect.
+         * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
+         */
+        const state = cryptoProvider.base64Encode(
+            JSON.stringify({
+                csrfToken: req.session.csrfToken,
+                appStage: APP_STAGES.SIGN_IN,
+            })
+        );
+
+        const authCodeUrlRequestParams = {
+            authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+            state: state,
+        };
+
+        const authCodeRequestParams = {
+        };
+
+        return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+    });
+
+    /**
+     * Attempts to acquire an access token silently, falling back to the auth code flow if it fails.
+     * @param req: Express request object
+     * @param res: Express response object
+     * @param next: Express next function
+     * @param scopes: list of scopes
+     * @returns
+     */
+    const getToken = async (req, res, next, scopes) =>{
+        try {
+            const silentRequest = {
+                account: req.session.account,
+                scopes: scopes,
+            };
+
+            // acquire token silently to be used in resource call
+            const tokenResponse = await clientApplication.acquireTokenSilent(silentRequest);
+
+            if (!tokenResponse || tokenResponse.accessToken.length === 0) {
+                // In B2C scenarios, sometimes an access token is returned empty.
+                // In that case, we will acquire token interactively instead.
+                throw new InteractionRequiredAuthError(ErrorMessages.INTERACTION_REQUIRED);
+            }
+
+            req.session.accessToken = tokenResponse.accessToken;
+            res.redirect('/call-api');
+        } catch (error) {
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                req.session.csrfToken = cryptoProvider.createNewGuid();
+
+                state = cryptoProvider.base64Encode(
+                    JSON.stringify({
+                        csrfToken: req.session.csrfToken,
+                        appStage: APP_STAGES.ACQUIRE_TOKEN,
+                    })
+                );
+
+                const authCodeUrlRequestParams = {
+                    authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+                    state: state,
+                };
+
+                const authCodeRequestParams = {
+                    scopes: scopes,
+                };
+
+                return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+            }
+
+            next(error);
+        }
     }
-})
 
-// Initiates auth code grant for edit_profile user flow
-app.get('/profile', (req, res) => {
-    getAuthCode(policies.authorities.editProfile.authority, [], APP_STATES.LOGIN, res);
-});
+    // Initiates auth code grant for edit_profile user flow
+    app.get('/edit-profile', (req, res, next) => {
+        if (!req.session.account) {
+            return res.redirect('/sign-in');
+        }
 
-// Initiates auth code grant for web API call
-app.get('/api', async (req, res) => {
-    // If no accessToken in store, request authorization code to exchange for a token
-    if (!req.session.accessToken) {
-        getAuthCode(policies.authorities.signUpSignIn.authority, apiConfig.webApiScopes, APP_STATES.CALL_API, res);
-    } else {
-        // else, call the web API
-        api.callWebApi(apiConfig.webApiUri, req.session.accessToken, (response) => {
-            const templateParams = { showSignInButton: false, profile: JSON.stringify(response, null, 4) };
-            res.render('api', templateParams);
+        req.session.csrfToken = cryptoProvider.createNewGuid();
+
+        state = cryptoProvider.base64Encode(
+            JSON.stringify({
+                csrfToken: req.session.csrfToken,
+                appStage: APP_STAGES.EDIT_PROFILE,
+            })
+        );
+
+        const authCodeUrlRequestParams = {
+            authority: scenarioConfig.policies.authorities.editProfile.authority,
+            state: state,
+        };
+
+        const authCodeRequestParams = {
+            /**
+             * By default, MSAL Node will add OIDC scopes to the auth code url request. For more information, visit:
+             * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+             */
+            scopes: [],
+        };
+
+        return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+    });
+
+    app.get('/call-api', async (req, res, next) => {
+        if (!req.session.account) {
+            return res.redirect('/sign-in');
+        }
+
+        if (!req.session.accessToken) {
+            return getToken(req, res, next, [...scenarioConfig.resourceApi.scopes]);
+        }
+
+        const apiResponse = await fetch(scenarioConfig.resourceApi.endpoint, req.session.accessToken);
+
+        res.render('api', {
+            response: apiResponse,
         });
-    }
-});
+    });
 
-// Second leg of auth code grant
-app.get('/redirect', (req, res) => {
+    app.get('/sign-out', function (req, res) {
+        /**
+         * Construct a logout URI and redirect the user to end the
+         * session with Azure AD B2C. For more information, visit:
+         * https://docs.microsoft.com/azure/active-directory-b2c/openid-connect#send-a-sign-out-request
+         */
+        const logoutUri =
+            `${scenarioConfig.policies.authorities.signUpSignIn.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:3000`;
 
-    // determine where the request comes from
-    if (req.query.state === APP_STATES.LOGIN) {
+        req.session.destroy(() => {
+            res.redirect(logoutUri);
+        });
+    });
 
-        // prepare the request for authentication
-        tokenRequest.scopes = [];
-        tokenRequest.code = req.query.code;
+    // Second leg of auth code grant
+    app.post('/redirect', async (req, res, next) => {
+        if (!req.body.state) {
+            return next(new Error('State not found'));
+        }
 
-        cca.acquireTokenByCode(tokenRequest)
-            .then((response) => {
-                const templateParams = { showSignInButton: false, username: response.account.username, profile: false };
-                res.render('api', templateParams);
-            }).catch((error) => {
-                if (req.query.error) {
+        // read the state object and determine the stage of the flow
+        const state = JSON.parse(cryptoProvider.base64Decode(req.body.state));
 
-                    /**
-                     * When the user selects 'forgot my password' on the sign-in page, B2C service will throw an error.
-                     * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
-                     * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
-                     */
-                    if (JSON.stringify(req.query.error_description).includes('AADB2C90118')) {
-                        authCodeRequest.authority = policies.authorities.resetPassword;
-                        authCodeRequest.state = APP_STATES.PASSWORD_RESET;
-                        return res.redirect('/login');
+        if (state.csrfToken === req.session.csrfToken) {
+            switch (state.appStage) {
+                case APP_STAGES.SIGN_IN:
+                    req.session.authCodeRequest.code = req.body.code; // authZ code
+                    req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
+
+                    try {
+                        const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                        req.session.account = tokenResponse.account;
+                        req.session.isAuthenticated = true;
+                        res.redirect('/');
+                    } catch (error) {
+                        if (req.body.error) {
+
+                            /**
+                             * When the user selects 'forgot my password' on the sign-in page, B2C service will throw an error.
+                             * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
+                             * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
+                             */
+                            if (JSON.stringify(req.body.error_description).includes('AADB2C90118')) {
+                                // create a GUID against crsf
+                                req.session.csrfToken = cryptoProvider.createNewGuid();
+
+                                const state = cryptoProvider.base64Encode(
+                                    JSON.stringify({
+                                        csrfToken: req.session.csrfToken,
+                                        appStage: APP_STAGES.PASSWORD_RESET,
+                                    })
+                                );
+
+                                const authCodeUrlRequestParams = {
+                                    authority: scenarioConfig.policies.authorities.resetPassword.authority,
+                                    state: state,
+                                };
+
+                                const authCodeRequestParams = {
+                                };
+
+                                // if coming for password reset, set the authority to password reset
+                                return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+                            }
+                        }
+                        next(error);
                     }
-                }
-                res.status(500).send(error);
-            });
 
-    } else if (req.query.state === APP_STATES.CALL_API) {
+                    break;
+                case APP_STAGES.ACQUIRE_TOKEN:
+                    req.session.authCodeRequest.code = req.body.code; // authZ code
+                    req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
-        // prepare the request for calling the web API
-        tokenRequest.authority = policies.authorities.signUpSignIn.authority;
-        tokenRequest.scopes = apiConfig.webApiScopes;
-        tokenRequest.code = req.query.code;
+                    try {
+                        const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                        req.session.accessToken = tokenResponse.accessToken;
+                        res.redirect('/call-api');
+                    } catch (error) {
+                        next(error);
+                    }
 
-        cca.acquireTokenByCode(tokenRequest)
-            .then((response) => {
+                    break;
+                case APP_STAGES.PASSWORD_RESET:
+                case APP_STAGES.EDIT_PROFILE:
+                    // redirect the user to sign-in again
+                    res.redirect('/sign-in');
+                    break;
+                default:
+                    next(new Error('cannot determine app stage'));
+            }
+        } else {
+            next(new Error('crsf token mismatch'));
+        }
+    });
 
-                // store access token in session
-                req.session.accessToken = response.accessToken;
+    return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
+}
 
-                // call the web API
-                api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
-                    const templateParams = { showSignInButton: false, profile: JSON.stringify(response, null, 4) };
-                    res.render('api', templateParams);
-                });
-                
-            }).catch((error) => {
-                console.log(error);
-                res.status(500).send(error);
-            });
+/**
+ * The code below checks if the script is being executed manually or in automation.
+ * If the script was executed manually, it will initialize a PublicClientApplication object
+ * and execute the sample application.
+ */
+if (argv.$0 === "index.js") {
+    const confidentialClientConfig = {
+        auth: {
+            clientId: config.authOptions.clientId,
+            authority: config.policies.authorities.signUpSignIn.authority,
+            clientSecret: config.authOptions.clientSecret,
+            knownAuthorities: [config.policies.authorityDomain],
+        },
+        cache: {
+            cachePlugin
+        },
+        system: {
+            loggerOptions: {
+                loggerCallback(loglevel, message, containsPii) {
+                    console.log(message);
+                },
+                piiLoggingEnabled: false,
+                logLevel: msal.LogLevel.Verbose,
+            }
+        }
+    };
 
-    } else if (req.query.state === APP_STATES.PASSWORD_RESET) {
+    // Create an MSAL PublicClientApplication object
+    const confidentialClientApp = new msal.ConfidentialClientApplication(confidentialClientConfig);
 
-        // once the password is reset, redirect the user to LOGIN again with the new password
-        authCodeRequest.state = APP_STATES.LOGIN;
-        res.redirect('/login');
-    } else {
-        res.status(500).send('Unknown');
-    }
-});
+    // Execute sample application with the configured MSAL PublicClientApplication
+    return main(config, confidentialClientApp, null);
+}
 
-app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
+// The application code is exported so it can be executed in automation environments
+module.exports = main;
