@@ -148,6 +148,12 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.selfSignedJwtAudience).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
             });
 
+            it("Returns jwks_uri of tenantDiscoveryResponse", () => {
+                expect(authority.jwksUri).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri.replace("{tenant}", "common")
+                );
+            });
+
             it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint and selfSignedJwtAudience", () => {
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
                 expect(() => authority.authorizationEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
@@ -155,6 +161,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(() => authority.endSessionEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.deviceCodeEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.selfSignedJwtAudience).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
+                expect(() => authority.jwksUri).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
             });
 
             it("Returns endpoints for different b2c policy than what is cached", async () => {
@@ -295,7 +302,8 @@ describe("Authority.ts Class Unit Tests", () => {
             const metadata: OpenIdConfigResponse = {
                 authorization_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
                 issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
-                token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+                jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
             }
             networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                 return {
@@ -341,6 +349,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(false);
                 }
             });
@@ -411,6 +420,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(true);
                 }
             });
@@ -453,6 +463,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(true);
                 }
             });
@@ -487,6 +498,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(true);
                 }
             });

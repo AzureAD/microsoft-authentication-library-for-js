@@ -5,7 +5,7 @@
   "version": "0.1.0",
   "scripts": {
     "build": "gatsby build",
-    "build:package": "cd ../../../lib/msal-react & npm run build:all",
+    "build:package": "cd ../../../lib/msal-react && npm run build:all",
     "develop": "gatsby develop -p 3000",
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",

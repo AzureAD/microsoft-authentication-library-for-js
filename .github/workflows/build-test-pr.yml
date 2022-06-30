@@ -15,8 +15,14 @@ concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   pre-check:
+    permissions:
+      contents: read  # for dorny/paths-filter to fetch a list of changed files
+      pull-requests: read  # for dorny/paths-filter to read pull requests
     runs-on: ubuntu-latest
     outputs: 
       # Expose matched filters as job 'packages' output variable
@@ -77,13 +83,13 @@ jobs:
     name: ${{ matrix.library }}
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: |
@@ -111,7 +117,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: lib/${{matrix.library}}/coverage/lcov.info
         flags: ${{ matrix.library }}
@@ -124,13 +130,12 @@ jobs:
     name: msal-node-extensions
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Clean Install
-      if: steps.cache.outputs.cache-hit != 'true'
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
@@ -149,7 +154,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: extensions/msal-node-extensions/coverage/lcov.info
         flags: msal-node-extensions

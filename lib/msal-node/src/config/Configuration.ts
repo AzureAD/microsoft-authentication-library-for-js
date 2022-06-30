@@ -31,7 +31,7 @@ export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?:string;
+    clientAssertion?: string;
     clientCertificate?: {
         thumbprint: string,
         privateKey: string,
