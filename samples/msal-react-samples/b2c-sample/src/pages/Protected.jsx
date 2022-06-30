@@ -20,12 +20,18 @@ const ProtectedContent = () => {
 
     useEffect(() => {
         if (!atsResponse && account && inProgress === InteractionStatus.None) {
-            const request = {
+            const request ={
                 ...loginRequest,
                 loginHint: account.username
+            }
+            
+            const silentRequest = {
+                ...loginRequest,
+                account: account.username,
+                forceRefresh : true
             };
 
-            instance.ssoSilent(request).then((response) => {
+            instance.acquireTokenSilent(silentRequest).then((response) => {
                 setAtsResponse(response);
             }).catch((e) => {
                 if (e instanceof InteractionRequiredAuthError) {
