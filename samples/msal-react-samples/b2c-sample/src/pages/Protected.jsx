@@ -28,7 +28,6 @@ const ProtectedContent = () => {
             const silentRequest = {
                 ...loginRequest,
                 account: account.username,
-                forceRefresh : true
             };
 
             instance.acquireTokenSilent(silentRequest).then((response) => {
