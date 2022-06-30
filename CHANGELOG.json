@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-browser_v2.26.0",
+      "version": "2.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "17bf0dd14cc1b23bd43a531d73c878ccd09e66e9",
+            "comment": "Add errorCode and subErrorCode to client telemetry events (#4863)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.0.0",
+            "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "49d6a3dde3e09a12ee01aeae52137e3c007649e8",
+            "comment": "Add strict assertion checks for OBO clients (#4691)"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d7836e8cdad77b5990ecbd4a278ebce097633478",
+            "comment": "Update redirect_in_iframe message to include messaging for embedded applications #4895"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00e44cc4bc966d8e4e8a57c0207d4ba26557c88e",
+            "comment": "preflightBrowserEnvironmentCheck should not always set interaction in progress #4893"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a78532e3aec29b2ba0b0650f98d065e78c0fac88",
+            "comment": "Return correct fromCache value when tokens are acquired from native broker #4880"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 Jun 2022 22:13:00 GMT",
       "tag": "@azure/msal-browser_v2.25.0",
       "version": "2.25.0",

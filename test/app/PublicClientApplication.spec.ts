@@ -2953,4 +2953,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.browserStorage.getWrapperMetadata()).toEqual([WrapperSKU.React, "1.0.0"]);
         });
     });
+
+    describe("preflightBrowserEnvironmentCheck", () => {
+        it("calls setInteractionInProgress", () => {
+            // @ts-ignore
+            pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+
+            // @ts-ignore
+            expect(pca.browserStorage.getInteractionInProgress()).toBeTruthy;
+        });
+
+        it("doesnt call setInteractionInProgress", () => {
+            // @ts-ignore
+            pca.preflightBrowserEnvironmentCheck(InteractionType.Popup, false);
+
+            // @ts-ignore
+            expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy;
+        });
+    })
 });
