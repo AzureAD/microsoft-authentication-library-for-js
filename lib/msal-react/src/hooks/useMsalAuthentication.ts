@@ -82,22 +82,33 @@ export function useMsalAuthentication(
         const fallbackInteractionType = callbackInteractionType || interactionType;
 
         let tokenRequest: SilentRequest;
+        let fallbackTokenRequest: PopupRequest|RedirectRequest|SsoSilentRequest;
 
         if (callbackRequest) {
             logger.trace("useMsalAuthentication - acquireToken - Using request provided in the callback");
             tokenRequest = {
                 ...callbackRequest
             };
+            fallbackTokenRequest = {
+                ...tokenRequest
+            };
         } else if (authenticationRequest) {
             logger.trace("useMsalAuthentication - acquireToken - Using request provided in the hook");
+            const { prompt, ...authenticationRequestWithoutPrompt } = authenticationRequest;
             tokenRequest = {
-                ...authenticationRequest,
+                ...authenticationRequestWithoutPrompt,
                 scopes: authenticationRequest.scopes || OIDC_DEFAULT_SCOPES
+            };
+            fallbackTokenRequest = {
+                ...authenticationRequest
             };
         } else {
             logger.trace("useMsalAuthentication - acquireToken - No request object provided, using default request.");
             tokenRequest = {
                 scopes: OIDC_DEFAULT_SCOPES
+            };
+            fallbackTokenRequest = {
+                ...tokenRequest
             };
         }
         
@@ -112,7 +123,7 @@ export function useMsalAuthentication(
                 if (e instanceof InteractionRequiredAuthError) {
                     if (!interactionInProgress.current) {
                         logger.error("useMsalAuthentication - Interaction required, falling back to interaction");
-                        return login(fallbackInteractionType, tokenRequest);
+                        return login(fallbackInteractionType, fallbackTokenRequest);
                     } else {
                         logger.error("useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.");
                         throw ReactAuthError.createUnableToFallbackToInteractionError();
