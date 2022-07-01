@@ -6,6 +6,7 @@ const express = require('express');
 const session = require('express-session');
 const hbs = require('express-handlebars');
 const msal = require('@azure/msal-node');
+const url = require('url');
 
 const fetch = require('./fetch');
 const config = require('./config/customConfig.json');
@@ -165,6 +166,9 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
     }
 
     app.get('/', function (req, res, next) {
+        // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
+        if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+
         res.render('index', {
             title: 'MSAL Node & Express Web App',
             isAuthenticated: req.session.isAuthenticated,
@@ -287,7 +291,6 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                         res.redirect('/');
                     } catch (error) {
                         if (req.query.error) {
-
                             /**
                              * When the user selects 'forgot my password' on the sign-in page, B2C service will throw an error.
                              * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
@@ -378,7 +381,7 @@ if (argv.$0 === "index.js") {
     };
 
     // Create an MSAL PublicClientApplication object
-    const confidentialClientApp = new msal.PublicClientApplication(confidentialClientConfig);
+    const confidentialClientApp = new msal.ConfidentialClientApplication(confidentialClientConfig);
 
     // Execute sample application with the configured MSAL PublicClientApplication
     return main(config, confidentialClientApp, null, redirectUri);

@@ -53,8 +53,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     const requestConfig = scenarioConfig.request;
 
     app.get("/", (req, res) => {
-        // if redirect is set to main route "/", redirect to "/redirect" route
-        if (req.query.code) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+        // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
+        if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
 
         const { authCodeUrlParameters } = requestConfig;
 
