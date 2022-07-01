@@ -69,8 +69,16 @@ describe("Silent Flow B2C PPE Tests", () => {
         clientSecret = await labClient.getSecret(AppTypes.B2C);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-        config.authOptions.clientSecret = clientSecret.value;
-        confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+        console.log(clientSecret);
+        console.log(clientSecret.value);
+
+        confidentialClientApplication = new ConfidentialClientApplication({ auth: {
+            clientId: config.authOptions.clientId,
+            authority: config.authOptions.authority,
+            knownAuthorities: config.authOptions.knownAuthorities,
+            clientSecret: clientSecret.value,
+        }, cache: { cachePlugin }});
+
         msalTokenCache = confidentialClientApplication.getTokenCache();
         server = getTokenSilent(config, confidentialClientApplication, port, msalTokenCache);
         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
