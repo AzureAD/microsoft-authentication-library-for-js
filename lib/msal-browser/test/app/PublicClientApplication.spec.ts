@@ -532,7 +532,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await pca.acquireTokenRedirect({
                 scopes: ["User.Read"],
                 account: testAccount,
-                prompt: "login"
+                prompt: "select_account"
             });
 
             expect(nativeAcquireTokenSpy.calledOnce).toBeFalsy();
