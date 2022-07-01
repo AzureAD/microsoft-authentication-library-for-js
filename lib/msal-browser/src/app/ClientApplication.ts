@@ -278,8 +278,8 @@ export abstract class ClientApplication {
                     return redirectClient.acquireToken(request);
                 } else if (e instanceof InteractionRequiredAuthError) {
                     this.logger.verbose("acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow");
-                    const popupClient = this.createRedirectClient(request.correlationId);
-                    return popupClient.acquireToken(request);
+                    const redirectClient = this.createRedirectClient(request.correlationId);
+                    return redirectClient.acquireToken(request);
                 }
                 this.browserStorage.setInteractionInProgress(false);
                 throw e;

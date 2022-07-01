@@ -4,7 +4,6 @@
  */
 
 import { AuthError, InteractionRequiredAuthError } from "@azure/msal-common";
-import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "./BrowserAuthError";
 
 export type OSError = {
