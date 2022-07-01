@@ -36,10 +36,9 @@ describe("Auth Code B2C PPE Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    let port: string;
+    let port: number;
     let homeRoute: string;
 
-    let clientSecret: { secret: string, value: string };
     let username: string;
     let accountPwd: string;
 
@@ -50,6 +49,8 @@ describe("Auth Code B2C PPE Tests", () => {
         // @ts-ignore
         browser = await global.__BROWSER__;
         // @ts-ignore
+
+        // To run tests in parallel, each test needs to run on a unique port
         port = 3004;
         homeRoute = `http://localhost:${port}`;
 

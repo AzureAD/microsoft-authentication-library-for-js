@@ -44,7 +44,6 @@ describe("Silent Flow B2C PPE Tests", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let clientSecret: { secret: string, value: string };
     let username: string;
     let accountPwd: string;
 
@@ -54,6 +53,8 @@ describe("Silent Flow B2C PPE Tests", () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
+
+        // To run tests in parallel, each test needs to run on a unique port
         port = 3006;
         homeRoute = `${SAMPLE_HOME_URL}:${port}`;
 

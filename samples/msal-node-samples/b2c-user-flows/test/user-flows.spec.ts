@@ -9,7 +9,7 @@ import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtil
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments, B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     b2cLocalAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
@@ -55,13 +55,13 @@ describe("B2C User Flow Tests", () => {
 
         createFolder(screenshotFolder);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD,
+        const labApiParams: LabApiQueryParams = {
+            userType: UserTypes.B2C,
+            b2cProvider: B2cProviders.LOCAL
         };
 
         const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
+        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
     });
 
