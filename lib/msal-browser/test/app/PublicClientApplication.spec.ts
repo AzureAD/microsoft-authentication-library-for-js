@@ -648,6 +648,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount
             }).catch(e => {
+                // @ts-ignore
+                expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy();
                 expect(e.message).toEqual("testError");
             });
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
@@ -1139,6 +1141,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 account: testAccount
             }).catch(e => {
+                // @ts-ignore
+                expect(pca.browserStorage.getInteractionInProgress()).toBeFalsy();
                 expect(e.message).toEqual("testError");
             });
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
