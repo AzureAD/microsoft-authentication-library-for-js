@@ -27,7 +27,6 @@
             VerticalAlignment="Stretch"
             NavigationCompleted="CapacitorWebView_NavigationCompleted"
             WebMessageReceived="CapacitorWebView_WebMessageReceived"
-            CoreWebView2Initialized="CapacitorWebView_CoreWebView2Initialized"
             />
             
 

@@ -34,6 +34,10 @@ namespace App {
         private void CapacitorWebView_WebMessageReceived(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
         {
             //Console.WriteLine(args.TryGetWebMessageAsString());
+            if (args.Source == sender.Source.ToString()) // validate source
+            {
+                this.Extension.HandleWebMessage(args);
+            }
         }
 
         private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args)
