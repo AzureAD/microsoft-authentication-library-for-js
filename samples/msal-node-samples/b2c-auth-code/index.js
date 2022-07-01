@@ -17,12 +17,9 @@ const config = require('./config/customConfig.json');
  * - The authentication scenario/configuration file name
  */
 const argv = require("../cliArgs");
-
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
-
-const REDIRECT_URI = 'http://localhost:3000/redirect';
 
 const APP_STAGES = {
     SIGN_IN: 'sign_in',
@@ -31,7 +28,7 @@ const APP_STAGES = {
     ACQUIRE_TOKEN: 'acquire_token'
 };
 
-function main(scenarioConfig, clientApplication, port) {
+function main(scenarioConfig, clientApplication, port, redirectUri) {
 
     const cryptoProvider = new msal.CryptoProvider();
 
@@ -91,15 +88,14 @@ function main(scenarioConfig, clientApplication, port) {
          **/
 
         req.session.authCodeUrlRequest = {
-            redirectUri: REDIRECT_URI,
+            redirectUri: redirectUri,
             codeChallenge: req.session.pkceCodes.challenge,
             codeChallengeMethod: req.session.pkceCodes.challengeMethod,
-            responseMode: 'form_post', // recommended for confidential clients
             ...authCodeUrlRequestParams,
         };
 
         req.session.authCodeRequest = {
-            redirectUri: REDIRECT_URI,
+            redirectUri: redirectUri,
             code: "",
             ...authCodeRequestParams,
         };
@@ -262,7 +258,7 @@ function main(scenarioConfig, clientApplication, port) {
          * https://docs.microsoft.com/azure/active-directory-b2c/openid-connect#send-a-sign-out-request
          */
         const logoutUri =
-            `${scenarioConfig.policies.authorities.signUpSignIn.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:3000`;
+            `${scenarioConfig.policies.authorities.signUpSignIn.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:${serverPort}`;
 
         req.session.destroy(() => {
             res.redirect(logoutUri);
@@ -270,18 +266,18 @@ function main(scenarioConfig, clientApplication, port) {
     });
 
     // Second leg of auth code grant
-    app.post('/redirect', async (req, res, next) => {
-        if (!req.body.state) {
+    app.get('/redirect', async (req, res, next) => {
+        if (!req.query.state) {
             return next(new Error('State not found'));
         }
 
         // read the state object and determine the stage of the flow
-        const state = JSON.parse(cryptoProvider.base64Decode(req.body.state));
+        const state = JSON.parse(cryptoProvider.base64Decode(req.query.state));
 
         if (state.csrfToken === req.session.csrfToken) {
             switch (state.appStage) {
                 case APP_STAGES.SIGN_IN:
-                    req.session.authCodeRequest.code = req.body.code; // authZ code
+                    req.session.authCodeRequest.code = req.query.code; // authZ code
                     req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
                     try {
@@ -290,14 +286,14 @@ function main(scenarioConfig, clientApplication, port) {
                         req.session.isAuthenticated = true;
                         res.redirect('/');
                     } catch (error) {
-                        if (req.body.error) {
+                        if (req.query.error) {
 
                             /**
                              * When the user selects 'forgot my password' on the sign-in page, B2C service will throw an error.
                              * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
                              * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
                              */
-                            if (JSON.stringify(req.body.error_description).includes('AADB2C90118')) {
+                            if (JSON.stringify(req.query.error_description).includes('AADB2C90118')) {
                                 // create a GUID against crsf
                                 req.session.csrfToken = cryptoProvider.createNewGuid();
 
@@ -325,7 +321,7 @@ function main(scenarioConfig, clientApplication, port) {
 
                     break;
                 case APP_STAGES.ACQUIRE_TOKEN:
-                    req.session.authCodeRequest.code = req.body.code; // authZ code
+                    req.session.authCodeRequest.code = req.query.code; // authZ code
                     req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
                     try {
@@ -355,15 +351,16 @@ function main(scenarioConfig, clientApplication, port) {
 
 /**
  * The code below checks if the script is being executed manually or in automation.
- * If the script was executed manually, it will initialize a PublicClientApplication object
+ * If the script was executed manually, it will initialize a ConfidentialClientApplication object
  * and execute the sample application.
  */
 if (argv.$0 === "index.js") {
+    const redirectUri = config.authOptions.redirectUri;
+
     const confidentialClientConfig = {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.policies.authorities.signUpSignIn.authority,
-            clientSecret: config.authOptions.clientSecret,
             knownAuthorities: [config.policies.authorityDomain],
         },
         cache: {
@@ -381,10 +378,10 @@ if (argv.$0 === "index.js") {
     };
 
     // Create an MSAL PublicClientApplication object
-    const confidentialClientApp = new msal.ConfidentialClientApplication(confidentialClientConfig);
+    const confidentialClientApp = new msal.PublicClientApplication(confidentialClientConfig);
 
     // Execute sample application with the configured MSAL PublicClientApplication
-    return main(config, confidentialClientApp, null);
+    return main(config, confidentialClientApp, null, redirectUri);
 }
 
 // The application code is exported so it can be executed in automation environments
