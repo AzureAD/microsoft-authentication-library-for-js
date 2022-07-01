@@ -8,7 +8,7 @@ import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtil
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { AppTypes, B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     b2cLocalAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
@@ -16,7 +16,7 @@ import {
     SAMPLE_HOME_URL
  } from "../../testUtils";
 
-import { PublicClientApplication } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c.cache.json`;
@@ -39,6 +39,7 @@ describe("Auth Code B2C PPE Tests", () => {
     let port: string;
     let homeRoute: string;
 
+    let clientSecret: string;
     let username: string;
     let accountPwd: string;
 
@@ -61,6 +62,7 @@ describe("Auth Code B2C PPE Tests", () => {
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
+        clientSecret = await labClient.getSecret(AppTypes.B2C);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
     });
 
@@ -69,12 +71,14 @@ describe("Auth Code B2C PPE Tests", () => {
     });
 
     describe("Acquire Token", () => {
-        let publicClientApplication: PublicClientApplication;
+        let confidentialClientApplication: ConfidentialClientApplication;
         let server: any;
 
         beforeAll(async () => {
-            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-            server = getTokenAuthCode(config, publicClientApplication, port);
+            console.log(clientSecret);
+            config.authOptions.clientSecret = clientSecret;
+            confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            server = getTokenAuthCode(config, confidentialClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 

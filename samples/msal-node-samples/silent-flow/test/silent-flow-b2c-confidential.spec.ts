@@ -8,7 +8,7 @@ import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtil
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { AppTypes, B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     clickSignIn,
     b2cLocalAccountEnterCredentials,
@@ -17,7 +17,7 @@ import {
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation} from "../../testUtils";
 
-import { PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication, PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c.cache.json`;
@@ -40,10 +40,11 @@ describe("Silent Flow B2C PPE Tests", () => {
     let port: number;
     let homeRoute: string;
 
-    let publicClientApplication: PublicClientApplication;
+    let confidentialClientApplication: ConfidentialClientApplication;
     let msalTokenCache: TokenCache;
     let server: any;
 
+    let clientSecret: string;
     let username: string;
     let accountPwd: string;
 
@@ -65,12 +66,13 @@ describe("Silent Flow B2C PPE Tests", () => {
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-
+        clientSecret = await labClient.getSecret(AppTypes.B2C);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-        publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
-        msalTokenCache = publicClientApplication.getTokenCache();
-        server = getTokenSilent(config, publicClientApplication, port, msalTokenCache);
+        config.authOptions.clientSecret = clientSecret;
+        confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+        msalTokenCache = confidentialClientApplication.getTokenCache();
+        server = getTokenSilent(config, confidentialClientApplication, port, msalTokenCache);
         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
     });
 
@@ -181,7 +183,7 @@ describe("Silent Flow B2C PPE Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                await publicClientApplication.clearCache();
+                await confidentialClientApplication.clearCache();
             });
 
             afterEach(async () => {

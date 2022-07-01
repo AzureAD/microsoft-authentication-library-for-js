@@ -116,9 +116,9 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
-            await page.waitForSelector(SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID);
+            await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
             await page.click("#callGraph");
-            await page.waitForSelector("#graph-called-successfully");
+            await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
         });
 
@@ -134,7 +134,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const expiredAccessToken = tokens.accessTokens[0];
             await page.click("#acquireTokenSilent");
-            await page.waitForSelector(SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID);
+            await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
             await page.click("#callGraph");
             await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
