@@ -39,7 +39,7 @@ describe("Auth Code B2C PPE Tests", () => {
     let port: string;
     let homeRoute: string;
 
-    let clientSecret: string;
+    let clientSecret: { secret: string, value: string };
     let username: string;
     let accountPwd: string;
 
@@ -75,8 +75,7 @@ describe("Auth Code B2C PPE Tests", () => {
         let server: any;
 
         beforeAll(async () => {
-            console.log(clientSecret);
-            config.authOptions.clientSecret = clientSecret;
+            config.authOptions.clientSecret = clientSecret.value;
             confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
             server = getTokenAuthCode(config, confidentialClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);

@@ -17,7 +17,7 @@ import {
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation} from "../../testUtils";
 
-import { ConfidentialClientApplication, PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c.cache.json`;
@@ -44,7 +44,7 @@ describe("Silent Flow B2C PPE Tests", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
-    let clientSecret: string;
+    let clientSecret: { secret: string, value: string };
     let username: string;
     let accountPwd: string;
 
@@ -69,7 +69,7 @@ describe("Silent Flow B2C PPE Tests", () => {
         clientSecret = await labClient.getSecret(AppTypes.B2C);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-        config.authOptions.clientSecret = clientSecret;
+        config.authOptions.clientSecret = clientSecret.value;
         confidentialClientApplication = new ConfidentialClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
         msalTokenCache = confidentialClientApplication.getTokenCache();
         server = getTokenSilent(config, confidentialClientApplication, port, msalTokenCache);

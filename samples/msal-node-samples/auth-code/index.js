@@ -14,6 +14,7 @@ const msal = require('@azure/msal-node');
  * - The authentication scenario/configuration file name
  */
 const argv = require("../cliArgs");
+const { request } = require("express");
 
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
