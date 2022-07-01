@@ -2,13 +2,13 @@
 
 This sample demonstrates a [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) registered on Azure AD B2C. It uses:
 
-1. [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
+1. [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) for:
 
 - sign-up/sign-in a user
 - reset/recover a user password
 - edit a user profile
 
-2. [Authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) to call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C)
+2. [Authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) to call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C).
 
 ## Registration
 
@@ -18,65 +18,53 @@ This sample demonstrates a [confidential client application](../../../lib/msal-n
 
 ## Configuration
 
-In `policies.js`, we create a `b2cPolicies` object to store authority strings for initiating each user-flow. The object may look like the following:
+In `customConfig.json`, we create a `policies` object to store authority strings for initiating each user-flow. The object may look like the following:
 
-```javascript
-const b2cPolicies = {
-    authorities: {
-        signUpSignIn: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi",
+```json
+    "policies": {
+        "authorities": {
+            "signUpSignIn": {
+                "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi"
+            },
+            "resetPassword": {
+                "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset"
+            },
+            "editProfile": {
+                "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_edit_profile"
+            }
         },
-        resetPassword: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset",
-        },
-        editProfile: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_edit_profile"
-        }
+        "authorityDomain": "fabrikamb2c.b2clogin.com"
     },
-    authorityDomain: "fabrikamb2c.b2clogin.com"
-}
 ```
 
 In `index.js`, we setup the configuration object expected by MSAL Node `confidentialClientApplication` class constructor:
 
 ```javascript
-const confidentialClientConfig = {
-    auth: {
-        clientId: "ENTER_CLIENT_ID",
-        authority: policies.authorities.signUpSignIn.authority, //signUpSignIn policy is our default authority
-        clientSecret: "ENTER_CLIENT_SECRET",
-        knownAuthorities: [policies.authorityDomain], // mark your tenant's custom domain as a trusted authority
-        redirectUri: "http://localhost:3000/redirect",
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
+    const confidentialClientConfig = {
+        auth: {
+            clientId: config.authOptions.clientId,
+            authority: config.policies.authorities.signUpSignIn.authority,
+            clientSecret: config.authOptions.clientSecret,
+            knownAuthorities: [config.policies.authorityDomain],
         }
-    }
-};
+    };
+
+    // Create an MSAL PublicClientApplication object
+    const confidentialClientApp = new msal.ConfidentialClientApplication(confidentialClientConfig);
 ```
 
-Implementing B2C user-flows is a matter of initiating token requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **password-reset**, the user first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the `https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset` authority.
+Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **password-reset**, the user first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another authorization request, this time against the `https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset` authority.
 
-> :information_source: This sample demonstrates the legacy password-reset user-flow. There's now a [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) that is part of the sign-up or sign-in policy. As such, you don't need a separate policy for password reset anymore. See the [b2c-auth-code-pkce](../b2c-auth-code-pkce/README.md) sample for how this works.
+> :information_source: This sample demonstrates the legacy password-reset user-flow. There's now a [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) that is part of the sign-up or sign-in policy. As such, you don't need a separate policy for password reset anymore.
 
-In order to keep track of these *flows*, we create request objects, attach them to session variable and manipulate them in the rest of the application.
+In order to keep track of these *flows*, we create request objects, attach them to the session variable and manipulate them in the rest of the application.
 
 ```javascript
-const APP_STATES = {
-    SIGN_IN: "sign_in",
-    CALL_API: "call_api",
-    PASSWORD_RESET: "password_reset",
-}
-
-const authCodeRequest = {
-};
-
-const tokenRequest = {
+const APP_STAGES = {
+    SIGN_IN: 'sign_in',
+    PASSWORD_RESET: 'password_reset',
+    EDIT_PROFILE: 'edit_profile',
+    ACQUIRE_TOKEN: 'acquire_token'
 };
 ```
 
@@ -93,130 +81,213 @@ const cca = new msal.ConfidentialClientApplication(confidentialClientConfig);
 Setup an Express route for initiating the sign-in flow:
 
 ```javascript
-app.get("/signin", (req, res) => {
-    if (authCodeRequest.state === APP_STATES.PASSWORD_RESET) {
-        // if coming for password reset, set the authority to password reset
-        getAuthCode(policies.authorities.resetPassword.authority, [], APP_STATES.PASSWORD_RESET, res);
-    } else {
-        // else, login as usual with the default authority
-        getAuthCode(policies.authorities.signUpSignIn.authority, [], APP_STATES.SIGN_IN, res);
-    }
-})
+app.get('/sign-in', (req, res, next) => {
+    // create a GUID against crsf
+    req.session.csrfToken = cryptoProvider.createNewGuid();
+
+    /**
+     * The MSAL Node library allows you to pass your custom state as state parameter in the Request object.
+     * The state parameter can also be used to encode information of the app's state before redirect.
+     * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
+     */
+    const state = cryptoProvider.base64Encode(
+        JSON.stringify({
+            csrfToken: req.session.csrfToken,
+            appStage: APP_STAGES.SIGN_IN,
+        })
+    );
+
+    const authCodeUrlRequestParams = {
+        authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+        state: state,
+    };
+
+    const authCodeRequestParams = {
+    };
+
+    return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+});
 ```
 
-### Get an authorization code
+### Get an authorization code URL
 
-Create a helper method to prepare request parameters that will be passed to MSAL Node's `getAuthCodeUrl()` method, which triggers the first leg of auth code flow.
+Create a helper method to prepare request parameters that will be passed to MSAL Node's `getAuthCodeUrl` API, which triggers the first leg of auth code flow.
 
 ```javascript
-const getAuthCode = (authority, scopes, state, res) => {
+const redirectToAuthCodeUrl = async (req, res, next, authCodeUrlRequestParams, authCodeRequestParams) => {
+    // Generate PKCE Codes before starting the authorization flow
+    const { verifier, challenge } = await cryptoProvider.generatePkceCodes();
 
-    // prepare the request
-    authCodeRequest.authority = authority;
-    authCodeRequest.scopes = scopes;
-    authCodeRequest.state = state;
+    // Set generated PKCE codes and method as session vars
+    req.session.pkceCodes = {
+        challengeMethod: 'S256',
+        verifier: verifier,
+        challenge: challenge,
+    };
 
-    tokenRequest.authority = authority;
+    /**
+     * By manipulating the request objects below before each request, we can obtain
+     * auth artifacts with desired claims. For more information, visit:
+     * https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationurlrequest
+     * https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationcoderequest
+     **/
 
-    // request an authorization code to exchange for a token
-    return cca.getAuthCodeUrl(authCodeRequest)
-        .then((response) => {
-            res.redirect(response);
-        })
-        .catch((error) => {
-            res.status(500).send(error);
-        });
-}
+    req.session.authCodeUrlRequest = {
+        redirectUri: REDIRECT_URI,
+        codeChallenge: req.session.pkceCodes.challenge,
+        codeChallengeMethod: req.session.pkceCodes.challengeMethod,
+        responseMode: 'form_post', // recommended for confidential clients
+        ...authCodeUrlRequestParams,
+    };
+
+    req.session.authCodeRequest = {
+        redirectUri: REDIRECT_URI,
+        code: "",
+        ...authCodeRequestParams,
+    };
+
+    // Get url to sign user in and consent to scopes needed for application
+    try {
+        const authCodeUrlResponse = await clientApplication.getAuthCodeUrl(req.session.authCodeUrlRequest);
+        res.redirect(authCodeUrlResponse);
+    } catch (error) {
+        next(error);
+    }
+};
 ```
 
 ### Handle redirect response
 
-The second leg of the auth code flow consists of handling the redirect response from the B2C server. We do this in the `/redirect` route, responding appropriately to the `state` parameter in the query string.
+The second leg of the auth code flow consists of handling the redirect response from the B2C server. We do this in the `/redirect` route, responding appropriately to the `state` parameter in the request body.
 
-> Learn more about the state parameter in requests [here](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow#1-get-an-authorization-code)
+> Learn more about the state parameter[here](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow#1-get-an-authorization-code)
 
 ```javascript
 // Second leg of auth code grant
-app.get("/redirect", (req, res) => {
+app.post('/redirect', async (req, res, next) => {
+    if (!req.body.state) {
+        return next(new Error('State not found'));
+    }
 
-    // determine where the request comes from
-    if (req.query.state === APP_STATES.SIGN_IN) {
+    // read the state object and determine the stage of the flow
+    const state = JSON.parse(cryptoProvider.base64Decode(req.body.state));
 
-        // prepare the request for authentication
-        tokenRequest.scopes = [];
-        tokenRequest.code = req.query.code;
+    if (state.csrfToken === req.session.csrfToken) {
+        switch (state.appStage) {
+            case APP_STAGES.SIGN_IN:
+                req.session.authCodeRequest.code = req.body.code; // authZ code
+                req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
-        cca.acquireTokenByCode(tokenRequest)
-            .then((response) => {
-                const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
-                res.render("api", templateParams);
-            }).catch((error) => {
-                if (req.query.error) {
+                try {
+                    const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                    req.session.account = tokenResponse.account;
+                    req.session.isAuthenticated = true;
+                    res.redirect('/');
+                } catch (error) {
+                    if (req.body.error) {
 
-                    /**
-                     * When the user selects "forgot my password" on the sign-in page, B2C service will throw an error.
-                     * We are to catch this error and redirect the user to login again with the resetPassword authority.
-                     * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
-                     */
-                    if (JSON.stringify(req.query.error_description).includes("AADB2C90118")) {
-                        authCodeRequest.authority = policies.authorities.resetPassword;
-                        authCodeRequest.state = APP_STATES.PASSWORD_RESET;
-                        return res.redirect('/login');
+                        /**
+                         * When the user selects 'forgot my password' on the sign-in page, B2C service will throw an error.
+                         * We are to catch this error and redirect the user to LOGIN again with the resetPassword authority.
+                         * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
+                         */
+                        if (JSON.stringify(req.body.error_description).includes('AADB2C90118')) {
+                            // create a GUID against crsf
+                            req.session.csrfToken = cryptoProvider.createNewGuid();
+
+                            const state = cryptoProvider.base64Encode(
+                                JSON.stringify({
+                                    csrfToken: req.session.csrfToken,
+                                    appStage: APP_STAGES.PASSWORD_RESET,
+                                })
+                            );
+
+                            const authCodeUrlRequestParams = {
+                                authority: scenarioConfig.policies.authorities.resetPassword.authority,
+                                state: state,
+                            };
+
+                            const authCodeRequestParams = {
+                            };
+
+                            // if coming for password reset, set the authority to password reset
+                            return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+                        }
                     }
+                    next(error);
                 }
-                res.status(500).send(error);
-            });
 
-    } else if (req.query.state === APP_STATES.CALL_API) {
+                break;
+            case APP_STAGES.ACQUIRE_TOKEN:
+                req.session.authCodeRequest.code = req.body.code; // authZ code
+                req.session.authCodeRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
-        // prepare the request for calling the web API
-        tokenRequest.authority = policies.authorities.signUpSignIn.authority;
-        tokenRequest.scopes = apiConfig.webApiScopes;
-        tokenRequest.code = req.query.code;
+                try {
+                    const tokenResponse = await clientApplication.acquireTokenByCode(req.session.authCodeRequest);
+                    req.session.accessToken = tokenResponse.accessToken;
+                    res.redirect('/call-api');
+                } catch (error) {
+                    next(error);
+                }
 
-        cca.acquireTokenByCode(tokenRequest)
-            .then((response) => {
-
-                // store access token somewhere
-                req.session.accessToken = response.accessToken;
-
-                // call the web API
-                api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
-                    const templateParams = { showLoginButton: false, profile: JSON.stringify(response, null, 4) };
-                    res.render("api", templateParams);
-                });
-
-            }).catch((error) => {
-                console.log(error);
-                res.status(500).send(error);
-            });
-
-    } else if (req.query.state === APP_STATES.PASSWORD_RESET) {
-
-        // once the password is reset, redirect the user to login again with the new password
-        authCodeRequest.state = APP_STATES.SIGN_IN;
-        res.redirect('/login');
+                break;
+            case APP_STAGES.PASSWORD_RESET:
+            case APP_STAGES.EDIT_PROFILE:
+                // redirect the user to sign-in again
+                res.redirect('/sign-in');
+                break;
+            default:
+                next(new Error('cannot determine app stage'));
+        }
     } else {
-        res.status(500).send("Unknown");
+        next(new Error('crsf token mismatch'));
     }
 });
 ```
 
 ### Acquire an access token
 
-Check if there is a stored access token in memory; if not, initiate the first leg of auth code flow to request an access token. Otherwise, call the web API.
+The `getToken` method below first checks if there is a non-expired access token in the cache for this user via msal-node's `acquireTokenSilent` API; if the access token is expired but the refresh token is not, it exchanges the refresh token for a new access token. If the refresh token is expired as well, it initiates the first leg of authorization code flow to request a new access token from Azure AD B2C:
 
 ```javascript
-app.get("/api", async (req, res) => {
-    // If no accessToken in store, request authorization code to exchange for a token
-    if (!req.session.accessToken) {
-        getAuthCode(policies.authorities.signUpSignIn.authority, apiConfig.webApiScopes, APP_STATES.CALL_API, res);
-    } else {
-        // else, call the web API
-        api.callWebApi(apiConfig.webApiUri, req.session.accessToken, (response) => {
-            const templateParams = { showLoginButton: false, profile: JSON.stringify(response, null, 4) };
-            res.render("api", templateParams);
-        });
+
+const getToken = async (req, res, next, scopes) => {
+    try {
+        const tokenCache = clientApplication.getTokenCache();
+        const account = await tokenCache.getAccountByHomeId(req.session.account.homeAccountId);
+
+        const silentRequest = {
+            account: account,
+            scopes: scopes,
+        };
+
+        // acquire token silently to be used in resource call
+        const tokenResponse = await clientApplication.acquireTokenSilent(silentRequest);
+        return tokenResponse;
+    } catch (error) {
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            req.session.csrfToken = cryptoProvider.createNewGuid();
+
+            state = cryptoProvider.base64Encode(
+                JSON.stringify({
+                    csrfToken: req.session.csrfToken,
+                    appStage: APP_STAGES.ACQUIRE_TOKEN,
+                })
+            );
+
+            const authCodeUrlRequestParams = {
+                authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+                state: state,
+            };
+
+            const authCodeRequestParams = {
+                scopes: scopes,
+            };
+
+            return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+        }
+
+        next(error);
     }
-});
+}
 ```

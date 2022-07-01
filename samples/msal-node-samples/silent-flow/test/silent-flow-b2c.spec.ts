@@ -14,7 +14,6 @@ import {
     b2cLocalAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
-    SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation} from "../../testUtils";
 

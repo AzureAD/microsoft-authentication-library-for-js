@@ -113,6 +113,61 @@ function main(scenarioConfig, clientApplication, port) {
         }
     };
 
+    /**
+     * Attempts to acquire an access token silently, falling back to the auth code flow if it fails.
+     * @param req: Express request object
+     * @param res: Express response object
+     * @param next: Express next function
+     * @param scopes: list of scopes
+     * @returns
+     */
+    const getToken = async (req, res, next, scopes) => {
+        try {
+            const tokenCache = clientApplication.getTokenCache();
+            const account = await tokenCache.getAccountByHomeId(req.session.account.homeAccountId);
+
+            const silentRequest = {
+                account: account,
+                scopes: scopes,
+            };
+
+            // acquire token silently to be used in resource call
+            const tokenResponse = await clientApplication.acquireTokenSilent(silentRequest);
+
+            if (!tokenResponse || tokenResponse.accessToken.length === 0) {
+                // In B2C scenarios, sometimes an access token is returned empty.
+                // In that case, we will acquire token interactively instead.
+                throw new InteractionRequiredAuthError(ErrorMessages.INTERACTION_REQUIRED);
+            }
+
+            return tokenResponse;
+        } catch (error) {
+            if (error instanceof msal.InteractionRequiredAuthError) {
+                req.session.csrfToken = cryptoProvider.createNewGuid();
+
+                state = cryptoProvider.base64Encode(
+                    JSON.stringify({
+                        csrfToken: req.session.csrfToken,
+                        appStage: APP_STAGES.ACQUIRE_TOKEN,
+                    })
+                );
+
+                const authCodeUrlRequestParams = {
+                    authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
+                    state: state,
+                };
+
+                const authCodeRequestParams = {
+                    scopes: scopes,
+                };
+
+                return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
+            }
+
+            next(error);
+        }
+    }
+
     app.get('/', function (req, res, next) {
         res.render('index', {
             title: 'MSAL Node & Express Web App',
@@ -152,63 +207,15 @@ function main(scenarioConfig, clientApplication, port) {
         };
 
         const authCodeRequestParams = {
+            /**
+             * By default, MSAL Node will add OIDC scopes to the auth code url request. For more information, visit:
+             * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
+             */
+            scopes: [],
         };
 
         return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
     });
-
-    /**
-     * Attempts to acquire an access token silently, falling back to the auth code flow if it fails.
-     * @param req: Express request object
-     * @param res: Express response object
-     * @param next: Express next function
-     * @param scopes: list of scopes
-     * @returns
-     */
-    const getToken = async (req, res, next, scopes) =>{
-        try {
-            const silentRequest = {
-                account: req.session.account,
-                scopes: scopes,
-            };
-
-            // acquire token silently to be used in resource call
-            const tokenResponse = await clientApplication.acquireTokenSilent(silentRequest);
-
-            if (!tokenResponse || tokenResponse.accessToken.length === 0) {
-                // In B2C scenarios, sometimes an access token is returned empty.
-                // In that case, we will acquire token interactively instead.
-                throw new InteractionRequiredAuthError(ErrorMessages.INTERACTION_REQUIRED);
-            }
-
-            req.session.accessToken = tokenResponse.accessToken;
-            res.redirect('/call-api');
-        } catch (error) {
-            if (error instanceof msal.InteractionRequiredAuthError) {
-                req.session.csrfToken = cryptoProvider.createNewGuid();
-
-                state = cryptoProvider.base64Encode(
-                    JSON.stringify({
-                        csrfToken: req.session.csrfToken,
-                        appStage: APP_STAGES.ACQUIRE_TOKEN,
-                    })
-                );
-
-                const authCodeUrlRequestParams = {
-                    authority: scenarioConfig.policies.authorities.signUpSignIn.authority,
-                    state: state,
-                };
-
-                const authCodeRequestParams = {
-                    scopes: scopes,
-                };
-
-                return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
-            }
-
-            next(error);
-        }
-    }
 
     // Initiates auth code grant for edit_profile user flow
     app.get('/edit-profile', (req, res, next) => {
@@ -230,13 +237,7 @@ function main(scenarioConfig, clientApplication, port) {
             state: state,
         };
 
-        const authCodeRequestParams = {
-            /**
-             * By default, MSAL Node will add OIDC scopes to the auth code url request. For more information, visit:
-             * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
-             */
-            scopes: [],
-        };
+        const authCodeRequestParams = {};
 
         return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);
     });
@@ -246,11 +247,8 @@ function main(scenarioConfig, clientApplication, port) {
             return res.redirect('/sign-in');
         }
 
-        if (!req.session.accessToken) {
-            return getToken(req, res, next, [...scenarioConfig.resourceApi.scopes]);
-        }
-
-        const apiResponse = await fetch(scenarioConfig.resourceApi.endpoint, req.session.accessToken);
+        const tokenResponse = await getToken(req, res, next, [...scenarioConfig.resourceApi.scopes]);
+        const apiResponse = await fetch(scenarioConfig.resourceApi.endpoint, tokenResponse.accessToken);
 
         res.render('api', {
             response: apiResponse,
