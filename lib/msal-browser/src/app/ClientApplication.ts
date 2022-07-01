@@ -276,6 +276,10 @@ export abstract class ClientApplication {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const redirectClient = this.createRedirectClient(request.correlationId);
                     return redirectClient.acquireToken(request);
+                } else if (e instanceof InteractionRequiredAuthError) {
+                    this.logger.verbose("acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow");
+                    const redirectClient = this.createRedirectClient(request.correlationId);
+                    return redirectClient.acquireToken(request);
                 }
                 this.browserStorage.setInteractionInProgress(false);
                 throw e;
@@ -341,6 +345,10 @@ export abstract class ClientApplication {
             }).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
+                    const popupClient = this.createPopupClient(request.correlationId);
+                    return popupClient.acquireToken(request);
+                } else if (e instanceof InteractionRequiredAuthError) {
+                    this.logger.verbose("acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow");
                     const popupClient = this.createPopupClient(request.correlationId);
                     return popupClient.acquireToken(request);
                 }
