@@ -6,6 +6,7 @@
 const express = require("express");
 const session = require("express-session")
 const msal = require('@azure/msal-node');
+const url = require('url');
 
 /**
  * Command line arguments can be used to configure:
@@ -52,6 +53,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     const requestConfig = scenarioConfig.request;
 
     app.get("/", (req, res) => {
+        // if redirect is set to main route "/", redirect to "/redirect" route
+        if (req.query.code) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
 
         const { authCodeUrlParameters } = requestConfig;
 

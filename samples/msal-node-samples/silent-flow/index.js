@@ -6,6 +6,7 @@ const express = require("express");
 const exphbs = require('express-handlebars');
 const msal = require('@azure/msal-node');
 const path = require('path');
+const url = require('url');
 
 /**
  * Command line arguments can be used to configure:
@@ -108,6 +109,9 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
 
     // Home Route
     router.get('/', (req, res) => {
+        // if redirect is set to main route "/", redirect to "/redirect" route
+        if (req.query.code) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+
         res.render("login", { showSignInButton: true });
     });
 

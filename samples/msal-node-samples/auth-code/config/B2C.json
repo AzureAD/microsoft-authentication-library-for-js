@@ -9,10 +9,10 @@
     {
         "authCodeUrlParameters": {
             "scopes": ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"],
-            "redirectUri": "http://localhost:3004/redirect"
+            "redirectUri": "http://localhost:3004"
         },
         "tokenRequest": {
-            "redirectUri": "http://localhost:3004/redirect",
+            "redirectUri": "http://localhost:3004",
             "scopes": ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
         }
     }
