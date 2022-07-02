@@ -70,7 +70,6 @@ export const UserTypes = {
 
 export const AppTypes = {
     CLOUD: "cloud",
-    ONPREM: "onprem",
-    B2C: 'b2capp',
+    ONPREM: "onprem"
 };
 
