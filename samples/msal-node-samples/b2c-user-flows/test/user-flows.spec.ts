@@ -111,18 +111,6 @@ describe("B2C User Flow Tests", () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it("Performs sign-in", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/sign-in`);
-            await page.goto(homeRoute);
-            await page.click("#signIn");
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
-            expect(cachedTokens.accessTokens.length).toBe(0); // b2c does not issue access tokens at sign-in (scope: openid)
-            expect(cachedTokens.idTokens.length).toBe(1);
-            expect(cachedTokens.refreshTokens.length).toBe(1);
-        });
-
         it("Performs edit profile", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/edit-profile`);
             await page.goto(homeRoute);

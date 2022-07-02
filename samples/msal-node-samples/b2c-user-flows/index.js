@@ -121,7 +121,12 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
     const getToken = async (req, res, next, scopes) => {
         try {
             const tokenCache = clientApplication.getTokenCache();
-            const account = await tokenCache.getAccountByHomeId(req.session.account.homeAccountId);
+
+            const account = req.session.account.homeAccountId
+                ?
+                await tokenCache.getAccountByHomeId(req.session.account.homeAccountId)
+                :
+                await tokenCache.getAccountByLocalId(req.session.account.localAccountId);
 
             const silentRequest = {
                 account: account,
@@ -255,7 +260,7 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
         });
     });
 
-    app.get('/sign-out', function (req, res) {
+    app.get('/sign-out', async (req, res, next) => {
         /**
          * Construct a logout URI and redirect the user to end the
          * session with Azure AD B2C. For more information, visit:
@@ -264,9 +269,23 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
         const logoutUri =
             `${scenarioConfig.policies.authorities.signUpSignIn.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=http://localhost:${serverPort}`;
 
-        req.session.destroy(() => {
-            res.redirect(logoutUri);
-        });
+        try {
+            const tokenCache = clientApplication.getTokenCache();
+
+            const account = req.session.account.homeAccountId
+                ?
+                await tokenCache.getAccountByHomeId(req.session.account.homeAccountId)
+                :
+                await tokenCache.getAccountByLocalId(req.session.account.localAccountId);
+
+            await tokenCache.removeAccount(account);
+
+            req.session.destroy(() => {
+                res.redirect(logoutUri);
+            });
+        } catch (error) {
+            next(error);
+        }
     });
 
     // Second leg of auth code grant
