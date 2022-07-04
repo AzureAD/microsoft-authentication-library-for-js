@@ -264,7 +264,8 @@ export abstract class CacheManager implements ICacheManager {
         return this.getAccountsFilteredByInternal(
             accountFilter ? accountFilter.homeAccountId : Constants.EMPTY_STRING,
             accountFilter ? accountFilter.environment : Constants.EMPTY_STRING,
-            accountFilter ? accountFilter.realm : Constants.EMPTY_STRING
+            accountFilter ? accountFilter.realm : Constants.EMPTY_STRING,
+            accountFilter ? accountFilter.nativeAccountId: Constants.EMPTY_STRING,
         );
     }
 
@@ -679,6 +680,27 @@ export abstract class CacheManager implements ICacheManager {
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
         const accountKey: string = AccountEntity.generateAccountCacheKey(account);
         return this.getAccount(accountKey);
+    }
+
+    /**
+     * Retrieve AccountEntity from cache
+     * @param account
+     */
+    readAccountFromCacheWithNativeAccountId(nativeAccountId: string): AccountEntity | null {
+        // fetch account from memory
+        const accountFilter: AccountFilter = {
+            nativeAccountId
+        };
+        const accountCache: AccountCache = this.getAccountsFilteredBy(accountFilter);
+        const accounts = Object.keys(accountCache).map((key) => accountCache[key]);
+
+        if (accounts.length < 1) {
+            return null;
+        } else if (accounts.length > 1) {
+            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
+        }
+
+        return accountCache[0];
     }
 
     /**
