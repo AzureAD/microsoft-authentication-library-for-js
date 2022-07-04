@@ -21,7 +21,6 @@ export class SilentFlowClient extends BaseClient {
     
     constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
         super(configuration);
-        this.performanceClient = performanceClient;
     }
 
     /**

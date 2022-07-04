@@ -185,7 +185,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        const correlationId = request.correlationId;
         const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
         const parameterBuilder = new RequestParameterBuilder();
 
