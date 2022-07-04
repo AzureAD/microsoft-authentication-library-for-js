@@ -220,6 +220,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = idToken.generateCredentialKey();
         if (storeCredentialsInMemory) {
+            this.logger.trace("storing in memory");
             this.setItem(idTokenKey, JSON.stringify(idToken));
         } else {
             this.internalStorage.setItem(idTokenKey, JSON.stringify(idToken));
