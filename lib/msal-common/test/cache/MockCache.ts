@@ -40,8 +40,20 @@ export class MockCache {
             "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         };
         const account = CacheManager.toObject(new AccountEntity(), accountData);
-
         this.cacheManager.setAccount(account);
+
+        const accountDataWithNativeAccountId = {
+            "username": "John Doe",
+            "localAccountId": "object1234",
+            "realm": "microsoft",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            "nativeAccountId": "mocked_native_account_id"
+        };
+        const accountWithNativeAccountId = CacheManager.toObject(new AccountEntity(), accountDataWithNativeAccountId);
+        this.cacheManager.setAccount(accountWithNativeAccountId);
     }
 
     // create id token entries in the cache

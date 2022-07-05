@@ -120,8 +120,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
             // fetch accessToken from memory
             const authRequest: BaseAuthRequest = {
-                authority: request.authority || "",
-                correlationId: request.correlationId || "",
+                authority: request.authority || Constants.EMPTY_STRING,
+                correlationId: request.correlationId || Constants.EMPTY_STRING,
                 scopes: request.scopes || [],
                 authenticationScheme: request.authenticationScheme
             };
@@ -136,6 +136,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const isAccessTokenExpired: boolean = TimeUtils.wasClockTurnedBack(accessToken.cachedAt) ||
                 TimeUtils.isTokenExpired(accessToken.expiresOn, this.config.system.tokenRenewalOffsetSeconds);
             if (isAccessTokenExpired) {
+                this.logger.verbose("NativeInteractionClient - acquireTokensFromInternalCache; accessToken found in the cache has expired") ;
                 throw NativeAuthError.createTokensNotFoundInCacheError();
             }
 
@@ -149,14 +150,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 tenantId: idTokenObj.claims.tid || Constants.EMPTY_STRING,
                 scopes: ScopeSet.fromString(accessToken.target).asArray(),
                 account: account,
-                idToken: idToken? idToken.secret : "",
+                idToken: idToken? idToken.secret : Constants.EMPTY_STRING,
                 idTokenClaims: idTokenObj.claims,
                 accessToken: accessToken.secret,
                 fromCache: false,
                 expiresOn: new Date(reqTimestamp),
-                tokenType: accessToken.tokenType?.toString() || "",
+                tokenType: accessToken.tokenType?.toString() || Constants.EMPTY_STRING,
                 correlationId: this.correlationId,
-                state: "",
+                state: Constants.EMPTY_STRING,
                 fromNativeBroker: true
             };
         } catch (error) {

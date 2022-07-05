@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationScheme, AccountInfo, StubPerformanceClient } from "@azure/msal-common";
+import { AuthenticationScheme, AccountInfo, PromptValue, AuthenticationResult, AccountEntity, IdTokenEntity, AccessTokenEntity, CredentialType, TimeUtils, CacheManager} from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { ApiId } from "../../src/utils/BrowserConstants";
@@ -11,14 +11,51 @@ import { NativeInteractionClient } from "../../src/interaction_client/NativeInte
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS } from "../utils/StringConstants";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
-import { AuthenticationResult } from "@azure/msal-common";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
-import { PromptValue } from "@azure/msal-common";
 import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
+
+const networkInterface = {
+    sendGetRequestAsync<T>(): T {
+        return {} as T;
+    },
+    sendPostRequestAsync<T>(): T {
+        return {} as T;
+    },
+};
+
+const testAccountEntity: AccountEntity = new AccountEntity();
+testAccountEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
+testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
+testAccountEntity.environment = "login.microsoftonline.com";
+testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
+testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
+testAccountEntity.name = ID_TOKEN_CLAIMS.name;
+testAccountEntity.authorityType = "MSSTS";
+testAccountEntity.nativeAccountId = "myNativeAccountId";
+
+const testIdToken: IdTokenEntity = new IdTokenEntity();
+testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
+testIdToken.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
+testIdToken.environment = testAccountEntity.environment;
+testIdToken.realm = ID_TOKEN_CLAIMS.tid;
+testIdToken.secret = TEST_TOKENS.IDTOKEN_V2;
+testIdToken.credentialType = CredentialType.ID_TOKEN;
+
+const testAccessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
+testAccessTokenEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
+testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
+testAccessTokenEntity.environment = testAccountEntity.environment;
+testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
+testAccessTokenEntity.secret = TEST_TOKENS.ACCESS_TOKEN;
+testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
+testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
+testAccessTokenEntity.expiresOn = `${TimeUtils.nowSeconds() + 3600}`;
+testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
+testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
-    
+
     const pca = new PublicClientApplication({
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -40,6 +77,27 @@ describe("NativeInteractionClient Tests", () => {
         sinon.restore();
         sessionStorage.clear();
         localStorage.clear();
+    });
+
+    describe("acquireTokensFromInternalCache Tests", () => {
+
+        sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+        sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+        sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+
+        it("Tokens found in cache", async () => {
+            const response = await nativeInteractionClient.acquireToken({ scopes: ["User.Read"] });
+            expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
+            expect(response.idToken).toEqual(testIdToken.secret);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(testAccessTokenEntity.target);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(testAccountEntity.getAccountInfo());
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
     });
 
     describe("acquireToken Tests", () => {
@@ -84,8 +142,8 @@ describe("NativeInteractionClient Tests", () => {
 
         it("throws if prompt: login", (done) => {
             nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN
+                scopes: ["User.Read"],
+                prompt: PromptValue.LOGIN
             }).catch (e => {
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.desc);
@@ -95,8 +153,8 @@ describe("NativeInteractionClient Tests", () => {
 
         it("throws if prompt: select_account", (done) => {
             nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    prompt: PromptValue.SELECT_ACCOUNT
+                scopes: ["User.Read"],
+                prompt: PromptValue.SELECT_ACCOUNT
             }).catch (e => {
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.desc);
@@ -106,8 +164,8 @@ describe("NativeInteractionClient Tests", () => {
 
         it("throws if prompt: create", (done) => {
             nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    prompt: PromptValue.CREATE
+                scopes: ["User.Read"],
+                prompt: PromptValue.CREATE
             }).catch (e => {
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.desc);
@@ -345,7 +403,7 @@ describe("NativeInteractionClient Tests", () => {
             });
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
-            nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]}).then(() => {
+            nativeInteractionClient.acquireTokenRedirect({ scopes: ["User.Read"] }).then(() => {
                 // @ts-ignore
                 const inProgress = pca.browserStorage.getInteractionInProgress();
                 expect(inProgress).toBeTruthy();
@@ -356,7 +414,7 @@ describe("NativeInteractionClient Tests", () => {
                     expect(isInProgress).toBeFalsy();
                     done();
                 });
-            })
+            });
         });
 
         it("returns null if interaction is not in progress", async () => {
