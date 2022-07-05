@@ -54,7 +54,7 @@ export type CredentialFilter = {
     familyId?: string;
     realm?: string;
     target?: string;
-    oboAssertion?: string;
+    userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
     requestedClaimsHash?: string;
