@@ -319,17 +319,35 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
-        if (request.prompt) {
+        const getPrompt = () => {
+            // If request is silent, prompt is always none
+            switch (this.apiId) {
+                case ApiId.ssoSilent:
+                case ApiId.acquireTokenSilent_silentFlow:
+                    this.logger.trace("initializeNativeRequest: silent request sets prompt to none");
+                    return PromptValue.NONE;
+                default:
+                    break;
+            }
+
+            // Prompt not provided, request may proceed and native broker decides if it needs to prompt
+            if (!request.prompt) {
+                this.logger.trace("initializeNativeRequest: prompt was not provided");
+                return undefined;
+            }
+            
+            // If request is interactive, check if prompt provided is allowed to go directly to native broker
             switch (request.prompt) {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
+                case PromptValue.LOGIN:
                     this.logger.trace("initializeNativeRequest: prompt is compatible with native flow");
-                    break;
+                    return request.prompt;
                 default:
                     this.logger.trace(`initializeNativeRequest: prompt = ${request.prompt} is not compatible with native flow`);
                     throw BrowserAuthError.createNativePromptParameterNotSupportedError();
             }
-        }
+        };
 
         const validatedRequest: NativeTokenRequest = {
             ...request,
@@ -338,6 +356,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             authority: canonicalAuthority.urlString,
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
+            prompt: getPrompt(),
             correlationId: this.correlationId,
             tokenType: request.authenticationScheme,
             windowTitleSubstring: document.title,
@@ -366,10 +385,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
             validatedRequest.reqCnf = reqCnfData.reqCnfHash;
             validatedRequest.keyId = reqCnfData.kid;
-        }
-
-        if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
-            validatedRequest.prompt = PromptValue.NONE;
         }
 
         return validatedRequest;

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add InteractionRequired error for native account unavailable #4951",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
