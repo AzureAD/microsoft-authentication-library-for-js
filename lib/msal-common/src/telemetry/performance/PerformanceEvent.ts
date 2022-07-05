@@ -217,6 +217,29 @@ export type PerformanceEvent = {
     libraryVersion: string,
 
     /**
+     * Size of the id token
+     *
+     * @type {number}
+     */
+    idTokenSize?: number,
+
+    /**
+     * 
+     * Size of the access token
+     *
+     * @type {number}
+     */
+
+    accessTokenSize?: number,
+
+    /**
+     * Size of the refresh token
+     *
+     * @type {number}
+     */
+    refreshTokenSize?: number,
+
+    /**
      * Application name as specified by the app.
      *
      * @type {?string}

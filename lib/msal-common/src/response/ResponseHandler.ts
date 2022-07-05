@@ -139,6 +139,12 @@ export class ResponseHandler {
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
 
+        const tokenSizes = {
+            refreshTokenSize: serverTokenResponse.refresh_token ? serverTokenResponse.refresh_token.length : null,
+            accessTokenSize: serverTokenResponse.access_token ? serverTokenResponse.access_token.length : null,
+            idTokenSize: serverTokenResponse.id_token ? serverTokenResponse.id_token.length : null,
+        };
+
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
         let cacheContext;
         try {
@@ -157,7 +163,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, tokenSizes);
                 }
             }
             await this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -167,7 +173,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, tokenSizes);
     }
 
     /**
@@ -309,7 +315,8 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
-        code?: string
+        code?: string,
+        tokenSizes?: object,
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -354,6 +361,7 @@ export class ResponseHandler {
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code,
+            tokenSizes, 
             fromNativeBroker: false
         };
     }

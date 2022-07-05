@@ -209,6 +209,7 @@ export abstract class ClientApplication {
 
                 response = redirectResponse.then((result: AuthenticationResult | null) => {
                     if (result) {
+                        this.performanceClient.setTokenSizes(result.tokenSizes);
                         // Emit login event if number of accounts change
                         const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                         if (isLoggingIn) {
@@ -351,6 +352,7 @@ export abstract class ClientApplication {
         }
 
         return result.then((result) => {
+            this.performanceClient.setTokenSizes(result.tokenSizes);
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
