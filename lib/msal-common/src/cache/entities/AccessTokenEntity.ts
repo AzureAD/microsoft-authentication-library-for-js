@@ -71,10 +71,10 @@ export class AccessTokenEntity extends CredentialEntity {
         cryptoUtils: ICrypto,
         refreshOn?: number,
         tokenType?: AuthenticationScheme,
-        oboAssertion?: string,
+        userAssertionHash?:string,
         keyId?: string,
         requestedClaims?: string,
-        requestedClaimsHash?: string 
+        requestedClaimsHash?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -99,7 +99,7 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.clientId = clientId;
         atEntity.realm = tenantId;
         atEntity.target = scopes;
-        atEntity.oboAssertion = oboAssertion;
+        atEntity.userAssertionHash = userAssertionHash;
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 

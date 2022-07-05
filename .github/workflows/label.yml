@@ -7,18 +7,23 @@
 
 name: Labeler
 on: 
-- pull_request
+- pull_request_target # Runs on the target branch, allowing this to run for community PRs
 
 concurrency:
   group: labeler-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   label:
+    permissions:
+      contents: read  # for actions/labeler to determine modified files
+      pull-requests: write  # for actions/labeler to add labels to PRs
     runs-on: ubuntu-latest
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.event.pull_request.head.repo.full_name == github.repository) && (github.actor != 'dependabot[bot]')
     steps:
-    - uses: actions/labeler@v3
+    - uses: actions/labeler@v4
       with:
         repo-token: "${{ secrets.GITHUB_TOKEN }}"
         configuration-path: ".github/labeler.yml"

@@ -374,7 +374,7 @@ export abstract class ClientApplication {
         // Set requested claims hash if claims were requested
         if (authRequest.claims && !StringUtils.isEmpty(authRequest.claims)) {
             authRequest.requestedClaimsHash = await this.cryptoProvider.hashString(authRequest.claims);
-        } 
+        }
 
         return {
             ...authRequest,
@@ -420,7 +420,7 @@ export abstract class ClientApplication {
             azureRegionConfiguration
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
     }
 
     /**

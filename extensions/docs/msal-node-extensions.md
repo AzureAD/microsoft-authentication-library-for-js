@@ -102,7 +102,7 @@ const publicClientConfig = {
         authority: "",
     },
     cache: {
-        cachePlugin: persistenceCachePlugin;
+        cachePlugin: persistenceCachePlugin
     },
 };
 

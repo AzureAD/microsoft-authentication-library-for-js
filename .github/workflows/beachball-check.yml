@@ -12,8 +12,14 @@ concurrency:
   group: beachball-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   beachball-check:
+    permissions:
+      contents: read  # for actions/checkout to fetch code
+      pull-requests: read  # for dorny/paths-filter to read pull requests
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
@@ -28,14 +34,14 @@ jobs:
             - 'lib/**/**.!(md)'
             - 'extensions/msal-node-extensions/**/**.!(md)'
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       if: ${{ steps.filter.outputs.lib == 'true' }}
       with:
         fetch-depth: 0
 
     - name: Use Node.js
       if: ${{ steps.filter.outputs.lib == 'true' }}
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Install beachball
       if: ${{ steps.filter.outputs.lib == 'true' }}
