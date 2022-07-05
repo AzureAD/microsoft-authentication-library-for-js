@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add local cache support for JS-WAM bridge #4971",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
