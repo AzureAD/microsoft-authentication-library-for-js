@@ -413,7 +413,3 @@ describe('PublicClientApplication', () => {
         authApp.getLogger().info("Message");
     });
 });
-
-
-
-
