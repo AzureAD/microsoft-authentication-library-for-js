@@ -79,7 +79,7 @@ Click the `Copy to Clipboard` icon, and add the secret to the config object in `
     return getTokenAuthCode(config, publicClientApplication, null);
 
     // To this
-    const confidentialClientApplication = new msa.ConfidentialClientApplication(clientConfig);
+    const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
     return getTokenAuthCode(config, confidentialClientApplication, null);
 ```
 🎉You have finished the basic configuration!🎉
