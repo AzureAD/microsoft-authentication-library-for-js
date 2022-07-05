@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "feat: adding authority metadata resiliency #4536",
-  "packageName": "@azure/msal-browser",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "patch"
-}
