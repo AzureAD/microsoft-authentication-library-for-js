@@ -196,5 +196,9 @@ export type PerformanceEvent = {
      *
      * @type {string}
      */
-    libraryVersion: string
+    libraryVersion: string,
+
+    idTokenSize?: number,
+    accessTokenSize?: number, 
+    refreshTokenSize?: number
 };

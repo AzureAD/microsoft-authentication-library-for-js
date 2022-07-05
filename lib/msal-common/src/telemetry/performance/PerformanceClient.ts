@@ -9,12 +9,16 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./PerformanceEvent";
 
 export abstract class PerformanceClient implements IPerformanceClient {
+  //  protected httpVer?: string;
     protected authority: string;
     protected libraryName: string;
     protected libraryVersion: string;
     protected clientId: string;
     protected logger: Logger;
     protected callbacks: Map<string, PerformanceCallbackFunction>;
+    protected idTokenSize?: number;
+    protected accessTokenSize?: number; 
+    protected refreshTokenSize?: number;
     
     /**
      * Multiple events with the same correlation id.
@@ -52,6 +56,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
+        this.idTokenSize= undefined;
+        this.accessTokenSize= undefined;
+        this.refreshTokenSize= undefined;
+        
     }
     
     /**
@@ -99,7 +107,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
             clientId: this.clientId,
             name: measureName,
             startTimeMs: Date.now(),
-            correlationId: eventCorrelationId
+            correlationId: eventCorrelationId,
+            idTokenSize: this.idTokenSize,
+            accessTokenSize: this.accessTokenSize,
+            refreshTokenSize: this.refreshTokenSize,
         };
 
         // Store in progress events so they can be discarded if not ended properly
@@ -120,7 +131,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     // Cache event so that submeasurements can be added downstream
                     this.cacheEventByCorrelationId(completedEvent);
                 }
-    
+                console.log("Completed event");
+                console.log(completedEvent);
                 return completedEvent;
             },
             flushMeasurement: () => {
@@ -147,12 +159,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (performanceMeasurement) {
             // Immediately delete so that the same event isnt ended twice
             this.measurementsById.delete(event.eventId);
-            performanceMeasurement.endMeasurement();
+            performanceMeasurement.endMeasurement(); //loop????
             const durationMs = performanceMeasurement.flushMeasurement();
             // null indicates no measurement was taken (e.g. needed performance APIs not present)
             if (durationMs !== null) {
                 this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
-    
+                console.log(`**!!! PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
+                
                 const completedEvent: PerformanceEvent = {
                     // Allow duration to be overwritten when event ends (e.g. testing), but not status
                     durationMs: Math.round(durationMs),
@@ -211,6 +224,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
+        console.log('EVENTS', eventsForCorrelationId);
         if (eventsForCorrelationId) {
             this.discardMeasurements(correlationId);
             
@@ -226,7 +240,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
-                        completedEvents.push(completedEvent);
+                        completedEvents.push(completedEvent);  //why this???
                     }
                 }
 
@@ -266,11 +280,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
-                    }
 
-                    return previous;
+                        
+                    }
+                    else{
+                        console.log("current name is same which is ....");
+                        console.log(current.name);
+                    }
+                    return previous;  //should we always return previous?
+                    
                 }, topLevelEvent);
 
+                console.log("eventsssToEmit.........*********************");
+                console.log([eventToEmit]);
+                console.log("Emitting above eventssssss with following correlation id......");
                 this.emitEvents([eventToEmit], eventToEmit.correlationId);
             } else {
                 this.logger.verbose(`PerformanceClient: No completed top-level measurements found for ${measureName}`, correlationId);
@@ -335,5 +358,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.trace(`PerformanceClient: Emitting event to callback ${callbackId}`, correlationId);
             callback.apply(null, [events]);
         });
+    }
+    
+    setTokenSizes({idTokenSize , accessTokenSize, refreshTokenSize} : {idTokenSize?: number; accessTokenSize?: number; refreshTokenSize?: number}): void {
+        this.idTokenSize = idTokenSize;
+        this.accessTokenSize = accessTokenSize;
+        this.refreshTokenSize = refreshTokenSize;
     }
 }

@@ -82,7 +82,8 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
+        console.log('HEADERS', response.headers);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload, undefined, undefined);
     }
 
     /**
