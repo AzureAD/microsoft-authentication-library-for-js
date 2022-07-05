@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Mark temporary cache cookies as SameSite lax #4957",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
