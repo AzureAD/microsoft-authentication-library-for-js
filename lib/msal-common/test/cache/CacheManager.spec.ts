@@ -228,7 +228,7 @@ describe("CacheManager.ts test cases", () => {
 
         it("nativeAccountId filter", () => {
             // filter by nativeAccountId
-            const successFilter: AccountFilter = { nativeAccountId: "myNativeAccountId" };
+            const successFilter: AccountFilter = { nativeAccountId: "mocked_native_account_id" };
             let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
             expect(Object.keys(accounts).length).toEqual(1);
 
