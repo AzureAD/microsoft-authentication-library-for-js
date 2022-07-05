@@ -31,9 +31,9 @@ jobs:
         working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
 
       - name: Install dependencies
         run: npm install
@@ -50,7 +50,7 @@ jobs:
         run: npm run cdn
 
       - name: Upload CDN Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: inputs.cdn
         with:
           name: ${{ inputs.lib-name }}-artifacts
