@@ -83,7 +83,7 @@ app.get('/redirect', function (req, res, next) {
             if (err) return next(err);
 
             // cache the response
-            authenticationContext.cache.add([response], (err, result) => {
+            authenticationContext.cache.add([response], function (err, result) {
                 if (err) return next(err);
                 console.log(result);
             });

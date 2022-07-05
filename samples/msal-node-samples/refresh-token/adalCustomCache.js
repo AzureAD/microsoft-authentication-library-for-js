@@ -101,14 +101,14 @@ function entriesHaveEqualHashKeys(a, b) {
 }
 
 function extractCacheKeyFromEntry(entry) {
-    if (entry) {
-        return {
-            _clientId: entry._clientId,
-            _authority: entry._authority,
-            userId: entry.userId,
-            resource: entry.resource
-        };
-    }
+    if (!entry) return null;
+
+    return {
+        _clientId: entry._clientId,
+        _authority: entry._authority,
+        userId: entry.userId,
+        resource: entry.resource
+    };
 }
 
 module.exports = DiskCache
