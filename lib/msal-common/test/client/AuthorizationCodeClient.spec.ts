@@ -195,6 +195,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
                 sid: "testSid",
+                // @ts-ignore
                 login_hint: "opaque-login-hint-claim"
             };
             testAccount.idTokenClaims = testTokenClaims;
@@ -211,6 +212,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl.includes(`${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`)).toBe(false);
+            // @ts-ignore
             expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(testTokenClaims.login_hint)}`)).toBe(true);
             expect(loginUrl.includes(`${HeaderNames.CCS_HEADER}=${encodeURIComponent(`Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`)}`)).toBe(true);
         });

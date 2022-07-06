@@ -430,10 +430,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param account 
      */
     private extractAccountSid(account: AccountInfo): string | null {
-        return account.idTokenClaims?.sid || null;
+        return account.idTokenClaims?.["sid"] || null;
     }
 
     private extractLoginHint(account: AccountInfo): string | null {
-        return account.idTokenClaims?.login_hint || null;
+        return account.idTokenClaims?.["login_hint"] || null;
     }
 }
