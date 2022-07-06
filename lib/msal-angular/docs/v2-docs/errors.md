@@ -53,7 +53,8 @@ export class ExampleComponent implements OnInit {
 
 ```javascript
 import { Component, OnInit } from '@angular/core';
-import { MsalService, MsalBroadcastService, InteractionStatus } from '@azure/msal-angular';
+import { InteractionStatus } from '@azure/msal-browser';
+import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
 import { filter } from 'rxjs/operators';
 
 @Component()
