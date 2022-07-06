@@ -111,14 +111,14 @@ export class ResponseHandler {
         reqTimestamp: number,
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
-        oboAssertion?: string,
+        userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-            
+
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -176,7 +176,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, idTokenObj?: AuthToken, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, idTokenObj?: AuthToken, userAssertionHash?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -192,14 +192,12 @@ export class ResponseHandler {
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
                 this.clientId,
                 idTokenObj.claims.tid || Constants.EMPTY_STRING,
-                oboAssertion
             );
 
             cachedAccount = this.generateAccountEntity(
                 serverTokenResponse,
                 idTokenObj,
                 authority,
-                oboAssertion,
                 authCodePayload
             );
         }
@@ -235,13 +233,13 @@ export class ResponseHandler {
                 this.cryptoObj,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
-                oboAssertion,
+                userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
                 request.requestedClaimsHash
             );
         }
-        
+
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
@@ -251,7 +249,7 @@ export class ResponseHandler {
                 serverTokenResponse.refresh_token || Constants.EMPTY_STRING,
                 this.clientId,
                 serverTokenResponse.foci,
-                oboAssertion
+                userAssertionHash
             );
         }
 
@@ -270,7 +268,7 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, authCodePayload?: AuthorizationCodePayload): AccountEntity {
         const authorityType = authority.authorityType;
         const cloudGraphHostName = authCodePayload ? authCodePayload.cloud_graph_host_name : Constants.EMPTY_STRING;
         const msGraphhost = authCodePayload ? authCodePayload.msgraph_host : Constants.EMPTY_STRING;
@@ -278,7 +276,7 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
+            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, cloudGraphHostName, msGraphhost);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -287,8 +285,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost) :
-            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, cloudGraphHostName, msGraphhost) :
+            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, cloudGraphHostName, msGraphhost);
     }
 
     /**
@@ -302,10 +300,10 @@ export class ResponseHandler {
      * @param stateString
      */
     static async generateAuthenticationResult(
-        cryptoObj: ICrypto, 
+        cryptoObj: ICrypto,
         authority: Authority,
-        cacheRecord: CacheRecord, 
-        fromTokenCache: boolean, 
+        cacheRecord: CacheRecord,
+        fromTokenCache: boolean,
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
@@ -320,7 +318,13 @@ export class ResponseHandler {
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
+                const { secret, keyId } = cacheRecord.accessToken;
+
+                if (!keyId) {
+                    throw ClientAuthError.createKeyIdMissingError();
+                }
+
+                accessToken = await popTokenGenerator.signPopToken(secret, keyId, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }

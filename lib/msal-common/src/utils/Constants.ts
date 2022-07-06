@@ -393,3 +393,8 @@ export enum CacheOutcome {
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
     REFRESH_CACHED_ACCESS_TOKEN = "4"
 }
+
+export enum JsonTypes {
+    Jwt = "JWT",
+    Jwk = "JWK"
+}

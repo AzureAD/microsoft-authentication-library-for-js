@@ -15,12 +15,12 @@
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/eslint-plugin-tslint": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
-    "beachball": "^2.16.0",
+    "beachball": "^2.22.4",
     "dotenv": "^8.2.0",
     "eslint": "^7.8.1",
     "eslint-plugin-header": "^3.1.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-react": "^7.21.4",
+    "eslint-plugin-react": "~7.29.4",
     "eslint-plugin-react-hooks": "^4.1.2",
     "eslint-plugin-security": "^1.4.0",
     "gh-pages": "^3.1.0",
@@ -66,6 +66,5 @@
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
-  },
-  "dependencies": {}
+  }
 }
