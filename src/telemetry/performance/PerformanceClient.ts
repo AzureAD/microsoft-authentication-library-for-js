@@ -17,9 +17,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected clientId: string;
     protected logger: Logger;
     protected callbacks: Map<string, PerformanceCallbackFunction>;
-    protected idTokenSize?: number;
-    protected accessTokenSize?: number;
-    protected refreshTokenSize?: number;
 
     /**
      * Multiple events with the same correlation id.
@@ -58,9 +55,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
-        this.accessTokenSize = undefined;
-        this.idTokenSize = undefined;
-        this.refreshTokenSize = undefined;
     }
 
     /**
@@ -111,9 +105,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             name: measureName,
             startTimeMs: Date.now(),
             correlationId: eventCorrelationId,
-            idTokenSize: this.idTokenSize,
-            accessTokenSize: this.accessTokenSize,
-            refreshTokenSize: this.refreshTokenSize,
         };
 
         // Store in progress events so they can be discarded if not ended properly
@@ -280,6 +271,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
+                        if (current.accessTokenSize) {
+                            previous.accessTokenSize = current.accessTokenSize;
+                        }
+                        if (current.refreshTokenSize) {
+                            previous.refreshTokenSize = current.refreshTokenSize;
+                        }
+                        if (current.idTokenSize) {
+                            previous.idTokenSize = current.idTokenSize;
+                        }
                     }
 
                     return previous;
@@ -351,9 +351,4 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
     }
 
-    setTokenSizes({ idTokenSize, accessTokenSize, refreshTokenSize }: { idTokenSize?: number; accessTokenSize?: number; refreshTokenSize?: number }): void {
-        this.idTokenSize = idTokenSize;
-        this.accessTokenSize = accessTokenSize;
-        this.refreshTokenSize = refreshTokenSize;
-    }
 }

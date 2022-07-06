@@ -139,12 +139,6 @@ export class ResponseHandler {
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
 
-        const tokenSizes = {
-            refreshTokenSize: serverTokenResponse.refresh_token ? serverTokenResponse.refresh_token.length : null,
-            accessTokenSize: serverTokenResponse.access_token ? serverTokenResponse.access_token.length : null,
-            idTokenSize: serverTokenResponse.id_token ? serverTokenResponse.id_token.length : null,
-        };
-
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
         let cacheContext;
         try {
@@ -316,7 +310,6 @@ export class ResponseHandler {
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
         code?: string,
-        tokenSizes?: object,
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -361,7 +354,6 @@ export class ResponseHandler {
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code,
-            tokenSizes, 
             fromNativeBroker: false
         };
     }
