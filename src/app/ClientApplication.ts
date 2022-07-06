@@ -462,6 +462,8 @@ export abstract class ClientApplication {
         }).catch ((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             ssoSilentMeasurement.endMeasurement({
+                errorCode: e.errorCode,
+                subErrorCode: e.subError,
                 success: false
             });
             ssoSilentMeasurement.flushMeasurement();
@@ -501,12 +503,9 @@ export abstract class ClientApplication {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.endMeasurement({
                                 success: true,
-<<<<<<< HEAD
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
-=======
                                 isNativeBroker: result.fromNativeBroker
->>>>>>> 84de38c7a76f4698824995f50a7a6fd464aac86c
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
