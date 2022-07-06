@@ -197,12 +197,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
-<<<<<<< HEAD
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length,
-=======
                 isNativeBroker: response.fromNativeBroker
->>>>>>> 84de38c7a76f4698824995f50a7a6fd464aac86c
             });
             return response;
         }).catch((tokenRenewalError: AuthError) => {
