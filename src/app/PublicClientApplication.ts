@@ -128,11 +128,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         fromCache: result.fromCache,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
+                        isNativeBroker: result.fromNativeBroker
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
                 })
-                .catch((error) => {
+                .catch((error: AuthError) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.endMeasurement({
                         success: false
@@ -196,13 +197,19 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
+<<<<<<< HEAD
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length,
+=======
+                isNativeBroker: response.fromNativeBroker
+>>>>>>> 84de38c7a76f4698824995f50a7a6fd464aac86c
             });
             return response;
-        }).catch((tokenRenewalError) => {
+        }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
             astsAsyncMeasurement.endMeasurement({
+                errorCode: tokenRenewalError.errorCode,
+                subErrorCode: tokenRenewalError.subError,
                 success: false
             });
             throw tokenRenewalError;
