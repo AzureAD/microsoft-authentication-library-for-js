@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Non-fatal native broker errors should clear interaction in progress flag #4950",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
