@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

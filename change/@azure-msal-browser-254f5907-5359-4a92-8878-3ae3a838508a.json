@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix prompt behavior for native broker requests #4949",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
