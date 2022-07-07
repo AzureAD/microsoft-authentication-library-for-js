@@ -8,19 +8,20 @@ import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtil
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
 import {
     clickSignIn,
-    b2cLocalAccountEnterCredentials,
+    b2cAadPpeAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation} from "../../testUtils";
+    validateCacheLocation
+} from "../../testUtils";
 
 import { PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
-const TEST_CACHE_LOCATION = `${__dirname}/data/b2c.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-aad.cache.json`;
 
 // Get flow-specific routes from sample application
 const getTokenSilent = require("../index");
@@ -29,9 +30,9 @@ const getTokenSilent = require("../index");
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
-const config = require("../config/B2C.json");
+const config = require("../config/B2C-AAD.json");
 
-describe("Silent Flow B2C PPE Tests", () => {
+describe("Silent Flow B2C Tests (aad account)", () => {
     jest.retryTimes(1);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
@@ -47,7 +48,7 @@ describe("Silent Flow B2C PPE Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c`;
+    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/b2c/aad-account`;
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -61,15 +62,15 @@ describe("Silent Flow B2C PPE Tests", () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
         const labApiParms: LabApiQueryParams = {
-            userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.LOCAL
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-        publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+        publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin } });
 
         msalTokenCache = publicClientApplication.getTokenCache();
         server = getTokenSilent(config, publicClientApplication, port, msalTokenCache);
@@ -88,7 +89,7 @@ describe("Silent Flow B2C PPE Tests", () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             page.setDefaultTimeout(5000);
-            await page.goto(homeRoute, {waitUntil: "networkidle0"});
+            await page.goto(homeRoute, { waitUntil: "networkidle0" });
         });
 
         afterEach(async () => {
@@ -100,7 +101,7 @@ describe("Silent Flow B2C PPE Tests", () => {
         it("Performs acquire token with Auth Code flow", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/AcquireTokenAuthCode`);
             await clickSignIn(page, screenshot);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
@@ -112,7 +113,7 @@ describe("Silent Flow B2C PPE Tests", () => {
         it("Performs acquire token silent", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/AcquireTokenSilent`);
             await clickSignIn(page, screenshot);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
@@ -125,7 +126,7 @@ describe("Silent Flow B2C PPE Tests", () => {
         it("Refreshes an expired access token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/RefreshExpiredToken`);
             await clickSignIn(page, screenshot);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
 
             let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
@@ -153,7 +154,7 @@ describe("Silent Flow B2C PPE Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                await page.goto(homeRoute, {waitUntil: "networkidle0"});
+                await page.goto(homeRoute, { waitUntil: "networkidle0" });
             });
 
             afterEach(async () => {
@@ -165,12 +166,12 @@ describe("Silent Flow B2C PPE Tests", () => {
             it("Gets all cached accounts", async () => {
                 const screenshot = new Screenshot(`${screenshotFolder}/GetAllAccounts`);
                 await clickSignIn(page, screenshot);
-                await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+                await b2cAadPpeAccountEnterCredentials(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");
                 await page.waitForSelector(`#${SUCCESSFUL_GET_ALL_ACCOUNTS_ID}`);
                 await screenshot.takeScreenshot(page, "gotAllAccounts");
-                const accounts  = await page.evaluate(() => JSON.parse(document.getElementById("nav-tabContent").children[0].innerHTML));
+                const accounts = await page.evaluate(() => JSON.parse(document.getElementById("nav-tabContent").children[0].innerHTML));
                 const htmlBody = await page.evaluate(() => document.body.innerHTML);
                 expect(htmlBody).toContain(SUCCESSFUL_GET_ALL_ACCOUNTS_ID);
                 expect(htmlBody).not.toContain("No accounts found in the cache.");
@@ -194,11 +195,11 @@ describe("Silent Flow B2C PPE Tests", () => {
 
             it("Returns empty account array", async () => {
                 const screenshot = new Screenshot(`${screenshotFolder}/NoCachedAccounts`);
-                await page.goto(`${homeRoute}/allAccounts`, {waitUntil: "networkidle0"});
+                await page.goto(`${homeRoute}/allAccounts`, { waitUntil: "networkidle0" });
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");
                 await screenshot.takeScreenshot(page, "gotAllAccounts");
-                const accounts  = await page.evaluate(() => JSON.parse(document.getElementById("nav-tabContent").children[0].innerHTML));
+                const accounts = await page.evaluate(() => JSON.parse(document.getElementById("nav-tabContent").children[0].innerHTML));
                 const htmlBody = await page.evaluate(() => document.body.innerHTML);
                 expect(htmlBody).toContain("No accounts found in the cache.");
                 expect(htmlBody).not.toContain("Failed to get accounts from cache.");

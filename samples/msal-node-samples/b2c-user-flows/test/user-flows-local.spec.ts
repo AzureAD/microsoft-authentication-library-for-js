@@ -9,18 +9,18 @@ import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtil
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     b2cLocalAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL
- } from "../../testUtils";
+} from "../../testUtils";
 
-import { PublicClientApplication } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication, PublicClientApplication } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
-const TEST_CACHE_LOCATION = `${__dirname}/../data/b2c.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/../data/b2c-local.cache.json`;
 
 // Get flow-specific routes from sample application
 const main = require("../index");
@@ -29,7 +29,7 @@ const main = require("../index");
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
-const config = require("../config/B2C.json");
+const config = require("../config/B2C-Local.json");
 
 describe("B2C User Flow Tests", () => {
     jest.retryTimes(1);
@@ -43,9 +43,13 @@ describe("B2C User Flow Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/user-flows/b2c`;
+    let clientSecret: { secret: string, value: string };
 
-    beforeAll(async() => {
+    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/user-flows/local-account`;
+
+    beforeAll(async () => {
+        createFolder(screenshotFolder);
+
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -53,14 +57,14 @@ describe("B2C User Flow Tests", () => {
         port = 3000;
         homeRoute = `http://localhost:${port}`;
 
-        createFolder(screenshotFolder);
-
         const labApiParams: LabApiQueryParams = {
             userType: UserTypes.B2C,
             b2cProvider: B2cProviders.LOCAL
         };
 
         const labClient = new LabClient();
+
+        clientSecret = await labClient.getSecret('MSIDLABB2C-MSAapp-AppSecret');
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
     });
@@ -69,14 +73,16 @@ describe("B2C User Flow Tests", () => {
         await browser.close();
     });
 
-    describe("User flows", () => {
-        let publicClientApplication: PublicClientApplication;
+    describe("User flows (local account)", () => {
+        let cca: ConfidentialClientApplication;
         let server: any;
 
         beforeAll(async () => {
-            publicClientApplication = new PublicClientApplication({
+
+            cca = new ConfidentialClientApplication({
                 auth: {
                     clientId: config.authOptions.clientId,
+                    clientSecret: clientSecret.value,
                     authority: config.policies.authorities.signUpSignIn.authority,
                     knownAuthorities: [config.policies.authorityDomain],
                 },
@@ -85,7 +91,7 @@ describe("B2C User Flow Tests", () => {
                 }
             });
 
-            server = main(config, publicClientApplication, port, config.authOptions.redirectUri);
+            server = main(config, cca, port, config.authOptions.redirectUri);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
@@ -113,17 +119,23 @@ describe("B2C User Flow Tests", () => {
 
         it("Performs edit profile", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/edit-profile`);
+            let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
             await page.goto(homeRoute);
             await page.click("#signIn");
             await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+
             await page.click("#editProfile");
             await page.waitForSelector("#attributeVerification");
-            let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
-            await page.$eval('#displayName', (el: any) => el.value = ''); // clear the text field
-            await page.type("#displayName", `${displayName}`);
+
+            await Promise.all([
+                page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
+                page.type("#displayName", `${displayName}`),
+            ]);
+
             await page.click("#continue");
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
+
             await page.click("#viewId");
             await page.waitForSelector("#idTokenInfo");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);

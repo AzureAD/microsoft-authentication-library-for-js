@@ -10,7 +10,7 @@ import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
-    b2cLocalAccountEnterCredentials,
+    b2cMsaAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL
@@ -19,7 +19,7 @@ import {
 import { PublicClientApplication } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
-const TEST_CACHE_LOCATION = `${__dirname}/data/b2c.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-msa.cache.json`;
 
 // Get flow-specific routes from sample application
 const getTokenAuthCode = require("../index");
@@ -28,9 +28,9 @@ const getTokenAuthCode = require("../index");
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
-const config = require("../config/B2C.json");
+const config = require("../config/B2C-MSA.json");
 
-describe("Auth Code B2C PPE Tests", () => {
+describe("Auth Code B2C Tests (msa account)", () => {
     jest.retryTimes(1);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
@@ -42,7 +42,7 @@ describe("Auth Code B2C PPE Tests", () => {
     let username: string;
     let accountPwd: string;
 
-    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/b2c`;
+    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/b2c/msa-account`;
 
     beforeAll(async() => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -51,14 +51,14 @@ describe("Auth Code B2C PPE Tests", () => {
         // @ts-ignore
 
         // To run tests in parallel, each test needs to run on a unique port
-        port = 3004;
+        port = 3006;
         homeRoute = `http://localhost:${port}`;
 
         createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
             userType: UserTypes.B2C,
-            b2cProvider: B2cProviders.LOCAL
+            b2cProvider: B2cProviders.TWITTER
         };
 
         const labClient = new LabClient();
@@ -106,7 +106,7 @@ describe("Auth Code B2C PPE Tests", () => {
         it("Performs acquire token", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
             await page.goto(homeRoute);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
@@ -117,7 +117,7 @@ describe("Auth Code B2C PPE Tests", () => {
         it("Performs acquire token with prompt = 'login'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptLogin`);
             await page.goto(`${homeRoute}/?prompt=login`);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
 
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
@@ -129,7 +129,7 @@ describe("Auth Code B2C PPE Tests", () => {
         it("Performs acquire token with prompt = 'select_account'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptSelectAccount`);
             await page.goto(`${homeRoute}/?prompt=select_account`);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
 
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
@@ -142,7 +142,7 @@ describe("Auth Code B2C PPE Tests", () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptNone`);
             // First log the user in first
             await page.goto(`${homeRoute}/?prompt=login`);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
 
@@ -161,7 +161,7 @@ describe("Auth Code B2C PPE Tests", () => {
             const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
             const STATE_VALUE = "value_on_state";
             await page.goto(`${homeRoute}/?prompt=login&state=${STATE_VALUE}`);
-            await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
+            await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             const url = page.url();
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);

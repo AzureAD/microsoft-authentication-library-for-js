@@ -331,8 +331,7 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
                                     state: state,
                                 };
 
-                                const authCodeRequestParams = {
-                                };
+                                const authCodeRequestParams = {};
 
                                 // if coming for password reset, set the authority to password reset
                                 return redirectToAuthCodeUrl(req, res, next, authCodeUrlRequestParams, authCodeRequestParams);

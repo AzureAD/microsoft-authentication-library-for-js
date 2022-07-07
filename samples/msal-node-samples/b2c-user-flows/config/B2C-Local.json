@@ -1,6 +1,6 @@
 {
     "authOptions": {
-        "clientId": "e3b9ad76-9763-4827-b088-80c7a7888f79",
+        "clientId": "b876a048-55a5-4fc5-9403-f5d90cb1c852",
         "redirectUri": "http://localhost:3000"
     },
     "policies": {
