@@ -63,6 +63,10 @@ export type BrowserAuthOptions = {
      * Enum that represents the Azure Cloud to use.
      */
     azureCloudOptions?: AzureCloudOptions;
+    /**
+     * Flag of whether to use the local metadata cache
+     */
+    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -202,6 +206,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             azureCloudInstance: AzureCloudInstance.None,
             tenant: Constants.EMPTY_STRING
         },
+        skipAuthorityMetadataCache: false,
     };
 
     // Default cache options for browser
@@ -252,3 +257,4 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
     return overlayedConfig;
 }
+

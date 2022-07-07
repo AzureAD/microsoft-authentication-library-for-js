@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Handle ACCOUNT_UNAVAILABLE error status from native broker #4951",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
