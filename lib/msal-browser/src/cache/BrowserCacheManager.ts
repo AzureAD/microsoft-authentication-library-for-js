@@ -597,13 +597,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Get all keys in internal memory
-     */
-    getInternalKeys(): string[] {
-        return this.internalStorage.getKeys();
-    }
-
-    /**
      * Clears all cache entries created by MSAL.
      */
     async clear(): Promise<void> {
