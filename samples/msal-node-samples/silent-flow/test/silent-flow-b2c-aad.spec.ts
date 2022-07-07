@@ -66,6 +66,7 @@ describe("Silent Flow B2C Tests (aad account)", () => {
             appType: AppTypes.CLOUD
         };
 
+
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);

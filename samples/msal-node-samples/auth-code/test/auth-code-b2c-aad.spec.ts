@@ -57,7 +57,7 @@ describe("Auth Code B2C Tests (aad account)", () => {
         createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
         };
 
