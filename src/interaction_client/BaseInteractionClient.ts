@@ -160,7 +160,8 @@ export abstract class BaseInteractionClient {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata
+            authorityMetadata: this.config.auth.authorityMetadata,
+            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
         };
 
         if (requestAuthority) {
@@ -172,3 +173,4 @@ export abstract class BaseInteractionClient {
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 }
+
