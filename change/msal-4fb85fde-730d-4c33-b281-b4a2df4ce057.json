@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use login_hint claim over sid/upn for msal v1 #4995",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
