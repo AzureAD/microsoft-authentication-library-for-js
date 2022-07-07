@@ -193,10 +193,8 @@ export class BrowserCacheManager extends CacheManager {
      * generates idToken entity from a string
      * @param idTokenKey
      */
-    getIdTokenCredential(idTokenKey: string, storeCredentialsInMemory?: boolean): IdTokenEntity | null {
-        const value = storeCredentialsInMemory
-            ? this.internalStorage.getItem(idTokenKey)
-            : this.getItem(idTokenKey);
+    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
+        const value = this.getItem(idTokenKey);
         if (!value) {
             this.logger.trace("BrowserCacheManager.getIdTokenCredential: called, no cache hit");
             return null;
@@ -216,25 +214,19 @@ export class BrowserCacheManager extends CacheManager {
      * set IdToken credential to the platform cache
      * @param idToken
      */
-    setIdTokenCredential(idToken: IdTokenEntity, storeCredentialsInMemory?: boolean): void {
+    setIdTokenCredential(idToken: IdTokenEntity): void {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = idToken.generateCredentialKey();
-        if (storeCredentialsInMemory) {
-            this.logger.trace("storing in memory");
-            this.setItem(idTokenKey, JSON.stringify(idToken));
-        } else {
-            this.internalStorage.setItem(idTokenKey, JSON.stringify(idToken));
-        }
+
+        this.setItem(idTokenKey, JSON.stringify(idToken));
     }
 
     /**
      * generates accessToken entity from a string
      * @param key
      */
-    getAccessTokenCredential(accessTokenKey: string, storeCredentialsInMemory?: boolean): AccessTokenEntity | null {
-        const value = storeCredentialsInMemory
-            ? this.internalStorage.getItem(accessTokenKey)
-            : this.getItem(accessTokenKey);
+    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
+        const value = this.getItem(accessTokenKey);
         if (!value) {
             this.logger.trace("BrowserCacheManager.getAccessTokenCredential: called, no cache hit");
             return null;
@@ -253,15 +245,10 @@ export class BrowserCacheManager extends CacheManager {
      * set accessToken credential to the platform cache
      * @param accessToken
      */
-    setAccessTokenCredential(accessToken: AccessTokenEntity, storeCredentialsInMemory?: boolean): void {
+    setAccessTokenCredential(accessToken: AccessTokenEntity): void {
         this.logger.trace("BrowserCacheManager.setAccessTokenCredential called");
         const accessTokenKey = accessToken.generateCredentialKey();
-        if (storeCredentialsInMemory) {
-            this.internalStorage.setItem(accessTokenKey, JSON.stringify(accessToken));
-        }
-        else {
-            this.setItem(accessTokenKey, JSON.stringify(accessToken));
-        }
+        this.setItem(accessTokenKey, JSON.stringify(accessToken));
     }
 
     /**
