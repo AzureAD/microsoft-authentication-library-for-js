@@ -133,7 +133,7 @@ window.addEventListener("DOMContentLoaded", function () {
 
 ### Deep linking
 
-To register the custom URL scheme and to link to the electron app instance. we will utilize the `setAsDefaultProtocolClient()` API provided by electron. For more information about using deep linking with electron, check [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-ap)
+To register the custom URL scheme and to link to the electron app instance, we will utilize the `setAsDefaultProtocolClient()` API provided by electron. For more information about using deep linking with electron, check [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-ap)
 
 ```typescript
 private static setDefaultProtocol(): void {
