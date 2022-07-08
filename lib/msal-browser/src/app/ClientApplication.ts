@@ -46,7 +46,7 @@ export abstract class ClientApplication {
     protected readonly browserStorage: BrowserCacheManager;
 
     // Native Cache in memory storage implementation
-    protected readonly nativeInternalStorage: BrowserCacheManager;
+    protected readonly nativeInternalStorage: BrowserCacheManager | undefined;
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
@@ -145,13 +145,15 @@ export abstract class ClientApplication {
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) :
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
 
-        // initialize in memory storage for nativeky acquired tokens
-        const nativeCacheOptions: Required<CacheOptions> = {
-            cacheLocation: BrowserCacheLocation.MemoryStorage,
-            storeAuthStateInCookie: false,
-            secureCookies: false
-        };
-        this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger);
+        // initialize in memory storage for native flows
+        if (this.config.system.allowNativeBroker) {
+            const nativeCacheOptions: Required<CacheOptions> = {
+                cacheLocation: BrowserCacheLocation.MemoryStorage,
+                storeAuthStateInCookie: false,
+                secureCookies: false
+            };
+            this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger);
+        }
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
