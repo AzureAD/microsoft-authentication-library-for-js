@@ -103,7 +103,7 @@ npm start
 
 To demonstrate best security practices, this Electron sample uses a custom URL scheme `msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` that will launch the app when the URL with that scheme is visited.
 
-Using this method, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) as normal by lunching the system browser, authenticating the user, and redirecting with the authorization code in the browser.
+Using this method, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow) as normal by launching the system browser, authenticating the user, and redirecting with the authorization code in the browser.
 
 On receiving the authorization code from the **AzureAD**, the browser will launch the application with the custom URL scheme and the code as query parameters. The desktop will parse the authorization code to authenticate the user with **MSAL**.
 
