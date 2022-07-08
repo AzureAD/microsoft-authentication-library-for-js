@@ -35,11 +35,7 @@ export const NativeAuthErrorMessage = {
     tokensNotFoundInCache: {
         code: "tokens_not_found_in_internal_memory_cache",
         desc: "Tokens not cached in MSAL JS internal memory, please make the WAM request"
-    },
-    nativeInternalCacheNotDefined: {
-        code: "native_internal_cache_not_defined",
-        desc: "Native Internal Cache instance is not defined and hence no native layer issued tokens are stored in the cache"
-    },
+    }
 };
 
 export class NativeAuthError extends AuthError {
@@ -107,13 +103,5 @@ export class NativeAuthError extends AuthError {
      */
     static createTokensNotFoundInCacheError(): NativeAuthError {
         return new NativeAuthError(NativeAuthErrorMessage.tokensNotFoundInCache.code, NativeAuthErrorMessage.tokensNotFoundInCache.desc);
-    }
-
-    /**
-     * Creates a tokens not found error when the internal cache look up fails
-     * @returns
-     */
-    static createNativeInternalStorageNotDefined(): NativeAuthError {
-        return new NativeAuthError(NativeAuthErrorMessage.nativeInternalCacheNotDefined.code, NativeAuthErrorMessage.nativeInternalCacheNotDefined.desc);
     }
 }
