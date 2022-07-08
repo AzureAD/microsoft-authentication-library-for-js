@@ -79,9 +79,9 @@ export default class Main {
      */
     private static onSecondInstance(
         event: any,
-        commandLine: any,
-        workingDirectory: any
-    ): void {
+        commandLine: string[],
+        workingDirectory: string
+    ): void {   
         // Someone tried to run a second instance, we should focus our window.
         if (Main.mainWindow) {
             if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
@@ -95,11 +95,10 @@ export default class Main {
         }
     }
 
-
     private static onOpenUrl(event: any, schemeData: string) {
         event.preventDefault();
 
-        if(Main.mainWindow){
+        if (Main.mainWindow) {
             if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
             Main.mainWindow.focus();
         }
@@ -110,7 +109,7 @@ export default class Main {
     /**
      * Get the deep Linked from command line params
      */
-    private static getDeepLinkUrl(argv: any): string {
+    private static getDeepLinkUrl(argv: string[]): string {
         for (const arg of argv) {
             const value = arg;
             if (value.indexOf(authConfig.customProtocol.name) !== -1) {

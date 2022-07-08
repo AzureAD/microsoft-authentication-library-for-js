@@ -4,7 +4,7 @@ An Electron application built with TypeScript that uses the MSAL Node library to
 
 ## Should I use this sample
 
-Understanding the way MSAL Node is used in this sample will help you if you're interested in building an Electron.js application to authenticate and acquire tokens using the system browser and custom URL scheme.
+Understanding the way MSAL Node is used in this sample will help you if you're interested in building an Electron.js application to authenticate and acquire tokens using the system browser and custom URL scheme. Native apps that use the browser for authorization are more secure and can take advantage of the user's authentication session in the browser to enable single sign-on.
 
 ## How to run the samples
 
@@ -73,8 +73,8 @@ Whether or not you decide to customize these values, you must register the `redi
 2. Click the `Authentication` tab in the side menu.
 3. Under "Platform configurations", click the "Add a platform" link.
 4. Select "Mobile and desktop applications".
-5. In the Redirect URI section,  enter the following redirect URI `http://localhost:8080`.
-6. Copy the exact `redirectUri` value (`msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` we will use this as our custom URL scheme in the web page to link to our electron app.
+5. In the Redirect URI section,  enter the following redirect URI `http://localhost:8080/`.
+6. Copy the exact `redirectUri` value (`msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` is the default if you don't want to change the configuration) into the input box.
 7. Click "Configure"
 
 ### Executing the application
@@ -109,29 +109,31 @@ On receiving the authorization code from the **AzureAD**, the browser will launc
 
 #### Redirect page
 
-We used a node server to host a static web page `.\redirect\index.html` to serve as a redirect page. The page will receive the authorization code as query parameter from **AzureAD** and on button click will trigger the Custom URL Scheme `msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` to forward the authorization code to the electron application.
+We used a node server to host a static web page [index.html](./redirect/public/index.html) to serve as a redirect page. The page will receive the authorization code as query parameter from **AzureAD** and on button click will trigger the Custom URL Scheme `msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` in the [authConfig.js](./redirect/public/config/authConfig.json) to forward the authorization code to the electron application. Deploying the static web page and using it as a redirect page for the electron app is recommended. For more information on hosting a static website on **Azure Storage**, please see [Host a static website on Blob Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-host)
 
-```html
- <script>
-         window.addEventListener('DOMContentLoaded', function () {
-            var redirectUri = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth";
-            if (window.location.search) {
+```javascript
+ "use static";
 
-                redirectUri += window.location.search;
-                window.history.pushState({}, document.title, "/");
-            }
+import auth from "../config/auth.json" assert { type: "json" };
 
-            document.getElementById('continueButton').onclick = function () {
-                window.location.href = redirectUri
-            };
-         });
-    </script>
+window.addEventListener("DOMContentLoaded", function () {
+    let redirectUri = `${auth.customURLScheme}`;
+
+    if (window.location.search) {
+        redirectUri += window.location.search;
+        window.history.pushState({}, document.title, "/");
+    }
+
+    document.getElementById("SignIn").onclick = function () {
+        window.location.href = redirectUri;
+    };
+});
+
 ```
 
 ### Deep linking
 
-To register the custom URL scheme and to link to the electron app. we Will have to utilize  `setAsDefaultProtocolClient()` API provided by electron.
-For more information about using deep linking with electron, check [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-ap)
+To register the custom URL scheme and to link to the electron app instance. we will utilize the `setAsDefaultProtocolClient()` API provided by electron. For more information about using deep linking with electron, check [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-ap)
 
 ```typescript
 private static setDefaultProtocol(): void {
@@ -151,7 +153,7 @@ private static setDefaultProtocol(): void {
     }
 ```
 
-Next, we tell the application how to handle an event where an external protocol is clicked. This code will differ from Windows compared to macOS and Linux.
+Next, we tell the application how to handle events that invoke the application instance (such as navigation to the custom url scheme in browser). This code will differ between OSs.
 
 #### In Windows
 
@@ -202,3 +204,14 @@ When the external custom URL scheme is clicked it will trigger the event `Main.a
 ```
 
 **Note: On macOS and Linux, this feature will only work when your app is packaged. It will not work when you're launching it in development from the command-line. For more information on how to pack an electron application please check the [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app#packaging>).**
+
+## Explore the sample
+
+1. After running the sample, the desktop app window will appear automatically
+1. Select the **Sign In** button in the top right.
+![Screenshot](./ReadmeFiles/Screenshot-Sign-in.png)
+1. The browser will open on port `http://localhost:8080/` click continue to finish the authentication process.
+![Screenshot](./ReadmeFiles/Screenshot-browser.png)
+1. Select the **Profile** button on the navigation bar. This will make a call to the Microsoft Graph API.
+1. Select the **Mail** button on the navigation bar. This will make a call to the Microsoft Graph API.
+![Screenshot](./ReadmeFiles/Screenshot-profile.png)
