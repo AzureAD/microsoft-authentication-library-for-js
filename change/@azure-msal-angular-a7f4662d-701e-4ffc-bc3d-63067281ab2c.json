@@ -2,6 +2,6 @@
   "type": "patch",
   "comment": "Add MsalBroadcastService configurations, allow replay of past events #4998",
   "packageName": "@azure/msal-angular",
-  "email": "joliuac@gmail.com",
+  "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
 }
