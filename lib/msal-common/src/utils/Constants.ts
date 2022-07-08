@@ -305,7 +305,8 @@ export const AUTHORITY_METADATA_CONSTANTS = {
 export enum AuthorityMetadataSource {
     CONFIG = "config",
     CACHE = "cache",
-    NETWORK = "network"
+    NETWORK = "network",
+    HARDCODED_VALUES= "hardcoded_values",
 }
 
 export const SERVER_TELEM_CONSTANTS = {
@@ -392,4 +393,9 @@ export enum CacheOutcome {
     NO_CACHED_ACCESS_TOKEN = "2",
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
     REFRESH_CACHED_ACCESS_TOKEN = "4"
+}
+
+export enum JsonTypes {
+    Jwt = "JWT",
+    Jwk = "JWK"
 }

@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationScheme } from "../utils/Constants";
-import { AzureCloudOptions, ClientAssertion } from "../config/ClientConfiguration";
+import { AzureCloudOptions } from "../config/ClientConfiguration";
 
 /**
  * BaseAuthRequest
@@ -21,7 +21,6 @@ import { AzureCloudOptions, ClientAssertion } from "../config/ClientConfiguratio
  * - sshKid                  - Key ID that uniquely identifies the SSH public key mentioned above.
  * - azureCloudOptions       - Convenience string enums for users to provide public/sovereign cloud ids
  * - requestedClaimsHash     - SHA 256 hash string of the requested claims string, used as part of an access token cache key so tokens can be filtered by requested claims
- * - clientAssertion         - Client assertion passed by the user for confidential client flows
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -33,9 +32,8 @@ export type BaseAuthRequest = {
     shrNonce?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
-    sshJwk?: string,
-    sshKid?: string,
+    sshJwk?: string;
+    sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     requestedClaimsHash?: string;
-    clientAssertion?: ClientAssertion;
 };

@@ -27,7 +27,7 @@ export const BrowserAuthErrorMessage = {
     },
     hashEmptyError: {
         code: "hash_empty_error",
-        desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash."
+        desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash. For more visit: aka.ms/msaljs/browser-errors."
     },
     hashDoesNotContainStateError: {
         code: "no_state_in_hash",
@@ -35,7 +35,7 @@ export const BrowserAuthErrorMessage = {
     },
     hashDoesNotContainKnownPropertiesError: {
         code: "hash_does_not_contain_known_properties",
-        desc: "Hash does not contain known properites. Please verify that your redirectUri is not changing the hash."
+        desc: "Hash does not contain known properites. Please verify that your redirectUri is not changing the hash. For more visit: aka.ms/msaljs/browser-errors."
     },
     unableToParseStateError: {
         code: "unable_to_parse_state",
@@ -71,7 +71,7 @@ export const BrowserAuthErrorMessage = {
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
-        desc: "Code flow is not supported inside an iframe. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
+        desc: "Redirects are not supported for iframed or brokered applications. Please ensure you are using MSAL.js in a top frame of the window if using the redirect APIs, or use the popup APIs."
     },
     blockTokenRequestsInHiddenIframeError: {
         code: "block_iframe_reload",
@@ -319,7 +319,7 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when navigateWindow is called inside an iframe.
+     * Creates an error thrown when navigateWindow is called inside an iframe or brokered applications.
      * @param windowParentCheck
      */
     static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {

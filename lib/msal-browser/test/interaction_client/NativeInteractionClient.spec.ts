@@ -52,7 +52,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -79,17 +80,6 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
-        });
-
-        it("throws if prompt: login", (done) => {
-            nativeInteractionClient.acquireToken({
-                    scopes: ["User.Read"],
-                    prompt: PromptValue.LOGIN
-            }).catch (e => {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.code);
-                expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativePromptNotSupported.desc);
-                done();
-            });
         });
 
         it("throws if prompt: select_account", (done) => {
@@ -123,7 +113,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -164,7 +155,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -196,6 +188,48 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
         });
 
+        it("prompt: login succeeds", async () => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scopes: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                },
+                properties: {}
+            };
+
+            const testAccount: AccountInfo = {
+                homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                name: ID_TOKEN_CLAIMS.name,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                nativeAccountId: mockWamResponse.account.id
+            };
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
+                return Promise.resolve(mockWamResponse);
+            });
+            const response = await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                prompt: PromptValue.LOGIN
+            });
+            expect(response.accessToken).toEqual(mockWamResponse.access_token);
+            expect(response.idToken).toEqual(mockWamResponse.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(testAccount);
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
         it("throws on account switch", (done) => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
@@ -205,7 +239,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "different-nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((): Promise<object> => {
@@ -219,6 +254,96 @@ describe("NativeInteractionClient Tests", () => {
                 done();
             });
         });
+
+        it("ssoSilent overwrites prompt to be 'none' and succeeds", async () => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scopes: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                },
+                properties: {}
+            };
+
+            const testAccount: AccountInfo = {
+                homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                name: ID_TOKEN_CLAIMS.name,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                nativeAccountId: mockWamResponse.account.id
+            };
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((nativeRequest): Promise<object> => {
+                expect(nativeRequest.request && nativeRequest.request.prompt).toBe(PromptValue.NONE);
+                return Promise.resolve(mockWamResponse);
+            });
+            // @ts-ignore
+            const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.ssoSilent, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
+            const response = await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                prompt: PromptValue.SELECT_ACCOUNT
+            });
+            expect(response.accessToken).toEqual(mockWamResponse.access_token);
+            expect(response.idToken).toEqual(mockWamResponse.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(testAccount);
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
+
+        it("acquireTokenSilent overwrites prompt to be 'none' and succeeds", async () => {
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scopes: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                },
+                properties: {}
+            };
+
+            const testAccount: AccountInfo = {
+                homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                name: ID_TOKEN_CLAIMS.name,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                nativeAccountId: mockWamResponse.account.id
+            };
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((nativeRequest): Promise<object> => {
+                expect(nativeRequest.request && nativeRequest.request.prompt).toBe(PromptValue.NONE);
+                return Promise.resolve(mockWamResponse);
+            });
+            // @ts-ignore
+            const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_silentFlow, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
+            const response = await nativeInteractionClient.acquireToken({
+                scopes: ["User.Read"],
+                prompt: PromptValue.SELECT_ACCOUNT
+            });
+            expect(response.accessToken).toEqual(mockWamResponse.access_token);
+            expect(response.idToken).toEqual(mockWamResponse.id_token);
+            expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
+            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
+            expect(response.account).toEqual(testAccount);
+            expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
+        });
     });
 
     describe("acquireTokenRedirect tests", () => {
@@ -231,7 +356,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
@@ -266,7 +392,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             const testAccount: AccountInfo = {
@@ -321,7 +448,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
@@ -361,7 +489,8 @@ describe("NativeInteractionClient Tests", () => {
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
                     id: "nativeAccountId"
-                }
+                },
+                properties: {}
             };
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {

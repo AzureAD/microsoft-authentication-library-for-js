@@ -15,6 +15,7 @@ import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
+import { ClientCredentials } from "../account/ClientCredentials";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -72,12 +73,14 @@ export type CommonClientConfiguration = {
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  */
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
+    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -114,20 +117,6 @@ export type LibraryInfo = {
     version: string,
     cpu: string,
     os: string
-};
-
-/**
- * Credentials for confidential clients
- */
-
-export type ClientAssertion = {
-    assertion: string,
-    assertionType: string
-};
-
-export type ClientCredentials = {
-    clientSecret?: string,
-    clientAssertion?: ClientAssertion
 };
 
 /**
@@ -254,6 +243,7 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
+        skipAuthorityMetadataCache: false,
         ...authOptions
     };
 }

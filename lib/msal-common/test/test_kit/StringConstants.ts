@@ -109,8 +109,9 @@ export const TEST_URIS = {
 
 // Test Crypto Values
 export const TEST_CRYPTO_VALUES = {
-    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
-}
+    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE",
+    TEST_USER_ASSERTION_HASH: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE"
+};
 
 // Test MSAL config params
 export const TEST_CONFIG = {
@@ -497,11 +498,11 @@ export const CACHE_MOCKS = {
 };
 
 export const CORS_SIMPLE_REQUEST_HEADERS = [
-    "connection", 
-    "user-agent", 
-    "accept", 
-    "accept-language", 
-    "content-language", 
+    "connection",
+    "user-agent",
+    "accept",
+    "accept-language",
+    "content-language",
     "content-type"
 ];
 
@@ -510,4 +511,8 @@ export const TEST_AUTHENTICATION_HEADERS = {
     invalidAuthenticationInfo: `PoP test_challenge="test_challenge"`,
     wwwAuthenticate: `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`,
     invalidWwwAuthenticate: `PoP test_challenge="test_challenge`
+};
+
+export const TEST_CRYPTO_ALGORITHMS = {
+    rsa: "RSA"
 };

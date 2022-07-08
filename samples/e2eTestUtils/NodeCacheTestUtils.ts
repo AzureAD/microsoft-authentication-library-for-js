@@ -2,7 +2,7 @@ import fs from "fs";
 import { IdTokenEntity } from "../../lib/msal-common/src/cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../../lib/msal-common/src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../lib/msal-common/src/cache/entities/RefreshTokenEntity";
-import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
+import { InMemoryCache } from '../../lib/msal-node/src/cache/serializer/SerializerTypes';
 
 import { Serializer } from "../../lib/msal-node/src/cache/serializer/Serializer";
 import { Deserializer } from "../../lib/msal-node/src/cache/serializer/Deserializer";
@@ -60,7 +60,7 @@ export class NodeCacheTestUtils {
                 if (tokenCache.idTokens.length) {
                     clearInterval(intervalId);
                     resolve(tokenCache);
-                } 
+                }
             }, interval);
         })
     }

@@ -20,6 +20,7 @@ export class AuthorityMetadataEntity {
     aliasesFromNetwork: boolean;
     endpointsFromNetwork: boolean;
     expiresAt: number;
+    jwks_uri: string;
 
     constructor() {
         this.expiresAt = TimeUtils.nowSeconds() + AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
@@ -48,6 +49,7 @@ export class AuthorityMetadataEntity {
         this.end_session_endpoint = metadata.end_session_endpoint;
         this.issuer = metadata.issuer;
         this.endpointsFromNetwork = fromNetwork;
+        this.jwks_uri = metadata.jwks_uri;
     }
 
     /**
@@ -93,7 +95,8 @@ export class AuthorityMetadataEntity {
             entity.hasOwnProperty("issuer") &&
             entity.hasOwnProperty("aliasesFromNetwork") &&
             entity.hasOwnProperty("endpointsFromNetwork") &&
-            entity.hasOwnProperty("expiresAt")
+            entity.hasOwnProperty("expiresAt") &&
+            entity.hasOwnProperty("jwks_uri")
         );
     }
 }
