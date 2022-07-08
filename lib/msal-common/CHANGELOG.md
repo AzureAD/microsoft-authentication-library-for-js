@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 13 Jun 2022 22:28:09 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Jul 2022 22:37:04 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.1.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905 (joarroyo@microsoft.com)
+
+### Patches
+
+- Add InteractionRequired error for native account unavailable #4951 (thomas.norling@microsoft.com)
 
 ## 7.0.0
 
