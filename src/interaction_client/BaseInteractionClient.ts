@@ -21,7 +21,7 @@ export abstract class BaseInteractionClient {
 
     protected config: BrowserConfiguration;
     protected browserStorage: BrowserCacheManager;
-    protected nativeInternalStorage: BrowserCacheManager | undefined;
+    protected nativeInternalStorage: BrowserCacheManager;
     protected browserCrypto: ICrypto;
     protected networkClient: INetworkModule;
     protected logger: Logger;

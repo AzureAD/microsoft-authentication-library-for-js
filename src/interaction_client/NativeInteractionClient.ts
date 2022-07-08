@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, IdToken, ClientAuthError, AuthError, BaseAuthRequest, Authority } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, IdToken, ClientAuthError, AuthError, BaseAuthRequest, Authority, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -20,19 +20,20 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { SilentCacheClient } from "./SilentCacheClient";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
     protected nativeMessageHandler: NativeMessageHandler;
-    protected nativeStorageManager: BrowserCacheManager | undefined;
+    protected silentCacheClient: SilentCacheClient;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, correlationId?: string, nativeStorageImpl?: BrowserCacheManager) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId, nativeStorageImpl);
         this.apiId = apiId;
         this.accountId = accountId;
         this.nativeMessageHandler = provider;
-        this.nativeStorageManager = nativeStorageImpl;
+        this.silentCacheClient = new SilentCacheClient(config, this.nativeInternalStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
     }
 
     /**
@@ -46,12 +47,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const nativeATMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
 
-        // Get the preferred_cache domain for the given authority
-        const authority = await this.getDiscoveredAuthority(request.authority);
+        // initialize native request
+        const nativeRequest = await this.initializeNativeRequest(request);
 
         // check if the tokens can be retrieved from internal cache
         try {
-            const result = this.acquireTokensFromInternalCache(this.config.auth.clientId, this.accountId, request, reqTimestamp, authority);
+            const result = this.acquireTokensFromCache(this.accountId, nativeRequest);
             nativeATMeasurement.endMeasurement({
                 success: true,
                 isNativeBroker: true,
@@ -63,8 +64,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 this.logger.info("MSAL internal Cache does not contain tokens, proceed to make a native call");
             }
         }
-
-        const nativeRequest = await this.initializeNativeRequest(request);
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
@@ -94,79 +93,36 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     *
-     * @param clientId
-     * @param nativeAccountId
+     * Creates silent flow request
      * @param request
-     * @param reqTimestamp
-     * @param authority
+     * @param cachedAccount
      * @returns
      */
-    protected acquireTokensFromInternalCache(clientId: string, nativeAccountId: string, request: PopupRequest | SilentRequest | SsoSilentRequest, reqTimestamp: number, authority: Authority): AuthenticationResult {
-        this.logger.trace("NativeInteractionClient - acquireTokensFromInternalCache called");
-        if (!this.nativeInternalStorage) {
-            throw NativeAuthError.createTokensNotFoundInCacheError();
+    private createSilentCacheRequest(request: NativeTokenRequest, cachedAccount: AccountInfo): CommonSilentFlowRequest {
+        return {
+            authority: request.authority,
+            correlationId: this.correlationId,
+            scopes: ScopeSet.fromString(request.scopes).asArray() ,
+            account: cachedAccount,
+            forceRefresh: false,
+        };
+    }
+
+    protected async acquireTokensFromCache(nativeAccountId: string, request: NativeTokenRequest): Promise<AuthenticationResult> {
+        // fetch the account from in-memory cache
+        const accountEntity = this.browserStorage.readAccountFromCacheWithNativeAccountId(nativeAccountId);
+        if (!accountEntity) {
+            throw ClientAuthError.createNoAccountFoundError();
         }
+        const account = accountEntity.getAccountInfo();
 
+        // leverage silent flow for cached tokens retrieval
         try {
-            // fetch the account from in-memory cache
-            const accountEntity = this.nativeInternalStorage.readAccountFromCacheWithNativeAccountId(nativeAccountId);
-            if (!accountEntity) {
-                throw ClientAuthError.createNoAccountFoundError();
-            }
-            const account = accountEntity.getAccountInfo();
-
-            // fetch idToken from memory
-            const idToken = this.nativeInternalStorage.readIdTokenFromCache(clientId, account);
-            if (!idToken) {
-                this.logger.verbose("NativeInteractionClient - acquireTokensFromInternalCache; idToken not found in the cache");
-                throw NativeAuthError.createTokensNotFoundInCacheError();
-            }
-
-            // fetch accessToken from memory
-            const authRequest: BaseAuthRequest = {
-                authority: request.authority || Constants.EMPTY_STRING,
-                correlationId: request.correlationId || Constants.EMPTY_STRING,
-                scopes: request.scopes || [],
-                authenticationScheme: request.authenticationScheme
-            };
-
-            const accessToken = this.nativeInternalStorage.readAccessTokenFromCache(clientId, account, authRequest);
-            if (!accessToken) {
-                this.logger.verbose("NativeInteractionClient - acquireTokensFromInternalCache; accessToken not found in the cache");
-                throw NativeAuthError.createTokensNotFoundInCacheError();
-            }
-
-            // check for access token expiry
-            const isAccessTokenExpired: boolean = TimeUtils.wasClockTurnedBack(accessToken.cachedAt) ||
-                TimeUtils.isTokenExpired(accessToken.expiresOn, this.config.system.tokenRenewalOffsetSeconds);
-            if (isAccessTokenExpired) {
-                this.logger.verbose("NativeInteractionClient - acquireTokensFromInternalCache; accessToken found in the cache has expired") ;
-                throw NativeAuthError.createTokensNotFoundInCacheError();
-            }
-
-            // construct the authentication result
-            const idTokenObj = new IdToken(idToken.secret, this.browserCrypto);
-
-            // calculate the Authentication Result
-            return {
-                authority: authority.canonicalAuthority,
-                uniqueId: idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING,
-                tenantId: idTokenObj.claims.tid || Constants.EMPTY_STRING,
-                scopes: ScopeSet.fromString(accessToken.target).asArray(),
-                account: account,
-                idToken: idToken? idToken.secret : Constants.EMPTY_STRING,
-                idTokenClaims: idTokenObj.claims,
-                accessToken: accessToken.secret,
-                fromCache: false,
-                expiresOn: new Date(reqTimestamp),
-                tokenType: accessToken.tokenType?.toString() || Constants.EMPTY_STRING,
-                correlationId: this.correlationId,
-                state: Constants.EMPTY_STRING,
-                fromNativeBroker: true
-            };
-        } catch (error) {
-            throw error;
+            const silentRequest = this.createSilentCacheRequest(request, account);
+            const result = await this.silentCacheClient.acquireToken(silentRequest);
+            return result;
+        } catch (e) {
+            throw e;
         }
     }
 
@@ -345,7 +301,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         };
 
         // If native storage is instantiated, store the idToken and accessToken in internal memory
-        if (this.nativeStorageManager) {
+        if (this.nativeInternalStorage) {
             // cache idToken in inmemory storage
             const idTokenEntity = IdTokenEntity.createIdTokenEntity(
                 homeAccountIdentifier,
@@ -354,7 +310,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 request.clientId,
                 idTokenObj.claims.tid || Constants.EMPTY_STRING,
             );
-            this.nativeStorageManager.setIdTokenCredential(idTokenEntity);
+            this.nativeInternalStorage.setIdTokenCredential(idTokenEntity);
 
             // cache accessToken in inmemory storage
             const expiresIn: number = (responseTokenType === AuthenticationScheme.POP)
@@ -372,7 +328,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 0,
                 this.browserCrypto
             );
-            this.nativeStorageManager.setAccessTokenCredential(accessTokenEntity);
+            this.nativeInternalStorage.setAccessTokenCredential(accessTokenEntity);
         }
         else {
             this.logger.verbose("NativeCacheManager not define, cannot cache native tokens locally");
@@ -498,7 +454,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 telemetry: NativeConstants.MATS_TELEMETRY
             },
             extendedExpiryToken: false // Make this configurable?
-
         };
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
