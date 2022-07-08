@@ -21,7 +21,7 @@ export abstract class BaseInteractionClient {
 
     protected config: BrowserConfiguration;
     protected browserStorage: BrowserCacheManager;
-    protected nativeInternalStorage: BrowserCacheManager;
+    protected nativeInternalStorage: BrowserCacheManager | undefined;
     protected browserCrypto: ICrypto;
     protected networkClient: INetworkModule;
     protected logger: Logger;
@@ -31,7 +31,7 @@ export abstract class BaseInteractionClient {
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string, nativeStorageImpl?:BrowserCacheManager) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string, nativeStorageImpl?: BrowserCacheManager,) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.nativeInternalStorage = nativeStorageImpl;
@@ -160,8 +160,7 @@ export abstract class BaseInteractionClient {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata,
-            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
+            authorityMetadata: this.config.auth.authorityMetadata
         };
 
         if (requestAuthority) {
@@ -173,4 +172,3 @@ export abstract class BaseInteractionClient {
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 }
-

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, IdToken, ClientAuthError, AuthError, BaseAuthRequest, Authority, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -26,14 +26,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
     protected nativeMessageHandler: NativeMessageHandler;
-    protected silentCacheClient: SilentCacheClient;
+    protected silentCacheClient: SilentCacheClient | undefined;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, correlationId?: string, nativeStorageImpl?: BrowserCacheManager) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId, nativeStorageImpl);
         this.apiId = apiId;
         this.accountId = accountId;
         this.nativeMessageHandler = provider;
-        this.silentCacheClient = new SilentCacheClient(config, this.nativeInternalStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
+        this.silentCacheClient = this.nativeInternalStorage ? new SilentCacheClient(config, this.nativeInternalStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId): undefined;
     }
 
     /**
@@ -52,7 +52,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // check if the tokens can be retrieved from internal cache
         try {
-            const result = this.acquireTokensFromCache(this.accountId, nativeRequest);
+            const result = await this.acquireTokensFromCache(this.accountId, nativeRequest);
             nativeATMeasurement.endMeasurement({
                 success: true,
                 isNativeBroker: true,
@@ -60,11 +60,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
             });
             return result;
         } catch (e) {
+            // continue with a native call for any and all errors
             if (e === NativeAuthError.createTokensNotFoundInCacheError()) {
                 this.logger.info("MSAL internal Cache does not contain tokens, proceed to make a native call");
             }
         }
 
+        // fall back to native calls
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
             request: nativeRequest
@@ -109,6 +111,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     protected async acquireTokensFromCache(nativeAccountId: string, request: NativeTokenRequest): Promise<AuthenticationResult> {
+        // check for native cache validity
+        if(!this.silentCacheClient) {
+            this.logger.verbose("MSAL Internal Cache undefined, falling back to native calls");
+            throw NativeAuthError.createTokensNotFoundInCacheError();
+        }
+
         // fetch the account from in-memory cache
         const accountEntity = this.browserStorage.readAccountFromCacheWithNativeAccountId(nativeAccountId);
         if (!accountEntity) {
