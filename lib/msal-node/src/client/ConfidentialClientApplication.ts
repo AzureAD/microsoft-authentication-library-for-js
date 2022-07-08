@@ -6,7 +6,7 @@
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
-import { Constants as NodeConstants, ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
+import { Constants as NodeConstants, ApiId, REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
@@ -17,7 +17,8 @@ import {
     ClientAuthError,
     AzureRegionConfiguration,
     AuthError,
-    Constants
+    Constants,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -28,7 +29,7 @@ import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
  *  will configure application secrets, client certificates/assertions as applicable
  * @public
  */
-export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication{
+export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
 
     /**
      * Constructor for the ConfidentialClientApplication
@@ -69,17 +70,23 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             };
         }
 
-        const validRequest: CommonClientCredentialRequest = {
+        const originalRequest: CommonClientCredentialRequest = {
             ...request,
             ...await this.initializeBaseRequest(request),
             clientAssertion
+        };
+
+        // a valid client credentials request should not contain delegated permissions
+        const validRequest: CommonClientCredentialRequest = {
+            ...originalRequest,
+            scopes: originalRequest.scopes.filter(scope => !OIDC_DEFAULT_SCOPES.includes(scope))
         };
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE]
         };
-        
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
@@ -92,7 +99,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
             this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
-        } catch(e) {
+        } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
