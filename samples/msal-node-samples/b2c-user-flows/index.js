@@ -175,7 +175,6 @@ function main(scenarioConfig, clientApplication, port, redirectUri) {
         if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
 
         res.render('index', {
-            title: 'MSAL Node & Express Web App',
             isAuthenticated: req.session.isAuthenticated,
             username: req.session.account ? req.session.account.username : '',
         });
@@ -382,6 +381,7 @@ if (argv.$0 === "index.js") {
         auth: {
             clientId: config.authOptions.clientId,
             authority: config.policies.authorities.signUpSignIn.authority,
+            clientSecret: config.authOptions.clientSecret,
             knownAuthorities: [config.policies.authorityDomain],
         },
         cache: {

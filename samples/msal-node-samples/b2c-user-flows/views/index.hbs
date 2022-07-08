@@ -1,14 +1,14 @@
-<h1>{{title}}</h1>
 {{#if isAuthenticated }}
-<p>Hi {{username}}!</p>
-<a id="viewId" href="/id">View ID token claims</a>
-<br>
-<a id="callApi" href="/call-api">Call an API</a>
-<br>
-<a id="editProfile" href="/edit-profile">Edit user profile</a>
-<br>
-<a id="signOut" href="/sign-out">Sign-out</a>
-{{else}}
-<p>Welcome to {{title}}</p>
-<a id="signIn" href="/sign-in">Sign in</a>
+<div id="card-div" class="col-md-3 mx-auto">
+    <div class="card text-center">
+        <div class="card-body">
+            <p class="text-center">Hi {{username}}!</p>
+            <a class="btn btn-primary" id="viewId" href="/id">View ID token claims</a>
+            <br>
+            <a class="btn btn-primary" id="editProfile" href="/edit-profile">Edit Profile</a>
+            <br>
+            <a class="btn btn-primary" id="callApi" href="/call-api">Call an API</a>
+        </div>
+    </div>
+</div>
 {{/if}}
