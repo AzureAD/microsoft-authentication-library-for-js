@@ -109,7 +109,7 @@ On receiving the authorization code from the **AzureAD**, the browser will launc
 
 #### Redirect page
 
-We used a node server to host a static web page [index.html](./redirect/public/index.html) to serve as a redirect page. The page will receive the authorization code as query parameter from **AzureAD** and on button click will trigger the Custom URL Scheme `msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` in the [authConfig.js](./redirect/public/config/authConfig.json) to forward the authorization code to the electron application. Deploying the static web page and using it as a redirect page for the electron app is recommended. For more information on hosting a static website on **Azure Storage**, please see [Host a static website on Blob Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-host)
+We used a node server to host a static web page [index.html](./redirect/public/index.html) to serve as a redirect page. The page will receive the authorization code as query parameter from **AzureAD** and on button click will trigger the Custom URL Scheme `msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` in the [authConfig.json](./redirect/public/config/authConfig.json) to forward the authorization code to the electron application. Deploying the static web page and using it as a redirect page for the electron app is recommended. For more information on hosting a static website on **Azure Storage**, please see [Host a static website on Blob Storage](https://docs.microsoft.com/en-us/azure/storage/blobs/storage-blob-static-website-host)
 
 ```javascript
  "use static";
