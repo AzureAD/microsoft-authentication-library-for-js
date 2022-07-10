@@ -189,7 +189,7 @@ export default class Main {
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
         const graphResponse = await Main.fetchManager.callEndpointWithToken(
-            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`,
+            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_MAIL_ENDPT}`,
             token
         );
 
