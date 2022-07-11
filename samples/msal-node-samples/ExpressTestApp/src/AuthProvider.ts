@@ -19,10 +19,10 @@ import {
     ConfidentialClientApplication,
     Configuration,
     AccountInfo,
-    ICachePlugin,
     CryptoProvider,
     AuthorizationUrlRequest,
     AuthorizationCodeRequest,
+    ClientAuthError,
 } from '@azure/msal-node';
 
 import { ConfigurationUtils } from './ConfigurationUtils';
@@ -282,7 +282,7 @@ export class AuthProvider {
 
         } catch (error) {
             // in case there are no cached tokens, initiate an interactive call
-            if (error instanceof InteractionRequiredAuthError || error.errorCode === "no_tokens_found") {
+            if (error instanceof InteractionRequiredAuthError || error instanceof ClientAuthError) {
 
                 const state = this.cryptoProvider.base64Encode(
                     JSON.stringify({
