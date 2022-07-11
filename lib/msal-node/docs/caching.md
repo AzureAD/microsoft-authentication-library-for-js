@@ -59,7 +59,8 @@ MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cach
 ```
 
 ## Cache in memory
-If a user chooses not to persist cache, the `TokenCache` interface is still available to access the tokens cached in memory. The life time of in memory cache is the same as MSAL instance. If the MSAL instance  restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all real life applications both for security and desired cache longevity.
+
+If a user chooses not to persist cache, the `TokenCache` interface is still available to access the tokens cached in memory. The life time of in memory cache is the same as MSAL instance. If the MSAL instance restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all real life applications both for security and desired cache longevity.
 
 ## Persistence
 
@@ -92,37 +93,18 @@ On confidential client applications that handle users (web apps that sign in use
 * For multi-tenant daemon apps using client credentials grant: **tenantId** (or rather, `<clientId>.<tenantId>`)
 * For web APIs calling other web APIs using OBO: hash of the incoming access token from the user (i.e. the token which will subsequently be exchanged for an OBO token)
 
-For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is used for partitioning:
+MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.distributedcacheplugin.html) class for confidential clients, which implements the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html). An instance of `DistributedCachePlugin` requires:
 
-```typescript
-class DistributedCachePlugin implements ICachePlugin {
+* a client interface, which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
+* a partition manager, for reading from and writing to cache with respect to a given **partition key**.
 
-    // singleton
-    private static instance: CachePlugin;
+Please refer to the [RedisTestApp](../../../samples/msal-node-samples/RedisTestApp/README.md) for an implementation.
 
-    private persistenceManager: any; // your implementation of a persistence client
-    private partitionKey: string;
-
-    private constructor(persistenceManager?: any, partitionKey?: string) {}
-
-    static getInstance(persistenceManager?: any, partitionKey?: string): CachePlugin {}
-
-    async beforeCacheAccess(cacheContext): Promise<void> {
-        // given a partition key, get the relevant cache portion from the persistence store
-        // deserialize and load the cache into msal's memory
-    }
-    async afterCacheAccess(cacheContext): Promise<void> {
-        // if in-memory cache has changed
-            // serialize and persist the cache using the same partition key
-    }
-}
-```
-
-It is also a good idea to obtain performance metrics for persistent cache operations, such as **cache hit ratios** from your persistence store. This would give you a reliable picture of how your app scales over time.
+> :bulb: It's also a good idea to obtain performance metrics for persistent cache operations, such as **cache hit ratios** from your persistence store. This would give you a reliable picture of how your app scales over time.
 
 ## More information
 
 * [(Sample) Public client app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
-* [(Sample) Confidential client Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
+* [(Sample) Confidential client Express MVC web app with distributed token cache](../../../samples/msal-node-samples/RedisTestApp/README.md)
 * [(Docs) Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
 * [(Docs) App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)

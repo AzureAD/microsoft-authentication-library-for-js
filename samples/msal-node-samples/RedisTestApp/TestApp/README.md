@@ -18,8 +18,8 @@ See also: [Caching](../../../lib/msal-node/docs/caching.md)
 | `App/appSettings.json`              | Application settings and authentication parameters.           |
 | `App/routes/router.js`              | Application routes are defined here.                          |
 | `App/controllers/mainController.js` | Main application controllers.                                 |
-| `App/utils/cachePlugin.js`          | Example cache plugin implementation for saving cache to disk. |
-| `App/utils/persistenceHelper.js`    | Example Redis persistence store client, used with cache plugin. |
+| `App/utils/partitionManager.js`     | Implements msal-node IPartitionManager interface for distributed caching. |
+| `App/utils/redisClientWrapper.js`   | Wraps the Redis client object to expose GET and SET methods.  |
 
 ## Prerequisites
 

@@ -54,7 +54,7 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
             "signUpSignIn": {
                 "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi"
             },
-            "authorityDomain": "fabrikamb2c.b2clogin.com"  
+            "authorityDomain": "fabrikamb2c.b2clogin.com"
         }
     }
     ```
@@ -121,9 +121,9 @@ Session support in this sample is provided by the [express-session](https://www.
 
 ### Token caching
 
-MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./TestApp/App/utils/cachePlugin.js) in order to save the cache to disk. It illustrates a distributed caching pattern where MSAL's token cache is persisted via an external service (here, Redis) and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory.
+MSAL Node has an in-memory cache by default. The demo app also features a [partition manager](./TestApp/App/utils/partitionManager.js). The manager illustrates a distributed caching pattern where MSAL's token cache is persisted via an external service (here, Redis) and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory.
 
-To do so, a persistence helper that implements basic Redis calls is illustrated in [persistenceHelper.js](./TestApp/App/utils/persistenceHelper.js). When you implement a persistence manager, you should also assign cache eviction policies, handle connection events from persistence server and take performance metrics such as cache hit ratios. For more on caching, see [Caching](../../../lib/msal-node/docs/caching.md).
+To facilitate between interaction between the partition manager and the persistence server, an example is implemented in [redisClientWrapper.js](./TestApp/App/utils/redisClientWrapper.js). Your implementation should also consider assigning cache eviction policies, handling connection events from the persistence server and taking performance metrics such as cache hit ratios. For more on caching, see [Caching](../../../lib/msal-node/docs/caching.md).
 
 ## More information
 

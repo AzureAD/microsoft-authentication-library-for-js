@@ -28,6 +28,20 @@ const redisClientWrapper = require('./utils/redisClientWrapper')(redisClient);
 
 const app = express();
 
+/**
+ * Using express-session middleware. Be sure to familiarize yourself with available options
+ * and set the desired options. Visit: https://www.npmjs.com/package/express-session
+ */
+ app.use(session({
+    store: new RedisStore({ client: redisClient }),
+    secret: 'ENTER_YOUR_SECRET_HERE',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // set this to true when deploying
+    }
+}));
+
 app.set('views', path.join(__dirname, './views'));
 app.set('view engine', 'ejs');
 
@@ -38,26 +52,9 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, './public')));
 
-/**
- * Using express-session middleware. Be sure to familiarize yourself with available options
- * and set the desired options. Visit: https://www.npmjs.com/package/express-session
- */
-app.use(session({
-    store: new RedisStore({ client: redisClient }),
-    secret: 'ENTER_YOUR_SECRET_HERE',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        secure: false, // set this to true when deploying
-    }
-}));
-
-
 const authProvider = new msalWrapper.AuthProvider(appSettings, redisClientWrapper);
 
 /**
- * Initialize the partition manager 
- * 
  * Initialize a new instance of the partition manager with each request to ensure
  * users can only access information from cache tied to their individual
  * session in each request.
