@@ -67,11 +67,11 @@ describe('MsalBroadcastService', () => {
     msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
   });
 
-  it('broadcasts previous events if MsalBroadcastConfig set and replayPastEvents is greater than 0', (done) => {
+  it('broadcasts previous events if MsalBroadcastConfig set and eventsToReplay is greater than 0', (done) => {
     initializeMsal([{
       provide: MSAL_BROADCAST_CONFIG,
       useValue: {
-        replayPastEvents: 3
+        eventsToReplay: 3
       }
     }]);
 
@@ -146,11 +146,11 @@ describe('MsalBroadcastService', () => {
     newSubscription.unsubscribe();
   });
 
-  it('broadcasts the set number of past events if MsalBroadcastConfig and replayPastEvents is set', (done) => {
+  it('broadcasts the set number of past events if MsalBroadcastConfig and eventsToReplay is set', (done) => {
     initializeMsal([{
       provide: MSAL_BROADCAST_CONFIG,
       useValue: {
-        replayPastEvents: 1
+        eventsToReplay: 1
       }
     }]);
 

@@ -4,5 +4,5 @@
  */
 
 export type MsalBroadcastConfiguration = {
-    replayPastEvents: number
+    eventsToReplay: number
 };

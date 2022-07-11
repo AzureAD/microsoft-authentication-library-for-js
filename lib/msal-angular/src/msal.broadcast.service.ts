@@ -12,7 +12,7 @@ import { MsalBroadcastConfiguration } from "./msal.broadcast.config";
 
 @Injectable()
 export class MsalBroadcastService {
-    private _msalSubject: Subject<EventMessage>|ReplaySubject<EventMessage>;
+    private _msalSubject: Subject<EventMessage>;
     public msalSubject$: Observable<EventMessage>;
     private _inProgress: BehaviorSubject<InteractionStatus>;
     public inProgress$: Observable<InteractionStatus>;
@@ -23,9 +23,9 @@ export class MsalBroadcastService {
         @Optional() @Inject(MSAL_BROADCAST_CONFIG) private msalBroadcastConfig?: MsalBroadcastConfiguration
     ) {
         // Make _msalSubject a ReplaySubject if configured to replay past events
-        if (this.msalBroadcastConfig && this.msalBroadcastConfig.replayPastEvents > 0) {
-            this.authService.getLogger().verbose(`BroadcastService - replayPastEvents set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.replayPastEvents} events`);
-            this._msalSubject = new ReplaySubject<EventMessage>(this.msalBroadcastConfig.replayPastEvents);
+        if (this.msalBroadcastConfig && this.msalBroadcastConfig.eventsToReplay > 0) {
+            this.authService.getLogger().verbose(`BroadcastService - replayPastEvents set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`);
+            this._msalSubject = new ReplaySubject<EventMessage>(this.msalBroadcastConfig.eventsToReplay);
         } else {
             // Defaults to _msalSubject being a Subject
             this._msalSubject = new Subject<EventMessage>();
