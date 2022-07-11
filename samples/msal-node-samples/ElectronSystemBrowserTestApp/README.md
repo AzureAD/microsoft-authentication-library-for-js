@@ -201,7 +201,7 @@ When the external custom URL scheme is clicked it will trigger the event `Main.a
     }
 ```
 
-**Note: On macOS and Linux, this feature will only work when your app is packaged. It will not work when you're launching it in development from the command-line. For more information on how to pack an electron application please check the [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app#packaging>).**
+**Note: You may have to package the app for this feature to work on macOS and Linux. It might not work when launching it in development from the command-line. For more information on how to pack an electron application, please check the [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app#packaging).**
 
 ## Explore the sample
 
