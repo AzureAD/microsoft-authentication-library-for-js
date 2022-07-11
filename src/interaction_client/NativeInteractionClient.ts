@@ -27,13 +27,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected accountId: string;
     protected nativeMessageHandler: NativeMessageHandler;
     protected silentCacheClient: SilentCacheClient;
+    protected nativeStorageManager: BrowserCacheManager;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, nativeStorageImpl: BrowserCacheManager, correlationId?: string) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeStorageImpl, provider, correlationId);
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
         this.apiId = apiId;
         this.accountId = accountId;
         this.nativeMessageHandler = provider;
-        this.silentCacheClient = new SilentCacheClient(config, nativeStorageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, undefined, provider, correlationId);
+        this.nativeStorageManager = nativeStorageImpl;
+        this.silentCacheClient = new SilentCacheClient(config, this.nativeStorageManager, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
     }
 
     /**
@@ -301,39 +303,33 @@ export class NativeInteractionClient extends BaseInteractionClient {
             fromNativeBroker: true
         };
 
-        // If native storage is instantiated, store the idToken and accessToken in internal memory
-        if (this.nativeInternalStorage) {
-            // cache idToken in inmemory storage
-            const idTokenEntity = IdTokenEntity.createIdTokenEntity(
-                homeAccountIdentifier,
-                request.authority,
-                response.id_token || Constants.EMPTY_STRING,
-                request.clientId,
-                idTokenObj.claims.tid || Constants.EMPTY_STRING,
-            );
-            this.nativeInternalStorage.setIdTokenCredential(idTokenEntity);
+        // cache idToken in inmemory storage
+        const idTokenEntity = IdTokenEntity.createIdTokenEntity(
+            homeAccountIdentifier,
+            request.authority,
+            response.id_token || Constants.EMPTY_STRING,
+            request.clientId,
+            idTokenObj.claims.tid || Constants.EMPTY_STRING,
+        );
+        this.nativeStorageManager.setIdTokenCredential(idTokenEntity);
 
-            // cache accessToken in inmemory storage
-            const expiresIn: number = (responseTokenType === AuthenticationScheme.POP)
-                ? Constants.SHR_NONCE_VALIDITY
-                : (typeof response.expires_in === "string" ? parseInt(response.expires_in, 10) : response.expires_in) || 0;
-            const tokenExpirationSeconds = reqTimestamp + expiresIn;
-            const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-                homeAccountIdentifier,
-                request.authority,
-                responseAccessToken,
-                request.clientId,
-                tid,
-                responseScopes.printScopes(),
-                tokenExpirationSeconds,
-                0,
-                this.browserCrypto
-            );
-            this.nativeInternalStorage.setAccessTokenCredential(accessTokenEntity);
-        }
-        else {
-            this.logger.verbose("NativeCacheManager not define, cannot cache native tokens locally");
-        }
+        // cache accessToken in inmemory storage
+        const expiresIn: number = (responseTokenType === AuthenticationScheme.POP)
+            ? Constants.SHR_NONCE_VALIDITY
+            : (typeof response.expires_in === "string" ? parseInt(response.expires_in, 10) : response.expires_in) || 0;
+        const tokenExpirationSeconds = reqTimestamp + expiresIn;
+        const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            homeAccountIdentifier,
+            request.authority,
+            responseAccessToken,
+            request.clientId,
+            tid,
+            responseScopes.printScopes(),
+            tokenExpirationSeconds,
+            0,
+            this.browserCrypto
+        );
+        this.nativeStorageManager.setAccessTokenCredential(accessTokenEntity);
 
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
