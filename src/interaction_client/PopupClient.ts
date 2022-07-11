@@ -29,11 +29,13 @@ export type PopupParams = InteractionParams & {
 
 export class PopupClient extends StandardInteractionClient {
     private currentWindow: Window | undefined;
+    protected nativeStorage: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string, nativeStorageImpl?: BrowserCacheManager) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId, nativeStorageImpl);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeStorageImpl, nativeMessageHandler, correlationId);
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
+        this.nativeStorage = nativeStorageImpl;
     }
 
     /**
@@ -161,7 +163,7 @@ export class PopupClient extends StandardInteractionClient {
                 if (!this.nativeMessageHandler) {
                     throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }
-                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, validRequest.correlationId, this.nativeInternalStorage);
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.nativeStorage, validRequest.correlationId);
                 const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
                     ...validRequest,

@@ -26,14 +26,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
     protected accountId: string;
     protected nativeMessageHandler: NativeMessageHandler;
-    protected silentCacheClient: SilentCacheClient | undefined;
+    protected silentCacheClient: SilentCacheClient;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, correlationId?: string, nativeStorageImpl?: BrowserCacheManager) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId, nativeStorageImpl);
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, nativeStorageImpl: BrowserCacheManager, correlationId?: string) {
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeStorageImpl, provider, correlationId);
         this.apiId = apiId;
         this.accountId = accountId;
         this.nativeMessageHandler = provider;
-        this.silentCacheClient = this.nativeInternalStorage ? new SilentCacheClient(config, this.nativeInternalStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId): undefined;
+        this.silentCacheClient = new SilentCacheClient(config, nativeStorageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, undefined, provider, correlationId);
     }
 
     /**
@@ -61,9 +61,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return result;
         } catch (e) {
             // continue with a native call for any and all errors
-            if (e === NativeAuthError.createTokensNotFoundInCacheError()) {
-                this.logger.info("MSAL internal Cache does not contain tokens, proceed to make a native call");
-            }
+            this.logger.info("MSAL internal Cache does not contain tokens, proceed to make a native call");
         }
 
         // fall back to native calls
@@ -111,11 +109,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     protected async acquireTokensFromCache(nativeAccountId: string, request: NativeTokenRequest): Promise<AuthenticationResult> {
-        // check for native cache validity
-        if(!this.silentCacheClient) {
-            this.logger.verbose("MSAL Internal Cache undefined, falling back to native calls");
-            throw NativeAuthError.createTokensNotFoundInCacheError();
-        }
 
         // fetch the account from in-memory cache
         const accountEntity = this.browserStorage.readAccountFromCacheWithNativeAccountId(nativeAccountId);

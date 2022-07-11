@@ -31,7 +31,7 @@ export abstract class BaseInteractionClient {
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string, nativeStorageImpl?: BrowserCacheManager,) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeStorageImpl?: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.nativeInternalStorage = nativeStorageImpl;
