@@ -906,21 +906,21 @@ export abstract class ClientApplication {
      * Returns new instance of the Silent Cache Interaction Client
      */
     protected createSilentCacheClient(correlationId?: string): SilentCacheClient {
-        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, undefined, this.nativeExtensionProvider, correlationId);
+        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
      * Returns new instance of the Silent Refresh Interaction Client
      */
     protected createSilentRefreshClient(correlationId?: string): SilentRefreshClient {
-        return new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, undefined, this.nativeExtensionProvider, correlationId);
+        return new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
      * Returns new instance of the Silent AuthCode Interaction Client
      */
     protected createSilentAuthCodeClient(correlationId?: string): SilentAuthCodeClient {
-        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, undefined, this.nativeExtensionProvider, correlationId);
+        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
