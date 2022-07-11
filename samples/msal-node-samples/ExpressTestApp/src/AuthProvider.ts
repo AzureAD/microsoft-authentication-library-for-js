@@ -33,18 +33,16 @@ import {
     AuthCodeParams
 } from './Types';
 
-import { ErrorMessages } from './Constants';
-
-import * as constants from './Constants';
+import { AppStages, ErrorMessages } from './Constants';
 
 /**
  * A simple wrapper around MSAL Node ConfidentialClientApplication object.
- * It offers a collection of middleware and utility methods that automate 
- * basic authentication and authorization tasks in Express MVC web apps. 
- * 
- * You must have express and express-sessions packages installed. Middleware here 
+ * It offers a collection of middleware and utility methods that automate
+ * basic authentication and authorization tasks in Express MVC web apps.
+ *
+ * You must have express and express-sessions packages installed. Middleware here
  * can be used with express sessions in route controllers.
- * 
+ *
  * Session variables accessible are as follows:
     * req.session.isAuthenticated: boolean
     * req.session.account: AccountInfo
@@ -58,13 +56,13 @@ export class AuthProvider {
 
     private cryptoProvider: CryptoProvider;
 
-    constructor(appSettings: AppSettings, cache: ICachePlugin = null) {
+    constructor(appSettings: AppSettings) {
         ConfigurationUtils.validateAppSettings(appSettings);
 
         this.cryptoProvider = new CryptoProvider();
 
         this.appSettings = appSettings;
-        this.msalConfig = ConfigurationUtils.getMsalConfiguration(appSettings, cache);
+        this.msalConfig = ConfigurationUtils.getMsalConfiguration(appSettings);
         this.msalClient = new ConfidentialClientApplication(this.msalConfig);
     }
 
@@ -74,7 +72,7 @@ export class AuthProvider {
      * Initiate sign in flow
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     signIn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
@@ -112,18 +110,18 @@ export class AuthProvider {
             } as AccountInfo;
         }
 
-        // random GUID for csrf check 
+        // random GUID for csrf check
         req.session.nonce = this.cryptoProvider.createNewGuid();
 
         /**
-         * The OAuth 2.0 state parameter can be used to encode information of the app's state before redirect. 
-         * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter. 
+         * The OAuth 2.0 state parameter can be used to encode information of the app's state before redirect.
+         * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
          * MSAL allows you to pass your custom state as state parameter in the request object. For more information, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request
          */
         const state = this.cryptoProvider.base64Encode(
             JSON.stringify({
-                stage: constants.AppStages.SIGN_IN,
+                stage: AppStages.SIGN_IN,
                 path: req.route.path,
                 nonce: req.session.nonce
             })
@@ -145,13 +143,13 @@ export class AuthProvider {
      * Initiate sign out and clean the session
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     signOut = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
         /**
-         * Construct a logout URI and redirect the user to end the 
-         * session with Azure AD/B2C. For more information, visit: 
+         * Construct a logout URI and redirect the user to end the
+         * session with Azure AD/B2C. For more information, visit:
          * (AAD) https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
          * (B2C) https://docs.microsoft.com/azure/active-directory-b2c/openid-connect#send-a-sign-out-request
          */
@@ -169,7 +167,7 @@ export class AuthProvider {
      * There are basically 2 stages: sign-in and acquire token
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     handleRedirect = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
@@ -181,7 +179,7 @@ export class AuthProvider {
 
                 switch (state.stage) {
 
-                    case constants.AppStages.SIGN_IN: {
+                    case AppStages.SIGN_IN: {
                         // token request should have auth code
                         req.session.tokenRequest.code = req.query.code as string;
 
@@ -196,7 +194,7 @@ export class AuthProvider {
                             req.session.isAuthenticated = true;
 
                             return res.status(200).redirect(this.appSettings.settings.homePageRoute);
-                            
+
                         } catch (error) {
                             console.log(error);
                             next(error);
@@ -204,7 +202,7 @@ export class AuthProvider {
                         break;
                     }
 
-                    case constants.AppStages.ACQUIRE_TOKEN: {
+                    case AppStages.ACQUIRE_TOKEN: {
                         // get the name of the resource associated with scope
                         const resourceName = this.getResourceName(state.path);
 
@@ -242,7 +240,7 @@ export class AuthProvider {
      * Middleware that gets tokens and calls web APIs
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     getToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
@@ -284,11 +282,11 @@ export class AuthProvider {
 
         } catch (error) {
             // in case there are no cached tokens, initiate an interactive call
-            if (error instanceof InteractionRequiredAuthError) {
+            if (error instanceof InteractionRequiredAuthError || error.errorCode === "no_tokens_found") {
 
                 const state = this.cryptoProvider.base64Encode(
                     JSON.stringify({
-                        stage: constants.AppStages.ACQUIRE_TOKEN,
+                        stage: AppStages.ACQUIRE_TOKEN,
                         path: req.route.path,
                         nonce: req.session.nonce
                     })
@@ -316,7 +314,7 @@ export class AuthProvider {
      * Check if authenticated in session
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     isAuthenticated = (req: Request, res: Response, next: NextFunction): Response | void => {
         if (req.session) {

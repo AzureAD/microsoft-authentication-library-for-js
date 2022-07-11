@@ -54,7 +54,7 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
             "signUpSignIn": {
                 "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi"
             },
-            "authorityDomain": "fabrikamb2c.b2clogin.com"  
+            "authorityDomain": "fabrikamb2c.b2clogin.com"
         }
     }
     ```
@@ -117,13 +117,11 @@ app.get('/profile', authProvider.isAuthenticated, authProvider.getToken, mainCon
 
 ### Session support
 
-Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package, using [Redis](https://redis.io/) and [node-redis](https://github.com/NodeRedis/node-redis) to persist the session cache. There are other [compatible session stores](https://github.com/expressjs/session#compatible-session-stores) that you may use instead of Redis, e.g. MongoDB or SQL.
+Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package, using in-memory persistence. If you would like to persist the session cache to disk, please refer to the [compatible session stores](https://github.com/expressjs/session#compatible-session-stores) for express-session package.
 
 ### Token caching
 
-MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./TestApp/App/utils/cachePlugin.js) in order to save the cache to disk. It illustrates a distributed caching pattern where MSAL's token cache is persisted via an external service (here, Redis) and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory.
-
-To do so, a persistence helper that implements basic Redis calls is illustrated in [persistenceHelper.js](./TestApp/App/utils/persistenceHelper.js). When you implement a persistence manager, you should also assign cache eviction policies, handle connection events from persistence server and take performance metrics such as cache hit ratios. For more on caching, see [Caching](../../../lib/msal-node/docs/caching.md).
+MSAL Node has an in-memory cache for storing tokens by default. This sample does not persist cache on disk. For caching, please refer to the [RedisTestApp](../RedisTestApp/README.md), which demonstrates the *distributed token cache* pattern recommended for web apps. See also: [Caching](../../../lib/msal-node/docs/caching.md);
 
 ## More information
 

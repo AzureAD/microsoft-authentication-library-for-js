@@ -5,7 +5,6 @@
 
 import {
     Configuration,
-    ICachePlugin,
     LogLevel,
 } from '@azure/msal-node';
 
@@ -54,16 +53,13 @@ export class ConfigurationUtils {
      * @param {AppSettings} config: configuration file
      * @param {ICachePlugin} cachePlugin: passed at initialization
      */
-    static getMsalConfiguration = (config: AppSettings, cachePlugin: ICachePlugin = null): Configuration => {
+    static getMsalConfiguration = (config: AppSettings): Configuration => {
         return {
             auth: {
                 clientId: config.credentials.clientId,
                 authority: config.policies ? config.policies.signUpSignIn.authority : AuthorityStrings.AAD + config.credentials.tenantId,
                 clientSecret: config.credentials.clientSecret,
                 knownAuthorities: config.policies ? [config.policies.authorityDomain] : [], // in B2C scenarios
-            },
-            cache: {
-                cachePlugin,
             },
             system: {
                 loggerOptions: {
