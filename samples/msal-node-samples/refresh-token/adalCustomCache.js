@@ -1,5 +1,5 @@
-var _ = require('underscore');
 var fs = require('fs');
+var _ = require('underscore');
 
 /**
  * Constructs a new token cache on disk.
@@ -17,7 +17,7 @@ function DiskCache(cacheLocation) {
  * @param {Function} callback This function is called when the operation is complete. Any error is provided as the first parameter.
  */
 DiskCache.prototype.remove = function (entries, callback) {
-    const cachedEntries = _readCache.call(this);
+    var cachedEntries = _readCache.call(this);
 
     var updatedEntries = _.filter(cachedEntries, function (element) {
         if (_.findWhere(entries, element)) {
@@ -36,7 +36,7 @@ DiskCache.prototype.remove = function (entries, callback) {
  * @param {Function} callback This function is called when the operation is complete. Any error is provided as the first parameter.
  */
 DiskCache.prototype.add = function (entries, callback) {
-    const cachedEntries = _readCache.call(this);
+    var cachedEntries = _readCache.call(this);
 
     // Remove any entries that are duplicates of the existing
     // cache elements.
@@ -49,10 +49,10 @@ DiskCache.prototype.add = function (entries, callback) {
     });
 
     // Add the new entries to the end of the cache.
-    entries = _.compact(entries);
+    var newEntries = _.compact(entries);
 
-    for (var i = 0; i < entries.length; i++) {
-        cachedEntries.push(entries[i]);
+    for (var i = 0; i < newEntries.length; i++) {
+        cachedEntries.push(newEntries[i]);
     }
 
     _writeCache.call(this, cachedEntries);
@@ -68,7 +68,7 @@ DiskCache.prototype.add = function (entries, callback) {
  * @param {Function} callback
  */
 DiskCache.prototype.find = function (query, callback) {
-    const cachedEntries = _readCache.call(this);
+    var cachedEntries = _readCache.call(this);
     var results = _.where(cachedEntries, query);
     callback(null, results);
 };
