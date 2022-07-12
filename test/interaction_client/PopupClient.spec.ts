@@ -36,7 +36,7 @@ describe("PopupClient", () => {
             }
         });
         //@ts-ignore
-        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, undefined, TEST_CONFIG.CORRELATION_ID);
+        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
     });
 
     afterEach(() => {
@@ -138,7 +138,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -234,7 +234,7 @@ describe("PopupClient", () => {
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger);
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, nativeMessageHandler);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -304,8 +304,8 @@ describe("PopupClient", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
-            
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+
             popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -441,7 +441,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate, popupName) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
@@ -484,7 +484,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
@@ -534,8 +534,8 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
-            
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+
             sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
@@ -582,8 +582,8 @@ describe("PopupClient", () => {
             });
 
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
-            
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+
             const logoutHint = "test@user.com";
             const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
@@ -626,9 +626,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
-            
+
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             const logoutHint = "test@user.com";
             const loginHint = "anothertest@user.com";
             const testIdTokenClaims: TokenClaims = {
@@ -965,7 +965,7 @@ describe("PopupClient", () => {
                 }
             });
             //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, undefined, TEST_CONFIG.CORRELATION_ID);
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
 
             // @ts-ignore
             popupClient.monitorPopupForHash(popup).catch((e) => {
@@ -1141,7 +1141,7 @@ describe("PopupClient", () => {
             };
 
             const popupWindow = popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
-                popupName: "name", 
+                popupName: "name",
                 popupWindowAttributes: {}
             });
 
@@ -1177,12 +1177,12 @@ describe("PopupClient", () => {
 
             expect(() => popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null,
-                popupName: "name", 
+                popupName: "name",
                 popupWindowAttributes: {}
             })).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
             expect(() => popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null,
-                popupName: "name", 
+                popupName: "name",
                 popupWindowAttributes: {}
             })).toThrow(BrowserAuthError);
         });
