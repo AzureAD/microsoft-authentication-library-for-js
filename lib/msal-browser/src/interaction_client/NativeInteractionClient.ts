@@ -110,6 +110,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         };
     }
 
+    /**
+     * Fetches the tokens from the cache if un-expired
+     * @param nativeAccountId
+     * @param request
+     * @returns authenticationResult
+     */
     protected async acquireTokensFromCache(nativeAccountId: string, request: NativeTokenRequest): Promise<AuthenticationResult> {
 
         // fetch the account from in-memory cache
