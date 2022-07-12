@@ -252,6 +252,7 @@ describe("RedirectClient", () => {
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger);
             // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
