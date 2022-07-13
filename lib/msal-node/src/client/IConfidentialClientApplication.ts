@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger } from "@azure/msal-common";
+import { AuthenticationResult, IAppTokenProvider, Logger } from "@azure/msal-common";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -51,4 +51,12 @@ export interface IConfidentialClientApplication {
 
     /** Clear the cache */
     clearCache(): void;
+
+     /**               
+     * This extensibility point only works for the client_credential flow, i.e. acquireTokenByClientCredential and
+     * is meant for Azure SDK to enhance Managed Identity support.
+     * 
+     * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.     
+     */
+    SetAppTokenProvider(provider: IAppTokenProvider): void
 }

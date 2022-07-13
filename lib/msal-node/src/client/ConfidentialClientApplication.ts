@@ -64,7 +64,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * 
      * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.     
      */
-    public SetAppTokenProvider(provider: IAppTokenProvider): void {
+    SetAppTokenProvider(provider: IAppTokenProvider): void {
         this.appTokenProvider = provider;
     }
 
