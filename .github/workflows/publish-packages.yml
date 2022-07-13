@@ -73,6 +73,7 @@ jobs:
   publish-msal-core:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-core
     needs: pre-publish
     if: |
@@ -92,6 +93,7 @@ jobs:
   publish-msal-common:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-common
     needs: pre-publish
     if: |
@@ -108,6 +110,7 @@ jobs:
   publish-msal-browser:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-browser
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -127,6 +130,7 @@ jobs:
   publish-msal-node:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-node
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -143,6 +147,7 @@ jobs:
   publish-msal-angular:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-angular
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -159,6 +164,7 @@ jobs:
   publish-msal-react:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-react
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -175,6 +181,7 @@ jobs:
   publish-msal-node-extensions:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-node-extensions
     needs: [pre-publish, publish-msal-common]
     if: |
