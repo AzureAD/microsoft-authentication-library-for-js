@@ -13,6 +13,7 @@ import { ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_DATA_CLIENT_INFO, 
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
+import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -31,7 +32,9 @@ testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccountEntity.username = ID_TOKEN_CLAIMS.preferred_username;
 testAccountEntity.name = ID_TOKEN_CLAIMS.name;
 testAccountEntity.authorityType = "MSSTS";
-testAccountEntity.nativeAccountId = "myNativeAccountId";
+testAccountEntity.nativeAccountId = "nativeAccountId";
+
+const testAccountInfo: AccountInfo = testAccountEntity.getAccountInfo();
 
 const testIdToken: IdTokenEntity = new IdTokenEntity();
 testIdToken.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
@@ -63,7 +66,7 @@ describe("NativeInteractionClient Tests", () => {
     });
     const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000);
     // @ts-ignore
-    const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
+    const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
 
@@ -81,19 +84,33 @@ describe("NativeInteractionClient Tests", () => {
 
     describe("acquireTokensFromInternalCache Tests", () => {
 
-        sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-        sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-        sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+        const response: AuthenticationResult = {
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: testAccountInfo.localAccountId,
+            tenantId: testAccountInfo.tenantId,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            account: testAccountInfo,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            accessToken: TEST_TOKENS.ACCESS_TOKEN,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            fromCache: true,
+            correlationId: RANDOM_TEST_GUID,
+            expiresOn: new Date(Number(testAccessTokenEntity.expiresOn) * 1000),
+            tokenType: AuthenticationScheme.BEARER
+        };
+
+        sinon.stub(CacheManager.prototype, "readAccountFromCacheWithNativeAccountId").returns(testAccountEntity);
+        sinon.stub(SilentCacheClient.prototype, "acquireToken").callsFake(() => { return Promise.resolve(response); });
 
         it("Tokens found in cache", async () => {
-            const response = await nativeInteractionClient.acquireToken({ scopes: ["User.Read"] });
+            const response = await nativeInteractionClient.acquireToken({ scopes: TEST_CONFIG.DEFAULT_SCOPES });
             expect(response.accessToken).toEqual(testAccessTokenEntity.secret);
             expect(response.idToken).toEqual(testIdToken.secret);
             expect(response.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(testAccessTokenEntity.target);
+            expect(response.scopes).toEqual(TEST_CONFIG.DEFAULT_SCOPES);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccountEntity.getAccountInfo());
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -341,7 +358,7 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(mockWamResponse);
             });
             // @ts-ignore
-            const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.ssoSilent, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
+            const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.ssoSilent, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
                 prompt: PromptValue.SELECT_ACCOUNT
@@ -386,7 +403,7 @@ describe("NativeInteractionClient Tests", () => {
                 return Promise.resolve(mockWamResponse);
             });
             // @ts-ignore
-            const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_silentFlow, pca.performanceClient, wamProvider, "nativeAccountId", RANDOM_TEST_GUID);
+            const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_silentFlow, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
             const response = await nativeInteractionClient.acquireToken({
                 scopes: ["User.Read"],
                 prompt: PromptValue.SELECT_ACCOUNT
