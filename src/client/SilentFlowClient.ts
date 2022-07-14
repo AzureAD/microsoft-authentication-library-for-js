@@ -33,7 +33,7 @@ export class SilentFlowClient extends BaseClient {
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
                 const refreshTokenClient = new RefreshTokenClient(this.config);
-                return refreshTokenClient.acquireTokenByRefreshToken(request);
+                return (await refreshTokenClient.acquireTokenByRefreshToken(request)).result;
             } else {
                 throw e;
             }
@@ -65,7 +65,7 @@ export class SilentFlowClient extends BaseClient {
         const environment = request.authority || this.authority.getPreferredCache();
 
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, request, environment);
-        
+
         if (!cacheRecord.accessToken) {
             // Must refresh due to non-existent access_token.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
