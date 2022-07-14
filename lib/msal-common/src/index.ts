@@ -18,7 +18,7 @@ export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { AccountInfo, ActiveAccountHomeLocalIds } from "./account/AccountInfo";
+export { AccountInfo, ActiveAccountIds } from "./account/AccountInfo";
 export { AuthToken } from "./account/AuthToken";
 export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
