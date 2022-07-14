@@ -416,8 +416,7 @@ export class BrowserCacheManager extends CacheManager {
             }
             return null;
         }
-        else
-        {
+        else {
             const activeAccountValueObj = this.validateAndParseJson(activeAccountValueHomeLocalIds) as AccountInfo;
             if(activeAccountValueObj){
                 return this.getAccountInfoByFilter({
