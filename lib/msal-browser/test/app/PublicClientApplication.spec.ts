@@ -2891,24 +2891,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()?.localAccountId).toEqual(testAccountInfo1.localAccountId);
         });
 
-        it("setActiveAccount removes old version when only old version exists", () => {
-            expect(pca.getActiveAccount()).toBe(null);
-            window.sessionStorage.setItem("msal." + TEST_CONFIG.MSAL_CLIENT_ID + ".active-account", testAccount1.localAccountId);
-            pca.setActiveAccount(testAccountInfo1);
-            expect(pca.getActiveAccount()?.homeAccountId).toEqual(testAccountInfo1.homeAccountId);
-            expect(window.sessionStorage.getItem("msal." + TEST_CONFIG.MSAL_CLIENT_ID + ".active-account")).toBe(null);
-            expect(window.sessionStorage.getItem("msal." + TEST_CONFIG.MSAL_CLIENT_ID + ".active-account-new")).not.toBe(null);
-        });
-
-        it("getActiveAccount removes old version when only old version exists", () => {
-            expect(pca.getActiveAccount()).toBe(null);
-            window.sessionStorage.setItem("msal." + TEST_CONFIG.MSAL_CLIENT_ID + ".active-account", testAccount1.localAccountId);
-            pca.getActiveAccount();
-            expect(pca.getActiveAccount()?.localAccountId).toEqual(testAccountInfo1.localAccountId);
-            expect(window.sessionStorage.getItem("msal." + TEST_CONFIG.MSAL_CLIENT_ID + ".active-account")).toBe(null);
-            expect(window.sessionStorage.getItem("msal." + TEST_CONFIG.MSAL_CLIENT_ID + ".active-account-new")).not.toBe(null);
-        });
-
         it("getActiveAccount gets correct account when two accounts with same local id are present in cache", () => {
             expect(pca.getActiveAccount()).toBe(null);
             pca.setActiveAccount(testAccountInfo1);
