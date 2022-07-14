@@ -139,7 +139,7 @@ export class ResponseHandler {
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, userAssertionHash, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -157,7 +157,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, tokenSizes);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined);
                 }
             }
             await this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -167,7 +167,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, tokenSizes);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
     }
 
     /**

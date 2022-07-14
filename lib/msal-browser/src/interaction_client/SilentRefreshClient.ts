@@ -8,6 +8,8 @@ import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, 
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
+export type RefreshTokenComposite = { refreshTokenSize: number, result: AuthenticationResult };
+
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
      * Exchanges the refresh token for new tokens
@@ -23,18 +25,18 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
         const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
         this.logger.verbose("Refresh token client created");
-
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
-            .then((result: AuthenticationResult) => {
+            .then(({refreshTokenSize, result}: {refreshTokenSize: number, result: AuthenticationResult }) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
+                    refreshTokenSize,
                     fromCache: result.fromCache
                 });
 
                 return result;
             })
-            .catch((e:AuthError)=> {
+            .catch((e: AuthError) => {
                 if (e instanceof AuthError) {
                     (e as AuthError).setCorrelationId(this.correlationId);
                 }
