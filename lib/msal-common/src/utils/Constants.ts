@@ -82,7 +82,7 @@ export enum PersistentCacheKeys {
     ERROR = "error",
     ERROR_DESC = "error.description",
     ACTIVE_ACCOUNT = "active-account",
-    ACTIVE_ACCOUNT_HOME_LOCAL_IDS = "active-account-home-local-ids" //new cache entry for active_account for a more robust version for browser
+    ACTIVE_ACCOUNT_HOME_LOCAL_IDS = "active-account-home-local-ids" // new cache entry for active_account for a more robust version for browser
 }
 
 /**
