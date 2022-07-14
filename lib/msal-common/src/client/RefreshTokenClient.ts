@@ -56,7 +56,8 @@ export class RefreshTokenClient extends BaseClient {
             request,
             undefined,
             undefined,
-            true
+            true,
+            request.forceCache
         );
     }
 
