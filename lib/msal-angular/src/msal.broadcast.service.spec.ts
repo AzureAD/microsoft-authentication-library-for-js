@@ -48,7 +48,6 @@ describe('MsalBroadcastService', () => {
       expect(result.error).toEqual(null);
       expect(result.timestamp).toBeInstanceOf(Number);
       sub.unsubscribe();
-      done();
     });
 
     const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.Login];
