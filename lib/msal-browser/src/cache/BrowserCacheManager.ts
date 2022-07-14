@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountIds, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountHomeLocalIds, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -400,32 +400,32 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the active account
      */
     getActiveAccount(): AccountInfo | null {
-        const activeAccountKeyNew = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_NEW);
-        const activeAccountValueNew = this.getItem(activeAccountKeyNew);
-        if (!activeAccountValueNew) {
-            const activeAccountKeyOld = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
-            const activeAccountValueOld = this.getItem(activeAccountKeyOld);
-            if(!activeAccountValueOld)
+        const activeAccountKeyHomeLocalIds = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_HOME_LOCAL_IDS);
+        const activeAccountValueHomeLocalIds = this.getItem(activeAccountKeyHomeLocalIds);
+        if (!activeAccountValueHomeLocalIds) { 
+            // if new active account cache type isn't found, it's an old version, so look for that instead
+            const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+            const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
+            if(!activeAccountValueLocal)
             {
                 return null;
             }
-            const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueOld})[0] || null;
+            const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
             if(activeAccount)
             {
-                this.setActiveAccount(activeAccount);
-                this.browserStorage.removeItem(activeAccountKeyOld);
+                this.setActiveAccount(activeAccount); // update old active account cache type to new type
                 return activeAccount;
             }
             return null;
         }
         else
         {
-            const activeAccountValueObj = this.validateAndParseJson(activeAccountValueNew);
-            if(activeAccountValueObj && activeAccountValueObj.hasOwnProperty("homeAccountId") && activeAccountValueObj.hasOwnProperty("localAccountId"))
+            const activeAccountValueObj = this.validateAndParseJson(activeAccountValueHomeLocalIds) as AccountInfo;
+            if(activeAccountValueObj)
             {
                 return this.getAccountInfoByFilter({
-                    homeAccountId: activeAccountValueObj["homeAccountId"],
-                    localAccountId: activeAccountValueObj["localAccountId"]
+                    homeAccountId: activeAccountValueObj.homeAccountId,
+                    localAccountId: activeAccountValueObj.localAccountId
                 })[0] || null;
             }
             return null;
@@ -437,20 +437,14 @@ export class BrowserCacheManager extends CacheManager {
      * @param account 
      */
     setActiveAccount(account: AccountInfo | null): void {
-        const activeAccountKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_NEW);
+        const activeAccountKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_HOME_LOCAL_IDS);
         if (account) {
             this.logger.verbose("setActiveAccount: Active account set");
-            const activeAccountValue: ActiveAccountIds = {
+            const activeAccountValue: ActiveAccountHomeLocalIds = {
                 homeAccountId: account.homeAccountId,
                 localAccountId: account.localAccountId
             };
             this.browserStorage.setItem(activeAccountKey, JSON.stringify(activeAccountValue));
-            const activeAccountKeyOld = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
-            const activeAccountValueOld = this.getItem(activeAccountKeyOld)
-            if(activeAccountValueOld)
-            {
-                this.browserStorage.removeItem(activeAccountKeyOld);
-            }
         } else {
             this.logger.verbose("setActiveAccount: No account passed, active account not set");
             this.browserStorage.removeItem(activeAccountKey);

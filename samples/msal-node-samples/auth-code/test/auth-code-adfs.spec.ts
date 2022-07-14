@@ -154,10 +154,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, {waitUntil: "networkidle0"});
             await page.waitForSelector("#i0116");
             const emailInput = await page.$("#i0116")
-            const email = await page.evaluate(element => {
-                const emailInput = element as HTMLInputElement;
-                return emailInput.value;
-            }, emailInput);
+            const email = await page.evaluate(element => element.value, emailInput);
             expect(email).toBe(USERNAME);
         });
 
