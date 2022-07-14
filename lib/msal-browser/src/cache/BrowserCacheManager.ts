@@ -406,19 +406,18 @@ export class BrowserCacheManager extends CacheManager {
             // if new active account cache type isn't found, it's an old version, so look for that instead
             const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
             const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
-            if(!activeAccountValueLocal){
+            if(!activeAccountValueLocal) {
                 return null;
             }
             const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
-            if(activeAccount){
+            if(activeAccount) {
                 this.setActiveAccount(activeAccount); // update old active account cache type to new type
                 return activeAccount;
             }
             return null;
-        }
-        else {
+        } else {
             const activeAccountValueObj = this.validateAndParseJson(activeAccountValueHomeLocalIds) as AccountInfo;
-            if(activeAccountValueObj){
+            if(activeAccountValueObj) {
                 return this.getAccountInfoByFilter({
                     homeAccountId: activeAccountValueObj.homeAccountId,
                     localAccountId: activeAccountValueObj.localAccountId
