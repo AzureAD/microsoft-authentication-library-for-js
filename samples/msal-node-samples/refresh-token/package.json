@@ -1,17 +1,22 @@
 {
-  "name": "msal-node-refresh-token",
-  "version": "1.0.0",
-  "description": "Command line app showing how to use a refresh token to acquire new tokens from Azure AD",
-  "main": "index.js",
-  "private": true,
-  "scripts": {
-    "start": "node ./index.js",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start"
-  },
-  "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@azure/msal-node": "file:../../../lib/msal-node"
-  }
+    "name": "refresh-token",
+    "version": "1.0.0",
+    "description": "sample app for migrating from adal-node to msal-node",
+    "private": true,
+    "scripts": {
+        "start:msal": "node ./msalApp.js",
+        "start:adal": "node ./adalApp.js",
+        "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+        "install:local": "npm install ../../../lib/msal-node"
+    },
+    "author": "Microsoft",
+    "license": "MIT",
+    "dependencies": {
+        "@azure/msal-node": "file:../../../lib/msal-node",
+        "adal-node": "^0.2.3",
+        "cookie-parser": "^1.4.6",
+        "express": "^4.17.1",
+        "express-session": "^1.17.2",
+        "underscore": "^1.13.3"
+    }
 }
