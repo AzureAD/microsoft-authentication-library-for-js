@@ -684,7 +684,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve AccountEntity from cache
-     * @param account
+     * @param nativeAccountId
+     * @returns AccountEntity or Null
      */
     readAccountFromCacheWithNativeAccountId(nativeAccountId: string): AccountEntity | null {
         // fetch account from memory
