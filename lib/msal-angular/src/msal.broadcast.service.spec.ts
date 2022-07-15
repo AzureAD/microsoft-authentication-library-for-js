@@ -80,7 +80,7 @@ describe('MsalBroadcastService', () => {
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
-      }, 
+      }
     ];
     let firstIndex = 0;
 
@@ -239,7 +239,7 @@ describe('MsalBroadcastService', () => {
         interactionType: InteractionType.Redirect,
         payload: null,
         error: null,
-      }, 
+      }
     ];
     let firstIndex = 0;
 
