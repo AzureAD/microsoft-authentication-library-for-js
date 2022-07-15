@@ -91,8 +91,24 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-
     test('acquireTokenByClientCredential', async () => {
+
+        const testProvider: msalCommon.IAppTokenProvider = () => {
+            return new Promise<msalCommon.AppTokenProviderResult>(
+                (resolve) => resolve({
+                    accessToken: "accessToken",
+                    expiresInSeconds: 3601,
+                    refreshInSeconds: 1801,
+                }))};      
+
+        const configWithExtensibility: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,                                
+                // no secret or cert
+            },
+        }                  
+
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false
@@ -103,12 +119,11 @@ describe('ConfidentialClientApplication', () => {
         jest.spyOn(msalCommon, 'ClientCredentialClient')
             .mockImplementation((conf) => new MockClientCredentialClient(conf));
 
-        const authApp = new ConfidentialClientApplication(appConfig);
+        const authApp = new ConfidentialClientApplication(configWithExtensibility);
+        authApp.SetAppTokenProvider(testProvider);
+
         await authApp.acquireTokenByClientCredential(request);
-        expect(ClientCredentialClient).toHaveBeenCalledTimes(1);
-        expect(ClientCredentialClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
+        expect(ClientCredentialClient).toHaveBeenCalledTimes(1);      
     });
 
     test.only('acquireTokenByClientCredential with client assertion', async () => {
