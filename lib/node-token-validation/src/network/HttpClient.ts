@@ -95,5 +95,5 @@ export class HttpClient implements INetworkModule {
             body: response.data as T,
             status: response.status
         };
-    } 
+    }
 }
