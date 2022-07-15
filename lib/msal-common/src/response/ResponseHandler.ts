@@ -112,7 +112,8 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
-        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
+        handlingRefreshTokenResponse?: boolean,
+        forceCacheRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
@@ -150,9 +151,10 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
              */
-            if (handlingRefreshTokenResponse && cacheRecord.account) {
+            if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
