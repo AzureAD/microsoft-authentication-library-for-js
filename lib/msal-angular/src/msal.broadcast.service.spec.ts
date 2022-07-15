@@ -91,7 +91,7 @@ describe('MsalBroadcastService', () => {
       expect(result.error).toEqual(expectedMsalSubjectFirstSubscription[firstIndex].error);
       expect(result.timestamp).toBeInstanceOf(Number);
       if (firstIndex === (expectedMsalSubjectFirstSubscription.length - 1)) {
-        done();
+        return;
       } else {
         firstIndex++;
       }
@@ -176,7 +176,7 @@ describe('MsalBroadcastService', () => {
       expect(result.error).toEqual(expectedMsalSubjectFirstSubscription[firstIndex].error);
       expect(result.timestamp).toBeInstanceOf(Number);
       if (firstIndex === (expectedMsalSubjectFirstSubscription.length - 1)) {
-        done();
+        return;
       } else {
         firstIndex++;
       }
@@ -250,7 +250,7 @@ describe('MsalBroadcastService', () => {
       expect(result.error).toEqual(expectedMsalSubjectFirstSubscription[firstIndex].error);
       expect(result.timestamp).toBeInstanceOf(Number);
       if (firstIndex === (expectedMsalSubjectFirstSubscription.length - 1)) {
-        done();
+        return;
       } else {
         firstIndex++;
       }
