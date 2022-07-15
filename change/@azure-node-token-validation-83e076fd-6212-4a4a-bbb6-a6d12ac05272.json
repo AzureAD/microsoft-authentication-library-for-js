@@ -1,0 +1,7 @@
+{
+  "comment": "Update package-locks to fix CI issue #5005",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
