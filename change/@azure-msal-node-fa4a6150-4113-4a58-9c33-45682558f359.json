@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "App Token Provider extensibiliy for AzureSDK",
+  "packageName": "@azure/msal-node",
+  "email": "bogavril@microsoft.com",
+  "dependentChangeType": "patch"
+}
