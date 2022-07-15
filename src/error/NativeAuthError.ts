@@ -99,7 +99,7 @@ export class NativeAuthError extends AuthError {
 
     /**
      * Creates a tokens not found error when the internal cache look up fails
-     * @returns
+     * @returns NativeAuthError: tokensNotFoundInCache
      */
     static createTokensNotFoundInCacheError(): NativeAuthError {
         return new NativeAuthError(NativeAuthErrorMessage.tokensNotFoundInCache.code, NativeAuthErrorMessage.tokensNotFoundInCache.desc);

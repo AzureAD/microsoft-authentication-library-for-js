@@ -98,13 +98,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * Creates silent flow request
      * @param request
      * @param cachedAccount
-     * @returns
+     * @returns CommonSilentFlowRequest
      */
     private createSilentCacheRequest(request: NativeTokenRequest, cachedAccount: AccountInfo): CommonSilentFlowRequest {
         return {
             authority: request.authority,
             correlationId: this.correlationId,
-            scopes: ScopeSet.fromString(request.scopes).asArray() ,
+            scopes: ScopeSet.fromString(request.scopes).asArray(),
             account: cachedAccount,
             forceRefresh: false,
         };
