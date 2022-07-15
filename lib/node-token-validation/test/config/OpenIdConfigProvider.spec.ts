@@ -17,6 +17,7 @@ describe("OpenIdConfigProvider", () => {
             authority: TEST_CONSTANTS.DEFAULT_AUTHORITY
         }
     });
+    const logger = new Logger(config.system.loggerOptions);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -24,7 +25,6 @@ describe("OpenIdConfigProvider", () => {
 
     describe("constructor", () => {
         it("exports a class", () => {
-            const logger = new Logger(config.system.loggerOptions);
             const cache = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
             const provider = new OpenIdConfigProvider(config, config.system.networkClient, cache, logger);
             expect(provider).toBeInstanceOf(OpenIdConfigProvider);
@@ -34,7 +34,6 @@ describe("OpenIdConfigProvider", () => {
     describe("fetchJwksUriFromEndpoint", () => {
 
         it("returns jwks_uri", async () => {
-            const logger = new Logger(config.system.loggerOptions);
             const cache = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
             const provider = new OpenIdConfigProvider(config, config.system.networkClient, cache,logger);
 
@@ -60,7 +59,6 @@ describe("OpenIdConfigProvider", () => {
         });
     
         it("throws error if openIdResponse does not contain jwks_uri", async () => {
-            const logger = new Logger(config.system.loggerOptions);
             const cache = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
             const provider = new OpenIdConfigProvider(config, config.system.networkClient, cache, logger);
 

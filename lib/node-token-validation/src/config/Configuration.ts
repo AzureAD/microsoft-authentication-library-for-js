@@ -17,14 +17,14 @@ export type TokenValidationOptions = {
     /**
      * An array of URIs that are known to be valid. Used in B2C scenarios.
      */
-    knownAuthorities?: Array<string>
+    knownAuthorities?: Array<string>,
     protocolMode?: ProtocolMode
     clockSkew?: number,
 };
 
 export type SystemOptions = {
-    loggerOptions?: LoggerOptions;
-    networkClient?: INetworkModule;
+    loggerOptions?: LoggerOptions,
+    networkClient?: INetworkModule
 };
 
 export type TokenValidationConfiguration = {
