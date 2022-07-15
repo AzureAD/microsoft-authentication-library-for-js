@@ -38,3 +38,11 @@ export const JwtConstants = {
 export const TokenType = {
     JWT: "JWT"
 };
+
+/**
+ * HTTP status code constants
+ */
+export enum HttpStatusCode {
+    RequestTimeout = 408,
+    ServiceUnavailable = 503
+}
