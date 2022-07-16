@@ -1,10 +1,9 @@
 import { useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import Button from "@material-ui/core/Button";
-import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
-
-import { loginRequest } from "../authConfig.js";
+import Button from "@mui/material/Button";
+import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
+import { loginRequest } from "../authConfig";
 
 export const SignInButton = () => {
     const { instance } = useMsal();
@@ -16,9 +15,7 @@ export const SignInButton = () => {
         setAnchorEl(null);
 
         if (loginType === "popup") {
-            instance.loginPopup(loginRequest).catch(e => {
-                return;
-            });
+            instance.loginPopup(loginRequest);
         } else if (loginType === "redirect") {
             instance.loginRedirect(loginRequest);
         }
@@ -36,13 +33,13 @@ export const SignInButton = () => {
                 id="menu-appbar"
                 anchorEl={anchorEl}
                 anchorOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                    vertical: 'top',
+                    horizontal: 'right',
                 }}
                 keepMounted
                 transformOrigin={{
-                vertical: 'top',
-                horizontal: 'right',
+                    vertical: 'top',
+                    horizontal: 'right',
                 }}
                 open={open}
                 onClose={() => setAnchorEl(null)}
