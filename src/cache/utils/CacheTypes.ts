@@ -41,6 +41,7 @@ export type AccountFilter = {
     homeAccountId?: string;
     environment?: string;
     realm?: string;
+    nativeAccountId?: string;
 };
 
 /**
