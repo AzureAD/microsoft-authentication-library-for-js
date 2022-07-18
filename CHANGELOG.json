@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-common_v7.1.0",
+      "version": "7.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d501fbdded20ff9bdadfe02dc46e13a6e6ed4e56",
+            "comment": "Add InteractionRequired error for native account unavailable #4951"
+          }
+        ],
+        "minor": [
+          {
+            "author": "samuelkamau@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7db977dd3f2994bb69f150ddb0594794c098ac48",
+            "comment": "feat: adding authority metadata resiliency #4536"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "81ea264cdd4b6aab4158816509f4aa47c11fbae4",
+            "comment": "Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 13 Jun 2022 22:28:09 GMT",
       "tag": "@azure/msal-common_v7.0.0",
       "version": "7.0.0",
