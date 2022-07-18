@@ -1,23 +1,25 @@
-import { useMsal } from "@azure/msal-react";
+import { InteractionStatus } from "@azure/msal-browser";
+import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { b2cPolicies } from "../authConfig";
 import Button from "@mui/material/Button";
 
 export const EditProfileButton = () => {
-  const { instance } = useMsal();
+    const isAuthenticated = useIsAuthenticated();
+    const { inProgress, instance } = useMsal();
 
-  return (
-      <Button
-        variant="contained" 
-        color="primary"
-        onClick={() =>
-          instance
-            .loginRedirect(b2cPolicies.authorities.editProfile)
-            .catch((error) => {
-              console.log(error);
-            })
+    const handleProfileEdit = () => {
+        if (isAuthenticated && inProgress === InteractionStatus.None) {
+            instance.acquireTokenPopup(b2cPolicies.authorities.editProfile);
         }
-      >
-        Edit Profile
-      </Button>
-  );
+    }
+
+    return (
+        <Button
+            variant="contained"
+            color="primary"
+            onClick={handleProfileEdit}
+        >
+            Edit Profile
+        </Button>
+    );
 };

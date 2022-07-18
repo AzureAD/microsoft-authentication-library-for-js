@@ -32,7 +32,8 @@ Open `.src/app/b2c-config.ts` in an editor:
 
 ### Running the sample
 
-- In a command prompt, run `npm start`.
+- Install the dependencies by running `npm install` in a terminal.
+- Once this is done, run `npm start`.
 - Navigate to [http://localhost:4200](http://localhost:4200)
 - In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 

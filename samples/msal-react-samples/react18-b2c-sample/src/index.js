@@ -7,7 +7,7 @@ import App from './App';
 
 // MSAL imports
 import { PublicClientApplication, EventType } from "@azure/msal-browser";
-import { b2cPolicies, msalConfig } from "./authConfig";
+import { msalConfig } from "./authConfig";
 
 export const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -22,19 +22,6 @@ msalInstance.enableAccountStorageEvents();
 
 msalInstance.addEventCallback((event) => {
   if (event.eventType === EventType.LOGIN_SUCCESS || event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) { 
-    if (event.payload.idTokenClaims['tfp'] === b2cPolicies.names.editProfile) {
-        const originalSignInAccount = msalInstance.getAllAccounts()
-            .find(account => account.idTokenClaims['tfp'] === b2cPolicies.names.signUpSignIn);
-        
-        let signUpSignInFlowRequest = {
-            authority: b2cPolicies.authorities.signUpSignIn.authority,
-            account: originalSignInAccount
-        };
-
-        // silently login again with the signUpSignIn policy
-        msalInstance.ssoSilent(signUpSignInFlowRequest);
-    }
-
     const account = event.payload.account;
     msalInstance.setActiveAccount(account);
   }

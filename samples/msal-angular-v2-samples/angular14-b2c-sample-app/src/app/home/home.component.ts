@@ -32,7 +32,7 @@ export class HomeComponent implements OnInit {
       )
       .subscribe(() => {
         this.setLoginDisplay();
-        this.getClaims(this.authService.instance.getActiveAccount()?.idTokenClaims);
+        this.getClaims(this.authService.instance.getActiveAccount()?.idTokenClaims as Record<string, any>);
       })
 
   }
@@ -41,14 +41,12 @@ export class HomeComponent implements OnInit {
     this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
   }
 
-  getClaims(claims: any) {
-    this.dataSource = [
-      {id: 1, claim: "Display Name", value: claims ? claims['name'] : null},
-      {id: 2, claim: "User Principal Name (UPN)", value: claims ? claims['preferred_username'] : null},
-      {id: 2, claim: "OID", value: claims ? claims['oid']: null},
-      {id: 2, claim: "City", value: claims ? claims['city']: null},
-      {id: 2, claim: "Current Policy", value: claims ? claims['tfp']: null}
-    ];
+  getClaims(claims: Record<string, any>) {
+    if (claims) {
+      Object.entries(claims).forEach((claim: [string, unknown], index: number) => {
+        this.dataSource.push({id: index, claim: claim[0], value: claim[1]});
+      });
+    }
   }
 
 }

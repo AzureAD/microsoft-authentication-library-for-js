@@ -58,7 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
+                filter((msg: EventMessage) => msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {
@@ -75,7 +75,13 @@ export class AppComponent implements OnInit, OnDestroy {
 
                     // retrieve the account from initial sing-in to the app
                     const originalSignInAccount = this.authService.instance.getAllAccounts()
-                        .find((account: AccountInfo) => (account.idTokenClaims as IdTokenClaimsWithTfp).tfp === b2cPolicies.names.signUpSignIn);
+                        .find((account: AccountInfo) =>
+                                account.idTokenClaims?.oid === idtoken.oid
+                                &&
+                                account.idTokenClaims?.sub === idtoken.sub
+                                &&
+                                (account.idTokenClaims as IdTokenClaimsWithTfp).tfp === b2cPolicies.names.signUpSignIn
+                            );
 
                     let signUpSignInFlowRequest: SsoSilentRequest = {
                         authority: b2cPolicies.authorities.signUpSignIn.authority,

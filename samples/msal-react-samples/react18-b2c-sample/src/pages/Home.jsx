@@ -21,7 +21,7 @@ export function Home() {
               <Button component={RouterLink} to="/profile" variant="contained" color="primary">Call Hello API</Button>
               <EditProfileButton />
             </ButtonGroup>
-            <Typography variant="body1">Some of the important claims in your ID Token are shown below: </Typography>
+            <Typography variant="body1">Claims in your ID token are shown below: </Typography>
             <Paper>
               { instance.getActiveAccount() ? <TokenClaims tokenClaims={instance.getActiveAccount().idTokenClaims} /> : null }
             </Paper>
