@@ -1,0 +1,7 @@
+{
+  "comment": "Add network retries for request timeout or service unavailable #5010",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "none"
+}
