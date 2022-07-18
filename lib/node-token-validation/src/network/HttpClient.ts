@@ -11,7 +11,6 @@ import { HttpMethod, HttpStatusCode } from "../utils/Constants";
  * HttpClient class implements API for network requests
  */
 export class HttpClient implements INetworkModule {
-    public counter = 0;
 
     /**
      * Http Get request
