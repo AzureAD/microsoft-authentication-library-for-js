@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -401,12 +401,36 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the active account
      */
     getActiveAccount(): AccountInfo | null {
-        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
-        const activeAccountId = this.browserStorage.getItem(activeAccountIdKey);
-        if (!activeAccountId) {
+        const activeAccountKeyFilters = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS);
+        const activeAccountValueFilters = this.getItem(activeAccountKeyFilters);
+        if (!activeAccountValueFilters) { 
+            // if new active account cache type isn't found, it's an old version, so look for that instead
+            this.logger.trace("No active account filters cache schema found, looking for legacy schema");
+            const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+            const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
+            if(!activeAccountValueLocal) {
+                this.logger.trace("No active account found");
+                return null;
+            }
+            const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
+            if(activeAccount) {
+                this.logger.trace("Legacy active account cache schema found");
+                this.logger.trace("Adding active account filters cache schema");
+                this.setActiveAccount(activeAccount);
+                return activeAccount;
+            }
             return null;
         }
-        return this.getAccountInfoByFilter({localAccountId: activeAccountId})[0] || null;
+        const activeAccountValueObj = this.validateAndParseJson(activeAccountValueFilters) as AccountInfo;
+        if(activeAccountValueObj) {
+            this.logger.trace("Active account filters schema found");
+            return this.getAccountInfoByFilter({
+                homeAccountId: activeAccountValueObj.homeAccountId,
+                localAccountId: activeAccountValueObj.localAccountId
+            })[0] || null;
+        }
+        this.logger.trace("No active account found");
+        return null;
     }
 
     /**
@@ -414,13 +438,20 @@ export class BrowserCacheManager extends CacheManager {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+        const activeAccountKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS);
+        const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
         if (account) {
             this.logger.verbose("setActiveAccount: Active account set");
-            this.browserStorage.setItem(activeAccountIdKey, account.localAccountId);
+            const activeAccountValue: ActiveAccountFilters = {
+                homeAccountId: account.homeAccountId,
+                localAccountId: account.localAccountId
+            };
+            this.browserStorage.setItem(activeAccountKey, JSON.stringify(activeAccountValue));
+            this.browserStorage.setItem(activeAccountKeyLocal, account.localAccountId);
         } else {
             this.logger.verbose("setActiveAccount: No account passed, active account not set");
-            this.browserStorage.removeItem(activeAccountIdKey);
+            this.browserStorage.removeItem(activeAccountKey);
+            this.browserStorage.removeItem(activeAccountKeyLocal);
         }
     }
 
