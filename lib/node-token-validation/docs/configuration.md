@@ -50,7 +50,3 @@ const config = {
 | `loggerCallback` | Callback function which handles the logging of MSAL statements. | Function - `loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void` | See example above. |
 | `logLevel` | Enum representing the level of descriptions of logs | string | `"Info"`
 | `piiLoggingEnabled` | If true, personally identifiable information (PII) is included in logs. | boolean | `false` |
-
-## Next Steps
-
-Proceed to understand the public APIs provided by the Node Token Validation library [here](../docs/public-apis.md).

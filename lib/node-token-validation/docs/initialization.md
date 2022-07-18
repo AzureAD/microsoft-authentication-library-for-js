@@ -3,7 +3,7 @@
 In this document:
 - [Initializing the TokenValidator](#initializing-the-tokenvalidator)
   - [Configuration Basics](#configuration-basics)
-- [Next Steps](#next-steps)
+- [Token Validation Parameters](#token-validation-parameters)
 
 ## Initializing the TokenValidator
 
@@ -46,6 +46,24 @@ const config = {
 const tokenValidator = new nodeTokenValidation.TokenValidator(config);
 ```
 
-## Next steps
+## Token Validation Parameters
 
-Proceed to understand the public APIs provided by the Node Token Validation library [here](../docs/public-apis.md).
+The token validation APIs decode and validate a JSON Web Token (JWT) as well as the JSON Web Signature (JWS).
+
+The following OIDC-compliant claims on a JWT are validated:
+
+| Claim Name | Claim            | Description |
+| -----------| ---------        | ----------- |
+| "iss"      | Issuer           | Principal that issued the JWT |
+| "aud"      | Audience         | Recipient that the JWT is intended for |
+| "sub"      | Subject          | Principal that is the subject of the JWT |
+| "exp"      | Expiration Time  | Expiration time after which the JWT must not be accepted for processing |
+| "nbf"      | Not before       | Time before which the JWT must not be accepted for processing |
+
+These additional claims for an id token may be validated if set in the `TokenValidationParams`:
+
+| Claim Name | Claim     | Description |
+| -----------| --------- | ----------- |
+| "nonce"    | Nonce     | Principal that issued the JWT |
+| "c_hash"   | C_Hash    | C_hash on an id token is validated against the authorization code  |
+| "at_hash"  | AT_Hash   | At_hash claim on an id token is validated against the access token |
