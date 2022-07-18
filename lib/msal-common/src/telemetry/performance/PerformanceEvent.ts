@@ -101,7 +101,7 @@ export enum PerformanceEvents {
     BrokerHandhshake = "brokerHandshake",
 
     /**
-     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
+     * acquireTokenByRefreshToken in BrokerClientApplication (PW-Broker).
      */
     AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
 
