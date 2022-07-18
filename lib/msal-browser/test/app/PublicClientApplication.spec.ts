@@ -2133,7 +2133,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || ""
             };
-            const testTokenResponse: AuthenticationResult = {
+            const testTokenResponse:AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid || "",
                 tenantId: testIdTokenClaims.tid || "",

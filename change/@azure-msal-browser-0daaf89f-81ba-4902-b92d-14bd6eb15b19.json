@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added new token size field in the perf telemetry data #4973",
+  "packageName": "@azure/msal-browser",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
