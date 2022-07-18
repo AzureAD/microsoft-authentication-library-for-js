@@ -82,7 +82,8 @@ export enum PersistentCacheKeys {
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
     ERROR_DESC = "error.description",
-    ACTIVE_ACCOUNT = "active-account"
+    ACTIVE_ACCOUNT = "active-account", // Legacy active-account cache key, use new key instead
+    ACTIVE_ACCOUNT_FILTERS = "active-account-filters" // new cache entry for active_account for a more robust version for browser
 }
 
 /**
