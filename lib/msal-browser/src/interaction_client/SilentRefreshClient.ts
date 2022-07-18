@@ -8,7 +8,6 @@ import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, 
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
-
 export class SilentRefreshClient extends StandardInteractionClient {
     /**
      * Exchanges the refresh token for new tokens
