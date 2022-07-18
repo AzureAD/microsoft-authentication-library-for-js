@@ -8,7 +8,7 @@ import * as path from "path";
 
 import AuthProvider from "./AuthProvider";
 import { FetchManager } from "./FetchManager";
-import { IpcMessages, GRAPH_CONFIG } from "./Constants";
+import { IpcMessages, GRAPH_CONFIG, APPLICATION_DIMENSIONS } from "./Constants";
 import * as authConfig from './config/customConfig.json';
 
 export default class Main {
@@ -133,8 +133,8 @@ export default class Main {
     // Creates main application window
     private static createMainWindow(): void {
         this.mainWindow = new BrowserWindow({
-            width: 1000,
-            height: 1000,
+            width: APPLICATION_DIMENSIONS.WIDTH,
+            height: APPLICATION_DIMENSIONS.HEIGHT,
             /**
              * Preload script serves as an interface between the Main process
              * that has access to Node API and the Renderer process which controls
