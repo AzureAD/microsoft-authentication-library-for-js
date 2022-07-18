@@ -1,7 +1,7 @@
 import { Configuration, buildConfiguration, TokenValidationConfiguration } from "../../src/config/Configuration";
 import { HttpClient } from "../../src/network/HttpClient";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { LogLevel, NetworkRequestOptions } from "@azure/msal-common";
+import { LogLevel, NetworkRequestOptions, ProtocolMode } from "@azure/msal-common";
 import 'regenerator-runtime';
 
 describe("Configuration", () => {
@@ -54,6 +54,8 @@ describe("Configuration", () => {
         // auth options
         expect(config.auth.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(config.auth.clockSkew).toEqual(TEST_CONSTANTS.DEFAULT_CLOCK_SKEW);
+        expect(config.auth.knownAuthorities).toEqual([]);
+        expect(config.auth.protocolMode).toEqual(ProtocolMode.OIDC);
 
     });
 

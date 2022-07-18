@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update unit tests with jwks_uri #4905",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
