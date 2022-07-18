@@ -2133,7 +2133,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: testIdTokenClaims.tid || "",
                 username: testIdTokenClaims.preferred_username || ""
             };
-            const testTokenResponse: AuthenticationResult = {
+            const testTokenResponse:AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testIdTokenClaims.oid || "",
                 tenantId: testIdTokenClaims.tid || "",
@@ -2150,7 +2150,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(CryptoOps.prototype, "hashString").resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const atsSpy = sinon.spy(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync");
-            const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
+            const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves({ refreshTokenSize: 0,
+                result: testTokenResponse
+            });
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -2227,7 +2229,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(CryptoOps.prototype, "hashString").resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-            const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
+            const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves({
+                refreshTokenSize: 0,
+                result: testTokenResponse
+            });
             // Beaerer requests
             const tokenRequest1: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],

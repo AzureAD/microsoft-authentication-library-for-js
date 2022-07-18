@@ -74,7 +74,9 @@ describe("SilentRefreshClient", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").resolves(testTokenResponse);
+            const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").resolves({ refreshTokenSize: 0,
+                result: testTokenResponse
+            });
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["scope1"],
                 account: testAccount,
