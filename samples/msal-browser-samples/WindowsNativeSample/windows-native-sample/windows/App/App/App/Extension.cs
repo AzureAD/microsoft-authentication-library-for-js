@@ -7,9 +7,6 @@ public class Extension
 {
     public async Task ExecuteExtensionAsync(WebView2 WebView)
     {
-<<<<<<< Updated upstream
-        //await WebView.ExecuteScriptAsync("chrome.webview.postMessage(window.document.URL)");
-=======
         //await WebView.ExecuteScriptAsync("alert(window.document.URL);");
         //await WebView.ExecuteScriptAsync("chrome.webview.postMessage(window.document.URL)");
         await WebView.ExecuteScriptAsync(
