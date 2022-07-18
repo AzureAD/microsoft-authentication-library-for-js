@@ -263,13 +263,6 @@ export type PerformanceEvent = {
     accessTokenSize?: number,
 
     /**
-     * Size of the refresh token
-     *
-     * @type {number}
-     */
-    refreshTokenSize?: number,
-
-    /**
      * Application name as specified by the app.
      *
      * @type {?string}
