@@ -415,16 +415,15 @@ export class BrowserCacheManager extends CacheManager {
                 return activeAccount;
             }
             return null;
-        } else {
-            const activeAccountValueObj = this.validateAndParseJson(activeAccountValueHomeLocalIds) as AccountInfo;
-            if(activeAccountValueObj) {
-                return this.getAccountInfoByFilter({
-                    homeAccountId: activeAccountValueObj.homeAccountId,
-                    localAccountId: activeAccountValueObj.localAccountId
-                })[0] || null;
-            }
-            return null;
         }
+        const activeAccountValueObj = this.validateAndParseJson(activeAccountValueHomeLocalIds) as AccountInfo;
+        if(activeAccountValueObj) {
+            return this.getAccountInfoByFilter({
+                homeAccountId: activeAccountValueObj.homeAccountId,
+                localAccountId: activeAccountValueObj.localAccountId
+            })[0] || null;
+        }
+        return null;
     }
 
     /**
