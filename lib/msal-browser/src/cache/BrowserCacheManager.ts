@@ -404,29 +404,29 @@ export class BrowserCacheManager extends CacheManager {
         const activeAccountValueFilters = this.getItem(activeAccountKeyFilters);
         if (!activeAccountValueFilters) { 
             // if new active account cache type isn't found, it's an old version, so look for that instead
-            console.trace("No new active account cache type found, looking for old version");
+            this.logger.trace("No new active account cache type found, looking for old version");
             const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
             const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
             if(!activeAccountValueLocal) {
-                console.trace("No active account found");
+                this.logger.trace("No active account found");
                 return null;
             }
             const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
             if(activeAccount) {
-                console.trace("Old active account cache type found");
+                this.logger.trace("Old active account cache type found");
                 return activeAccount;
             }
             return null;
         }
         const activeAccountValueObj = this.validateAndParseJson(activeAccountValueFilters) as AccountInfo;
         if(activeAccountValueObj) {
-            console.trace("New active account cache type found");
+            this.logger.trace("New active account cache type found");
             return this.getAccountInfoByFilter({
                 homeAccountId: activeAccountValueObj.homeAccountId,
                 localAccountId: activeAccountValueObj.localAccountId
             })[0] || null;
         }
-        console.trace("No active account found");
+        this.logger.trace("No active account found");
         return null;
     }
 
