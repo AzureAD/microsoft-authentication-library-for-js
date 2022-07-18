@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, IdToken } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -364,8 +364,8 @@ export abstract class ClientApplication {
         }
 
         return result.then((result) => {
+
             /*
-             * this.performanceClient.setTokenSizes(result.tokenSizes);
              *  If logged in, emit acquire token events
              */
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
@@ -380,6 +380,7 @@ export abstract class ClientApplication {
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
             });
+
             atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e: AuthError) => {
@@ -459,7 +460,7 @@ export abstract class ClientApplication {
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
-        }).catch ((e: AuthError) => {
+        }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             ssoSilentMeasurement.endMeasurement({
                 errorCode: e.errorCode,
@@ -771,7 +772,7 @@ export abstract class ClientApplication {
     // #endregion
 
     // #region Helpers
-    
+
     /**
      * Helper to validate app environment before making an auth request
      *
@@ -807,7 +808,7 @@ export abstract class ClientApplication {
             this.preflightInteractiveRequest(setInteractionInProgress);
         }
     }
-    
+
     /**
      * Preflight check for interactive requests
      *
