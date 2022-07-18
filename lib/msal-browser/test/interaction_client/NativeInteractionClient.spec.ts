@@ -52,7 +52,7 @@ testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccessTokenEntity.secret = TEST_TOKENS.ACCESS_TOKEN;
 testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ");
 testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
-testAccessTokenEntity.expiresOn = `${TimeUtils.nowSeconds() + 3600}`;
+testAccessTokenEntity.expiresOn = `${TimeUtils.nowSeconds() + TEST_CONFIG.TOKEN_EXPIRY}`;
 testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
 testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 
