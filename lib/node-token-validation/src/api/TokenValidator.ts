@@ -63,7 +63,7 @@ export class TokenValidator {
         this.networkInterface = this.config.system.networkClient,
 
         // Initialize OpenId configuration provider
-        this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
+        this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.storage, this.logger);
     }
 
     /**
