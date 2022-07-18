@@ -27,7 +27,7 @@ export type AccountInfo = {
     nativeAccountId?: string;
 };
 
-export type ActiveAccountHomeLocalIds = {
+export type ActiveAccountFilters = {
     homeAccountId: string;
     localAccountId: string;
 };

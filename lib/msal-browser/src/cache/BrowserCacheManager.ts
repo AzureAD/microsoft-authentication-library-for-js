@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountHomeLocalIds, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -404,7 +404,7 @@ export class BrowserCacheManager extends CacheManager {
         const activeAccountValueFilters = this.getItem(activeAccountKeyFilters);
         if (!activeAccountValueFilters) { 
             // if new active account cache type isn't found, it's an old version, so look for that instead
-            this.logger.trace("No new active account cache type found, looking for old version");
+            this.logger.trace("No active account filters cache schema found, looking for legacy schema");
             const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
             const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
             if(!activeAccountValueLocal) {
@@ -413,14 +413,16 @@ export class BrowserCacheManager extends CacheManager {
             }
             const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
             if(activeAccount) {
-                this.logger.trace("Old active account cache type found");
+                this.logger.trace("Legacy active account cache schema found");
+                this.logger.trace("Adding active account filters cache schema");
+                this.setActiveAccount(activeAccount);
                 return activeAccount;
             }
             return null;
         }
         const activeAccountValueObj = this.validateAndParseJson(activeAccountValueFilters) as AccountInfo;
         if(activeAccountValueObj) {
-            this.logger.trace("New active account cache type found");
+            this.logger.trace("Active account filters schema found");
             return this.getAccountInfoByFilter({
                 homeAccountId: activeAccountValueObj.homeAccountId,
                 localAccountId: activeAccountValueObj.localAccountId
@@ -439,7 +441,7 @@ export class BrowserCacheManager extends CacheManager {
         const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
         if (account) {
             this.logger.verbose("setActiveAccount: Active account set");
-            const activeAccountValue: ActiveAccountHomeLocalIds = {
+            const activeAccountValue: ActiveAccountFilters = {
                 homeAccountId: account.homeAccountId,
                 localAccountId: account.localAccountId
             };
