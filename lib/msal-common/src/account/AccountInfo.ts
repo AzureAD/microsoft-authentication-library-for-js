@@ -26,3 +26,8 @@ export type AccountInfo = {
     idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | object | undefined | unknown };
     nativeAccountId?: string;
 };
+
+export type ActiveAccountFilters = {
+    homeAccountId: string;
+    localAccountId: string;
+};
