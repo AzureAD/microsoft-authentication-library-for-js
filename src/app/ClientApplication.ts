@@ -6,7 +6,7 @@
 import { CryptoOps } from "../crypto/CryptoOps";
 import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
-import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -44,6 +44,9 @@ export abstract class ClientApplication {
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
+
+    // Native Cache in memory storage implementation
+    protected readonly nativeInternalStorage: BrowserCacheManager;
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
@@ -142,6 +145,14 @@ export abstract class ClientApplication {
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) :
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
 
+        // initialize in memory storage for native flows
+        const nativeCacheOptions: Required<CacheOptions> = {
+            cacheLocation: BrowserCacheLocation.MemoryStorage,
+            storeAuthStateInCookie: false,
+            secureCookies: false
+        };
+        this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger);
+
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
     }
@@ -198,7 +209,7 @@ export abstract class ClientApplication {
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
-                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, request.correlationId);
+                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
@@ -271,7 +282,7 @@ export abstract class ClientApplication {
         let result: Promise<void>;
 
         if (this.nativeExtensionProvider && this.canUseNative(request)) {
-            const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.performanceClient, this.nativeExtensionProvider, this.getNativeAccountId(request), request.correlationId);
+            const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.performanceClient, this.nativeExtensionProvider, this.getNativeAccountId(request), this.nativeInternalStorage, request.correlationId);
             result = nativeClient.acquireTokenRedirect(request).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
@@ -836,7 +847,7 @@ export abstract class ClientApplication {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
         }
 
-        const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.performanceClient, this.nativeExtensionProvider, accountId || this.getNativeAccountId(request), request.correlationId);
+        const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.performanceClient, this.nativeExtensionProvider, accountId || this.getNativeAccountId(request), this.nativeInternalStorage, request.correlationId);
 
         return nativeClient.acquireToken(request);
     }
@@ -889,7 +900,7 @@ export abstract class ClientApplication {
      * @param correlationId
      */
     protected createPopupClient(correlationId?: string): PopupClient {
-        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -897,7 +908,7 @@ export abstract class ClientApplication {
      * @param correlationId
      */
     protected createRedirectClient(correlationId?: string): RedirectClient {
-        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -905,7 +916,7 @@ export abstract class ClientApplication {
      * @param correlationId
      */
     protected createSilentIframeClient(correlationId?: string): SilentIframeClient {
-        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
     /**
