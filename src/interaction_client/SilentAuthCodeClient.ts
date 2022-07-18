@@ -24,10 +24,10 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
     }
-    
+
     /**
      * Acquires a token silently by redeeming an authorization code against the /token endpoint
-     * @param request 
+     * @param request
      */
     async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("SilentAuthCodeClient.acquireToken called");
@@ -35,7 +35,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         // Auth code payload is required
         if (!request.code) {
             throw BrowserAuthError.createAuthCodeRequiredError();
-            
+
         }
 
         // Create silent request
@@ -68,8 +68,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
                     cloud_graph_host_name: request.cloudGraphHostName,
                     cloud_instance_host_name: request.cloudInstanceHostName
                 },
-                silentRequest.state, 
-                authClient.authority, 
+                silentRequest.state,
+                authClient.authority,
                 this.networkClient,
                 false
             );
