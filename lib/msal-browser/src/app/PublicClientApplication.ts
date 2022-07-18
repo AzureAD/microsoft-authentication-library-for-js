@@ -120,6 +120,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
+            if (request.silentTokenRetrievalStrategy === "CacheOnly") {
+                throw BrowserAuthError.createAccessTokenNotInCacheError();
+            }
+
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
 
             let tokenError;

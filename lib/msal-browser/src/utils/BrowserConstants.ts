@@ -178,3 +178,12 @@ export enum WrapperSKU {
 export const DB_NAME = "msal.db";
 export const DB_VERSION = 1;
 export const DB_TABLE_NAME = `${DB_NAME}.keys`;
+
+export enum SilentTokenRetrievalStrategy {
+    CacheAndNetwork, // Look in cache, then use existing RT, then renew RT, i.e. existing default behavior
+    CacheWithExistingRefreshTokenOnly, // Look in cache and attempt to use existing RT only
+    CacheOnly, // Only look in cache and dont go to network, i.e this proposal
+    NetworkWithRefreshToken, // Only go to network, use existing RT if valid, otherwise renew RT, i.e. existing forceRefresh flag
+    NetworkWithExistingRefreshTokenOnly, // Only go to network with existing RT (dont renew RT if invalid)
+    NetworkOnly // Only go to network (renew RT if needed)
+}

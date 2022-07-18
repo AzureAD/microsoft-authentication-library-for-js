@@ -22,4 +22,5 @@ export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh: boolean;
     tokenQueryParameters?: StringDict;
+    silentTokenRetrievalStrategy?: String;
 };
