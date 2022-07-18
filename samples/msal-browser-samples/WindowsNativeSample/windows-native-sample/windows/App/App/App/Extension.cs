@@ -146,10 +146,9 @@ public class Extension
                         "}, sendResponse);" +
                     "}" +
                 "}");
->>>>>>> Stashed changes
     }
     public void HandleWebMessage(Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
     {
-        //Console.WriteLine(args.ToString());
+        Console.WriteLine(args.ToString());
     }
 }
