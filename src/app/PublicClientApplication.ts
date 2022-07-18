@@ -95,12 +95,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
+
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
+
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
             authority: request.authority || Constants.EMPTY_STRING,
@@ -114,35 +117,46 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             sshKid: request.sshKid
         };
         const silentRequestKey = JSON.stringify(thumbprint);
+
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
-            const response = this.acquireTokenSilentAsync({
-                ...request,
-                correlationId
-            }, account)
-                .then((result) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.endMeasurement({
-                        success: true,
-                        fromCache: result.fromCache,
-                        isNativeBroker: result.fromNativeBroker
-                    });
-                    atsMeasurement.flushMeasurement();
-                    return result;
-                })
-                .catch((error: AuthError) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.endMeasurement({
-                        errorCode: error.errorCode,
-                        subErrorCode: error.subError,
-                        success: false
-                    });
-                    atsMeasurement.flushMeasurement();
-                    throw error;
-                });
-            this.activeSilentTokenRequests.set(silentRequestKey, response);
-            return response;
+
+            let tokenError;
+            let token: AuthenticationResult;
+            let measurement = {};
+            try {
+                token = await this.acquireTokenSilentAsync({
+                    ...request,
+                    correlationId,
+                }, account);
+                measurement = {
+                    success: true,
+                    fromCache: token.fromCache,
+                    isNativeBroker: token.fromNativeBroker,
+                };
+            } catch (error) {
+                tokenError = error as AuthError;
+                measurement = {
+                    success: false,
+                    errorCode: tokenError.errorCode,
+                    subErrorCode: tokenError.subError,
+                };
+            }
+
+            this.activeSilentTokenRequests.delete(silentRequestKey);
+            atsMeasurement.endMeasurement(measurement);
+            atsMeasurement.flushMeasurement();
+
+            if (tokenError) {
+                throw tokenError;
+            }
+
+            const tokenPromise = new Promise<AuthenticationResult>((resolve) => {
+                resolve(token);
+            });
+            this.activeSilentTokenRequests.set(silentRequestKey, tokenPromise);
+            return tokenPromise;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
             atsMeasurement.endMeasurement({
