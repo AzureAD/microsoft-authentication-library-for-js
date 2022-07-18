@@ -47,7 +47,8 @@ export const Constants = {
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
     KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
     TOKEN_RESPONSE_TYPE: "token",
-    ID_TOKEN_RESPONSE_TYPE: "id_token"
+    ID_TOKEN_RESPONSE_TYPE: "id_token",
+    SHR_NONCE_VALIDITY: 240,
 };
 
 export const OIDC_DEFAULT_SCOPES = [
