@@ -65,7 +65,7 @@ export class RefreshTokenClient extends BaseClient {
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
      */
-    public async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<{ refreshTokenSize: number, result: AuthenticationResult }> {
+    public async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -124,10 +124,7 @@ export class RefreshTokenClient extends BaseClient {
             }
         };
 
-        return {
-            refreshTokenSize: refreshToken.secret.length,
-            result:  await this.acquireToken(refreshTokenRequest)
-        };
+        return this.acquireToken(refreshTokenRequest);
     }
 
     /**

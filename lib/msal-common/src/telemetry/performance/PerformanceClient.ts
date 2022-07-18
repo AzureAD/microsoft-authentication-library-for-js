@@ -274,9 +274,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         if (current.accessTokenSize) {
                             previous.accessTokenSize = current.accessTokenSize;
                         }
-                        if (current.refreshTokenSize) {
-                            previous.refreshTokenSize = current.refreshTokenSize;
-                        }
                         if (current.idTokenSize) {
                             previous.idTokenSize = current.idTokenSize;
                         }

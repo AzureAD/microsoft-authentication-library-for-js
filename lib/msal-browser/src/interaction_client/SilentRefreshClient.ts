@@ -25,10 +25,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
         this.logger.verbose("Refresh token client created");
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
-            .then(({refreshTokenSize, result}: {refreshTokenSize: number, result: AuthenticationResult }) => {
+            .then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
-                    refreshTokenSize,
                     fromCache: result.fromCache
                 });
 
