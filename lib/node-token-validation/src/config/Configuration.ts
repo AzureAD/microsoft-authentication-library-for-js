@@ -14,13 +14,17 @@ export type Configuration = {
 
 export type TokenValidationOptions = {
     authority?: string,
+    /**
+     * An array of URIs that are known to be valid. Used in B2C scenarios.
+     */
+    knownAuthorities?: Array<string>,
     protocolMode?: ProtocolMode
     clockSkew?: number,
 };
 
 export type SystemOptions = {
-    loggerOptions?: LoggerOptions;
-    networkClient?: INetworkModule;
+    loggerOptions?: LoggerOptions,
+    networkClient?: INetworkModule
 };
 
 export type TokenValidationConfiguration = {
@@ -38,6 +42,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 
 const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
     authority: Constants.DEFAULT_AUTHORITY,
+    knownAuthorities: [],
     protocolMode: ProtocolMode.OIDC,
     clockSkew: 0
 };

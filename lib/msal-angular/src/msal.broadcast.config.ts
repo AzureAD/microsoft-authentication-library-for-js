@@ -3,6 +3,6 @@
  * Licensed under the MIT License.
  */
 
-export type OpenIdConfigResponse = {
-    jwks_uri: string
+export type MsalBroadcastConfiguration = {
+    eventsToReplay: number
 };
