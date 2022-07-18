@@ -185,5 +185,5 @@ export enum SilentTokenRetrievalStrategy {
     CacheOnly, // Only look in cache and dont go to network, i.e this proposal
     NetworkWithRefreshToken, // Only go to network, use existing RT if valid, otherwise renew RT, i.e. existing forceRefresh flag
     NetworkWithExistingRefreshTokenOnly, // Only go to network with existing RT (dont renew RT if invalid)
-    NetworkOnly // Only go to network (renew RT if needed)
+    NetworkOnly, // Only go to network (renew RT if needed)
 }
