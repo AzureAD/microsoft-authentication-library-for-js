@@ -7,11 +7,10 @@ public class Extension
 {
     public async Task ExecuteExtensionAsync(WebView2 WebView)
     {
-        //await WebView.ExecuteScriptAsync("alert(window.document.URL);");
-        await WebView.ExecuteScriptAsync("chrome.webview.postMessage(window.document.URL)");
+        //await WebView.ExecuteScriptAsync("chrome.webview.postMessage(window.document.URL)");
     }
     public void HandleWebMessage(Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
     {
-        Console.WriteLine(args.ToString());
+        //Console.WriteLine(args.ToString());
     }
 }

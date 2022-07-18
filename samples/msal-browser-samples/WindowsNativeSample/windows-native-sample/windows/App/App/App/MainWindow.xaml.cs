@@ -40,9 +40,9 @@ namespace App {
             }
         }
 
-        private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args)
-        {
-            Task t = this.Extension.ExecuteExtensionAsync(CapacitorWebView);
-        }
+        //private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args)
+        //{
+        //    Task t = this.Extension.ExecuteExtensionAsync(CapacitorWebView);
+        //}
     }
 }
