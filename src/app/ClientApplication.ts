@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, IdToken } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
