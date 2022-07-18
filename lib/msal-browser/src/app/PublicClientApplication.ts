@@ -5,7 +5,7 @@
 
 import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, InteractionType, ApiId, SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -93,6 +93,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        // check to make sure a valid silent token retrieval stratgey was passed in, if applicable
+        if (request.silentTokenRetrievalStrategy && !Object.values(SilentTokenRetrievalStrategy).includes(request.silentTokenRetrievalStrategy as SilentTokenRetrievalStrategy)) {
+            throw BrowserAuthError.createInvalidSilentTokenRetrievalStrategyError();
+        }
+
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         
@@ -120,7 +125,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
-            if (request.silentTokenRetrievalStrategy === "CacheOnly") {
+            if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
                 throw BrowserAuthError.createAccessTokenNotInCacheError();
             }
 

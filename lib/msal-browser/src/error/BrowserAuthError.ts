@@ -189,6 +189,10 @@ export const BrowserAuthErrorMessage = {
         code: "access_code_not_in_cache",
         desc: "The Silent Token Retrieval Strategy was set to 'CacheOnly'. However, the token is not in the cache."
     },
+    invalidSilentTokenRetrieval: {
+        code: "invalid_silent_token_retrieval_strategy",
+        desc: "The Silent Token Retrieval Strategy is invalid."
+    },
 };
 
 /**
@@ -541,5 +545,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createAccessTokenNotInCacheError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.accessCodeNotInCache.code, BrowserAuthErrorMessage.accessCodeNotInCache.desc);
+    }
+
+    /**
+     * Create an error thrown when the silent token retrieval strategy passed in by the user does not match any of the values in the enum.
+     */
+    static createInvalidSilentTokenRetrievalStrategyError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.invalidSilentTokenRetrieval.code, BrowserAuthErrorMessage.invalidSilentTokenRetrieval.desc);
     }
 }
