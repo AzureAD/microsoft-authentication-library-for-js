@@ -264,7 +264,8 @@ export abstract class CacheManager implements ICacheManager {
         return this.getAccountsFilteredByInternal(
             accountFilter ? accountFilter.homeAccountId : Constants.EMPTY_STRING,
             accountFilter ? accountFilter.environment : Constants.EMPTY_STRING,
-            accountFilter ? accountFilter.realm : Constants.EMPTY_STRING
+            accountFilter ? accountFilter.realm : Constants.EMPTY_STRING,
+            accountFilter ? accountFilter.nativeAccountId: Constants.EMPTY_STRING,
         );
     }
 
@@ -278,7 +279,8 @@ export abstract class CacheManager implements ICacheManager {
     private getAccountsFilteredByInternal(
         homeAccountId?: string,
         environment?: string,
-        realm?: string
+        realm?: string,
+        nativeAccountId?: string,
     ): AccountCache {
         const allCacheKeys = this.getKeys();
         const matchingAccounts: AccountCache = {};
@@ -299,6 +301,10 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (!!realm && !this.matchRealm(entity, realm)) {
+                return;
+            }
+
+            if (!!nativeAccountId && !this.matchNativeAccountId(entity, nativeAccountId)) {
                 return;
             }
 
@@ -677,6 +683,28 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * Retrieve AccountEntity from cache
+     * @param nativeAccountId
+     * @returns AccountEntity or Null
+     */
+    readAccountFromCacheWithNativeAccountId(nativeAccountId: string): AccountEntity | null {
+        // fetch account from memory
+        const accountFilter: AccountFilter = {
+            nativeAccountId
+        };
+        const accountCache: AccountCache = this.getAccountsFilteredBy(accountFilter);
+        const accounts = Object.keys(accountCache).map((key) => accountCache[key]);
+
+        if (accounts.length < 1) {
+            return null;
+        } else if (accounts.length > 1) {
+            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
+        }
+
+        return accountCache[0];
+    }
+
+    /**
      * Retrieve IdTokenEntity from cache
      * @param clientId
      * @param account
@@ -872,6 +900,16 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchRealm(entity: AccountEntity | CredentialEntity, realm: string): boolean {
         return !!(entity.realm && realm === entity.realm);
+    }
+
+    /**
+     * helper to match nativeAccountId
+     * @param entity
+     * @param nativeAccountId
+     * @returns boolean indicating the match result
+     */
+    private matchNativeAccountId(entity: AccountEntity, nativeAccountId: string): boolean {
+        return !!(entity.nativeAccountId && nativeAccountId === entity.nativeAccountId);
     }
 
     /**
