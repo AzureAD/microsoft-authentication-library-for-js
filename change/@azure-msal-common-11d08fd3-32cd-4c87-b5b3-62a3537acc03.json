@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix bug with activeAccount when two accounts have same local account id #5004",
-  "packageName": "@azure/msal-common",
-  "email": "t-ssummers@microsoft.com",
-  "dependentChangeType": "patch"
-}
