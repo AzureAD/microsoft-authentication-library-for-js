@@ -322,7 +322,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // cache accessToken in inmemory storage
         const expiresIn: number = (responseTokenType === AuthenticationScheme.POP)
             ? Constants.SHR_NONCE_VALIDITY
-            : (typeof response.expires_in === "string" ? parseInt(response.expires_in, 10) : response.expires_in) || 0;
+            : (
+                typeof response.expires_in === "string"
+                    ? parseInt(response.expires_in, 10)
+                    : response.expires_in
+            ) || 0;
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             homeAccountIdentifier,

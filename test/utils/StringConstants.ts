@@ -53,6 +53,7 @@ export const TEST_CONFIG = {
     OID: "test-oid",
     SUB: "test-sub",
     RESPONSE_MODE: "fragment",
+    TOKEN_EXPIRY: 3600,
 };
 
 // Test Tokens
