@@ -1,13 +1,17 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import sinon from "sinon";
 import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ExternalTokenResponse, AccountEntity, AuthToken } from "@azure/msal-common";
-import { TokenCache, LoadTokenOptions } from "./../../src/cache/TokenCache";
+import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions } from "../../src/config/Configuration";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
-
 
 describe("TokenCache tests", () => {
 
@@ -27,7 +31,7 @@ describe("TokenCache tests", () => {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
             secureCookies: false
-        }; 
+        };
         logger = new Logger({
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
             piiLoggingEnabled: true
@@ -60,7 +64,7 @@ describe("TokenCache tests", () => {
             testEnvironment = 'login.microsoftonline.com';
 
             testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
-            
+
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             idTokenEntity = IdTokenEntity.createIdTokenEntity(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT)
             idTokenKey = idTokenEntity.generateCredentialKey();
@@ -83,14 +87,14 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID 
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
                 }
             };
             const response: ExternalTokenResponse = {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {};
-            tokenCache.loadExternalTokens(request, response, options); 
+            tokenCache.loadExternalTokens(request, response, options);
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
@@ -123,7 +127,7 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo
             };
             const testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
-            const testAccount = AccountEntity.createAccount(testClientInfo, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdAuthToken, undefined, undefined, undefined, undefined, testEnvironment);
+            const testAccount = AccountEntity.createAccount(testClientInfo, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdAuthToken, undefined, undefined, undefined, testEnvironment, undefined);
             const testAccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 environment: testEnvironment,
@@ -161,7 +165,7 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: "localAccountId" 
+                    localAccountId: "localAccountId"
                 }
             };
             const response: ExternalTokenResponse = {};
@@ -203,7 +207,7 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: "localAccountId" 
+                    localAccountId: "localAccountId"
                 }
             };
             const response: ExternalTokenResponse = {
@@ -223,7 +227,7 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: "localAccountId" 
+                    localAccountId: "localAccountId"
                 }
             };
             const response: ExternalTokenResponse = {
@@ -244,7 +248,7 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: "localAccountId" 
+                    localAccountId: "localAccountId"
                 }
             };
             const response: ExternalTokenResponse = {
@@ -256,7 +260,7 @@ describe("TokenCache tests", () => {
                 expiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP
             };
-            tokenCache.loadExternalTokens(request, response, options); 
+            tokenCache.loadExternalTokens(request, response, options);
 
             expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
@@ -271,7 +275,7 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: "localAccountId" 
+                    localAccountId: "localAccountId"
                 }
             };
             const response: ExternalTokenResponse = {

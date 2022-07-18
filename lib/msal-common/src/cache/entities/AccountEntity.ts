@@ -39,7 +39,6 @@ import { TokenClaims } from "../../account/TokenClaims";
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
- *      oboAssertion: access token passed in as part of OBO request
  *      idTokenClaims: Object containing claims parsed from ID token
  *      nativeAccountId: Account identifier on the native device
  * }
@@ -55,9 +54,8 @@ export class AccountEntity {
     clientInfo?: string;
     lastModificationTime?: string;
     lastModificationApp?: string;
-    oboAssertion?: string;
     cloudGraphHostName?: string;
-    msGraphHost?: string; 
+    msGraphHost?: string;
     idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
 
@@ -143,7 +141,6 @@ export class AccountEntity {
         homeAccountId: string,
         idToken: AuthToken,
         authority?: Authority,
-        oboAssertion?: string,
         cloudGraphHostName?: string,
         msGraphHost?: string,
         environment?: string,
@@ -165,8 +162,7 @@ export class AccountEntity {
         account.environment = env;
         // non AAD scenarios can have empty realm
         account.realm = idToken?.claims?.tid || Constants.EMPTY_STRING;
-        account.oboAssertion = oboAssertion;
-        
+
         if (idToken) {
             account.idTokenClaims = idToken.claims;
 
@@ -196,7 +192,6 @@ export class AccountEntity {
         homeAccountId: string,
         idToken: AuthToken,
         authority?: Authority,
-        oboAssertion?: string,
         cloudGraphHostName?: string,
         msGraphHost?: string,
         environment?: string
@@ -207,7 +202,6 @@ export class AccountEntity {
         account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
         account.realm = Constants.EMPTY_STRING;
-        account.oboAssertion = oboAssertion;
 
         const env = environment || authority && authority.getPreferredCache();
 
@@ -288,8 +282,8 @@ export class AccountEntity {
 
     /**
      * Helper function to determine whether 2 accountInfo objects represent the same account
-     * @param accountA 
-     * @param accountB 
+     * @param accountA
+     * @param accountB
      * @param compareClaims - If set to true idTokenClaims will also be compared to determine account equality
      */
     static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean {
@@ -307,7 +301,7 @@ export class AccountEntity {
             (accountAClaims.nonce === accountBClaims.nonce);
         }
 
-        return (accountA.homeAccountId === accountB.homeAccountId) && 
+        return (accountA.homeAccountId === accountB.homeAccountId) &&
             (accountA.localAccountId === accountB.localAccountId) &&
             (accountA.username === accountB.username) &&
             (accountA.tenantId === accountB.tenantId) &&

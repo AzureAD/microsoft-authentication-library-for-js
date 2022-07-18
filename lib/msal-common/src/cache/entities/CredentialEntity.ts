@@ -23,9 +23,9 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      familyId: Family ID identifier, usually only used for refresh tokens
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
- *      oboAssertion: access token passed in as part of OBO request
  *      tokenType: Matches the authentication scheme for which the token was issued (i.e. Bearer or pop)
  *      requestedClaimsHash: Matches the SHA 256 hash of the claims object included in the token request
+ *      userAssertionHash: Matches the SHA 256 hash of the obo_assertion for the OBO flow
  * }
  */
 export class CredentialEntity {
@@ -37,7 +37,7 @@ export class CredentialEntity {
     familyId?: string;
     realm?: string;
     target?: string;
-    oboAssertion?: string;
+    userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
     requestedClaimsHash?: string;
@@ -81,7 +81,7 @@ export class CredentialEntity {
             this.target,
             this.familyId,
             this.tokenType,
-            this.requestedClaimsHash
+            this.requestedClaimsHash,
         );
     }
 

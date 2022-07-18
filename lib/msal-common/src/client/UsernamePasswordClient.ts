@@ -114,10 +114,8 @@ export class UsernamePasswordClient extends BaseClient {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
         }
 
-        // Use clientAssertion from request, fallback to client assertion in base configuration
-        const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
-
-        if (clientAssertion) {
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }

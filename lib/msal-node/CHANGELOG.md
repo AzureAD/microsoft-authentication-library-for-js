@@ -1,8 +1,30 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 06 Jun 2022 22:13:00 GMT and should not be manually modified.
+This log was last generated on Tue, 05 Jul 2022 22:37:04 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.11.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Bump @azure/msal-common to v7.1.0
+
+## 1.10.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Minor changes
+
+- Fix ClientAssertion configuration typing between common and node #4846 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v7.0.0
+
+### Patches
+
+- Add strict assertion checks for OBO clients (#4691) (bmahal@microsoft.com)
 
 ## 1.9.1
 

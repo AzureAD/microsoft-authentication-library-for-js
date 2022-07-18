@@ -39,7 +39,11 @@ export type TokenValidationOptions = {
     /**
      * Clock skew (in seconds) allowed in token validation. Must be a positive integer.
      */
-    clockSkew?: number,
+    knownAuthorities?: Array<string>,
+    /**
+     * An array of URIs that are known to be valid. Used in B2C scenarios.
+     */
+    clockSkew?: number
 };
 
 /**
@@ -80,6 +84,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
  */
 const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
     authority: Constants.DEFAULT_AUTHORITY,
+    knownAuthorities: [],
     protocolMode: ProtocolMode.OIDC,
     clockSkew: 0
 };

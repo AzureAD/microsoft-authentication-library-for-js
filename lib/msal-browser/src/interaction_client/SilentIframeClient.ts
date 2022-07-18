@@ -73,6 +73,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
             acquireTokenMeasurement.endMeasurement({
+                errorCode: e instanceof AuthError && e.errorCode || undefined,
+                subErrorCode: e instanceof AuthError && e.subError || undefined,
                 success: false
             });
             throw e;

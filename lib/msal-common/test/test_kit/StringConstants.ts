@@ -109,8 +109,9 @@ export const TEST_URIS = {
 
 // Test Crypto Values
 export const TEST_CRYPTO_VALUES = {
-    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
-}
+    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE",
+    TEST_USER_ASSERTION_HASH: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE"
+};
 
 // Test MSAL config params
 export const TEST_CONFIG = {
@@ -497,11 +498,11 @@ export const CACHE_MOCKS = {
 };
 
 export const CORS_SIMPLE_REQUEST_HEADERS = [
-    "connection", 
-    "user-agent", 
-    "accept", 
-    "accept-language", 
-    "content-language", 
+    "connection",
+    "user-agent",
+    "accept",
+    "accept-language",
+    "content-language",
     "content-type"
 ];
 

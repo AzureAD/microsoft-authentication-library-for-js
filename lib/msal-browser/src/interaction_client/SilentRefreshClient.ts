@@ -40,6 +40,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
                 }
                 serverTelemetryManager.cacheFailedRequest(e);
                 acquireTokenMeasurement.endMeasurement({
+                    errorCode: e.errorCode,
+                    subErrorCode: e.subError,
                     success: false
                 });
                 throw e;

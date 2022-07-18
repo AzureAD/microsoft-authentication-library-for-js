@@ -2,6 +2,123 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-browser_v2.27.0",
+      "version": "2.27.0",
+      "comments": {
+        "none": [
+          {
+            "author": "azamfahmy@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "23d16b6a21bd89485c6471decbab10c157d0ef15",
+            "comment": {
+              "title": "updated the function description for createRedirectClient()",
+              "value": ""
+            }
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6dfc1ebe77fe97964f194da0d9efc82a920a2bed",
+            "comment": "Update unit tests with jwks_uri #4905"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48f2df2559f6446fdeb5aa69335e6e5a369b647a",
+            "comment": "Update WAM docs #4952"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "560fe1d158719556d1aba93bf973b1fbdd620d59",
+            "comment": "Fix prompt behavior for native broker requests #4949"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "867516c11c83639890abe2fcd6fc6e73ed659644",
+            "comment": "Non-fatal native broker errors should clear interaction in progress flag #4950"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "bb972bebeccfb8e4fd3d5fc4c8fc857abfc0e59f",
+            "comment": "Mark temporary cache cookies as SameSite lax #4957"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d501fbdded20ff9bdadfe02dc46e13a6e6ed4e56",
+            "comment": "Handle ACCOUNT_UNAVAILABLE error status from native broker #4951"
+          }
+        ],
+        "minor": [
+          {
+            "author": "samuelkamau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "37dbd0a0c751d9aef0371b813122d89e978ff57e",
+            "comment": "feat: adding authority metadata resiliency #4536"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.1.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-browser_v2.26.0",
+      "version": "2.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "17bf0dd14cc1b23bd43a531d73c878ccd09e66e9",
+            "comment": "Add errorCode and subErrorCode to client telemetry events (#4863)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.0.0",
+            "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "49d6a3dde3e09a12ee01aeae52137e3c007649e8",
+            "comment": "Add strict assertion checks for OBO clients (#4691)"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d7836e8cdad77b5990ecbd4a278ebce097633478",
+            "comment": "Update redirect_in_iframe message to include messaging for embedded applications #4895"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00e44cc4bc966d8e4e8a57c0207d4ba26557c88e",
+            "comment": "preflightBrowserEnvironmentCheck should not always set interaction in progress #4893"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a78532e3aec29b2ba0b0650f98d065e78c0fac88",
+            "comment": "Return correct fromCache value when tokens are acquired from native broker #4880"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 Jun 2022 22:13:00 GMT",
       "tag": "@azure/msal-browser_v2.25.0",
       "version": "2.25.0",

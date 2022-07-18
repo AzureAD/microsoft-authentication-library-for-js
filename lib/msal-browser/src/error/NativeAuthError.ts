@@ -20,7 +20,8 @@ export enum NativeStatusCode {
     NO_NETWORK = "NO_NETWORK",
     TRANSIENT_ERROR = "TRANSIENT_ERROR",
     PERSISTENT_ERROR = "PERSISTENT_ERROR", 
-    DISABLED = "DISABLED"
+    DISABLED = "DISABLED",
+    ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE"
 }
 
 export const NativeAuthErrorMessage = {
@@ -70,6 +71,8 @@ export class NativeAuthError extends AuthError {
     static createError(code: string, description: string, ext?: OSError): AuthError {
         if (ext && ext.status) {
             switch (ext.status) {
+                case NativeStatusCode.ACCOUNT_UNAVAILABLE:
+                    return InteractionRequiredAuthError.createNativeAccountUnavailableError();
                 case NativeStatusCode.USER_INTERACTION_REQUIRED:
                     return new InteractionRequiredAuthError(code, description);
                 case NativeStatusCode.USER_CANCEL:

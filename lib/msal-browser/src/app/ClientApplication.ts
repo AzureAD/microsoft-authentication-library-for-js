@@ -276,7 +276,12 @@ export abstract class ClientApplication {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const redirectClient = this.createRedirectClient(request.correlationId);
                     return redirectClient.acquireToken(request);
+                } else if (e instanceof InteractionRequiredAuthError) {
+                    this.logger.verbose("acquireTokenRedirect - Resolving interaction required error thrown by native broker by falling back to web flow");
+                    const redirectClient = this.createRedirectClient(request.correlationId);
+                    return redirectClient.acquireToken(request);
                 }
+                this.browserStorage.setInteractionInProgress(false);
                 throw e;
             });
         } else {
@@ -342,7 +347,12 @@ export abstract class ClientApplication {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
                     const popupClient = this.createPopupClient(request.correlationId);
                     return popupClient.acquireToken(request);
+                } else if (e instanceof InteractionRequiredAuthError) {
+                    this.logger.verbose("acquireTokenPopup - Resolving interaction required error thrown by native broker by falling back to web flow");
+                    const popupClient = this.createPopupClient(request.correlationId);
+                    return popupClient.acquireToken(request);
                 }
+                this.browserStorage.setInteractionInProgress(false);
                 throw e;
             });
         } else {
@@ -364,7 +374,7 @@ export abstract class ClientApplication {
             });
             atPopupMeasurement.flushMeasurement();
             return result;
-        }).catch((e) => {
+        }).catch((e: AuthError) => {
             if (loggedInAccounts.length > 0) {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Popup, null, e);
             } else {
@@ -372,6 +382,8 @@ export abstract class ClientApplication {
             }
 
             atPopupMeasurement.endMeasurement({
+                errorCode: e.errorCode,
+                subErrorCode: e.subError,
                 success: false
             });
             atPopupMeasurement.flushMeasurement();
@@ -432,13 +444,16 @@ export abstract class ClientApplication {
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
             ssoSilentMeasurement.endMeasurement({
-                success: true
+                success: true,
+                isNativeBroker: response.fromNativeBroker
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
-        }).catch ((e) => {
+        }).catch ((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             ssoSilentMeasurement.endMeasurement({
+                errorCode: e.errorCode,
+                subErrorCode: e.subError,
                 success: false
             });
             ssoSilentMeasurement.flushMeasurement();
@@ -477,15 +492,18 @@ export abstract class ClientApplication {
                             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.endMeasurement({
-                                success: true
+                                success: true,
+                                isNativeBroker: result.fromNativeBroker
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
                         })
-                        .catch((error: Error) => {
+                        .catch((error: AuthError) => {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, error);
                             atbcMeasurement.endMeasurement({
+                                errorCode: error.errorCode,
+                                subErrorCode: error.subError,
                                 success: false
                             });
                             atbcMeasurement.flushMeasurement();
@@ -519,6 +537,8 @@ export abstract class ClientApplication {
         } catch (e) {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
             atbcMeasurement.endMeasurement({
+                errorCode: e instanceof AuthError && e.errorCode || undefined,
+                subErrorCode: e instanceof AuthError && e.subError || undefined,
                 success: false
             });
             throw e;
@@ -583,6 +603,8 @@ export abstract class ClientApplication {
                         })
                         .catch((error) => {
                             atbrtMeasurement.endMeasurement({
+                                errorCode: error.errorCode,
+                                subErrorCode: error.subError,
                                 success: false
                             });
                             throw error;
@@ -733,12 +755,15 @@ export abstract class ClientApplication {
     // #endregion
 
     // #region Helpers
-
+    
     /**
      * Helper to validate app environment before making an auth request
-     * * @param interactionType
+     *
+     * @protected
+     * @param {InteractionType} interactionType What kind of interaction is being used
+     * @param {boolean} [setInteractionInProgress=true] Whether to set interaction in progress temp cache flag
      */
-    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
+    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
@@ -763,22 +788,25 @@ export abstract class ClientApplication {
         }
 
         if (interactionType === InteractionType.Redirect || interactionType === InteractionType.Popup) {
-            this.preflightInteractiveRequest();
+            this.preflightInteractiveRequest(setInteractionInProgress);
         }
     }
-
+    
     /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
+     * Preflight check for interactive requests
+     *
+     * @protected
+     * @param {boolean} setInteractionInProgress Whether to set interaction in progress temp cache flag
      */
-    protected preflightInteractiveRequest(): void {
+    protected preflightInteractiveRequest(setInteractionInProgress: boolean): void {
         this.logger.verbose("preflightInteractiveRequest called, validating app environment");
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         // Set interaction in progress temporary cache or throw if alread set.
-        this.browserStorage.setInteractionInProgress(true);
+        if (setInteractionInProgress) {
+            this.browserStorage.setInteractionInProgress(true);
+        }
     }
 
     /**
@@ -811,6 +839,7 @@ export abstract class ClientApplication {
             switch (request.prompt) {
                 case PromptValue.NONE:
                 case PromptValue.CONSENT:
+                case PromptValue.LOGIN:
                     this.logger.trace("canUseNative: prompt is compatible with native flow");
                     break;
                 default:
@@ -847,7 +876,7 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Returns new instance of the Popup Interaction Client
+     * Returns new instance of the Redirect Interaction Client
      * @param correlationId
      */
     protected createRedirectClient(correlationId?: string): RedirectClient {

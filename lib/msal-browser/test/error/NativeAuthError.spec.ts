@@ -1,5 +1,5 @@
 import { NativeAuthError, NativeAuthErrorMessage, NativeStatusCode } from "../../src/error/NativeAuthError";
-import { InteractionRequiredAuthError } from "@azure/msal-common";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "@azure/msal-common";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 
 describe("NativeAuthError Unit Tests", () => {
@@ -56,6 +56,17 @@ describe("NativeAuthError Unit Tests", () => {
                 });
                 expect(error).toBeInstanceOf(InteractionRequiredAuthError);
                 expect(error.errorCode).toBe("interaction_required");
+            });
+
+            it("translates ACCOUNT_UNAVAILABLE status into corresponding InteractionRequiredError", () => {
+                const error = NativeAuthError.createError("interaction_required", "interaction is required", {
+                    error: 1,
+                    protocol_error: "testProtocolError",
+                    properties: {},
+                    status: NativeStatusCode.ACCOUNT_UNAVAILABLE
+                });
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                expect(error.errorCode).toBe(InteractionRequiredAuthErrorMessage.native_account_unavailable.code);
             });
 
             it("translates USER_CANCEL status into corresponding BrowserAuthError", () => {
