@@ -10,7 +10,7 @@ window.addEventListener("DOMContentLoaded", () => {
         window.history.pushState({}, document.title, "/");
     }
 
-    document.getElementById("SignIn").onclick = function () {
+    document.getElementById("SignIn").onclick = () => {
         window.location.href = redirectUri;
     };
 });
