@@ -37,7 +37,6 @@ jobs:
         sample:
           - 'angular9-v2-sample-app'
           - 'angular10-sample-app'
-          - 'angular11-b2c-sample'
           - 'angular11-sample-app'
           - 'angular12-sample-app'
           - 'angular13-rxjs6-sample-app'
