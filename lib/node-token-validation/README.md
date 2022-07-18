@@ -19,10 +19,6 @@
 
 Node Token Validation library enables token signature and claim validation for JWT tokens. This library is under active development and is not available for use yet.
 
-- RFC specification support
-- Claims validation supported?
-- OIDC or AAD endpoints?
-
 ## Node Version Support
 
 Node Token Validation will follow the [Long Term Support (LTS) schedule of the Node.js project](https://nodejs.org/about/releases/). Our support plan is as follows.
@@ -34,7 +30,7 @@ Any major MSAL Node release:
 
 | Node Token Validation version | Support status       | Supported Node versions |
 |-------------------------------|----------------------|-------------------------|
-| 1.x.x                         | Active development   | 16                      |
+| 1.x.x                         | Active development   | 18                      |
 
 ## Prerequisites
 

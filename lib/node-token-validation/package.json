@@ -23,7 +23,7 @@
   "sideEffects": false,
   "main": "./dist/index.cjs.js",
   "engines": {
-    "node": "12 || 14 || 16"
+    "node": "18"
   },
   "directories": {
     "test": "test"
