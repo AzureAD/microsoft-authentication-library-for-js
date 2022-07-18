@@ -3,10 +3,8 @@
 **NOTE: This library is currently a pre-release version under active development and should not be used.**
 
 1. [About](#about)
-1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/node-token-validation/docs/FAQ.md)
 1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/node-token-validation/CHANGELOG.md)
 1. [Node Version Support](#node-version-support)
-1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Usage](#usage)
 1. [Samples](#samples)
@@ -31,8 +29,6 @@ Any major MSAL Node release:
 | Node Token Validation version | Support status       | Supported Node versions |
 |-------------------------------|----------------------|-------------------------|
 | 1.x.x                         | Active development   | 18                      |
-
-## Prerequisites
 
 ## Installation
 
