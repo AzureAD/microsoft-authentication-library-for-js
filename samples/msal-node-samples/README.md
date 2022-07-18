@@ -19,9 +19,7 @@ Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/dev
 | [username-password-cca](./username-password-cca/README.md) | console/daemon app (confidential client) | resource owner password credentials |
 | [device-code](./device-code/README.md)                     | headless app (public client)      | device code                         |
 | [client-credentials](./client-credentials/README.md)       | console/daemon app (confidential client) | client credentials                  |
-| [b2c-auth-code](./b2c-auth-code/README.md)                 | web app (confidential client)     | authorization code                  |
-| [b2c-auth-code-pkce](./b2c-auth-code-pkce/README.md)       | web app (public client)           | authorization code with PKCE        |
-| [b2c-silent-flow](./b2c-silent-flow/README.md)             | web app (public client)           | authorization code with PKCE        |
+| [b2c-user-flows](./b2c-user-flows/README.md)                 | web app (confidential client)     | authorization code                  |
 | [ElectronTestApp](./ElectronTestApp/README.md)             | desktop app (public client)       | authorization code with PKCE        |
 | [ExpressTestApp](./ExpressTestApp/README.md)               | web app (confidential client)     | authorization code                  |
 
