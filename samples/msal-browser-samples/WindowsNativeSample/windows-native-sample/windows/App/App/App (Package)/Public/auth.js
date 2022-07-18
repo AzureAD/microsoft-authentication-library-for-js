@@ -20,9 +20,15 @@ let accountId = "";
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
 // Redirect: once login is successful and redirects with tokens, call Graph API
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
-});
+function init() {
+    myMSALObj.initialize().then(() => {
+        myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+            console.error(err);
+        });
+    });
+    console.log("initialized");
+}
+ //execute this on button press instead of on page load
 
 function handleResponse(resp) {
     console.log("Now handling response");
