@@ -7,14 +7,22 @@ import { JWTHeaderParameters, JWTPayload } from "jose";
 
 /**
  * Response object for token validation responses
- * - protectedHeader: Header of JWT token
- * - payload: Payload of JWT token
- * - token: Original token sent in for validation
- * - tokenType: Type of token, defaults to JWT
  */
 export type TokenValidationResponse = {
+    /**
+     * Header of JWT token
+     */
     protectedHeader?: JWTHeaderParameters;
+    /**
+     * Payload of JWT token
+     */
     payload?: JWTPayload;
+    /**
+     * Original token sent in for validation
+     */
     token?: string;
+    /**
+     * Type of token, defaults to JWT
+     */
     tokenType?: string;
 };
