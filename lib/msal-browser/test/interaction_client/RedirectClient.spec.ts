@@ -11,7 +11,7 @@ import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { XhrClient } from "../../src/network/XhrClient";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -21,6 +21,8 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { EventHandler } from "../../src/event/EventHandler";
 import { EventType } from "../../src/event/EventType";
+import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
+import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -38,13 +40,21 @@ const loggerOptions = {
 };
 
 describe("RedirectClient", () => {
+    globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let redirectClient: RedirectClient;
     let browserStorage: BrowserCacheManager;
+    let pca: PublicClientApplication;
 
     beforeEach(() => {
-        const pca = new PublicClientApplication({
+        pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion
+                }
             }
         });
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
@@ -53,7 +63,7 @@ describe("RedirectClient", () => {
         browserStorage = pca.browserStorage;
 
         // @ts-ignore
-        redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+        redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
     });
 
     afterEach(() => {
@@ -230,6 +240,145 @@ describe("RedirectClient", () => {
             expect(window.sessionStorage.length).toEqual(4);
         });
 
+        it("gets hash from cache and calls native broker if hash contains accountId", async () => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+            // @ts-ignore
+            const nativeMessageHandler = new NativeMessageHandler(pca.logger);
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
+            const b64Encode = new Base64Encode();
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+            const testServerTokenResponse = {
+                headers: {},
+                status: 200,
+                body: {
+                    token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    access_token: TEST_TOKENS.ACCESS_TOKEN,
+                    refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                    id_token: TEST_TOKENS.IDTOKEN_V2,
+                    client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+                }
+            };
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                nativeAccountId: "test-nativeAccountId"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.body.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.body.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url): any => {
+                if (url.includes("discovery/instance")) {
+                    return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                } else if (url.includes(".well-known/openid-configuration")) {
+                    return DEFAULT_OPENID_CONFIG_RESPONSE;
+                }
+            });
+            sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const tokenResponse = await redirectClient.handleRedirectPromise();
+            expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
+            expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
+            expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
+            expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
+            expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
+            expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
+            expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
+        });
+
+        it("gets hash from cache and throws if hash contains accountId but native broker connection is not established", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+            const b64Encode = new Base64Encode();
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+            const browserCrypto = new CryptoOps(new Logger({}));
+            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+
+            redirectClient.handleRedirectPromise().catch(e => {
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code);
+                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
+                done();
+            });
+        });
+
         it("throws no cached authority error if authority is not in cache", (done) => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
@@ -375,7 +524,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -488,7 +637,7 @@ describe("RedirectClient", () => {
             pca.setNavigationClient(navigationClient);
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             if (!tokenResponse) {
@@ -596,7 +745,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -662,7 +811,7 @@ describe("RedirectClient", () => {
                 }
             }
             // @ts-ignore
-            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -772,7 +921,7 @@ describe("RedirectClient", () => {
 
             window.location.hash = "testHash";
             const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
-            
+
             sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
                 expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             });
@@ -816,7 +965,7 @@ describe("RedirectClient", () => {
                 }
             });
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             browserStorage.setInteractionInProgress(true);
             const loginRequestUrl = window.location.href + "#testHash";
@@ -1192,7 +1341,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1245,7 +1395,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1299,7 +1450,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1352,7 +1504,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1405,7 +1558,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1609,7 +1763,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1663,7 +1818,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                nativeBroker: false
             };
             expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1705,7 +1861,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            
+
             const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1714,7 +1870,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             redirectClient.logout();
         });
@@ -1725,7 +1881,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            
+
             const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1840,38 +1996,128 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
+            browserStorage.setInteractionInProgress(true);
             redirectClient.logout({
                 onRedirectNavigate: (url: string) => {
                     expect(url).toEqual(testLogoutUrl);
-                    done();
                     return false;
                 }
-            });
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
+        });
+
+        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "",
+                username: "",
+                idTokenClaims: {}
             };
-            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
+                done();
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true);
+            redirectClient.logout({
+                account: testAccountInfo,
+                onRedirectNavigate: (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return false;
+                }
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
         });
 
         it("does navigate if onRedirectNavigate returns true", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(browserStorage.getInteractionInProgress()).toBeTruthy();
                 expect(urlNavigate).toEqual(testLogoutUrl);
-                done();
+
                 return Promise.resolve(true);
             });
+            browserStorage.setInteractionInProgress(true);
             redirectClient.logout({
                 onRedirectNavigate: (url) => {
                     expect(url).toEqual(testLogoutUrl);
                     return true;
                 }
-            });
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeTruthy();
+
+                    // Reset after testing it was properly set
+                    browserStorage.setInteractionInProgress(false);
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
+        });
+
+        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "",
+                username: "",
+                idTokenClaims: {}
             };
-            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toEqual(testLogoutUrl);
+
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true);
+            redirectClient.logout({
+                account: testAccountInfo,
+                onRedirectNavigate: (url) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return true;
+                }
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeTruthy();
+
+                    // Reset after testing it was properly set
+                    browserStorage.setInteractionInProgress(false);
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
@@ -1944,11 +2190,12 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT}`, testAccount.localAccountId);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`, JSON.stringify({homeAccountId: testAccount.homeAccountId, localAccountId: testAccount.localAccountId}));
             window.sessionStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo), JSON.stringify(testAccount));
 
             await redirectClient.logout(validatedLogoutRequest).then(() => {
-                expect(window.sessionStorage.length).toBe(0);
+                // Interaction in progress
+                expect(window.sessionStorage.length).toBe(1);
             });
         });
     });

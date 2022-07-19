@@ -4,23 +4,27 @@
  */
 
 import { app, BrowserWindow, ipcMain } from "electron";
-import AuthProvider from "./AuthProvider";
 import * as path from "path";
-import { FetchManager } from "./FetchManager";
 
-import { GRAPH_CONFIG, IPC_MESSAGES } from "./Constants";
+import AuthProvider from "./AuthProvider";
+import { FetchManager } from "./FetchManager";
+import { IpcMessages, GRAPH_CONFIG } from "./Constants";
+import * as authConfig from './config/customConfig.json';
 
 export default class Main {
     static application: Electron.App;
     static mainWindow: Electron.BrowserWindow;
     static authProvider: AuthProvider;
-    static accessToken: string;
-    static networkModule: FetchManager;
+    static fetchManager: FetchManager;
+    static authConfig: any;
 
     static main(): void {
         Main.application = app;
         Main.application.on('window-all-closed', Main.onWindowAllClosed);
         Main.application.on('ready', Main.onReady);
+
+        // if in automation, read the config from environment
+        Main.authConfig = process.env.authConfig ? JSON.parse(process.env.authConfig) : authConfig;
     }
 
     private static async loadBaseUI(): Promise<void> {
@@ -28,7 +32,11 @@ export default class Main {
     }
 
     private static onWindowAllClosed(): void {
-        Main.application.quit();
+        // Windows and Linux will quit the application when all windows are closed
+        if (process.platform !== 'darwin') {
+            // macOS requires explicit quitting
+            Main.application.quit();
+        }
     }
 
     private static onClose(): void {
@@ -39,8 +47,8 @@ export default class Main {
         Main.createMainWindow();
         Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
         Main.mainWindow.on('closed', Main.onClose);
-        Main.authProvider = new AuthProvider();
-        Main.networkModule = new FetchManager();
+        Main.authProvider = new AuthProvider(Main.authConfig);
+        Main.fetchManager = new FetchManager();
         Main.registerSubscriptions();
 
         Main.attemptSSOSilent();
@@ -51,18 +59,13 @@ export default class Main {
         this.mainWindow = new BrowserWindow({
             width: 1000,
             height: 1000,
-            webPreferences: {
-                nodeIntegration: true
-            }
-        });
-    }
-
-
-    // Creates main application window
-    private static createAuthWindow(): BrowserWindow {
-        return new BrowserWindow({
-            width: 400,
-            height: 600
+            /**
+             * Preload script serves as an interface between the Main process
+             * that has access to Node API and the Renderer process which controls
+             * the user interface but is otherwise not trustworthy of directly handling
+             * the Node API.
+             */
+            webPreferences: { preload: path.join(__dirname, 'preload.js') }
         });
     }
 
@@ -73,37 +76,35 @@ export default class Main {
     private static async attemptSSOSilent(): Promise<void> {
         const account = await Main.authProvider.loginSilent();
         await Main.loadBaseUI();
-        
+
         if (account) {
             console.log("Successful silent account retrieval");
-            Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+            Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
         }
     }
 
     private static async login(): Promise<void> {
-        const authWindow = Main.createAuthWindow();
-        const account = await Main.authProvider.login(authWindow)
+        const account = await Main.authProvider.login()
         await Main.loadBaseUI();
-        Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
-        authWindow.close();
+        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
     }
 
     private static async getProfile(): Promise<void> {
-        const token = await Main.authProvider.getProfileToken(Main.mainWindow);
+        const token = await Main.authProvider.getProfileToken();
         const account = Main.authProvider.currentAccount;
         await Main.loadBaseUI();
-        Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.networkModule.callEndpointWithToken(GRAPH_CONFIG.GRAPH_ME_ENDPT, token);
-        Main.publish(IPC_MESSAGES.SET_PROFILE, graphResponse);
+        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(`${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`, token);
+        Main.publish(IpcMessages.SET_PROFILE, graphResponse);
     }
 
     private static async getMail(): Promise<void> {
-        const token = await Main.authProvider.getMailToken(Main.mainWindow);
+        const token = await Main.authProvider.getMailToken();
         const account = Main.authProvider.currentAccount;
         await Main.loadBaseUI();
-        Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.networkModule.callEndpointWithToken(GRAPH_CONFIG.GRAPH_MAIL_ENDPT, token);
-        Main.publish(IPC_MESSAGES.SET_MAIL, graphResponse);
+        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(`${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`, token);
+        Main.publish(IpcMessages.SET_MAIL, graphResponse);
     }
 
     private static async logout(): Promise<void> {
@@ -111,13 +112,12 @@ export default class Main {
         await Main.loadBaseUI();
     }
 
-
     // Router that maps callbacks/actions to specific messages received from the Renderer
     private static registerSubscriptions(): void {
-        ipcMain.on(IPC_MESSAGES.LOGIN, Main.login);
-        ipcMain.on(IPC_MESSAGES.GET_PROFILE, Main.getProfile);
-        ipcMain.on(IPC_MESSAGES.GET_MAIL, Main.getMail);
-        ipcMain.on(IPC_MESSAGES.LOGOUT, Main.logout);
+        ipcMain.on(IpcMessages.LOGIN, Main.login);
+        ipcMain.on(IpcMessages.GET_PROFILE, Main.getProfile);
+        ipcMain.on(IpcMessages.GET_MAIL, Main.getMail);
+        ipcMain.on(IpcMessages.LOGOUT, Main.logout);
     }
 
 }

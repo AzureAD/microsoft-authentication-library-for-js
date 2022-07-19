@@ -46,8 +46,8 @@ export class AuthError extends Error {
         Object.setPrototypeOf(this, AuthError.prototype);
 
         this.errorCode = errorCode || Constants.EMPTY_STRING;
-        this.errorMessage = errorMessage || "";
-        this.subError = suberror || "";
+        this.errorMessage = errorMessage || Constants.EMPTY_STRING;
+        this.subError = suberror || Constants.EMPTY_STRING;
         this.name = "AuthError";
     }
 

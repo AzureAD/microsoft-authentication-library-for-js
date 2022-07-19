@@ -53,8 +53,8 @@ export type BaseValidationParameters = {
     validTypes: Array<string>,
     issuerSigningKeys?: Array<JWK>,
     issuerSigningJwksUri?: string,
-    requireExpirationTime: Boolean,
-    requireSignedTokens: Boolean,
+    requireExpirationTime: boolean,
+    requireSignedTokens: boolean,
     subject?: string
     nonce?: string,
     code?: string,

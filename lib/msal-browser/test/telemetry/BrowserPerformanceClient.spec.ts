@@ -1,11 +1,15 @@
-import { BrowserPerformanceClient, Logger } from "../../src";
-import { PerformanceEvents } from "@azure/msal-common";
+import { ApplicationTelemetry, Logger, PerformanceEvents } from "@azure/msal-common";
 import { name, version } from "../../src/packageMetadata";
+import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
 const clientId = "test-client-id";
 const authority = "https://login.microsoftonline.com";
 const logger = new Logger({});
 const correlationId = "correlation-id";
+const applicationTelemetry: ApplicationTelemetry = {
+    appName: "Test App",
+    appVersion: "1.0.0-test.0"
+}
 
 jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
     return {
@@ -27,14 +31,14 @@ describe("BrowserPerformanceClient.ts", () => {
 
     describe("generateId", () => {
         it("returns a string", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version);
+            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry);
 
             expect(typeof browserPerfClient.generateId()).toBe("string");
         });
     });
     describe("startPerformanceMeasuremeant", () => {
         it("calculate performance duration", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version);
+            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry);
 
             const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
@@ -46,7 +50,7 @@ describe("BrowserPerformanceClient.ts", () => {
         it("captures page visibilityState", () => {
             const spy = jest.spyOn(Document.prototype,"visibilityState", "get").mockReturnValue("visible");
 
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version);
+            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry);
 
             const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 

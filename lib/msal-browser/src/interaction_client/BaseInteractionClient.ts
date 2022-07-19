@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, IPerformanceClient } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, IPerformanceClient } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -14,6 +14,8 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 
 export abstract class BaseInteractionClient {
 
@@ -23,15 +25,19 @@ export abstract class BaseInteractionClient {
     protected networkClient: INetworkModule;
     protected logger: Logger;
     protected eventHandler: EventHandler;
+    protected navigationClient: INavigationClient;
+    protected nativeMessageHandler: NativeMessageHandler | undefined;
     protected correlationId: string;
     protected performanceClient: IPerformanceClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, performanceClient: IPerformanceClient, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
+        this.navigationClient = navigationClient;
+        this.nativeMessageHandler = nativeMessageHandler;
         this.correlationId = correlationId || this.browserCrypto.createNewGuid();
         this.logger = logger.clone(BrowserConstants.MSAL_SKU, version, this.correlationId);
         this.performanceClient = performanceClient;
@@ -56,11 +62,11 @@ export abstract class BaseInteractionClient {
             }
         } else {
             try {
+                this.logger.verbose("No account provided in logout request, clearing all cache items.", this.correlationId);
                 // Clear all accounts and tokens
                 await this.browserStorage.clear();
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
-                this.logger.verbose("No account provided in logout request, clearing all cache items.");
             } catch(e) {
                 this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
             }
@@ -103,7 +109,7 @@ export abstract class BaseInteractionClient {
         // Set requested claims hash if claims were requested
         if (request.claims && !StringUtils.isEmpty(request.claims)) {
             validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
-        } 
+        }
 
         return validatedRequest;
     }
@@ -139,5 +145,28 @@ export abstract class BaseInteractionClient {
         };
 
         return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
+    }
+
+    /**
+     * Used to get a discovered version of the default authority.
+     * @param requestAuthority
+     * @param requestCorrelationId
+     */
+    protected async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        this.logger.verbose("getDiscoveredAuthority called");
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: this.config.auth.protocolMode,
+            knownAuthorities: this.config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+            authorityMetadata: this.config.auth.authorityMetadata
+        };
+
+        if (requestAuthority) {
+            this.logger.verbose("Creating discovered authority with request authority");
+            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        }
+
+        this.logger.verbose("Creating discovered authority with configured authority");
+        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 }

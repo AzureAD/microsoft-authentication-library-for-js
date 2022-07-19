@@ -15,10 +15,11 @@ export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
-export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions } from "./config/ClientConfiguration";
+export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
+export { IAppTokenProvider, AppTokenProviderParameters, AppTokenProviderResult } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
-export { AccountInfo } from "./account/AccountInfo";
+export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
 export { AuthToken } from "./account/AuthToken";
 export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
@@ -56,6 +57,7 @@ export { UrlString } from "./url/UrlString";
 export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 export { IGuidGenerator } from "./crypto/IGuidGenerator";
+export { JoseHeader } from "./crypto/JoseHeader";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";

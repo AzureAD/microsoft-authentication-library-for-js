@@ -8,20 +8,23 @@ import { Constants } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
 export type Configuration = {
-    auth: TokenValidationOptions,
+    auth?: TokenValidationOptions,
     system?: SystemOptions
 };
 
 export type TokenValidationOptions = {
-    clientId: string,
     authority?: string,
+    /**
+     * An array of URIs that are known to be valid. Used in B2C scenarios.
+     */
+    knownAuthorities?: Array<string>,
     protocolMode?: ProtocolMode
-    clockSkew?: Number,
+    clockSkew?: number,
 };
 
 export type SystemOptions = {
-    loggerOptions?: LoggerOptions;
-    networkClient?: INetworkModule;
+    loggerOptions?: LoggerOptions,
+    networkClient?: INetworkModule
 };
 
 export type TokenValidationConfiguration = {
@@ -38,8 +41,8 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 };
 
 const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
-    clientId: "",
     authority: Constants.DEFAULT_AUTHORITY,
+    knownAuthorities: [],
     protocolMode: ProtocolMode.OIDC,
     clockSkew: 0
 };
@@ -55,12 +58,9 @@ const DEFAULT_SYSTEM_OPTIONS = {
  * @param {@link (Configuration:type)} 
  * @returns 
  */
-export function buildConfiguration({
-    auth,
-    system,
-}: Configuration): TokenValidationConfiguration {
+export function buildConfiguration(config?: Configuration): TokenValidationConfiguration {
     return {
-        auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...auth },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...config?.auth },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...config?.system },
     };
 }

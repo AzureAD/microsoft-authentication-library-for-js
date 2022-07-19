@@ -2,6 +2,314 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-browser_v2.28.0",
+      "version": "2.28.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0c23631c04e48d14115fd7f2c74e3367bec6ea6f",
+            "comment": "Added new token size field in the perf telemetry data #4973"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1cf6266c2a5e52067744fe800772a7740670ca75",
+            "comment": "Add local cache support for JS-WAM bridge #4971"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.2.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ],
+        "patch": [
+          {
+            "author": "t-ssummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aff6dd392ec3a07b6ef0375f625dbcb9617c2dbf",
+            "comment": "Fix bug with activeAccount when two accounts have same local account id #5004"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-browser_v2.27.0",
+      "version": "2.27.0",
+      "comments": {
+        "none": [
+          {
+            "author": "azamfahmy@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "23d16b6a21bd89485c6471decbab10c157d0ef15",
+            "comment": {
+              "title": "updated the function description for createRedirectClient()",
+              "value": ""
+            }
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6dfc1ebe77fe97964f194da0d9efc82a920a2bed",
+            "comment": "Update unit tests with jwks_uri #4905"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "48f2df2559f6446fdeb5aa69335e6e5a369b647a",
+            "comment": "Update WAM docs #4952"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "560fe1d158719556d1aba93bf973b1fbdd620d59",
+            "comment": "Fix prompt behavior for native broker requests #4949"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "867516c11c83639890abe2fcd6fc6e73ed659644",
+            "comment": "Non-fatal native broker errors should clear interaction in progress flag #4950"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "bb972bebeccfb8e4fd3d5fc4c8fc857abfc0e59f",
+            "comment": "Mark temporary cache cookies as SameSite lax #4957"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d501fbdded20ff9bdadfe02dc46e13a6e6ed4e56",
+            "comment": "Handle ACCOUNT_UNAVAILABLE error status from native broker #4951"
+          }
+        ],
+        "minor": [
+          {
+            "author": "samuelkamau@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "37dbd0a0c751d9aef0371b813122d89e978ff57e",
+            "comment": "feat: adding authority metadata resiliency #4536"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.1.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-browser_v2.26.0",
+      "version": "2.26.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "17bf0dd14cc1b23bd43a531d73c878ccd09e66e9",
+            "comment": "Add errorCode and subErrorCode to client telemetry events (#4863)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.0.0",
+            "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "49d6a3dde3e09a12ee01aeae52137e3c007649e8",
+            "comment": "Add strict assertion checks for OBO clients (#4691)"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d7836e8cdad77b5990ecbd4a278ebce097633478",
+            "comment": "Update redirect_in_iframe message to include messaging for embedded applications #4895"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00e44cc4bc966d8e4e8a57c0207d4ba26557c88e",
+            "comment": "preflightBrowserEnvironmentCheck should not always set interaction in progress #4893"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a78532e3aec29b2ba0b0650f98d065e78c0fac88",
+            "comment": "Return correct fromCache value when tokens are acquired from native broker #4880"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Jun 2022 22:13:00 GMT",
+      "tag": "@azure/msal-browser_v2.25.0",
+      "version": "2.25.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ce0df0236f729feefce4c85470046e74a7e94961",
+            "comment": "Add keyId to SHR header and make x5c_ca claim type string array #4729"
+          },
+          {
+            "author": "paulrsauer@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "96db5ab0dbe4774bd4b79d56d73d12c54789e41a",
+            "comment": "Fixes assignment of expiresOn inside loadExternalTokens to fix issue where all access tokens appear expired during E2E #4711"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b",
+            "comment": "SHR params renamed as per MSAL JS's naming convention #4794"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "abdbeb5323698de03795131ca23f040a6e32f0b7",
+            "comment": "Fallback to web flow when native broker throws 'DISABLED' status #4837"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "64215f9509abdce13ae45d86851d6cb399700fa3",
+            "comment": "Change log message level in initialize from warning to info #4820"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "214bee3d2fa81f23a742369315a140b89732e68d",
+            "comment": "Fix empty hash errors in popups #4793"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "90365303db30da0fb4817b3e075db137a1ee3e33",
+            "comment": "Add PoP support for Encrypted Access Tokens #4730"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.4.0",
+            "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "db858a9ef01e9fb4022da75dcdc8f28713099d89",
+            "comment": "Fix failing unit tests #4783"
+          },
+          {
+            "author": "brianmel@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "79d96ca89542170be24d22dc6750d3f20783dd35"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-browser_v2.24.0",
+      "version": "2.24.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa",
+            "comment": "Fix for WAM window parenting #4755"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2a0deb2d8bdced83ea9eae67cfe61defec6944d",
+            "comment": "Ensure interaction status is properly set during logout with onRedirectNavigate #4719"
+          }
+        ],
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "87dc6cdf90ab29668dfb82ba27ab6ed80743312b",
+            "comment": "Move internals needed for msal-browser-1p to separate export #4742"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cb93cc7e0deadefac126b23c3326c4b2aa4be142",
+            "comment": "Add support for acquiring tokens from the native broker #4531"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.3.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-browser_v2.23.0",
+      "version": "2.23.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "561749e626ffa0ac14e0708dda0eb3b7ea208780",
+            "comment": "Add performance telemetry API #4570"
+          },
+          {
+            "author": "prithviraj.kanherkar@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b3cc863ed0decc5a088d16ee0c9489dbb44a4bff",
+            "comment": "Add Client Application telemetry parameters to MSAL #4616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be68c190f5561e1a8e7c3144cfee35a5dbc5f109",
+            "comment": "Fix persistent key store deletion on logout #4617"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Mar 2022 23:28:43 GMT",
       "tag": "@azure/msal-browser_v2.22.1",
       "version": "2.22.1",

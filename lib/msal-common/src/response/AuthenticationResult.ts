@@ -39,5 +39,5 @@ export type AuthenticationResult = {
     cloudGraphHostName?: string;
     msGraphHost?: string;
     code?: string;
-    tokenSizes?: object;
+    fromNativeBroker?: boolean;
 };

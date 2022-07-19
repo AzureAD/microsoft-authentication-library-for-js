@@ -69,5 +69,18 @@ describe("ValidationConfigurationError", () => {
         expect(err.name).toBe("ValidationConfigurationError");
         expect(err.stack?.includes("ValidationConfigurationError.spec.ts")).toBe(true);
     });
+    
+    it("createNegativeClockSkewError creates a ValidationConfigurationError object", () => {
+        const err: ValidationConfigurationError = ValidationConfigurationError.createNegativeClockSkewError();
+
+        expect(err instanceof ValidationConfigurationError).toBe(true);
+        expect(err instanceof ClientConfigurationError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(ValidationConfigurationErrorMessage.negativeClockSkew.code);
+        expect(err.errorMessage.includes(ValidationConfigurationErrorMessage.negativeClockSkew.desc)).toBe(true);
+        expect(err.message.includes(ValidationConfigurationErrorMessage.negativeClockSkew.desc)).toBe(true);
+        expect(err.name).toBe("ValidationConfigurationError");
+        expect(err.stack?.includes("ValidationConfigurationError.spec.ts")).toBe(true);
+    });
 
 });

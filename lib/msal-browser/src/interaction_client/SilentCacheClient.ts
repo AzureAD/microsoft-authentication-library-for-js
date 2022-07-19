@@ -4,10 +4,9 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions, PerformanceEvents} from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError} from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
-import { EventType } from "../event/EventType";
-import { InteractionType, ApiId } from "../utils/BrowserConstants";
+import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 
 export class SilentCacheClient extends StandardInteractionClient {
@@ -25,7 +24,7 @@ export class SilentCacheClient extends StandardInteractionClient {
 
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+
             acquireTokenMeasurement.endMeasurement({
                 success: true,
                 fromCache: true
@@ -36,6 +35,8 @@ export class SilentCacheClient extends StandardInteractionClient {
                 this.logger.verbose("Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.");
             }
             acquireTokenMeasurement.endMeasurement({
+                errorCode: error instanceof AuthError && error.errorCode || undefined,
+                subErrorCode: error instanceof AuthError && error.subError || undefined,
                 success: false
             });
             throw error;

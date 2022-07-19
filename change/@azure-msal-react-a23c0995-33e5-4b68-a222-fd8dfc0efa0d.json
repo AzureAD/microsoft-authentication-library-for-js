@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Use React 17 for dev deps #4570",
-  "packageName": "@azure/msal-react",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -23,7 +23,8 @@ const authorityOptions: AuthorityOptions = {
     protocolMode: ProtocolMode.AAD,
     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
     cloudDiscoveryMetadata: "",
-    authorityMetadata: ""
+    authorityMetadata: "",
+    skipAuthorityMetadataCache: true,
 }
 
 describe("Authority.ts Class Unit Tests", () => {
@@ -147,6 +148,12 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.selfSignedJwtAudience).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
             });
 
+            it("Returns jwks_uri of tenantDiscoveryResponse", () => {
+                expect(authority.jwksUri).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri.replace("{tenant}", "common")
+                );
+            });
+
             it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint and selfSignedJwtAudience", () => {
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
                 expect(() => authority.authorizationEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
@@ -154,6 +161,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(() => authority.endSessionEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.deviceCodeEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.selfSignedJwtAudience).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
+                expect(() => authority.jwksUri).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
             });
 
             it("Returns endpoints for different b2c policy than what is cached", async () => {
@@ -294,7 +302,8 @@ describe("Authority.ts Class Unit Tests", () => {
             const metadata: OpenIdConfigResponse = {
                 authorization_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
                 issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
-                token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint
+                token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
+                jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri
             }
             networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                 return {
@@ -340,6 +349,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(false);
                 }
             });
@@ -410,6 +420,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(true);
                 }
             });
@@ -452,6 +463,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(true);
                 }
             });
@@ -486,7 +498,110 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(true);
+                }
+            });
+
+            it("Gets endpoints from hardcoded values", async () => {
+                const customAuthorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                    skipAuthorityMetadataCache: false,
+                };
+
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return null;
+                };
+
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).toBe(true);
+                expect(authority.authorizationEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common")
+                );
+                expect(authority.tokenEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common")
+                );
+                expect(authority.deviceCodeEndpoint).toBe(authority.tokenEndpoint.replace("/token", "/devicecode"));
+                expect(authority.endSessionEndpoint).toBe(
+                    DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")
+                );
+                expect(authority.selfSignedJwtAudience).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
+
+                // Test that the metadata is cached
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                if (!cachedAuthorityMetadata) {
+                    throw Error("Cached AuthorityMetadata should not be null!");
+                } else {
+                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
+                    expect(cachedAuthorityMetadata.token_endpoint).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
+                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe( DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
+                    expect(cachedAuthorityMetadata.issuer).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "{tenantid}"));
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri.replace("{tenant}", "common"));
+                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(false);
+                }
+            });
+
+            it("Gets endpoints from hardcoded values with regional information", async () => {
+                const customAuthorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: "",
+                    skipAuthorityMetadataCache: false,
+                    azureRegionConfiguration: {
+                        azureRegion: "westus2",
+                        environmentRegion: undefined
+                    }
+                };
+
+                const expectedHardcodedRegionalValues = {
+                    "authorization_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/authorize/", 
+                    "canonical_authority": "https://login.microsoftonline.com/common/", 
+                    "end_session_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/logout/", 
+                    "endpointsFromNetwork": false, 
+                    "issuer": "https://login.microsoftonline.com/{tenantid}/v2.0", 
+                    "jwks_uri": "https://login.microsoftonline.com/common/discovery/v2.0/keys",
+                    "token_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/?allowestsrnonmsi=true"
+                };
+
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return null;
+                };
+
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).toBe(true);
+                expect(authority.authorizationEndpoint).toBe(
+                    expectedHardcodedRegionalValues.authorization_endpoint
+                );
+                expect(authority.tokenEndpoint).toBe(
+                    expectedHardcodedRegionalValues.token_endpoint
+                );
+                expect(authority.deviceCodeEndpoint).toBe(expectedHardcodedRegionalValues.token_endpoint.replace("/token", "/devicecode"));
+                expect(authority.endSessionEndpoint).toBe(
+                    expectedHardcodedRegionalValues.end_session_endpoint
+                );
+                expect(authority.selfSignedJwtAudience).toBe(expectedHardcodedRegionalValues.issuer.replace("{tenantid}", "common"));
+
+                // Test that the metadata is cached
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                if (!cachedAuthorityMetadata) {
+                    throw Error("Cached AuthorityMetadata should not be null!");
+                } else {
+                    expect(cachedAuthorityMetadata.authorization_endpoint).toBe(expectedHardcodedRegionalValues.authorization_endpoint);
+                    expect(cachedAuthorityMetadata.token_endpoint).toBe(expectedHardcodedRegionalValues.token_endpoint);
+                    expect(cachedAuthorityMetadata.end_session_endpoint).toBe(expectedHardcodedRegionalValues.end_session_endpoint);
+                    expect(cachedAuthorityMetadata.issuer).toBe(expectedHardcodedRegionalValues.issuer);
+                    expect(cachedAuthorityMetadata.jwks_uri).toBe(expectedHardcodedRegionalValues.jwks_uri);
+                    expect(cachedAuthorityMetadata.endpointsFromNetwork).toBe(false);
                 }
             });
 
@@ -732,7 +847,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: ""
+                    authorityMetadata: "",
+                    skipAuthorityMetadataCache: true
                 };
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     throw Error("Unable to get response");
@@ -752,7 +868,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: ""
+                    authorityMetadata: "",
+                    skipAuthorityMetadataCache: true,
                 };
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return {
@@ -812,14 +929,25 @@ describe("Authority.ts Class Unit Tests", () => {
     });
 
     describe("replaceWithRegionalInformation", () => {
+        it("replaces authorization_endpoint", () => {
+            const originResponse: OpenIdConfigResponse = {
+                ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
+                end_session_endpoint: undefined
+            };
+
+            const regionalResponse = Authority.replaceWithRegionalInformation(originResponse, "westus2");
+            expect(regionalResponse.authorization_endpoint).toBe("https://westus2.login.microsoft.com/{tenant}/oauth2/v2.0/authorize/");
+        });
+
         it("doesnt set end_session_endpoint if not included", () => {
             const originResponse: OpenIdConfigResponse = {
                 ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
                 end_session_endpoint: undefined
             };
 
-            const regionalResponse = Authority.replaceWithRegionalInformation(originResponse, "westus2.login.microsoft.com");
+            const regionalResponse = Authority.replaceWithRegionalInformation(originResponse, "westus2");
             expect(regionalResponse.end_session_endpoint).toBeUndefined();
         })
     });
 });
+

@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { TokenClaims } from "./TokenClaims";
 /**
  * Account object with the following signature:
  * - homeAccountId          - Home account identifier for this account object
@@ -13,6 +14,7 @@
  * - name                   - Full name for the account, including given name and family name
  * - idTokenClaims          - Object contains claims from ID token
  * - localAccountId         - The user's account ID
+ * - nativeAccountId        - The user's native account ID
  */
 export type AccountInfo = {
     homeAccountId: string;
@@ -21,5 +23,11 @@ export type AccountInfo = {
     username: string;
     localAccountId: string;
     name?: string;
-    idTokenClaims?: object;
+    idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | object | undefined | unknown };
+    nativeAccountId?: string;
+};
+
+export type ActiveAccountFilters = {
+    homeAccountId: string;
+    localAccountId: string;
 };

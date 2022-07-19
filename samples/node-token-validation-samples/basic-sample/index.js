@@ -15,7 +15,7 @@ const argv = require("../../msal-node-samples/cliArgs");
 const SERVER_PORT = argv.p || 3000;
 
 // Sample Application Code
-const getTokenAuthCode = function (port) {
+const validateTokenBasic = function (port) {
     // Set the port that the express server will listen on
     const serverPort = port || SERVER_PORT;
     // Create Express App and Routes
@@ -30,8 +30,9 @@ const getTokenAuthCode = function (port) {
     }
 
     const config = {
-        clientId: "client-id-here",
-        authority: "https://login.microsoftonline.com/common/",
+        auth: {
+            authority: "https://login.microsoftonline.com/common/",
+        },
         system: {
             loggerOptions: loggerOptions
         } 
@@ -54,18 +55,19 @@ const getTokenAuthCode = function (port) {
             console.log(error);
             res.status(500).send(error);
         });
+
     });
 
-    return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
+    return app.listen(serverPort, () => console.log(`Msal Node Token Validation Basic Sample app listening on port ${serverPort}!`));
 }
 
 /**
  * The code below checks if the script is being executed manually or in automation.
  */
 if(argv.$0 === "index.js") {
-    // Execute sample application with the configured MSAL PublicClientApplication
-    return getTokenAuthCode(null);
+    // Execute sample application with the configured Node Token Validator
+    return validateTokenBasic(null);
 }
 
 // The application code is exported so it can be executed in automation environments
-module.exports = getTokenAuthCode;
+module.exports = validateTokenBasic;

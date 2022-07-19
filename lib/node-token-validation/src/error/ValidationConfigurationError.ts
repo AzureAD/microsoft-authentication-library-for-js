@@ -28,6 +28,14 @@ export const ValidationConfigurationErrorMessage = {
     invalidMetadata: {
         code: "invalid_metadata",
         desc: "Metadata returned from well-known endpoint is invalid and does not contain jwks_uri."
+    },
+    invalidAuthenticationScheme: {
+        code: "invalid_auth_scheme",
+        desc: "Invalid authentication scheme. Only bearer is supported by the library at this time."
+    },
+    negativeClockSkew: {
+        code: "negative_clock_skew",
+        desc: "Invalid clock skew value. Clock skew must be a positive integer."
     }
 };
 
@@ -42,8 +50,8 @@ export class ValidationConfigurationError extends ClientConfigurationError {
         Object.setPrototypeOf(this, ValidationConfigurationError.prototype);
     }
 
-    static createMissingTokenError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, ValidationConfigurationErrorMessage.missingToken.desc);
+    static createMissingTokenError(appendError?: string): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, `${ValidationConfigurationErrorMessage.missingToken.desc} Detail: ${appendError}`);
     }
 
     static createEmptyIssuerError(): ValidationConfigurationError {
@@ -62,4 +70,11 @@ export class ValidationConfigurationError extends ClientConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidMetadata.code, ValidationConfigurationErrorMessage.invalidMetadata.desc);
     }
 
+    static createInvalidAuthenticationScheme(appendError?: string): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code, `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`);
+    }
+
+    static createNegativeClockSkewError(): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.negativeClockSkew.code, ValidationConfigurationErrorMessage.negativeClockSkew.desc);
+    }
 }

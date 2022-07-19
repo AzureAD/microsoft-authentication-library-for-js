@@ -14,6 +14,7 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
         token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
         end_session_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,
         issuer: DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer,
+        jwks_uri: DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri,
         aliasesFromNetwork: false,
         endpointsFromNetwork: false,
         expiresAt: TimeUtils.nowSeconds()

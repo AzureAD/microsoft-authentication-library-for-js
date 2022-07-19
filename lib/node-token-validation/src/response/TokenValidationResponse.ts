@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { JWSHeaderParameters, JWTPayload } from "jose";
+import { JWTHeaderParameters, JWTPayload } from "jose";
 
 /**
  * Response object for token validation responses
@@ -13,7 +13,7 @@ import { JWSHeaderParameters, JWTPayload } from "jose";
  * - tokenType: Type of token, defaults to JWT
  */
 export type TokenValidationResponse = {
-    protectedHeader?: JWSHeaderParameters;
+    protectedHeader?: JWTHeaderParameters;
     payload?: JWTPayload;
     token?: string;
     tokenType?: string;

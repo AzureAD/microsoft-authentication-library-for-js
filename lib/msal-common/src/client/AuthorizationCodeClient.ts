@@ -52,7 +52,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async getAuthCodeUrl(request: CommonAuthorizationUrlRequest): Promise<string> {
-        const queryString = this.createAuthCodeUrlQueryString(request);
+        const queryString = await this.createAuthCodeUrlQueryString(request);
 
         return UrlString.appendQueryString(this.authority.authorizationEndpoint, queryString);
     }
@@ -126,7 +126,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
-        // Construct logout URI.
+        // Construct logout URI
         return UrlString.appendQueryString(this.authority.endSessionEndpoint, queryString);
     }
 
@@ -170,7 +170,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
     /**
      * Creates query string for the /token request
-     * @param request 
+     * @param request
      */
     private createTokenQueryParameters(request: CommonAuthorizationCodeRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
@@ -211,9 +211,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Add library metadata
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
@@ -238,8 +238,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
-            parameterBuilder.addPopToken(cnfString);
+            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
+            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if(request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
@@ -254,7 +255,7 @@ export class AuthorizationCodeClient extends BaseClient {
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
-        
+
         let ccsCred: CcsCredential | undefined = undefined;
         if (request.clientInfo) {
             try {
@@ -297,7 +298,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1"
             });
         }
-        
+
         return parameterBuilder.createQueryString();
     }
 
@@ -305,7 +306,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): string {
+    private async createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -328,6 +329,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add library info parameters
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
 
         // add client_info=1
         parameterBuilder.addClientInfo();
@@ -404,6 +406,19 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
+        if (request.nativeBroker) {
+            // signal ests that this is a WAM call
+            parameterBuilder.addNativeBroker();
+
+            // pass the req_cnf for POP
+            if (request.authenticationScheme === AuthenticationScheme.POP) {
+                const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+                // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
+                const reqCnfData = await popTokenGenerator.generateCnf(request);
+                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+            }
+        }
+
         return parameterBuilder.createQueryString();
     }
 
@@ -425,7 +440,7 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.idTokenHint) {
             parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
-        
+
         if(request.state) {
             parameterBuilder.addState(request.state);
         }
@@ -443,7 +458,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
     /**
      * Helper to get sid from account. Returns null if idTokenClaims are not present or sid is not present.
-     * @param account 
+     * @param account
      */
     private extractAccountSid(account: AccountInfo): string | null {
         if (account.idTokenClaims) {
