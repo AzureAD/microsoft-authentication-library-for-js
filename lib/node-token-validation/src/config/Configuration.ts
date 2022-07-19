@@ -32,16 +32,14 @@ export type TokenValidationOptions = {
     /**
      * Enum that represents the protocol used by the TokenValidator. 
      * Used for configuring proper endpoints. 
-     * When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata. 
-     * When set to `AAD`, the library will include `/v2.0/` in the authority path when fetching authority metadata.
      */
     protocolMode?: ProtocolMode,
     /**
-     * Clock skew (in seconds) allowed in token validation. Must be a positive integer.
+     * An array of URIs that are known to be valid. Used in B2C scenarios.
      */
     knownAuthorities?: Array<string>,
     /**
-     * An array of URIs that are known to be valid. Used in B2C scenarios.
+     * Clock skew (in seconds) allowed in token validation. Must be a positive integer.
      */
     clockSkew?: number
 };

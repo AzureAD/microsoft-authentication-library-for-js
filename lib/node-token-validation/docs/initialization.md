@@ -67,3 +67,61 @@ These additional claims for an id token may be validated if set in the `TokenVal
 | "nonce"    | Nonce     | Principal that issued the JWT |
 | "c_hash"   | C_Hash    | C_hash on an id token is validated against the authorization code  |
 | "at_hash"  | AT_Hash   | At_hash claim on an id token is validated against the access token |
+
+### Passing in Token Validation Parameters
+
+The following options can be passed in as `TokenValidationParams`:
+
+| Parameter             | Corresponding claim | Description   |
+| ----------------------|---------------------|---------------|
+| validIssuers          | "iss"               | Array of valid issuers |
+| validAudiences        | "aud"               | Array of valid audiences |
+| subject               | "sub"               | Valid subject |
+| nonce                 | "nonce"             | Valid nonce |
+| code                  | "c_hash"            | Authorization code to compare to c_hash |
+| accessTokenForHash    | "at_hash"           | Access token to compare to at_hash |
+| validAlgorithms       | -                   | Valid algorithms |
+| issuerSigningKeys     | -                   | Keys for decoding and validating JSON Web Signature |
+| issuerSigningJwksUri  | -                   | Jwks_uri for retrieving signing keys
+| validTypes            |                     | Valid types
+| requireExpirationTime |                     | Boolean for whether to check expiration value |
+| requireSignedTokens   |                     | Boolean for whether tokens must be signed |
+
+The `TokenValidationParams` can be passed into the token validation API as follows. More complex usage can be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/node-token-validation-samples).
+
+```javascript
+const nodeTokenValidation = require("@azure/node-token-validation")
+
+const loggerOptions = {
+    loggerCallback(loglevel, message, containsPii) {
+        console.log(message);
+    },
+    piiLoggingEnabled: false,
+    logLevel: nodeTokenValidation.LogLevel.Verbose,
+}
+
+const config = {
+    auth: {
+        authority: "https://login.microsoftonline.com/common/",
+    },
+    system: {
+        loggerOptions: loggerOptions
+    } 
+};
+
+app.get("/", (req, res) => {
+    const tokenValidator = new nodeTokenValidation.TokenValidator(config);
+
+    const token = "token-here";
+    const tokenValidationParams = {
+        validIssuers: ["issuer-here"],
+        validAudiences: ["audience-here"]
+    };
+
+    tokenValidator.validateToken(token, tokenValidationParams).then((response) => {
+        // Use token validation response
+    }).catch((error) => {
+        // Handle token validation error
+    });
+
+```
