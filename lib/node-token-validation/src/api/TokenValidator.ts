@@ -322,6 +322,11 @@ export class TokenValidator {
      * ### Errors
      * 
      * `validateTokenFromResponse` will currently throw an Invalid Authentication Scheme error if the `tokenType` on the response is not "Bearer". 
+     * 
+     * | Error         | Error code |
+     * | ------------- | -----------|
+     * | Invalid authorization scheme | `invalid_auth_scheme` |
+     * 
      * The Node Token Validation library is currently only handling bearer tokens. 
      * Other types of tokens will be validated separately from the Node Token Validation library in the future.
      * 
@@ -435,17 +440,21 @@ export class TokenValidator {
      * The following configuration errors from the Node Token Validation library may be thrown when validating a token.
      * Ensure the missing token/claims are present before validating.
      * 
-     * - Missing token error
-     * - Empty issuer error
-     * - Empty audience error
-     * - Missing nonce error
-     * - Invalid metadata error
+     * | Error         | Error code |
+     * | ------------- | -----------|
+     * | Missing token | `missing_token` |
+     * | Empty issuer  | `empty_issuer` |
+     * | Empty audience | `empty_audience` |
+     * | Missing nonce | `missing_nonce` |
+     * | Invalid metadata | `invalid_metadata` |
      * 
      * The following validation errors from the Node Token Validation library may be thrown. This indicates an invalid token.
      * 
-     * - Invalid nonce error
-     * - Invalid c_hash error
-     * - Invalid at_hash error
+     * | Error         | Error code |
+     * | ------------- | -----------|
+     * | Invalid nonce | `invalid_nonce` |
+     * | Invalid c_hash | `invalid_c_hash` |
+     * | Invalid at_hash | `invalid_at_hash` |
      * 
      * Additional errors regarding the JWS signature or JWT claims may be thrown by the JOSE library. These errors indicate an invalid token.
      * 
