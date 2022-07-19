@@ -12,17 +12,17 @@ import { NetworkUtils } from "../utils/NetworkUtils";
  */
 export type Configuration = {
     /**
-     * This is where you configure auth elements like the authority used, the protocol used, and whether there is a clock skew.
+     * Configuration options related to authentication, such as, authority, protocol, and whether to use a clock skew.
      */
     auth?: TokenValidationOptions,
     /**
-     * This is where you configure the logger and network client.
+     * Configuration options related to operations performed by the library, such as, logging and network requests.
      */
     system?: SystemOptions
 };
 
 /**
- * Used this to configure the auth options in the Configuration object
+ * Use this to configure the auth options in the Configuration object
  */
 export type TokenValidationOptions = {
     /**

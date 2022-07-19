@@ -92,7 +92,7 @@ export type TokenValidationParameters = {
      */
     subject?: string
     /**
-     * Nonce used to check against an id token's nonce value and mitigate replay attacks.
+     * Nonce used to check against an id token's nonce value to mitigate token replay attacks.
      * This is the nonce included in the authorization request to the IDP, and is usually a case-sensitive string.
      */
     nonce?: string,
