@@ -1,7 +1,0 @@
-{
-  "comment": "Update node-token-validation authority usage #4912",
-  "type": "none",
-  "packageName": "@azure/node-token-validation",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
