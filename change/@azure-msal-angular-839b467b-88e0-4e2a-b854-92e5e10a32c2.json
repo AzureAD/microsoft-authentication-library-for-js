@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update package-locks to fix CI issue #5005",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

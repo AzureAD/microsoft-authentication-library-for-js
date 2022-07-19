@@ -24,6 +24,7 @@ export class SilentCacheClient extends StandardInteractionClient {
 
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+
             acquireTokenMeasurement.endMeasurement({
                 success: true,
                 fromCache: true
