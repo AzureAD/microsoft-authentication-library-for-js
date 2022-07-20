@@ -80,12 +80,12 @@ extends:
       jobs:
       # Release MSAL Core
         - template: .pipelines/custom-templates/publish-template.yml@self
+          condition: and(succeeded(), eq(variables.publishMsalCore, 'true'))
           parameters:
             jobName: 'release_msal_core'
             path: 'lib'
             libName: 'msal-core'
             cdn: true
-            publish: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -93,7 +93,6 @@ extends:
             path: 'lib'
             libName: 'msal-common'
             cdn: false
-            publish: $(variables.publishMsalCommon)
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -102,8 +101,6 @@ extends:
             libName: 'msal-browser'
             dependsOn: 'release_msal_common'
             cdn: true
-            ${{ if eq(variables.publishMsalBrowser, true) }}:
-              publish: true
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -112,8 +109,6 @@ extends:
             libName: 'msal-node'
             dependsOn: 'release_msal_common'
             cdn: false
-            ${{ if eq(variables.publishMsalNode, true) }}:
-              publish: true
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -122,8 +117,6 @@ extends:
             libName: 'msal-react'
             dependsOn: 'release_msal_browser'
             cdn: false
-            ${{ if eq(variables.publishMsalReact, true) }}:
-              publish: true
       # Release MSAL Angular
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -132,13 +125,9 @@ extends:
             libName: 'msal-angular'
             dependsOn: 'release_msal_browser'
             cdn: false
-            ${{ if eq(variables.publishMsalAngular, true) }}:
-              publish: true
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'release_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
             cdn: false
-            ${{ if eq(variables.publishMsalNodeExtensions, true) }}:
-              publish: true
