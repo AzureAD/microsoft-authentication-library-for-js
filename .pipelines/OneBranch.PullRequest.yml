@@ -102,7 +102,6 @@ extends:
             libName: 'msal-core'
             cdn: true
             publish: ${{ variables.publishMsalCore }}
-
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
