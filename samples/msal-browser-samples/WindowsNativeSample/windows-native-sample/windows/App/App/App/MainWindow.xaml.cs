@@ -20,10 +20,11 @@ namespace App {
 
         Extension Extension;
 
-        public MainWindow() {
+        public MainWindow()
+        {
             this.InitializeComponent();
             Title = "Windows Sample App";
-            
+
             this.Extension = new Extension();
 
             CapacitorAppInstance = new CapacitorApp(this, CapacitorWebView);
@@ -31,7 +32,8 @@ namespace App {
             CapacitorAppInstance.Load();
         }
 
-        private void CapacitorWebView_WebMessageReceived(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args) {
+        private void CapacitorWebView_WebMessageReceived(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
+        {
             //Console.WriteLine(args.TryGetWebMessageAsString());
             if (args.Source == sender.Source.OriginalString) { // validate source 
                 this.Extension.HandleWebMessage(args);
@@ -39,7 +41,8 @@ namespace App {
             }
         }
 
-        private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args) {
+        private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args)
+        {
             Task t = this.Extension.ExecuteExtensionAsync(CapacitorWebView);
         }
     }

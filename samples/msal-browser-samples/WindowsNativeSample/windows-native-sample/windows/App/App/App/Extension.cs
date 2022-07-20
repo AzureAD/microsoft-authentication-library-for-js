@@ -136,10 +136,13 @@ public class Extension
         if(args.WebMessageAsJson.Contains(flag)) {
             ProcessStartInfo info = new ProcessStartInfo(@"C:\\Windows\\BrowserCore\\BrowserCore.exe");
             //info.Arguments = @"";
+
+            //isolate the request and turn it into a Json
             String request = args.WebMessageAsJson.Substring(flag.Length, args.WebMessageAsJson.Length - flag.Length - 1);
             request = request.Replace("\\\"", "\"");
             request = request.Replace("\\\\", "\\");
-            var json = JsonConvert.DeserializeObject(request);
+            var requestJson = JsonConvert.DeserializeObject(request);
+
             Process.Start(info);
         }
     }
