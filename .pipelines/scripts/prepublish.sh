@@ -21,7 +21,7 @@ for i in "${libNames[@]}"; do
     # so if there are changes to a library's package.json, $? will have a 1 (success),
     # no changes means $? is 0, therefore library won't be release unless it's dependent
     # packages have been updated (dependent logic is out of scope for this script)
-    git diff --exit-code --name-only HEAD HEAD~200 $libPath 
+    git diff --exit-code --name-only HEAD 44b53ab0c1c7bc24c17787877e6027075e34f01b $libPath 
 
     if [ $? -eq 1 ]
     then
