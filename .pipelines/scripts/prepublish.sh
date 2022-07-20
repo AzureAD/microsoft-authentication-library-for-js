@@ -1,10 +1,11 @@
 #!/usr/bin/bash
 
-libNames=("msal-core" "msal-browser" "msal-node" "msal-angular" "msal-react" "node-token-validation");
+libNames=("msal-core" "msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react" "node-token-validation");
 
 declare -A publishFlagNames;
 
 publishFlagNames["msal-core"]=PUBLISH_MSAL_CORE;
+publishFlagNames["msal-common"]=PUBLISH_MSAL_COMMON;
 publishFlagNames["msal-browser"]=PUBLISH_MSAL_BROWSER;
 publishFlagNames["msal-node"]=PUBLISH_MSAL_NODE;
 publishFlagNames["msal-angular"]=PUBLISH_MSAL_ANGULAR;
