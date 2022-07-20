@@ -101,7 +101,7 @@ extends:
             path: 'lib'
             libName: 'msal-core'
             cdn: true
-            publish: $(variables.publishMsalCore)
+            publish: ${{ variables.publishMsalCore }}
 
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
@@ -110,7 +110,7 @@ extends:
             path: 'lib'
             libName: 'msal-common'
             cdn: false
-            publish: $(variables.publishMsalCommon)
+            publish: ${{ variables.publishMsalCommon }}
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -119,7 +119,7 @@ extends:
             libName: 'msal-browser'
             dependsOn: 'release_msal_common'
             cdn: true
-            publish: $(variables.publishMsalBrowser)
+            publish: ${{ variables.publishMsalBrowser }}
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -128,7 +128,7 @@ extends:
             libName: 'msal-node'
             dependsOn: 'release_msal_common'
             cdn: false
-            publish: $(variables.publishMsalNode)
+            publish: ${{ variables.publishMsalNode }}
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -137,7 +137,7 @@ extends:
             libName: 'msal-react'
             dependsOn: 'release_msal_browser'
             cdn: false
-            publish: $(variables.publishMsalReact)
+            publish: ${{ variables.publishMsalReact }}
       # Release MSAL Angular
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -146,11 +146,11 @@ extends:
             libName: 'msal-angular'
             dependsOn: 'release_msal_browser'
             cdn: false
-            publish: $(variables.publishMsalAngular)
+            publish: ${{ variables.publishMsalAngular }}
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'release_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
             cdn: false
-            publish: $(variables.publishMsalNodeExtensions)
+            publish: ${{ variables.publishMsalNodeExtensions }}
