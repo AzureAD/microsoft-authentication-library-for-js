@@ -66,19 +66,18 @@ extends:
               scriptPath: ".pipelines/scripts/prepublish.sh"
             name: filter
         - job: testFilter
+          dependsOn: filter
           pool:
             type: linux
           variables:
             repoName: 'msal-javascript-internal'
             ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}/out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
             ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+            publishMsalBrowser: $[ dependencies.filter.outputs['filter.publishMsalBrowser'] ]
+            publishMsalReact: $[ dependencies.filter.outputs['filter.publishMsalReact'] ]
+            publishMsalCore: $[ dependencies.filter.outputs['filter.publishMsalCore'] ]
           steps:
           - task: CmdLine@2
-            dependsOn: filter
-            variables:
-              publishMsalBrowser: $[ dependencies.filter.outputs['filter.publishMsalBrowser'] ]
-              publishMsalReact: $[ dependencies.filter.outputs['filter.publishMsalReact'] ]
-              publishMsalCore: $[ dependencies.filter.outputs['filter.publishMsalCore'] ]
             inputs:
               script: |
                 echo $(publishMsalBrowser);
