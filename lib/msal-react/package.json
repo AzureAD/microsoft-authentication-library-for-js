@@ -61,6 +61,5 @@
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
   },
-  "dependencies": {},
-  "keywords": ["test"]
+  "dependencies": {}
 }

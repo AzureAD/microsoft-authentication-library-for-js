@@ -4,13 +4,13 @@ libNames=("msal-core" "msal-common" "msal-browser" "msal-node" "msal-angular" "m
 
 declare -A publishFlagNames;
 
-publishFlagNames["msal-core"]=PUBLISH_MSAL_CORE;
-publishFlagNames["msal-common"]=PUBLISH_MSAL_COMMON;
-publishFlagNames["msal-browser"]=PUBLISH_MSAL_BROWSER;
-publishFlagNames["msal-node"]=PUBLISH_MSAL_NODE;
-publishFlagNames["msal-angular"]=PUBLISH_MSAL_ANGULAR;
-publishFlagNames["msal-react"]=PUBLISH_MSAL_REACT;
-publishFlagNames["node-token-validation"]=PUBLISH_NODE_TOKEN_VALIDATION;
+publishFlagNames["msal-core"]=publishMsalCore;
+publishFlagNames["msal-common"]=publishMsalCommon;
+publishFlagNames["msal-browser"]=publishMsalBrowser;
+publishFlagNames["msal-node"]=publishMsalNode;
+publishFlagNames["msal-angular"]=publishMsalAngular;
+publishFlagNames["msal-react"]=publishMsalReact;
+publishFlagNames["node-token-validation"]=publishNodeTokenValidation;
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
@@ -27,14 +27,10 @@ for i in "${libNames[@]}"; do
     then
         echo "${i} publish flag set to TRUE";
         varName=${publishFlagNames[$i]};
-        declare $varName;
-        printf -v "$varName" '%b' true;
-        export ${varName};
+        echo "##vso[task.setvariable variable=${varName};]true"
     else
      echo "${i} publish flag set to FALSE";
         varName=${publishFlagNames[$i]};
-        declare $varName;
-        printf -v "$varName" '%b' false;
-        export ${varName};
+        echo "##vso[task.setvariable variable=${varName};]false"
     fi
 done
