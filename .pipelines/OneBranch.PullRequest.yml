@@ -85,7 +85,7 @@ extends:
             path: 'lib'
             libName: 'msal-core'
             cdn: true
-            publish: $(variables.publishMsalCore)
+            publish: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
