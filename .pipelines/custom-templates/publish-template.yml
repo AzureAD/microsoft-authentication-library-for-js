@@ -11,10 +11,14 @@ parameters:
   - name: cdn
     type: boolean
     default: false
+  - name: publish
+    type: boolean
+    default: false
 
 jobs:
   - job: ${{ parameters.jobName }}
     displayName: 'Publish ${{ parameters.libName }}'
+    condition: eq(parameters.publish, true)
     ${{ if not(eq(parameters.dependsOn, 'none')) }}:
       dependsOn: ${{ parameters.dependsOn }}
     pool:
