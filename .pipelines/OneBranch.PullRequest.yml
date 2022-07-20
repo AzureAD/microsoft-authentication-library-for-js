@@ -85,7 +85,7 @@ extends:
             path: 'lib'
             libName: 'msal-core'
             cdn: true
-            ${{ if eq(variables.publishMsalCore, true) }}:
+            ${{ if eq($[variables.publishMsalCore], true) }}:
               publish: true
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
@@ -94,8 +94,7 @@ extends:
             path: 'lib'
             libName: 'msal-common'
             cdn: false
-            ${{ if eq(variables.publishMsalCommon, true) }}:
-              publish: true
+            publish: $(variables.publishMsalCore)
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
