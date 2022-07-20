@@ -1,8 +1,38 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 13 Jun 2022 22:28:09 GMT and should not be manually modified.
+This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.28.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Added new token size field in the perf telemetry data #4973 (bmahal@microsoft.com)
+- Add local cache support for JS-WAM bridge #4971 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v7.2.0
+
+### Patches
+
+- Fix bug with activeAccount when two accounts have same local account id #5004 (t-ssummers@microsoft.com)
+
+## 2.27.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Bump @azure/msal-common to v7.1.0
+
+### Patches
+
+- Fix prompt behavior for native broker requests #4949 (thomas.norling@microsoft.com)
+- Non-fatal native broker errors should clear interaction in progress flag #4950 (thomas.norling@microsoft.com)
+- Mark temporary cache cookies as SameSite lax #4957 (janutter@microsoft.com)
+- Handle ACCOUNT_UNAVAILABLE error status from native broker #4951 (thomas.norling@microsoft.com)
 
 ## 2.26.0
 

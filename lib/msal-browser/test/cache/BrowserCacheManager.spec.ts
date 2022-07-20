@@ -831,6 +831,12 @@ describe("BrowserCacheManager tests", () => {
             expect(document.cookie).toBe(`${msalCacheKey}=${cacheVal}`);
         });
 
+        it("sets samesite", () => {
+            const cookieSpy = jest.spyOn(document, "cookie", "set");
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(cookieSpy.mock.calls[0][0]).toContain("SameSite=Lax");
+        });
+
         it("getItemCookie()", () => {
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
             expect(browserSessionStorage.getItemCookie(msalCacheKey)).toBe(cacheVal);
