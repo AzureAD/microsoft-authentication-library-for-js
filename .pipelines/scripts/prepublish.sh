@@ -12,13 +12,13 @@ publishFlagNames["msal-angular"]=PUBLISH_MSAL_ANGULAR;
 publishFlagNames["msal-react"]=PUBLISH_MSAL_REACT;
 publishFlagNames["node-token-validation"]=PUBLISH_NODE_TOKEN_VALIDATION;
 
-
+pwd
 
 
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
-    libPath="lib/${i}/package-lock.json"
+    libPath="msal-javascript-internal/lib/${i}/package-lock.json"
     # Git diff --name-only prints the file name in the input path given that
     # that file has changed between the two commits referenced and
     # --exit-code sets the successful or failed result into $?
