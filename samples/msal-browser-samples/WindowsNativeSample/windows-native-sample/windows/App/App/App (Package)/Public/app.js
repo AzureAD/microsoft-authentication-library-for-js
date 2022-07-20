@@ -15,23 +15,19 @@ function onClick(method)
         promise.then((response) => {
             document.getElementById("text").innerHTML = '<ion-text><h1>Please log in.</h1></ion-text>'
         });
-    }
-    else
-    {
+    } else {
         promise = signIn(_method);
         acc = null;
         promise.then((response) => {
             acc = myMSALObj.getAllAccounts();
         });
         promise.then((response) => {
-            if(acc.length !== 0)
-            {
+            if(acc.length !== 0) {
                 document.getElementById("r_btn").innerHTML = '<ion-button id = redirect_o onclick ="onClick(this.id)">Log out with redirect</ion-button>'
             }
         });
         promise.then((response) => {
-            if(acc.length !== 0)
-            {
+            if(acc.length !== 0) {
                 document.getElementById("p_btn").innerHTML = '<ion-button id = popup_o onclick ="onClick(this.id)">Log out with popup</ion-button>'
             }
         });
