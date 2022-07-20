@@ -18,7 +18,7 @@ echo "Directory: ${direc}";
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
-    libPath="/lib/${i}/package-lock.json"
+    libPath="./lib/${i}/package-lock.json"
     # Git diff --name-only prints the file name in the input path given that
     # that file has changed between the two commits referenced and
     # --exit-code sets the successful or failed result into $?
