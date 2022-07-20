@@ -15,8 +15,7 @@ function onClick(method)
         promise.then((response) => {
             document.getElementById("text").innerHTML = '<ion-text><h1>Please log in.</h1></ion-text>'
         });
-    }
-    else {
+    } else {
         promise = signIn(_method);
         acc = null;
         promise.then((response) => {
