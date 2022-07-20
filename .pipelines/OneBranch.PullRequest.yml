@@ -73,9 +73,7 @@ extends:
             repoName: 'msal-javascript-internal'
             ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}/out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
             ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
-            publishMsalBrowser: $[ dependencies.filter.outputs['filter.publishMsalBrowser'] ]
-            publishMsalReact: $[ dependencies.filter.outputs['filter.publishMsalReact'] ]
-            publishMsalCore: $[ dependencies.filter.outputs['filter.publishMsalCore'] ]
+
           steps:
           - task: CmdLine@2
             inputs:
@@ -84,59 +82,75 @@ extends:
                 echo $(publishMsalReact);
                 echo $(publishMsalCore);
 
-    # - stage: build_and_release
-    #   displayName: 'Publish'
-    #   jobs:
-    #   # Release MSAL Core
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_core'
-    #         path: 'lib'
-    #         libName: 'msal-core'
-    #         cdn: true
+    - stage: build_and_release
+      dependsOn: pre_release
+      displayName: 'Publish'
+      variables:
+        publishMsalCommon: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCommon'] ]
+        publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
+        publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
+        publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
+        publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
+        publishMsalCore: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
+        publishNodeTokenValidation: $[ stageDependencies.pre_release.filter.outputs['filter.publishNodeTokenValidation`'] ]
+      jobs:
+      # Release MSAL Core
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_core'
+            path: 'lib'
+            libName: 'msal-core'
+            cdn: true
+          condition: eq(variables.publishMsalCore, 'true')
 
-    #   # Release MSAL Common
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_common'
-    #         path: 'lib'
-    #         libName: 'msal-common'
-    #         cdn: false
-    #   # Release MSAL Browser
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_browser'
-    #         path: 'lib'
-    #         libName: 'msal-browser'
-    #         dependsOn: 'release_msal_common'
-    #         cdn: true
-    #   # Release MSAL Node
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_node'
-    #         path: 'lib'
-    #         libName: 'msal-node'
-    #         dependsOn: 'release_msal_common'
-    #         cdn: false
-    #   # Release MSAL React
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_react'
-    #         path: 'lib'
-    #         libName: 'msal-react'
-    #         dependsOn: 'release_msal_browser'
-    #         cdn: false
-    #   # Release MSAL Angular
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_angular'
-    #         path: 'lib'
-    #         libName: 'msal-angular'
-    #         dependsOn: 'release_msal_browser'
-    #         cdn: false
-    #     - template: .pipelines/custom-templates/publish-template.yml@self
-    #       parameters:
-    #         jobName: 'release_msal_node_extensions'
-    #         path: 'extensions'
-    #         libName: 'msal-node-extensions'
-    #         cdn: false
+      # Release MSAL Common
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_common'
+            path: 'lib'
+            libName: 'msal-common'
+            cdn: false
+          condition: eq(variables.publishMsalCommon, 'true')
+      # Release MSAL Browser
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_browser'
+            path: 'lib'
+            libName: 'msal-browser'
+            dependsOn: 'release_msal_common'
+            cdn: true
+          condition: eq(variables.publishMsalBrowser, 'true')
+      # Release MSAL Node
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_node'
+            path: 'lib'
+            libName: 'msal-node'
+            dependsOn: 'release_msal_common'
+            cdn: false
+          condition: eq(variables.publishMsalNode, 'true')
+      # Release MSAL React
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_react'
+            path: 'lib'
+            libName: 'msal-react'
+            dependsOn: 'release_msal_browser'
+            cdn: false
+          condition: eq(variables.publishMsalReact, 'true')
+      # Release MSAL Angular
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_angular'
+            path: 'lib'
+            libName: 'msal-angular'
+            dependsOn: 'release_msal_browser'
+            cdn: false
+          condition: eq(variables.publishMsalAngular, 'true')
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_node_extensions'
+            path: 'extensions'
+            libName: 'msal-node-extensions'
+            cdn: false
+          condition: eq(variables.publishMsalNodeExtensions, 'true')
