@@ -68,11 +68,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
              * For more information about state,
              * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
              */
-            if(req.query.state) {
-                authCodeUrlParameters.state = req.query.state;
-            } else {
-                authCodeUrlParameters.state = cryptoProvider.createNewGuid()
-            }
+            authCodeUrlParameters.state = req.query.state ? req.query.state : cryptoProvider.createNewGuid();
             // Check for nonce parameter
             /**
              * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
@@ -85,11 +81,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
              * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
              */
 
-            if(req.query.nonce) {
-                authCodeUrlParameters.nonce = req.query.nonce
-            } else {
-                authCodeUrlParameters.nonce = cryptoProvider.createNewGuid()
-            }
+            authCodeUrlParameters.nonce = req.query.nonce ? req.query.nonce : cryptoProvider.createNewGuid();
 
             // Check for the prompt parameter
             if (req.query.prompt) authCodeUrlParameters.prompt = req.query.prompt;
