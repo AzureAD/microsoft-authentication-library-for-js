@@ -16,6 +16,8 @@ declare direc;
 printf -v "direc" "%s" $(pwd);
 echo "Directory: ${direc}";
 
+ls -la
+
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
     libPath="./lib/${i}/package-lock.json"
