@@ -12,7 +12,9 @@ publishFlagNames["msal-angular"]=PUBLISH_MSAL_ANGULAR;
 publishFlagNames["msal-react"]=PUBLISH_MSAL_REACT;
 publishFlagNames["node-token-validation"]=PUBLISH_NODE_TOKEN_VALIDATION;
 
-echo "Directory: ${pwd}";
+declare direc;
+printf -v "direc" "%s" pwd;
+echo "Directory: ${direc}";
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
