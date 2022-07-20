@@ -12,12 +12,6 @@ publishFlagNames["msal-angular"]=PUBLISH_MSAL_ANGULAR;
 publishFlagNames["msal-react"]=PUBLISH_MSAL_REACT;
 publishFlagNames["node-token-validation"]=PUBLISH_NODE_TOKEN_VALIDATION;
 
-declare direc;
-printf -v "direc" "%s" $(pwd);
-echo "Directory: ${direc}";
-
-ls -la ../../
-
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
     libPath="../../lib/${i}/package.json"
