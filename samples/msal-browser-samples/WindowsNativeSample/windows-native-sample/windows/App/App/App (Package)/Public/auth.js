@@ -67,9 +67,6 @@ async function signOut(method) {
     if(method === "redirect")
     {
         return myMSALObj.logoutRedirect(logoutRequest);
-        //.then(showLoggedOutMessage).catch(function (error){
-        //    console.log(error);
-        // });
     }
     else
     {
