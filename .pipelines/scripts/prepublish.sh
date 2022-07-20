@@ -13,7 +13,7 @@ publishFlagNames["msal-react"]=PUBLISH_MSAL_REACT;
 publishFlagNames["node-token-validation"]=PUBLISH_NODE_TOKEN_VALIDATION;
 
 declare direc;
-printf -v "direc" "%s" pwd;
+printf -v "direc" "%s" $(pwd);
 echo "Directory: ${direc}";
 
 # Iterate each library directory name

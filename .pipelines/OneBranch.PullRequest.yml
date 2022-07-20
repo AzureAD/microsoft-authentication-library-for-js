@@ -71,7 +71,7 @@ extends:
           - task: ShellScript@2
             inputs:
               scriptPath: ".pipelines/scripts/prepublish.sh"
-              cwd: '$(REPOROOT)/${{ variables.repoName }}'
+              cwd: "msal-javascript-internal/"
           - task: CmdLine@2
             inputs:
               script: 'echo $PUBLISH_MSAL_BROWSER'
