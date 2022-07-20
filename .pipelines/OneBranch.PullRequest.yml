@@ -70,7 +70,7 @@ extends:
           steps:
           - task: ShellScript@2
             inputs:
-              scriptPath: "./scripts/prepublish.sh"
+              scriptPath: ".pipelines/scripts/prepublish.sh"
           - task: CmdLine@2
             inputs:
               script: 'echo $PUBLISH_MSAL_BROWSER'
