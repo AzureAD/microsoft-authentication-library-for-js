@@ -24,6 +24,13 @@ variables:
   REPOROOT: $(Build.SourcesDirectory)
   OUTPUTROOT: $(REPOROOT)\out
   NUGET_XMLDOC_MODE: none
+  PUBLISH_MSAL_CORE: false
+  PUBLISH_MSAL_COMMON: false
+  PUBLISH_MSAL_BROWSER: false
+  PUBLISH_MSAL_NODE: false
+  PUBLISH_MSAL_REACT: false
+  PUBLISH_MSAL_ANGULAR: false
+  PUBLISH_NODE_TOKEN_VALIDATION: false
 
   LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-2004:latest' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
 
@@ -61,10 +68,13 @@ extends:
             ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
             ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
           steps:
-            - bash: |
-                git diff-tree --no-commit-id --name-only -r 
-              displayName: 'Diff'
-              workingDirectory: '$(REPOROOT)/${{ variables.repoName }}/lib/msal-core'
+          - task: ShellScript@2
+            inputs:
+              scriptPath: ".pipelines/scripts/prepublish.sh"
+          - task: CmdLine@2
+            inputs:
+              script: 'echo $PUBLISH_MSAL_BROWSER'
+
     - stage: build_and_release
       displayName: 'Publish'
       jobs:
