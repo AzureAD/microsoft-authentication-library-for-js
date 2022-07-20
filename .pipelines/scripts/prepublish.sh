@@ -21,16 +21,16 @@ for i in "${libNames[@]}"; do
     # so if there are changes to a library's package.json, $? will have a 1 (success),
     # no changes means $? is 0, therefore library won't be release unless it's dependent
     # packages have been updated (dependent logic is out of scope for this script)
-    git diff --exit-code --name-only HEAD HEAD~1 $libPath 
+    git diff --exit-code --name-only HEAD HEAD~3 $libPath 
 
     if [ $? -eq 1 ]
     then
         echo "${i} publish flag set to TRUE";
         varName=${publishFlagNames[$i]};
-        echo "##vso[task.setvariable variable=${varName};]true"
+        echo "##vso[task.setvariable variable=${varName};isoutput=true]true"
     else
      echo "${i} publish flag set to FALSE";
         varName=${publishFlagNames[$i]};
-        echo "##vso[task.setvariable variable=${varName};]false"
+        echo "##vso[task.setvariable variable=${varName};isoutput=true]false"
     fi
 done
