@@ -108,7 +108,7 @@ jobs:
       if: failure()
       with:
         name: npm_logs_${{ matrix.library }}
-        path: ~/Users/runner/.npm/_logs/**/*
+        path: ~/.npm/_logs/**/*
 
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
@@ -152,7 +152,7 @@ jobs:
       if: failure()
       with:
         name: npm_logs_msal-node-extensions
-        path: ~/Users/runner/.npm/_logs/**/*
+        path: ~/npm/cache/_logs/**/*
 
     - name: Build packages
       working-directory: extensions/msal-node-extensions
