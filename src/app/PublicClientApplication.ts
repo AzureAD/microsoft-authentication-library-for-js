@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, SilentTokenRetrievalStrategy } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType, ApiId, SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -125,47 +125,34 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
-            if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
-                throw BrowserAuthError.createAccessTokenNotInCacheError();
-            }
-
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
 
-            let tokenError;
-            let token: AuthenticationResult;
-            let measurement = {};
-            try {
-                token = await this.acquireTokenSilentAsync({
-                    ...request,
-                    correlationId,
-                }, account);
-                measurement = {
-                    success: true,
-                    fromCache: token.fromCache,
-                    isNativeBroker: token.fromNativeBroker,
-                };
-            } catch (error) {
-                tokenError = error as AuthError;
-                measurement = {
-                    success: false,
-                    errorCode: tokenError.errorCode,
-                    subErrorCode: tokenError.subError,
-                };
-            }
-
-            this.activeSilentTokenRequests.delete(silentRequestKey);
-            atsMeasurement.endMeasurement(measurement);
-            atsMeasurement.flushMeasurement();
-
-            if (tokenError) {
-                throw tokenError;
-            }
-
-            const tokenPromise = new Promise<AuthenticationResult>((resolve) => {
-                resolve(token);
-            });
-            this.activeSilentTokenRequests.set(silentRequestKey, tokenPromise);
-            return tokenPromise;
+            const response = this.acquireTokenSilentAsync({
+                ...request,
+                correlationId
+            }, account)
+                .then((result) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: result.fromCache,
+                        isNativeBroker: result.fromNativeBroker
+                    });
+                    atsMeasurement.flushMeasurement();
+                    return result;
+                })
+                .catch((error: AuthError) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
+                        success: false
+                    });
+                    atsMeasurement.flushMeasurement();
+                    throw error;
+                });
+            this.activeSilentTokenRequests.set(silentRequestKey, response);
+            return response;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
             atsMeasurement.endMeasurement({
@@ -210,7 +197,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-            result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+            result = silentCacheClient.acquireToken(silentRequest).catch(async (error: AuthError) => {
+                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
+                    throw error;
+                }
+
                 return this.acquireTokenByRefreshToken(silentRequest);
             });
         }
