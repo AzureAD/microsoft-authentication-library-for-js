@@ -23,6 +23,7 @@ import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
 import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
+import { NodeAuthError } from '../../src/error/NodeAuthError';
 
 describe('PublicClientApplication', () => {
 
@@ -417,7 +418,7 @@ describe('PublicClientApplication', () => {
         expect(() => {
             authApp.validateState("", "ed09b151-1b68-4c2c-8e95-d8dce9882dba");
         })
-        .toThrow("State not found. Please verify that the request originated from msal.")
+        .toThrow(NodeAuthError.stateNotFoundError)
     })
 
     test("validateState when state and cachedSate don't match", () => {
@@ -428,10 +429,11 @@ describe('PublicClientApplication', () => {
                 "ed09b151-1b68-4c2c-8e95-y8dcfffffggh"
             );
         }).toThrow(
-            "Unable to parse state. Please verify that the request originated from msal."
+            ClientAuthError.stateMismatchError
         );
     })
 });
+
 
 
 
