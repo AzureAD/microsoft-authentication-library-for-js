@@ -412,25 +412,28 @@ describe('PublicClientApplication', () => {
         authApp.getLogger().info("Message");
     });
     
-    test("should throw an error if state is not provides", ()=>{
+    test("should throw an error if state is not provides", () => {
         const authApp = new PublicClientApplication(appConfig);
-        expect(
-            authApp.validateState("", "ed09b151-1b68-4c2c-8e95-d8dce9882dba"))
+        expect(() => {
+            authApp.validateState("", "ed09b151-1b68-4c2c-8e95-d8dce9882dba");
+        })
         .toThrow("State not found. Please verify that the request originated from msal.")
     })
 
-    test("validateState when state and cachedSate don't match", ()=>{
+    test("validateState when state and cachedSate don't match", () => {
         const authApp = new PublicClientApplication(appConfig);
-        expect(
+        expect(() => {
             authApp.validateState(
                 "ed09b151-1b68-4c2c-8e95-d8dce9882dba",
                 "ed09b151-1b68-4c2c-8e95-y8dcfffffggh"
-            )
-        ).toThrow(
+            );
+        }).toThrow(
             "Unable to parse state. Please verify that the request originated from msal."
         );
     })
 });
+
+
 
 
 
