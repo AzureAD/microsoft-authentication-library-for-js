@@ -103,6 +103,13 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_${{ matrix.library }}
+        path: ~/Users/runner/.npm/_logs/**/*
+
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
       run: npm run build:all
@@ -139,6 +146,13 @@ jobs:
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
+
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_msal-node-extensions
+        path: ~/Users/runner/.npm/_logs/**/*
 
     - name: Build packages
       working-directory: extensions/msal-node-extensions
