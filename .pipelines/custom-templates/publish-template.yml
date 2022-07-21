@@ -19,7 +19,7 @@ jobs:
     displayName: 'Publish ${{ parameters.libName }}'
     ${{ if not(eq(parameters.dependsOn, 'none')) }}:
       dependsOn: ${{ parameters.dependsOn }}
-    condition: eq($[ stageDependencies.pre_release.filter.outputs['filter.${{ parameters.publishFlagName }})'] ], true)
+    condition: eq([ stageDependencies.pre_release.filter.outputs['filter.${{ parameters.publishFlagName }})'] ], true)
     pool:
       type: linux
     variables:
