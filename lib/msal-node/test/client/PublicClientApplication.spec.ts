@@ -429,7 +429,7 @@ describe('PublicClientApplication', () => {
                 "ed09b151-1b68-4c2c-8e95-y8dcfffffggh"
             );
         }).toThrow(
-            ClientAuthError.stateMismatchError
+            msalCommon.ClientAuthError.stateMismatchError
         );
     })
 });
