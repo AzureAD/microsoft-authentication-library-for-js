@@ -9,7 +9,7 @@ import * as path from "path";
 import AuthProvider from "./AuthProvider";
 import { FetchManager } from "./FetchManager";
 import { IpcMessages, GRAPH_CONFIG, APPLICATION_DIMENSIONS } from "./Constants";
-import * as authConfig from './config/customConfig.json';
+import * as authConfig from "./config/customConfig.json";
 
 export default class Main {
     static application: Electron.App;
@@ -75,34 +75,32 @@ export default class Main {
     }
 
     /**
-     * On Windows and Linux, this is where we receive login responses
+     * This method should focus on our window when running a Second instance of the app
      */
-    private static onSecondInstance(
-        event: any,
-        commandLine: string[],
-        workingDirectory: string
-    ): void {   
+    private static handleWindowState(): void {
         // Someone tried to run a second instance, we should focus our window.
         if (Main.mainWindow) {
             if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
             Main.mainWindow.focus();
         }
-
-        const url = Main.getDeepLinkUrl(commandLine);
-
-        if (url) {
-            Main.getCodeFromDeepLinkUrl(url);
-        }
     }
 
-    private static onOpenUrl(event: any, schemeData: string) {
+    /**
+     * On Windows and Linux, this is where we receive login responses
+     */
+    private static onSecondInstance(event: any, commandLine: string[]): void {
         event.preventDefault();
+        Main.handleWindowState();
+        const url = Main.getDeepLinkUrl(commandLine);
+        if (url) Main.getCodeFromDeepLinkUrl(url);
+    }
 
-        if (Main.mainWindow) {
-            if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
-            Main.mainWindow.focus();
-        }
-
+    /**
+     * On macOS, this is where we receive login responses
+     */
+    private static onOpenUrl(event: any, schemeData: string): void {
+        event.preventDefault();
+        Main.handleWindowState();
         Main.getCodeFromDeepLinkUrl(schemeData);
     }
 

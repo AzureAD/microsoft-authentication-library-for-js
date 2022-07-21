@@ -158,23 +158,15 @@ Next, we tell the application how to handle events that invoke the application i
 When the external custom URL scheme is clicked it will trigger the event `Main.application.on("second-instance", Main.onSecondInstance);` where we can fetch the authorization code from custom URL scheme:
 
 ```typescript
- private static onSecondInstance(
-        event: any,
-        commandLine: string[],
-        workingDirectory: string
-    ): void {   
-        // Someone tried to run a second instance, we should focus our window.
-        if (Main.mainWindow) {
-            if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
-            Main.mainWindow.focus();
-        }
-
-        const url = Main.getDeepLinkUrl(commandLine);
-
-        if (url) {
-            Main.getCodeFromDeepLinkUrl(url);
-        }
-    }
+/**
+* On Windows and Linux, this is where we receive login responses
+*/
+private static onSecondInstance(event: any, commandLine: string[]): void {
+    event.preventDefault();
+    Main.handleWindowState();
+    const url = Main.getDeepLinkUrl(commandLine);
+    if (url) Main.getCodeFromDeepLinkUrl(url);
+}
 ```
 
 #### MacOS and Linux
@@ -182,22 +174,14 @@ When the external custom URL scheme is clicked it will trigger the event `Main.a
 When the external custom URL scheme is clicked it will trigger the event `Main.application.on("open-url", Main.onOpenUrl);` where we can fetch the authorization code from custom URL scheme:
 
 ```typescript
- private static onOpenUrl(event: any, schemeData: string) {
-        event.preventDefault();
-        // Someone tried to run a second instance, we should focus our window.
-        if(Main.mainWindow) {
-            if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
-            Main.mainWindow.focus();
-        }
-
-        //get the deep linked from command line params
-        const url = Main.getDeepLinkUrl(schemeData);
-
-         if (url) {
-             Main.getCodeFromDeepLinkUrl(url);
-         }
-
-    }
+/**
+* On MacOS, this is where we receive login responses
+*/
+private static onOpenUrl(event: any, schemeData: string): void {
+    event.preventDefault();
+    Main.handleWindowState();
+    Main.getCodeFromDeepLinkUrl(schemeData);
+}
 ```
 
 **Note: You may have to package the app for this feature to work on macOS and Linux. It might not work when launching it in development from the command-line. For more information on how to pack an electron application, please check the [electron documentation](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app#packaging).**

@@ -83,11 +83,11 @@ export class UIManager {
             "class",
             "list-group-item list-group-item-action"
         );
-        listItem.setAttribute("id", "list" + i + "list");
+        listItem.setAttribute("id", `list ${i} list`);
         listItem.setAttribute("data-toggle", "list");
-        listItem.setAttribute("href", "#list" + i);
+        listItem.setAttribute("href", `#list ${i}`);
         listItem.setAttribute("role", "tab");
-        listItem.setAttribute("aria-controls", `${i}`);
+        listItem.setAttribute("aria-controls", i.toString());
         listItem.innerHTML = d.subject;
         this.tabList.appendChild(listItem);
     }
@@ -95,9 +95,9 @@ export class UIManager {
     public createAndAppendContentItem(d: any, i: Number) {
         const contentItem = document.createElement("div");
         contentItem.setAttribute("class", "tab-pane fade");
-        contentItem.setAttribute("id", "list" + i);
+        contentItem.setAttribute("id", `list ${i}`);
         contentItem.setAttribute("role", "tabpanel");
-        contentItem.setAttribute("aria-labelledby", "list" + i + "list");
+        contentItem.setAttribute("aria-labelledby", `list ${i} list`);
         if (d.from) {
             contentItem.innerHTML = `<strong> from: ${d.from.emailAddress.address} </strong><br><br> ${d.bodyPreview} ...`;
 
