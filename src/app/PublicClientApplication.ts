@@ -136,6 +136,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker
                     });
                     atsMeasurement.flushMeasurement();
@@ -144,8 +146,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 .catch((error: AuthError) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.endMeasurement({
-                        errorCode: error.errorCode,
-                        subErrorCode: error.subError,
                         success: false
                     });
                     atsMeasurement.flushMeasurement();
@@ -211,6 +211,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
+                accessTokenSize: response.accessToken.length,
+                idTokenSize: response.idToken.length,
                 isNativeBroker: response.fromNativeBroker
             });
             return response;
