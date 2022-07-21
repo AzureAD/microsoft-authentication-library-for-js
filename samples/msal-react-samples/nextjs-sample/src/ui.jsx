@@ -155,7 +155,7 @@ const WelcomeName = () => {
     const [name, setName] = useState(null);
 
     useEffect(() => {
-        if (accounts.length > 0) {
+        if (accounts.length > 0 && accounts[0].name) {
             setName(accounts[0].name.split(" ")[0]);
         } else {
             setName(null);

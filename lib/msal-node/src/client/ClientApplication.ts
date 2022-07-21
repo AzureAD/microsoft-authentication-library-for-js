@@ -318,8 +318,13 @@ export abstract class ClientApplication {
      * @param authority - user passed authority in configuration
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
-    protected async buildOauthClientConfiguration(authority: string, requestCorrelationId?: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
-
+    protected async buildOauthClientConfiguration(
+        authority: string,
+        requestCorrelationId?: string, 
+        serverTelemetryManager?: ServerTelemetryManager,
+        azureRegionConfiguration?: AzureRegionConfiguration, 
+        azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
+        
         this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
 
         // precedence - azureCloudInstance + tenant >> authority and request  >> config
@@ -331,7 +336,7 @@ export abstract class ClientApplication {
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
 
-        return {
+        const clientConfiguration: ClientConfiguration = {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
@@ -364,8 +369,10 @@ export abstract class ClientApplication {
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
-            serializableCache: this.tokenCache,
+            serializableCache: this.tokenCache            
         };
+
+        return clientConfiguration;
     }
 
     private getClientAssertion(authority: Authority): { assertion: string, assertionType: string } {

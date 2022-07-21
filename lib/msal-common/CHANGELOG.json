@@ -2,6 +2,55 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-common_v7.2.0",
+      "version": "7.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "t-ssummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "aff6dd392ec3a07b6ef0375f625dbcb9617c2dbf",
+            "comment": "Fix bug with activeAccount when two accounts have same local account id #5004"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "1cf6266c2a5e52067744fe800772a7740670ca75",
+            "comment": "Add local cache support for JS-WAM bridge #4971"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0c23631c04e48d14115fd7f2c74e3367bec6ea6f",
+            "comment": "Added new token size field in perf telemetry data #4973"
+          },
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4517b16c9d66c7873e36da46a79722d824b44ede",
+            "comment": "support caching rt flow response in migration scenarios (#4844)"
+          },
+          {
+            "author": "bogavril@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d2ea64be16ead05c2673c0c84bea3267ebcc7118",
+            "comment": "App Token Provider extensibiliy for AzureSDK"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Jul 2022 22:37:04 GMT",
       "tag": "@azure/msal-common_v7.1.0",
       "version": "7.1.0",
