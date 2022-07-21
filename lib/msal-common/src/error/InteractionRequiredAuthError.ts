@@ -29,6 +29,10 @@ export const InteractionRequiredAuthErrorMessage = {
     noTokensFoundError: {
         code: "no_tokens_found",
         desc: "No refresh token found in the cache. Please sign-in."
+    },
+    native_account_unavailable: {
+        code: "native_account_unavailable",
+        desc: "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API."
     }
 };
 
@@ -65,5 +69,13 @@ export class InteractionRequiredAuthError extends AuthError {
      */
     static createNoTokensFoundError(): InteractionRequiredAuthError {
         return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.noTokensFoundError.code, InteractionRequiredAuthErrorMessage.noTokensFoundError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the native broker returns ACCOUNT_UNAVAILABLE status, indicating that the account was removed and interactive sign-in is required
+     * @returns 
+     */
+    static createNativeAccountUnavailableError(): InteractionRequiredAuthError {
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.native_account_unavailable.code, InteractionRequiredAuthErrorMessage.native_account_unavailable.desc);
     }
 }

@@ -1,7 +1,0 @@
-{
-  "comment": "Build command fix in package.json",
-  "type": "none",
-  "packageName": "@azure/node-token-validation",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

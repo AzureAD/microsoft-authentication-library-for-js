@@ -66,4 +66,17 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         expect(err.name).toBe("InteractionRequiredAuthError");
         expect(err.stack?.includes("InteractionRequiredAuthError.spec.ts")).toBe(true);
     });
+
+    it("createNativeAccountUnavailableError creates an InteractionRequiredAuthError object", () => {
+        const err: InteractionRequiredAuthError = InteractionRequiredAuthError.createNativeAccountUnavailableError();
+
+        expect(err instanceof InteractionRequiredAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(InteractionRequiredAuthErrorMessage.native_account_unavailable.code);
+        expect(err.errorMessage.includes(InteractionRequiredAuthErrorMessage.native_account_unavailable.desc)).toBe(true);
+        expect(err.message.includes(InteractionRequiredAuthErrorMessage.native_account_unavailable.desc)).toBe(true);
+        expect(err.name).toBe("InteractionRequiredAuthError");
+        expect(err.stack?.includes("InteractionRequiredAuthError.spec.ts")).toBe(true);
+    });
 });

@@ -63,7 +63,7 @@ describe("RedirectClient", () => {
         browserStorage = pca.browserStorage;
 
         // @ts-ignore
-        redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+        redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
     });
 
     afterEach(() => {
@@ -252,7 +252,7 @@ describe("RedirectClient", () => {
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger);
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, nativeMessageHandler);
+            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -349,7 +349,7 @@ describe("RedirectClient", () => {
                 }
             });
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserCrypto = new CryptoOps(new Logger({}));
@@ -524,7 +524,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -637,7 +637,7 @@ describe("RedirectClient", () => {
             pca.setNavigationClient(navigationClient);
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             if (!tokenResponse) {
@@ -745,7 +745,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
@@ -811,7 +811,7 @@ describe("RedirectClient", () => {
                 }
             }
             // @ts-ignore
-            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -921,7 +921,7 @@ describe("RedirectClient", () => {
 
             window.location.hash = "testHash";
             const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
-            
+
             sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
                 expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             });
@@ -965,7 +965,7 @@ describe("RedirectClient", () => {
                 }
             });
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             browserStorage.setInteractionInProgress(true);
             const loginRequestUrl = window.location.href + "#testHash";
@@ -1861,7 +1861,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            
+
             const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1870,7 +1870,7 @@ describe("RedirectClient", () => {
             });
 
             // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
             redirectClient.logout();
         });
@@ -1881,7 +1881,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            
+
             const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -1996,38 +1996,128 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
+            browserStorage.setInteractionInProgress(true);
             redirectClient.logout({
                 onRedirectNavigate: (url: string) => {
                     expect(url).toEqual(testLogoutUrl);
-                    done();
                     return false;
                 }
-            });
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
+        });
+
+        it("doesnt navigate if onRedirectNavigate returns false (specific account)", (done) => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "",
+                username: "",
+                idTokenClaims: {}
             };
-            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
+                done();
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true);
+            redirectClient.logout({
+                account: testAccountInfo,
+                onRedirectNavigate: (url: string) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return false;
+                }
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
         });
 
         it("does navigate if onRedirectNavigate returns true", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(browserStorage.getInteractionInProgress()).toBeTruthy();
                 expect(urlNavigate).toEqual(testLogoutUrl);
-                done();
+
                 return Promise.resolve(true);
             });
+            browserStorage.setInteractionInProgress(true);
             redirectClient.logout({
                 onRedirectNavigate: (url) => {
                     expect(url).toEqual(testLogoutUrl);
                     return true;
                 }
-            });
-            const validatedLogoutRequest: CommonEndSessionRequest = {
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeTruthy();
+
+                    // Reset after testing it was properly set
+                    browserStorage.setInteractionInProgress(false);
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
+        });
+
+        it("does navigate if onRedirectNavigate returns true (specific account)", (done) => {
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "",
+                username: "",
+                idTokenClaims: {}
             };
-            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toEqual(testLogoutUrl);
+
+                return Promise.resolve(true);
+            });
+            browserStorage.setInteractionInProgress(true);
+            redirectClient.logout({
+                account: testAccountInfo,
+                onRedirectNavigate: (url) => {
+                    expect(url).toEqual(testLogoutUrl);
+                    return true;
+                }
+            })
+                .then(() => {
+                    expect(browserStorage.getInteractionInProgress()).toBeTruthy();
+
+                    // Reset after testing it was properly set
+                    browserStorage.setInteractionInProgress(false);
+
+                    const validatedLogoutRequest: CommonEndSessionRequest = {
+                        correlationId: RANDOM_TEST_GUID,
+                        postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+                    };
+                    expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+                    done();
+                })
         });
 
         it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
@@ -2100,11 +2190,12 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT}`, testAccount.localAccountId);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`, JSON.stringify({homeAccountId: testAccount.homeAccountId, localAccountId: testAccount.localAccountId}));
             window.sessionStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo), JSON.stringify(testAccount));
 
             await redirectClient.logout(validatedLogoutRequest).then(() => {
-                expect(window.sessionStorage.length).toBe(0);
+                // Interaction in progress
+                expect(window.sessionStorage.length).toBe(1);
             });
         });
     });

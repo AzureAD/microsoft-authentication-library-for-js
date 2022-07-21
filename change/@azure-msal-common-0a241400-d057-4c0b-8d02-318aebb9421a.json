@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "fix: Allow direct access to Identity Token Claims #4680",
-  "packageName": "@azure/msal-common",
-  "email": "1292510+svrooij@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}

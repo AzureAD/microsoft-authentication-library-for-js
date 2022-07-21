@@ -28,7 +28,12 @@ export class CustomProtocolListener extends AuthCodeListener {
                 const requestUrl = new URL(req.url);
                 const authCode = requestUrl.searchParams.get('code');
 
-                (authCode) ? resolve(authCode) : reject(new Error("No code found in URL"));
+                if (authCode) {
+                    resolve(authCode)
+                } else {
+                    protocol.unregisterProtocol(this.host);
+                    reject(new Error("No code found in URL"));
+                }
             });
         });
 

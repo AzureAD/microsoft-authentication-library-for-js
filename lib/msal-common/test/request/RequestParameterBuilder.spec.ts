@@ -165,6 +165,33 @@ describe("RequestParameterBuilder unit tests", () => {
         sinon.restore();
     });
 
+    it("adds clientAssertion and assertionType if they are passed in as strings", () => {
+        const clientAssertion = {
+            assertion: "testAssertion",
+            assertionType: "jwt-bearer"        };
+
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
+        requestParameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent("testAssertion")}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLIENT_ASSERTION_TYPE}=${encodeURIComponent("jwt-bearer")}`)).toBe(true);
+    });
+
+    it("doesn't add client assertion and client assertion type if they are empty strings", () => {
+        const clientAssertion = {
+            assertion: "",
+            assertionType: ""
+        };
+
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
+        requestParameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION)).toBe(false);
+        expect(requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION_TYPE)).toBe(false);
+    });
+
     describe("CCS parameters", () => {
 
         it("adds CCS parameter from given client_info object", () => {

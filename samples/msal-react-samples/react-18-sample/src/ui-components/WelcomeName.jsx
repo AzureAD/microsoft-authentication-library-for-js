@@ -8,7 +8,7 @@ const WelcomeName = () => {
 
     const activeAccount = instance.getActiveAccount();
     useEffect(() => {
-        if (activeAccount) {
+        if (activeAccount && activeAccount.name) {
             setName(activeAccount.name.split(' ')[0]);
         } else {
             setName(null);

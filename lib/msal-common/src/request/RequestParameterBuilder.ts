@@ -284,7 +284,9 @@ export class RequestParameterBuilder {
      * @param clientAssertion
      */
     addClientAssertion(clientAssertion: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION, encodeURIComponent(clientAssertion));
+        if (!StringUtils.isEmpty(clientAssertion)) {
+            this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION, encodeURIComponent(clientAssertion));
+        }
     }
 
     /**
@@ -292,7 +294,9 @@ export class RequestParameterBuilder {
      * @param clientAssertionType
      */
     addClientAssertionType(clientAssertionType: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
+        if (!StringUtils.isEmpty(clientAssertionType)) {
+            this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
+        }
     }
 
     /**
@@ -372,7 +376,7 @@ export class RequestParameterBuilder {
      * @param username
      */
     addUsername(username: string): void {
-        this.parameters.set(PasswordGrantConstants.username, username);
+        this.parameters.set(PasswordGrantConstants.username, encodeURIComponent(username));
     }
 
     /**
@@ -380,7 +384,7 @@ export class RequestParameterBuilder {
      * @param password
      */
     addPassword(password: string): void {
-        this.parameters.set(PasswordGrantConstants.password, password);
+        this.parameters.set(PasswordGrantConstants.password, encodeURIComponent(password));
     }
 
     /**

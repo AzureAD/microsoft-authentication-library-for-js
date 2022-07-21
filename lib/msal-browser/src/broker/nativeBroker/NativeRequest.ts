@@ -16,18 +16,19 @@ export type NativeTokenRequest = {
     redirectUri: string;
     scopes: string;
     correlationId: string;
+    windowTitleSubstring: string; // The name of the document title. This helps the native prompt properly "parent" to the window making the request
     prompt?: string;
     nonce?: string;
     claims?: string;
     state?: string;
-    req_cnf?: string;
-    token_type?: string;
+    reqCnf?: string;
+    keyId?: string;
+    tokenType?: string;
     shrClaims?: string;
     shrNonce?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
-    instance_aware?: boolean;
     extraParameters?: StringDict;
 };
 

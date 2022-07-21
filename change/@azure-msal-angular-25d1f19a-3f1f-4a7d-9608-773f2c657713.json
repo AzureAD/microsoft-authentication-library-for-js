@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for acquiring tokens from the native broker #4531",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

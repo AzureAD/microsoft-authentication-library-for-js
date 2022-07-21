@@ -4,23 +4,27 @@
  */
 
 import { app, BrowserWindow, ipcMain } from "electron";
-import AuthProvider from "./AuthProvider";
 import * as path from "path";
-import { FetchManager } from "./FetchManager";
 
-import { GRAPH_CONFIG, IpcMessages } from "./Constants";
+import AuthProvider from "./AuthProvider";
+import { FetchManager } from "./FetchManager";
+import { IpcMessages, GRAPH_CONFIG } from "./Constants";
+import * as authConfig from './config/customConfig.json';
 
 export default class Main {
     static application: Electron.App;
     static mainWindow: Electron.BrowserWindow;
     static authProvider: AuthProvider;
-    static accessToken: string;
-    static networkModule: FetchManager;
+    static fetchManager: FetchManager;
+    static authConfig: any;
 
     static main(): void {
         Main.application = app;
         Main.application.on('window-all-closed', Main.onWindowAllClosed);
         Main.application.on('ready', Main.onReady);
+
+        // if in automation, read the config from environment
+        Main.authConfig = process.env.authConfig ? JSON.parse(process.env.authConfig) : authConfig;
     }
 
     private static async loadBaseUI(): Promise<void> {
@@ -43,8 +47,8 @@ export default class Main {
         Main.createMainWindow();
         Main.mainWindow.loadFile(path.join(__dirname, '../index.html'));
         Main.mainWindow.on('closed', Main.onClose);
-        Main.authProvider = new AuthProvider();
-        Main.networkModule = new FetchManager();
+        Main.authProvider = new AuthProvider(Main.authConfig);
+        Main.fetchManager = new FetchManager();
         Main.registerSubscriptions();
 
         Main.attemptSSOSilent();
@@ -72,7 +76,7 @@ export default class Main {
     private static async attemptSSOSilent(): Promise<void> {
         const account = await Main.authProvider.loginSilent();
         await Main.loadBaseUI();
-        
+
         if (account) {
             console.log("Successful silent account retrieval");
             Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
@@ -90,7 +94,7 @@ export default class Main {
         const account = Main.authProvider.currentAccount;
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.networkModule.callEndpointWithToken(GRAPH_CONFIG.GRAPH_ME_ENDPT, token);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(`${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`, token);
         Main.publish(IpcMessages.SET_PROFILE, graphResponse);
     }
 
@@ -99,7 +103,7 @@ export default class Main {
         const account = Main.authProvider.currentAccount;
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.networkModule.callEndpointWithToken(GRAPH_CONFIG.GRAPH_MAIL_ENDPT, token);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(`${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`, token);
         Main.publish(IpcMessages.SET_MAIL, graphResponse);
     }
 
@@ -107,7 +111,6 @@ export default class Main {
         await Main.authProvider.logout();
         await Main.loadBaseUI();
     }
-
 
     // Router that maps callbacks/actions to specific messages received from the Renderer
     private static registerSubscriptions(): void {

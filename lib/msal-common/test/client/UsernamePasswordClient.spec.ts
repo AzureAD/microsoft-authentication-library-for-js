@@ -126,6 +126,61 @@ describe("Username Password unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`)).toBe(true);
     });
 
+    it("properly encodes special characters in emails (usernames)", async () => {
+        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
+
+        const createTokenRequestBodySpy = sinon.spy(UsernamePasswordClient.prototype, <any>"createTokenRequestBody");
+
+        const client = new UsernamePasswordClient(config);
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: Constants.DEFAULT_AUTHORITY,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            username: "mock+name",
+            password: "mock_password",
+            claims: TEST_CONFIG.CLAIMS,
+            correlationId: RANDOM_TEST_GUID
+        };
+
+        const authResult = await client.acquireToken(usernamePasswordRequest) as AuthenticationResult;
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).toBe(true);
+
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${PasswordGrantConstants.username}=mock%2Bname`)).toBe(true);
+    });
+
+    it("properly encodes special characters in passwords", async () => {
+        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
+
+        const createTokenRequestBodySpy = sinon.spy(UsernamePasswordClient.prototype, <any>"createTokenRequestBody");
+
+        const client = new UsernamePasswordClient(config);
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: Constants.DEFAULT_AUTHORITY,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            username: "mock_name",
+            password: "mock_password&+",
+            claims: TEST_CONFIG.CLAIMS,
+            correlationId: RANDOM_TEST_GUID
+        };
+
+        const authResult = await client.acquireToken(usernamePasswordRequest) as AuthenticationResult;
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).toBe(true);
+
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${PasswordGrantConstants.password}=mock_password%26%2B`)).toBe(true);
+    });
+
+
     it("Does not include claims if empty object is passed", async () => {
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
 

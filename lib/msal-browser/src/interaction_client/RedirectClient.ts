@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, ThrottlingUtils } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, ThrottlingUtils, ICrypto, Logger, IPerformanceClient } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -15,8 +15,19 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NativeInteractionClient } from "./NativeInteractionClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserConfiguration } from "../config/Configuration";
+import { BrowserCacheManager } from "../cache/BrowserCacheManager";
+import { EventHandler } from "../event/EventHandler";
+import { INavigationClient } from "../navigation/INavigationClient";
 
 export class RedirectClient extends StandardInteractionClient {
+    protected nativeStorage: BrowserCacheManager;
+
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
+        this.nativeStorage = nativeStorageImpl;
+    }
+
     /**
      * Redirects the page to the /authorize endpoint of the IDP
      * @param request
@@ -214,7 +225,7 @@ export class RedirectClient extends StandardInteractionClient {
             if (!this.nativeMessageHandler) {
                 throw BrowserAuthError.createNativeConnectionNotEstablishedError();
             }
-            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, cachedRequest.correlationId);
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.browserStorage, cachedRequest.correlationId);
             const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
             return nativeInteractionClient.acquireToken({
                 ...cachedRequest,
@@ -272,12 +283,22 @@ export class RedirectClient extends StandardInteractionClient {
 
                 if (navigate !== false) {
                     this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
+                    // Ensure interaction is in progress
+                    if (!this.browserStorage.getInteractionInProgress()) {
+                        this.browserStorage.setInteractionInProgress(true);
+                    }
                     await this.navigationClient.navigateExternal(logoutUri, navigationOptions);
                     return;
                 } else {
+                    // Ensure interaction is not in progress
+                    this.browserStorage.setInteractionInProgress(false);
                     this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
                 }
             } else {
+                // Ensure interaction is in progress
+                if (!this.browserStorage.getInteractionInProgress()) {
+                    this.browserStorage.setInteractionInProgress(true);
+                }
                 await this.navigationClient.navigateExternal(logoutUri, navigationOptions);
                 return;
             }
