@@ -94,7 +94,8 @@ extends:
       variables:
         publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
         publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
-      # Release MSAL Browser
+      jobs:
+        # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'release_msal_browser'
@@ -119,6 +120,7 @@ extends:
         publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
         publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
         publishNodeTokenValidation: $[ stageDependencies.pre_release.filter.outputs['filter.publishNodeTokenValidation`'] ]
+      jobs:
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
