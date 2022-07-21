@@ -27,7 +27,6 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
         const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
         this.logger.verbose("Refresh token client created");
-
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
             .then((result: AuthenticationResult) => {
@@ -38,7 +37,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
 
                 return result;
             })
-            .catch((e:AuthError)=> {
+            .catch((e: AuthError) => {
                 if (e instanceof AuthError) {
                     (e as AuthError).setCorrelationId(this.correlationId);
                 }

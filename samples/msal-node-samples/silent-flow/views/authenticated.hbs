@@ -15,9 +15,9 @@
         <h5 class="card-title">Failed to get accounts from cache.</h5>
       {{/if}}
       <br>
+      <a class="btn btn-primary" href="/silentAcquireToken" id="acquireTokenSilent">Acquire a Token</a>
       <br>
-      <a class="btn btn-primary" href="/graphCall" id="acquireTokenSilent">See Profile</a>
-      <br>
+      <a class="btn btn-primary" href="/graphCall" id="callGraph">See Profile</a>
       <br>
       <a class="btn btn-primary" href="/allAccounts" id="getAllAccounts">Get All Accounts</a>
   </div>
@@ -31,6 +31,9 @@
 </div>
 <div class="col-md-5">
   <div class="tab-content" id="nav-tabContent">
+    {{#if acquiredTokenSilently}}
+      <pre id="token-acquired-silently">Silent token acquisition successful</pre>
+    {{/if}}
     {{#if profile}}
       <pre id="graph-called-successfully">{{profile}}</pre>
     {{/if}}
