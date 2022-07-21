@@ -16,6 +16,7 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { ServerError } from "../error/ServerError";
 
 /**
  * OAuth2.0 Device code client
@@ -196,17 +197,22 @@ export class DeviceCodeClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid
             };
+
             const response = await this.executePostToTokenEndpoint(
                 this.authority.tokenEndpoint,
                 requestBody,
                 headers,
                 thumbprint);
 
-            if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
+            if (response.body && response.body.error) {
                 // user authorization is pending. Sleep for polling interval and try again
-                this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
-  
-                await TimeUtils.delay(pollingIntervalMilli);
+                if(response.body.error === Constants.AUTHORIZATION_PENDING) {
+                    this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
+                    await TimeUtils.delay(pollingIntervalMilli);
+                }
+                // for any other error, throw
+                this.logger.info("Unexpected error in polling from the server");
+                throw ServerError.createUnexpectedError(response.body.error);
             } else {
                 this.logger.verbose("Authorization completed successfully. Polling stopped.");
                 return response.body;
