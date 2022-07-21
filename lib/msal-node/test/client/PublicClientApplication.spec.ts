@@ -23,7 +23,6 @@ import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
 import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
-import { NodeAuthError } from '../../src/error/NodeAuthError';
 
 describe('PublicClientApplication', () => {
 
@@ -418,7 +417,7 @@ describe('PublicClientApplication', () => {
         expect(() => {
             authApp.validateState("", "ed09b151-1b68-4c2c-8e95-d8dce9882dba");
         })
-        .toThrow(NodeAuthError.stateNotFoundError)
+        .toThrow("State not found. Please verify that the request originated from msal.")
     })
 
     test("validateState when state and cachedSate don't match", () => {
@@ -429,7 +428,7 @@ describe('PublicClientApplication', () => {
                 "ed09b151-1b68-4c2c-8e95-y8dcfffffggh"
             );
         }).toThrow(
-            msalCommon.ClientAuthError.stateMismatchError
+            "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     })
 });
