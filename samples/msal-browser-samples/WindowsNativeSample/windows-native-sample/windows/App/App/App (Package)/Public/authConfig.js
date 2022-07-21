@@ -2,8 +2,8 @@
 
 const msalConfig = {
     auth: {
-        clientId: "83b1850c-4d28-492b-ad49-0ef9b57b2be0",
-        authority: "https://login.microsoftonline.com/common",
+        clientId: "Enter_the_Application_Id_Here",
+        authority: "Enter_the_Cloud_Instance_Id_Here/common",
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -51,8 +51,8 @@ const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me",
-    graphMailEndpoint: "https://graph.microsoft-ppe.com/v1.0/me/messages"
+    graphMeEndpoint: "Enter_the_Graph_Endpoint_Here",
+    graphMailEndpoint: "Enter_the_Graph_Endpoint_Here/messages"
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
