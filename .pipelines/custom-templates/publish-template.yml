@@ -38,34 +38,34 @@ jobs:
         displayName: Install dependencies
         inputs:
           command: 'install'
-          workingDir: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           verbose: false
       # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
       - task: Npm@1
         displayName: Link dependencies
         inputs:
           command: 'custom'
-          workingDir: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'run link:localDeps --if-present'
       # Publish to CDN
       - script: echo "CDN PUBLISH HERE"
       # - task: Npm@1
         displayName: Publish to CDN
         condition: ${{ parameters.cdn }}
-        workingDirectory: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         # inputs:
         #   command: 'custom'
         #   customCommand: 'run cdn'
       # Write NPM authToken
       - script: echo '//registry.npmjs.org/:_authToken=test' > .npmrc
         displayName: Write npm authToken
-        workingDirectory: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
       # Publish to npm
       - task: Npm@1
         displayName: Publish to npm
         condition: ${{ not(eq(parameters.libName, 'msal-angular')) }}
         inputs:
-          workingDir: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           command: 'custom' # TODO: Change to publish
           customCommand: 'pack'
       # Deploy to npm (Angular only)
@@ -74,26 +74,26 @@ jobs:
         condition: ${{ eq(parameters.libName, 'msal-angular') }}
         inputs:
           command: 'custom'
-          workingDir: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'pack' # TODO: Change to run deploy
       # Remove .npmrc file
       - script: rm .npmrc
         displayName: Remove .npmrc file
-        workingDirectory: '${{ variables.repoName }}/${{ parameters.path }}/${{ parameters.libName }}'
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
       # Install Release Scripts dependencies
       - task: Npm@1
         displayName: Install release scripts dependencies
         inputs:
           command: 'install'
-          workingDir: '${{ variables.repoName }}/release-scripts/'
+          workingDir: 'release-scripts/'
       # Check npm for package availability
       - script: node checkPackageAvailability.js ${{ parameters.path}}/${{ parameters.libName }}
         displayName: Check npm for package availability
-        workingDirectory: '${{ variables.repoName }}/release-scripts/'
+        workingDirectory: 'release-scripts/'
       # Create GitHub releases, discussions and milestones
       # - script: echo 'Run node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}'
       #   displayName: Create GitHub releases, discussions and milestones
-      #   workingDirectory: '${{ variables.repoName }}/release-scripts/'
+      #   workingDirectory: 'release-scripts/'
       #   continueOnError: true
 
 
