@@ -39,6 +39,7 @@ import { TokenClaims } from "../../account/TokenClaims";
  *      clientInfo: Full base64 encoded client info received from ESTS
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
+ *      idToken: raw ID token
  *      idTokenClaims: Object containing claims parsed from ID token
  *      nativeAccountId: Account identifier on the native device
  * }
@@ -56,6 +57,7 @@ export class AccountEntity {
     lastModificationApp?: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
+    idToken: string;
     idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
 
@@ -110,6 +112,7 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
+            idToken: this.idToken,
             idTokenClaims: this.idTokenClaims,
             nativeAccountId: this.nativeAccountId
         };
@@ -164,6 +167,7 @@ export class AccountEntity {
         account.realm = idToken?.claims?.tid || Constants.EMPTY_STRING;
 
         if (idToken) {
+            account.idToken = idToken.rawToken;
             account.idTokenClaims = idToken.claims;
 
             // How do you account for MSA CID here?
@@ -215,6 +219,7 @@ export class AccountEntity {
             // upn claim for most ADFS scenarios
             account.username = idToken?.claims?.upn || Constants.EMPTY_STRING;
             account.name = idToken?.claims?.name || Constants.EMPTY_STRING;
+            account.idToken = idToken.rawToken;
             account.idTokenClaims = idToken?.claims;
         }
 
