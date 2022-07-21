@@ -172,6 +172,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
+        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -211,6 +212,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.sub);
+        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -250,6 +252,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
+        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -296,6 +299,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
+        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -342,6 +346,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.GENERIC_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
+        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -404,16 +409,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 100,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
+                    ...acc1.idTokenClaims,
+                    iat: 100,
                 }
             };
             const acc3: AccountInfo = {
@@ -423,15 +420,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
+                    ...acc1.idTokenClaims,
+                    iat: undefined,
                 }
             };
 
@@ -453,16 +443,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 1536361411,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "56789",
+                    ...acc1.idTokenClaims,
+                    nonce: "56789",
                 }
             };
             const acc3: AccountInfo = {
@@ -472,15 +454,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 1536361411,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad"
+                    ...acc1.idTokenClaims,
+                    nonce: undefined,
                 }
             };
 
@@ -594,6 +569,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
+        expect(acc.idToken).toBe(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -640,6 +616,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
+        expect(acc.idToken).toBe(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 });
