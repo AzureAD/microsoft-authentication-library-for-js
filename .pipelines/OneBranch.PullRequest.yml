@@ -79,7 +79,7 @@ extends:
             path: 'lib'
             libName: 'msal-core'
             cdn: true
-            publishFlagName: 'msalCore'
+            publishFlagName: 'MsalCore'
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -87,7 +87,7 @@ extends:
             path: 'lib'
             libName: 'msal-common'
             cdn: false
-            publishFlagName: 'msalCommon'
+            publishFlagName: 'MsalCommon'
     - stage: build_and_release_platform
       dependsOn: build_and_release_base
       displayName: 'Publish Platform Packages'
@@ -103,7 +103,7 @@ extends:
             libName: 'msal-browser'
             dependsOn: 'release_msal_common'
             cdn: true
-            publishFlagName: 'msalBrowser'
+            publishFlagName: 'MsalBrowser'
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -112,7 +112,7 @@ extends:
             libName: 'msal-node'
             dependsOn: 'release_msal_common'
             cdn: false
-            publishFlagName: 'msalNode'
+            publishFlagName: 'MsalNode'
     - stage: build_and_release_wrappers
       dependsOn: build_and_release_platform
       displayName: 'Publish Wrapper Packages'
@@ -129,7 +129,7 @@ extends:
             libName: 'msal-react'
             dependsOn: 'release_msal_browser'
             cdn: false
-            publishFlagName: 'msalReact'
+            publishFlagName: 'MsalReact'
       # Release MSAL Angular
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -138,11 +138,11 @@ extends:
             libName: 'msal-angular'
             dependsOn: 'release_msal_browser'
             cdn: false
-            publishFlagName: 'msalAngular'
+            publishFlagName: 'MsalAngular'
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'release_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
             cdn: false
-            publishFlagName: 'msalNodeExtensions'
+            publishFlagName: 'MsalNodeExtensions'
