@@ -49,7 +49,7 @@ public class Extension
                                     "version: 1.0" + //do not know how to get the actual version number because it requires chrome.runtime
                                 "}" +
                             "};" +
-                            "var port = event.ports [0];" +
+                            "var port = event.ports [0];" + // the code holds on to this message port object. port.postMessage(). as long as you still have access to this port, you should send it back from WAM to MSAL
                             "port.onmessage = (event) => {" +
                                 //"console.log(event);" +
                                 "var request = event.data;" +
@@ -135,7 +135,10 @@ public class Extension
         String flag = "\"Executing BrowserCore";
         if(args.WebMessageAsJson.Contains(flag)) {
             ProcessStartInfo info = new ProcessStartInfo(@"C:\\Windows\\BrowserCore\\BrowserCore.exe");
-            //info.Arguments = @"";
+            //info.Arguments = @""; // try to pass the json in through this
+            // nmf viewer should show what it's receiving in the window
+            // we might not want to open the executable
+            // windows sends messages to browsercore through com port
 
             //isolate the request and turn it into a Json
             String request = args.WebMessageAsJson.Substring(flag.Length, args.WebMessageAsJson.Length - flag.Length - 1);
