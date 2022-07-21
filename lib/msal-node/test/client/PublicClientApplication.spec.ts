@@ -23,6 +23,7 @@ import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
 import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
+import { NodeAuthError } from '../../src/error/NodeAuthError';
 
 
 describe('PublicClientApplication', () => {
@@ -412,4 +413,24 @@ describe('PublicClientApplication', () => {
 
         authApp.getLogger().info("Message");
     });
+    
+    test("validateState if state is not provided", ()=>{
+        const authApp = new PublicClientApplication(appConfig);
+        expect(authApp.validateState("", "ed09b151-1b68-4c2c-8e95-d8dce9882dba"))
+        .toThrow(NodeAuthError.createStateNotFoundError())
+    })
+
+    test("validateState if state and cachedState don't match", ()=>{
+        const authApp = new PublicClientApplication(appConfig);
+        expect(
+            authApp.validateState(
+                "ed09b151-1b68-4c2c-8e95-d8dce9882dba",
+                "ed09b151-1b68-4c2c-8e95-d8rrraffff24"
+            )
+        ).toThrow(msalCommon.ClientAuthError.createStateMismatchError());
+    })
 });
+
+
+
+
