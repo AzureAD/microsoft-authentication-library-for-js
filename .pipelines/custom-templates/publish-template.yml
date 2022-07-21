@@ -27,6 +27,7 @@ jobs:
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
     condition: eq(variables.publish${{parameters.publishFlagName}}, true)
     steps:
+      - script: "ls -la"
       - task: NodeTool@0
         displayName: Install Node
         inputs:
