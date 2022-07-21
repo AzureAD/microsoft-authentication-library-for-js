@@ -127,7 +127,7 @@ extends:
             jobName: 'release_msal_react'
             path: 'lib'
             libName: 'msal-react'
-            dependsOn: 'release_msal_browser'
+            dependsOn: 'build_and_release_platform.release_msal_browser'
             cdn: false
             publishFlagName: 'MsalReact'
       # Release MSAL Angular
@@ -136,7 +136,7 @@ extends:
             jobName: 'release_msal_angular'
             path: 'lib'
             libName: 'msal-angular'
-            dependsOn: 'release_msal_browser'
+            dependsOn: 'rbuild_and_release_platform.elease_msal_browser'
             cdn: false
             publishFlagName: 'MsalAngular'
         - template: .pipelines/custom-templates/publish-template.yml@self
