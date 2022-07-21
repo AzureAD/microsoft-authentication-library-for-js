@@ -399,3 +399,18 @@ export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
 }
+
+export enum SilentTokenRetrievalStrategy {
+    // Look in cache, then use existing RT, then renew RT (existing default behavior)
+    CacheAndNetwork = 0, // 0 is falsy, is equivalent to not passing in a SilentTokenRetrievalStrategy
+    // Only look in cache, and dont go to network
+    CacheOnly = 1,
+    // Only look in cache, use existing RT
+    CacheWithExistingRefreshTokenOnly = 2,
+    // Only go to network, use existing RT but don't renew it
+    NetworkWithExistingRefreshTokenOnly = 3,
+    // Only go to network, use existing RT and renew it (existing forceRefresh flag equals true)
+    NetworkWithRefreshToken = 4,
+    // Only go to network, don't use existing RT, get a new one
+    NetworkOnly = 5,
+}
