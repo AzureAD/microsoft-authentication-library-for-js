@@ -109,6 +109,7 @@ jobs:
       with:
         name: npm_logs_${{ matrix.library }}
         path: ~/.npm/_logs/**/*
+        retention-days: 2
 
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
@@ -153,6 +154,7 @@ jobs:
       with:
         name: npm_logs_msal-node-extensions
         path: ~/npm/cache/_logs/**/*
+        retention-days: 2
 
     - name: Build packages
       working-directory: extensions/msal-node-extensions
