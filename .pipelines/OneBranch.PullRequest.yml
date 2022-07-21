@@ -65,27 +65,21 @@ extends:
             inputs:
               scriptPath: ".pipelines/scripts/prepublish.sh"
             name: filter
-
-    - stage: build_and_release
+    - stage: build_and_release_base
       dependsOn: pre_release
-      displayName: 'Publish'
+      displayName: 'Publish Independent Packages'
       variables:
         publishMsalCommon: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCommon'] ]
-        publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
-        publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
-        publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
-        publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
         publishMsalCore: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
-        publishNodeTokenValidation: $[ stageDependencies.pre_release.filter.outputs['filter.publishNodeTokenValidation`'] ]
       jobs:
       # Release MSAL Core
         - template: .pipelines/custom-templates/publish-template.yml@self
-          condition: and(succeeded(), eq(variables.publishMsalCore, 'true'))
           parameters:
             jobName: 'release_msal_core'
             path: 'lib'
             libName: 'msal-core'
             cdn: true
+            publishFlagName: 'msalCore'
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -93,6 +87,13 @@ extends:
             path: 'lib'
             libName: 'msal-common'
             cdn: false
+            publishFlagName: 'msalCommon'
+    - stage: build_and_release_platform
+      dependsOn: build_and_release_base
+      displayName: 'Publish Platform Packages'
+      variables:
+        publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
+        publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -101,6 +102,7 @@ extends:
             libName: 'msal-browser'
             dependsOn: 'release_msal_common'
             cdn: true
+            publishFlagName: 'msalBrowser'
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -109,6 +111,14 @@ extends:
             libName: 'msal-node'
             dependsOn: 'release_msal_common'
             cdn: false
+            publishFlagName: 'msalNode'
+    - stage: build_and_release_wrappers
+      dependsOn: build_and_release_platform
+      displayName: 'Publish Wrapper Packages'
+      variables:
+        publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
+        publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
+        publishNodeTokenValidation: $[ stageDependencies.pre_release.filter.outputs['filter.publishNodeTokenValidation`'] ]
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -117,6 +127,7 @@ extends:
             libName: 'msal-react'
             dependsOn: 'release_msal_browser'
             cdn: false
+            publishFlagName: 'msalReact'
       # Release MSAL Angular
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -125,9 +136,11 @@ extends:
             libName: 'msal-angular'
             dependsOn: 'release_msal_browser'
             cdn: false
+            publishFlagName: 'msalAngular'
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'release_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
             cdn: false
+            publishFlagName: 'msalNodeExtensions'
