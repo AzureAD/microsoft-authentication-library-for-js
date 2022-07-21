@@ -185,8 +185,8 @@ export const BrowserAuthErrorMessage = {
         code: "native_prompt_not_supported",
         desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
     },
-    accessCodeNotInCache: {
-        code: "access_code_not_in_cache",
+    accessTokenNotInCache: {
+        code: "access_token_not_in_cache",
         desc: "The Silent Token Retrieval Strategy was set to 'CacheOnly'. However, the token is not in the cache."
     },
     invalidSilentTokenRetrieval: {
@@ -544,7 +544,7 @@ export class BrowserAuthError extends AuthError {
      * Create an error thrown when the silent token retrieval strategy is set to "CacheOnly" and the token is not in the cache.
      */
     static createAccessTokenNotInCacheError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.accessCodeNotInCache.code, BrowserAuthErrorMessage.accessCodeNotInCache.desc);
+        return new BrowserAuthError(BrowserAuthErrorMessage.accessTokenNotInCache.code, BrowserAuthErrorMessage.accessTokenNotInCache.desc);
     }
 
     /**

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest, StringDict } from "@azure/msal-common";
+import { AccountInfo, CommonSilentFlowRequest, StringDict, SilentTokenRetrievalStrategy } from "@azure/msal-common";
 
 /**
  * SilentRequest: Request object passed by user to retrieve tokens from the
@@ -26,5 +26,5 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority"|"correlati
     account?: AccountInfo;
     correlationId?: string;
     forceRefresh?: boolean;
-    silentTokenRetrievalStrategy?: String;
+    silentTokenRetrievalStrategy?: SilentTokenRetrievalStrategy;
 };
