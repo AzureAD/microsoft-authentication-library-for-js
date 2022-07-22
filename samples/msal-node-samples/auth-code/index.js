@@ -119,7 +119,6 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         /**
          * MSAL Node provides the ClientApplication.validateSate API, which validates the state string received when 
          * authorization code is returned.
-         *
          */
         clientApplication.validateState(req.query.state, req.session.state);
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state:req.query.state };

@@ -285,6 +285,11 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Validates OIDC state by comparing the user cached state with the state received from the server.
+     * 
+     * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
+     * CSRF attacks.
+     * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
      * @param state
      * @param cachedState
      */

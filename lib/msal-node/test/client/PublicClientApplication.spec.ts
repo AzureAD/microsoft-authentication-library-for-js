@@ -432,12 +432,3 @@ describe('PublicClientApplication', () => {
         );
     })
 });
-
-
-
-
-
-
-
-
-

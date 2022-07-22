@@ -13,7 +13,6 @@ export const NodeAuthErrorMessage = {
         code: "state_not_found",
         desc: "State not found. Please verify that the request originated from msal."
     },
-   
     unableToParseStateError: {
         code: "unable_to_parse_state",
         desc: "Unable to parse state. Please verify that the request originated from msal."
