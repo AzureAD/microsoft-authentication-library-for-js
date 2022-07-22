@@ -102,6 +102,8 @@ extends:
         publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
       jobs:
         - job: Var test
+          pool:
+            type: linux
           steps:
             - script: "echo $(publishMsalBrowser)"
         # Release MSAL Browser
