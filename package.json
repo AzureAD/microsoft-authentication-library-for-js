@@ -64,7 +64,13 @@
     "beachball:release": "node ./.github/create-releases.js"
   },
   "workspaces": [
-    "lib/**",
+    "lib/msal-core",
+    "lib/msal-common",
+    "lib/msal-browser",
+    "lib/msal-node",
+    "lib/msal-angular",
+    "lib/msal-react",
+    "lib/node-token-validation",
     "extensions/msal-node-extensions"
   ]
 }
