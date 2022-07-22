@@ -288,7 +288,7 @@ export abstract class ClientApplication {
      * @param state
      * @param cachedState
      */
-    validateState(state:string, cachedState:string): void {
+    validateState(state: string, cachedState: string): void {
         if(!state) {
             throw NodeAuthError.createStateNotFoundError();
         }
