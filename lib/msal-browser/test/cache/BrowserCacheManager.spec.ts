@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, ClientAuthError, AuthError } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -271,7 +271,7 @@ describe("BrowserCacheManager tests", () => {
                 );
 
                 it("getIdTokenCredential returns IdTokenEntity", () => {
-                    const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, "client-id", "tenantId", "oboAssertion");
+                    const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, "client-id", "tenantId");
 
                     browserLocalStorage.setIdTokenCredential(testIdToken);
                     browserSessionStorage.setIdTokenCredential(testIdToken);
@@ -516,6 +516,7 @@ describe("BrowserCacheManager tests", () => {
                 testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
                 testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
                 testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
+                testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
                 testObj.aliasesFromNetwork = false;
                 testObj.endpointsFromNetwork = false;
 
@@ -828,6 +829,12 @@ describe("BrowserCacheManager tests", () => {
             browserSessionStorage.clearItemCookie(msalCacheKey);
             browserLocalStorage.setItemCookie(msalCacheKey, cacheVal);
             expect(document.cookie).toBe(`${msalCacheKey}=${cacheVal}`);
+        });
+
+        it("sets samesite", () => {
+            const cookieSpy = jest.spyOn(document, "cookie", "set");
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(cookieSpy.mock.calls[0][0]).toContain("SameSite=Lax");
         });
 
         it("getItemCookie()", () => {
@@ -1306,8 +1313,8 @@ describe("BrowserCacheManager tests", () => {
                 try {
                     browserStorage.getAccountInfoByHints(accountEntity3.username);
                 } catch (e) {
-                    expect(e.errorCode).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
-                    expect(e.errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+                    expect((e as AuthError).errorCode).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
+                    expect((e as AuthError).errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
                     done();
                 }
             });
@@ -1341,8 +1348,8 @@ describe("BrowserCacheManager tests", () => {
                 try {
                     browserStorage.getAccountInfoByHints(undefined, accountEntity3.idTokenClaims!.sid);
                 } catch (e) {
-                    expect(e.errorCode).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
-                    expect(e.errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+                    expect((e as AuthError).errorCode).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
+                    expect((e as AuthError).errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
                     done();
                 }
             });

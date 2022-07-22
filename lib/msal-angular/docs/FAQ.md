@@ -14,6 +14,7 @@
 1. [What is the difference between `@azure/msal-angular` v2 and v1?](#what-is-the-difference-between-azuremsal-angular-v2-and-v1)
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
 1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-pathhash-location-strategy)
+1. [How do I make sure all events are available when using path location strategy?](#how-do-i-make-sure-all-events-are-available-when-using-path-location-strategy)
 
 **[Authentication](#authentication)**
 
@@ -77,6 +78,12 @@ Please note that the `MsalInterceptor` is optional. You may wish to explicitly a
 `@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, which can be configured in the `app-routing.module.ts` of your app. See our [samples list](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples) for the routing strategy demonstrated by each sample. See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
 
 See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional considerations for each strategy if you are wanting to log users in on page load.
+
+### How do I make sure all events are available when using path location strategy?
+
+There are certain situations where events emitted before a redirect are not able to be subscribed to after the redirect to a new page when using the path location strategy. An example is where an error thrown is caught by the `MsalGuard`, but the error event is not available to be subscribed to once the `MsalGuard` redirects to a `login-failed` route.
+
+The `MsalBroadcastService` has optional configurations which allow the replay of past events. This can be set to replay a number of past events, such as the events before a redirect, when subscribed to on a new page load. See our [Events documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#optional-msalbroadcastservice-configurations) for configuration details.
 
 ## Authentication
 

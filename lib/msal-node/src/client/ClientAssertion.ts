@@ -130,13 +130,13 @@ export class ClientAssertion {
          * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
          * The "g" at the end of the regex means search the string globally, and the "s" enables the "." to match newlines.
          */
-        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gs;
+        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\r*\n(.+?)\r*\n-----END CERTIFICATE-----/gs;
         const certs: string[] = [];
 
         let matches;
         while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
             // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1].replace(/\n/, Constants.EMPTY_STRING));
+            certs.push(matches[1].replace(/\r*\n/g, Constants.EMPTY_STRING));
         }
 
         return certs;

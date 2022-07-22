@@ -94,6 +94,22 @@ export enum PerformanceEvents {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+
+    /**
+     * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
+     */
+    BrokerHandhshake = "brokerHandshake",
+
+    /**
+     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
+     */
+    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+
+    /**
+     * acquireToken API in BrokerClientApplication.
+     * Used to acquire a token on behalf of the embedded application (PW-Broker).
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker"
 }
 
 /**
@@ -203,6 +219,20 @@ export type PerformanceEvent = {
     success?: boolean | null,
 
     /**
+     * Add specific error code in case of failure
+     *
+     * @type {string}
+     */
+    errorCode?: string,
+
+    /**
+     * Add specific sub error code in case of failure
+     *
+     * @type {string}
+     */
+    subErrorCode?: string,
+
+    /**
      * Name of the library used for the operation.
      *
      * @type {string}
@@ -215,6 +245,22 @@ export type PerformanceEvent = {
      * @type {string}
      */
     libraryVersion: string,
+
+    /**
+     * Size of the id token
+     *
+     * @type {number}
+     */
+    idTokenSize?: number,
+
+    /**
+     * 
+     * Size of the access token
+     *
+     * @type {number}
+     */
+
+    accessTokenSize?: number,
 
     /**
      * Application name as specified by the app.

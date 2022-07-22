@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update extensions package-lock to fix audit #4786",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

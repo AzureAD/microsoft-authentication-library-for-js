@@ -1,5 +1,8 @@
 <a name="4.0.0"></a>
 
+# 4.3.3.
+- Replace `request` with native `https` module to resolve security vulnerability: #4805
+
 # 4.3.2
 - Update `async` to resolve dependency alert: #4724
 - Update `cache-manager` to resolve dependency alert: #4781

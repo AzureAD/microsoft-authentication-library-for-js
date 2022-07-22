@@ -21,14 +21,14 @@ export type NativeTokenRequest = {
     nonce?: string;
     claims?: string;
     state?: string;
-    req_cnf?: string;
-    token_type?: string;
+    reqCnf?: string;
+    keyId?: string;
+    tokenType?: string;
     shrClaims?: string;
     shrNonce?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     extendedExpiryToken?: boolean;
-    instance_aware?: boolean;
     extraParameters?: StringDict;
 };
 

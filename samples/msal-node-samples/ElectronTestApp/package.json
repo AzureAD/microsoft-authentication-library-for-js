@@ -8,7 +8,9 @@
     "build": "tsc",
     "start": "npm run build && electron dist/app.js",
     "build:package": "npm run build:all --workspaces",
-    "start:build": "npm run build:package && npm start"
+    "start:build": "npm run build:package && npm start",
+    "test": "playwright test",
+    "postinstall": "npx playwright install --with-deps chromium"
   },
   "keywords": [
     "msal-node",
@@ -18,8 +20,10 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.21.1",
     "babel": "^6.23.0",
     "electron": "^18.0.1",
+    "playwright": "^1.21.1",
     "typescript": "^4.1.2"
   },
   "dependencies": {

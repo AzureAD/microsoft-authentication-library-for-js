@@ -61,7 +61,7 @@ async function fetchPopToken() {
     if (currentAcc) {
         popToken = getTokenPopup(popTokenRequest, currentAcc).then(response => {
             if (response.accessToken) {
-                showPopTokenAcquired();
+                showPopTokenAcquired(response.accessToken);
                 return response.accessToken;
             }
         }).catch(error => {
@@ -82,18 +82,6 @@ async function seeProfile() {
     }
 }
 
-async function readMail() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
-    if (currentAcc) {
-        const response = await getTokenPopup(tokenRequest, currentAcc).catch(error => {
-            console.log(error);
-        });
-        popToken = response.accessToken;
-        callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);
-        mailButton.style.display = "none";
-    }
-}
-
 async function seeProfileRedirect() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
@@ -103,17 +91,5 @@ async function seeProfileRedirect() {
         popToken = response.accessToken;
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
         profileButton.style.display = "none";
-    }
-}
-
-async function readMailRedirect() {
-    const currentAcc = myMSALObj.getAccountByUsername(username);
-    if (currentAcc) {
-        const response = await getTokenRedirect(tokenRequest, currentAcc).catch(error => {
-            console.log(error);
-        });
-        popToken = response.accessToken;
-        callMSGraph(graphConfig.graphMailEndpoint, response.accessToken, updateUI);
-        mailButton.style.display = "none";
     }
 }

@@ -22,6 +22,9 @@ concurrency:
   group: node-e2e-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   run-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
@@ -34,19 +37,20 @@ jobs:
           - 'auth-code'
           - 'device-code'
           - 'silent-flow'
+          - 'b2c-user-flows'
 
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node }}
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |
@@ -65,7 +69,7 @@ jobs:
       run: npm run build:package
 
     - name: Restore node_modules for test tools
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: test-tools-cache
       with:
         path: samples/node_modules
@@ -77,7 +81,7 @@ jobs:
       run: npm ci
 
     - name: Restore node_modules for sample
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: sample-cache
       with:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
@@ -100,7 +104,92 @@ jobs:
       run: npm test
 
     - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: e2e-test-screenshots
+        path: samples/**/screenshots
+
+  run-electron-e2e:
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+        sample:
+          - 'ElectronTestApp'
+
+    name: ${{ matrix.sample }} - ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+
+    - name: Restore node_modules for libs
+      uses: actions/cache@v3
+      id: lib-cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+
+    - name: Clean Install
+      if: steps.lib-cache.outputs.cache-hit != 'true'
+      run: npm ci
+
+    - name: Build Package
+      working-directory: samples/msal-node-samples
+      run: npm run build:package
+
+    - name: Restore node_modules for test tools
+      uses: actions/cache@v3
+      id: test-tools-cache
+      with:
+        path: samples/node_modules
+        key: ${{ runner.os }}-node-test-tools-${{ hashFiles('samples/package-lock.json') }}
+
+    - name: Install Test Tools
+      if: steps.test-tools-cache.outputs.cache-hit != 'true'
+      working-directory: samples
+      run: npm ci
+
+    - name: Restore node_modules for sample
+      uses: actions/cache@v3
+      id: sample-cache
+      with:
+        path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
+        key: ${{ runner.os }}-electron-e2e-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
+
+    - name: Install Sample
+      if: steps.sample-cache.outputs.cache-hit != 'true'
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: |
+        npm run install:local
+        npm install
+      env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+    - name: Build Sample
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: |
+        npm run build
+
+    - name: E2E Tests
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      timeout-minutes: 10
+      env:
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        DEBUG: pw:browser
+      run: npm test
+
+    - name: Upload E2E Test Screenshots
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: e2e-test-screenshots

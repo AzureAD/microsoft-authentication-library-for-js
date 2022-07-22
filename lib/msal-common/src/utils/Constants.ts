@@ -47,7 +47,8 @@ export const Constants = {
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
     KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
     TOKEN_RESPONSE_TYPE: "token",
-    ID_TOKEN_RESPONSE_TYPE: "id_token"
+    ID_TOKEN_RESPONSE_TYPE: "id_token",
+    SHR_NONCE_VALIDITY: 240,
 };
 
 export const OIDC_DEFAULT_SCOPES = [
@@ -81,7 +82,8 @@ export enum PersistentCacheKeys {
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
     ERROR_DESC = "error.description",
-    ACTIVE_ACCOUNT = "active-account"
+    ACTIVE_ACCOUNT = "active-account", // Legacy active-account cache key, use new key instead
+    ACTIVE_ACCOUNT_FILTERS = "active-account-filters" // new cache entry for active_account for a more robust version for browser
 }
 
 /**
@@ -305,7 +307,8 @@ export const AUTHORITY_METADATA_CONSTANTS = {
 export enum AuthorityMetadataSource {
     CONFIG = "config",
     CACHE = "cache",
-    NETWORK = "network"
+    NETWORK = "network",
+    HARDCODED_VALUES= "hardcoded_values",
 }
 
 export const SERVER_TELEM_CONSTANTS = {
@@ -392,4 +395,9 @@ export enum CacheOutcome {
     NO_CACHED_ACCESS_TOKEN = "2",
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
     REFRESH_CACHED_ACCESS_TOKEN = "4"
+}
+
+export enum JsonTypes {
+    Jwt = "JWT",
+    Jwk = "JWK"
 }

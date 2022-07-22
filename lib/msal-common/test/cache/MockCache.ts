@@ -40,8 +40,20 @@ export class MockCache {
             "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         };
         const account = CacheManager.toObject(new AccountEntity(), accountData);
-
         this.cacheManager.setAccount(account);
+
+        const accountDataWithNativeAccountId = {
+            "username": "John Doe",
+            "localAccountId": "object1234",
+            "realm": "microsoft",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            "nativeAccountId": "mocked_native_account_id"
+        };
+        const accountWithNativeAccountId = CacheManager.toObject(new AccountEntity(), accountDataWithNativeAccountId);
+        this.cacheManager.setAccount(accountWithNativeAccountId);
     }
 
     // create id token entries in the cache
@@ -108,7 +120,7 @@ export class MockCache {
             "requestedClaims": JSON.stringify({ claim: "claim" }),
             "requestedClaimsHash": TEST_CRYPTO_VALUES.TEST_SHA256_HASH
         };
-        
+
         const atThree = CacheManager.toObject(new AccessTokenEntity(), atThreeData);
         this.cacheManager.setAccessTokenCredential(atThree);
 
@@ -147,6 +159,24 @@ export class MockCache {
         };
         const sshAtWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), sshAtWithAuthSchemeData);
         this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
+
+        // userAssertionHash
+        const atWithUserAssertionHashData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken",
+            "secret": "an SSH Cert",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "ssh-cert",
+            "userAssertionHash": "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE"
+        };
+        const atWithUserAssertionHash = CacheManager.toObject(new AccessTokenEntity(), atWithUserAssertionHashData);
+        this.cacheManager.setAccessTokenCredential(atWithUserAssertionHash);
     }
 
     // create refresh token entries in the cache

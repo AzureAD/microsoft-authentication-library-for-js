@@ -1,8 +1,51 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
+This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.12.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- App Token Provider extensibiliy for AzureSDK (bogavril@microsoft.com)
+- add forceCache property to rt token request (#4844) (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v7.2.0
+
+## 1.11.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Bump @azure/msal-common to v7.1.0
+
+## 1.10.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Minor changes
+
+- Fix ClientAssertion configuration typing between common and node #4846 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v7.0.0
+
+### Patches
+
+- Add strict assertion checks for OBO clients (#4691) (bmahal@microsoft.com)
+
+## 1.9.1
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Patches
+
+- Use native http modules instead of axios for regular and proxied network requests #4744 (rginsburg@microsoft.com)
+- Updated the regex and added a test for detecting public cert for SNI #4790 (email not defined)
+- export AuthorizationCodePayload type from msal-common #4803 (git@hens.by)
+- Bump @azure/msal-common to v6.4.0
 
 ## 1.9.0
 

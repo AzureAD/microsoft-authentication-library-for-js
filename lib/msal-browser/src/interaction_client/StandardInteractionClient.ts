@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
@@ -207,6 +207,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
+            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
@@ -223,8 +224,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
                 return result;
             })
-            .catch((error:Error) => {
+            .catch((error:AuthError) => {
                 getAuthorityMeasurement.endMeasurement({
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
                     success: false
                 });
 

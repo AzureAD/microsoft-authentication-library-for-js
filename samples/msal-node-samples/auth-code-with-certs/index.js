@@ -4,8 +4,6 @@
  */
 
 const fs = require('fs');
-const path = require('path');
-const https = require('https');
 const crypto = require('crypto');
 const express = require('express');
 
@@ -55,10 +53,13 @@ const cca = new msal.ConfidentialClientApplication(config);
 // Create Express app
 const app = express();
 
+app.use(express.urlencoded({ extended: false }));
+
 app.get('/', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: "https://localhost:3000/redirect",
+        redirectUri: "http://localhost:3000/redirect",
+        responseMode: 'form_post',
     };
 
     // get url to sign user in and consent to scopes needed for application
@@ -68,11 +69,11 @@ app.get('/', (req, res) => {
     }).catch((error) => console.log(JSON.stringify(error)));
 });
 
-app.get('/redirect', (req, res) => {
+app.post('/redirect', (req, res) => {
     const tokenRequest = {
-        code: req.query.code,
+        code: req.body.code,
         scopes: ["user.read"],
-        redirectUri: "https://localhost:3000/redirect",
+        redirectUri: "http://localhost:3000/redirect",
     };
 
     cca.acquireTokenByCode(tokenRequest).then((response) => {
@@ -86,15 +87,6 @@ app.get('/redirect', (req, res) => {
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-// (Optional) Initialize an HTTPS server with certificates
-const options = {
-    key: fs.readFileSync(path.join(__dirname + "/certs/example.key")),
-    cert: fs.readFileSync(path.join(__dirname + "/certs/example.crt")),
-    passphrase: "2255" // enter your certificate passphrase here 
-};
-
-const server = https.createServer(options, app);
-
-server.listen(SERVER_PORT, () => {
+app.listen(SERVER_PORT, () => {
     console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`)
 });

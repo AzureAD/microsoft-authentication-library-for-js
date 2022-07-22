@@ -27,4 +27,3 @@ export { NativeMessageHandler } from "./broker/nativeBroker/NativeMessageHandler
 // Utilities
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
 export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
-export { PopupUtils } from "./utils/PopupUtils";

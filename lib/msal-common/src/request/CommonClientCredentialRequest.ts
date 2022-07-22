@@ -5,6 +5,7 @@
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AzureRegion } from "../authority/AzureRegion";
+import { ClientAssertion } from "../account/ClientCredentials";
 
 /**
  * CommonClientCredentialRequest
@@ -17,4 +18,5 @@ import { AzureRegion } from "../authority/AzureRegion";
 export type CommonClientCredentialRequest = BaseAuthRequest & {
     skipCache?: boolean;
     azureRegion?: AzureRegion;
+    clientAssertion?: ClientAssertion;
 };

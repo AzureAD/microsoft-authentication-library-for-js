@@ -1,8 +1,63 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 02 May 2022 22:23:33 GMT and should not be manually modified.
+This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.2.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Add local cache support for JS-WAM bridge #4971 (sameera.gajjarapu@microsoft.com)
+- Added new token size field in perf telemetry data #4973 (bmahal@microsoft.com)
+- support caching rt flow response in migration scenarios (#4844) (v-derisen@microsoft.com)
+- App Token Provider extensibiliy for AzureSDK (bogavril@microsoft.com)
+
+### Patches
+
+- Fix bug with activeAccount when two accounts have same local account id #5004 (t-ssummers@microsoft.com)
+
+## 7.1.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905 (joarroyo@microsoft.com)
+
+### Patches
+
+- Add InteractionRequired error for native account unavailable #4951 (thomas.norling@microsoft.com)
+
+## 7.0.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Major changes
+
+- Add strict assertion checks for OBO  (#4691) (bmahal@microsoft.com)
+
+### Minor changes
+
+- Fix ClientAssertion configuration typing between common and node #4846 (hemoral@microsoft.com)
+- Add errorCode and subErrorCode to performance telemetry events (#4863) (sameera.gajjarapu@microsoft.com)
+
+## 6.4.0
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Minor changes
+
+- Add PoP support for Encrypted Access Tokens #4730 (hemoral@microsoft.com)
+- Add ability to set Client Assertion on a per-request basis #4806 (hemoral@microsoft.com)
+
+### Patches
+
+- Fix password encoding on UsernamePassword flow #4807 (hemoral@microsoft.com)
+- Add keyId to SHR header and make x5c_ca claim type string array #4729 (hemoral@microsoft.com)
 
 ## 6.3.0
 

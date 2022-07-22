@@ -2,6 +2,148 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-common_v7.2.0",
+      "version": "7.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "t-ssummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "aff6dd392ec3a07b6ef0375f625dbcb9617c2dbf",
+            "comment": "Fix bug with activeAccount when two accounts have same local account id #5004"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "1cf6266c2a5e52067744fe800772a7740670ca75",
+            "comment": "Add local cache support for JS-WAM bridge #4971"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0c23631c04e48d14115fd7f2c74e3367bec6ea6f",
+            "comment": "Added new token size field in perf telemetry data #4973"
+          },
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4517b16c9d66c7873e36da46a79722d824b44ede",
+            "comment": "support caching rt flow response in migration scenarios (#4844)"
+          },
+          {
+            "author": "bogavril@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d2ea64be16ead05c2673c0c84bea3267ebcc7118",
+            "comment": "App Token Provider extensibiliy for AzureSDK"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-common_v7.1.0",
+      "version": "7.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d501fbdded20ff9bdadfe02dc46e13a6e6ed4e56",
+            "comment": "Add InteractionRequired error for native account unavailable #4951"
+          }
+        ],
+        "minor": [
+          {
+            "author": "samuelkamau@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7db977dd3f2994bb69f150ddb0594794c098ac48",
+            "comment": "feat: adding authority metadata resiliency #4536"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "81ea264cdd4b6aab4158816509f4aa47c11fbae4",
+            "comment": "Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-common_v7.0.0",
+      "version": "7.0.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e2b46fb337966d2522435ef3e0b28d8e4ef39d6d",
+            "comment": "Fix ClientAssertion configuration typing between common and node #4846"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "17bf0dd14cc1b23bd43a531d73c878ccd09e66e9",
+            "comment": "Add errorCode and subErrorCode to performance telemetry events (#4863)"
+          }
+        ],
+        "major": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "49d6a3dde3e09a12ee01aeae52137e3c007649e8",
+            "comment": "Add strict assertion checks for OBO  (#4691)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Jun 2022 22:13:00 GMT",
+      "tag": "@azure/msal-common_v6.4.0",
+      "version": "6.4.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ed983e0712efaeaea8ed278ada97ade9d8c09da5",
+            "comment": "Fix password encoding on UsernamePassword flow #4807"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ce0df0236f729feefce4c85470046e74a7e94961",
+            "comment": "Add keyId to SHR header and make x5c_ca claim type string array #4729"
+          }
+        ],
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "90365303db30da0fb4817b3e075db137a1ee3e33",
+            "comment": "Add PoP support for Encrypted Access Tokens #4730"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7b418944d55e71f5b38e2e640a613aab57c9c188",
+            "comment": "Add ability to set Client Assertion on a per-request basis #4806"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 May 2022 22:23:33 GMT",
       "tag": "@azure/msal-common_v6.3.0",
       "version": "6.3.0",

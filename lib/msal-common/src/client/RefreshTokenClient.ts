@@ -9,7 +9,7 @@ import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest"
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, Errors } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -35,7 +35,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
+    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
@@ -56,7 +56,8 @@ export class RefreshTokenClient extends BaseClient {
             request,
             undefined,
             undefined,
-            true
+            true,
+            request.forceCache
         );
     }
 
@@ -89,7 +90,7 @@ export class RefreshTokenClient extends BaseClient {
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
                     return this.acquireTokenWithCachedRefreshToken(request, false);
-                // throw in all other cases
+                    // throw in all other cases
                 } else {
                     throw e;
                 }
@@ -155,7 +156,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Creates query string for the /token request
-     * @param request 
+     * @param request
      */
     private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
@@ -185,7 +186,7 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
         parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
@@ -207,10 +208,11 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
-            parameterBuilder.addPopToken(cnfString);
+            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
+            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
-            if(request.sshJwk) {
+            if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 throw ClientConfigurationError.createMissingSshJwkError();

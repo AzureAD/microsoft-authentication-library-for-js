@@ -125,7 +125,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
-        // Construct logout URI.
+        // Construct logout URI
         return UrlString.appendQueryString(this.authority.endSessionEndpoint, queryString);
     }
 
@@ -237,8 +237,9 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
-            parameterBuilder.addPopToken(cnfString);
+            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
+            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if(request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
@@ -411,11 +412,9 @@ export class AuthorizationCodeClient extends BaseClient {
             // pass the req_cnf for POP
             if (request.authenticationScheme === AuthenticationScheme.POP) {
                 const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-                const cnf = await popTokenGenerator.generateCnf(request);
-
                 // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-                const cnfHash = await popTokenGenerator.generateCnfHash(cnf);
-                parameterBuilder.addPopToken(cnfHash);
+                const reqCnfData = await popTokenGenerator.generateCnf(request);
+                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
             }
         }
 

@@ -1,6 +1,6 @@
 {
   "name": "passport-azure-ad",
-  "version": "4.3.2",
+  "version": "4.3.3",
   "license": "MIT",
   "keywords": [
     "azure active directory",
@@ -45,7 +45,6 @@
     "node-jose": "^2.0.0",
     "oauth": "0.9.15",
     "passport": "^0.4.1",
-    "request": "^2.72.0",
     "valid-url": "^1.0.6"
   },
   "scripts": {
