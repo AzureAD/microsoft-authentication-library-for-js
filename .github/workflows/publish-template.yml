@@ -38,10 +38,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
-      - name: Link dependencies
-        run: npm run link:localDeps --if-present
-
       - name: Publish to CDN
         if: inputs.cdn
         env:

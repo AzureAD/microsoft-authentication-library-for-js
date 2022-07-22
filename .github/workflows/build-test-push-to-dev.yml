@@ -39,20 +39,10 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
-
-    - name: Restore node_modules
-      uses: actions/cache@v3
-      id: cache
       with:
-        path: |
-          node_modules
-          lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+        cache: 'npm'
 
     - name: Clean Install
-      if: steps.cache.outputs.cache-hit != 'true'
-      env:
-        RUNNING_NODE_CI: 1
       run: npm ci
 
     - name: Build packages
@@ -80,10 +70,10 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with: 
+        cache: 'npm'
 
     - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
       run: npm ci
 
     - name: Build packages

@@ -66,7 +66,7 @@
     "@types/sinon": "^7.0.11",
     "@types/uuid": "^3.4.4",
     "ajv": "6.12.3",
-    "awesome-typescript-loader": "^3.2.3",
+    "awesome-typescript-loader": "^5.2.1",
     "babel-polyfill": "^6.26.0",
     "dotenv": "^8.2.0",
     "fork-ts-checker-webpack-plugin": "^5.2.1",

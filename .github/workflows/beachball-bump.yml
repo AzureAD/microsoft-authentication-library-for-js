@@ -22,8 +22,6 @@ jobs:
     if: github.event.pull_request.merged == true && !contains(github.head_ref, 'release')
     name: Bump versions and create changelogs
     runs-on: ubuntu-latest
-    env:
-      BEACHBALL: 1
 
     steps:
       # Check-out repo
@@ -36,7 +34,7 @@ jobs:
         uses: actions/setup-node@v3
 
       - name: Install beachball
-        run: npm ci
+        run: npm install beachball
 
       # Beachball bump
       - name: bump package versions

@@ -62,5 +62,9 @@
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
-  }
+  },
+  "workspaces": [
+    "lib/**",
+    "extensions/msal-node-extensions"
+  ]
 }

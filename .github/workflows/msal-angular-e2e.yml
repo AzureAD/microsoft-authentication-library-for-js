@@ -52,10 +52,10 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with:
+        cache: 'npm'
 
     - name: Clean Install
-      env:
-        RUNNING_NODE_CI: 1
       run: npm ci
 
     - name: Build packages

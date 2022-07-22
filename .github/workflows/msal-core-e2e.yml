@@ -33,20 +33,10 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
-
-    - name: Restore node_modules for libs
-      uses: actions/cache@v3
-      id: lib-cache
       with:
-        path: |
-          node_modules
-          lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+        cache: 'npm'
 
     - name: Clean Install
-      if: steps.lib-cache.outputs.cache-hit != 'true'
-      env:
-        RUNNING_NODE_CI: 1
       run: npm ci
 
     - name: Restore node_modules for sample

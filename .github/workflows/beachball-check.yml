@@ -22,8 +22,7 @@ jobs:
       pull-requests: read  # for dorny/paths-filter to read pull requests
     if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
-    env:
-      BEACHBALL: 1
+
     steps:
     - uses: dorny/paths-filter@v2
       id: filter
@@ -45,7 +44,7 @@ jobs:
 
     - name: Install beachball
       if: ${{ steps.filter.outputs.lib == 'true' }}
-      run: npm ci
+      run: npm install beachball
 
     - name: Run Beachball Check command
       if: ${{ steps.filter.outputs.lib == 'true' }}

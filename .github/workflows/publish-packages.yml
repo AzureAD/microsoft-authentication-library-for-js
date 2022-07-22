@@ -257,45 +257,7 @@ jobs:
         run: rm -rf artifacts
 
       # Update package-lock files
-      - name: Update msal-core package-lock
-        if: needs.publish-msal-core.result == 'success'
-        working-directory: lib/msal-core
-        continue-on-error: true
-        run: npm install
-
-      - name: Update msal-common package-lock
-        if: needs.publish-msal-common.result == 'success'
-        working-directory: lib/msal-common
-        continue-on-error: true
-        run: npm install
-
-      - name: Update msal-browser package-lock
-        if: needs.publish-msal-browser.result == 'success'
-        working-directory: lib/msal-browser
-        continue-on-error: true
-        run: npm install
-
-      - name: Update msal-node package-lock
-        if: needs.publish-msal-node.result == 'success'
-        working-directory: lib/msal-node
-        continue-on-error: true
-        run: npm install
-
-      - name: Update msal-angular package-lock
-        if: needs.publish-msal-angular.result == 'success'
-        working-directory: lib/msal-angular
-        continue-on-error: true
-        run: npm install
-
-      - name: Update msal-react package-lock
-        if: needs.publish-msal-react.result == 'success'
-        working-directory: lib/msal-react
-        continue-on-error: true
-        run: npm install
-
-      - name: Update msal-node-extensions package-lock
-        if: needs.publish-msal-node-extensions.result == 'success'
-        working-directory: extensions/msal-node-extensions
+      - name: Update package-lock
         continue-on-error: true
         run: npm install
 
