@@ -126,6 +126,7 @@ describe("RefreshTokenClient unit tests", () => {
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS
         };
 
@@ -385,6 +386,7 @@ describe("RefreshTokenClient unit tests", () => {
             username: ID_TOKEN_CLAIMS.preferred_username,
             name: ID_TOKEN_CLAIMS.name,
             localAccountId: ID_TOKEN_CLAIMS.oid,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS
         };
 
