@@ -55,14 +55,15 @@ jobs:
       with:
         path: |
           node_modules
-          lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+          lib/msal-common/node_modules
+          lib/msal-node/node_modules
+        key: ${{ runner.os }}-node-e2e-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
+      run: | 
+        npm ci --ignore-scripts
+        npx lerna --scope @azure/msal-node --scope @azure/msal-common bootstrap
 
     - name: Build Package
       working-directory: samples/msal-node-samples
