@@ -48,7 +48,7 @@
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
-    "build:all": "npm run build:all --workspaces",
+    "build:all": "npm run build --workspaces",
     "prepack": "npm run build:all"
   },
   "bugs": {

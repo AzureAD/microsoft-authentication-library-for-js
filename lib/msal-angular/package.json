@@ -16,7 +16,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:all": "npm run build:all --workspaces",
+    "build:all": "npm run build --workspaces",
     "build:pack": "npm run build && cd dist && npm pack",
     "deploy": "npm run build:all && npm publish ./dist",
     "test": "ng test",
