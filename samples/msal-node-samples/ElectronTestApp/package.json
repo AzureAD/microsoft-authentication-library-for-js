@@ -7,9 +7,8 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && electron dist/app.js",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "build:package": "npm run build:all --workspaces",
+    "start:build": "npm run build:package && npm start"
   },
   "keywords": [
     "msal-node",
@@ -26,5 +25,8 @@
   "dependencies": {
     "@azure/msal-node": "^1.8.0",
     "axios": "^0.21.0"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-node"
+  ]
 }

@@ -17,9 +17,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "build:package": "cd ../../../lib/msal-react & npm run build:all",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
+    "build:package": "npm run build:all --workspace=../../../lib/msal-react"
   },
   "eslintConfig": {
     "extends": [
@@ -37,5 +35,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-browser",
+    "../../../lib/msal-react"
+  ]
 }

@@ -7,9 +7,8 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "build:package": "npm run build:all --workspaces",
+    "start:build": "npm run build:package && npm start"
   },
   "author": "",
   "license": "MIT",
@@ -28,5 +27,8 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "uuid": "^8.3.1"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-node"
+  ]
 }

@@ -7,14 +7,16 @@
   "scripts": {
     "start": "node ./index.js",
     "test": "jest",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../node-token-validation && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/node-token-validation"
+    "build:package": "npm run build:all --workspaces",
+    "start:build": "npm run build:package && npm start"
   },
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/node-token-validation": "file:../../../lib/node-token-validation",
+    "@azure/node-token-validation": "^1.0.0-alpha.0",
     "express": "^4.17.1"
-  }
+  },
+  "workspaces": [
+    "../../../lib/node-token-validation"
+  ]
 }

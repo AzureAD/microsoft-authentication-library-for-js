@@ -36,7 +36,6 @@
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:all --workspaces && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node",
     "prepack": "npm run build:all"
   },
   "peerDependencies": {},

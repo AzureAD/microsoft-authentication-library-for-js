@@ -7,8 +7,7 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
-    "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
-    "install:local": "npm install ../../../lib/msal-node"
+    "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]"
   },
   "author": "Microsoft",
   "license": "MIT",
@@ -21,5 +20,8 @@
   },
   "devDependencies": {
     "jest": "^27.0.4"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-node"
+  ]
 }

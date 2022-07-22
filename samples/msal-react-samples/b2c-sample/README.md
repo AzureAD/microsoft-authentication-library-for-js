@@ -45,28 +45,6 @@ npm install
 cd samples/msal-react-samples/b2c-sample
 // Build packages locally
 npm run build:package
-// Install sample dependencies
-npm run install:local
-// Install rest of dependencies
-npm install
-```
-
-Note: If you suspect you are not using the local builds check that the `package.json` file shows the following dependencies:
-
-```
-"@azure/msal-react": "file:../../../lib/msal-react",
-"@azure/msal-browser": "file:../../../lib/msal-browser",
-"react": "file:../../../lib/msal-react/node_modules/react",
-"react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
-```
-
-##### Installing @azure/msal-react and @azure/msal-browser from released versions available on npm
-
-```bash
-// Change directory to sample directory
-cd samples/msal-react-samples/b2c-sample
-// Install packages from npm
-npm run install:published
 // Install rest of dependencies
 npm install
 ```

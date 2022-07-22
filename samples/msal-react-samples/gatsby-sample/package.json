@@ -5,14 +5,12 @@
   "version": "0.1.0",
   "scripts": {
     "build": "gatsby build",
-    "build:package": "cd ../../../lib/msal-react & npm run build:all",
+    "build:package": "npm run build:all --workspace=../../../lib/msal-react",
     "develop": "gatsby develop -p 3000",
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
     "test": "jest",
-    "clean": "gatsby clean",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^16 react-dom@^16"
+    "clean": "gatsby clean"
   },
   "dependencies": {
     "@azure/msal-browser": "^2.14.2",
@@ -26,5 +24,9 @@
   },
   "devDependencies": {
     "jest": "^27.0.4"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-browser",
+    "../../../lib/msal-react"
+  ]
 }

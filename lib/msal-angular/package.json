@@ -27,7 +27,6 @@
     "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e",
     "prepack": "npm run build:all",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-angular",
     "prepublishOnly": "echo Use npm run deploy && exit 1"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",

@@ -37,7 +37,6 @@
     "build:all": "npm run build:all --workspaces && npm run build",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-react",
     "prepack": "npm run build:all"
   },
   "peerDependencies": {

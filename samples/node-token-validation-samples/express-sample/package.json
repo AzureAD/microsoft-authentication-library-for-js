@@ -11,7 +11,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^1.6.0",
-    "@azure/node-token-validation": "file:../../../lib/node-token-validation",
+    "@azure/node-token-validation": "^1.0.0-alpha.0",
     "bootstrap": "^4.6.0",
     "ejs": "^3.1.6",
     "express": "^4.17.1",
@@ -22,5 +22,9 @@
     "nodemon": "^2.0.12",
     "supertest": "^6.1.4",
     "uuid": "^8.3.2"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-node",
+    "../../../lib/node-token-validation"
+  ]
 }

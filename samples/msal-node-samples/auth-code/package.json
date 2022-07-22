@@ -8,9 +8,8 @@
     "start": "node ./index.js",
     "test": "jest",
     "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "build:package": "npm run build:all --workspaces",
+    "start:build": "npm run build:package && npm start"
   },
   "author": "Microsoft",
   "license": "MIT",
@@ -21,5 +20,8 @@
   },
   "devDependencies": {
     "jest": "^27.0.4"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-node"
+  ]
 }

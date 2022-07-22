@@ -6,10 +6,8 @@
     "dev": "next dev",
     "test": "jest",
     "build": "next build",
-    "build:package": "cd ../../../lib/msal-react & npm run build:all",
-    "start": "next start",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"
+    "build:package": "npm run build:all --workspace=../../../lib/msal-react",
+    "start": "next start"
   },
   "dependencies": {
     "@azure/msal-browser": "^2.14.2",
@@ -22,5 +20,9 @@
   },
   "devDependencies": {
     "jest": "^27.0.4"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-browser",
+    "../../../lib/msal-react"
+  ]
 }

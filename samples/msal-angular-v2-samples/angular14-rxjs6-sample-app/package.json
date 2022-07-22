@@ -7,9 +7,7 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "jest",
-    "install:local": "npm install ../../../lib/msal-angular/dist ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-angular@latest @azure/msal-browser@latest"
+    "e2e": "jest"
   },
   "private": true,
   "dependencies": {
@@ -50,5 +48,9 @@
     "ts-node": "^10.7.0",
     "tslint": "^6.1.3",
     "typescript": "~4.6.2"
-  }
+  },
+  "workspaces": [
+    "../../../lib/msal-browser",
+    "../../../lib/msal-angular"
+  ]
 }
