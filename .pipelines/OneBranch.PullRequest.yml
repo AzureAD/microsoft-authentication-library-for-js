@@ -104,6 +104,9 @@ extends:
         - job: Var test
           pool:
             type: linux
+          variables:
+            ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}/out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+            ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
           steps:
             - script: "echo $(publishMsalBrowser)"
         # Release MSAL Browser
