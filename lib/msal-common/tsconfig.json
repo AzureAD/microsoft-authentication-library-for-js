@@ -1,5 +1,27 @@
 {
     "extends": "./tsconfig.base.json",
+    "ts-node": {
+        "transpileOnly": true,
+        "files": true,
+        "compilerOptions": {
+            "moduleResolution": "node",
+            "module": "commonjs",
+            "target": "es5",
+            "lib": ["es2015", "dom", "es2015.promise"],
+            "outDir": "./dist",
+            "esModuleInterop": true,
+            "resolveJsonModule": true,
+            "strict": true,
+            "strictNullChecks": true,
+            "strictFunctionTypes": true,
+            "strictPropertyInitialization": false,
+            "noImplicitThis": true,
+            "noUnusedLocals": true,
+            "noUnusedParameters": false,
+            "noImplicitAny": false,
+            "noFallthroughCasesInSwitch": true
+        }
+    },
     "compilerOptions": {
         "moduleResolution": "node",
         "module": "es6",
@@ -25,7 +47,7 @@
         "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true
     },
-    "include": ["src", "test"],
+    "include": ["src", "test", "scripts"],
     "exclude": [
         "node_modules"
     ],

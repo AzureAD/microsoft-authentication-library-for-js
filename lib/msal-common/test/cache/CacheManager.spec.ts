@@ -225,6 +225,17 @@ describe("CacheManager.ts test cases", () => {
             accounts = mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
             expect(Object.keys(accounts).length).toEqual(0);
         });
+
+        it("nativeAccountId filter", () => {
+            // filter by nativeAccountId
+            const successFilter: AccountFilter = { nativeAccountId: "mocked_native_account_id" };
+            let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
+            expect(Object.keys(accounts).length).toEqual(1);
+
+            const wrongFilter: AccountFilter = { realm: "notNativeAccountId" };
+            accounts = mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
+            expect(Object.keys(accounts).length).toEqual(0);
+        });
     });
 
     describe("getCredentials", () => {
@@ -843,6 +854,22 @@ describe("CacheManager.ts test cases", () => {
 
         expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).toEqual(mockedSshAtEntity);
         expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+    });
+
+    it("readAccountFromCache", () => {
+        const account = mockCache.cacheManager.readAccountFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO) as AccountEntity;
+        if (!account) {
+            throw TestError.createTestSetupError("account does not have a value");
+        }
+        expect(account.homeAccountId).toBe(CACHE_MOCKS.MOCK_ACCOUNT_INFO.homeAccountId);
+    });
+
+    it("readAccountFromCacheWithNativeAccountId", () => {
+        const account = mockCache.cacheManager.readAccountFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID) as AccountEntity;
+        if (!account) {
+            throw TestError.createTestSetupError("account does not have a value");
+        }
+        expect(account.nativeAccountId).toBe(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID.nativeAccountId);
     });
 
     it("readIdTokenFromCache", () => {

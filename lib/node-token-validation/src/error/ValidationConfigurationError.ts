@@ -50,30 +50,67 @@ export class ValidationConfigurationError extends ClientConfigurationError {
         Object.setPrototypeOf(this, ValidationConfigurationError.prototype);
     }
 
+    /**
+     * Creates an error thrown when the token is missing.
+     *
+     * @param {string} appendError Additional details for the missing token error
+     * @returns {ValidationConfigurationError} Missing token error
+     */
     static createMissingTokenError(appendError?: string): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, `${ValidationConfigurationErrorMessage.missingToken.desc} Detail: ${appendError}`);
     }
 
+    /**
+     * Creates an error thrown when the issuer is empty.
+     *
+     * @returns {ValidationConfigurationError} Empty issuer error
+     */
     static createEmptyIssuerError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyIssuer.code, ValidationConfigurationErrorMessage.emptyIssuer.desc);
     }
 
+    /**
+     * Creates an error thrown when the audience is empty.
+     *
+     * @returns {ValidationConfigurationError} Empty audience error
+     */
     static createEmptyAudienceError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyAudience.code, ValidationConfigurationErrorMessage.emptyAudience.desc);
     }
 
+    /**
+     * Creates an error thrown when the nonce is empty.
+     *
+     * @returns {ValidationConfigurationError} Empty nonce error
+     */
     static createMissingNonceError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingNonce.code, ValidationConfigurationErrorMessage.missingNonce.desc);
     }
 
+    /**
+     * Creates an error thrown when the metadata returned is not valid and does not contain the fields required by the library.
+     *
+     * @returns {ValidationConfigurationError} Invalid metadata error
+     */
     static createInvalidMetadataError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidMetadata.code, ValidationConfigurationErrorMessage.invalidMetadata.desc);
     }
 
+    /**
+     * Creates an error thrown when the authentication scheme detected is not valid. The library only supports bearer auth at the moment.
+     *
+     * @param {string} appendError Additional details for the error.
+     * @returns {ValidationConfigurationError} Invalid authentication scheme error
+     */
     static createInvalidAuthenticationScheme(appendError?: string): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code, `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`);
     }
 
+    /**
+     * Creates an error thrown when the clock skew set is not a positive integer.
+     *
+     * @returns {ValidationConfigurationError} Negative clock skew error
+     */
     static createNegativeClockSkewError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.negativeClockSkew.code, ValidationConfigurationErrorMessage.negativeClockSkew.desc);
     }

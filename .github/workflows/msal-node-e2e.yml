@@ -37,6 +37,7 @@ jobs:
           - 'auth-code'
           - 'device-code'
           - 'silent-flow'
+          - 'b2c-user-flows'
 
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 

@@ -11,6 +11,7 @@ import fs from "fs";
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 export const SAMPLE_HOME_URL = "http://localhost";
 export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+export const SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID = "token-acquired-silently";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -143,7 +144,7 @@ export async function approveConsent(page: Page, screenshot: Screenshot): Promis
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await screenshot.takeScreenshot(page, 'consentApproved'); 
+    await screenshot.takeScreenshot(page, 'consentApproved');
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
@@ -205,6 +206,32 @@ export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: 
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
+}
+
+export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MSIDLAB4_AzureAD");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MSIDLAB4_AzureAD");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MicrosoftAccountExchange");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MicrosoftAccountExchange");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
 }
 
 export async function validateCacheLocation(cacheLocation: string): Promise<void> {
