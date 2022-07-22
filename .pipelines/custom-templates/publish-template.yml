@@ -25,9 +25,8 @@ jobs:
       repoName: 'msal-javascript-internal'
       ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
-    condition: eq(variables.publish${{parameters.publishFlagName}}, true)
+    condition: eq(variables.publish${{ parameters.publishFlagName }}, true)
     steps:
-      - script: "pwd"
       - task: NodeTool@0
         displayName: Install Node
         inputs:
