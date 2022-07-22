@@ -51,8 +51,7 @@ const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "Enter_the_Graph_Endpoint_Here",
-    graphMailEndpoint: "Enter_the_Graph_Endpoint_Here/messages"
+    graphMeEndpoint: "Enter_the_Graph_Endpoint_Here"
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.

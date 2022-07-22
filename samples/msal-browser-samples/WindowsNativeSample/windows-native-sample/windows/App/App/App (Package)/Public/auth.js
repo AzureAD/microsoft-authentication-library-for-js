@@ -26,17 +26,13 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 
 function handleResponse(resp) {
     console.log("Now handling response");
-    if(resp)
-    {
+    if(resp) {
         accountId = resp.account.homeAccountId;
         myMSALObj.setActiveAccount(resp.account);
         showWelcomeMessage(resp.account);
-    }
-    else
-    {
+    } else {
         const currentAccounts = myMSALObj.getAllAccounts();
-        if(!currentAccounts || currentAccounts.length < 1)
-        {
+        if(!currentAccounts || currentAccounts.length < 1) {
             return;
         }
         accountId = currentAccounts[0].homeAccountId;
@@ -46,47 +42,16 @@ function handleResponse(resp) {
 }
 
 async function signIn(method) {
-    loginMethod = isIE ? "redirect" : method;
-    if(loginMethod === "redirect")
-    {
-        return myMSALObj.loginRedirect(loginRequest);
-    }
-    else
-    {
-        return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
-            console.log(error);
-        });
-    }
+    return myMSALObj.loginRedirect(loginRequest);
 }
 
 async function signOut(method) {
-    const logoutRequest = 
-    {
+    const logoutRequest = {
         account: myMSALObj.getAccountByHomeId(accountId)
     };
-    if(method === "redirect")
-    {
-        return myMSALObj.logoutRedirect(logoutRequest);
-    }
-    else
-    {
-        return myMSALObj.logoutPopup(logoutRequest).then(() => window.location.reload);
-    }
+    return myMSALObj.logoutRedirect(logoutRequest);
 }
 
-async function getTokenPopup(request, account) {
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            console.log("acquiring token using popup");
-            return myMSALObj.acquireTokenPopup(request).catch(error => {
-                console.error(error);
-            });
-        } else {
-            console.error(error);
-        }
-    });
-}
 
 // This function can be removed if you do not need to support IE
 async function getTokenRedirect(request, account) {
