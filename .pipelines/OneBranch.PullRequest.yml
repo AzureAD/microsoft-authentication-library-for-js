@@ -101,7 +101,7 @@ extends:
         publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
         publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
       jobs:
-        - job: Var test
+        - job: var_test
           pool:
             type: linux
           variables:
