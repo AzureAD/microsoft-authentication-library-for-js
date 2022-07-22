@@ -34,9 +34,7 @@
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "cd ../../ && npm run lint:react",
     "lint:fix": "npm run lint -- -- --fix",
-    "build:all": "npm run build:all --workspaces && npm run build",
-    "build:browser": "cd ../msal-browser && npm run build",
-    "build:common": "cd ../msal-common && npm run build",
+    "build:all": "npm run build:all --workspaces",
     "prepack": "npm run build:all"
   },
   "peerDependencies": {
