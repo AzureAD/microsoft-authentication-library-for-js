@@ -63,11 +63,8 @@ export default class Main {
     }
 
     private static onWindowAllClosed(): void {
-        // Windows and Linux will quit the application when all windows are closed
-        if (process.platform !== "darwin") {
-            // macOS requires explicit quitting
-            Main.application.quit();
-        }
+        // Windows and Linux will quit the application when all windows are closed. In macOS requires explicit quitting
+        if (process.platform !== "darwin") Main.application.quit();
     }
 
     private static onClose(): void {
@@ -110,9 +107,8 @@ export default class Main {
     private static getDeepLinkUrl(argv: string[]): string {
         for (const arg of argv) {
             const value = arg;
-            if (value.indexOf(authConfig.customProtocol.name) !== -1) {
-                return value;
-            }
+            if (value.indexOf(authConfig.customProtocol.name) !== -1)  return value;
+            
         }
         return null;
     }
