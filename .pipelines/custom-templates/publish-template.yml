@@ -23,7 +23,7 @@ jobs:
       type: linux
     variables:
       repoName: 'msal-javascript-internal'
-      ob_outputDirectory: '$(REPOROOT)/${{ variables.repoName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+      ob_outputDirectory: '${{ parameters.path }}/${{ parameters.libName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
     condition: eq(variables.publish${{ parameters.publishFlagName }}, true)
     steps:
@@ -73,10 +73,7 @@ jobs:
         displayName: Write npm authToken
         workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
-          NPM_TOKEN: $(MSALJSNPMTOKEN)
-
-      - publish: '${{ parameters.path }}/${{ parameters.libName }}'
-        artifact: '${{ parameters.libName }}'
+          NPM_TOKEN: $(MSALJSNPMTOKEN}
 
       # Publish to npm
       - task: Npm@1
