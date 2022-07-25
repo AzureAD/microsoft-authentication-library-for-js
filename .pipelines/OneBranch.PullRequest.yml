@@ -53,6 +53,16 @@ extends:
     - stage: pre_release
       displayName: Pre-Publish
       jobs:
+        - job: connect_key_vault
+          pool:
+            type: linux
+          steps:
+            - task: AzureKeyVault@2
+              inputs:
+                azureSubscription: 'MSIDLABKeyVault'
+                KeyVaultName: 'ADALTestInfo'
+                SecretsFilter: 'MSALJS-CDN-SAS-EUNO, MSALJS-CDN-SAS-USWE, MSALJSNPMTOKEN'
+                RunAsPreJob: false
         - job: filter
           pool:
             type: linux
