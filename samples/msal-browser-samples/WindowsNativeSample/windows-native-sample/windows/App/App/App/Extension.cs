@@ -5,32 +5,31 @@ using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using Windows.Security.Credentials;
+using Windows.Security.Authentication.Web.Core;
+using Newtonsoft.Json.Linq;
+
 public class Extension
 {
     public async Task ExecuteExtensionAsync(WebView2 WebView)
     {
-        //await WebView.ExecuteScriptAsync("alert(window.document.URL);");
-        //await WebView.ExecuteScriptAsync("chrome.webview.postMessage(window.document.URL)");
         await WebView.ExecuteScriptAsync(
             "window.addEventListener(\"message\", function (event) {" +
-                //"console.log(event);" + //added this
                 "const channelId = \"53ee284d-920a-4b59-9d30-a60315b26836\";" +
                 "if (event && event.data && event.data.channel && (event.data.channel == channelId)) {" +
-                    //"console.log(\"Listened to event 2\");" + //added this
                     "try {" +
                         "if (event.source != window) {" +
                             "return;" +
                         "}" +
                         "var request = event.data;" +
                         "var method = request.body.method;" +
-                        //"console.log(\"Method: \" + method);" +
-                        "const extensionId = 0;" + //do not know how to get the actual id because it requires chrome.runtime
+                        "const extensionId = 0;" + 
                         "if (method === \"CreateProviderAsync\") {" +
                             "var extList = document.getElementById(`ch -${channelId}`);" +
                             "if (extList) {" +
                                 "var extElement = document.createElement('div');" +
                                 "extElement.id = extensionId;" +
-                                "const extensionVersion = 1.0;" + //do not know how to get the actual version number because it requires chrome.runtime
+                                "const extensionVersion = 1.0;" +
                                 "if (extensionVersion) {" +
                                     "extElement.setAttribute(\"ver\", extensionVersion);" +
                                 "}" +
@@ -46,17 +45,15 @@ public class Extension
                                 "responseId: request.responseId," +
                                 "body: {" +
                                     "method: \"HandshakeResponse\"," +
-                                    "version: 1.0" + //do not know how to get the actual version number because it requires chrome.runtime
+                                    "version: 1.0" +
                                 "}" +
                             "};" +
-                            "var port = event.ports [0];" + // the code holds on to this message port object. port.postMessage(). as long as you still have access to this port, you should send it back from WAM to MSAL
+                            "var port = event.ports [0];" + 
                             "port.onmessage = (event) => {" +
-                                //"console.log(event);" +
                                 "var request = event.data;" +
                                 "chrome.webview.postMessage(request);" + 
-                            "};" + //send back to native side in these {} (handle web message) and then send to browsercore (look at background.js for how to send to browsercore)
+                            "};" +
                             "port.postMessage(req);" +
-                            //"console.log(\"handshake response\");" +
                         "}" +
                     "}" +
                 "catch (e) {" +
@@ -66,7 +63,7 @@ public class Extension
         "}, true);");
         await WebView.ExecuteScriptAsync("init()");
     }
-    public async Task CallBrowserCoreAsync(WebView2 WebView, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
+    public async Task SetUpWAMCallAsync(WebView2 WebView, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
     {
         await WebView.ExecuteScriptAsync(
             "function RespondWithError(response, sendResponse) {" +
@@ -90,34 +87,12 @@ public class Extension
         await WebView.ExecuteScriptAsync(
                 "request = " + args.WebMessageAsJson + ";" +
                 "if(request && request.body && request.body.method && request.body.method == \"GetToken\") {" +
-                    //"console.log(request);" +
                     "try {" +
                         "request.sender = window.origin;" +
                         "if (\"GetSupportedUrls\".localeCompare(request.body.method, undefined, { sensitivity: \"base\" }) == 0) {" +
                             "RespondWithError(CreateInvalidMethodResponse(), sendResponse);" +
                         "} else {" +
-                            "chrome.webview.postMessage(\"Executing BrowserCore\" + JSON.stringify(request));" +
-                            //"chrome.runtime.sendNativeMessage(" + //no chrome.runtime in webview
-                            //    "\"com.microsoft.browsercore\"," + //browsercore is located in C:\Windows\BrowserCore
-                            //    "request," +
-                            //    "function(response) {" +
-                            //        "if (response != null) {" +
-                            //            "if (response.status == \"Fail\") {" +
-                            //                "RespondWithError(response, sendResponse);" +
-                            //            "} else {" +
-                            //                "sendResponse({" +
-                            //                    "status: \"Success\"," +
-                            //                    "result: response" +
-                            //                "});" +
-                            //            "}" +
-                            //        "} else {" +
-                            //            "RespondWithError({" +
-                            //                "status: \"Fail\"," +
-                            //                "code: \"NoSupport\"," +
-                            //                "description: chrome.runtime.lastError.message," +
-                            //            "}, sendResponse);" +
-                            //        "}" +
-                            //    "});" +
+                            "chrome.webview.postMessage(\"Executing WAM\" + JSON.stringify(request));" +
                         "}" +
                     "}" +
                     "catch (e) {" +
@@ -130,23 +105,72 @@ public class Extension
                     "}" +
                 "}");
     }
-    public void HandleWebMessage(Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
+    public void HandleWebMessage(WebView2 WebView, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args, Window window)
     {
-        String flag = "\"Executing BrowserCore";
-        if(args.WebMessageAsJson.Contains(flag)) {
-            ProcessStartInfo info = new ProcessStartInfo(@"C:\\Windows\\BrowserCore\\BrowserCore.exe");
-            //info.Arguments = @""; // try to pass the json in through this
-            // nmf viewer should show what it's receiving in the window
-            // we might not want to open the executable
-            // windows sends messages to browsercore through com port
+        String flag = "\"Executing WAM";
+        if(args.WebMessageAsJson.Contains(flag))
+        {
+            Task t = this.CallWAMAsync(WebView, args, window, flag);
+        }
+    }
 
-            //isolate the request and turn it into a Json
-            String request = args.WebMessageAsJson.Substring(flag.Length, args.WebMessageAsJson.Length - flag.Length - 1);
-            request = request.Replace("\\\"", "\"");
-            request = request.Replace("\\\\", "\\");
-            var requestJson = JsonConvert.DeserializeObject(request);
+    public async Task CallWAMAsync(WebView2 WebView, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args, Window window, String flag)
+    {
+        //isolate the request and turn it into a Json
+        String request = args.WebMessageAsJson.Substring(flag.Length, args.WebMessageAsJson.Length - flag.Length - 1);
+        request = request.Replace("\\\"", "\"");
+        request = request.Replace("\\\\", "\\");
+        dynamic requestJson = JObject.Parse(request);
 
-            Process.Start(info);
+        //Process.Start(info);
+        try
+        {
+            WebAccountProvider Provider = await WebAuthenticationCoreManager.FindAccountProviderAsync("https://login.windows.local");
+            this.AuthenticateWithRequestToken(WebView, Provider, requestJson, window);
+        }
+        catch (Exception ex)
+        {
+            await WebView.ExecuteScriptAsync("console.log(\"Web Token request failed: \"" + ex + ");");
+        }
+    }
+
+    public async void AuthenticateWithRequestToken(WebView2 WebView, WebAccountProvider Provider, dynamic request, Window window)
+    {
+        try
+        {
+            WebTokenRequest webTokenRequest = new WebTokenRequest(Provider, request["body"]["request"]["scopes"].ToString(), request["body"]["request"]["clientId"].ToString());
+
+            // Azure Active Directory requires a resource to return a token
+            if (Provider.Id == "https://login.microsoft.com" && Provider.Authority == "organizations")
+            {
+                webTokenRequest.Properties.Add("resource", "https://graph.windows.net");
+            }
+
+            webTokenRequest.Properties.Add("redirectUri", request["body"]["request"]["redirectUri"].ToString());
+ 
+            webTokenRequest.Properties.Add("wam_compat", "2.0");
+
+            // If the user selected a specific account, RequestTokenAsync will return a token for that account.
+            // The user may be prompted for credentials or to authorize using that account with your app
+            // If the user selected a provider, the user will be prompted for credentials to login to a new account
+
+            var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
+
+            WebTokenRequestResult webTokenRequestResult = await WebAuthenticationCoreManagerInterop.RequestTokenForWindowAsync(hWnd, webTokenRequest);
+
+            if (webTokenRequestResult.ResponseStatus == WebTokenRequestStatus.Success)
+            {
+                await WebView.ExecuteScriptAsync("console.log(\"Success\");");
+                await WebView.ExecuteScriptAsync("showWelcomeMessage(" + webTokenRequestResult.ResponseData[0].WebAccount + ");");
+            }
+            else
+            {
+                await WebView.ExecuteScriptAsync("console.log(\"Error: \"" + webTokenRequestResult.ResponseError.ErrorMessage + ");");
+            }
+        }
+        catch (Exception ex)
+        {
+            await WebView.ExecuteScriptAsync("console.log(\"Web Token request failed: \"" + ex + ");");
         }
     }
 }
