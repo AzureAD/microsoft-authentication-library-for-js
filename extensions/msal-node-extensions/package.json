@@ -27,7 +27,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "build:all": "npm run build --workspaces",
+    "build:all": "npm run build --workspace=../msal-common && npm run build",
     "test": "tsdx test",
     "test:coverage": "tsdx test --coverage",
     "lint": "cd ../../ && npm run lint:node:extensions",

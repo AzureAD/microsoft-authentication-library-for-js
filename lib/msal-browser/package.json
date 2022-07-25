@@ -53,7 +53,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-    "build:all": "npm run build --workspaces",
+    "build:all": "npm run build --workspace=../msal-common && npm run build",
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",

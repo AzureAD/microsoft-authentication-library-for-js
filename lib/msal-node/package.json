@@ -34,7 +34,7 @@
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "cd ../../ && npm run lint:node",
     "lint:fix": "npm run lint -- -- --fix",
-    "build:all": "npm run build --workspaces",
+    "build:all": "npm run build --workspace=../msal-common && npm run build",
     "prepack": "npm run build:all"
   },
   "beachball": {
