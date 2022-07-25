@@ -65,6 +65,7 @@ extends:
             inputs:
               scriptPath: ".pipelines/scripts/prepublish.sh"
             name: filter
+    # PUBLISH v1
     - stage: publish_msal_v1
       dependsOn: pre_release
       displayName: 'Publish MSAL v1'
@@ -79,6 +80,8 @@ extends:
             libName: 'msal-core'
             cdn: true
             publishFlagName: 'MsalCore'
+
+    # PUBLISH Common
     - stage: publish_msal_common
       dependsOn: pre_release
       displayName: 'Publish MSAL Common'
@@ -93,8 +96,12 @@ extends:
             libName: 'msal-common'
             cdn: true
             publishFlagName: 'MsalCommon'
+
+    # PUBLISH BROWSER, REACT AND ANGULAR
     - stage: publish_browser_packages
-      dependsOn: publish_msal_common
+      dependsOn:
+        - pre_release 
+        - publish_msal_common
       displayName: 'Publish Browser Packages'
       variables:
         publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
@@ -135,8 +142,11 @@ extends:
             cdn: false
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
+    # PUBLISH Node
     - stage: publish_node
-      dependsOn: publish_msal_common
+      dependsOn: 
+        - pre_release
+        - publish_msal_common
       displayName: 'Publish MSAL Node'
       variables:
         publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
