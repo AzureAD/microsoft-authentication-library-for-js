@@ -69,7 +69,7 @@ jobs:
           CDN_SAS_USWE: $(MSALJS-CDN-SAS-USWE)
 
       # Write NPM authToken
-      - script: echo '//registry.npmjs.org/:_authToken=$NPM_TOKEN' > .npmrc
+      - script: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
         displayName: Write npm authToken
         workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
