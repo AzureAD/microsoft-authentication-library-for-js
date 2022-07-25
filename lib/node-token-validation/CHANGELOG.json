@@ -2,6 +2,60 @@
   "name": "@azure/node-token-validation",
   "entries": [
     {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
+      "version": "1.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/node-token-validation",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/node-token-validation",
+            "commit": "f3cbdaf4d3454ba1da22ddc4229dc16782dcefc8",
+            "comment": "Add network retries for request timeout or service unavailable #5010"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/node-token-validation",
+            "commit": "5d5099bc9be72efc2b77f0de512a125e9752e88a",
+            "comment": "Update node-token-validation authority usage #4912"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/node-token-validation",
+            "comment": "Bump @azure/msal-common to v7.2.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
+      "version": "1.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/node-token-validation",
+            "commit": "6f32a325dfe59f762d7eb4c07ec232c16f060783",
+            "comment": "Add cache manager #4906"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/node-token-validation",
+            "comment": "Bump @azure/msal-common to v7.1.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 13 Jun 2022 22:28:09 GMT",
       "tag": "@azure/node-token-validation_v1.0.0-alpha.0",
       "version": "1.0.0-alpha.0",

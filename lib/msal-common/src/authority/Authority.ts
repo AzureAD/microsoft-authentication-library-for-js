@@ -10,6 +10,7 @@ import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
 import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
+import { EndpointMetadata, InstanceDiscoveryMetadata } from "./AuthorityMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
@@ -284,40 +285,32 @@ export class Authority {
             return AuthorityMetadataSource.CACHE;
         }
 
+        let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion, this.regionDiscoveryMetadata, this.proxyUrl);
-
-                const azureRegion = this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
-                    ? autodetectedRegionName
-                    : this.authorityOptions.azureRegionConfiguration.azureRegion;
-
-                if (this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG) {
-                    this.regionDiscoveryMetadata.region_outcome = autodetectedRegionName ?
-                        RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL :
-                        RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
-                } else {
-                    if (autodetectedRegionName) {
-                        this.regionDiscoveryMetadata.region_outcome = (this.authorityOptions.azureRegionConfiguration.azureRegion === autodetectedRegionName) ?
-                            RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED :
-                            RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED;
-                    } else {
-                        this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
-                    }
-                }
-
-                if (azureRegion) {
-                    this.regionDiscoveryMetadata.region_used = azureRegion;
-                    metadata = Authority.replaceWithRegionalInformation(metadata, azureRegion);
-                }
+                metadata = await this.updateMetadataWithRegionalInformation(metadata);
             }
 
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
+        }    
+
+        if (harcodedMetadata && !this.authorityOptions.skipAuthorityMetadataCache) {
+            // If the user prefers to use an azure region replace the global endpoints with regional information.
+            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                harcodedMetadata = await this.updateMetadataWithRegionalInformation(
+                    harcodedMetadata
+                );
+            }
+
+            metadataEntity.updateEndpointMetadata(harcodedMetadata, false);
+            return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
-            throw ClientAuthError.createUnableToGetOpenidConfigError(this.defaultOpenIdConfigurationEndpoint);
+            throw ClientAuthError.createUnableToGetOpenidConfigError(
+                this.defaultOpenIdConfigurationEndpoint
+            );
         }
     }
 
@@ -350,6 +343,8 @@ export class Authority {
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
+     * 
+     * @param hasHardcodedMetadata boolean
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
         const options: ImdsOptions = {};
@@ -357,12 +352,60 @@ export class Authority {
             options.proxyUrl = this.proxyUrl;
         }
 
+        /*
+         * TODO: Add a timeout if the authority exists in our library's 
+         * hardcoded list of metadata
+         */
+
         try {
             const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint, options);
             return isOpenIdConfigResponse(response.body) ? response.body : null;
         } catch (e) {
             return null;
         }
+    }
+
+    /**
+     * Get OAuth endpoints for common authorities.
+     */
+    private getEndpointMetadataFromHardcodedValues(): OpenIdConfigResponse | null {
+        if (this.canonicalAuthority in EndpointMetadata) {
+            return EndpointMetadata[this.canonicalAuthority];
+        }
+
+        return null;
+    }
+
+    /**
+     * Update the retrieved metadata with regional information.
+     */
+    private async updateMetadataWithRegionalInformation(metadata: OpenIdConfigResponse): Promise<OpenIdConfigResponse> {
+        const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration?.environmentRegion, this.regionDiscoveryMetadata, this.proxyUrl);
+
+        const azureRegion = this.authorityOptions.azureRegionConfiguration?.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
+            ? autodetectedRegionName
+            : this.authorityOptions.azureRegionConfiguration?.azureRegion;
+
+        if (this.authorityOptions.azureRegionConfiguration?.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG) {
+            this.regionDiscoveryMetadata.region_outcome = autodetectedRegionName ?
+                RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL :
+                RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
+        } else {
+            if (autodetectedRegionName) {
+                this.regionDiscoveryMetadata.region_outcome = (this.authorityOptions.azureRegionConfiguration?.azureRegion === autodetectedRegionName) ?
+                    RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED :
+                    RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED;
+            } else {
+                this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
+            }
+        }
+
+        if (azureRegion) {
+            this.regionDiscoveryMetadata.region_used = azureRegion;
+            return Authority.replaceWithRegionalInformation(metadata, azureRegion);
+        }
+
+        return metadata;
     }
 
     /**
@@ -383,10 +426,16 @@ export class Authority {
             return AuthorityMetadataSource.CACHE;
         }
 
+        const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
+        } 
+        
+        if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
+            metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
+            return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
             // Metadata could not be obtained from config, cache or network
             throw ClientConfigurationError.createUntrustedAuthorityError();
@@ -420,7 +469,8 @@ export class Authority {
 
     /**
      * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
-     * @param networkInterface
+     * 
+     * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
@@ -429,24 +479,51 @@ export class Authority {
             options.proxyUrl = this.proxyUrl;
         }
 
+        /*
+         * TODO: Add a timeout if the authority exists in our library's
+         * hardcoded list of metadata
+         */
+
         let match = null;
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint, options);
-            const metadata = isCloudInstanceDiscoveryResponse(response.body) ? response.body.metadata : [];
+            const response =
+                await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(
+                    instanceDiscoveryEndpoint,
+                    options
+                );
+            const metadata = isCloudInstanceDiscoveryResponse(response.body)
+                ? response.body.metadata
+                : [];
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted
                 return null;
             }
-            match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(metadata, this.hostnameAndPort);
-        } catch(e) {
+            match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
+                metadata,
+                this.hostnameAndPort
+            );
+        } catch (e) {
             return null;
         }
 
         if (!match) {
             // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
-            match = Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
+            match = Authority.createCloudDiscoveryMetadataFromHost(
+                this.hostnameAndPort
+            );
         }
         return match;
+    }
+
+    /**
+     * Get cloud discovery metadata for common authorities 
+     */
+    private getCloudDiscoveryMetadataFromHarcodedValues(): CloudDiscoveryMetadata | null {
+        if (this.canonicalAuthority in InstanceDiscoveryMetadata) {
+            return InstanceDiscoveryMetadata[this.canonicalAuthority];
+        }
+
+        return null;
     }
 
     /**
@@ -582,3 +659,4 @@ export class Authority {
         return metadata;
     }
 }
+

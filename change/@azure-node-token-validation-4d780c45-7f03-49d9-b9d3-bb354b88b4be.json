@@ -1,7 +1,0 @@
-{
-  "comment": "Add cache manager #4906",
-  "type": "none",
-  "packageName": "@azure/node-token-validation",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
