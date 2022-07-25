@@ -72,9 +72,7 @@ jobs:
       - task: CmdLine@2
         displayName: Write npm authToken
         inputs:
-          script: |
-            echo $NPM_TOKEN
-            echo //registry.npmjs.org/:_authToken=$NPM_TOKEN > .npmrc
+          script: echo $NPM_TOKEN > .npmrc
           workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
