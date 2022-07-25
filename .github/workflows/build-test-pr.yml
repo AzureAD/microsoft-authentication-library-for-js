@@ -93,6 +93,14 @@ jobs:
     - name: Clean Install
       run: npm ci
 
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_${{ matrix.library }}
+        path: ~/.npm/_logs/**/*
+        retention-days: 2
+
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
       run: npm run build:all
@@ -129,6 +137,14 @@ jobs:
 
     - name: Clean Install
       run: npm ci
+
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_msal-node-extensions
+        path: ~/npm/cache/_logs/**/*
+        retention-days: 2
 
     - name: Build packages
       working-directory: extensions/msal-node-extensions
