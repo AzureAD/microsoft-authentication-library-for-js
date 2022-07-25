@@ -98,9 +98,9 @@ jobs:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 
       # Remove .npmrc file
-      - script: rm .npmrc
-        displayName: Remove .npmrc file
-        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+      # - script: rm .npmrc
+      #   displayName: Remove .npmrc file
+      #   workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
 
       # Install Release Scripts dependencies
       - task: Npm@1
