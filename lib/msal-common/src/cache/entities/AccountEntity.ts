@@ -57,7 +57,7 @@ export class AccountEntity {
     lastModificationApp?: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
-    idToken: string;
+    idToken?: string;
     idTokenClaims?: TokenClaims;
     nativeAccountId?: string;
 
