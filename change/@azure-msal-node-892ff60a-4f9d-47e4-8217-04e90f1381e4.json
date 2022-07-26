@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Fixing merge conflict",
+  "comment": "Fixing conflicts in msal-node/src/client/ClientApplication.ts after merging dev into msal-node-with-state pr# ccd14d2ff",
   "packageName": "@azure/msal-node",
   "email": "marionminayo@microsoft.com",
   "dependentChangeType": "patch"
