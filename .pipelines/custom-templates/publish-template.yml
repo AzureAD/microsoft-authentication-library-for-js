@@ -72,6 +72,8 @@ jobs:
       - task: CmdLine@2
         displayName: Write npm authToken
         inputs:
+        # This script should overwrite .npmrc, but for some reason it appends.
+        # script: echo //registry.npmjs.org/:_authToken=${NPM_TOKEN}
           script: echo $NPM_TOKEN > .npmrc
           workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
