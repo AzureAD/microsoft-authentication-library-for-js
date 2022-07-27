@@ -135,7 +135,7 @@ extends:
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
     # PUBLISH Node
-    - stage: publish_node
+    - stage: publish_msal_node
       dependsOn: 
         - pre_release
         - publish_msal_common
@@ -151,3 +151,27 @@ extends:
             libName: 'msal-node'
             cdn: false
             publishFlagName: 'MsalNode'
+    
+    - stage: post_publish
+      dependsOn:
+        - pre_release
+        - publish_msal_common
+        - publish_browser_packages
+        - publish_msal_node
+      displayName: 'Post-release'
+      jobs:
+        - job: downloadBrowserArtifacts
+          pool:
+            type: linux
+          variables:
+            repoName: 'msal-javascript-internal'
+            ob_outputDirectory: '$(REPOROOT)' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+            ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+          steps:
+            - task: DownloadPipelineArtifact@2
+              inputs:
+                source: 'current'
+                artifact: 'lib/msal-browser/README.md'
+                path: $(Build.SourcesDirectory)/
+
+
