@@ -3,17 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId } from "../utils/Constants";
+import { ApiId, Constants } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
     CommonDeviceCodeRequest,
-    AuthError
+    AuthError,
+    ResponseMode,
+    UrlString,
+    OIDC_DEFAULT_SCOPES,
+    CodeChallengeMethodValues,
+    Constants as CommonConstants
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
+import { createServer, IncomingMessage, ServerResponse } from "http";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { InteractiveRequest } from "../request/InteractiveRequest";
+import { NodeAuthError } from "../error/NodeAuthError";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -73,5 +83,81 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
+    }
+
+    /**
+     * Acquires a token by requesting an Authorization code then exchanging it for a token.
+     */
+    async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
+        const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
+        const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
+
+        return new Promise(async (resolve, reject) => {
+            const server = createServer((req: IncomingMessage, res: ServerResponse) => {
+                const url = req.url;
+                if (!url) {
+                    res.end(errorTemplate || "Error occurred loading redirectUrl");
+                    return;
+                } else if (url === CommonConstants.FORWARD_SLASH) {
+                    res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
+                    return;
+                }
+
+                const authCodeResponse = UrlString.getDeserializedQueryString(url);
+                const code = authCodeResponse.code;
+                if (code) {
+                    const redirectUri = `${Constants.HTTP_PROTOCOL}${req.headers.host}`;
+                    res.writeHead(302, { location: redirectUri }); // Prevent auth code from being saved in the browser history
+                    res.end();
+
+                    if (!req.headers.host) {
+                        reject(NodeAuthError.createHostHeaderMissingError());
+                    }
+                    
+                    const clientInfo = authCodeResponse.client_info;
+                    const tokenRequest: AuthorizationCodeRequest = {
+                        code: code,
+                        scopes: OIDC_DEFAULT_SCOPES,
+                        redirectUri: redirectUri,
+                        codeVerifier: verifier,
+                        clientInfo: clientInfo || CommonConstants.EMPTY_STRING
+                    };
+                    this.acquireTokenByCode(tokenRequest).then(response => {
+                        resolve(response);
+                    }).catch((e) => {
+                        reject(e);
+                    });
+                } else if (authCodeResponse.error) {
+                    res.end(errorTemplate || `Error occurred: ${authCodeResponse.error}`);
+                } else {
+                    res.end(errorTemplate || "Unknown error occurred");
+                }
+            });
+            server.listen(0); // Listen on any available port
+            const port: number = await new Promise((resolvePort) => {
+                const id = setInterval(() => {
+                    const address = server.address();
+                    if (typeof address === "string") {
+                        clearInterval(id);
+                        reject(NodeAuthError.createAddressWrongTypeError());
+                    } else if (address && address.port) {
+                        clearInterval(id);
+                        resolvePort(address.port);
+                    }
+                }, 100);
+            });
+
+            const validRequest: AuthorizationUrlRequest = {
+                ...remainingProperties,
+                scopes: request.scopes || [],
+                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}:${port}`,
+                responseMode: ResponseMode.QUERY,
+                codeChallenge: challenge, 
+                codeChallengeMethod: CodeChallengeMethodValues.S256
+            };
+
+            const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+            await openBrowser(authCodeUrl);
+        });
     }
 }
