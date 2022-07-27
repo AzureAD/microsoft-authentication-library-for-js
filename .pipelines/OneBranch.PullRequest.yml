@@ -63,7 +63,7 @@ extends:
           steps:
           - task: ShellScript@2
             inputs:
-              scriptPath: ".pipelines/scripts/prepublish.sh"
+              scriptPath: "release-scripts/prepublish.sh"
             name: filter
     # PUBLISH v1
     - stage: publish_msal_v1
