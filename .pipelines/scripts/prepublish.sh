@@ -10,7 +10,7 @@ publishFlagNames["msal-browser"]=publishMsalBrowser;
 publishFlagNames["msal-node"]=publishMsalNode;
 publishFlagNames["msal-angular"]=publishMsalAngular;
 publishFlagNames["msal-react"]=publishMsalReact;
-publishFlagNames["msal-node-extensions"]=publishNodeTokenValidation;
+publishFlagNames["msal-node-extensions"]=publishMsalNodeExtensions;
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do

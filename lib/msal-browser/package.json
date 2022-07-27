@@ -19,7 +19,8 @@
     "js",
     "AAD",
     "msal",
-    "oauth"
+    "oauth",
+    "test"
   ],
   "sideEffects": false,
   "main": "./dist/index.cjs.js",

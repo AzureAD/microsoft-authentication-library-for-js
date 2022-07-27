@@ -151,6 +151,14 @@ extends:
             libName: 'msal-node'
             cdn: false
             publishFlagName: 'MsalNode'
+        # Release MSAL Node Extensions
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'release_msal_node_extensions'
+            path: 'extensions'
+            libName: 'msal-node-extensions'
+            cdn: false
+            publishFlagName: 'MsalNodeExtensions'
     
     - stage: post_publish
       dependsOn:
