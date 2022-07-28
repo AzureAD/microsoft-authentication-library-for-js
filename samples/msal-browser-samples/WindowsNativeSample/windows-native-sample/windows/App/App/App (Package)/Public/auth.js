@@ -47,6 +47,10 @@ function handleResponse(resp) {
 }
 
 async function signIn(method) {
+    const accounts = myMSALObj.getAllAccounts();
+    if (accounts && accounts[0]) {
+        loginRequest.account = accounts[0];
+    }
     return myMSALObj.loginRedirect(loginRequest);
 }
 

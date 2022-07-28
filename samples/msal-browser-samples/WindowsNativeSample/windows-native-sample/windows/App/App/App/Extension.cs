@@ -25,7 +25,7 @@ public class Extension
                         "}" +
                         "var request = event.data;" +
                         "var method = request.body.method;" +
-                        "const extensionId = 0;" +
+                        "const extensionId = \"ppnbnpeolgkicgegkbkbjmhlideopiji\";" +
                         "console.log(method);" +
                         "if (method === \"CreateProviderAsync\") {" +
                             "var extList = document.getElementById(`ch -${channelId}`);" +
@@ -44,7 +44,7 @@ public class Extension
                             "event.stopImmediatePropagation();" +
                             "var req = {" +
                                 "channel: channelId," +
-                                "extensionId: request.extensionId," +
+                                "extensionId: \"ppnbnpeolgkicgegkbkbjmhlideopiji\"," +
                                 "responseId: request.responseId," +
                                 "body: {" +
                                     "method: \"HandshakeResponse\"," +
@@ -57,11 +57,11 @@ public class Extension
                                 "chrome.webview.postMessage(request);" + 
                             "};" +
                             "window.addEventListener(\"message\", (event) => {" +
-                                "console.log(event);" +
+                                //"console.log(event);" +
                                 "if(event.data.account && event.data.properties && event.source == window) {" +
                                     "var resp = {" +
                                         "channel: \"53ee284d-920a-4b59-9d30-a60315b26836\"," +
-                                        "extensionId: request.extensionId," +
+                                        "extensionId: \"ppnbnpeolgkicgegkbkbjmhlideopiji\"," +
                                         "responseId: request.responseId," +
                                         "body: {" +
                                             "method: \"Response\", " +
@@ -218,10 +218,12 @@ public class Extension
         account.Add("userName", userName);
 
         JsonObject accountProperties = new JsonObject();
+        JsonObject properties = new JsonObject();
         IReadOnlyDictionary<string, string> accProp = result.ResponseData[0].WebAccount.Properties;
         foreach (var keyValue in accProp)
         {
             accountProperties.Add(keyValue.Key, JsonValue.CreateStringValue(keyValue.Value));
+            properties.Add(keyValue.Key, JsonValue.CreateStringValue(keyValue.Value));
         }
         account.Add("properties", accountProperties);
 
@@ -230,14 +232,17 @@ public class Extension
         response.Add("access_token", token);
 
         IDictionary<string, string> prop = result.ResponseData[0].Properties;
-        JsonObject properties = new JsonObject();
-        properties.Add("wamStatus", JsonValue.CreateStringValue("SUCCESS"));
+        properties.Add("wamStatus", JsonValue.CreateStringValue(result.ResponseStatus.ToString()));
         foreach (var keyValue in prop)
         {
             string key = keyValue.Key;
             string value = keyValue.Value;
 
-            if(key == "TokenExpiresOn") // how do you convert this
+            if(properties.ContainsKey(key))
+            {
+                //skip if it already has that key
+            }
+            else if(key == "TokenExpiresOn") // how do you convert this
             {
                 ulong expiresIn;
                 ulong expiresOn = Convert.ToUInt64(value);
@@ -280,11 +285,11 @@ public class Extension
             }
             else if (key == "wamcompat_id_token")
             {
-                response.Add("idToken", JsonValue.CreateStringValue(value.ToString()));
+                response.Add("id_token", JsonValue.CreateStringValue(value.ToString()));
             }
             else if (key == "wamcompat_client_info")
             {
-                response.Add("clientInfo", JsonValue.CreateStringValue(value.ToString()));
+                response.Add("client_info", JsonValue.CreateStringValue(value.ToString()));
             }
             else if (key == "wamcompat_scopes")
             {
