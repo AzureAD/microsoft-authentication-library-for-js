@@ -2,31 +2,13 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-const {PublicClientApplication, LogLevel, InteractionRequiredAuthError} = require("@azure/msal-node");
+const { PublicClientApplication, InteractionRequiredAuthError } = require("@azure/msal-node");
 const open = require("open");
-
-const cacheLocation = "./data/cache.json";
-const cachePlugin = require('../../cachePlugin')(cacheLocation);
+const { authConfig } = require("./authConfig.js");
+const { callMicrosoftGraph } = require("./graph.js");
 
 // Before running the sample, you will need to replace the values in the config.
-const config = {
-    auth: {
-        clientId: "c3a8e9df-f1d4-427d-be73-acab139c40fd",
-        authority: "https://login.microsoftonline.com/common"
-    },
-    cache: {
-        cachePlugin
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Verbose,
-        }
-    }
-};
+
 
 // Get url to sign user in and consent to scopes needed for application
 const openBrowser = async (url) => {
@@ -40,7 +22,7 @@ const loginRequest = {
 };
 
 // Create msal application object
-const pca = new PublicClientApplication(config);
+const pca = new PublicClientApplication(authConfig);
 
 const acquireToken = async () => {
     const accounts = await pca.getTokenCache().getAllAccounts();
@@ -65,4 +47,15 @@ const acquireToken = async () => {
     }
 }
 
-acquireToken().finally(() => process.exit(0));
+acquireToken().then((response) => {
+    callMicrosoftGraph(response.accessToken).then((graphResponse) => {
+        console.log(graphResponse);
+        process.exit(0);
+    }).catch((e) => {
+        console.log(e);
+        process.exit(1);
+    });
+}).catch(e => {
+    console.error(e);
+    process.exit(1);
+});

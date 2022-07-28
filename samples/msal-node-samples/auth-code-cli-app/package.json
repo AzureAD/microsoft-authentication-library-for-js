@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "file:../../../lib/msal-node",
+    "axios": "^0.27.2",
     "open": "^8.4.0"
   }
 }
