@@ -9,7 +9,7 @@ import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest"
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, Errors } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -36,7 +36,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration,performanceClient);
     }
 
-    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
+    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
@@ -91,7 +91,7 @@ export class RefreshTokenClient extends BaseClient {
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
                     return this.acquireTokenWithCachedRefreshToken(request, false);
-                // throw in all other cases
+                    // throw in all other cases
                 } else {
                     throw e;
                 }
@@ -226,7 +226,7 @@ export class RefreshTokenClient extends BaseClient {
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
-            if(request.sshJwk) {
+            if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 acquireTokenMeasurement?.endMeasurement({
