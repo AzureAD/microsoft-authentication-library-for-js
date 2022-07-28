@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 05 Jul 2022 22:37:04 GMT and should not be manually modified.
+This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.28.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Added new token size field in the perf telemetry data #4973 (bmahal@microsoft.com)
+- Add local cache support for JS-WAM bridge #4971 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v7.2.0
+
+### Patches
+
+- Fix bug with activeAccount when two accounts have same local account id #5004 (t-ssummers@microsoft.com)
 
 ## 2.27.0
 

@@ -4,16 +4,17 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
-import { 
+import {
     clickSignIn,
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation} from "../../testUtils";
+    validateCacheLocation,
+    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
 import { ConfidentialClientApplication, TokenCache } from "../../../../lib/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
 
@@ -115,6 +116,8 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
+            await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
+            await page.click("#callGraph");
             await page.waitForSelector("#graph-called-successfully");
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
@@ -133,6 +136,8 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const expiredAccessToken = tokens.accessTokens[0];
             await page.click("#acquireTokenSilent");
+            await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
+            await page.click("#callGraph");
             await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const refreshedAccessToken = tokens.accessTokens[0];
@@ -154,13 +159,13 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
                 page = await context.newPage();
                 await page.goto(homeRoute, {waitUntil: "networkidle0"});
             });
-        
+
             afterEach(async () => {
                 await page.close();
                 await context.close();
                 await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
-    
+
             it("Gets all cached accounts", async () => {
                 const screenshot = new Screenshot(`${screenshotFolder}/GetAllAccounts`);
                 await clickSignIn(page, screenshot);
@@ -184,7 +189,7 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
                 page = await context.newPage();
                 await confidentialClientApplication.clearCache();
             });
-        
+
             afterEach(async () => {
                 await page.close();
                 await context.close();
@@ -205,5 +210,5 @@ describe("Silent Flow AAD AGC Confidential Tests", () => {
             });
         });
     });
-    
+
 });

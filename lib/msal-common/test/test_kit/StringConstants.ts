@@ -495,6 +495,14 @@ export const CACHE_MOCKS = {
         tenantId: "microsoft",
         username: "mocked_username"
     },
+    MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID: {
+        homeAccountId: "uid.utid",
+        localAccountId: "uid",
+        environment: "login.microsoftonline.com",
+        tenantId: "microsoft",
+        username: "mocked_username",
+        nativeAccountId: "mocked_native_account_id"
+    },
 };
 
 export const CORS_SIMPLE_REQUEST_HEADERS = [

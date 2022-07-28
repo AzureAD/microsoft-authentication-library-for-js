@@ -12,7 +12,6 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Creates a new random GUID - used to populate state and nonce.
-     * @returns string (GUID)
      */
     createNewGuid(): string {
         throw new Error("Method not implemented.");
@@ -20,7 +19,6 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Encodes input string to base64.
-     * @param input - string to be encoded
      */
     base64Encode(): string {
         throw new Error("Method not implemented.");
@@ -28,7 +26,6 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Decodes input string from base64.
-     * @param input - string to be decoded
      */
     base64Decode(): string {
         throw new Error("Method not implemented.");
@@ -50,7 +47,6 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
-     * @param kid 
      */
     removeTokenBindingKey(): Promise<boolean> {
         throw new Error("Method not implemented.");
