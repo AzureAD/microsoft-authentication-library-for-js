@@ -28,12 +28,14 @@ export type PopupParams = InteractionParams & {
 };
 
 export class PopupClient extends StandardInteractionClient {
-    private currentWindow: Window|undefined;
+    private currentWindow: Window | undefined;
+    protected nativeStorage: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
+        this.nativeStorage = nativeStorageImpl;
     }
 
     /**
@@ -161,7 +163,7 @@ export class PopupClient extends StandardInteractionClient {
                 if (!this.nativeMessageHandler) {
                     throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }
-                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, validRequest.correlationId);
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.nativeStorage, validRequest.correlationId);
                 const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
                     ...validRequest,
@@ -314,7 +316,7 @@ export class PopupClient extends StandardInteractionClient {
                     href = popupWindow.location.href;
                     hash = popupWindow.location.hash;
                 } catch (e) {}
-                
+
                 // Don't process blank pages or cross domain
                 if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
@@ -332,7 +334,7 @@ export class PopupClient extends StandardInteractionClient {
                     this.logger.verbose("PopupHandler.monitorPopupForHash - found hash in url");
                     clearInterval(intervalId);
                     this.cleanPopup(popupWindow);
-    
+
                     if (UrlString.hashContainsKnownProperties(hash)) {
                         this.logger.verbose("PopupHandler.monitorPopupForHash - hash contains known properties, returning.");
                         resolve(hash);
@@ -352,8 +354,8 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Waits for user interaction in logout popup window
-     * @param popupWindow 
-     * @returns 
+     * @param popupWindow
+     * @returns
      */
     waitForLogoutPopup(popupWindow: Window): Promise<void> {
         return new Promise((resolve) => {
@@ -377,7 +379,7 @@ export class PopupClient extends StandardInteractionClient {
                      */
                     href = popupWindow.location.href;
                 } catch (e) {}
-                
+
                 // Don't process blank pages or cross domain
                 if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
@@ -439,10 +441,10 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Helper function to set popup window dimensions and position
-     * @param urlNavigate 
-     * @param popupName 
-     * @param popupWindowAttributes 
-     * @returns 
+     * @param urlNavigate
+     * @param popupName
+     * @param popupWindowAttributes
+     * @returns
      */
     openSizedPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes): Window|null {
         /**
@@ -525,8 +527,8 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Generates the name for the popup based on the client id and request for logouts
-     * @param clientId 
-     * @param request 
+     * @param clientId
+     * @param request
      */
     generateLogoutPopupName(request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
