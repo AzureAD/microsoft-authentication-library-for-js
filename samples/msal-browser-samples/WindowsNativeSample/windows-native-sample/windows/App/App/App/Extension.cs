@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Windows.Security.Credentials;
 using Windows.Security.Authentication.Web.Core;
 using Newtonsoft.Json.Linq;
+using System.Collections.Generic;
+using Windows.Data.Json;
 
 public class Extension
 {
@@ -23,7 +25,8 @@ public class Extension
                         "}" +
                         "var request = event.data;" +
                         "var method = request.body.method;" +
-                        "const extensionId = 0;" + 
+                        "const extensionId = 0;" +
+                        "console.log(method);" +
                         "if (method === \"CreateProviderAsync\") {" +
                             "var extList = document.getElementById(`ch -${channelId}`);" +
                             "if (extList) {" +
@@ -41,7 +44,7 @@ public class Extension
                             "event.stopImmediatePropagation();" +
                             "var req = {" +
                                 "channel: channelId," +
-                                "extensionId: extensionId," +
+                                "extensionId: request.extensionId," +
                                 "responseId: request.responseId," +
                                 "body: {" +
                                     "method: \"HandshakeResponse\"," +
@@ -53,6 +56,25 @@ public class Extension
                                 "var request = event.data;" +
                                 "chrome.webview.postMessage(request);" + 
                             "};" +
+                            "window.addEventListener(\"message\", (event) => {" +
+                                "console.log(event);" +
+                                "if(event.data.account && event.data.properties && event.source == window) {" +
+                                    "var resp = {" +
+                                        "channel: \"53ee284d-920a-4b59-9d30-a60315b26836\"," +
+                                        "extensionId: request.extensionId," +
+                                        "responseId: request.responseId," +
+                                        "body: {" +
+                                            "method: \"Response\", " +
+                                            "response: {" +
+                                                "status: \"Success\"," +
+                                                "result: event.data" +
+                                            "}" +
+                                        "}" +
+                                    "};" +
+                                    "console.log(resp);" +
+                                    "port.postMessage(resp);" +
+                                "}" +
+                            "});" +
                             "port.postMessage(req);" +
                         "}" +
                     "}" +
@@ -160,8 +182,18 @@ public class Extension
 
             if (webTokenRequestResult.ResponseStatus == WebTokenRequestStatus.Success)
             {
+                //await WebView.ExecuteScriptAsync("signIn(redirect);");
+                JsonObject successResponse = this.ConstructSuccessResponse(webTokenRequestResult);
+                //WebAccount webAccount = webTokenRequestResult.ResponseData[0].WebAccount;
                 await WebView.ExecuteScriptAsync("console.log(\"Success\");");
-                await WebView.ExecuteScriptAsync("showWelcomeMessage(" + webTokenRequestResult.ResponseData[0].WebAccount + ");");
+                await WebView.ExecuteScriptAsync(
+                    "try {" +
+                        "window.postMessage(" + successResponse + ");" +
+                    "} catch (e) {" +
+                        "console.log(e);" +
+                    "}");
+                //await WebView.ExecuteScriptAsync("window.location.href = \"http://localhost/tab1\";");
+                //await WebView.ExecuteScriptAsync("showWelcomeMessage(" + webAccount + ");");
             }
             else
             {
@@ -172,5 +204,105 @@ public class Extension
         {
             await WebView.ExecuteScriptAsync("console.log(\"Web Token request failed: \"" + ex + ");");
         }
+    }
+
+    public JsonObject ConstructSuccessResponse(WebTokenRequestResult result)
+    {
+        JsonValue id = JsonValue.CreateStringValue(result.ResponseData[0].WebAccount.Id);
+        JsonValue userName = JsonValue.CreateStringValue(result.ResponseData[0].WebAccount.UserName);
+        JsonValue token = JsonValue.CreateStringValue(result.ResponseData[0].Token);
+        //JsonValue wamStatus = JsonValue.CreateStringValue(result.ResponseStatus.ToString());
+
+        JsonObject account = new JsonObject();
+        account.Add("id", id);
+        account.Add("userName", userName);
+
+        JsonObject accountProperties = new JsonObject();
+        IReadOnlyDictionary<string, string> accProp = result.ResponseData[0].WebAccount.Properties;
+        foreach (var keyValue in accProp)
+        {
+            accountProperties.Add(keyValue.Key, JsonValue.CreateStringValue(keyValue.Value));
+        }
+        account.Add("properties", accountProperties);
+
+        JsonObject response = new JsonObject();
+        response.Add("account", account);
+        response.Add("access_token", token);
+
+        IDictionary<string, string> prop = result.ResponseData[0].Properties;
+        JsonObject properties = new JsonObject();
+        properties.Add("wamStatus", JsonValue.CreateStringValue("SUCCESS"));
+        foreach (var keyValue in prop)
+        {
+            string key = keyValue.Key;
+            string value = keyValue.Value;
+
+            if(key == "TokenExpiresOn") // how do you convert this
+            {
+                ulong expiresIn;
+                ulong expiresOn = Convert.ToUInt64(value);
+
+                // 11644473600 is the difference in seconds between universal time and time_t
+                if (expiresOn <= 11644473600 || expiresOn >= ulong.MaxValue)
+                {
+                    expiresIn = 0;
+                }
+                else
+                {
+                    DateTime expiresOnTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+                    expiresOnTime = expiresOnTime.AddSeconds(expiresOn - 11644473600);
+
+                    DateTime now = DateTime.Now;
+
+                    TimeSpan expiresInTS = expiresOnTime.Subtract(now);
+                    long expiresInS = (long) expiresInTS.TotalSeconds;
+                    if (expiresInS < 0 || expiresInS >= long.MaxValue)
+                    {
+                        expiresIn = 0;
+                    }
+                    else
+                    {
+                        expiresIn = (ulong)expiresInS;
+                    }
+                }
+                response.Add("expires_in", JsonValue.CreateNumberValue(expiresIn));
+            }
+            else if (key == "ExtendedLifetimeToken")
+            {
+                if(value == "true")
+                {
+                    response.Add("extendedLifetimeToken", JsonValue.CreateBooleanValue(true));
+                }
+                else
+                {
+                    response.Add("extendedLifetimeToken", JsonValue.CreateBooleanValue(false));
+                }
+            }
+            else if (key == "wamcompat_id_token")
+            {
+                response.Add("idToken", JsonValue.CreateStringValue(value.ToString()));
+            }
+            else if (key == "wamcompat_client_info")
+            {
+                response.Add("clientInfo", JsonValue.CreateStringValue(value.ToString()));
+            }
+            else if (key == "wamcompat_scopes")
+            {
+                response.Add("scope", JsonValue.CreateStringValue(value.ToString()));
+                response.Add("scopes", JsonValue.CreateStringValue(value.ToString()));
+            }
+            else if (key == "exp")
+            {
+                // skip "exp" as it applies to the id_token and shouldn't be returned to MSAL JS
+            }
+            else
+            {
+                properties.Add(key, JsonValue.CreateStringValue(value));
+            }
+        }
+
+        response.Add("properties", properties);
+
+        return response;
     }
 }
