@@ -38,3 +38,14 @@ export const JwtConstants = {
 export const TokenType = {
     JWT: "JWT"
 };
+
+/**
+ * HTTP status code constants
+ * 
+ * HTTP status codes are used when checking network responses for errors.
+ * Status codes indicating request timeout or service unavailable will result in retrying the network request.
+ */
+export enum HttpStatusCode {
+    RequestTimeout = 408,
+    ServiceUnavailable = 503
+}

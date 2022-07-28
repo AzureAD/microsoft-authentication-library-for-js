@@ -24,7 +24,8 @@ export class OpenIdConfigProvider {
 
     /**
      * Function to fetch JWKS uri from metadata endpoint.
-     * @returns {string} A promise that is fulfilled when this function has completed. Returns the jwks_uri string.
+     *
+     * @returns {Promise<string>} A promise that is fulfilled when this function has completed. Returns the jwks_uri string.
      */
     async fetchJwksUriFromEndpoint(): Promise<string> {
         this.logger.trace("OpenIdConfigProvider.fetchJwksUriFromEndpoint called");
