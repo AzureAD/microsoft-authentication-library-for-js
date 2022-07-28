@@ -20,18 +20,19 @@ import { StringDict } from "./MsalTypes";
  */
 export class Account {
 
-    accountIdentifier: string;
-    homeAccountIdentifier: string;
-    userName: string;
-    name: string;
-    idToken: StringDict; // will be deprecated soon
+    accountIdentifier: string | null;
+    homeAccountIdentifier?: string;
+    userName: string | null;
+    name: string | null;
+    idToken: StringDict ; // will be deprecated soon
     idTokenClaims: StringDict;
-    sid: string;
-    environment: string;
+    sid: string | null;
+    environment: string | null;
 
     /**
      * Creates an Account Object
      * @praram accountIdentifier
+     * @param accountIdentifier
      * @param homeAccountIdentifier
      * @param userName
      * @param name
@@ -39,7 +40,7 @@ export class Account {
      * @param sid
      * @param environment
      */
-    constructor(accountIdentifier: string, homeAccountIdentifier: string, userName: string, name: string, idTokenClaims: StringDict, sid: string,  environment: string) {
+    constructor(accountIdentifier: string | null, homeAccountIdentifier: string | undefined, userName: string | null, name: string | null, idTokenClaims: StringDict, sid: string | null,  environment: string | null) {
         this.accountIdentifier = accountIdentifier;
         this.homeAccountIdentifier = homeAccountIdentifier;
         this.userName = userName;
@@ -56,18 +57,18 @@ export class Account {
      * @param idToken
      * @param clientInfo
      */
-    static createAccount(idToken: IdToken, clientInfo: ClientInfo): Account {
+    static createAccount(idToken: IdToken, clientInfo: ClientInfo | null): Account {
 
         // create accountIdentifier
-        const accountIdentifier: string = idToken.objectId ||  idToken.subject;
+        const accountIdentifier = idToken.objectId || idToken.subject;
 
         // create homeAccountIdentifier
         const uid: string = clientInfo ? clientInfo.uid : "";
         const utid: string = clientInfo ? clientInfo.utid : "";
 
-        let homeAccountIdentifier: string;
+        let homeAccountIdentifier: string | undefined = undefined;
         if (!StringUtils.isEmpty(uid)) {
-            homeAccountIdentifier = StringUtils.isEmpty(utid)? CryptoUtils.base64Encode(uid): CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
+            homeAccountIdentifier = StringUtils.isEmpty(utid) ? CryptoUtils.base64Encode(uid): CryptoUtils.base64Encode(uid) + "." + CryptoUtils.base64Encode(utid);
         }
         return new Account(accountIdentifier, homeAccountIdentifier, idToken.preferredName, idToken.name, idToken.claims, idToken.sid, idToken.issuer);
     }
@@ -78,7 +79,7 @@ export class Account {
      * @param a1: Account object
      * @param a2: Account object
      */
-    static compareAccounts(a1: Account, a2: Account): boolean {
+    static compareAccounts(a1: Account | null, a2: Account | null): boolean {
         if (!a1 || !a2) {
             return false;
         }

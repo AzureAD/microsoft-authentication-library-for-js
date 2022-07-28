@@ -1,3 +1,4 @@
+// @ts-nocheck
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig, TelemetryPlatform } from "../../src/telemetry/TelemetryTypes";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";

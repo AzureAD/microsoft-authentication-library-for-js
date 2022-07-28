@@ -1,3 +1,4 @@
+// @ts-nocheck
 import sinon from "sinon";
 import { BrowserStorage } from "../src/cache/BrowserStorage";
 import { AuthCache } from "../src/cache/AuthCache";

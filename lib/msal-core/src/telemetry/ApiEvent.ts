@@ -49,7 +49,7 @@ export default class ApiEvent extends TelemetryEvent {
 
     private piiEnabled: boolean;
 
-    constructor(correlationId: string, piiEnabled: boolean, apiEventIdentifier?: API_EVENT_IDENTIFIER) {
+    constructor(correlationId: string | undefined, piiEnabled: boolean, apiEventIdentifier?: API_EVENT_IDENTIFIER) {
         super(prependEventNamePrefix("api_event"), correlationId, apiEventIdentifier);
         if (apiEventIdentifier) {
             this.apiCode = mapEventIdentiferToCode[apiEventIdentifier];

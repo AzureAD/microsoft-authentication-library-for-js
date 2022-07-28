@@ -50,7 +50,7 @@ export class ScopeSet {
 
     /**
      * Performs trimAndConvertToLowerCase on string array
-     * @param scopes 
+     * @param scopes
      */
     static trimAndConvertArrayToLowerCase(scopes: Array<string>): Array<string> {
         return scopes.map(scope => this.trimAndConvertToLowerCase(scope));
@@ -58,7 +58,7 @@ export class ScopeSet {
 
     /**
      * Trims each scope in scopes array
-     * @param scopes 
+     * @param scopes
      */
     static trimScopes(scopes: Array<string>): Array<string> {
         return scopes.map(scope => scope.trim());
@@ -99,7 +99,7 @@ export class ScopeSet {
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      * @ignore
      */
-    static validateInputScope(scopes: Array<string>, scopesRequired: boolean): void {
+    static validateInputScope(scopes: Array<string> | undefined, scopesRequired: boolean): void {
         if (!scopes) {
             if (scopesRequired) {
                 throw ClientConfigurationError.createScopesRequiredError(scopes);
@@ -141,14 +141,15 @@ export class ScopeSet {
      * @ignore
      * Appends extraScopesToConsent if passed
      * @param {@link AuthenticationParameters}
+     * @param reqExtraScopesToConsent
      */
-    static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
+    static appendScopes(reqScopes?: Array<string>, reqExtraScopesToConsent?: Array<string>): Array<string> | undefined {
         if (reqScopes) {
             const convertedExtraScopes = reqExtraScopesToConsent ? this.trimAndConvertArrayToLowerCase([...reqExtraScopesToConsent]) : null;
             const convertedReqScopes = this.trimAndConvertArrayToLowerCase([...reqScopes]);
             return convertedExtraScopes ? [...convertedReqScopes, ...convertedExtraScopes] : convertedReqScopes;
         }
-        return null;
+        return undefined;
     }
 
     // #endregion
@@ -187,7 +188,7 @@ export class ScopeSet {
      * @ignore
      * Returns true if the clientId is the only scope in the array
      */
-    static onlyContainsClientId(scopes: Array<String>, clientId: string): boolean {
+    static onlyContainsClientId(scopes: Array<String> | undefined, clientId: string): boolean {
         // Double negation to force false value returned in case scopes is null
         return !!scopes && (scopes.indexOf(clientId) > -1 && scopes.length === 1);
     }
@@ -226,7 +227,7 @@ export class ScopeSet {
      * @param scopes Array<string>: Pre-normalized scopes array
      * @param clientId string: The application's clientId that is searched for in the scopes array
      */
-    static translateClientIdIfSingleScope(scopes: Array<string>, clientId: string): Array<string> {
+    static translateClientIdIfSingleScope(scopes: Array<string> | undefined, clientId: string): Array<string> | undefined {
         return this.onlyContainsClientId(scopes, clientId) ? Constants.oidcScopes : scopes;
     }
 }

@@ -13,18 +13,18 @@ import { IdToken } from "./IdToken";
  */
 export class ClientInfo {
 
-    private _uid: string;
+    private _uid: string = '';
     get uid(): string {
-        return this._uid ? this._uid : "";
+        return this._uid;
     }
 
     set uid(uid: string) {
         this._uid = uid;
     }
 
-    private _utid: string;
+    private _utid: string = '';
     get utid(): string {
-        return this._utid ? this._utid : "";
+        return this._utid
     }
 
     set utid(utid: string) {
@@ -33,14 +33,14 @@ export class ClientInfo {
 
     static createClientInfoFromIdToken(idToken:IdToken, authority: string): ClientInfo {
         const clientInfo = {
-            uid: idToken.subject, 
+            uid: idToken.subject,
             utid: ""
         };
 
         return new ClientInfo(CryptoUtils.base64Encode(JSON.stringify(clientInfo)), authority);
     }
 
-    constructor(rawClientInfo: string, authority: string) {
+    constructor(rawClientInfo: string | undefined, authority: string) {
         if (!rawClientInfo || StringUtils.isEmpty(rawClientInfo)) {
             this.uid = "";
             this.utid = "";

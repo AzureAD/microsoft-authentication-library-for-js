@@ -1,3 +1,4 @@
+// @ts-nocheck
 import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
 import { ClientAuthError, AuthError } from "../src";

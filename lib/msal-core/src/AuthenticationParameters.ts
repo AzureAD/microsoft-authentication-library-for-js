@@ -19,7 +19,7 @@ export type AuthenticationParameters = {
     authority?: string;
     state?: string;
     correlationId?: string;
-    account?: Account;
+    account: Account | null | undefined;
     sid?: string;
     loginHint?: string;
     forceRefresh?: boolean;

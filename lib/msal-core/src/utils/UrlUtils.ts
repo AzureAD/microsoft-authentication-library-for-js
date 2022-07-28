@@ -21,12 +21,14 @@ export class UrlUtils {
      */
     static createNavigateUrl(serverRequestParams: ServerRequestParameters): string {
         const str = this.createNavigationUrlString(serverRequestParams);
-        let authEndpoint: string = serverRequestParams.authorityInstance.AuthorizationEndpoint;
+        let authEndpoint = serverRequestParams.authorityInstance?.AuthorizationEndpoint;
         // if the endpoint already has queryparams, lets add to it, otherwise add the first one
-        if (authEndpoint.indexOf("?") < 0) {
-            authEndpoint += "?";
-        } else {
-            authEndpoint += "&";
+        if (authEndpoint) {
+            if (authEndpoint.indexOf("?") < 0) {
+                authEndpoint += "?";
+            } else {
+                authEndpoint += "&";
+            }
         }
 
         const requestUrl: string = `${authEndpoint}${str.join("&")}`;
@@ -44,7 +46,7 @@ export class UrlUtils {
         str.push("response_type=" + serverRequestParams.responseType);
         str.push("scope=" + encodeURIComponent(ScopeSet.parseScope(scopes)));
         str.push("client_id=" + encodeURIComponent(serverRequestParams.clientId));
-        str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri));
+        str.push("redirect_uri=" + encodeURIComponent(serverRequestParams.redirectUri!)); // TODO bug: what if redirectUri is undefined?
 
         str.push("state=" + encodeURIComponent(serverRequestParams.state));
         str.push("nonce=" + encodeURIComponent(serverRequestParams.nonce));
@@ -68,7 +70,7 @@ export class UrlUtils {
             str.push(serverRequestParams.extraQueryParameters);
         }
 
-        str.push("client-request-id=" + encodeURIComponent(serverRequestParams.correlationId));
+        str.push("client-request-id=" + encodeURIComponent(serverRequestParams.correlationId!)); // TODO bug: what if correlationId is undefined?
         return str;
     }
 
@@ -88,10 +90,10 @@ export class UrlUtils {
 
     /**
      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-     * @param href The url
+     * @param url The url
      * @param tenantId The tenant id to replace
      */
-    static replaceTenantPath(url: string, tenantId: string): string {
+    static replaceTenantPath(url: string, tenantId: string | null): string {
         const lowerCaseUrl = url.toLowerCase();
         const urlObject = this.GetUrlComponents(lowerCaseUrl);
         const pathArray = urlObject.PathSegments;
@@ -102,13 +104,13 @@ export class UrlUtils {
     }
 
     static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]): string {
-        return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
+        return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"))!;
     }
-    
+
     /**
      * Checks if an authority is common (ex. https://a:b/common/)
      * @param url The url
-     * @returns true if authority is common and false otherwise 
+     * @returns true if authority is common and false otherwise
      */
     static isCommonAuthority(url: string): boolean {
         const authority =  this.CanonicalizeUri(url);
@@ -119,7 +121,7 @@ export class UrlUtils {
     /**
      * Checks if an authority is for organizations (ex. https://a:b/organizations/)
      * @param url The url
-     * @returns true if authority is for  and false otherwise 
+     * @returns true if authority is for  and false otherwise
      */
     static isOrganizationsAuthority(url: string): boolean {
         const authority =  this.CanonicalizeUri(url);
@@ -130,7 +132,7 @@ export class UrlUtils {
     /**
      * Checks if an authority is for consumers (ex. https://a:b/consumers/)
      * @param url The url
-     * @returns true if authority is for  and false otherwise 
+     * @returns true if authority is for  and false otherwise
      */
     static isConsumersAuthority(url: string): boolean {
         const authority =  this.CanonicalizeUri(url);
@@ -142,7 +144,7 @@ export class UrlUtils {
      * Parses out the components from a url string.
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
      */
-    static GetUrlComponents(url: string): IUri {
+    static GetUrlComponents(url: string | null): IUri {
         if (!url) {
             throw "Url required";
         }
@@ -172,7 +174,7 @@ export class UrlUtils {
         if (match[8]){
             urlComponents.Hash = match[8];
         }
-        
+
         return urlComponents;
     }
 
@@ -181,7 +183,7 @@ export class UrlUtils {
      *
      * @param url
      */
-    static CanonicalizeUri(url: string): string {
+    static CanonicalizeUri(url: string | null): string | null {
         if (url) {
             let lowerCaseUrl = url.toLowerCase();
 
@@ -276,7 +278,7 @@ export class UrlUtils {
 
     /**
      * @ignore
-     * @param {string} URI
+     * @param {string} uri
      * @returns {string} host from the URI
      *
      * extract URI from the host

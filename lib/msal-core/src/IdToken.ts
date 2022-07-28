@@ -13,24 +13,24 @@ import { StringUtils } from "./utils/StringUtils";
  */
 export class IdToken {
 
-    issuer: string;
-    objectId: string;
-    subject: string;
-    tenantId: string;
-    version: string;
-    preferredName: string;
-    name: string;
-    homeObjectId: string;
-    nonce: string;
-    expiration: string;
+    issuer: string | null = null;
+    objectId: string | null = null;
+    subject: string | null = null;
+    tenantId: string | null = null;
+    version: string | null = null;
+    preferredName: string | null = null;
+    name: string | null = null;
+    homeObjectId: string | null = null;
+    nonce: string | null = null;
+    expiration: string | null = null;
     rawIdToken: string;
     claims: StringDict;
-    sid: string;
-    cloudInstance: string;
+    sid: string | null = null;
+    cloudInstance: string | null = null;
     /* tslint:disable:no-string-literal */
-    constructor(rawIdToken: string) {
-        if (StringUtils.isEmpty(rawIdToken)) {
-            throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken);
+    constructor(rawIdToken?: string) {
+        if (!rawIdToken || StringUtils.isEmpty(rawIdToken)) {
+            throw ClientAuthError.createIdTokenNullOrEmptyError(rawIdToken!);
         }
         try {
             this.rawIdToken = rawIdToken;

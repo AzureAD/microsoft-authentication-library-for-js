@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { RequestUtils } from "../../src/utils/RequestUtils";
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { AuthenticationParameters } from "../../src/AuthenticationParameters";

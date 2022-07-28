@@ -20,7 +20,7 @@ export const AuthErrorMessage = {
 export class AuthError extends Error {
 
     errorCode: string;
-    errorMessage: string;
+    errorMessage?: string;
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorMessage);

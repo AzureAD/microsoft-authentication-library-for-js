@@ -140,7 +140,7 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.nonArrayScopes.desc} Given value: ${scopesValue}.`);
     }
 
-    static createScopesRequiredError(scopesValue: string[]): ClientConfigurationError {
+    static createScopesRequiredError(scopesValue: string[] | undefined): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequired.code,
             `${ClientConfigurationErrorMessage.scopesRequired.desc} Given value: ${scopesValue}`);
     }
@@ -190,6 +190,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
         const missingKeys = Object.keys(requiredKeys)
             .reduce((keys, key) => {
+                // @ts-expect-error js check
                 return config[key] ? keys : keys.concat([ `${key} (${requiredKeys[key]})` ]);
             }, []);
 

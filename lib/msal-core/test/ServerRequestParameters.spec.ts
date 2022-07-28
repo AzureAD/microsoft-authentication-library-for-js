@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
 import { Authority, ClientConfigurationError, Account } from "../src";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";

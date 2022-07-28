@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { TEST_CONFIG, OPENID_CONFIGURATION, TENANT_DISCOVERY_RESPONSE } from "../TestConstants";

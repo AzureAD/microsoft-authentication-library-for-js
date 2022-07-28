@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { scrubTenantFromUri, hashPersonalIdentifier, prependEventNamePrefix, supportsBrowserPerformance, startBrowserPerformanceMeasurement, endBrowserPerformanceMeasurement } from "../../src/telemetry/TelemetryUtils";
 import { EVENT_NAME_PREFIX } from "../../src/telemetry/TelemetryConstants";
 import { spy } from "sinon";

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ServerError, ServerErrorMessage } from "../../src/error/ServerError";
 import { AuthError } from "../../src";
 

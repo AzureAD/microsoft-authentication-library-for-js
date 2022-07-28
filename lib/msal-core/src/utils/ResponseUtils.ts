@@ -19,7 +19,7 @@ import { ServerRequestParameters } from "../ServerRequestParameters";
  */
 export class ResponseUtils {
 
-    static setResponseIdToken(originalResponse: AuthResponse, idTokenObj: IdToken) : AuthResponse {
+    static setResponseIdToken(originalResponse: AuthResponse | null, idTokenObj: IdToken| null) : AuthResponse | null {
         if (!originalResponse) {
             return null;
         } else if (!idTokenObj) {
@@ -30,7 +30,7 @@ export class ResponseUtils {
         if (exp && !originalResponse.expiresOn) {
             originalResponse.expiresOn = new Date(exp * 1000);
         }
-    
+
         return {
             ...originalResponse,
             idToken: idTokenObj,
@@ -40,18 +40,18 @@ export class ResponseUtils {
         };
     }
 
-    static buildAuthResponse(idToken: IdToken, authResponse: AuthResponse, serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: Array<string>, accountState: string): AuthResponse {
+    static buildAuthResponse(idToken: IdToken | null, authResponse: AuthResponse | null, serverAuthenticationRequest: ServerRequestParameters, account: Account | null, scopes: Array<string>, accountState: string | undefined): AuthResponse | null {
         switch(serverAuthenticationRequest.responseType) {
             case ResponseTypes.id_token:
                 let idTokenResponse: AuthResponse = {
-                    ...authResponse,
+                    ...authResponse!, // TODO bug: what if authResponse properties are undefined?
                     tokenType: ServerHashParamKeys.ID_TOKEN,
                     account: account,
                     scopes: scopes,
                     accountState: accountState
                 };
-                
-                idTokenResponse = ResponseUtils.setResponseIdToken(idTokenResponse, idToken);
+
+                idTokenResponse = ResponseUtils.setResponseIdToken(idTokenResponse, idToken)!;
                 return (idTokenResponse.idToken) ? idTokenResponse : null;
             case ResponseTypes.id_token_token:
                 const idTokeTokenResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
@@ -59,7 +59,7 @@ export class ResponseUtils {
             case ResponseTypes.token:
                 const tokenResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
                 return tokenResponse;
-            default: 
+            default:
                 return null;
         }
     }

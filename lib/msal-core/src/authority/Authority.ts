@@ -27,17 +27,17 @@ export enum AuthorityType {
 export class Authority {
     constructor(authority: string, validateAuthority: boolean, authorityMetadata?: ITenantDiscoveryResponse) {
         this.IsValidationEnabled = validateAuthority;
-        this.CanonicalAuthority = authority;
+        this.canonicalAuthority = authority;
 
         this.validateAsUri();
         this.tenantDiscoveryResponse = authorityMetadata;
     }
 
-    public static isAdfs(authorityUrl: string): boolean {
+    public static isAdfs(authorityUrl: string | null): boolean {
         const components = UrlUtils.GetUrlComponents(authorityUrl);
         const pathSegments = components.PathSegments;
 
-        return (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS);
+        return (!!pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS);
     }
 
     public get AuthorityType(): AuthorityType {
@@ -50,21 +50,21 @@ export class Authority {
         return this.CanonicalAuthorityUrlComponents.PathSegments[0];
     }
 
-    private tenantDiscoveryResponse: ITenantDiscoveryResponse;
+    private tenantDiscoveryResponse?: ITenantDiscoveryResponse;
 
-    public get AuthorizationEndpoint(): string {
+    public get AuthorizationEndpoint(): string | null {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.AuthorizationEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
+        return this.tenantDiscoveryResponse?.AuthorizationEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant) ?? null;
     }
 
-    public get EndSessionEndpoint(): string {
+    public get EndSessionEndpoint(): string | null {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.EndSessionEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant);
+        return this.tenantDiscoveryResponse?.EndSessionEndpoint.replace(/{tenant}|{tenantid}/g, this.Tenant) ?? null;
     }
 
-    public get SelfSignedJwtAudience(): string {
+    public get SelfSignedJwtAudience(): string | null {
         this.validateResolved();
-        return this.tenantDiscoveryResponse.Issuer.replace(/{tenant}|{tenantid}/g, this.Tenant);
+        return this.tenantDiscoveryResponse?.Issuer.replace(/{tenant}|{tenantid}/g, this.Tenant) ?? null;
     }
 
     private validateResolved() {
@@ -81,12 +81,12 @@ export class Authority {
     }
 
     public set CanonicalAuthority(url: string) {
-        this.canonicalAuthority = UrlUtils.CanonicalizeUri(url);
+        this.canonicalAuthority = UrlUtils.CanonicalizeUri(url)!; // TODO bug: what if url is undefined?
         this.canonicalAuthorityUrlComponents = null;
     }
 
     private canonicalAuthority: string;
-    private canonicalAuthorityUrlComponents: IUri;
+    private canonicalAuthorityUrlComponents: IUri | null = null;
 
     public get CanonicalAuthorityUrlComponents(): IUri {
         if (!this.canonicalAuthorityUrlComponents) {
@@ -124,7 +124,7 @@ export class Authority {
     /**
      * Calls the OIDC endpoint and returns the response
      */
-    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
 
         const httpMethod = NetworkRequestType.GET;
@@ -153,15 +153,15 @@ export class Authority {
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
      */
-    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId?: string): Promise<ITenantDiscoveryResponse> {
         if (this.IsValidationEnabled) {
-            const host = this.canonicalAuthorityUrlComponents.HostNameAndPort;
+            const host = this.canonicalAuthorityUrlComponents?.HostNameAndPort;
             if (TrustedAuthority.getTrustedHostList().length === 0) {
                 await TrustedAuthority.setTrustedAuthoritiesFromNetwork(this.canonicalAuthority, telemetryManager, correlationId);
             }
 
-            if (!TrustedAuthority.IsInTrustedHostList(host)) {
-                throw ClientConfigurationError.createUntrustedAuthorityError(host);
+            if (!host || !TrustedAuthority.IsInTrustedHostList(host)) {
+                throw ClientConfigurationError.createUntrustedAuthorityError(host!);
             }
         }
         const openIdConfigurationEndpointResponse = this.GetOpenIdConfigurationEndpoint();

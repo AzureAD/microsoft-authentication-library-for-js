@@ -29,24 +29,24 @@ export class RequestUtils {
      *
      * @param request
      * @param isLoginCall
-     * @param cacheStorage
      * @param clientId
      *
      * validates all request parameters and generates a consumable request object
+     * @param interactionType
      */
-    static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
+    static validateRequest(request: AuthenticationParameters | undefined, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
 
         // Throw error if request is empty for acquire * calls
         if(!isLoginCall && !request) {
             throw ClientConfigurationError.createEmptyRequestError();
         }
 
-        let scopes: Array<string>;
-        let extraQueryParameters: StringDict;
+        let scopes: Array<string> | undefined;
+        let extraQueryParameters: StringDict | undefined = undefined;
 
         if(request) {
             // if extraScopesToConsent is passed in loginCall, append them to the login request; Validate and filter scopes (the validate function will throw if validation fails)
-            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : request.scopes;
+            scopes = isLoginCall ? ScopeSet.appendScopes(request.scopes, request.extraScopesToConsent) : (request.scopes);
             ScopeSet.validateInputScope(scopes, !isLoginCall);
             scopes = ScopeSet.translateClientIdIfSingleScope(scopes, clientId);
 
@@ -61,17 +61,18 @@ export class RequestUtils {
         }
 
         // validate and generate state and correlationId
-        const state = this.validateAndGenerateState(request && request.state, interactionType);
-        const correlationId = this.validateAndGenerateCorrelationId(request && request.correlationId);
+        const state = this.validateAndGenerateState(request?.state, interactionType);
+        const correlationId = this.validateAndGenerateCorrelationId(request?.correlationId);
 
         const validatedRequest: AuthenticationParameters = {
             ...request,
+            account: request?.account,
             extraQueryParameters,
             scopes,
             state,
             correlationId
         };
-        
+
         return validatedRequest;
     }
 
@@ -79,9 +80,9 @@ export class RequestUtils {
      * @ignore
      *
      * Utility to test if valid prompt value is passed in the request
-     * @param request
+     * @param prompt
      */
-    static validatePromptParameter (prompt: string): void {
+    static validatePromptParameter (prompt?: string): void {
         if(prompt) {
             if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
                 throw ClientConfigurationError.createInvalidPromptError(prompt);
@@ -93,12 +94,13 @@ export class RequestUtils {
      * @ignore
      *
      * Removes unnecessary or duplicate query parameters from extraQueryParameters
-     * @param request
+     * @param extraQueryParameters
+     * @param claimsRequest
      */
-    static validateEQParameters(extraQueryParameters: StringDict, claimsRequest: string) : StringDict {
+    static validateEQParameters(extraQueryParameters?: StringDict, claimsRequest?: string) : StringDict | undefined {
         const eQParams : StringDict = { ...extraQueryParameters};
         if (!eQParams) {
-            return null;
+            return undefined;
         }
         if (claimsRequest) {
             // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
@@ -121,7 +123,7 @@ export class RequestUtils {
      * TODO: More validation will be added when the server team tells us how they have actually implemented claims
      * @param claimsRequest
      */
-    static validateClaimsRequest(claimsRequest: string): void {
+    static validateClaimsRequest(claimsRequest?: string): void {
         if (!claimsRequest) {
             return;
         }
@@ -137,9 +139,10 @@ export class RequestUtils {
      *
      * generate unique state per request
      * @param userState User-provided state value
+     * @param interactionType
      * @returns State string include library state and user state
      */
-    static validateAndGenerateState(userState: string, interactionType: InteractionType): string {
+    static validateAndGenerateState(userState: string | undefined, interactionType: InteractionType): string {
         return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState(interactionType)}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState(interactionType);
     }
 
@@ -166,8 +169,8 @@ export class RequestUtils {
      * @param state State value returned in the request
      * @returns Parsed values from the encoded state value
      */
-    static parseLibraryState(state: string): LibraryStateObject {
-        const libraryState = decodeURIComponent(state).split(Constants.resourceDelimiter)[0];
+    static parseLibraryState(state: string | null | undefined): LibraryStateObject {
+        const libraryState = decodeURIComponent(state!).split(Constants.resourceDelimiter)[0]; // TODO: possible bug: what is state is null?
 
         if (CryptoUtils.isGuid(libraryState)) {
             // If state is guid, assume timestamp is now and is redirect, as redirect should be only method where this can happen.
@@ -195,7 +198,7 @@ export class RequestUtils {
      * validate correlationId and generate if not valid or not set by the user
      * @param correlationId
      */
-    static validateAndGenerateCorrelationId(correlationId: string): string {
+    static validateAndGenerateCorrelationId(correlationId?: string): string | undefined {
         // validate user set correlationId or set one for the user if null
         if(correlationId && !CryptoUtils.isGuid(correlationId)) {
             throw ClientConfigurationError.createInvalidCorrelationIdError();
@@ -208,6 +211,6 @@ export class RequestUtils {
      * @param request
      */
     static createRequestSignature(request: AuthenticationParameters): string {
-        return `${request.scopes.join(" ").toLowerCase()}${Constants.resourceDelimiter}${request.authority}`;
+        return `${request.scopes?.join(" ").toLowerCase()}${Constants.resourceDelimiter}${request.authority}`;
     }
 }

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { TEST_RESPONSE_TYPE } from "./../TestConstants";
 

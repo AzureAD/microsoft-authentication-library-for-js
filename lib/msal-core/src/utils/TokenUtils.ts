@@ -17,7 +17,7 @@ export class TokenUtils {
      *
      * @param jwtToken
      */
-    static decodeJwt(jwtToken: string): object {
+    static decodeJwt(jwtToken: string): object | null {
         if (StringUtils.isEmpty(jwtToken)) {
             return null;
         }
@@ -38,10 +38,11 @@ export class TokenUtils {
     /**
      * Evaluates whether token cache item expiration is within expiration offset range
      * @param tokenCacheItem 
+     * @param tokenRenewalOffsetSeconds
      */
-    static validateExpirationIsWithinOffset(expiration: number, tokenRenewalOffsetSeconds: number): Boolean {
+    static validateExpirationIsWithinOffset(expiration: number, tokenRenewalOffsetSeconds?: number): Boolean {
         const offset = tokenRenewalOffsetSeconds || 300;
-        return expiration && (expiration > TimeUtils.now() + offset);
+        return !!expiration && (expiration > TimeUtils.now() + offset);
     }
 
     /**
@@ -49,7 +50,7 @@ export class TokenUtils {
      *
      * @param encodedIdToken
      */
-    static extractIdToken(encodedIdToken: string): object {
+    static extractIdToken(encodedIdToken: string): object | null {
     // id token will be decoded to get the username
         const decodedToken = this.decodeJwt(encodedIdToken);
         if (!decodedToken) {

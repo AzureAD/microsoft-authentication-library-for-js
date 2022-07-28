@@ -1,3 +1,4 @@
+// @ts-nocheck
 import ApiEvent, {
     API_EVENT_IDENTIFIER,
     API_CODE,

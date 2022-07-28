@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { AuthError, ServerError } from "../../src";
 

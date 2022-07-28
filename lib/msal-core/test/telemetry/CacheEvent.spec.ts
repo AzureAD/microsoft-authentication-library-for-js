@@ -1,3 +1,4 @@
+// @ts-nocheck
 import CacheEvent, { CACHE_EVENT_TYPES, TOKEN_TYPES, TOKEN_TYPE_KEY } from "../../src/telemetry/CacheEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 

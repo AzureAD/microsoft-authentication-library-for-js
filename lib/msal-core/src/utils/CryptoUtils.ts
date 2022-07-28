@@ -87,7 +87,8 @@ export class CryptoUtils {
      * verifies if a string is  GUID
      * @param guid
      */
-    static isGuid(guid: string): boolean {
+    static isGuid(guid?: string): boolean {
+        if (!guid) return false;
         const regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return regexGuid.test(guid);
     }
@@ -150,7 +151,7 @@ export class CryptoUtils {
      * @param query
      */
     static deserialize(query: string): object {
-        let match: Array<string>; // Regex for replacing addition symbol with a space
+        let match: RegExpExecArray | null; // Regex for replacing addition symbol with a space
         const pl = /\+/g;
         const search = /([^&=]+)=([^&]*)/g;
         const decode = (s: string) => decodeURIComponent(s.replace(pl, " "));

@@ -22,7 +22,7 @@ export class AuthCache extends BrowserStorage {// Singleton
     private rollbackEnabled: boolean;
     private temporaryCache: BrowserStorage;
 
-    constructor(clientId: string, cacheLocation: CacheLocation, storeAuthStateInCookie: boolean) {
+    constructor(clientId: string, cacheLocation: CacheLocation | undefined, storeAuthStateInCookie: boolean) {
         super(cacheLocation);
         this.temporaryCache = new BrowserStorage(SESSION_STORAGE);
         this.clientId = clientId;
@@ -100,12 +100,12 @@ export class AuthCache extends BrowserStorage {// Singleton
      * Validates that the input cache key contains the account search terms (clientId and homeAccountIdentifier) and
      * then whether or not it contains the "scopes", depending on the token type being searched for. With matching account
      * search terms, Access Token search tries to match the "scopes" keyword, while Id Token search expects "scopes" to not be included.
-     * @param key 
-     * @param clientId 
-     * @param homeAccountIdentifier 
-     * @param tokenType 
+     * @param key
+     * @param clientId
+     * @param homeAccountIdentifier
+     * @param tokenType
      */
-    private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string, tokenType: string): AccessTokenKey {
+    private matchKeyForType(key:string, clientId: string, homeAccountIdentifier: string | null, tokenType: string): AccessTokenKey | null {
         // All valid token cache item keys are valid JSON objects, ignore keys that aren't
         const parsedKey = StringUtils.validateAndParseJsonCacheKey(key);
 
@@ -114,7 +114,7 @@ export class AuthCache extends BrowserStorage {// Singleton
         }
 
         // Does the cache item match the request account
-        const accountMatches = key.match(clientId) && key.match(homeAccountIdentifier);
+        const accountMatches = key.match(clientId) && key.match(homeAccountIdentifier!);
         // Does the cache item match the requested token type
         let tokenTypeMatches = false;
 
@@ -170,9 +170,9 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Sets temporary cache value
-     * @param key 
-     * @param value 
-     * @param enableCookieStorage 
+     * @param key
+     * @param value
+     * @param enableCookieStorage
      */
     setTemporaryItem(key: string, value: string, enableCookieStorage?: boolean): void {
         this.temporaryCache.setItem(this.generateCacheKey(key, true), value, enableCookieStorage);
@@ -180,8 +180,8 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Gets temporary cache value
-     * @param key 
-     * @param enableCookieStorage 
+     * @param key
+     * @param enableCookieStorage
      */
     getTemporaryItem(key: string, enableCookieStorage?: boolean): string {
         return this.temporaryCache.getItem(this.generateCacheKey(key, true), enableCookieStorage);
@@ -205,7 +205,7 @@ export class AuthCache extends BrowserStorage {// Singleton
     /**
      * Reset all temporary cache items
      */
-    resetTempCacheItems(state?: string): void {
+    resetTempCacheItems(state: string | null | undefined): void {
         const stateId = state && RequestUtils.parseLibraryState(state).id;
         const isTokenRenewalInProgress = this.tokenRenewalInProgress(state);
 
@@ -254,13 +254,13 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Get all tokens of a certain type from the cache
-     * @param clientId 
-     * @param homeAccountIdentifier 
+     * @param clientId
+     * @param homeAccountIdentifier
      * @param tokenType
      */
-    getAllTokensByType(clientId: string, homeAccountIdentifier: string, tokenType: string): Array<AccessTokenCacheItem> {
+    getAllTokensByType(clientId: string, homeAccountIdentifier: string | null, tokenType: string): Array<AccessTokenCacheItem> {
         const results = Object.keys(window[this.cacheLocation]).reduce((tokens, key) => {
-            const matchedTokenKey: AccessTokenKey = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
+            const matchedTokenKey = this.matchKeyForType(key, clientId, homeAccountIdentifier, tokenType);
             if (matchedTokenKey) {
                 const value = this.getItem(key);
                 if (value) {
@@ -275,7 +275,7 @@ export class AuthCache extends BrowserStorage {// Singleton
             }
 
             return tokens;
-        }, []);
+        }, [] as Array<AccessTokenCacheItem>);
         return results;
     }
 
@@ -284,22 +284,22 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param clientId
      * @param homeAccountIdentifier
      */
-    getAllAccessTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+    getAllAccessTokens(clientId: string, homeAccountIdentifier: string | null): Array<AccessTokenCacheItem> {
         return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ACCESS_TOKEN);
     }
 
     /**
-     * Get all id tokens in the cache in the form of AccessTokenCacheItem objects so they are 
+     * Get all id tokens in the cache in the form of AccessTokenCacheItem objects so they are
      * in a normalized format and can make use of the existing cached access token validation logic
      */
-    getAllIdTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
+    getAllIdTokens(clientId: string, homeAccountIdentifier: string | null): Array<AccessTokenCacheItem> {
         return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ID_TOKEN);
     }
 
     /**
      * Get all access and ID tokens in the cache
-     * @param clientId 
-     * @param homeAccountIdentifier 
+     * @param clientId
+     * @param homeAccountIdentifier
      */
     getAllTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         const accessTokens = this.getAllAccessTokens(clientId, homeAccountIdentifier);
@@ -309,7 +309,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Returns whether or not interaction is currently in progress. Optionally scope it to just this clientId
-     * @param forThisClient 
+     * @param forThisClient
      */
     isInteractionInProgress(matchClientId: boolean): boolean {
         const clientId = this.getInteractionInProgress();
@@ -329,7 +329,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Sets interaction in progress state
-     * @param isInProgress 
+     * @param isInProgress
      */
     setInteractionInProgress(newInProgressValue: boolean): void {
         if (newInProgressValue) {
@@ -347,10 +347,10 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Return if the token renewal is still in progress
-     * 
+     *
      * @param stateValue
      */
-    private tokenRenewalInProgress(stateValue: string): boolean {
+    private tokenRenewalInProgress(stateValue: string | null | undefined): boolean {
         const renewStatus = this.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.RENEW_STATUS, stateValue));
         return !!(renewStatus && renewStatus === Constants.inProgress);
     }
@@ -387,7 +387,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param accountId
      * @param state
      */
-    public static generateAcquireTokenAccountKey(accountId: string, state: string): string {
+    public static generateAcquireTokenAccountKey(accountId: string | undefined, state: string): string {
         const stateId = RequestUtils.parseLibraryState(state).id;
         return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${stateId}`;
     }
@@ -405,7 +405,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param tempCacheKey Cache key prefix
      * @param state Request state value
      */
-    public static generateTemporaryCacheKey(tempCacheKey: TemporaryCacheKeys, state: string): string {
+    public static generateTemporaryCacheKey(tempCacheKey: TemporaryCacheKeys, state: string | null | undefined): string {
         // Use the state id (a guid), in the interest of shorter key names, which is important for cookies.
         const stateId = RequestUtils.parseLibraryState(state).id;
         return `${tempCacheKey}${Constants.resourceDelimiter}${stateId}`;

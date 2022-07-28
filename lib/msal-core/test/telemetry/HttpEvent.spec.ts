@@ -1,3 +1,4 @@
+// @ts-nocheck
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 import sinon from "sinon";

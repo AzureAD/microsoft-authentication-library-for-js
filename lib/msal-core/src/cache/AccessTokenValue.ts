@@ -8,12 +8,12 @@
  */
 export class AccessTokenValue {
 
-    accessToken: string;
-    idToken: string;
+    accessToken: string | null | undefined;
+    idToken: string | undefined;
     expiresIn: string;
-    homeAccountIdentifier: string;
+    homeAccountIdentifier: string | undefined;
 
-    constructor(accessToken: string, idToken: string, expiresIn: string, homeAccountIdentifier: string) {
+    constructor(accessToken: string | null | undefined, idToken: string | undefined, expiresIn: string, homeAccountIdentifier: string | undefined) {
         this.accessToken = accessToken;
         this.idToken = idToken;
         this.expiresIn = expiresIn;

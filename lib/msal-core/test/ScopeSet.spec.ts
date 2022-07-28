@@ -1,3 +1,4 @@
+// @ts-nocheck
 import sinon from "sinon";
 import { ScopeSet } from "../src/ScopeSet";
 

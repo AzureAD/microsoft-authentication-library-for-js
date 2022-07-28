@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { IdToken } from "../../src/IdToken";
 import { AuthError, ServerHashParamKeys } from "../../src";

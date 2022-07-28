@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { OpenIdConfiguration, ITenantDiscoveryResponse } from "../src/authority/ITenantDiscoveryResponse";
 

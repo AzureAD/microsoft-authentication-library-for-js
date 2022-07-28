@@ -43,9 +43,9 @@ export class Logger {// Singleton Class
     /**
      * @hidden
      */
-    private localCallback: ILoggerCallback;
+    private localCallback: ILoggerCallback | null;
 
-    constructor(localCallback: ILoggerCallback,
+    constructor(localCallback: ILoggerCallback | null,
         options:
         {
             correlationId?: string,

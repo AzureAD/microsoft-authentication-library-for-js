@@ -30,7 +30,7 @@ export default class TelemetryManager {
     private eventCountByCorrelationId: EventCountByCorrelationId = {};
 
     // Implement after API EVENT
-    private onlySendFailureTelemetry: boolean = false;
+    private onlySendFailureTelemetry: boolean;
     private telemetryPlatform: TelemetryPlatform;
     private clientId: string;
     private telemetryEmitter: TelemetryEmitter;
@@ -48,7 +48,7 @@ export default class TelemetryManager {
             ...config.platform
         };
         this.clientId = config.clientId;
-        this.onlySendFailureTelemetry = config.onlySendFailureTelemetry;
+        this.onlySendFailureTelemetry = config.onlySendFailureTelemetry ?? false;
         /*
          * TODO, when i get to wiring this through, think about what it means if
          * a developer does not implement telem at all, we still instrument, but telemetryEmitter can be
@@ -101,11 +101,11 @@ export default class TelemetryManager {
         delete this.inProgressEvents[event.key];
     }
 
-    flush(correlationId: string): void {
+    flush(correlationId: string | undefined): void {
         this.logger.verbose(`Flushing telemetry events: ${correlationId}`);
 
         // If there is only unfinished events should this still return them?
-        if (!this.telemetryEmitter || !this.completedEvents[correlationId]) {
+        if (!correlationId || !this.telemetryEmitter || !this.completedEvents[correlationId]) {
             return;
         }
 
@@ -138,13 +138,13 @@ export default class TelemetryManager {
         this.telemetryEmitter(eventsWithDefaultEvent.map(e => e.get()));
     }
 
-    createAndStartApiEvent(correlationId: string, apiEventIdentifier: API_EVENT_IDENTIFIER): ApiEvent {
+    createAndStartApiEvent(correlationId: string | undefined, apiEventIdentifier: API_EVENT_IDENTIFIER): ApiEvent {
         const apiEvent = new ApiEvent(correlationId, this.logger.isPiiLoggingEnabled(), apiEventIdentifier);
         this.startEvent(apiEvent);
         return apiEvent;
     }
 
-    stopAndFlushApiEvent(correlationId: string, apiEvent: ApiEvent, wasSuccessful: boolean, errorCode?: string): void {
+    stopAndFlushApiEvent(correlationId: string | undefined, apiEvent: ApiEvent, wasSuccessful: boolean, errorCode?: string): void {
         apiEvent.wasSuccessful = wasSuccessful;
         if (errorCode) {
             apiEvent.apiErrorCode = errorCode;
@@ -153,7 +153,7 @@ export default class TelemetryManager {
         this.flush(correlationId);
     }
 
-    createAndStartHttpEvent(correlation: string, httpMethod: string, url: string, eventLabel: string): HttpEvent {
+    createAndStartHttpEvent(correlation: string | undefined, httpMethod: string, url: string, eventLabel: string): HttpEvent {
         const httpEvent = new HttpEvent(correlation, eventLabel);
         httpEvent.url = url;
         httpEvent.httpMethod = httpMethod;
@@ -186,6 +186,6 @@ export default class TelemetryManager {
                     return [...memo, event];
                 }
                 return memo;
-            }, []);
+            }, [] as Array<TelemetryEvent>);
     }
 }

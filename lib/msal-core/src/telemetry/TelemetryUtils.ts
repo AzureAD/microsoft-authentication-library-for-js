@@ -43,12 +43,12 @@ export const hashPersonalIdentifier = (valueToHash: string): string => {
     return CryptoUtils.base64Encode(valueToHash);
 };
 
-export const prependEventNamePrefix = (suffix: string): string => `${EVENT_NAME_PREFIX}${suffix || ""}`;
+export const prependEventNamePrefix = (suffix: string | undefined): string => `${EVENT_NAME_PREFIX}${suffix || ""}`;
 
 export const supportsBrowserPerformance = (): boolean => !!(
     typeof window !== "undefined" &&
         "performance" in window &&
-        window.performance.mark && 
+        window.performance.mark &&
         window.performance.measure
 );
 

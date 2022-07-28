@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { buildConfiguration, Configuration } from "../src/Configuration";
 import { Logger } from "../src/Logger";
 

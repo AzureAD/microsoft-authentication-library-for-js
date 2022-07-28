@@ -13,12 +13,12 @@ export class TrustedAuthority {
     private static TrustedHostList: Array<string> = [];
 
     /**
-     * 
-     * @param validateAuthority 
-     * @param knownAuthorities 
+     *
+     * @param validateAuthority
+     * @param knownAuthorities
      */
-    public static setTrustedAuthoritiesFromConfig(validateAuthority: boolean, knownAuthorities: Array<string>): void{
-        if (validateAuthority && !this.getTrustedHostList().length){
+    public static setTrustedAuthoritiesFromConfig(validateAuthority: boolean, knownAuthorities: Array<string> | undefined): void{
+        if (validateAuthority && !this.getTrustedHostList().length && knownAuthorities){
             knownAuthorities.forEach(function(authority) {
                 TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
             });
@@ -26,11 +26,12 @@ export class TrustedAuthority {
     }
 
     /**
-     * 
-     * @param telemetryManager 
-     * @param correlationId 
+     *
+     * @param authorityToVerify
+     * @param telemetryManager
+     * @param correlationId
      */
-    private static async getAliases(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<object>> {
+    private static async getAliases(authorityToVerify: string | null, telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<object>> {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = NetworkRequestType.GET;
@@ -50,11 +51,12 @@ export class TrustedAuthority {
     }
 
     /**
-     * 
-     * @param telemetryManager 
-     * @param correlationId 
+     *
+     * @param authorityToVerify
+     * @param telemetryManager
+     * @param correlationId
      */
-    public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
+    public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: string | null, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
         const metadata = await this.getAliases(authorityToVerify, telemetryManager, correlationId);
         metadata.forEach(function(entry: object){
             const authorities: Array<string> = entry["aliases"];
@@ -68,7 +70,7 @@ export class TrustedAuthority {
             // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
             TrustedAuthority.TrustedHostList.push(host.toLowerCase());
         }
-    } 
+    }
 
     public static getTrustedHostList(): Array<string> {
         return this.TrustedHostList;
@@ -76,7 +78,7 @@ export class TrustedAuthority {
 
     /**
      * Checks to see if the host is in a list of trusted hosts
-     * @param host 
+     * @param host
      */
     public static IsInTrustedHostList(host: string): boolean {
         return this.TrustedHostList.indexOf(host.toLowerCase()) > -1;

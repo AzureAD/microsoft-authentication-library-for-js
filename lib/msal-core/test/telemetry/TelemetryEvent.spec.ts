@@ -1,3 +1,4 @@
+// @ts-nocheck
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 

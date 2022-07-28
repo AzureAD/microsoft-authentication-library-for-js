@@ -20,7 +20,7 @@ import { version as libraryVersion } from "./packageMetadata";
  */
 export class ServerRequestParameters {
 
-    authorityInstance: Authority;
+    authorityInstance: Authority | null;
     clientId: string;
     scopes: Array<string>;
 
@@ -30,18 +30,18 @@ export class ServerRequestParameters {
     // telemetry information
     xClientVer: string;
     xClientSku: string;
-    correlationId: string;
+    correlationId?: string;
 
     responseType: string;
-    redirectUri: string;
+    redirectUri: string | undefined;
 
-    promptValue: string;
-    claimsValue: string;
+    promptValue: string | null = null;
+    claimsValue: string | null = null;
 
-    queryParameters: string;
-    extraQueryParameters: string;
+    queryParameters: string | null = null;
+    extraQueryParameters: string | null = null;
 
-    public get authority(): string {
+    public get authority(): string | null {
         return this.authorityInstance ? this.authorityInstance.CanonicalAuthority : null;
     }
 
@@ -49,12 +49,13 @@ export class ServerRequestParameters {
      * Constructor
      * @param authority
      * @param clientId
-     * @param scope
      * @param responseType
      * @param redirectUri
+     * @param scopes
      * @param state
+     * @param correlationId
      */
-    constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, scopes: Array<string>, state: string, correlationId: string) {
+    constructor (authority: Authority | null, clientId: string, responseType: string, redirectUri: string | undefined, scopes: Array<string>, state: string, correlationId?: string) {
         this.authorityInstance = authority;
         this.clientId = clientId;
         this.nonce = CryptoUtils.createNewGuid();
@@ -82,10 +83,12 @@ export class ServerRequestParameters {
      * @ignore
      *
      * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
+     * @param account
      * @param request
      * @param serverAuthenticationRequest
+     * @param silentCall
      */
-    populateQueryParams(account: Account, request: AuthenticationParameters|null, adalIdTokenObject?: object, silentCall?: boolean): void {
+    populateQueryParams(account: Account | null, request: AuthenticationParameters|null, adalIdTokenObject?: object | null, silentCall?: boolean): void {
         let queryParameters: StringDict = {};
 
         if (request) {
@@ -116,7 +119,7 @@ export class ServerRequestParameters {
         queryParameters = this.addHintParameters(account, queryParameters);
 
         // sanity check for developer passed extraQueryParameters
-        const eQParams: StringDict|null = request ? request.extraQueryParameters : null;
+        const eQParams = request?.extraQueryParameters ?? null;
 
         // Populate the extraQueryParameters to be sent to the server
         this.queryParameters = ServerRequestParameters.generateQueryParametersString(queryParameters);
@@ -128,18 +131,16 @@ export class ServerRequestParameters {
     /**
      * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
      * in any login() or acquireToken() calls
+     * @param request
      * @param idTokenObject
-     * @param extraQueryParameters
-     * @param sid
-     * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: object): StringDict {
+    private constructUnifiedCacheQueryParameter(request: AuthenticationParameters | null, idTokenObject: object | null): StringDict {
 
         // preference order: account > sid > login_hint
-        let ssoType;
-        let ssoData;
-        let serverReqParam: StringDict = {};
+        let ssoType: SSOTypes | undefined = undefined;
+        let ssoData: string | undefined = undefined;
+        let serverReqParam: StringDict;
         // if account info is passed, account.sid > account.login_hint
         if (request) {
             if (request.account) {
@@ -190,7 +191,7 @@ export class ServerRequestParameters {
      * @param {@link ServerRequestParameters}
      * @ignore
      */
-    private addHintParameters(account: Account, params: StringDict): StringDict {
+    private addHintParameters(account: Account | null, params: StringDict): StringDict {
     /*
      * This is a final check for all queryParams added so far; preference order: sid > login_hint
      * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
@@ -216,9 +217,11 @@ export class ServerRequestParameters {
 
     /**
      * Add SID to extraQueryParameters
-     * @param sid
+     * @param ssoType
+     * @param ssoData
+     * @param params
      */
-    private addSSOParameter(ssoType: string, ssoData: string, params?: StringDict): StringDict {
+    private addSSOParameter(ssoType: string | null | undefined, ssoData: string | null | undefined, params?: StringDict | null | undefined): StringDict {
         const ssoParam = params || {};
 
         if (!ssoData) {
@@ -246,8 +249,9 @@ export class ServerRequestParameters {
     /**
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
      * @param extraQueryParameters
+     * @param silentCall
      */
-    static generateQueryParametersString(queryParameters?: StringDict, silentCall?: boolean): string|null {
+    static generateQueryParametersString(queryParameters: StringDict | null, silentCall?: boolean): string|null {
         let paramsString: string|null = null;
 
         if (queryParameters) {

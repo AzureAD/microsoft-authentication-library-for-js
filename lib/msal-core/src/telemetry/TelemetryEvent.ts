@@ -14,13 +14,13 @@ import { CryptoUtils } from "../utils/CryptoUtils";
 
 export default class TelemetryEvent {
 
-    private startTimestamp: number;
+    private startTimestamp: number | null = null;
     // eslint-disable-next-line
     protected event: any; // TODO TYPE THIS
     public eventId: string;
-    private label: string;
+    private label?: string;
 
-    constructor(eventName: string, correlationId: string, eventLabel: string) {
+    constructor(eventName: string, correlationId?: string, eventLabel?: string) {
         this.eventId = CryptoUtils.createNewGuid();
         this.label = eventLabel;
         this.event = {
@@ -36,7 +36,7 @@ export default class TelemetryEvent {
 
     public stop(): void {
         // Set duration of event
-        this.setElapsedTime(+Date.now() - +this.startTimestamp);
+        this.setElapsedTime(+Date.now() - +(this.startTimestamp ?? 0));
 
         endBrowserPerformanceMeasurement(this.displayName, this.perfStartMark, this.perfEndMark);
     }

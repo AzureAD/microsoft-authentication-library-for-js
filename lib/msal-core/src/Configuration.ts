@@ -36,7 +36,7 @@ const NAVIGATE_FRAME_WAIT = 500;
  */
 export type AuthOptions = {
     clientId: string;
-    authority?: string;
+    authority: string | null;
     validateAuthority?: boolean;
     authorityMetadata?: string;
     knownAuthorities?: Array<string>;

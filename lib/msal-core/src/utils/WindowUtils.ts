@@ -51,14 +51,14 @@ export class WindowUtils {
      * Polls an iframe until it loads a url with a hash
      * @ignore
      */
-    static monitorIframeForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
+    static monitorIframeForHash(contentWindow: Window, timeout: number | undefined, urlNavigate: string, logger: Logger): Promise<string> {
         return new Promise((resolve, reject) => {
             /*
              * Polling for iframes can be purely timing based,
              * since we don't need to account for interaction.
              */
             const nowMark = TimeUtils.relativeNowMs();
-            const timeoutMark = nowMark + timeout;
+            const timeoutMark = nowMark + (timeout ?? 0);
 
             logger.verbose("monitorWindowForIframe polling started");
 
@@ -86,7 +86,7 @@ export class WindowUtils {
                     logger.verbose("monitorIframeForHash found url in hash");
                     clearInterval(intervalId);
                     resolve(contentWindow.location.hash);
-                } 
+                }
             }, WindowUtils.POLLING_INTERVAL_MS);
         });
     }
@@ -185,7 +185,7 @@ export class WindowUtils {
      * @param frameName
      * @param logger
      */
-    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement{
+    static loadFrameSync(urlNavigate: string, frameName: string, logger: Logger): HTMLIFrameElement | null {
         const frameHandle = WindowUtils.addHiddenIFrame(frameName, logger);
 
         // returning to handle null in loadFrame, also to avoid null object access errors
@@ -205,11 +205,11 @@ export class WindowUtils {
      * Adds the hidden iframe for silent token renewal.
      * @ignore
      */
-    static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement {
+    static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement | null {
         if (typeof iframeId === "undefined") {
             return null;
         }
-        
+
         logger.info("Add msal iframe to document");
         logger.infoPii("Add msal frame to document:" + iframeId);
         let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
@@ -247,13 +247,13 @@ export class WindowUtils {
      * Find and return the iframe element with the given hash
      * @ignore
      */
-    static getIframeWithHash(hash: string): HTMLIFrameElement {
+    static getIframeWithHash(hash: string): HTMLIFrameElement | null {
         const iframes = document.getElementsByTagName("iframe");
-        const iframeArray: Array<HTMLIFrameElement> = Array.apply(null, Array(iframes.length)).map((iframe: HTMLIFrameElement, index: number) => iframes.item(index)); // eslint-disable-line prefer-spread
+        const iframeArray = Array.apply(null, Array(iframes.length)).map((iframe, index) => iframes?.item(index)); // eslint-disable-line prefer-spread
 
-        return iframeArray.filter((iframe: HTMLIFrameElement) => {
+        return iframeArray.filter((iframe) => {
             try {
-                return iframe.contentWindow.location.hash === hash;
+                return iframe?.contentWindow?.location.hash === hash;
             } catch (e) {
                 return false;
             }
@@ -342,7 +342,7 @@ export class WindowUtils {
         // Office.js sets history.replaceState to null
         if (typeof contentWindow.history.replaceState === "function") {
             // Full removes "#" from url
-            contentWindow.history.replaceState(null, null, `${contentWindow.location.pathname}${contentWindow.location.search}`);
+            contentWindow.history.replaceState(null, null!, `${contentWindow.location.pathname}${contentWindow.location.search}`); // TODO bug: null! is not allowed
         }
     }
 }

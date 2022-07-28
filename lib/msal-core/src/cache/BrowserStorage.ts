@@ -14,16 +14,16 @@ export class BrowserStorage {// Singleton
 
     protected cacheLocation: CacheLocation;
 
-    constructor(cacheLocation: CacheLocation) {
+    constructor(cacheLocation: CacheLocation | undefined) {
         if (!window) {
             throw AuthError.createNoWindowObjectError("Browser storage class could not find window object");
         }
 
-        const storageSupported = typeof window[cacheLocation] !== "undefined" && window[cacheLocation] !== null;
+        const storageSupported = cacheLocation && typeof window[cacheLocation] !== "undefined" && window[cacheLocation] !== null;
         if (!storageSupported) {
-            throw ClientConfigurationError.createStorageNotSupportedError(cacheLocation);
+            throw ClientConfigurationError.createStorageNotSupportedError(cacheLocation!);
         }
-        this.cacheLocation = cacheLocation;
+        this.cacheLocation = cacheLocation!;
     }
 
     /**
@@ -48,7 +48,7 @@ export class BrowserStorage {// Singleton
         if (enableCookieStorage && this.getItemCookie(key)) {
             return this.getItemCookie(key);
         }
-        return window[this.cacheLocation].getItem(key);
+        return window[this.cacheLocation].getItem(key)!;
     }
 
     /**

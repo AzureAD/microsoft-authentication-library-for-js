@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
 
 describe("AuthError.ts Class", () => {

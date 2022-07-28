@@ -14,7 +14,7 @@ export class StringUtils {
      *
      * @param str
      */
-    static isEmpty(str: string): boolean {
+    static isEmpty(str?: string): boolean {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
@@ -23,11 +23,11 @@ export class StringUtils {
      *
      * @param str
      */
-    static validateAndParseJsonCacheKey(str: string): AccessTokenKey {
+    static validateAndParseJsonCacheKey(str: string): AccessTokenKey | null {
         try {
             const parsedKey = JSON.parse(str);
             /**
-             * There are edge cases in which JSON.parse will successfully parse a non-valid JSON object 
+             * There are edge cases in which JSON.parse will successfully parse a non-valid JSON object
              * (e.g. JSON.parse will parse an escaped string into an unescaped string), so adding a type check
              * of the parsed value is necessary in order to be certain that the string represents a valid JSON object.
              *

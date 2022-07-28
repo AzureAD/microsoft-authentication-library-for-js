@@ -4,6 +4,7 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "target": "es5",
+    "strict": true,
     "lib": [ "es2015", "dom", "es2015.promise" ],
     "outDir": "lib-commonjs",
     "allowUnusedLabels": false,

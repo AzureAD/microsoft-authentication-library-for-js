@@ -128,7 +128,7 @@ export class ClientAuthError extends AuthError {
     }
 
     // TODO: Is this not a security flaw to send the user the state expected??
-    static createInvalidStateError(invalidState: string, actualState: string): ClientAuthError {
+    static createInvalidStateError(invalidState: string | null | undefined, actualState: string | null): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
             `${ClientAuthErrorMessage.invalidStateError.desc} ${invalidState}, state expected : ${actualState}.`);
     }

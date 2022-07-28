@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ResponseUtils } from "../../src/utils/ResponseUtils"
 import { AuthResponse } from "../../src/AuthResponse";
 import { IdToken } from "../../src/IdToken";

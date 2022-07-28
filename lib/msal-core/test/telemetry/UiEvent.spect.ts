@@ -1,3 +1,4 @@
+// @ts-nocheck
 import UiEvent, { EVENT_KEYS } from "../../src/telemetry/UiEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 

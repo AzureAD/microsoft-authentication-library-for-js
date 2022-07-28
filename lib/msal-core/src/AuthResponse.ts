@@ -8,20 +8,20 @@ import { IdToken } from "./IdToken";
 import { StringDict } from "./MsalTypes";
 
 export type AuthResponse = {
-    uniqueId: string;
-    tenantId: string;
+    uniqueId: string | null;
+    tenantId: string | null;
     tokenType: string;
-    idToken: IdToken;
-    idTokenClaims: StringDict;
-    accessToken: string;
-    scopes: Array<string>;
-    expiresOn: Date;
-    account: Account;
-    accountState: string;
+    idToken: IdToken | null;
+    idTokenClaims: StringDict | null;
+    accessToken: string | null | undefined;
+    scopes: Array<string> | null | undefined;
+    expiresOn: Date | null;
+    account: Account | null;
+    accountState?: string;
     fromCache: boolean
 };
 
-export function buildResponseStateOnly(state: string) : AuthResponse {
+export function buildResponseStateOnly(state?: string) : AuthResponse {
     return {
         uniqueId: "",
         tenantId: "",

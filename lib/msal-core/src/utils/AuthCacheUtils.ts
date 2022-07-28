@@ -5,7 +5,7 @@
 
 import { AccessTokenCacheItem } from "../cache/AccessTokenCacheItem";
 import { ScopeSet } from "../ScopeSet";
-import { UrlUtils } from "./UrlUtils"; 
+import { UrlUtils } from "./UrlUtils";
 
 /**
  * @hidden
@@ -13,7 +13,7 @@ import { UrlUtils } from "./UrlUtils";
 export class AuthCacheUtils {
     static filterTokenCacheItemsByScope(tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: string []): Array<AccessTokenCacheItem> {
         return tokenCacheItems.filter((cacheItem: AccessTokenCacheItem) => {
-            const cachedScopes = cacheItem.key.scopes.split(" ");
+            const cachedScopes = cacheItem.key.scopes!.split(" "); // TODO bug: what if cacheItem.key.scopes is undefined?
             const searchScopes = ScopeSet.removeDefaultScopes(requestScopes);
 
             // If requestScopes contain only default scopes search for default scopes otherwise search for everything but default scopes

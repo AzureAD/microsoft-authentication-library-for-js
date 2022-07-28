@@ -1,3 +1,4 @@
+// @ts-nocheck
 import sinon from "sinon";
 import { UrlUtils } from "../../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS } from "../TestConstants";

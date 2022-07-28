@@ -25,7 +25,7 @@ export const EVENT_KEYS = {
 
 export default class HttpEvent extends TelemetryEvent {
 
-    constructor(correlationId: string, eventLabel: string) {
+    constructor(correlationId: string | undefined, eventLabel: string) {
         super(prependEventNamePrefix("http_event"), correlationId, eventLabel);
     }
 

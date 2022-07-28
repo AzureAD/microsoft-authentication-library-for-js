@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { WindowUtils } from "../../src/utils/WindowUtils";
 import { FramePrefix, TemporaryCacheKeys, Constants } from "../../src/utils/Constants";
 import { TEST_CONFIG } from "../TestConstants";

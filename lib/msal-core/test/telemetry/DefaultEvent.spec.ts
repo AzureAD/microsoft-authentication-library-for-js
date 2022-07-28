@@ -1,3 +1,4 @@
+// @ts-nocheck
 import DefaultEvent from "../../src/telemetry/DefaultEvent";
 import { TelemetryPlatform, EventCount } from "../../src/telemetry/TelemetryTypes";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';

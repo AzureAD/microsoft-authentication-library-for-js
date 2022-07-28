@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { TEST_CONFIG } from "../TestConstants";
 import sinon from "sinon";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";

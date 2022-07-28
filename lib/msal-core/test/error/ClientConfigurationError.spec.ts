@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { ClientAuthError, AuthError } from "../../src";
 

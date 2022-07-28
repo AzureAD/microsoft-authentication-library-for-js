@@ -15,17 +15,17 @@ import TelemetryManager from "../telemetry/TelemetryManager";
 export class AuthorityFactory {
     private static metadataMap = new Map<string, ITenantDiscoveryResponse>();
 
-    public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
+    public static async saveMetadataFromNetwork(authorityInstance: Authority, telemetryManager: TelemetryManager, correlationId?: string): Promise<ITenantDiscoveryResponse> {
         const metadata = await authorityInstance.resolveEndpointsAsync(telemetryManager, correlationId);
         this.metadataMap.set(authorityInstance.CanonicalAuthority, metadata);
         return metadata;
     }
 
     public static getMetadata(authorityUrl: string): ITenantDiscoveryResponse {
-        return this.metadataMap.get(authorityUrl);
+        return this.metadataMap.get(authorityUrl)!;
     }
 
-    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string): void {
+    public static saveMetadataFromConfig(authorityUrl: string | null, authorityMetadataJson?: string): void {
         try {
             if (authorityMetadataJson) {
                 const parsedMetadata = JSON.parse(authorityMetadataJson) as OpenIdConfiguration;
@@ -34,11 +34,13 @@ export class AuthorityFactory {
                     throw ClientConfigurationError.createInvalidAuthorityMetadataError();
                 }
 
-                this.metadataMap.set(authorityUrl, {
-                    AuthorizationEndpoint: parsedMetadata.authorization_endpoint,
-                    EndSessionEndpoint: parsedMetadata.end_session_endpoint,
-                    Issuer: parsedMetadata.issuer
-                });
+                if (authorityUrl) {
+                    this.metadataMap.set(authorityUrl, {
+                        AuthorizationEndpoint: parsedMetadata.authorization_endpoint,
+                        EndSessionEndpoint: parsedMetadata.end_session_endpoint,
+                        Issuer: parsedMetadata.issuer
+                    });
+                }
             }
         } catch (e) {
             throw ClientConfigurationError.createInvalidAuthorityMetadataError();
@@ -49,8 +51,8 @@ export class AuthorityFactory {
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
      */
-    public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityMetadata?: string): Authority {
-        if (StringUtils.isEmpty(authorityUrl)) {
+    public static CreateInstance(authorityUrl: string | null | undefined, validateAuthority: boolean, authorityMetadata?: string): Authority | null {
+        if (!authorityUrl || StringUtils.isEmpty(authorityUrl)) {
             return null;
         }
 

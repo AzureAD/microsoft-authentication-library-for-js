@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Authority, AuthorityType } from "../../src/authority/Authority";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError"
 import { TEST_CONFIG, TENANT_DISCOVERY_RESPONSE, ADFS_TEST_CONFIG } from "../TestConstants";
