@@ -8,7 +8,8 @@ import {
     AccountCache,
     CredentialCache,
     AccountFilter,
-    CredentialFilter
+    CredentialFilter,
+    ValidCredentialType
 } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
@@ -191,4 +192,9 @@ export interface ICacheManager {
      * @param credential
      */
     removeCredential(credential: CredentialEntity): Promise<boolean>;
+
+    /**
+     * Function which updates an outdated credential cache key
+     */
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
 }

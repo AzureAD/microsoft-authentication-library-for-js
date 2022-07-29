@@ -162,6 +162,11 @@ export abstract class CacheManager implements ICacheManager {
     abstract clear(): Promise<void>;
 
     /**
+     * Function which updates an outdated credential cache key
+     */
+    abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
+
+    /**
      * Returns all accounts in cache
      */
     getAllAccounts(): AccountInfo[] {
@@ -430,16 +435,22 @@ export abstract class CacheManager implements ICacheManager {
                 }
             }
 
+            /*
+             * At this point, the entity matches the request, update cache key if key schema has changed
+             * Migration code for forwards compatibility with new versions of the library in case of rollback.
+             */
+            const updatedCacheKey = this.updateCredentialCacheKey(cacheKey, entity);
+
             switch (credType) {
                 case CredentialType.ID_TOKEN:
-                    matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                    matchingCredentials.idTokens[updatedCacheKey] = entity as IdTokenEntity;
                     break;
                 case CredentialType.ACCESS_TOKEN:
                 case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
-                    matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                    matchingCredentials.accessTokens[updatedCacheKey] = entity as AccessTokenEntity;
                     break;
                 case CredentialType.REFRESH_TOKEN:
-                    matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                    matchingCredentials.refreshTokens[updatedCacheKey] = entity as RefreshTokenEntity;
                     break;
             }
         });
@@ -1039,6 +1050,10 @@ export class DefaultStorageClass extends CacheManager {
     }
     async clear(): Promise<void> {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    updateCredentialCacheKey(): string {
+        const notImplErr = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 }
