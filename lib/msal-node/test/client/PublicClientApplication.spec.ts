@@ -1,5 +1,5 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration } from './../../src/index';
+import { Configuration, InteractiveRequest } from './../../src/index';
 import { ID_TOKEN_CLAIMS, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult,
@@ -15,6 +15,7 @@ import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import { mocked } from 'ts-jest/utils';
 import { AccountInfo } from '@azure/msal-common';
+import http from "http";
 
 
 import * as msalCommon from '@azure/msal-common';
@@ -95,10 +96,6 @@ describe('PublicClientApplication', () => {
 
 
 
-        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
-
-        jest.spyOn(msalCommon, 'AuthorizationCodeClient')
-            .mockImplementation((config) => new MockAuthorizationCodeClient(config));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
@@ -186,6 +183,31 @@ describe('PublicClientApplication', () => {
         expect(SilentFlowClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
+    });
+
+    test("acquireTokenInteractive", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+
+        let redirectUri: string;
+        const getAuthCodeUrl = authApp.getAuthCodeUrl.bind(authApp);
+        jest.spyOn(authApp, "getAuthCodeUrl").mockImplementation((req) => {
+            redirectUri = req.redirectUri;
+            return getAuthCodeUrl(req);
+        })
+        const openBrowser = (url: string) => {
+            expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+            http.get(`${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`);
+            return Promise.resolve();
+        }
+        const request: InteractiveRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            openBrowser: openBrowser
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+        jest.spyOn(msalCommon, 'AuthorizationCodeClient').mockImplementation((config) => new MockAuthorizationCodeClient(config));
+
+        await authApp.acquireTokenInteractive(request);
     });
 
     test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
