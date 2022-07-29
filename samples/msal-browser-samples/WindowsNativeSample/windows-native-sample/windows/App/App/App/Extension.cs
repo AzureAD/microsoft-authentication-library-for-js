@@ -51,6 +51,7 @@ public class Extension
                                     "version: 1.0" +
                                 "}" +
                             "};" +
+                            //"console.log(req);" +
                             "var port = event.ports [0];" + 
                             "port.onmessage = (event) => {" +
                                 "var request = event.data;" +
@@ -58,20 +59,20 @@ public class Extension
                             "};" +
                             "window.addEventListener(\"message\", (event) => {" +
                                 //"console.log(event);" +
-                                "if(event.data.account && event.data.properties && event.source == window) {" +
+                                "if(event.data.wamResult && event.data.wamResult.account && event.data.wamResult.properties && event.source == window) {" +
                                     "var resp = {" +
                                         "channel: \"53ee284d-920a-4b59-9d30-a60315b26836\"," +
                                         "extensionId: \"ppnbnpeolgkicgegkbkbjmhlideopiji\"," +
-                                        "responseId: request.responseId," +
+                                        "responseId: event.data.responseId," +
                                         "body: {" +
                                             "method: \"Response\", " +
                                             "response: {" +
                                                 "status: \"Success\"," +
-                                                "result: event.data" +
+                                                "result: event.data.wamResult" +
                                             "}" +
                                         "}" +
                                     "};" +
-                                    "console.log(resp);" +
+                                    //"console.log(resp);" +
                                     "port.postMessage(resp);" +
                                 "}" +
                             "});" +
@@ -111,7 +112,7 @@ public class Extension
                 "if(request && request.body && request.body.method && request.body.method == \"GetToken\") {" +
                     "try {" +
                         "request.sender = window.origin;" +
-                        "if (\"GetSupportedUrls\".localeCompare(request.body.method, undefined, { sensitivity: \"base\" }) == 0) {" +
+                        "if (\"GetSupportedUrls\".localeCompare(request.body.method, undefined, {\"sensitivity\": \"base\" }) == 0) {" +
                             "RespondWithError(CreateInvalidMethodResponse(), sendResponse);" +
                         "} else {" +
                             "chrome.webview.postMessage(\"Executing WAM\" + JSON.stringify(request));" +
@@ -160,6 +161,7 @@ public class Extension
     {
         try
         {
+            //if you get an error about there being a missing ) after changing to 2.29.0, change "scopes" to "scope"
             WebTokenRequest webTokenRequest = new WebTokenRequest(Provider, request["body"]["request"]["scopes"].ToString(), request["body"]["request"]["clientId"].ToString());
 
             // Azure Active Directory requires a resource to return a token
@@ -182,9 +184,12 @@ public class Extension
 
             if (webTokenRequestResult.ResponseStatus == WebTokenRequestStatus.Success)
             {
-                //await WebView.ExecuteScriptAsync("signIn(redirect);");
-                JsonObject successResponse = this.ConstructSuccessResponse(webTokenRequestResult);
-                //WebAccount webAccount = webTokenRequestResult.ResponseData[0].WebAccount;
+                JsonObject successResponse0 = this.ConstructSuccessResponse(webTokenRequestResult);
+                JsonObject successResponse = new JsonObject();
+                double responseId = request["responseId"];
+                successResponse.Add("responseId", JsonValue.CreateNumberValue(responseId));
+                successResponse.Add("wamResult", successResponse0);
+                WebAccount webAccount = webTokenRequestResult.ResponseData[0].WebAccount;
                 await WebView.ExecuteScriptAsync("console.log(\"Success\");");
                 await WebView.ExecuteScriptAsync(
                     "try {" +
@@ -192,8 +197,7 @@ public class Extension
                     "} catch (e) {" +
                         "console.log(e);" +
                     "}");
-                //await WebView.ExecuteScriptAsync("window.location.href = \"http://localhost/tab1\";");
-                //await WebView.ExecuteScriptAsync("showWelcomeMessage(" + webAccount + ");");
+                await WebView.ExecuteScriptAsync("showWelcomeMessage(" + webAccount + ");");
             }
             else
             {
