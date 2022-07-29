@@ -1,4 +1,4 @@
-# Caching
+# Caching in MSAL
 
 When MSAL acquires a token, it caches it for future usage. MSAL manages token lifetimes and refreshing for you. The following MSAL APIs will perform one or more cache lookups to acquire tokens or retrieve accounts:
 
