@@ -164,12 +164,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
                 sid: "testSid"
             };
-            testAccount.idTokenClaims = testTokenClaims;
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                account: testAccount,
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims
+                },
                 prompt: PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -201,12 +203,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 sid: "testSid",
                 login_hint: "opaque-login-hint-claim"
             };
-            testAccount.idTokenClaims = testTokenClaims;
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                account: testAccount,
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims
+                },
                 prompt: PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
@@ -330,12 +334,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
                 sid: "testSid"
             };
-            testAccount.idTokenClaims = testTokenClaims;
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                account: testAccount,
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims
+                },
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.NONE,
                 correlationId: RANDOM_TEST_GUID,
@@ -367,12 +373,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: "123523",
                 sid: "testSid"
             };
-            testAccount.idTokenClaims = testTokenClaims;
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                account: testAccount,
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims
+                },
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 prompt: PromptValue.LOGIN,
                 correlationId: RANDOM_TEST_GUID,
@@ -403,12 +411,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523"
             };
-            testAccount.idTokenClaims = testTokenClaims;
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                account: testAccount,
+                account: {
+                    ...testAccount,
+                    idTokenClaims: testTokenClaims
+                },
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
