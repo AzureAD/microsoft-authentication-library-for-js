@@ -48,6 +48,7 @@ const msalConfig = {
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"],
+    loginHint: "t-ssummers@microsoft.com",
     extraQueryParameters: {
         "webnativebridge": "true"
     }
