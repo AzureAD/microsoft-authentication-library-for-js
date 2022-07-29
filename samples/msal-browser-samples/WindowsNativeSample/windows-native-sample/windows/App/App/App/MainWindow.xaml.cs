@@ -32,8 +32,8 @@ namespace App {
         {
             if (args.Source == sender.Source.OriginalString) // validate source
             {  
-                this.Extension.HandleWebMessage(sender, args, this);
-                Task t = this.Extension.SetUpWAMCallAsync(sender, args);
+                this.Extension.HandleWebMessage(CapacitorWebView, args, this);
+                Task t = this.Extension.SetUpWAMCallAsync(CapacitorWebView, args);
             }
         }
 

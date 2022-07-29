@@ -18,3 +18,13 @@ function callMSGraph(endpoint, accessToken, callback) {
         .then(response => callback(response, endpoint))
         .catch(error => console.log(error));
 }
+
+async function seeProfileRedirect() {
+    const currentAcc = myMSALObj.getAccountByHomeId(accountId);
+    if (currentAcc) {
+        const response = await getTokenRedirect(loginRequest, currentAcc).catch(error => {
+            console.log(error);
+        });
+        callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);
+    }
+}

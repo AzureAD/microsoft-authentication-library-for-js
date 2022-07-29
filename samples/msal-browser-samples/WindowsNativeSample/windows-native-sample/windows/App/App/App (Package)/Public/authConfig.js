@@ -47,8 +47,7 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"],
-    loginHint: "t-ssummers@microsoft.com",
+    scopes: ["openid", "profile", "User.Read"],
     extraQueryParameters: {
         "webnativebridge": "true"
     }
@@ -56,7 +55,7 @@ const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me",
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.

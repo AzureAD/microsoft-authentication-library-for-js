@@ -36,13 +36,13 @@ function handleResponse(resp) {
         myMSALObj.setActiveAccount(resp.account);
         showWelcomeMessage(resp.account);
     } else {
-        const currentAccounts = myMSALObj.getAllAccounts();
-        if (!currentAccounts || currentAccounts.length < 1) {
-            return;
-        }
-        accountId = currentAccounts[0].homeAccountId;
-        myMSALObj.setActiveAccount(currentAccounts[0]);
-        showWelcomeMessage(currentAccounts[0]);
+        //const currentAccounts = myMSALObj.getAllAccounts();
+        //if (!currentAccounts || currentAccounts.length < 1) {
+        //    return;
+        //}
+        //accountId = currentAccounts[0].homeAccountId;
+        //myMSALObj.setActiveAccount(currentAccounts[0]);
+        //showWelcomeMessage(currentAccounts[0]);
     }
 }
 
