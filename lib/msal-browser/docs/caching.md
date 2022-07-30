@@ -40,7 +40,7 @@ By default, MSAL stores the various authentication artifacts it obtains from the
 
 ### Cookie storage
 
-MSAL Browser can be configured to use cookies for storing the authentication state. Note that when this option is choosed, tokens themselves are still stored in browser or memory storage. This is useful for apps that need to support older browsers such as Internet Explorer. Please refer to [configuration](./configuration.md#cache-config-options) for more.
+MSAL Browser can be configured to use cookies for storing the authentication state. This is useful for apps that need to support older browsers such as Internet Explorer. Note that when this option is choosed, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
 
 ### Security
 
@@ -71,7 +71,7 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 
 - MSAL Browser's cache schema is compatible with other MSALs. However, there is no cache sharing support at the moment. 
 - We do not recommend apps having business logic dependent on direct use of entities in the cache. Instead, use the appropriate MSAL API when you need to acquire tokens or retrieve accounts.
-- Keys used to encrypt proof of possession (PoP) tokens are stored using the [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
+- Keys used to encrypt proof of possession (PoP) tokens are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
 
 ## More information
 
