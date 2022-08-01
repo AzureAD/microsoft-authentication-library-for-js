@@ -27,7 +27,7 @@
   },
   "keywords" : [
     "react"
-  ]
+  ],
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
