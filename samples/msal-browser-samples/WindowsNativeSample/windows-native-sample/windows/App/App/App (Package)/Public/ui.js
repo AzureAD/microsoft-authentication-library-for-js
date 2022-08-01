@@ -33,12 +33,21 @@ function updateUI(data, endpoint) {
         address.innerHTML = "<ion-text>Location: </ion-text>" + data.officeLocation;
         const displayName = document.createElement('p');
         displayName.innerHTML = "<ion-text>Display Name: </ion-text>" + data.displayName;
-        //make title + email + phone + address not visible if there is none (e.g. with an MSA acc)
-        profileDiv.appendChild(title);
-        profileDiv.appendChild(email);
-        profileDiv.appendChild(phone);
-        profileDiv.appendChild(address);
-        profileDiv.appendChild(displayName);
+        if (data.jobTitle) {
+            profileDiv.appendChild(title);
+        }
+        if (data.mail) {
+            profileDiv.appendChild(email);
+        }
+        if (data.businessPhones[0]) {
+            profileDiv.appendChild(phone);
+        }
+        if (data.officeLocation) {
+            profileDiv.appendChild(address);
+        }
+        if (data.displayName) {
+            profileDiv.appendChild(displayName);
+        }
         ssoBtn.style.display = "none";
     }
 }

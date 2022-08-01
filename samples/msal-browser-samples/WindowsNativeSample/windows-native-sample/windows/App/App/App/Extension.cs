@@ -51,14 +51,12 @@ public class Extension
                                     "version: 1.0" +
                                 "}" +
                             "};" +
-                            //"console.log(req);" +
                             "var port = event.ports [0];" + 
                             "port.onmessage = (event) => {" +
                                 "var request = event.data;" +
                                 "chrome.webview.postMessage(request);" + 
                             "};" +
                             "window.addEventListener(\"message\", (event) => {" +
-                                //"console.log(event);" +
                                 "if(event.data.wamResult && event.data.wamResult.account && event.data.wamResult.properties && event.source == window) {" +
                                     "var resp = {" +
                                         "channel: \"53ee284d-920a-4b59-9d30-a60315b26836\"," +
@@ -72,7 +70,6 @@ public class Extension
                                             "}" +
                                         "}" +
                                     "};" +
-                                    //"console.log(resp);" +
                                     "port.postMessage(resp);" +
                                 "}" +
                             "});" +
@@ -145,7 +142,6 @@ public class Extension
         request = request.Replace("\\\\", "\\");
         dynamic requestJson = JObject.Parse(request);
 
-        //Process.Start(info);
         try
         {
             WebAccountProvider Provider = await WebAuthenticationCoreManager.FindAccountProviderAsync("https://login.windows.local");
@@ -215,7 +211,6 @@ public class Extension
         JsonValue id = JsonValue.CreateStringValue(result.ResponseData[0].WebAccount.Id);
         JsonValue userName = JsonValue.CreateStringValue(result.ResponseData[0].WebAccount.UserName);
         JsonValue token = JsonValue.CreateStringValue(result.ResponseData[0].Token);
-        //JsonValue wamStatus = JsonValue.CreateStringValue(result.ResponseStatus.ToString());
 
         JsonObject account = new JsonObject();
         account.Add("id", id);

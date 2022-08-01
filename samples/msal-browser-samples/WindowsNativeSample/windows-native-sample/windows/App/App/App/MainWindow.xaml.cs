@@ -1,6 +1,7 @@
 using Capacitor;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using System.Threading;
 using System.Threading.Tasks;
 using static Extension;
 
@@ -40,6 +41,11 @@ namespace App {
         private void CapacitorWebView_NavigationCompleted(WebView2 sender, Microsoft.Web.WebView2.Core.CoreWebView2NavigationCompletedEventArgs args)
         {
             Task t = this.Extension.ExecuteExtensionAsync(CapacitorWebView);
+            if(sender.Source == new System.Uri("https://login.microsoftonline.com/common/oauth2/v2.0/logoutsession"))
+            {
+                Thread.Sleep(3000);
+                CapacitorWebView.Source = new System.Uri("http://localhost/tab1");
+            }
         }
     }
 }
