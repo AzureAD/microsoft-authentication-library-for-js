@@ -82,9 +82,11 @@ jobs:
       - task: Npm@1
         displayName: Publish to npm
         condition: ${{ not(eq(parameters.libName, 'msal-angular')) }}
+        continueOnError: true
         inputs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           command: 'publish'
+          customRegistry: 'useNpmrc'
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 

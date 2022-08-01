@@ -94,7 +94,7 @@ extends:
             jobName: 'publish_msal_common'
             path: 'lib'
             libName: 'msal-common'
-            cdn: true
+            cdn: false
             publishFlagName: 'MsalCommon'
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
