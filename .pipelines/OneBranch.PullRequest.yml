@@ -140,3 +140,4 @@ extends:
             libName: 'msal-node-extensions'
             cdn: false
             publishFlagName: 'MsalNodeExtensions'
+            dependsOn: 'publish_msal_common'
