@@ -101,13 +101,15 @@ If you already have a session that exists with the authentication server, you ca
 
 ### With User Hint
 
-If you already have the user's sign-in information, you can pass this into the API to improve performance and ensure that the authorization server will look for the correct account session. You can pass one of the following into the request object in order to successfully obtain a token silently.
+If you already have the user's sign-in information, you can pass this into the API to improve performance and ensure that the authorization server will look for the correct account session. You can pass one of the following into the request object in order to successfully obtain a token silently. 
+
+It is recommended to leverage the [`login_hint` optional ID token claim](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) (provided to `ssoSilent` as `loginHint`), as it is the most reliable account hint of silent (and interactive) requests.
 
 - `account` (which can be retrieved using on of the [account APIs](./accounts.md))
 - `sid` (which can be retrieved from the `idTokenClaims` of an `account` object)
-- `login_hint` (which can be retrieved from the account object `username` property or the `upn` claim in the ID token)
+- `login_hint` (which can be retrieved from either the account object `login_hint` ID token claim, `username` property, or the `upn` ID token claim)
 
-Passing an account will look for sid in the token claims, then fall back to loginHint (if provided) or account username.
+Passing an account will look for the `login_hint` optional ID token claim (preferred), then the `sid` optional id token claim, then fall back to `loginHint` (if provided) or account username.
 
 ```javascript
 const silentRequest = {

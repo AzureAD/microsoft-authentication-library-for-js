@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "adding network performance measurement #4834",
+  "packageName": "@azure/msal-browser",
+  "email": "ellymakuba@microsoft.com",
+  "dependentChangeType": "patch"
+}
