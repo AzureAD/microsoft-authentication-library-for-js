@@ -16,6 +16,7 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { ClientCredentials } from "../account/ClientCredentials";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -46,7 +47,8 @@ export type ClientConfiguration = {
     telemetry?: TelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
-    serializableCache?: ISerializableTokenCache | null,        
+    serializableCache?: ISerializableTokenCache | null,   
+    performanceClient?: IPerformanceClient | null,   
 };
 
 export type CommonClientConfiguration = {
@@ -61,7 +63,8 @@ export type CommonClientConfiguration = {
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
-    serializableCache: ISerializableTokenCache | null,     
+    serializableCache: ISerializableTokenCache | null,  
+    performanceClient?: IPerformanceClient | null,    
 };
 
 /**
@@ -214,7 +217,8 @@ export function buildClientConfiguration(
         telemetry: telemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
-        serializableCache: serializableCache,                 
+        serializableCache: serializableCache,   
+        performanceClient: IPerformanceClient,           
     }: ClientConfiguration): CommonClientConfiguration {
 
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
@@ -231,7 +235,8 @@ export function buildClientConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
-        serializableCache: serializableCache || null,              
+        serializableCache: serializableCache || null,  
+        performanceClient: IPerformanceClient || null,             
     };
 }
 
