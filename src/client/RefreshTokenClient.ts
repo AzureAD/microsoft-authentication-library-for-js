@@ -25,13 +25,13 @@ import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
+
 /**
  * OAuth2.0 refresh token client
  */
 export class RefreshTokenClient extends BaseClient {
-
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration,performanceClient);
     }
 
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
@@ -157,7 +157,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);    
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -174,7 +174,19 @@ export class RefreshTokenClient extends BaseClient {
         };
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
+            .then((result) =>{
+                acquireTokenMeasurement?.endMeasurement({
+                    success: true
+                });
+                return result;
+            })
+            .catch((error) =>{
+                acquireTokenMeasurement?.endMeasurement({
+                    success: false
+                });
+                throw error;
+            });
     }
 
     /**
@@ -196,6 +208,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+        const correlationId = request.correlationId;
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -213,8 +227,7 @@ export class RefreshTokenClient extends BaseClient {
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
-
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        
         parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
@@ -238,6 +251,9 @@ export class RefreshTokenClient extends BaseClient {
             if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
+                acquireTokenMeasurement?.endMeasurement({
+                    success: false
+                });
                 throw ClientConfigurationError.createMissingSshJwkError();
             }
         }
@@ -261,7 +277,9 @@ export class RefreshTokenClient extends BaseClient {
                     break;
             }
         }
-
+        acquireTokenMeasurement?.endMeasurement({
+            success: true
+        });
         return parameterBuilder.createQueryString();
     }
 }
