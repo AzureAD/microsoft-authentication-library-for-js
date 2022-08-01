@@ -457,6 +457,13 @@ export const AUTHORIZATION_PENDING_RESPONSE = {
     }
 };
 
+export const SERVER_UNEXPECTED_ERROR = {
+    status: 503,
+    body: {
+        error: "Service Unavailable"
+    }
+};
+
 export const DEFAULT_NETWORK_IMPLEMENTATION = {
     sendGetRequestAsync: async (): Promise<any> => {
         return { test: "test" };
