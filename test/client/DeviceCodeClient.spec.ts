@@ -330,7 +330,7 @@ describe("DeviceCodeClient unit tests", () => {
             };
 
             const client = new DeviceCodeClient(config);
-            await expect(client.acquireToken(request)).rejects.toMatchObject(AuthError.createUnexpectedError("Service Unavailable"));
+            await expect(client.acquireToken(request)).rejects.toMatchObject(AuthError.createPostRequestFailed("Service Unavailable"));
         }, 15000);
     });
 });
