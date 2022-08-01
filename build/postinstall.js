@@ -11,6 +11,7 @@ if (parseInt(process.env.BEACHBALL)) {
         console.error('stderr: ' + stderr);
         if (error !== null) {
              console.log('exec error: ' + error);
+             process.exitCode = 1;
         }
     });
 } else {
@@ -22,6 +23,7 @@ if (parseInt(process.env.BEACHBALL)) {
         console.error('stderr: ' + stderr);
         if (error !== null) {
              console.log('exec error: ' + error);
+             process.exitCode = 1;
         }
     });
 }
