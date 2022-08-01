@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add error handling for server errors in device-code (#5033",
+  "comment": "Add error handling for server errors in device-code (#5033)",
   "packageName": "@azure/msal-common",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch"
