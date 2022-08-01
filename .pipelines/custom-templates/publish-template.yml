@@ -86,7 +86,9 @@ jobs:
         inputs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           command: 'publish'
-          customRegistry: 'useNpmrc'
+          customRegistry: useNpmrc
+          publishRegistry: useExternalRegistry
+          publishEndpoint: 'https://registry.npmjs.org'
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 
