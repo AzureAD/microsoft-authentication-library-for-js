@@ -2,7 +2,7 @@
 
 const msalConfig = {
     auth: {
-        clientId: "83b1850c-4d28-492b-ad49-0ef9b57b2be0",
+        clientId: "Enter_the_Client_Id_Here",
         authority: "https://login.microsoftonline.com/common",
     },
     cache: {
