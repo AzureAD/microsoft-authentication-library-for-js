@@ -69,6 +69,10 @@ describe('ClientConfiguration tests', () => {
         expect(config.auth!.azureCloudOptions?.azureCloudInstance).toEqual(AzureCloudInstance.None);
         expect(config.auth!.azureCloudOptions?.tenant).toEqual("");
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+
+        // telemetry
+        expect(config.telemetry!.application!.appName).toEqual("");
+        expect(config.telemetry!.application!.appVersion).toEqual("");
     });
 
     test('builds configuration and assigns default functions', () => {
@@ -116,6 +120,12 @@ describe('ClientConfiguration tests', () => {
                 },
             },
             cache: {},
+            telemetry: {
+                application: {
+                    appName: TEST_CONSTANTS.APP_NAME,
+                    appVersion: TEST_CONSTANTS.APP_VERSION
+                }
+            }
         };
 
         const testNetworkOptions: NetworkRequestOptions = {
@@ -144,6 +154,10 @@ describe('ClientConfiguration tests', () => {
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+
+        // Application telemetry
+        expect(config.telemetry!.application!.appName).toEqual(TEST_CONSTANTS.APP_NAME);
+        expect(config.telemetry!.application!.appVersion).toEqual(TEST_CONSTANTS.APP_VERSION);
     });
 
     test('client capabilities are handled as expected', async () => {

@@ -52,8 +52,14 @@ const msalConfig = {
         iframeHashTimeout: 6000,
         loadFrameTimeout: 0,
         asyncPopups: false
-    };
-}
+    },
+    telemetry: {
+        application: {
+            appName: "My Application",
+            appVersion: "1.0.0"
+        }
+    }
+};
 
 const msalInstance = new PublicClientApplication(msalConfig);
 ```
@@ -95,9 +101,22 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
 | `allowRedirectInIframe` | By default, MSAL will not allow redirect operations to be initiated when the application is inside an iframe. Set this flag to `true` to remove this check. | boolean | `false` |
 
-### Logger Config Options
+#### Logger Config Options
 
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `loggerCallback` | Callback function which handles the logging of MSAL statements. | Function - `loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void` | See [above](#using-the-config-object). |
 | `piiLoggingEnabled` | If true, personally identifiable information (PII) is included in logs. | boolean | `false` |
+
+### Telemetry Config Options
+
+| Option | Description | Format | Default Value |
+| ------ | ----------- | ------ | ------------- |
+| `application` | Telemetry options for applications using MSAL.js | See [below](#application-telemetry) | See [below](#application-telemetry) |
+
+#### Application Telemetry
+
+| Option | Description | Format | Default Value |
+| ------ | ----------- | ------ | ------------- |
+| `appName` | Unique string name of an application | string | Empty string "" |
+| `appVersion` | Version of the application using MSAL | string | Empty string "" |

@@ -9,7 +9,7 @@ import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest"
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, Errors } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -25,17 +25,18 @@ import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"; 
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * OAuth2.0 refresh token client
  */
 export class RefreshTokenClient extends BaseClient {
-
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration,performanceClient);
     }
 
-    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult>{
+    public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
@@ -56,7 +57,8 @@ export class RefreshTokenClient extends BaseClient {
             request,
             undefined,
             undefined,
-            true
+            true,
+            request.forceCache
         );
     }
 
@@ -89,7 +91,7 @@ export class RefreshTokenClient extends BaseClient {
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
                     return this.acquireTokenWithCachedRefreshToken(request, false);
-                // throw in all other cases
+                    // throw in all other cases
                 } else {
                     throw e;
                 }
@@ -133,7 +135,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);    
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -150,12 +152,24 @@ export class RefreshTokenClient extends BaseClient {
         };
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
+            .then((result) =>{
+                acquireTokenMeasurement?.endMeasurement({
+                    success: true
+                });
+                return result;
+            })
+            .catch((error) =>{
+                acquireTokenMeasurement?.endMeasurement({
+                    success: false
+                });
+                throw error;
+            });
     }
 
     /**
      * Creates query string for the /token request
-     * @param request 
+     * @param request
      */
     private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
@@ -172,6 +186,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+        const correlationId = request.correlationId;
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -183,14 +199,13 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
-
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        
         parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
@@ -207,12 +222,16 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
-            parameterBuilder.addPopToken(cnfString);
+            const reqCnfData = await popTokenGenerator.generateCnf(request);
+            // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
+            parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
-            if(request.sshJwk) {
+            if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
+                acquireTokenMeasurement?.endMeasurement({
+                    success: false
+                });
                 throw ClientConfigurationError.createMissingSshJwkError();
             }
         }
@@ -236,7 +255,9 @@ export class RefreshTokenClient extends BaseClient {
                     break;
             }
         }
-
+        acquireTokenMeasurement?.endMeasurement({
+            success: true
+        });
         return parameterBuilder.createQueryString();
     }
 }

@@ -1,0 +1,12 @@
+{
+    "request": {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "http://localhost:3002/redirect"
+        },
+        "tokenRequest": {
+            "scopes": ["user.read"],
+            "redirectUri": "http://localhost:3002/redirect"
+        }
+    }
+}

@@ -10,6 +10,7 @@ const msalConfig = {
     },
     system: {
         loggerOptions: {
+            logLevel: msal.LogLevel.Trace,
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {	
                     return;	
@@ -27,8 +28,17 @@ const msalConfig = {
                     case msal.LogLevel.Warning:	
                         console.warn(message);	
                         return;	
+                    default:
+                        console.log(message);
+                        return;
                 }
             }
+        }
+    },
+    telemetry: {
+        application: {
+            appName: "MSAL Browser V2 Default Sample",
+            appVersion: "1.0.0"
         }
     }
 };

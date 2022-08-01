@@ -15,8 +15,14 @@ concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   pre-check:
+    permissions:
+      contents: read  # for dorny/paths-filter to fetch a list of changed files
+      pull-requests: read  # for dorny/paths-filter to read pull requests
     runs-on: ubuntu-latest
     outputs: 
       # Expose matched filters as job 'packages' output variable
@@ -32,24 +38,27 @@ jobs:
           # browser/node filter will match any path under common as well as their own
           # angular/react filter will match any path under common and browser as well as their own
           filters: |
-            core:
+            msal-core:
               - 'lib/msal-core/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
-            common: &common
+            msal-common: &common
               - 'lib/msal-common/**/**.!(md)'
               - '.github/workflows/build-test-pr.yml'
-            browser: &browser
+            msal-browser: &browser
               - *common
               - 'lib/msal-browser/**/**.!(md)'
-            node:
+            msal-node:
               - *common
               - 'lib/msal-node/**/**.!(md)'
-            angular:
+            msal-angular:
               - *browser
               - 'lib/msal-angular/**/**.!(md)'
-            react:
+            msal-react:
               - *browser
               - 'lib/msal-react/**/**.!(md)'
+            node-token-validation:
+              - *common
+              - 'lib/node-token-validation/**/**.!(md)'
 
       - uses: dorny/paths-filter@v2
         id: extensions-filter
@@ -71,16 +80,16 @@ jobs:
           # e.g. ['package1', 'package2'] if both package folders contains changes
           library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
   
-    name: msal-${{ matrix.library }}
+    name: ${{ matrix.library }}
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: |
@@ -94,43 +103,58 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_${{ matrix.library }}
+        path: ~/.npm/_logs/**/*
+        retention-days: 2
+
     - name: Build packages
-      working-directory: lib/msal-${{ matrix.library }}
+      working-directory: lib/${{ matrix.library }}
       run: npm run build:all
 
     - name: Lint
-      working-directory: lib/msal-${{ matrix.library }}
+      working-directory: lib/${{ matrix.library }}
       run: npm run lint
 
     - name: Unit Tests with coverage
-      working-directory: lib/msal-${{ matrix.library }}
+      working-directory: lib/${{ matrix.library }}
       run: npm run test:coverage
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
-        files: lib/msal-${{matrix.library}}/coverage/lcov.info
-        flags: msal-${{ matrix.library }}
+        files: lib/${{matrix.library}}/coverage/lcov.info
+        flags: ${{ matrix.library }}
 
   extensions-build-test:
     needs: pre-check
-    runs-on: windows-latest
+    runs-on: windows-2019
     if: needs.pre-check.outputs.extensions == 'true'
   
     name: msal-node-extensions
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Clean Install
-      if: steps.cache.outputs.cache-hit != 'true'
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
+
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_msal-node-extensions
+        path: ~/npm/cache/_logs/**/*
+        retention-days: 2
 
     - name: Build packages
       working-directory: extensions/msal-node-extensions
@@ -146,7 +170,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: extensions/msal-node-extensions/coverage/lcov.info
         flags: msal-node-extensions

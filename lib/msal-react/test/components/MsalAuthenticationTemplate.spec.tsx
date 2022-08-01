@@ -4,13 +4,12 @@
  */
 
 import React, { useState } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, testResult, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, MsalAuthenticationTemplate, MsalAuthenticationResult, IMsalContext, useMsal } from "../../src/index";
 import { PublicClientApplication, Configuration, InteractionType, EventType, AccountInfo, EventCallbackFunction, EventMessage, PopupRequest, AuthError, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { ReactAuthErrorMessage } from "../../src/error/ReactAuthError";
-import { act } from "react-dom/test-utils";
 
 describe("MsalAuthenticationTemplate tests", () => {
     let pca: PublicClientApplication;
@@ -86,7 +85,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -120,7 +118,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -154,7 +151,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -192,7 +188,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -230,7 +225,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -267,7 +261,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -373,6 +366,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             </MsalProvider>
         );
 
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
         expect(await screen.findByText("A user is authenticated!")).toBeInTheDocument();
         expect(loginRedirectSpy).not.toHaveBeenCalled();
@@ -397,6 +391,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
             expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
@@ -419,6 +414,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
             expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
@@ -441,6 +437,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
             expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
@@ -463,6 +460,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
             expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
@@ -492,6 +490,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenPopupSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
@@ -522,6 +521,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenRedirectSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
@@ -551,6 +551,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(ssoSilentSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
@@ -560,9 +561,31 @@ describe("MsalAuthenticationTemplate tests", () => {
         test("Calls acquireTokenSilent and throws unable to fallback error if interaction is already in progress", async () => {
             accounts = [testAccount];
             pca.setActiveAccount(testAccount);
-            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
-                expect(request).toBeDefined();
-                expect(request.account).toBe(testAccount);
+            handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() =>{
+                const eventStart: EventMessage = {
+                    eventType: EventType.HANDLE_REDIRECT_START,
+                    interactionType: InteractionType.Redirect,
+                    payload: null,
+                    error: null,
+                    timestamp: 10000
+                };
+    
+                eventCallbacks.forEach((callback) => {
+                    callback(eventStart);
+                });
+    
+                const eventEnd: EventMessage = {
+                    eventType: EventType.HANDLE_REDIRECT_END,
+                    interactionType: InteractionType.Redirect,
+                    payload: null,
+                    error: null,
+                    timestamp: 10000
+                };
+    
+                eventCallbacks.forEach((callback) => {
+                    callback(eventEnd);
+                });
+
                 const eventMessage: EventMessage = {
                     eventType: EventType.ACQUIRE_TOKEN_START,
                     interactionType: InteractionType.Redirect,
@@ -573,6 +596,16 @@ describe("MsalAuthenticationTemplate tests", () => {
                 eventCallbacks.forEach((callback) => {
                     callback(eventMessage);
                 });
+                return Promise.resolve(null);
+            });
+            jest.spyOn(pca, "acquireTokenRedirect").mockImplementation(() => {
+                throw "This should not be hit";
+            });
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation(async (request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+
+                await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
                 return Promise.reject(new InteractionRequiredAuthError("interaction_required", "Interaction is required"));
             });
 
@@ -590,6 +623,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             act(() => {
                 const eventMessage: EventMessage = {
@@ -608,7 +642,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
         });
 
-        test("Calls acquireTokenSilent and throws unable to fallback error if interaction is already in progress", async () => {
+        test("Calls acquireTokenSilent and throws renders error component with error", async () => {
             accounts = [testAccount];
             pca.setActiveAccount(testAccount);
             const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
@@ -631,6 +665,7 @@ describe("MsalAuthenticationTemplate tests", () => {
                 </MsalProvider>
             );
 
+            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
             expect(screen.queryByText("Error Occurred")).toBeInTheDocument();
             expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
@@ -648,7 +683,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -690,7 +724,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -737,7 +770,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: error,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -755,7 +787,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
@@ -807,7 +838,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                 error: null,
                 timestamp: 10000
             };
-            expect(eventCallbacks.length).toBe(3);
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });

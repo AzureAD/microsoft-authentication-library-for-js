@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import React, { useState, useEffect, useRef, PropsWithChildren, useMemo } from "react";
+import React, { useEffect, useReducer, PropsWithChildren, useMemo} from "react";
 import {
     IPublicClientApplication,
-    EventType,
     EventMessage,
     EventMessageUtils,
     InteractionStatus,
@@ -22,82 +21,134 @@ export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
 }>;
 
+type MsalState = {
+    inProgress: InteractionStatus;
+    accounts: AccountInfo[];
+};
+
+enum MsalProviderActionType {
+    UNBLOCK_INPROGRESS = "UNBLOCK_INPROGRESS",
+    EVENT = "EVENT"
+}
+
+type MsalProviderReducerAction = {
+    type: MsalProviderActionType,
+    payload: {
+        logger: Logger;
+        instance: IPublicClientApplication;
+        message?: EventMessage;
+    };
+};
+
+/**
+ * Returns the next inProgress and accounts state based on event message
+ * @param previousState 
+ * @param action 
+ */
+const reducer = (previousState: MsalState, action: MsalProviderReducerAction): MsalState => {
+    const { type, payload } = action;
+    let newInProgress = previousState.inProgress;
+
+    switch (type) {
+        case MsalProviderActionType.UNBLOCK_INPROGRESS:
+            if (previousState.inProgress === InteractionStatus.Startup){
+                newInProgress = InteractionStatus.None;
+                payload.logger.info("MsalProvider - handleRedirectPromise resolved, setting inProgress to 'none'");
+            }
+            break;
+        case MsalProviderActionType.EVENT:
+            const message = payload.message as EventMessage;
+            const status = EventMessageUtils.getInteractionStatusFromEvent(message, previousState.inProgress);
+            if (status) {
+                payload.logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${previousState.inProgress} to ${status}`);
+                newInProgress = status;
+            }
+            break;
+        default:
+            throw new Error(`Unknown action type: ${type}`);
+    }
+    
+    const currentAccounts = payload.instance.getAllAccounts();
+    if (newInProgress !== previousState.inProgress && 
+        !accountArraysAreEqual(currentAccounts, previousState.accounts)) {
+        // Both inProgress and accounts changed
+        return {
+            ...previousState,
+            inProgress: newInProgress,
+            accounts: currentAccounts
+        };
+    } else if (newInProgress !== previousState.inProgress) {
+        // Only only inProgress changed
+        return {
+            ...previousState,
+            inProgress: newInProgress
+        };
+    } else if (!accountArraysAreEqual(currentAccounts, previousState.accounts)) {
+        // Only accounts changed
+        return {
+            ...previousState,
+            accounts: currentAccounts
+        };
+    } else {
+        // Nothing changed
+        return previousState;
+    }
+};
+
+/**
+ * MSAL context provider component. This must be rendered above any other components that use MSAL.
+ */
 export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
     useEffect(() => {
         instance.initializeWrapperLibrary(WrapperSKU.React, version);
     }, [instance]);
     // Create a logger instance for msal-react with the same options as PublicClientApplication
-    const logger: Logger = useMemo(() => {
+    const logger = useMemo(() => {
         return instance.getLogger().clone(SKU, version);
     }, [instance]);
 
-    // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountInfo[]>(() => instance.getAllAccounts());
-    // State hook to store in progress value
-    const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
-    // Mutable object used in the event callback
-    const inProgressRef = useRef(inProgress);
+    const [state, updateState] = useReducer(reducer, undefined, () => {
+        // Lazy initialization of the initial state
+        return {
+            inProgress: InteractionStatus.Startup,
+            accounts: instance.getAllAccounts()
+        };
+    });
     
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
-            switch (message.eventType) {
-                case EventType.ACCOUNT_ADDED:
-                case EventType.ACCOUNT_REMOVED:
-                case EventType.LOGIN_SUCCESS:
-                case EventType.SSO_SILENT_SUCCESS:
-                case EventType.HANDLE_REDIRECT_END:
-                case EventType.LOGIN_FAILURE:
-                case EventType.SSO_SILENT_FAILURE:
-                case EventType.LOGOUT_END:
-                case EventType.ACQUIRE_TOKEN_SUCCESS:
-                case EventType.ACQUIRE_TOKEN_FAILURE:
-                    const currentAccounts = instance.getAllAccounts();
-                    if (!accountArraysAreEqual(currentAccounts, accounts)) {
-                        logger.info("MsalProvider - updating account state");
-                        setAccounts(currentAccounts);
-                    } else {
-                        logger.info("MsalProvider - no account changes");
-                    }
-                    break;
-            }
+            updateState({
+                payload: {
+                    instance,
+                    logger,
+                    message
+                }, 
+                type: MsalProviderActionType.EVENT
+            });
         });
         logger.verbose(`MsalProvider - Registered event callback with id: ${callbackId}`);
+
+        instance.initialize().then(() => {
+            instance.handleRedirectPromise().catch(() => {
+                // Errors should be handled by listening to the LOGIN_FAILURE event
+                return;
+            }).finally(() => {
+                /*
+                 * If handleRedirectPromise returns a cached promise the necessary events may not be fired
+                 * This is a fallback to prevent inProgress from getting stuck in 'startup'
+                 */
+                updateState({
+                    payload: {
+                        instance,
+                        logger
+                    },
+                    type: MsalProviderActionType.UNBLOCK_INPROGRESS 
+                });
+            });
+        });
 
         return () => {
             // Remove callback when component unmounts or accounts change
-            if (callbackId) {
-                logger.verbose(`MsalProvider - Removing event callback ${callbackId}`);
-                instance.removeEventCallback(callbackId);
-            }
-        };
-    }, [instance, accounts, logger]);
-
-    useEffect(() => {
-        const callbackId = instance.addEventCallback((message: EventMessage) => {
-            const status = EventMessageUtils.getInteractionStatusFromEvent(message, inProgressRef.current);
-            if (status !== null) {
-                logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${inProgressRef.current} to ${status}`);
-                inProgressRef.current = status;
-                setInProgress(status);
-            }
-        });
-        logger.verbose(`MsalProvider - Registered event callback with id: ${callbackId}`);
-
-        instance.handleRedirectPromise().catch(() => {
-            // Errors should be handled by listening to the LOGIN_FAILURE event
-            return;
-        }).finally(() => {
-            /*
-             * If handleRedirectPromise returns a cached promise the necessary events may not be fired
-             * This is a fallback to prevent inProgress from getting stuck in 'startup'
-             */
-            if (inProgressRef.current === InteractionStatus.Startup) {
-                inProgressRef.current = InteractionStatus.None;
-                setInProgress(InteractionStatus.None);
-            }
-        });
-
-        return () => {
             if (callbackId) {
                 logger.verbose(`MsalProvider - Removing event callback ${callbackId}`);
                 instance.removeEventCallback(callbackId);
@@ -107,8 +158,8 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
 
     const contextValue: IMsalContext = {
         instance,
-        inProgress,
-        accounts,
+        inProgress: state.inProgress,
+        accounts: state.accounts,
         logger
     };
 

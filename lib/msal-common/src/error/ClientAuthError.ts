@@ -189,6 +189,10 @@ export const ClientAuthErrorMessage = {
     logoutNotSupported: {
         code: "end_session_endpoint_not_supported",
         desc: "Provided authority does not support logout."
+    },
+    keyIdMissing: {
+        code: "key_id_missing",
+        desc: "A keyId value is missing from the requested bound token's cache record and is required to match the token to it's stored binding key."
     }
 };
 
@@ -515,5 +519,12 @@ export class ClientAuthError extends AuthError {
      */
     static createLogoutNotSupportedError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.logoutNotSupported.code, ClientAuthErrorMessage.logoutNotSupported.desc);
+    }
+
+    /**
+     * Create an error when kid attribute is missing from a PoP token's cache record
+     */
+    static createKeyIdMissingError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.keyIdMissing.code, ClientAuthErrorMessage.keyIdMissing.desc);
     }
 }

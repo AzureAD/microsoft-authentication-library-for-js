@@ -16,7 +16,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.22.0/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.28.0/js/msal-browser.min.js"></script>
 ```
 
 ## Unminified builds
@@ -84,6 +84,20 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
+2.28.0        | msal-browser.js     | `sha384-q8S4bw8Wfzedv3LPXdOP0+IKu+LqXg4l9xZaOwTp3h40FYMw6YeO/6FX+aG6vgXx`
+2.28.0        | msal-browser.min.js | `sha384-dKtQ/y8SrxV+8eZsQnb3vQpwWP57fRau9cbe4FbFK6B+VSC5SaWTM9w6lwQdNhKG`
+2.27.0        | msal-browser.js     | `sha384-CsXI9QUbEXvbc1SIiLQ1/sUNkZZfkQSamJ2YU4g/yDKQNDyn8D2HTgR1ww7QV5+U`
+2.27.0        | msal-browser.min.js | `sha384-IlUQkOwOI6mWk8GNIWu8hpPE1sasxSg3gGjZo0dncq6IhHsTlH51mp5mhFYS5po1`
+2.26.0        | msal-browser.js     | `sha384-fitpJWrpyl840mvd9nBFLGulqR4BJzvim0fzrXQKdsVh2AQzE4rTTJ0o5o+x+dRK`
+2.26.0        | msal-browser.min.js | `sha384-VdtLJ4gW9+dszXDbJEzdUFYI+xq4hXfOGntgGlDve3qz/5WEzWjLeN1voiro74af`
+2.25.0        | msal-browser.js     | `sha384-zezf4cRFK/02dUQFQjo+qA3OjwpHtgizVgd4wMyxG2bWNy2TxzKe1CqIyBYWRJxF`
+2.25.0        | msal-browser.min.js | `sha384-dDqLsp/gmQFrDNIjpyKi23AtweUuA2Hn3wnwxOr+IwWGC8Zock5gcEwvLAkvvXh/`
+2.24.0        | msal-browser.js     | `sha384-NcVVwcZIMSdYk9wbu0m7mElxxmQMIMRVSXXkF53lT+d41bXftjpIs8neU7xry4ch`
+2.24.0        | msal-browser.min.js | `sha384-U+uxTX8q39oAXjbZ8Bp9eTNwAmwyS8Sq7afx4SiEUFTt4LRIEbZDcMmVE0K85Vze`
+2.23.0        | msal-browser.js     | `sha384-dvhiAjRHm++5woziYGV/JQSredPVb/p0VCATrsE/Upv4VmhLrKo6MWW218QofKIG`
+2.23.0        | msal-browser.min.js | `sha384-QxXqndv+Kkjr1gNW8SQUIE2zG/UT8lHYvf6HYdAAUj56xs9utgJNWyknd0O1CrUl`
+2.22.1        | msal-browser.js     | `sha384-cKDVz4ain64nzHeJR0vejySPl0i8A6c7YfJI5ehEDQDoA5SSlb/zoLAFvXTQvTQS`
+2.22.1        | msal-browser.min.js | `sha384-nCTmWvEOevLDR1A0WzHvi1PbktdL8pPPACO2UYs9NPp+TCEz0hE0c8JmMxRlNSjh`
 2.22.0        | msal-browser.js     | `sha384-B46pTTVe+0LfqOtym4Ys6NnTk47DzGHgn83hf4JBDIUfgiZlYFaywZqzEYQYCg4b`
 2.22.0        | msal-browser.min.js | `sha384-JmIjzXWxZ0+8Zd5wAsqkE9EKmxRx1ikmsnABsK9yFAbMmjOv9kSK4j560FLjkCxn`
 2.21.0        | msal-browser.js     | `sha384-928QQ3wSVfsx4ZV1MR0896l8lK21YX1xWK3gSl8AW/lMEAZ2GeYqvFkm/VPzgn4y`

@@ -109,8 +109,9 @@ export const TEST_URIS = {
 
 // Test Crypto Values
 export const TEST_CRYPTO_VALUES = {
-    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
-}
+    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE",
+    TEST_USER_ASSERTION_HASH: "nFDCbX7CudvdluSPGh34Y-VKZIXRG1rquljNBbn7xuE"
+};
 
 // Test MSAL config params
 export const TEST_CONFIG = {
@@ -141,9 +142,13 @@ export const TEST_CONFIG = {
     TEST_VERSION: "1.1.0",
     TEST_OS: "win32",
     TEST_CPU: "x86",
+    TEST_APP_NAME: "MSAL.js Unit Test",
+    TEST_APP_VER: "1.0.0",
     TEST_ASSERTION_TYPE: "jwt_bearer",
     THE_FAMILY_ID: "1",
-    DEFAULT_TOKEN_RENEWAL_OFFSET: 300
+    DEFAULT_TOKEN_RENEWAL_OFFSET: 300,
+    TEST_CONFIG_ASSERTION: "DefaultAssertion",
+    TEST_REQUEST_ASSERTION: "RequestAssertion"
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -490,14 +495,22 @@ export const CACHE_MOCKS = {
         tenantId: "microsoft",
         username: "mocked_username"
     },
+    MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID: {
+        homeAccountId: "uid.utid",
+        localAccountId: "uid",
+        environment: "login.microsoftonline.com",
+        tenantId: "microsoft",
+        username: "mocked_username",
+        nativeAccountId: "mocked_native_account_id"
+    },
 };
 
 export const CORS_SIMPLE_REQUEST_HEADERS = [
-    "connection", 
-    "user-agent", 
-    "accept", 
-    "accept-language", 
-    "content-language", 
+    "connection",
+    "user-agent",
+    "accept",
+    "accept-language",
+    "content-language",
     "content-type"
 ];
 
@@ -506,4 +519,8 @@ export const TEST_AUTHENTICATION_HEADERS = {
     invalidAuthenticationInfo: `PoP test_challenge="test_challenge"`,
     wwwAuthenticate: `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`,
     invalidWwwAuthenticate: `PoP test_challenge="test_challenge`
+};
+
+export const TEST_CRYPTO_ALGORITHMS = {
+    rsa: "RSA"
 };

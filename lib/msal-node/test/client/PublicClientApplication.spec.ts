@@ -1,17 +1,20 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import { Configuration } from './../../src/index';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
+import { ID_TOKEN_CLAIMS, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult,
-    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, ProtocolMode, Logger, LogLevel
+    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, SilentFlowClient, ProtocolMode, Logger, LogLevel
 } from '@azure/msal-common';
+import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
 import { AuthorizationCodeRequest } from '../../src/request/AuthorizationCodeRequest';
 import { RefreshTokenRequest } from '../../src/request/RefreshTokenRequest';
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
+import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import { mocked } from 'ts-jest/utils';
+import { AccountInfo } from '@azure/msal-common';
 
 
 import * as msalCommon from '@azure/msal-common';
@@ -21,7 +24,10 @@ import { getMsalCommonAutoMock } from '../utils/MockUtils';
 import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
 
+
 describe('PublicClientApplication', () => {
+
+    const mockTelemetryManager: msalCommon.ServerTelemetryManager = setupServerTelemetryManagerMock();
 
     let appConfig: Configuration = {
         auth: {
@@ -41,7 +47,7 @@ describe('PublicClientApplication', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        setupServerTelemetryManagerMock();
+        mockTelemetryManager
         setupAuthorityFactory_createDiscoveredInstance_mock();
     });
 
@@ -104,6 +110,34 @@ describe('PublicClientApplication', () => {
     });
 
 
+    test("acquireTokenByAuthorizationCode with nonce", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        };
+
+        const cryptoProvider = new CryptoProvider();
+        const authCodePayLoad = {
+            nonce: cryptoProvider.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        }
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
 
 
     test('acquireTokenByRefreshToken', async () => {
@@ -125,6 +159,66 @@ describe('PublicClientApplication', () => {
         );
     });
 
+    test('acquireTokenSilent', async () => {  
+        const account: AccountInfo = {
+            homeAccountId: "",
+            environment: "",
+            tenantId: "",
+            username: "",
+            localAccountId: "",
+            name: "",
+            idTokenClaims: ID_TOKEN_CLAIMS
+
+        };
+        const request: SilentFlowRequest = {
+            account: account,
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE
+        };
+
+        const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+        jest.spyOn(msalCommon, 'SilentFlowClient')
+            .mockImplementation((config) => new silentFlowClient(config));
+
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenSilent(request);
+        expect(SilentFlowClient).toHaveBeenCalledTimes(1);
+        expect(SilentFlowClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
+    test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
+        const account: AccountInfo = {
+            homeAccountId: "",
+            environment: "",
+            tenantId: "",
+            username: "",
+            localAccountId: "",
+            name: "",
+            idTokenClaims: ID_TOKEN_CLAIMS
+
+        };
+        const request: SilentFlowRequest = {
+            account: account,
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            claims: TEST_CONSTANTS.CLAIMS,
+        };
+
+        const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
+        jest.spyOn(msalCommon, 'SilentFlowClient')
+            .mockImplementation((config) => new silentFlowClient(config));
+
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenSilent(request);
+        expect(silentFlowClient.prototype.acquireToken)
+            .toHaveBeenCalledWith(expect.objectContaining({ requestedClaimsHash: expect.any(String) }))
+
+        const submittedRequest = mocked(silentFlowClient.prototype.acquireToken).mock.calls[0][0];
+        expect((submittedRequest as any)?.requestedClaimsHash?.length)
+            .toBeGreaterThan(0);
+    })
 
 
     test('create AuthorizationCode URL', async () => {
@@ -190,7 +284,8 @@ describe('PublicClientApplication', () => {
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
+            authorityMetadata: "",
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -218,7 +313,8 @@ describe('PublicClientApplication', () => {
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
+            authorityMetadata: "",
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -231,7 +327,7 @@ describe('PublicClientApplication', () => {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 azureCloudOptions: {
                     azureCloudInstance: msalCommon.AzureCloudInstance.AzureUsGovernment,
-                    tenant:""
+                    tenant: ""
                 }
             },
         };
@@ -253,7 +349,8 @@ describe('PublicClientApplication', () => {
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
+            authorityMetadata: "",
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -289,7 +386,8 @@ describe('PublicClientApplication', () => {
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
+            authorityMetadata: "",
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));

@@ -15,12 +15,16 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-angular-v2-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
+      - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-angular-e2e.yml'
 
 concurrency:
   group: angular-e2e-${{github.ref}}
   cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   run-e2e:
@@ -36,14 +40,18 @@ jobs:
           - 'angular11-b2c-sample'
           - 'angular11-sample-app'
           - 'angular12-sample-app'
+          - 'angular13-rxjs6-sample-app'
+          - 'angular13-rxjs7-sample-app'
+          - 'angular14-rxjs6-sample-app'
+          - 'angular14-rxjs7-sample-app'
 
     name: ${{ matrix.sample }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Clean Install
       env:
@@ -78,7 +86,7 @@ jobs:
       run: npm run e2e
 
     - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: e2e-test-screenshots

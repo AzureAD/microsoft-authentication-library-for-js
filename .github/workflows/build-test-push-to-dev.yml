@@ -13,6 +13,9 @@ concurrency:
   group: dev-ci-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lib-build-test:
     runs-on: ubuntu-latest
@@ -27,17 +30,18 @@ jobs:
             - msal-node
             - msal-angular
             - msal-react
+            - node-token-validation
 
     name: ${{ matrix.library }}
   
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: |
@@ -61,21 +65,21 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: lib/${{matrix.library}}/coverage/lcov.info
         flags: ${{ matrix.library }}
         
   extensions-build-test:
-    runs-on: windows-latest
+    runs-on: windows-2019
   
     name: msal-node-extensions
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Clean Install
       env:
@@ -96,7 +100,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: extensions/msal-node-extensions/coverage/lcov.info
         flags: msal-node-extensions

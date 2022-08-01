@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixtureAutoDetect, fakeAsync, TestBed } from '@angular/core/testing';
 import { IPublicClientApplication, PublicClientApplication } from "@azure/msal-browser";
 import { MsalModule } from './msal.module';
 import { MsalService } from './msal.service';
@@ -35,19 +35,27 @@ function initializeMsal() {
 describe('MsalRedirectComponent', () => {
   beforeAll(initializeMsal);
 
-  it('calls handleRedirectObservable on ngInit', () => {
+  it('calls handleRedirectObservable on ngInit', (done) => {
     const sampleAccessToken = {
       accessToken: "123abc"
     };
-    spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.returnValue((
-      new Promise((resolve) => {
+
+    spyOn(PublicClientApplication.prototype, "initialize").and.returnValue((
+      Promise.resolve()
+    ));
+    spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.callFake(() => {
+      return new Promise((resolve) => {
+        console.log("Spy called")
         //@ts-ignore
         resolve(sampleAccessToken);
-      })
-    ));
 
+        expect(PublicClientApplication.prototype.initialize).toHaveBeenCalled();
+        expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled();
+        done();
+      });
+    });
+    
     const component = new MsalRedirectComponent(authService);
     component.ngOnInit();
-    expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled();
   })
 })

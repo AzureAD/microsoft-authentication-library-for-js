@@ -1,8 +1,110 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
+This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.28.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Added new token size field in the perf telemetry data #4973 (bmahal@microsoft.com)
+- Add local cache support for JS-WAM bridge #4971 (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v7.2.0
+
+### Patches
+
+- Fix bug with activeAccount when two accounts have same local account id #5004 (t-ssummers@microsoft.com)
+
+## 2.27.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Bump @azure/msal-common to v7.1.0
+
+### Patches
+
+- Fix prompt behavior for native broker requests #4949 (thomas.norling@microsoft.com)
+- Non-fatal native broker errors should clear interaction in progress flag #4950 (thomas.norling@microsoft.com)
+- Mark temporary cache cookies as SameSite lax #4957 (janutter@microsoft.com)
+- Handle ACCOUNT_UNAVAILABLE error status from native broker #4951 (thomas.norling@microsoft.com)
+
+## 2.26.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Minor changes
+
+- Add errorCode and subErrorCode to client telemetry events (#4863) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v7.0.0
+
+### Patches
+
+- Add strict assertion checks for OBO clients (#4691) (bmahal@microsoft.com)
+- Update redirect_in_iframe message to include messaging for embedded applications #4895 (janutter@microsoft.com)
+- preflightBrowserEnvironmentCheck should not always set interaction in progress #4893 (janutter@microsoft.com)
+- Return correct fromCache value when tokens are acquired from native broker #4880 (thomas.norling@microsoft.com)
+
+## 2.25.0
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Minor changes
+
+- Fix empty hash errors in popups #4793 (thomas.norling@microsoft.com)
+- Add PoP support for Encrypted Access Tokens #4730 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v6.4.0
+
+### Patches
+
+- Add keyId to SHR header and make x5c_ca claim type string array #4729 (hemoral@microsoft.com)
+- Fixes assignment of expiresOn inside loadExternalTokens to fix issue where all access tokens appear expired during E2E #4711 (paulrsauer@gmail.com)
+- SHR params renamed as per MSAL JS's naming convention #4794 (sameera.gajjarapu@microsoft.com)
+- Fallback to web flow when native broker throws 'DISABLED' status #4837 (thomas.norling@microsoft.com)
+- Change log message level in initialize from warning to info #4820 (thomas.norling@microsoft.com)
+
+## 2.24.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Move internals needed for msal-browser-1p to separate export #4742 (janutter@microsoft.com)
+- Add support for acquiring tokens from the native broker #4531 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v6.3.0
+
+### Patches
+
+- Fix for WAM window parenting #4755 (thomas.norling@microsoft.com)
+- Ensure interaction status is properly set during logout with onRedirectNavigate #4719 (janutter@microsoft.com)
+
+## 2.23.0
+
+Mon, 04 Apr 2022 21:12:42 GMT
+
+### Minor changes
+
+- Add performance telemetry API #4570 (janutter@microsoft.com)
+- Add Client Application telemetry parameters to MSAL #4616 (prithviraj.kanherkar@microsoft.com)
+- Bump @azure/msal-common to v6.2.0
+
+### Patches
+
+- Fix persistent key store deletion on logout #4617 (hemoral@microsoft.com)
+
+## 2.22.1
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Clear temporary cache when back button is clicked during redirect flow #4513 (thomas.norling@microsoft.com)
+- Don't reassign request object properties #4563 (thomas.norling@microsoft.com)
 
 ## 2.22.0
 

@@ -4,13 +4,14 @@
  */
 
 import sinon from "sinon";
-import { ResponseMode, AuthenticationScheme, Authority, AzureCloudOptions, ProtocolMode, AuthorityOptions, AzureCloudInstance } from "@azure/msal-common";
+import { ResponseMode, AuthenticationScheme, AzureCloudOptions, AzureCloudInstance, Authority } from "@azure/msal-common";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { StandardInteractionClient } from "../../src/interaction_client/StandardInteractionClient";
 import { EndSessionRequest } from "../../src/request/EndSessionRequest";
-import { TEST_CONFIG, TEST_STATE_VALUES, TEST_URIS } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_STATE_VALUES, TEST_URIS, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { FetchClient } from "../../src/network/FetchClient";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -41,7 +42,15 @@ describe("StandardInteractionClient", () => {
             }
         });
         // @ts-ignore
-        testClient = new testStandardInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, null);
+        testClient = new testStandardInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, null, pca.performanceClient);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(FetchClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+            if (url.startsWith("https://login.microsoftonline.com/common/discovery/instance?")) {
+                return Promise.resolve(DEFAULT_TENANT_DISCOVERY_RESPONSE);
+            } else {
+                return Promise.reject({headers: {}, status: 404, body: {}});
+            }
+        });
     });
 
     afterEach(() => {

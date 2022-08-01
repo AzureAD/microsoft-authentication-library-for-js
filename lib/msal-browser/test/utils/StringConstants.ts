@@ -53,7 +53,7 @@ export const TEST_CONFIG = {
     OID: "test-oid",
     SUB: "test-sub",
     RESPONSE_MODE: "fragment",
-
+    TOKEN_EXPIRY: 3600,
 };
 
 // Test Tokens
@@ -150,6 +150,9 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
     TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_POPUP}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_REDIRECT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+    TEST_SUCCESS_NATIVE_ACCOUNT_ID_SILENT: `#accountId=test-nativeAccountId&state=${TEST_STATE_VALUES.TEST_STATE_SILENT}`
 };
 
 // Test Crypto Values
@@ -158,14 +161,36 @@ export const TEST_CRYPTO_VALUES = {
 }
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
+    headers: {},
+    status: 200,
     body: {
-        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
-        "api-version": "1.1",
-        "metadata": [
+        "tenant_discovery_endpoint":"https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+        "api-version":"1.1",
+        "metadata":[
             {
-                "preferred_network": "login.windows.net",
-                "preferred_cache": "sts.windows.net",
-                "aliases": ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+                "preferred_network":"login.microsoftonline.com",
+                "preferred_cache":"login.windows.net",
+                "aliases":["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+            },
+            {
+                "preferred_network":"login.partner.microsoftonline.cn",
+                "preferred_cache":"login.partner.microsoftonline.cn",
+                "aliases":["login.partner.microsoftonline.cn","login.chinacloudapi.cn"]
+            },
+            {
+                "preferred_network":"login.microsoftonline.de",
+                "preferred_cache":"login.microsoftonline.de",
+                "aliases":["login.microsoftonline.de"]
+            },
+            {
+                "preferred_network":"login.microsoftonline.us",
+                "preferred_cache":"login.microsoftonline.us",
+                "aliases":["login.microsoftonline.us","login.usgovcloudapi.net"]
+            },
+            {
+                "preferred_network":"login-us.microsoftonline.com",
+                "preferred_cache":"login-us.microsoftonline.com",
+                "aliases":["login-us.microsoftonline.com"]
             }
         ]
     }
@@ -243,8 +268,8 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
     }
 };
 
-export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=user.read%20openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=${encodeURIComponent(`${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`)}`;
+export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=user.read%20openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-app-name=${TEST_CONFIG.applicationName}&x-app-ver=${TEST_CONFIG.applicationVersion}&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=${encodeURIComponent(`${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`)}`;
 
-export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=`;
+export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-app-name=${TEST_CONFIG.applicationName}&x-app-ver=${TEST_CONFIG.applicationVersion}&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=`;
 
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(`${TEST_URIS.TEST_REDIR_URI}`)}`;

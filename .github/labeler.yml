@@ -16,6 +16,8 @@ msal-browser:
   - lib/msal-browser/**/*
 msal-react:
   - lib/msal-react/**/*
+node-token-validation:
+  - lib/node-token-validation/**/*
 adal.js:
   - maintenance/adal-angular/**/*
 passport-azure-ad:

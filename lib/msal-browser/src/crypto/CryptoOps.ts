@@ -3,14 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, IPerformanceClient, JoseHeader, Logger, PerformanceEvents, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
@@ -29,6 +28,11 @@ export type CryptoKeyStore = {
     symmetricKeys: AsyncMemoryStorage<CryptoKey>;
 };
 
+export enum CryptoKeyStoreNames {
+    asymmetricKeys = "asymmetricKeys",
+    symmetricKeys = "symmetricKeys"
+}
+
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
@@ -42,11 +46,17 @@ export class CryptoOps implements ICrypto {
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
 
+    /**
+     * CryptoOps can be used in contexts outside a PCA instance,
+     * meaning there won't be a performance manager available.
+     */
+    private performanceClient: IPerformanceClient | undefined;
+
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(logger: Logger) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
@@ -55,9 +65,10 @@ export class CryptoOps implements ICrypto {
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = {
-            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
-            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
+            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys),
+            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys)
         };
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -96,6 +107,8 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
+        const publicKeyThumbMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
+
         // Generate Keypair
         const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
@@ -127,6 +140,12 @@ export class CryptoOps implements ICrypto {
             }
         );
 
+        if (publicKeyThumbMeasurement) {
+            publicKeyThumbMeasurement.endMeasurement({
+                success: true
+            });
+        }
+
         return publicJwkHash;
     }
 
@@ -144,9 +163,23 @@ export class CryptoOps implements ICrypto {
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        const dataStoreNames = Object.keys(this.cache);
-        const databaseStorage = this.cache[dataStoreNames[0]];
-        return databaseStorage ? await databaseStorage.deleteDatabase() : false;
+        try {
+            this.logger.verbose("Deleting in-memory and persistent asymmetric key stores");
+            await this.cache.asymmetricKeys.clear();
+            this.logger.verbose("Successfully deleted asymmetric key stores");
+            this.logger.verbose("Deleting in-memory and persistent symmetric key stores");
+            await this.cache.symmetricKeys.clear();
+            this.logger.verbose("Successfully deleted symmetric key stores");
+            return true;
+        } catch (e) {
+            if (e instanceof Error) {
+                this.logger.error(`Clearing keystore failed with error: ${e.message}`);
+            } else {
+                this.logger.error("Clearing keystore failed with unknown error");
+            }
+            
+            return false;
+        }
     }
 
     /**
@@ -154,7 +187,8 @@ export class CryptoOps implements ICrypto {
      * @param payload 
      * @param kid 
      */
-    async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+    async signJwt(payload: SignedHttpRequest, kid: string, correlationId?: string): Promise<string> {
+        const signJwtMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsSignJwt, correlationId);
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
@@ -164,13 +198,13 @@ export class CryptoOps implements ICrypto {
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
+        
+        // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
+        const encodedKeyIdThumbprint = this.b64Encode.urlEncode(JSON.stringify({ kid: kid }));
 
         // Generate header
-        const header = {
-            alg: publicKeyJwk.alg,
-            type: KEY_FORMAT_JWK
-        };
-        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
+        const shrHeader = JoseHeader.getShrHeaderString({ kid: encodedKeyIdThumbprint, alg: publicKeyJwk.alg });
+        const encodedShrHeader = this.b64Encode.urlEncode(shrHeader);
 
         // Generate payload
         payload.cnf = {
@@ -179,14 +213,22 @@ export class CryptoOps implements ICrypto {
         const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
 
         // Form token string
-        const tokenString = `${encodedHeader}.${encodedPayload}`;
+        const tokenString = `${encodedShrHeader}.${encodedPayload}`;
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
         const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
-        return `${tokenString}.${encodedSignature}`;
+        const signedJwt = `${tokenString}.${encodedSignature}`;
+
+        if (signJwtMeasurement) {
+            signJwtMeasurement.endMeasurement({
+                success: true
+            });
+        }
+
+        return signedJwt;
     }
 
     /**

@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "adding network performance measurement #4834",
+  "packageName": "@azure/msal-common",
+  "email": "ellymakuba@microsoft.com",
+  "dependentChangeType": "patch"
+}

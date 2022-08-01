@@ -14,6 +14,7 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - 'samples/e2eTestUtils/**/*'
+      - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-browser-e2e.yml'
 
@@ -21,19 +22,22 @@ concurrency:
   group: browser-e2e-${{github.ref}}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   run-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |
@@ -85,7 +89,7 @@ jobs:
       run: npm run test:e2e
 
     - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: e2e-test-screenshots

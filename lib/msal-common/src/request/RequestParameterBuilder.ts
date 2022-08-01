@@ -8,7 +8,7 @@ import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
-import { LibraryInfo } from "../config/ClientConfiguration";
+import { ApplicationTelemetry, LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
@@ -31,6 +31,15 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * add response_type = token id_token
+     */
+    addResponseTypeForTokenAndIdToken(): void {
+        this.parameters.set(
+            AADServerParamKeys.RESPONSE_TYPE, encodeURIComponent(`${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`)
+        );
+    }
+
+    /**
      * add response_mode. defaults to query.
      * @param responseMode
      */
@@ -38,6 +47,16 @@ export class RequestParameterBuilder {
         this.parameters.set(
             AADServerParamKeys.RESPONSE_MODE,
             encodeURIComponent((responseMode) ? responseMode : ResponseMode.QUERY)
+        );
+    }
+
+    /**
+     * Add flag to indicate STS should attempt to use WAM if available
+     */
+    addNativeBroker(): void {
+        this.parameters.set(
+            AADServerParamKeys.NATIVE_BROKER,
+            encodeURIComponent("1")
         );
     }
 
@@ -104,7 +123,7 @@ export class RequestParameterBuilder {
 
     /**
      * Adds the CCS (Cache Credential Service) query parameter for login_hint
-     * @param loginHint 
+     * @param loginHint
      */
     addCcsUpn(loginHint: string): void {
         this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`UPN:${loginHint}`));
@@ -112,7 +131,7 @@ export class RequestParameterBuilder {
 
     /**
      * Adds the CCS (Cache Credential Service) query parameter for account object
-     * @param loginHint 
+     * @param loginHint
      */
     addCcsOid(clientInfo: ClientInfo): void {
         this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`Oid:${clientInfo.uid}@${clientInfo.utid}`));
@@ -152,8 +171,26 @@ export class RequestParameterBuilder {
         // Telemetry Info
         this.parameters.set(AADServerParamKeys.X_CLIENT_SKU, libraryInfo.sku);
         this.parameters.set(AADServerParamKeys.X_CLIENT_VER, libraryInfo.version);
-        this.parameters.set(AADServerParamKeys.X_CLIENT_OS, libraryInfo.os);
-        this.parameters.set(AADServerParamKeys.X_CLIENT_CPU, libraryInfo.cpu);
+        if (libraryInfo.os) {
+            this.parameters.set(AADServerParamKeys.X_CLIENT_OS, libraryInfo.os);
+        }
+        if (libraryInfo.cpu) {
+            this.parameters.set(AADServerParamKeys.X_CLIENT_CPU, libraryInfo.cpu);
+        }
+    }
+
+    /**
+     * Add client telemetry parameters
+     * @param appTelemetry
+     */
+    addApplicationTelemetry(appTelemetry: ApplicationTelemetry): void {
+        if (appTelemetry?.appName) {
+            this.parameters.set(AADServerParamKeys.X_APP_NAME, appTelemetry.appName);
+        }
+
+        if (appTelemetry?.appVersion) {
+            this.parameters.set(AADServerParamKeys.X_APP_VER, appTelemetry.appVersion);
+        }
     }
 
     /**
@@ -247,7 +284,9 @@ export class RequestParameterBuilder {
      * @param clientAssertion
      */
     addClientAssertion(clientAssertion: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION, encodeURIComponent(clientAssertion));
+        if (!StringUtils.isEmpty(clientAssertion)) {
+            this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION, encodeURIComponent(clientAssertion));
+        }
     }
 
     /**
@@ -255,7 +294,9 @@ export class RequestParameterBuilder {
      * @param clientAssertionType
      */
     addClientAssertionType(clientAssertionType: string): void {
-        this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
+        if (!StringUtils.isEmpty(clientAssertionType)) {
+            this.parameters.set(AADServerParamKeys.CLIENT_ASSERTION_TYPE, encodeURIComponent(clientAssertionType));
+        }
     }
 
     /**
@@ -335,7 +376,7 @@ export class RequestParameterBuilder {
      * @param username
      */
     addUsername(username: string): void {
-        this.parameters.set(PasswordGrantConstants.username, username);
+        this.parameters.set(PasswordGrantConstants.username, encodeURIComponent(username));
     }
 
     /**
@@ -343,7 +384,7 @@ export class RequestParameterBuilder {
      * @param password
      */
     addPassword(password: string): void {
-        this.parameters.set(PasswordGrantConstants.password, password);
+        this.parameters.set(PasswordGrantConstants.password, encodeURIComponent(password));
     }
 
     /**
@@ -358,7 +399,7 @@ export class RequestParameterBuilder {
     }
 
     /**
-     * add SSH JWK and key ID to query params 
+     * add SSH JWK and key ID to query params
      */
     addSshJwk(sshJwkString: string): void {
         if(!StringUtils.isEmpty(sshJwkString)) {
@@ -369,7 +410,7 @@ export class RequestParameterBuilder {
 
     /**
      * add server telemetry fields
-     * @param serverTelemetryManager 
+     * @param serverTelemetryManager
      */
     addServerTelemetry(serverTelemetryManager: ServerTelemetryManager): void {
         this.parameters.set(AADServerParamKeys.X_CLIENT_CURR_TELEM, serverTelemetryManager.generateCurrentRequestHeaderValue());
