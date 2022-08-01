@@ -209,10 +209,11 @@ export class DeviceCodeClient extends BaseClient {
                 if(response.body.error === Constants.AUTHORIZATION_PENDING) {
                     this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
                     await TimeUtils.delay(pollingIntervalMilli);
+                } else {
+                    // for any other error, throw
+                    this.logger.info("Unexpected error in polling from the server");
+                    throw ServerError.createUnexpectedError(response.body.error);
                 }
-                // for any other error, throw
-                this.logger.info("Unexpected error in polling from the server");
-                throw ServerError.createUnexpectedError(response.body.error);
             } else {
                 this.logger.verbose("Authorization completed successfully. Polling stopped.");
                 return response.body;
