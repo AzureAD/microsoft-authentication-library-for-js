@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Send login_hint claim instead of sid if available #4990",
-  "packageName": "@azure/msal-common",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
