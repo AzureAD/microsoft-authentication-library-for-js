@@ -23,7 +23,6 @@ import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
-import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
 import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
@@ -345,7 +344,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addDomainHint(request.domainHint);
         }
 
-        // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
+        // Add sid or loginHint with preference for login_hint claim (in request) -> sid -> loginHint (upn/email) -> username of AccountInfo object
         if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
             // AAD will throw if prompt=select_account is passed with an account hint
             if (request.sid && request.prompt === PromptValue.NONE) {
@@ -354,16 +353,29 @@ export class AuthorizationCodeClient extends BaseClient {
                 parameterBuilder.addSid(request.sid);
             } else if (request.account) {
                 const accountSid = this.extractAccountSid(request.account);
-                // If account and loginHint are provided, we will check account first for sid before adding loginHint
-                if (accountSid && request.prompt === PromptValue.NONE) {
-                    // SessionId is only used in silent calls
+                const accountLoginHintClaim = this.extractLoginHint(request.account);
+                // If login_hint claim is present, use it over sid/username
+                if (accountLoginHintClaim) {
+                    this.logger.verbose("createAuthCodeUrlQueryString: login_hint claim present on account");
+                    parameterBuilder.addLoginHint(accountLoginHintClaim);
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.account.homeAccountId);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header");
+                    }
+                } else if (accountSid && request.prompt === PromptValue.NONE) {
+                    /*
+                     * If account and loginHint are provided, we will check account first for sid before adding loginHint
+                     * SessionId is only used in silent calls
+                     */
                     this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from account");
                     parameterBuilder.addSid(accountSid);
                     try {
                         const clientInfo = buildClientInfoFromHomeAccountId(request.account.homeAccountId);
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
-                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                        this.logger.verbose("createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header");
                     }
                 } else if (request.loginHint) {
                     this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from request");
@@ -377,7 +389,7 @@ export class AuthorizationCodeClient extends BaseClient {
                         const clientInfo = buildClientInfoFromHomeAccountId(request.account.homeAccountId);
                         parameterBuilder.addCcsOid(clientInfo);
                     } catch (e) {
-                        this.logger.verbose("Could not parse home account ID for CCS Header: " +  e);
+                        this.logger.verbose("createAuthCodeUrlQueryString: Could not parse home account ID for CCS Header");
                     }
                 }
             } else if (request.loginHint) {
@@ -460,10 +472,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param account
      */
     private extractAccountSid(account: AccountInfo): string | null {
-        if (account.idTokenClaims) {
-            const tokenClaims = account.idTokenClaims as TokenClaims;
-            return tokenClaims.sid || null;
-        }
-        return null;
+        return account.idTokenClaims?.sid || null;
+    }
+
+    private extractLoginHint(account: AccountInfo): string | null {
+        return account.idTokenClaims?.login_hint || null;
     }
 }
