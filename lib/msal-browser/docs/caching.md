@@ -28,7 +28,7 @@ const pca = new PublicClientApplication({
 });
 ```
 
-By default, MSAL stores the various authentication artifacts it obtains from the IdP in browser storage using the [Web Storage API](https://developer.mozilla.org/docs/Web/API/Web_Storage_API) supported by all modern browsers. Accordingly, MSAL offers two methods of storage: `sessionStorage` (default) and `localStorage`. In addition, MSAL provides `memoryStorage` option which allows you to opt-out of storing the cache in browser storage.
+By default, MSAL stores the various authentication artifacts it obtains from the IdP in browser storage using the [Web Storage API](https://developer.mozilla.org/docs/Web/API/Web_Storage_API) supported by all modern browsers. Accordingly, MSAL offers two methods of persistent storage: `sessionStorage` (default) and `localStorage`. In addition, MSAL provides `memoryStorage` option which allows you to opt-out of storing the cache in browser storage.
 
 | Cache Location   | Cleared on              | Shared between windows/tabs | Redirect flow supported |
 |------------------|-------------------------|-----------------------------|-------------------------|
