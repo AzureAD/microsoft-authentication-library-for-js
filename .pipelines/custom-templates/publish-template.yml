@@ -13,6 +13,9 @@ parameters:
     default: false
   - name: publishFlagName
     type: string
+  - name: publishOverride
+    type: boolean
+    default: false
 
 jobs:
   - job: ${{ parameters.jobName }}
@@ -25,7 +28,7 @@ jobs:
       repoName: 'msal-javascript-internal'
       ob_outputDirectory: '${{ parameters.path }}/${{ parameters.libName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
-    condition: and(succeeded(), or(eq(variables.publish${{ parameters.publishFlagName }}, true), eq(variables.override${{ parameters.publishFlagName }}, true)))
+    condition: and(succeeded(), or(eq(variables.publish${{ parameters.publishFlagName }}, true), eq(parameters.publishOverride, true)))
     steps:
       - task: NodeTool@0
         displayName: Install Node
