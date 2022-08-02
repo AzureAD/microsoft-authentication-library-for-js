@@ -40,7 +40,7 @@ By default, MSAL stores the various authentication artifacts it obtains from the
 
 ### Cookie storage
 
-MSAL Browser can be configured to use cookies for storing the authentication state. This is useful for apps that need to support older browsers such as Internet Explorer. Note that when this option is choosed, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
+MSAL Browser can be configured to use cookies for storing temporary authentication artifacts. This is useful for apps that need to support older browsers such as Internet Explorer. Note that when this option is chosen, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
 
 ### Security
 
