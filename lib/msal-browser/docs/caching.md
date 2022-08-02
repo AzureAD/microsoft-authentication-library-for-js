@@ -1,13 +1,6 @@
 # Caching in MSAL
 
-When MSAL acquires a token, it caches it for future usage. MSAL manages token lifetimes and refreshing for you. The following MSAL APIs will perform one or more cache lookups to acquire tokens or retrieve accounts:
-
-- `acquireTokenSilent()`
-- `ssoSilent()`
-- `getAccounts()`
-- `getActiveAccount()`
-- `getAccountByHomeId()`
-- `getAccountByLocalId()`
+When MSAL acquires a token, it caches it for future usage. MSAL manages token lifetimes and refreshing for you. APIs like `acquireTokenSilent()` retrieves access tokens from the cache for a given account.
 
 ## Cache storage
 
@@ -69,7 +62,6 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
 
 ## Remarks
 
-- MSAL Browser's cache schema is compatible with other MSALs. However, there is no cache sharing support at the moment. 
 - We do not recommend apps having business logic dependent on direct use of entities in the cache. Instead, use the appropriate MSAL API when you need to acquire tokens or retrieve accounts.
 - Keys used to encrypt proof of possession (PoP) tokens are stored using a combination of [IndexedDB API](https://developer.mozilla.org/docs/Web/API/IndexedDB_API) and memory storage. For more information, please refer to [access-token-proof-of-possession](./access-token-proof-of-possession.md#pop-key-management).
 
