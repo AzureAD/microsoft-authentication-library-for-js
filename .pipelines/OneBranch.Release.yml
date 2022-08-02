@@ -116,7 +116,7 @@ extends:
             libName: 'msal-core'
             cdn: true
             publishFlagName: 'MsalCore'
-            publishOverride: $(parameters.overrideMsalCore)
+            publishOverride: ${{ parameters.overrideMsalCore }}
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -125,7 +125,7 @@ extends:
             libName: 'msal-common'
             cdn: false
             publishFlagName: 'MsalCommon'
-            publishOverride: $(parameters.overrideMsalCommon)
+            publishOverride: ${{ parameters.overrideMsalCommon }}
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -135,7 +135,7 @@ extends:
             cdn: true
             publishFlagName: 'MsalBrowser'
             dependsOn: 'publish_msal_common'
-            publishOverride: $(parameters.overrideMsalBrowser)
+            publishOverride: ${{ parameters.overrideMsalBrowser }}
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -145,7 +145,7 @@ extends:
             cdn: false
             publishFlagName: 'MsalReact'
             dependsOn: 'publish_msal_browser'
-            publishOverride: $(parameters.overrideMsalReact)
+            publishOverride: ${{ parameters.overrideMsalReact }}
       # Release MSAL Angular
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -155,7 +155,7 @@ extends:
             cdn: false
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
-            publishOverride: $(parameters.overrideMsalAngular)
+            publishOverride: ${{ parameters.overrideMsalAngular }}
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -165,7 +165,7 @@ extends:
             cdn: false
             publishFlagName: 'MsalNode'
             dependsOn: 'publish_msal_common'
-            publishOverride: $(parameters.overrideMsalNode)
+            publishOverride: ${{ parameters.overrideMsalNode }}
         # Release MSAL Node Extensions
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -175,4 +175,4 @@ extends:
             cdn: false
             publishFlagName: 'MsalNodeExtensions'
             dependsOn: 'publish_msal_common'
-            publishOverride: $(parameters.overrideMsalNodeExtensions)
+            publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
