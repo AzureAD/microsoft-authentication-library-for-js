@@ -89,6 +89,8 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `storeAuthStateInCookie` | If true, stores cache items in cookies as well as browser cache. Should be set to true for use cases using IE. | boolean | `false` |
 | `secureCookies` | If true and `storeAuthStateInCookies` is also enabled, MSAL adds the `Secure` flag to the browser cookie so it can only be sent over HTTPS. | boolean | `false` |
 
+See [Caching in MSAL](./caching.md) for more.
+
 ### System Config Options
 
 | Option | Description | Format | Default Value |
