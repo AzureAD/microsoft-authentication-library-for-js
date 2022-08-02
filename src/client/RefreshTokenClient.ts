@@ -30,8 +30,8 @@ import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } fro
  * OAuth2.0 refresh token client
  */
 export class RefreshTokenClient extends BaseClient {
-    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
-        super(configuration,performanceClient);
+    constructor(configuration: ClientConfiguration) {
+        super(configuration);
     }
 
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
