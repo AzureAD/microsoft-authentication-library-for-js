@@ -15,6 +15,34 @@ parameters: # parameters are shown up in ADO UI in a build queue time
   displayName: 'Enable debug output'
   type: boolean
   default: false
+- name: 'overrideMsalCore'
+  displayName: 'Publish MSAL v1'
+  type: boolean
+  default: false
+- name: 'overrideMsalCommon'
+  displayName: 'Publish MSAL Common'
+  type: boolean
+  default: false
+- name: 'overrideMsalBrowser'
+  displayName: 'Publish MSAL Browser'
+  type: boolean
+  default: false
+- name: 'overrideMsalNode'
+  displayName: 'Publish MSAL Node'
+  type: boolean
+  default: false
+- name: 'overrideMsalReact'
+  displayName: 'Publish MSAL React'
+  type: boolean
+  default: false
+- name: 'overrideMsalAngular'
+  displayName: 'Publish MSAL Angular'
+  type: boolean
+  default: false
+- name: 'overrideMsalNodeExtensions'
+  displayName: 'Publish MSAL Node Extensions'
+  type: boolean
+  default: false
 
 variables:
   CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
