@@ -45,13 +45,13 @@ export abstract class BaseClient {
     // Network Manager
     protected networkManager: NetworkManager;
 
+    // Performance Client
+    protected performanceClient: IPerformanceClient | null;
+
     // Default authority object
     public authority: Authority;
 
-    // Performance telemetry client
-    protected performanceClient?: IPerformanceClient;
-
-    protected constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+    protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
 
@@ -76,8 +76,7 @@ export abstract class BaseClient {
         // set Authority
         this.authority = this.config.authOptions.authority;
 
-        // set performance telemetry client
-        this.performanceClient = performanceClient;
+        this.performanceClient = this.config.performanceClient;
     }
 
     /**

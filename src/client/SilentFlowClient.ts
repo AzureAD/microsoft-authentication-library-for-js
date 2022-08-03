@@ -15,12 +15,11 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 export class SilentFlowClient extends BaseClient {
     
-    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
-        super(configuration,performanceClient);
+    constructor(configuration: ClientConfiguration) {
+        super(configuration);
     }
 
     /**
@@ -33,7 +32,7 @@ export class SilentFlowClient extends BaseClient {
             return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                const refreshTokenClient = new RefreshTokenClient(this.config, this.performanceClient);
+                const refreshTokenClient = new RefreshTokenClient(this.config);
                 return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;
