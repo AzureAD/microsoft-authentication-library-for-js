@@ -73,13 +73,13 @@ jobs:
           CDN_SAS_USWE: $(MSALJS-CDN-SAS-USWE)
 
       # Write NPM authToken
-      - task: CmdLine@2
-        displayName: Write npm authToken
-        inputs:
-          script: echo $NPM_TOKEN > .npmrc
-          workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
-        env:
-          NPM_TOKEN: $(MSALJSNPMTOKEN)
+      # - task: CmdLine@2
+      #   displayName: Write npm authToken
+      #   inputs:
+      #     script: echo $NPM_TOKEN > .npmrc
+      #     workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+      #   env:
+      #     NPM_TOKEN: $(MSALJSNPMTOKEN)
 
       # Publish to npm
       - task: Npm@1
@@ -111,9 +111,9 @@ jobs:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 
       # Remove .npmrc file
-      - script: rm .npmrc
-        displayName: Remove .npmrc file
-        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+      # - script: rm .npmrc
+      #   displayName: Remove .npmrc file
+      #   workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
 
       # Install Release Scripts dependencies
       - task: Npm@1
