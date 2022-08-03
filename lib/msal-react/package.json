@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "0.0.1-alpha.0",
+  "version": "1.4.5",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
