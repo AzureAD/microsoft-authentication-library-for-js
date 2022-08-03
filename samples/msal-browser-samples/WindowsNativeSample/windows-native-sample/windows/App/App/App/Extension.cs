@@ -40,6 +40,7 @@ public class Extension
                             "}" +
                             "return;" +
                         "}" +
+                        // does Handshake response with WAM
                         "if (method === \"Handshake\" && (!request.extensionId || request.extensionId === extensionId) && event.ports && event.ports.length) {" +
                             "event.stopImmediatePropagation();" +
                             "var req = {" +
@@ -56,6 +57,7 @@ public class Extension
                                 "var request = event.data;" +
                                 "chrome.webview.postMessage(request);" + 
                             "};" +
+                            // adds event listener to send success response back to WAM later
                             "window.addEventListener(\"message\", (event) => {" +
                                 "if(event.data.wamResult && event.data.wamResult.account && event.data.wamResult.properties && event.source == window) {" +
                                     "var resp = {" +
@@ -81,6 +83,7 @@ public class Extension
                 "}" +
             "}" +
         "}, true);");
+        // initializes MSAL
         await WebView.ExecuteScriptAsync("init()");
     }
     public async Task SetUpWAMCallAsync(WebView2 WebView, Microsoft.Web.WebView2.Core.CoreWebView2WebMessageReceivedEventArgs args)
@@ -106,6 +109,7 @@ public class Extension
             "}");
         await WebView.ExecuteScriptAsync(
                 "request = " + args.WebMessageAsJson + ";" +
+                // sends GetToken response to native code
                 "if(request && request.body && request.body.method && request.body.method == \"GetToken\") {" +
                     "try {" +
                         "request.sender = window.origin;" +
@@ -170,14 +174,11 @@ public class Extension
  
             webTokenRequest.Properties.Add("wam_compat", "2.0");
 
-            // If the user selected a specific account, RequestTokenAsync will return a token for that account.
-            // The user may be prompted for credentials or to authorize using that account with your app
-            // If the user selected a provider, the user will be prompted for credentials to login to a new account
-
             var hWnd = WinRT.Interop.WindowNative.GetWindowHandle(window);
 
             WebTokenRequestResult webTokenRequestResult = await WebAuthenticationCoreManagerInterop.RequestTokenForWindowAsync(hWnd, webTokenRequest);
 
+            // if it works, construct a success response to send back to WAM
             if (webTokenRequestResult.ResponseStatus == WebTokenRequestStatus.Success)
             {
                 JsonObject successResponse0 = this.ConstructSuccessResponse(webTokenRequestResult);
@@ -206,6 +207,7 @@ public class Extension
         }
     }
 
+    // construct the success response that gets sent back to WAM
     public JsonObject ConstructSuccessResponse(WebTokenRequestResult result)
     {
         JsonValue id = JsonValue.CreateStringValue(result.ResponseData[0].WebAccount.Id);
