@@ -14,7 +14,8 @@ import {
     ThrottlingEntity,
     CredentialEntity,
     CredentialType,
-    AuthorityMetadataEntity
+    AuthorityMetadataEntity,
+    ValidCredentialType
 } from "@azure/msal-common";
 
 export class TestStorageManager extends CacheManager {
@@ -133,5 +134,8 @@ export class TestStorageManager extends CacheManager {
     }
     async clear(): Promise<void> {
         this.store = {};
+    }
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        return credential.generateCredentialKey();
     }
 }

@@ -963,7 +963,6 @@ export class BrowserCacheManager extends CacheManager {
         const updatedCacheKey = credential.generateCredentialKey();
 
         if (currentCacheKey !== updatedCacheKey) {
-            debugger;
             const cacheItem = this.getItem(currentCacheKey);
             if (cacheItem) {
                 this.removeItem(currentCacheKey);
