@@ -68,6 +68,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
              * used to populate the state value if none is provided.
              * 
              * The generated state is then cached and passed as part of authCodeUrlParameters during authentication request.
+             * The cached state must then be passed as part of authCodeResponse in ClientApplicaiton.acquireTokenByCode API call, 
+             * to be validated before the authorization code is sent to the server in exchange for an access token.
              * 
              * For more information about state,
              * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
@@ -116,15 +118,11 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     app.get("/redirect", (req, res) => {
-        /**
-         * MSAL Node provides the ClientApplication.validateSate API, which validates the state string received when 
-         * authorization code is returned.
-         */
-        clientApplication.validateState(req.query.state, req.session.state);
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state:req.query.state };
         const authCodeResponse = { 
             nonce: req.session.nonce, 
-            code: req.query.code 
+            code: req.query.code,
+            state: req.session.state
         };
 
         /**
