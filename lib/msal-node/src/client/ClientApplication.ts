@@ -136,6 +136,7 @@ export abstract class ClientApplication {
         this.logger.info("acquireTokenByCode called", request.correlationId);
         if (request.state && authCodePayLoad){
             this.validateState(request.state, authCodePayLoad.state || "");
+            authCodePayLoad.state = undefined;
         }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -463,3 +464,4 @@ export abstract class ClientApplication {
         this.storage.clear();
     }
 }
+
