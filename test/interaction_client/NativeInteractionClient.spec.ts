@@ -122,7 +122,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -152,7 +152,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.scopes).toContain(mockWamResponse.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -184,7 +184,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -217,7 +217,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.scopes).toContain(mockWamResponse.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -227,7 +227,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -260,7 +260,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.scopes).toContain(mockWamResponse.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -270,7 +270,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -303,7 +303,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.scopes).toContain(mockWamResponse.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -313,7 +313,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -338,7 +338,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -374,7 +374,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.scopes).toContain(mockWamResponse.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -384,7 +384,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -420,7 +420,7 @@ describe("NativeInteractionClient Tests", () => {
             expect(response.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
             expect(response.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
             expect(response.authority).toEqual(TEST_CONFIG.validAuthority);
-            expect(response.scopes).toContain(mockWamResponse.scopes);
+            expect(response.scopes).toContain(mockWamResponse.scope);
             expect(response.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(response.account).toEqual(testAccount);
             expect(response.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -432,7 +432,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -468,7 +468,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -506,7 +506,7 @@ describe("NativeInteractionClient Tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 uniqueId: testAccount.localAccountId,
                 tenantId: testAccount.tenantId,
-                scopes: mockWamResponse.scopes.split(" "),
+                scopes: mockWamResponse.scope.split(" "),
                 idToken: mockWamResponse.id_token,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 accessToken: mockWamResponse.access_token,
@@ -525,7 +525,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
@@ -566,7 +566,7 @@ describe("NativeInteractionClient Tests", () => {
             const mockWamResponse = {
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 id_token: TEST_TOKENS.IDTOKEN_V2,
-                scopes: "User.Read",
+                scope: "User.Read",
                 expires_in: 3600,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 account: {
