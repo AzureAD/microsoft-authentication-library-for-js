@@ -64,7 +64,7 @@ export type CommonClientConfiguration = {
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
     serializableCache: ISerializableTokenCache | null,  
-    performanceClient?: IPerformanceClient | null,    
+    performanceClient: IPerformanceClient | null,    
 };
 
 /**
@@ -218,7 +218,7 @@ export function buildClientConfiguration(
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache,   
-        performanceClient: IPerformanceClient,           
+        performanceClient: performanceClient,           
     }: ClientConfiguration): CommonClientConfiguration {
 
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
@@ -236,7 +236,7 @@ export function buildClientConfiguration(
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
         serializableCache: serializableCache || null,  
-        performanceClient: IPerformanceClient || null,             
+        performanceClient: performanceClient || null,             
     };
 }
 

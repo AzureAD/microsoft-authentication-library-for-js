@@ -25,6 +25,7 @@ import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * OAuth2.0 refresh token client
@@ -36,7 +37,7 @@ export class RefreshTokenClient extends BaseClient {
 
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         // @ts-ignore
-        const atsMeasurement = this.performanceClient.startMeasurement("RefreshTokenClientAcquireToken", request.correlationId);
+        const atsMeasurement = this.performanceClient?.startMeasurement("RefreshTokenClientAcquireToken", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
@@ -51,14 +52,15 @@ export class RefreshTokenClient extends BaseClient {
 
         responseHandler.validateTokenResponse(response.body);
         if (response.body?.refresh_token) {
-            atsMeasurement.endMeasurement({
+            atsMeasurement?.endMeasurement({
                 success: true,
                 refreshTokenSize: response?.body?.refresh_token.length
             });
         }
         else {
-            atsMeasurement.endMeasurement({
-                success: false
+            atsMeasurement?.endMeasurement({
+                success: true,
+                refreshTokenSize: -1
             });
         }
 
@@ -123,16 +125,15 @@ export class RefreshTokenClient extends BaseClient {
         // fetches family RT or application RT based on FOCI value
 
         // @ts-ignore
-        const atsMeasurement = this.performanceClient.startMeasurement("RefreshTokenClientAcquireTokenWithCachedRefreshToken", request.correlationId);
+        const atsMeasurement = this.performanceClient?.startMeasurement("RefreshTokenClientAcquireTokenWithCachedRefreshToken", request.correlationId);
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
         if (!refreshToken) {
-            // discard
-            atsMeasurement.discardMeasurement();
+            atsMeasurement?.discardMeasurement();
             throw InteractionRequiredAuthError.createNoTokensFoundError();
         }
         // attach cached RT size to the current measurement
-        atsMeasurement.endMeasurement({
+        atsMeasurement?.endMeasurement({
             success: true,
             refreshTokenSize: refreshToken.secret.length
         });
@@ -157,7 +158,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);    
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -175,13 +176,13 @@ export class RefreshTokenClient extends BaseClient {
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
-            .then((result) =>{
+            .then((result) => {
                 acquireTokenMeasurement?.endMeasurement({
                     success: true
                 });
                 return result;
             })
-            .catch((error) =>{
+            .catch((error) => {
                 acquireTokenMeasurement?.endMeasurement({
                     success: false
                 });
@@ -209,7 +210,7 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const correlationId = request.correlationId;
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId);
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -227,7 +228,7 @@ export class RefreshTokenClient extends BaseClient {
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
-        
+
         parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);

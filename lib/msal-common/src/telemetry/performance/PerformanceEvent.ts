@@ -95,6 +95,12 @@ export enum PerformanceEvents {
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
 
+    RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
+
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+
+    AcquireTokenByBroker = "acquireTokenByBroker"
+
 }
 
 /**
