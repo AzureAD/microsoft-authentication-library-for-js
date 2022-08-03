@@ -463,8 +463,3 @@ export abstract class ClientApplication {
         this.storage.clear();
     }
 }
-
-
-
-
-
