@@ -760,6 +760,14 @@ export class UserAgentApplication {
 
             // populate QueryParameters (sid/login_hint) and any other extraQueryParameters set by the developer
             if (ServerRequestParameters.isSSOParam(request) || account) {
+                if (request.sid) {
+                    this.logger.verbose("sid included in request");
+                }
+
+                if (request.loginHint) {
+                    this.logger.verbose("loginHint included in request");
+                }
+                
                 serverAuthenticationRequest.populateQueryParams(account, request, null, true);
                 this.logger.verbose("Query parameters populated from existing SSO or account");
             }
