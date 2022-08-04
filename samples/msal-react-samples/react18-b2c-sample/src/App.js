@@ -56,7 +56,7 @@ function Pages() {
 
   useEffect(() => {
       const callbackId = instance.addEventCallback((event) => {
-        if (event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS && event.payload.account) {
+        if ((event.eventType === EventType.LOGIN_SUCCESS || event.eventType === EventType.ACQUIRE_TOKEN_SUCCESS) && event.payload.account) {
             /**
              * For the purpose of setting an active account for UI update, we want to consider only the auth 
              * response resulting from SUSI flow. "tfp" claim in the id token tells us the policy (NOTE: legacy 

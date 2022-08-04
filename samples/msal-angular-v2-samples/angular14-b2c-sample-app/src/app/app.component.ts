@@ -58,7 +58,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
+                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {
@@ -80,7 +80,7 @@ export class AppComponent implements OnInit, OnDestroy {
                                 &&
                                 account.idTokenClaims?.sub === idtoken.sub
                                 &&
-                                (account.idTokenClaims as IdTokenClaimsWithTfp).tfp === b2cPolicies.names.signUpSignIn
+                                (account.idTokenClaims as IdTokenClaimsWithTfp)?.tfp === b2cPolicies.names.signUpSignIn
                             );
 
                     let signUpSignInFlowRequest: SsoSilentRequest = {
