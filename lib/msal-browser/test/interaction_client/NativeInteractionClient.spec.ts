@@ -138,7 +138,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
@@ -200,7 +199,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
@@ -243,7 +241,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
@@ -286,7 +283,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
@@ -354,7 +350,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
@@ -400,7 +395,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
@@ -484,7 +478,6 @@ describe("NativeInteractionClient Tests", () => {
                 tenantId: ID_TOKEN_CLAIMS.tid,
                 username: ID_TOKEN_CLAIMS.preferred_username,
                 name: ID_TOKEN_CLAIMS.name,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 nativeAccountId: mockWamResponse.account.id
             };
