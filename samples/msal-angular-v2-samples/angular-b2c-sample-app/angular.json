@@ -3,7 +3,7 @@
   "version": 1,
   "newProjectRoot": "projects",
   "projects": {
-    "angular14-b2c-sample": {
+    "angular-b2c-sample-app": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -13,7 +13,7 @@
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
           "options": {
-            "outputPath": "dist/angular14-b2c-sample",
+            "outputPath": "dist/angular-b2c-sample-app",
             "index": "src/index.html",
             "main": "src/main.ts",
             "polyfills": "src/polyfills.ts",
@@ -65,10 +65,10 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular14-b2c-sample:build:production"
+              "browserTarget": "angular-b2c-sample-app:build:production"
             },
             "development": {
-              "browserTarget": "angular14-b2c-sample:build:development"
+              "browserTarget": "angular-b2c-sample-app:build:development"
             }
           },
           "defaultConfiguration": "development"
@@ -76,7 +76,7 @@
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
           "options": {
-            "browserTarget": "angular14-b2c-sample:build"
+            "browserTarget": "angular-b2c-sample-app:build"
           }
         },
         "test": {

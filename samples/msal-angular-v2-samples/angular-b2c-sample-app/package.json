@@ -1,5 +1,5 @@
 {
-  "name": "angular14-b2c-sample",
+  "name": "angular-b2c-sample-app",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
