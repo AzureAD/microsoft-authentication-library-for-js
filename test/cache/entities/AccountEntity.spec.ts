@@ -172,7 +172,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -212,7 +211,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.sub);
-        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -252,7 +250,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("AbeLi@microsoft.com");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -299,7 +296,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.realm).toBe(idTokenClaims.tid);
         expect(acc.username).toBe("");
         expect(acc.localAccountId).toEqual(idTokenClaims.oid);
-        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -346,7 +342,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.GENERIC_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idToken).toEqual(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -569,7 +564,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.localAccountId).toBe(idTokenClaims.oid);
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idToken).toBe(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 
@@ -616,7 +610,6 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         expect(acc.authorityType).toBe(CacheAccountType.ADFS_ACCOUNT_TYPE);
         expect(acc.localAccountId).toBe(idTokenClaims.sub);
         expect(AccountEntity.isAccountEntity(acc)).toEqual(true);
-        expect(acc.idToken).toBe(idToken.rawToken);
         expect(acc.idTokenClaims).toBe(idTokenClaims);
     });
 });
