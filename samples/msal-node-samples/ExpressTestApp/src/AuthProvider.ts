@@ -21,8 +21,7 @@ import {
     AccountInfo,
     CryptoProvider,
     AuthorizationUrlRequest,
-    AuthorizationCodeRequest,
-    ClientAuthError,
+    AuthorizationCodeRequest
 } from '@azure/msal-node';
 
 import { ConfigurationUtils } from './ConfigurationUtils';
@@ -282,7 +281,7 @@ export class AuthProvider {
 
         } catch (error) {
             // in case there are no cached tokens, initiate an interactive call
-            if (error instanceof InteractionRequiredAuthError || error instanceof ClientAuthError) {
+            if (error instanceof InteractionRequiredAuthError) {
 
                 const state = this.cryptoProvider.base64Encode(
                     JSON.stringify({
