@@ -1,14 +1,14 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
 import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest, EventMessage, EventType, InteractionType, AccountInfo, SsoSilentRequest } from '@azure/msal-browser';
-import { IdTokenClaims } from '@azure/msal-common'
+import { IdTokenClaims, PromptValue } from '@azure/msal-common'
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
-import { b2cPolicies } from './b2c-config';
+import { b2cPolicies, apiConfig } from './b2c-config';
 
-type IdTokenClaimsWithTfp = IdTokenClaims & {
-    tfp?: string
+type IdTokenClaimsWithAcr = IdTokenClaims & {
+    acr?: string
 };
 
 @Component({
@@ -64,14 +64,14 @@ export class AppComponent implements OnInit, OnDestroy {
             .subscribe((result: EventMessage) => {
 
                 let payload = result.payload as AuthenticationResult;
-                let idtoken = payload.idTokenClaims as IdTokenClaimsWithTfp;
+                let idtoken = payload.idTokenClaims as IdTokenClaimsWithAcr;
                 
                 /**
                  * For the purpose of setting an active account for UI update, we want to consider only the auth response resulting
                  * from SUSI flow. "tfp" claim in the id token tells us the policy (NOTE: legacy policies may use "acr" instead of "tfp").
                  * To learn more about B2C tokens, visit https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
                  */
-                if (idtoken.tfp === b2cPolicies.names.editProfile) {
+                if (idtoken.acr === b2cPolicies.names.editProfile) {
 
                     // retrieve the account from initial sing-in to the app
                     const originalSignInAccount = this.authService.instance.getAllAccounts()
@@ -80,7 +80,7 @@ export class AppComponent implements OnInit, OnDestroy {
                                 &&
                                 account.idTokenClaims?.sub === idtoken.sub
                                 &&
-                                (account.idTokenClaims as IdTokenClaimsWithTfp)?.tfp === b2cPolicies.names.signUpSignIn
+                                (account.idTokenClaims as IdTokenClaimsWithAcr)?.acr === b2cPolicies.names.signUpSignIn
                             );
 
                     let signUpSignInFlowRequest: SsoSilentRequest = {
@@ -92,6 +92,23 @@ export class AppComponent implements OnInit, OnDestroy {
                     this.authService.ssoSilent(signUpSignInFlowRequest);
                 }
 
+                /**
+                 * Below we are checking if the user is returning from the reset password flow.
+                 * If so, we will ask the user to reauthenticate with their new password.
+                 * If you do not want this behavior and prefer your users to stay signed in instead,
+                 * you can replace the code below with the same pattern we've used for handling the return from
+                 * profile edit flow (see above ln. 74-92).
+                 */
+                if (idtoken.acr === b2cPolicies.names.resetPassword) {
+                    let signUpSignInFlowRequest: RedirectRequest | PopupRequest  = {
+                        authority: b2cPolicies.authorities.signUpSignIn.authority,
+                        scopes: [...apiConfig.scopes],
+                        prompt: PromptValue.LOGIN // force user to reauthenticate with their new password
+                    };
+
+                    this.login(signUpSignInFlowRequest);
+                }
+
                 return result;
             });
 
@@ -101,7 +118,16 @@ export class AppComponent implements OnInit, OnDestroy {
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {
-                // Add your auth error handling logic here
+                // Check for forgot password error
+                // Learn more about AAD error codes at https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
+                if (result.error && result.error.message.indexOf('AADB2C90118') > -1) {
+                    let resetPasswordFlowRequest: RedirectRequest | PopupRequest  = {
+                        authority: b2cPolicies.authorities.resetPassword.authority,
+                        scopes: [],
+                    };
+            
+                    this.login(resetPasswordFlowRequest);
+                };
             });
     }
 
