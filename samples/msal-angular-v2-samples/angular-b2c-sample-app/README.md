@@ -41,7 +41,7 @@ Open `.src/app/b2c-config.ts` in an editor:
 
 Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. This sample demonstrates [sign-up/sign-in](https://docs.microsoft.com/azure/active-directory-b2c/add-sign-up-and-sign-in-policy?pivots=b2c-user-flow), legacy [password-reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#password-reset-policy-legacy) and [edit-profile](https://docs.microsoft.com/azure/active-directory-b2c/add-profile-editing-policy?pivots=b2c-user-flow) user-flows.
 
-> Please consider migrating to the new (aka **recommended**) [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) user flow. See the [msal-react B2C sample with self-service password reset](../../msal-react-samples/react18-b2c-sample/) for an example.
+> Please consider migrating to the new (aka **recommended**) [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) user flow. See the [msal-react B2C sample with self-service password reset](../../msal-react-samples/b2c-sample/) for an example.
 
 ## Additional notes
 

@@ -2,7 +2,7 @@
 
 ## About this sample
 
-This developer sample is used to run basic B2C use cases for the MSAL library. You can also alter the configuration in `./src/authConfig.js` to execute other behaviors.
+This developer sample is used to run basic B2C use cases (user-flows) for the MSAL library. You can also alter the configuration in `./src/authConfig.js` to execute other behaviors.
 This sample was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ### How to handle B2C user-flows
@@ -11,11 +11,11 @@ Implementing B2C user-flows is a matter of initiating authorization requests aga
 
 ## Notable files and what they demonstrate
 
-1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components. Also shows how to handle password reset.
+1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components. Also shows how to handle edit profile user-flow.
 1. `./src/index.js` - Shows intialization of the `PublicClientApplication` that is passed to `App.js`
 1. `./src/pages/Home.jsx` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./src/pages/Profile.jsx` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
-1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests.
+1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and B2C policies.
 1. `./src/ui-components/SignInSignOutButton.jsx` - Example of how to conditionally render a Sign In or Sign Out button using the `useIsAuthenticated` hook.
 1. `./src/ui-components/SignInButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a login function.
 1. `./src/ui-components/SignOutButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a logout function.
