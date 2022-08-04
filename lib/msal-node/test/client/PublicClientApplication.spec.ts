@@ -138,6 +138,36 @@ describe('PublicClientApplication', () => {
         );
     });
 
+    test("acquireTokenByAuthorizationCode with state validation", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        };
+
+        const cryptoProvider = new CryptoProvider();
+        const authCodePayLoad = {
+            nonce: cryptoProvider.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            state: cryptoProvider.createNewGuid()
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
 
     test('acquireTokenByRefreshToken', async () => {
         const request: RefreshTokenRequest = {
@@ -431,4 +461,6 @@ describe('PublicClientApplication', () => {
             "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     })
+
+
 });
