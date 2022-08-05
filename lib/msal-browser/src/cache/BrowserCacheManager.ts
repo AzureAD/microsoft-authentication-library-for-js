@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -217,6 +217,7 @@ export class BrowserCacheManager extends CacheManager {
     setIdTokenCredential(idToken: IdTokenEntity): void {
         this.logger.trace("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = idToken.generateCredentialKey();
+
         this.setItem(idTokenKey, JSON.stringify(idToken));
     }
 
@@ -370,8 +371,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Sets wrapper metadata in memory
-     * @param wrapperSKU 
-     * @param wrapperVersion 
+     * @param wrapperSKU
+     * @param wrapperVersion
      */
     setWrapperMetadata(wrapperSKU: string, wrapperVersion: string): void {
         this.internalStorage.setItem(InMemoryCacheKeys.WRAPPER_SKU, wrapperSKU);
@@ -400,32 +401,63 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the active account
      */
     getActiveAccount(): AccountInfo | null {
-        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
-        const activeAccountId = this.browserStorage.getItem(activeAccountIdKey);
-        if (!activeAccountId) {
+        const activeAccountKeyFilters = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS);
+        const activeAccountValueFilters = this.getItem(activeAccountKeyFilters);
+        if (!activeAccountValueFilters) { 
+            // if new active account cache type isn't found, it's an old version, so look for that instead
+            this.logger.trace("No active account filters cache schema found, looking for legacy schema");
+            const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+            const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
+            if(!activeAccountValueLocal) {
+                this.logger.trace("No active account found");
+                return null;
+            }
+            const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
+            if(activeAccount) {
+                this.logger.trace("Legacy active account cache schema found");
+                this.logger.trace("Adding active account filters cache schema");
+                this.setActiveAccount(activeAccount);
+                return activeAccount;
+            }
             return null;
         }
-        return this.getAccountInfoByFilter({localAccountId: activeAccountId})[0] || null;
+        const activeAccountValueObj = this.validateAndParseJson(activeAccountValueFilters) as AccountInfo;
+        if(activeAccountValueObj) {
+            this.logger.trace("Active account filters schema found");
+            return this.getAccountInfoByFilter({
+                homeAccountId: activeAccountValueObj.homeAccountId,
+                localAccountId: activeAccountValueObj.localAccountId
+            })[0] || null;
+        }
+        this.logger.trace("No active account found");
+        return null;
     }
 
     /**
      * Sets the active account's localAccountId in cache
-     * @param account 
+     * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+        const activeAccountKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS);
+        const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
         if (account) {
             this.logger.verbose("setActiveAccount: Active account set");
-            this.browserStorage.setItem(activeAccountIdKey, account.localAccountId);
+            const activeAccountValue: ActiveAccountFilters = {
+                homeAccountId: account.homeAccountId,
+                localAccountId: account.localAccountId
+            };
+            this.browserStorage.setItem(activeAccountKey, JSON.stringify(activeAccountValue));
+            this.browserStorage.setItem(activeAccountKeyLocal, account.localAccountId);
         } else {
             this.logger.verbose("setActiveAccount: No account passed, active account not set");
-            this.browserStorage.removeItem(activeAccountIdKey);
+            this.browserStorage.removeItem(activeAccountKey);
+            this.browserStorage.removeItem(activeAccountKeyLocal);
         }
     }
 
     /**
      * Gets a list of accounts that match all of the filters provided
-     * @param account 
+     * @param account
      */
     getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims"|"name">>): AccountInfo[] {
         const allAccounts = this.getAllAccounts();
@@ -449,15 +481,15 @@ export class BrowserCacheManager extends CacheManager {
             if (accountFilter.environment && accountFilter.environment !== accountObj.environment) {
                 return false;
             }
-            
+
             return true;
         });
     }
 
     /**
      * Checks the cache for accounts matching loginHint or SID
-     * @param loginHint 
-     * @param sid 
+     * @param loginHint
+     * @param sid
      */
     getAccountInfoByHints(loginHint?: string, sid?: string): AccountInfo | null {
         const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
@@ -630,7 +662,7 @@ export class BrowserCacheManager extends CacheManager {
         if (this.cacheConfig.secureCookies) {
             cookieStr += "Secure;";
         }
-        
+
         document.cookie = cookieStr;
     }
 
@@ -760,7 +792,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
         return this.generateCacheKey(`${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`);
-    } 
+    }
 
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
@@ -842,7 +874,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Removes temporary cache for the provided state
-     * @param stateString 
+     * @param stateString
      */
     cleanRequestByState(stateString: string): void {
         this.logger.trace("BrowserCacheManager.cleanRequestByState called");
@@ -859,7 +891,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Looks in temporary cache for any state values with the provided interactionType and removes all temporary cache items for that state
      * Used in scenarios where temp cache needs to be cleaned but state is not known, such as clicking browser back button.
-     * @param interactionType 
+     * @param interactionType
      */
     cleanRequestByInteractionType(interactionType: InteractionType): void {
         this.logger.trace("BrowserCacheManager.cleanRequestByInteractionType called");
@@ -869,7 +901,7 @@ export class BrowserCacheManager extends CacheManager {
             if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
                 return;
             }
-            
+
             // Retrieve state value, return if not a valid value
             const stateValue = this.temporaryCacheStorage.getItem(key);
             if (!stateValue) {
