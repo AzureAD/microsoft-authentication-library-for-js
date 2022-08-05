@@ -135,6 +135,7 @@ export abstract class ClientApplication {
     async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByCode called", request.correlationId);
         if (request.state && authCodePayLoad){
+            this.logger.info("validating state");
             this.validateState(request.state, authCodePayLoad.state || "");
             authCodePayLoad.state = undefined;
         }
@@ -464,4 +465,5 @@ export abstract class ClientApplication {
         this.storage.clear();
     }
 }
+
 
