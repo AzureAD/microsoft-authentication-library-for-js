@@ -47,9 +47,19 @@
                     "searchStrings": ["ADFS"]
                 }
             }
+        },
+        "Public or Confidential Client?": {
+            "labels": {
+                "public-client": {
+                    "searchStrings": "Public"
+                },
+                "confidential-client": {
+                    "searchStrings": "Confidential"
+                }
+            }
         }
     },
-    "ignoreIssuesOpenedBefore": "2021-04-06",
+    "ignoreIssuesOpenedBefore": "2022-08-05",
     "enforceTemplate": true,
     "templateEnforcementLabel": "more-information-needed",
     "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
