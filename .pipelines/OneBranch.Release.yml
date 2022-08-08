@@ -196,8 +196,20 @@ extends:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_core'
                 path: $(Build.SourcesDirectory)/v1-artifacts
+            - task: CmdLine@2
+              displayName: 'Save Core CDN SRI Hashes'
+              inputs:
+                script: |
+                  cp v1-artifacts/lib/msal-core/README.md lib/msal-core/README.md
+                  cp v1-artifacts/lib/msal-core/docs/cdn-usage.md lib/msal-core/docs/cdn-usage.md
             - task: DownloadPipelineArtifact@2
               inputs:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_browser'
                 path: $(Build.SourcesDirectory)/browser-artifacts
+            - task: CmdLine@2
+              displayName: 'Save Browser CDN SRI Hashes'
+              inputs:
+                script: |
+                  cp browser-artifacts/lib/msal-browser/README.md lib/msal-browser/README.md
+                  cp browser-artifacts/lib/msal-browser/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
