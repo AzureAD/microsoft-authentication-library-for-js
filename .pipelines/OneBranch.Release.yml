@@ -180,9 +180,7 @@ extends:
     - stage: post_publish
       dependsOn:
         - pre_release
-        - publish_msal_common
-        - publish_browser_packages
-        - publish_msal_node
+        - publish
       displayName: 'Post-release'
       jobs:
         - job: downloadBrowserArtifacts
