@@ -9,8 +9,8 @@
     "@emotion/styled": "^11.9.3",
     "@mui/icons-material": "^5.8.4",
     "@mui/material": "^5.9.0",
-    "react": "file:../../../lib/msal-react/node_modules/react",
-    "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "react-router-dom": "^6.2.1"
   },
   "devDependencies": {
@@ -23,7 +23,7 @@
     "eject": "react-scripts eject",
     "test": "jest --runInBand",
     "build:package": "cd ../../../lib/msal-react & npm run build:all",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
+    "install:local": "npm install ../../../lib/msal-react react@18.2.0 react-dom@18.2.0 ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
   },
   "eslintConfig": {
