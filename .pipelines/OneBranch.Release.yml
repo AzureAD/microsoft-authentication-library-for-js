@@ -197,6 +197,13 @@ extends:
                 artifact: 'drop_publish_publish_msal_core'
                 path: $(Build.SourcesDirectory)/v1-artifacts
             - task: CmdLine@2
+              inputs:
+                script: 'ls -la'
+
+            - task: CmdLine@2
+              inputs:
+                script: 'ls -la v1-artifacts/'
+            - task: CmdLine@2
               displayName: 'Save Core CDN SRI Hashes'
               inputs:
                 script: |
