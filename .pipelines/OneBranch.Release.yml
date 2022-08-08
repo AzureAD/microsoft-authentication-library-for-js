@@ -314,8 +314,8 @@ extends:
               displayName: 'Commit Changes'
               inputs:
                 script: |
-                  git checkout -b post-release-${{branch}}
-                  git commit -m "${{date}} Post Release"
+                  git checkout -b post-release-${{variables.branch}}
+                  git commit -m "${{variables.date}} Post Release"
             - task: CmdLine@2
               displayName: 'Test Git Log'
               inputs:
