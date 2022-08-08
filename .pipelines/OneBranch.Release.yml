@@ -177,3 +177,29 @@ extends:
             publishFlagName: 'MsalNodeExtensions'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
+    - stage: post_publish
+      dependsOn:
+        - pre_release
+        - publish_msal_common
+        - publish_browser_packages
+        - publish_msal_node
+      displayName: 'Post-release'
+      jobs:
+        - job: downloadBrowserArtifacts
+          pool:
+            type: linux
+          variables:
+            repoName: 'msal-javascript-internal'
+            ob_outputDirectory: '$(REPOROOT)' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+            ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+          steps:
+            - task: DownloadPipelineArtifact@2
+              inputs:
+                source: 'current'
+                artifact: 'drop_publish_msal_v1'
+                path: $(Build.SourcesDirectory)/
+            - task: DownloadPipelineArtifact@2
+              inputs:
+                source: 'current'
+                artifact: 'drop_publish_browser_packages_publish_msal_browser'
+                path: $(Build.SourcesDirectory)/
