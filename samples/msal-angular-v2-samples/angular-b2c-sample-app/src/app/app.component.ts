@@ -5,10 +5,11 @@ import { IdTokenClaims, PromptValue } from '@azure/msal-common'
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 
-import { b2cPolicies, apiConfig } from './b2c-config';
+import { environment } from '../environments/environment';
 
-type IdTokenClaimsWithAcr = IdTokenClaims & {
-    acr?: string
+type IdTokenClaimsWithPolicyId = IdTokenClaims & {
+    acr?: string,
+    tfp?: string,
 };
 
 @Component({
@@ -58,33 +59,38 @@ export class AppComponent implements OnInit, OnDestroy {
 
         this.msalBroadcastService.msalSubject$
             .pipe(
-                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
+                filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS 
+                    || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS 
+                    || msg.eventType === EventType.SSO_SILENT_SUCCESS),
                 takeUntil(this._destroying$)
             )
             .subscribe((result: EventMessage) => {
 
                 let payload = result.payload as AuthenticationResult;
-                let idtoken = payload.idTokenClaims as IdTokenClaimsWithAcr;
+                let idtoken = payload.idTokenClaims as IdTokenClaimsWithPolicyId;
+
+                if (idtoken.acr === environment.b2cPolicies.names.signUpSignIn || idtoken.tfp === environment.b2cPolicies.names.signUpSignIn) {
+                    this.authService.instance.setActiveAccount(payload.account);
+                }
                 
                 /**
                  * For the purpose of setting an active account for UI update, we want to consider only the auth response resulting
-                 * from SUSI flow. "tfp" claim in the id token tells us the policy (NOTE: legacy policies may use "acr" instead of "tfp").
+                 * from SUSI flow. "acr" claim in the id token tells us the policy (NOTE: newer policies may use the "tfp" claim instead).
                  * To learn more about B2C tokens, visit https://docs.microsoft.com/en-us/azure/active-directory-b2c/tokens-overview
                  */
-                if (idtoken.acr === b2cPolicies.names.editProfile) {
+                if (idtoken.acr === environment.b2cPolicies.names.editProfile || idtoken.tfp === environment.b2cPolicies.names.editProfile) {
 
                     // retrieve the account from initial sing-in to the app
                     const originalSignInAccount = this.authService.instance.getAllAccounts()
                         .find((account: AccountInfo) =>
                                 account.idTokenClaims?.oid === idtoken.oid
-                                &&
-                                account.idTokenClaims?.sub === idtoken.sub
-                                &&
-                                (account.idTokenClaims as IdTokenClaimsWithAcr)?.acr === b2cPolicies.names.signUpSignIn
+                                && account.idTokenClaims?.sub === idtoken.sub
+                                && ((account.idTokenClaims as IdTokenClaimsWithPolicyId).acr === environment.b2cPolicies.names.signUpSignIn
+                                    || (account.idTokenClaims as IdTokenClaimsWithPolicyId).tfp === environment.b2cPolicies.names.signUpSignIn)
                             );
-
+                            
                     let signUpSignInFlowRequest: SsoSilentRequest = {
-                        authority: b2cPolicies.authorities.signUpSignIn.authority,
+                        authority: environment.b2cPolicies.authorities.signUpSignIn.authority,
                         account: originalSignInAccount
                     };
 
@@ -96,13 +102,13 @@ export class AppComponent implements OnInit, OnDestroy {
                  * Below we are checking if the user is returning from the reset password flow.
                  * If so, we will ask the user to reauthenticate with their new password.
                  * If you do not want this behavior and prefer your users to stay signed in instead,
-                 * you can replace the code below with the same pattern we've used for handling the return from
+                 * you can replace the code below with the same pattern used for handling the return from
                  * profile edit flow (see above ln. 74-92).
                  */
-                if (idtoken.acr === b2cPolicies.names.resetPassword) {
+                if (idtoken.acr === environment.b2cPolicies.names.resetPassword || idtoken.tfp === environment.b2cPolicies.names.resetPassword) {
                     let signUpSignInFlowRequest: RedirectRequest | PopupRequest  = {
-                        authority: b2cPolicies.authorities.signUpSignIn.authority,
-                        scopes: [...apiConfig.scopes],
+                        authority: environment.b2cPolicies.authorities.signUpSignIn.authority,
+                        scopes: [...environment.apiConfig.scopes],
                         prompt: PromptValue.LOGIN // force user to reauthenticate with their new password
                     };
 
@@ -122,7 +128,7 @@ export class AppComponent implements OnInit, OnDestroy {
                 // Learn more about AAD error codes at https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
                 if (result.error && result.error.message.indexOf('AADB2C90118') > -1) {
                     let resetPasswordFlowRequest: RedirectRequest | PopupRequest  = {
-                        authority: b2cPolicies.authorities.resetPassword.authority,
+                        authority: environment.b2cPolicies.authorities.resetPassword.authority,
                         scopes: [],
                     };
             
@@ -191,7 +197,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
     editProfile() {
         let editProfileFlowRequest: RedirectRequest | PopupRequest  = {
-            authority: b2cPolicies.authorities.editProfile.authority,
+            authority: environment.b2cPolicies.authorities.editProfile.authority,
             scopes: [],
         };
 

@@ -122,6 +122,21 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         return;
     }
 
+    await page.waitForSelector('input#iLandingViewAction', {timeout: 1000});
+    await screenshot.takeScreenshot(page, "securityInfoPage");
+    await Promise.all([
+        page.click('input#iLandingViewAction'),
+
+        // Wait either for another navigation to Keep me signed in page or back to redirectUri
+        Promise.race([
+            page.waitForNavigation({ waitUntil: "networkidle0" }),
+            page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
+        ])
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+
     await page.waitForSelector('input#KmsiCheckboxField', {timeout: 1000});
     await page.waitForSelector("input#idSIButton9");
     await screenshot.takeScreenshot(page, "kmsiPage");
@@ -132,4 +147,30 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
+}
+
+export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MicrosoftAccountExchange");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MicrosoftAccountExchange");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MSIDLAB4_AzureAD");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MSIDLAB4_AzureAD");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
 }

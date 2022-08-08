@@ -50,7 +50,21 @@
               ],
               "outputHashing": "all"
             },
-            "development": {
+            "e2e": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.e2e.ts"
+                }
+              ]
+            },
+            "dev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev.ts"
+                }
+              ],
               "buildOptimizer": false,
               "optimization": false,
               "vendorChunk": true,
@@ -59,7 +73,7 @@
               "namedChunks": true
             }
           },
-          "defaultConfiguration": "production"
+          "defaultConfiguration": "dev"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -67,11 +81,14 @@
             "production": {
               "browserTarget": "angular-b2c-sample-app:build:production"
             },
-            "development": {
-              "browserTarget": "angular-b2c-sample-app:build:development"
+            "e2e": {
+              "browserTarget": "angular-b2c-sample-app:build:e2e"
+            },
+            "dev": {
+              "browserTarget": "angular-b2c-sample-app:build:dev"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",

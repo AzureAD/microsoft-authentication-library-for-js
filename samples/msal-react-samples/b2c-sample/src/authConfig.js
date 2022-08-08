@@ -18,24 +18,24 @@ const isFirefox = firefox > 0; // Only needed if you need to support the redirec
  */
  export const b2cPolicies = {
     names: {
-        signUpSignIn: "B2C_1_susi_reset_v2",
-        editProfile: "B2C_1_edit_profile_v2"
+        signUpSignIn: "B2C_1_SISOPolicy",
+        editProfile: "B2C_1_ProfileEditPolicy"
     },
     authorities: {
         signUpSignIn: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi_reset_v2",
+            authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy"
         },
         editProfile: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_edit_profile_v2"
+            authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_ProfileEditPolicy"
         }
     },
-    authorityDomain: "fabrikamb2c.b2clogin.com"
+    authorityDomain: "login.microsoftonline.com"
 }
 
 // Config object to be passed to Msal on creation
 export const msalConfig = {
     auth: {
-        clientId: "9067c884-9fa6-414f-9aa4-a565b1cb46be",
+        clientId: "e3b9ad76-9763-4827-b088-80c7a7888f79",
         authority: b2cPolicies.authorities.signUpSignIn.authority,
         knownAuthorities: [b2cPolicies.authorityDomain],
         redirectUri: "/",
@@ -74,7 +74,7 @@ export const msalConfig = {
 
 // Scopes you add here will be prompted for consent during login
 export const loginRequest = {
-    scopes: ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"]
+    scopes: ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
 };
 
 /**
@@ -82,6 +82,6 @@ export const loginRequest = {
  * The current application coordinates were pre-registered in a B2C tenant.
  */
 export const apiConfig = {
-    scopes: ['https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read'],
-    uri: 'https://fabrikamb2chello.azurewebsites.net/hello'
+    scopes: ['https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read'],
+    uri: 'https://msidlabb2c.onmicrosoft.com/msidlabb2capi'
 };

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { apiConfig } from '../b2c-config';
+
+import { environment } from 'src/environments/environment';
 
 type ProfileType = {
   name?: string
@@ -19,7 +20,7 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getProfile(apiConfig.uri);
+    this.getProfile(environment.apiConfig.uri);
   }
 
   getProfile(url: string) {

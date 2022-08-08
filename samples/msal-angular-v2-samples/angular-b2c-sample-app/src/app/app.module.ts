@@ -19,7 +19,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
 import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration, MsalRedirectComponent } from '@azure/msal-angular';
 
-import { b2cPolicies, apiConfig } from './b2c-config';
+import { environment } from 'src/environments/environment';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1; // Remove this line to use Angular Universal
 
@@ -30,11 +30,11 @@ export function loggerCallback(logLevel: LogLevel, message: string) {
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: '9067c884-9fa6-414f-9aa4-a565b1cb46be',
-      authority: b2cPolicies.authorities.signUpSignIn.authority,
+      clientId: environment.msalConfig.auth.clientId,
+      authority: environment.b2cPolicies.authorities.signUpSignIn.authority,
       redirectUri: '/',
       postLogoutRedirectUri: '/',
-      knownAuthorities: [b2cPolicies.authorityDomain]
+      knownAuthorities: [environment.b2cPolicies.authorityDomain]
     },
     cache: {
       cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -53,7 +53,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
 
-  protectedResourceMap.set(apiConfig.uri, apiConfig.scopes);
+  protectedResourceMap.set(environment.apiConfig.uri, environment.apiConfig.scopes);
 
   return {
     interactionType: InteractionType.Redirect,
@@ -65,7 +65,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     interactionType: InteractionType.Redirect,
     authRequest: {
-      scopes: [...apiConfig.scopes],
+      scopes: [...environment.apiConfig.scopes],
     },
     loginFailedRoute: '/login-failed'
   };

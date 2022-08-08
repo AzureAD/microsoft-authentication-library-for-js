@@ -18,7 +18,7 @@ export function Home() {
           <AuthenticatedTemplate>
           <Stack direction="column" spacing={2}>
           <ButtonGroup orientation="vertical">
-              <Button component={RouterLink} to="/profile" variant="contained" color="primary">Call Hello API</Button>
+              <Button component={RouterLink} to="/profile" variant="contained" color="primary" id="callApiButton">Call Hello API</Button>
               <EditProfileButton />
             </ButtonGroup>
             <Typography variant="body1">Claims in your ID token are shown below: </Typography>

@@ -9,12 +9,13 @@ export const EditProfileButton = () => {
 
     const handleProfileEdit = () => {
         if (isAuthenticated && inProgress === InteractionStatus.None) {
-            instance.acquireTokenPopup(b2cPolicies.authorities.editProfile);
+            instance.acquireTokenRedirect(b2cPolicies.authorities.editProfile);
         }
     }
 
     return (
         <Button
+            id="editProfileButton"
             variant="contained"
             color="primary"
             onClick={handleProfileEdit}

@@ -3,7 +3,35 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+    production: false,
+    msalConfig: {
+        auth: {
+            clientId: "",
+        }
+    },
+    apiConfig: {
+        scopes: [""],
+        uri: ""
+    },
+    b2cPolicies: {
+        names: {
+            signUpSignIn: "",
+            resetPassword: "",
+            editProfile: ""
+        },
+        authorities: {
+            signUpSignIn: {
+                authority: ""
+            },
+            resetPassword: {
+                authority: ""
+            },
+            editProfile: {
+                authority: ""
+            }
+        },
+        authorityDomain: ""
+    }
 };
 
 /*
