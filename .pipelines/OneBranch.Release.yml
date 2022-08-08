@@ -194,7 +194,7 @@ extends:
             - task: DownloadPipelineArtifact@2
               inputs:
                 source: 'current'
-                artifact: 'drop_publish_publsih_msal_core'
+                artifact: 'drop_publish_publish_msal_core'
                 path: $(Build.SourcesDirectory)/
             - task: DownloadPipelineArtifact@2
               inputs:
