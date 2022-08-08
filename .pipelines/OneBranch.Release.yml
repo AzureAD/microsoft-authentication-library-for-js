@@ -195,9 +195,9 @@ extends:
               inputs:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_core'
-                path: $(Build.SourcesDirectory)/
+                path: $(Build.SourcesDirectory)/v1-artifacts
             - task: DownloadPipelineArtifact@2
               inputs:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_browser'
-                path: $(Build.SourcesDirectory)/
+                path: $(Build.SourcesDirectory)/browser-artifacts
