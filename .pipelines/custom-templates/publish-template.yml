@@ -94,8 +94,8 @@ jobs:
         inputs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          customCommand: 'publish --tag beta'
-          customEndpoint: 'MSALJSNPM'
+          customCommand: 'pack' #'publish --tag beta'
+          # customEndpoint: 'MSALJSNPM'
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 
