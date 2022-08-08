@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-libNames=("msal-core" "msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react" "msal-node-extensions");
+libNames=("msal-core" "msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react");
 
 declare -A publishFlagNames;
 
@@ -10,7 +10,6 @@ publishFlagNames["msal-browser"]=publishMsalBrowser;
 publishFlagNames["msal-node"]=publishMsalNode;
 publishFlagNames["msal-angular"]=publishMsalAngular;
 publishFlagNames["msal-react"]=publishMsalReact;
-publishFlagNames["msal-node-extensions"]=publishMsalNodeExtensions;
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
@@ -34,3 +33,19 @@ for i in "${libNames[@]}"; do
         echo "##vso[task.setvariable variable=${varName};isoutput=true]false"
     fi
 done
+
+# Same for extensions
+
+libPath="../extensions/msal-node-extensions/package.json"
+varName=publishMsalNodeExtensions;
+git diff --exit-code --name-only HEAD 9ddeaca3 -- $libPath
+
+if [ $? -eq 1 ]
+then
+    echo "msal-node-extensions publish flag set to TRUE";
+    echo "##vso[task.setvariable variable=${varName};isoutput=true]true"
+else
+    echo "msal-node-extensions publish flag set to FALSE";
+    echo "##vso[task.setvariable variable=${varName};isoutput=true]false"
+fi
+

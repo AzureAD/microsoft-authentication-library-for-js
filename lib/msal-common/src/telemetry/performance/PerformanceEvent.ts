@@ -96,6 +96,16 @@ export enum PerformanceEvents {
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
 
     /**
+     * Time spent on the network for refresh token acquisition
+     */
+    RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
+
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+
+    /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
     BrokerHandhshake = "brokerHandshake",
