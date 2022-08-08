@@ -38,7 +38,7 @@ done
 
 libPath="../extensions/msal-node-extensions/package.json"
 varName=publishMsalNodeExtensions;
-git diff --exit-code --name-only HEAD 9ddeaca3 -- $libPath
+git diff --exit-code --name-only HEAD HEAD~1 -- $libPath
 
 if [ $? -eq 1 ]
 then
