@@ -302,11 +302,23 @@ extends:
             - task: CmdLine@2
               displayName: 'Get Release Date'
               inputs:
-                script: echo "::set-output name=date::$(node getReleaseDate.js)"
+                script: '##vso[task.setvariable variable=date;isoutput=true]$(node getReleaseDate.js)'
                 workingDir: './release-scripts'
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
-                script: echo "::set-output name=date::$(node getReleaseDate.js -branch)"
+                script: '##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)'
                 workingDir: './release-scripts'
+            
+            - task: CmdLine@2
+              displayName: 'Commit Changes'
+              inputs:
+                script: |
+                  git checkout -b post-release-${{branch}}
+                  git commit -m "${{date}} Post Release"
+            - task: CmdLine@2
+              displayName: 'Test Git Log'
+              inputs:
+                script: |
+                  git log
 
