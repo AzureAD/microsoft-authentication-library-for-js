@@ -160,7 +160,7 @@ extends:
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
-            jobName: 'release_msal_node'
+            jobName: 'publish_msal_node'
             path: 'lib'
             libName: 'msal-node'
             cdn: false
@@ -170,7 +170,7 @@ extends:
         # Release MSAL Node Extensions
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
-            jobName: 'release_msal_node_extensions'
+            jobName: 'publish_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
             cdn: false
