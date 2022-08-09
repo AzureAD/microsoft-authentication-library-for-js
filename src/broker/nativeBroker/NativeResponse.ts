@@ -22,7 +22,7 @@ export type NativeResponse = {
     expires_in: number;
     id_token: string;
     properties: NativeResponseProperties;
-    scopes: string;
+    scope: string;
     state: string;
     shr?: string;
     extendedLifetimeToken?: boolean;
