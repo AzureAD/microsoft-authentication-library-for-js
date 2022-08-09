@@ -42,6 +42,7 @@ const cacheConfig = {
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
+    let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
@@ -55,7 +56,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         });
 
-        const authorityMetadataStub: sinon.SinonStub = sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
+        // existing cloud discovery metadata
+        // const cloudDiscoveryMetadata = {
+        //     preferred_network: 'login.microsoftonline.com',
+        //     preferred_cache: 'login.windows.net',
+        //     aliases: [
+        //       'login.microsoftonline.com',
+        //       'login.windows.net',
+        //       'login.microsoft.com',
+        //       'sts.windows.net'
+        //     ],
+        // };
+
+        authorityMetadataStub = sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
             const authorityMetadata = new AuthorityMetadataEntity();
             authorityMetadata.updateCloudDiscoveryMetadata({
                 aliases: [host],
@@ -64,16 +77,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }, false);
             return authorityMetadata;
         });
-        authorityMetadataStub.callsFake((host) => {
-            const authorityMetadata = new AuthorityMetadataEntity();
-            authorityMetadata.updateCloudDiscoveryMetadata({
-                aliases: ["login.microsoftonline.com", "login.windows.net"],
-                preferred_network: host,
-                preferred_cache: host
-            }, false);
+        // authorityMetadataStub.callsFake((host) => {
+        //     const authorityMetadata = new AuthorityMetadataEntity();
+        //     authorityMetadata.updateCloudDiscoveryMetadata({
+        //         aliases: ["login.microsoftonline.com", "login.windows.net"],
+        //         preferred_network: host,
+        //         preferred_cache: host
+        //     }, false);
 
-            return authorityMetadata;
-        });
+        //     return authorityMetadata;
+        // });
     });
 
     afterEach(() => {
@@ -2756,8 +2769,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("getAllAccounts returns all signed in accounts", () => {
             const accounts = pca.getAllAccounts();
             expect(accounts).toHaveLength(2);
-            expect(accounts[0].idToken).not.toBeNull();
-            expect(accounts[1].idToken).not.toBeNull();
+            expect(accounts[0].idToken).not.toBeUndefined();
+            expect(accounts[1].idToken).not.toBeUndefined();
         });
 
         it("getAllAccounts returns empty array if no accounts signed in", () => {
@@ -2768,19 +2781,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByUsername returns account specified", () => {
             const account = pca.getAccountByUsername("example@microsoft.com");
+            expect(account?.idToken).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
-        it(
-            "getAccountByUsername returns account specified with case mismatch",
-            () => {
-                const account = pca.getAccountByUsername("Example@Microsoft.com");
-                expect(account).toEqual(testAccountInfo1);
+        it("getAccountByUsername returns account specified with case mismatch", () => {
+            const account = pca.getAccountByUsername("Example@Microsoft.com");
+            expect(account?.idToken).not.toBeUndefined();
+            expect(account).toEqual(testAccountInfo1);
 
-                const account2 = pca.getAccountByUsername("anotherexample@microsoft.com");
-                expect(account2).toEqual(testAccountInfo2);
-            }
-        );
+            const account2 = pca.getAccountByUsername("anotherexample@microsoft.com");
+            expect(account2?.idToken).not.toBeUndefined();
+            expect(account2).toEqual(testAccountInfo2);
+        });
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
             const account = pca.getAccountByUsername("this-email-doesnt-exist@microsoft.com");
@@ -2795,6 +2808,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByHomeId returns account specified", () => {
             const account = pca.getAccountByHomeId(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID);
+            expect(account?.idToken).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
@@ -2811,6 +2825,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByLocalId returns account specified", () => {
             const account = pca.getAccountByLocalId(TEST_CONFIG.OID);
+            expect(account?.idToken).not.toBeUndefined();
             expect(account).toEqual(testAccountInfo1);
         });
 
@@ -2879,12 +2894,15 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("setActiveAccount() sets the active account local id value correctly", () => {
             expect(pca.getActiveAccount()).toBe(null);
             pca.setActiveAccount(testAccountInfo1);
-            expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+            const activeAccount = pca.getActiveAccount();
+            expect(activeAccount?.idToken).not.toBeUndefined();
+            expect(activeAccount).toEqual(testAccountInfo1);
         });
 
         it("getActiveAccount looks up the current account values and returns them", () => {
             pca.setActiveAccount(testAccountInfo1);
             const activeAccount1 = pca.getActiveAccount();
+            expect(activeAccount1?.idToken).not.toBeUndefined();
             expect(activeAccount1).toEqual(testAccountInfo1);
             
             const newName = "Ben Franklin";
@@ -2894,7 +2912,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.setItem(cacheKey, JSON.stringify(testAccount1));
 
             const activeAccount2 = pca.getActiveAccount();
-            expect(activeAccount2?.idToken).not.toBeNull();
+            expect(activeAccount2?.idToken).not.toBeUndefined();
             expect(activeAccount2).toEqual(testAccountInfo1);
         });
 
@@ -2983,28 +3001,42 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("setActiveAccount sets both home id and local id", () => {
                 expect(pca.getActiveAccount()).toBe(null);
+
                 pca.setActiveAccount(testAccountInfo1);
-                expect(pca.getActiveAccount()).not.toBe(null);
-                expect(pca.getActiveAccount()?.homeAccountId).toEqual(testAccountInfo1.homeAccountId);
-                expect(pca.getActiveAccount()?.localAccountId).toEqual(testAccountInfo1.localAccountId);
+                const activeAccount = pca.getActiveAccount();
+                expect(activeAccount).not.toBeNull();
+                expect(activeAccount?.idToken).not.toBeUndefined();
+                expect(activeAccount?.homeAccountId).toEqual(testAccountInfo1.homeAccountId);
+                expect(activeAccount?.localAccountId).toEqual(testAccountInfo1.localAccountId);
             });
 
             it("getActiveAccount gets correct account when two accounts with same local id are present in cache", () => {
                 expect(pca.getActiveAccount()).toBe(null);
+
                 pca.setActiveAccount(testAccountInfo1);
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
-                expect(pca.getActiveAccount()).not.toEqual(testAccountInfo2);
+                let activeAccount = pca.getActiveAccount();
+                expect(activeAccount?.idToken).not.toBeUndefined();
+                expect(activeAccount).toEqual(testAccountInfo1);
+                expect(activeAccount).not.toEqual(testAccountInfo2);
+
                 pca.setActiveAccount(testAccountInfo2);
+                activeAccount = pca.getActiveAccount();
+                expect(activeAccount?.idToken).not.toBeUndefined();
                 expect(pca.getActiveAccount()).not.toEqual(testAccountInfo1);
                 expect(pca.getActiveAccount()).toEqual(testAccountInfo2);
             });
 
             it("getActiveAccount returns null when active account is removed from cache when another account with same local id is present", () => {
                 expect(pca.getActiveAccount()).toBe(null);
+
                 pca.setActiveAccount(testAccountInfo2);
-                expect(pca.getActiveAccount()).not.toEqual(testAccountInfo1);
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo2);
+                const activeAccount = pca.getActiveAccount();
+                expect(activeAccount?.idToken).not.toBeUndefined();
+                expect(activeAccount).not.toEqual(testAccountInfo1);
+                expect(activeAccount).toEqual(testAccountInfo2);
+
                 window.sessionStorage.removeItem(cacheKey2);
+                window.sessionStorage.removeItem(idTokenKey2);
                 expect(pca.getActiveAccount()).toBe(null);
             });
         });
