@@ -7,7 +7,7 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "jest",
+    "e2e": "jest --runInBand",
     "install:local": "npm install @azure/msal-angular@latest @azure/msal-browser@latest",
     "install:published": "npm install @azure/msal-angular@latest @azure/msal-browser@latest"
   },
