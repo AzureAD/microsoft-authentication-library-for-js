@@ -88,7 +88,7 @@ describe('B2C user-flow tests (msa account)', () => {
         ]);
         await page.click("#continue");
         await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
-        await page.waitForTimeout(1500); // wait for react to rerender ui
+        await page.waitForTimeout(2000); // wait for react to rerender ui
         await page.waitForSelector("#idTokenClaims");
         const htmlBody = await page.evaluate(() => document.body.innerHTML);
         expect(htmlBody).toContain(`${displayName}`);
