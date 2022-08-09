@@ -299,7 +299,7 @@ extends:
               displayName: Install release scripts dependencies
               inputs:
                 command: 'custom'
-                customCommand: 'npm ci'
+                customCommand: 'ci'
                 workingDir: 'release-scripts/'
             - task: CmdLine@2
               displayName: 'Set Timezone'
