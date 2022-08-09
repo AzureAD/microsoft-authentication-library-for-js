@@ -9,6 +9,8 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 
 Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. This sample demonstrates the [sign-up/sign-in](https://docs.microsoft.com/azure/active-directory-b2c/add-sign-up-and-sign-in-policy?pivots=b2c-user-flow) user-flow with [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended).
 
+> If you do need to support legacy user-flows, such as legacy password reset user-flow, please refer to the [Angular B2C sample](../../msal-angular-v2-samples/angular-b2c-sample-app/) for an illustration.
+
 ## Notable files and what they demonstrate
 
 1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components. Also shows how to handle edit profile user-flow.
@@ -28,11 +30,23 @@ Implementing B2C user-flows is a matter of initiating authorization requests aga
 - Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run `@azure/msal-react`.
 - Install node.js if needed (<https://nodejs.org/en/>).
 
+### B2C App Registration
+
+This sample comes with a pre-registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
+
+1. [Create an Azure Active Directory B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
+2. [Register a single-page application in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-spa)
+3. [Create user-flows in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
+
 ### Configure the application
 
 - Open `./src/authConfig.js` in an editor.
-- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+- Replace `clientId` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
+- Replace `names`, `authorities` and `authorityDomain` fields in `b2cPolicies` object with the parameters you've obtained after creating your own user-flows.
+  - Optionally, replace the `uri` and `scopes` fields in `apiConfig` object if you would like to call your own web API registered on Azure AD B2C (see: [Register a web API on Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga))
+
+These parameters are taken in during runtime to initialize MSAL in `./src/index.js`.
 
 #### Install npm dependencies for sample
 

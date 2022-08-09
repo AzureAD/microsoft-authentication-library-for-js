@@ -5,18 +5,7 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { UserTypes, B2cProviders } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/home-tests`;
-
-async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
-    const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens.length).toBe(1);
-    expect(tokenStore.accessTokens.length).toBe(1);
-    expect(tokenStore.refreshTokens.length).toBe(1);
-    expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
-    expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
-    const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(6);
-}
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/local-account-tests`;
 
 describe('B2C user-flow tests (local account)', () => {
     jest.retryTimes(1);
@@ -69,7 +58,6 @@ describe('B2C user-flow tests (local account)', () => {
         await screenshot.takeScreenshot(page, "Login button clicked");
         const [loginRedirectButton] = await page.$x("//li[contains(., 'Sign in using Redirect')]");
         await loginRedirectButton.click();
-        
         await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
 
@@ -80,32 +68,44 @@ describe('B2C user-flow tests (local account)', () => {
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
-        await verifyTokenStore(BrowserCache, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]);
-
-        let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
+        const tokenStoreBeforeEdit = await BrowserCache.getTokens();
+        expect(tokenStoreBeforeEdit.idTokens.length).toBe(1);
+        expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
+        expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
+        expect(await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])).not.toBeNull();
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
+        const storageBeforeEdit = await BrowserCache.getWindowStorage();
+        expect(Object.keys(storageBeforeEdit).length).toBe(5);
         
-        // Navigate to profile page
+        // initiate edit profile flow
         const editProfileButton = await page.waitForSelector("#editProfileButton");
-
         if (editProfileButton) {
             await editProfileButton.click();
         }
-
+        let displayName = (Math.random() + 1).toString(36).substring(7); // generate a random string
         await page.waitForSelector("#attributeVerification", {visible: true});
-
         await Promise.all([
             page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
             page.type("#displayName", `${displayName}`),
         ]);
-
         await page.click("#continue");
         await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
-
-        await page.waitForTimeout(100);
+        await page.waitForTimeout(1500); // wait for react to rerender ui
         await page.waitForSelector("#idTokenClaims");
         const htmlBody = await page.evaluate(() => document.body.innerHTML);
-        // expect(htmlBody).toContain(`${displayName}`);
+        expect(htmlBody).toContain(`${displayName}`);
         expect(htmlBody).toContain("B2C_1_SISOPolicy"); // implies the current active account
+
+        // Verify tokens are in cache
+        const tokenStoreAfterEdit = await BrowserCache.getTokens();
+        expect(tokenStoreAfterEdit.idTokens.length).toBe(2); // 1 for each policy
+        expect(tokenStoreAfterEdit.accessTokens.length).toBe(1);
+        expect(tokenStoreAfterEdit.refreshTokens.length).toBe(2); // 1 for each policy
+        expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[0])).not.toBeNull();
+        expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[1])).not.toBeNull(); // new account after edit
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStoreAfterEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
+        const storageAfterEdit = await BrowserCache.getWindowStorage();
+        expect(Object.keys(storageAfterEdit).length).toBe(8);
     });
   }
 );

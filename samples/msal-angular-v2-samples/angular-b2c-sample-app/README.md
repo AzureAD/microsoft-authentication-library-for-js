@@ -20,15 +20,13 @@ This sample comes with a pre-registered application for demo purposes. If you wo
 
 ### Configure the application
 
-Open `./src/app/app.module.ts` in an editor:
-
+Open `.src/environments/environment.dev.ts` in an editor:
 - Replace `clientId` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
-
-Open `.src/app/b2c-config.ts` in an editor:
-
 - Replace `names`, `authorities` and `authorityDomain` fields in `b2cPolicies` object with the parameters you've obtained after creating your own user-flows.
   - Optionally, replace the `uri` and `scopes` fields in `apiConfig` object if you would like to call your own web API registered on Azure AD B2C (see: [Register a web API on Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga))
+
+These parameters are taken in during runtime to initialize MSAL in `./src/app/app.module.ts`.
 
 ### Running the sample
 
