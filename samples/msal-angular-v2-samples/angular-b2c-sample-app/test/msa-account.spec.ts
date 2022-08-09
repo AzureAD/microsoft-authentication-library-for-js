@@ -69,15 +69,12 @@ describe('B2C user-flow tests (msa account)', () => {
         await screenshot.takeScreenshot(page, "Signed in with the policy");
 
         // Verify tokens are in cache
-        const storageBeforeEdit = await BrowserCache.getWindowStorage();
-        console.log(storageBeforeEdit);
         const tokenStoreBeforeEdit = await BrowserCache.getTokens();
         expect(tokenStoreBeforeEdit.idTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.accessTokens.length).toBe(1);
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])).not.toBeNull();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
-        expect(Object.keys(storageBeforeEdit).length).toBe(5);
         
         // initiate edit profile flow
         const editProfileButton = await page.waitForXPath("//span[contains(., 'Edit Profile')]");
@@ -106,8 +103,6 @@ describe('B2C user-flow tests (msa account)', () => {
         expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[0])).not.toBeNull();
         expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[1])).not.toBeNull(); // new account after edit
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreAfterEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
-        const storageAfterEdit = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storageAfterEdit).length).toBe(8);
     });
   }
 );

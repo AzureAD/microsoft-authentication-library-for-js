@@ -74,8 +74,6 @@ describe('B2C user-flow tests (local account)', () => {
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])).not.toBeNull();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
-        const storageBeforeEdit = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storageBeforeEdit).length).toBe(5);
         
         // initiate edit profile flow
         const editProfileButton = await page.waitForSelector("#editProfileButton");
@@ -104,8 +102,6 @@ describe('B2C user-flow tests (local account)', () => {
         expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[0])).not.toBeNull();
         expect(await BrowserCache.getAccountFromCache(tokenStoreAfterEdit.idTokens[1])).not.toBeNull(); // new account after edit
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreAfterEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
-        const storageAfterEdit = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storageAfterEdit).length).toBe(8);
     });
   }
 );
