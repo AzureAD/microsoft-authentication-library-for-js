@@ -67,6 +67,8 @@ const msalConfig = {
 };
 ```
 
+For more information on authority, please refer to: [Authority in MSAL](../../msal-common/docs/authority.md).
+
 ## Advanced Configuration
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) has more options which are documented [here](./configuration.md).
 
