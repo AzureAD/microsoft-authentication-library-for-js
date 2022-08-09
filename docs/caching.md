@@ -1,6 +1,6 @@
 # Caching in MSAL
 
-When MSAL acquires a token, it caches it for future usage. MSAL manages token lifetimes and refreshing for you. APIs like `acquireTokenSilent()` retrieves access tokens from the cache for a given account.
+When MSAL acquires a token, it caches it for future usage. MSAL manages token lifetimes and refreshing for you. The `acquireTokenSilent()` API retrieves access tokens from the cache for a given account and renews them if needed.
 
 ## Cache storage
 
