@@ -33,7 +33,7 @@ By default, MSAL stores the various authentication artifacts it obtains from the
 
 ### Cookie storage
 
-MSAL Browser can be configured to use cookies for storing temporary authentication artifacts. This is useful for apps that need to support older browsers such as Internet Explorer. Note that when this option is chosen, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
+MSAL Browser can be configured to use cookies for storing temporary authentication artifacts. This option allows you to support browsers that may clear local/session storage during redirect-based login flows (e.g. Internet Explorer, Firefox in private mode). Note that when this option is chosen, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
 
 ### Security
 
@@ -41,18 +41,18 @@ We consider session/local storage secure as long as your application does not ha
 
 ## Cached artifacts
 
-To faciliate efficient token acquisition while maintaining a good UX, MSAL caches various artifacts resulting from its API calls. At a glance, these are:
+To faciliate efficient token acquisition while maintaining a good UX, MSAL caches various artifacts resulting from its API calls. Below is a summary of entities in MSAL cache:
 
-- Persistent artifacts 
+- **Durable artifacts** (lasting after the request -see also: [token lifetimes](token-lifetimes.md))
     - access tokens
     - id tokens
     - refresh tokens
     - accounts
-- Temporary artifacts
+- **Ephemeral artifacts** (limited to request lifetime)
     - request metadata (e.g. state, nonce, authority)
     - errors
     - interaction status
-- Telemetry
+- **Telemetry**
     - previous failed request 
     - performance data
 
