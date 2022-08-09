@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Routes, Route, useNavigate } from "react-router-dom";
+import { Switch, Route, useHistory } from "react-router-dom";
 // Material-UI imports
 import Grid from "@mui/material/Grid";
 
@@ -34,7 +34,7 @@ function App({ pca }) {
  *  This component is optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
  */ 
 function ClientSideNavigation({ pca, children }) {
-  const navigate = useNavigate();
+  const navigate = useHistory();
   const navigationClient = new CustomNavigationClient(navigate);
   pca.setNavigationClient(navigationClient);
 
@@ -94,11 +94,11 @@ function Pages() {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/logout" element={<Logout />} />
-      <Route path="/" element={<Home />} />
-    </Routes>
+    <Switch>
+      <Route path="/profile"><Profile /></Route>
+      <Route path="/logout"><Logout /></Route>
+      <Route path="/"><Home /></Route>
+    </Switch>
   )
 }
 

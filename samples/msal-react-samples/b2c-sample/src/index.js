@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import { BrowserRouter as Router } from "react-router-dom";
 import { ThemeProvider } from '@mui/material/styles';
 import { theme } from "./styles/theme";
@@ -32,15 +32,13 @@ msalInstance.addEventCallback((event) => {
   }
 });
 
-const container = document.getElementById('root');
-const root = ReactDOM.createRoot(container);
-
-root.render(
+ReactDOM.render(
   <React.StrictMode>
-    <Router>
-      <ThemeProvider theme={theme}>
-        <App pca={msalInstance} />
-      </ThemeProvider>
-    </Router>
-  </React.StrictMode>
+      <Router>
+          <ThemeProvider theme={theme}>
+              <App pca={msalInstance} />
+          </ThemeProvider>
+      </Router>
+  </React.StrictMode>,
+  document.getElementById('root')
 );
