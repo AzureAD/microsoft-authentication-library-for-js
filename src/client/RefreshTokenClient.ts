@@ -26,15 +26,15 @@ import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 /**
  * OAuth2.0 refresh token client
  */
 export class RefreshTokenClient extends BaseClient {
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
-    }
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration,performanceClient);
 
+    }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         // @ts-ignore
         const atsMeasurement = this.performanceClient?.startMeasurement("RefreshTokenClientAcquireToken", request.correlationId);
