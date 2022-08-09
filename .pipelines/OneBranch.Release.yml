@@ -193,14 +193,14 @@ extends:
             ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
           steps:
             - task: DownloadPipelineArtifact@2
-              condition: and(in(stageDependencies.publish.publish_msal_core.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_core.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_core.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_core.results, 'Skipped'))
               continueOnError: true
               inputs:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_core'
                 path: $(Build.SourcesDirectory)/core-artifacts
             - task: CmdLine@2
-              condition: and(in(stageDependencies.publish.publish_msal_core.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_core.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_core.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_core.results, 'Skipped'))
               displayName: 'Sav e Core CDN SRI Hashes'
               continueOnError: true
               inputs:
@@ -213,14 +213,14 @@ extends:
                 script: 'rm -rf core-artifacts'
 
             - task: DownloadPipelineArtifact@2
-              condition: and(in(stageDependencies.publish.publish_msal_browser.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_browser.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_browser.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_browser.results, 'Skipped'))
               inputs:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_browser'
                 path: $(Build.SourcesDirectory)/browser-artifacts
             - task: CmdLine@2
               displayName: 'Save Browser CDN SRI Hashes'
-              condition: and(in(stageDependencies.publish.publish_msal_browser.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_browser.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_browser.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_browser.results, 'Skipped'))
               inputs:
                 script: |
                   cp browser-artifacts/README.md lib/msal-browser/README.md
@@ -233,7 +233,7 @@ extends:
           # Update package-locks
             - task: Npm@1
               displayName: 'Update msal-core package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_core.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_core.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_core.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_core.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-core'
@@ -241,14 +241,14 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-common package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_common.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_common.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_common.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_common.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-common'
                 verbose: false
             - task: Npm@1
               displayName: 'Update msal-browser package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_browser.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_browser.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_browser.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_browser.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-browser'
@@ -256,7 +256,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-node package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_node.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_node.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_node.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_node.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-node'
@@ -264,7 +264,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-react package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_react.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_react.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_react.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_react.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-react'
@@ -272,7 +272,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-angular package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_angular.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_angular.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_angular.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_angular.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-angular'
@@ -280,7 +280,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-node-extensions package-lock'
-              condition: and(in(stageDependencies.publish.publish_msal_node_extensions.results, 'Succeeded'), notIn(stageDependencies.publish.publish_msal_node_extensions.results, 'Skipped'))
+              condition: and(in($stageDependencies.publish.publish_msal_node_extensions.results, 'Succeeded'), notIn($stageDependencies.publish.publish_msal_node_extensions.results, 'Skipped'))
               inputs:
                 command: 'install'
                 workingDir: 'extensions/msal-node-extensions'
