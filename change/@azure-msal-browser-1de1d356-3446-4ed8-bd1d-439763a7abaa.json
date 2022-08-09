@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Exposed raw id token on account info objects #5036",
   "packageName": "@azure/msal-browser",
   "email": "rginsburg@microsoft.com",
