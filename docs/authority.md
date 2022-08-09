@@ -1,17 +1,15 @@
 # Authority in MSAL
 
-In OAuth 2.0 and OpenID Connect, a client application (aka *relying party*) acquires tokens from an identity provider (IdP), such as Azure AD, to prove authentication (via ID tokens) and/or authorization (via access tokens). When doing so, the client application trusts the *authority* of the IdP.
+In OAuth 2.0 and OpenID Connect, a client application (aka *relying party*) acquires tokens from an identity provider (IdP), such as Azure AD, to prove authentication (via ID tokens) and/or authorization (via access tokens). In this relationship, the IdP has the *authority* to issue tokens to the client application, and the client application trusts the *authority* of the IdP.
 
-MSAL is a token acquisition library. An IdP in the relationship above is denoted as **authority** by MSAL. The **authority** parameter in MSAL configuration indicates the URL to request tokens from. This URL points to the service that issues tokens, also called **security token service** (STS). 
-
-MSAL needs to have accurate information about an STS to be able to requests tokens from it (either directly from the network or from the cache later on). To do so, MSAL performs steps to gather the necessary **metadata** for making a token request (*endpoint discovery*). The [Authority.ts](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.authority.html) class encapsulates the methods and data required for endpoint discovery, and is instantiated before each token request.
+MSAL is a token acquisition library. The **authority** parameter in MSAL configuration indicates the URL to request tokens from. This URL points to the service that issues tokens, also called as **security token service** (STS). MSAL needs to have accurate information about an STS to be able to requests tokens from it (either directly from the network or from the cache later on). To do so, MSAL performs steps to gather the necessary **metadata** for making a token request (*endpoint discovery*). The [Authority.ts](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.authority.html) class encapsulates the methods and data required for endpoint discovery, and is instantiated before each token request.
 
 ## Authority URL
 
 The default authority for MSAL is `https://login.microsoftonline.com/common`. This string is a URL made of two parts: a **domain** (aka *instance*), and a **tenant identifier** (aka *realm*):
 
 ```console
-    https://<domain-of-the-IdP>/<tenant-identifier>
+    https://<domain-of-the-service>/<tenant-identifier>
 ```
 
 > :warning: The canonical authority URL differs in the case of B2C and ADFS. See [Choosing an authority](#choosing-an-authority) below for more.
@@ -21,7 +19,7 @@ The authority URL guides MSAL where to look for the 3 endpoints that are require
 | Endpoint                | Example     | Description |
 |-------------------------|-------------|-------------|
 | `/openid-configuration` | `https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration` | Contains the metadata required for making a token request e.g. supported scopes, claims, request methods, signing keys etc. |
-| `/authorize`            | `https://login.microsoftonline.com/common/oauth2/v2.0/authorize` | Returns an authorization code in the query parameters via the client app's registered redirect URL. Navigation to this endpoint usually prompts the user with a dialog screen by the IdP. Appropriate query parameters can be used to customize this screen. |
+| `/authorize`            | `https://login.microsoftonline.com/common/oauth2/v2.0/authorize` | Returns an authorization code in the query parameters via the client app's registered redirect URI. Navigation to this endpoint usually prompts the user with a dialog screen by the IdP. Appropriate query parameters can be used to customize this screen. |
 | `/token`                | `https://login.microsoftonline.com/common/oauth2/v2.0/token` | The client app sends the authorizaiton code to this endpoint via a POST request and receives an access and an ID token in return. |
 
 > :bulb: Certain OAuth 2.0 grants may skip the authorize endpoint and go directly for the token endpoint, e.g. [OAuth 2.0 Client Credentials Grant](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)
