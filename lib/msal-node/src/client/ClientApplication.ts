@@ -137,7 +137,8 @@ export abstract class ClientApplication {
         if (request.state && authCodePayLoad){
             this.logger.info("validating state");
             this.validateState(request.state, authCodePayLoad.state || "");
-            authCodePayLoad.state = undefined;
+            // eslint-disable-next-line no-param-reassign
+            authCodePayLoad= {...authCodePayLoad, state:""};
         }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
