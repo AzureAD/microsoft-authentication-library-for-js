@@ -22,8 +22,5 @@ if (dateOfNextRelease > 7) {
 const delimiter = noSpaces ? '-' : ' ';
 const dateComponents = [months[month], year]
 
-if (noSpaces) {
-    process.env.PR_DATE =  dateComponents.join(delimiter).toLowerCase();
-} else {
-    process.env.PR_BRANCH = dateComponents.join(delimiter);
-} 
+const formattedDate = (noSpaces) ? dateComponents.join(delimiter).toLowerCase() : dateComponents.join(delimiter);
+console.log(formattedDate);
