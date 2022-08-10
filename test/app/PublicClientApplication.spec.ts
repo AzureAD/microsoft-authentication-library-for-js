@@ -2673,13 +2673,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.authorityType = "MSSTS";
         testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
-        // aliases: [
-        //       'login.microsoftonline.com',
-        //       'login.windows.net',
-        //       'login.microsoft.com',
-        //       'sts.windows.net'
-        //     ],
-
         const idTokenData1 = {
             "realm": testAccountInfo1.tenantId,
             "environment": testAccountInfo1.environment,
