@@ -245,7 +245,7 @@ extends:
           # Update package-locks
             - task: Npm@1
               displayName: 'Update msal-core package-lock'
-              condition: and(in(variables.msalCoreResult, 'Succeeded'), notIn(variables.msalCoreResult, 'Skipped'))
+              condition: eq(variables.msalCoreResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-core'
@@ -253,14 +253,14 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-common package-lock'
-              condition: and(in(variables.msalCommonResult, 'Succeeded'), notIn(variables.msalCommonResult, 'Skipped'))
+              condition: eq(variables.msalCommonResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-common'
                 verbose: false
             - task: Npm@1
               displayName: 'Update msal-browser package-lock'
-              condition: and(in(variables.msalBrowserResult, 'Succeeded'), notIn(variables.msalBrowserResult, 'Skipped'))
+              condition: eq(variables.msalBrowserResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-browser'
@@ -268,7 +268,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-node package-lock'
-              condition: and(in(variables.msalNodeResult, 'Succeeded'), notIn(variables.msalNodeResult, 'Skipped'))
+              condition: eq(variables.msalNodeResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-node'
@@ -276,7 +276,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-react package-lock'
-              condition: and(in(variables.msalReactResult, 'Succeeded'), notIn(variables.msalReactResult, 'Skipped'))
+              condition: eq(variables.msalReactResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-react'
@@ -284,7 +284,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-angular package-lock'
-              condition: and(in(variables.msalAngularResult, 'Succeeded'), notIn(variables.msalAngularResult, 'Skipped'))
+              condition: eq(variables.msalAngularResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'lib/msal-angular'
@@ -292,7 +292,7 @@ extends:
               continueOnError: true
             - task: Npm@1
               displayName: 'Update msal-node-extensions package-lock'
-              condition: and(in(variables.msalNodeExtensionsResult, 'Succeeded'), notIn(variables.msalNodeExtensionsResult, 'Skipped'))
+              condition: eq(variables.msalNodeExtensionsResult, 'Succeeded')
               inputs:
                 command: 'install'
                 workingDir: 'extensions/msal-node-extensions'
@@ -311,7 +311,9 @@ extends:
               displayName: 'Get Release Date'
               condition: always()
               inputs:
-                script: "##vso[task.setvariable variable=date;isoutput=true]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
+                script: |
+                  "##vso[task.setvariable variable=date]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
+                  "echo $(variables.date)"
                 workingDir: './release-scripts'
             - task: CmdLine@2
               displayName: 'Get branch'
