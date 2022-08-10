@@ -311,22 +311,26 @@ extends:
               displayName: 'Get Release Date'
               condition: always()
               inputs:
-                script: "##vso[task.setvariable variable=datex]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
+                script: "node getReleaseDate.js"
                 workingDir: './release-scripts'
+              env:
+                TZ: "America/Los_Angeles"
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
-                script: '##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)'
+                script: 'node getReleaseDate.js -branch'
                 workingDir: './release-scripts'
+              env:
+                TZ: "America/Los_Angeles"
             - task: CmdLine@2
               displayName: 'Commit Changes'
               inputs:
                 script: |
-                  echo $(datex)
+                  echo $PR_DATE
                   git config --global user.email "release@msaljs.com"
                   git config --global user.name "OneBranch elease Pipeline"
-                  git checkout -b post-release-$(branch)
-                  git commit -m "$(date) Post Release"
+                  git checkout -b post-release-$PR_BRANCH
+                  git commit -m "$PR_DATE Post Release"
             - task: CmdLine@2
               displayName: 'Test Git Log'
               inputs:
