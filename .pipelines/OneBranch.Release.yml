@@ -311,14 +311,18 @@ extends:
               displayName: 'Get Release Date'
               condition: always()
               inputs:
-                script: "node getReleaseDate.js"
+                script: |
+                  node getReleaseDate.js
+                  echo $(PR_DATE)
                 workingDir: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
-                script: 'node getReleaseDate.js -branch'
+                script: |
+                  node getReleaseDate.js -branch
+                  echo $(PR_BRANCH)
                 workingDir: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
@@ -326,10 +330,10 @@ extends:
               displayName: 'Commit Changes'
               inputs:
                 script: |
-                  echo $PR_DATE
+                  echo "PR DATE: $(PR_DATE)""
                   git config --global user.email "release@msaljs.com"
-                  git config --global user.name "OneBranch elease Pipeline"
-                  git checkout -b post-release-$PR_BRANCH
+                  git config --global user.name "OneBranch release Pipeline"
+                  git checkout -b post-release-$(PR_BRANCH)
                   git commit -m "$PR_DATE Post Release"
             - task: CmdLine@2
               displayName: 'Test Git Log'
