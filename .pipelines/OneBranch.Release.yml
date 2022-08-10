@@ -184,7 +184,8 @@ extends:
         - publish
       displayName: 'Post-release'
       jobs:
-        - job: updateRepo
+        - job: updateGithubRepo
+          displayName: 'Update GitHub Repository'
           pool:
             type: linux
           variables:
