@@ -302,12 +302,14 @@ extends:
                 # Create Pull Request from post-release-month-year to dev 
             - task: Npm@1
               displayName: Install release scripts dependencies
+              condition: always()
               inputs:
                 command: 'custom'
                 customCommand: 'ci'
                 workingDir: 'release-scripts/'
             - task: CmdLine@2
               displayName: 'Set Timezone'
+              condition: always()
               inputs:
                 script: 'ps -p 1 -o comm='
             
