@@ -309,15 +309,9 @@ extends:
                 customCommand: 'ci'
                 workingDir: 'release-scripts/'
             - task: CmdLine@2
-              displayName: 'Set Timezone'
-              condition: always()
-              inputs:
-                script: 'ps -p 1 -o comm='
-            
-            - task: CmdLine@2
               displayName: 'Get Release Date'
               inputs:
-                script: '##vso[task.setvariable variable=date;isoutput=true]$(node getReleaseDate.js)'
+                script: "##vso[task.setvariable variable=date;isoutput=true]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
                 workingDir: './release-scripts'
             - task: CmdLine@2
               displayName: 'Get branch'
