@@ -306,20 +306,20 @@ extends:
               inputs:
                 command: 'custom'
                 customCommand: 'ci'
-                workingDir: 'release-scripts/'
+                workingDirectory: 'release-scripts/'
             - task: CmdLine@2
               displayName: 'Get Release Date'
               condition: always()
               inputs:
-                script: "node getReleaseDate.js"
-                workingDir: 'release-scripts/'
+                script: 'node getReleaseDate.js'
+                workingDirectory: 'release-scripts'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
                 script: 'node getReleaseDate.js -branch'
-                workingDir: 'release-scripts/'
+                workingDirectory: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
