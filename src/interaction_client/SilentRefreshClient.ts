@@ -67,6 +67,6 @@ export class SilentRefreshClient extends StandardInteractionClient {
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<RefreshTokenClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
-        return new RefreshTokenClient(clientConfig);
+        return new RefreshTokenClient(clientConfig, this.performanceClient);
     }
 }

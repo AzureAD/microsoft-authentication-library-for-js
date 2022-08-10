@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Aug 2022 22:22:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.28.1
+
+Mon, 01 Aug 2022 22:22:35 GMT
+
+### Patches
+
+- Rename native request property scopes to scope #5043 (thomas.norling@microsoft.com)
+- adding network performance measurement #4834 (ellymakuba@microsoft.com)
+- Send login_hint claim instead of sid if available #4990 (janutter@microsoft.com)
+- Bump @azure/msal-common to v7.3.0
 
 ## 2.28.0
 
