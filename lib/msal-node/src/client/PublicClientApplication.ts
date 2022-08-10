@@ -111,6 +111,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     res.end();
 
                     if (!req.headers.host) {
+                        server.close();
                         reject(NodeAuthError.createHostHeaderMissingError());
                     }
                     
@@ -126,6 +127,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         resolve(response);
                     }).catch((e) => {
                         reject(e);
+                    }).finally(() => {
+                        server.close();
                     });
                 } else if (authCodeResponse.error) {
                     res.end(errorTemplate || `Error occurred: ${authCodeResponse.error}`);
