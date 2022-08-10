@@ -138,7 +138,7 @@ export abstract class ClientApplication {
             this.logger.info("validating state");
             this.validateState(request.state, authCodePayLoad.state || "");
             // eslint-disable-next-line no-param-reassign
-            authCodePayLoad= {...authCodePayLoad, state:""};
+            authCodePayLoad= {...authCodePayLoad, state: ""};
         }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
