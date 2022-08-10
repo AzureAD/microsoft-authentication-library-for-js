@@ -310,6 +310,7 @@ extends:
                 workingDir: 'release-scripts/'
             - task: CmdLine@2
               displayName: 'Get Release Date'
+              condition: always()
               inputs:
                 script: "##vso[task.setvariable variable=date;isoutput=true]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
                 workingDir: './release-scripts'
