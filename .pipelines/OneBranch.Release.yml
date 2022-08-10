@@ -311,7 +311,7 @@ extends:
               displayName: 'Get Release Date'
               condition: always()
               inputs:
-                script: "##vso[task.setvariable variable=date]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
+                script: "##vso[task.setvariable variable=datex]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
                 workingDir: './release-scripts'
             - task: CmdLine@2
               displayName: 'Get branch'
@@ -322,7 +322,9 @@ extends:
               displayName: 'Commit Changes'
               inputs:
                 script: |
-                  echo $(date)
+                  echo $(datex)
+                  git config --global user.email "release@msaljs.com"
+                  git config --global user.name "OneBranch elease Pipeline"
                   git checkout -b post-release-$(branch)
                   git commit -m "$(date) Post Release"
             - task: CmdLine@2
