@@ -306,7 +306,7 @@ extends:
               inputs:
                 command: 'custom'
                 customCommand: 'ci'
-                workingDir: 'release-scripts/'
+                workingDirectory: 'release-scripts/'
             - task: CmdLine@2
               displayName: 'Get Release Date'
               condition: always()
@@ -314,7 +314,7 @@ extends:
                 script: |
                   node getReleaseDate.js
                   echo $(PR_DATE)
-                workingDir: 'release-scripts/'
+                workingDirectory: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
@@ -323,7 +323,7 @@ extends:
                 script: |
                   node getReleaseDate.js -branch
                   echo $(PR_BRANCH)
-                workingDir: 'release-scripts/'
+                workingDirectory: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
