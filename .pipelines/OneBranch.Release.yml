@@ -313,19 +313,18 @@ extends:
               inputs:
                 script: "##vso[task.setvariable variable=date]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
                 workingDir: './release-scripts'
-            - script: 'echo $variables.date'
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
                 script: '##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)'
                 workingDir: './release-scripts'
-            
             - task: CmdLine@2
               displayName: 'Commit Changes'
               inputs:
                 script: |
-                  git checkout -b post-release-${{variables.branch}}
-                  git commit -m "${{variables.date}} Post Release"
+                  echo $(variables.date)
+                  git checkout -b post-release-$(variables.branch)
+                  git commit -m "$(variables.date) Post Release"
             - task: CmdLine@2
               displayName: 'Test Git Log'
               inputs:
