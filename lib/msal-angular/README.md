@@ -44,7 +44,7 @@ At a minimum, `@azure/msal-angular` will follow the [support schedule of the mai
 
 | MSAL Angular version | MSAL support status     | Supported Angular versions |
 |----------------------|-------------------------|----------------------------|
-| MSAL Angular v2      | Active development      | 9, 10, 11, 12, 13          |
+| MSAL Angular v2      | Active development      | 9, 10, 11, 12, 13, 14      |
 | MSAL Angular v1      | Active development      | 6, 7, 8, 9                 |
 | MSAL Angular v0      | In maintenance          | 4, 5                       |
 
