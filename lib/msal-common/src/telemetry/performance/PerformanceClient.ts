@@ -271,12 +271,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
-                        if (current.accessTokenSize) {
-                            previous.accessTokenSize = current.accessTokenSize;
-                        }
-                        if (current.idTokenSize) {
-                            previous.idTokenSize = current.idTokenSize;
-                        }
+
+                        // Attach any additional submeasurement fields to the event to be emitted
+                        Object.keys(current).forEach(key => {
+                            if (!previous.hasOwnProperty(key)) {
+                                previous[key] = current[key];
+                            }
+                        });
+
                     }
 
                     return previous;

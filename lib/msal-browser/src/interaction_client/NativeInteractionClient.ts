@@ -21,6 +21,7 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
+import { validate } from "@babel/types";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -57,7 +58,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = await this.acquireTokensFromCache(this.accountId, nativeRequest);
             nativeATMeasurement.endMeasurement({
                 success: true,
-                isNativeBroker: true,
+                isNativeBroker: false, // Should be true only when the result is coming directly from the broker
                 fromCache: true
             });
             return result;
@@ -74,12 +75,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
         const validatedResponse: NativeResponse = this.validateNativeResponse(response);
+        const mats = this.getMATSFromResponse(validatedResponse);
 
         return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp)
             .then((result: AuthenticationResult) => {
                 nativeATMeasurement.endMeasurement({
                     success: true,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    extensionId: this.nativeMessageHandler.getExtensionId(),
+                    extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
+                    broker_version: mats ? mats.broker_version : undefined,
                 });
                 return result;
             })
@@ -88,7 +93,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     success: false,
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    extensionId: this.nativeMessageHandler.getExtensionId(),
+                    extensionVersion: this.nativeMessageHandler.getExtensionVersion()
                 });
                 throw error;
             });
@@ -376,6 +383,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
     private getMATSFromResponse(response: NativeResponse): MATS|null {
         if (response.properties.MATS) {
             try {
+                // start the perf measurement
                 return JSON.parse(response.properties.MATS);
             } catch (e) {
                 this.logger.error("NativeInteractionClient - Error parsing MATS telemetry, returning null instead");

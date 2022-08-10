@@ -96,6 +96,11 @@ export enum PerformanceEvents {
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
 
     /**
+     * MATS telemetry properties from native broker
+     */
+    GetMATSFromResponse = "getMATSFromResponse",
+
+    /**
      * Time spent on the network for refresh token acquisition
      */
     RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
@@ -291,5 +296,24 @@ export type PerformanceEvent = {
      *
      * @type {?boolean}
      */
-    isNativeBroker?: boolean
+    isNativeBroker?: boolean,
+
+    /**
+     * The following are fields that may be emitted in native broker scenarios
+     */
+    extensionId?: string,
+    extensionVersion?: string
+    broker_version?: string;
+    account_join_on_start?: string;
+    account_join_on_end?: string;
+    device_join?: string;
+    prompt_behavior?: string;
+    api_error_code?: number;
+    ui_visible?: boolean;
+    silent_code?: number;
+    silent_bi_sub_code?: number;
+    silent_message?: string;
+    silent_status?: number;
+    http_status?: number
+    http_event_count?: number;
 };
