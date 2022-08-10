@@ -312,14 +312,14 @@ extends:
               condition: always()
               inputs:
                 script: "node getReleaseDate.js"
-                workingDir: './release-scripts'
+                workingDir: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
                 script: 'node getReleaseDate.js -branch'
-                workingDir: './release-scripts'
+                workingDir: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
             - task: CmdLine@2
