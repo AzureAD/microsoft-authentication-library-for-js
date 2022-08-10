@@ -215,10 +215,15 @@ extends:
                   cp core-artifacts/README.md lib/msal-core/README.md
                   cp core-artifacts/docs/cdn-usage.md lib/msal-core/docs/cdn-usage.md
             - task: CmdLine@2
+              inputs:
+                script: 'ls core-artifacts/'
+            - task: CmdLine@2
               displayName: 'Remove core artifacts directory'
               inputs:
                 script: 'rm -rf core-artifacts'
-
+            - task: CmdLine@2
+              inputs:
+                script: 'ls core-artifacts/'
             - task: DownloadPipelineArtifact@2
               condition: and(in(variables.msalBrowserResult, 'Succeeded'), notIn(variables.msalBrowserResult, 'Skipped'))
               inputs:
@@ -304,7 +309,7 @@ extends:
             - task: CmdLine@2
               displayName: 'Set Timezone'
               inputs:
-                script: 'sudo timedatectl set-timezone America/Los_Angeles'
+                script: 'ps -p 1 -o comm='
             
             - task: CmdLine@2
               displayName: 'Get Release Date'
