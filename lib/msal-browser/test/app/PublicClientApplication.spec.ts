@@ -42,7 +42,6 @@ const cacheConfig = {
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
-    let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
@@ -55,38 +54,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             }
         });
-
-        // existing cloud discovery metadata
-        // const cloudDiscoveryMetadata = {
-        //     preferred_network: 'login.microsoftonline.com',
-        //     preferred_cache: 'login.windows.net',
-        //     aliases: [
-        //       'login.microsoftonline.com',
-        //       'login.windows.net',
-        //       'login.microsoft.com',
-        //       'sts.windows.net'
-        //     ],
-        // };
-
-        authorityMetadataStub = sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
-            const authorityMetadata = new AuthorityMetadataEntity();
-            authorityMetadata.updateCloudDiscoveryMetadata({
-                aliases: [host],
-                preferred_cache: host,
-                preferred_network: host
-            }, false);
-            return authorityMetadata;
-        });
-        // authorityMetadataStub.callsFake((host) => {
-        //     const authorityMetadata = new AuthorityMetadataEntity();
-        //     authorityMetadata.updateCloudDiscoveryMetadata({
-        //         aliases: ["login.microsoftonline.com", "login.windows.net"],
-        //         preferred_network: host,
-        //         preferred_cache: host
-        //     }, false);
-
-        //     return authorityMetadata;
-        // });
     });
 
     afterEach(() => {
@@ -2706,6 +2673,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.authorityType = "MSSTS";
         testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
 
+        // aliases: [
+        //       'login.microsoftonline.com',
+        //       'login.windows.net',
+        //       'login.microsoft.com',
+        //       'sts.windows.net'
+        //     ],
+
         const idTokenData1 = {
             "realm": testAccountInfo1.tenantId,
             "environment": testAccountInfo1.environment,
@@ -2747,6 +2721,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         };
         
         beforeEach(() => {
+            sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
+                const authorityMetadata = new AuthorityMetadataEntity();
+                authorityMetadata.updateCloudDiscoveryMetadata({
+                    aliases: [host],
+                    preferred_cache: host,
+                    preferred_network: host
+                }, false);
+                return authorityMetadata;
+            });
+
             const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
             window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
 
@@ -2763,6 +2747,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         afterEach(() => {
+            sinon.restore();
             window.sessionStorage.clear();
         });
 
@@ -2886,161 +2871,186 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             window.sessionStorage.clear();
         });
 
-        it("active account is initialized as null", () => {
-            // Public client should initialze with active account set to null.
-            expect(pca.getActiveAccount()).toBe(null);
-        });
-
-        it("setActiveAccount() sets the active account local id value correctly", () => {
-            expect(pca.getActiveAccount()).toBe(null);
-            pca.setActiveAccount(testAccountInfo1);
-            const activeAccount = pca.getActiveAccount();
-            expect(activeAccount?.idToken).not.toBeUndefined();
-            expect(activeAccount).toEqual(testAccountInfo1);
-        });
-
-        it("getActiveAccount looks up the current account values and returns them", () => {
-            pca.setActiveAccount(testAccountInfo1);
-            const activeAccount1 = pca.getActiveAccount();
-            expect(activeAccount1?.idToken).not.toBeUndefined();
-            expect(activeAccount1).toEqual(testAccountInfo1);
-            
-            const newName = "Ben Franklin";
-            testAccountInfo1.name = newName;
-            testAccount1.name = newName;
-            const cacheKey = AccountEntity.generateAccountCacheKey(testAccountInfo1);
-            window.sessionStorage.setItem(cacheKey, JSON.stringify(testAccount1));
-
-            const activeAccount2 = pca.getActiveAccount();
-            expect(activeAccount2?.idToken).not.toBeUndefined();
-            expect(activeAccount2).toEqual(testAccountInfo1);
-        });
-
-        describe("activeAccount tests with two accounts, both with same localId", () => {
-            // Account 1
-            const testAccountInfo1: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow1",
-                environment: "login.windows.net",
-                tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-                username: "example@microsoft.com",
-                name: "Abe Lincoln",
-                localAccountId: TEST_CONFIG.OID,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                idTokenClaims: ID_TOKEN_CLAIMS,
-            };
-
-            const testAccount1: AccountEntity = new AccountEntity();
-            testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-            testAccount1.localAccountId = TEST_CONFIG.OID;
-            testAccount1.environment = testAccountInfo1.environment;
-            testAccount1.realm = testAccountInfo1.tenantId;
-            testAccount1.username = testAccountInfo1.username;
-            testAccount1.name = testAccountInfo1.name;
-            testAccount1.authorityType = "MSSTS";
-            testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-            const idTokenData1 = {
-                "realm": testAccountInfo1.tenantId,
-                "environment": testAccountInfo1.environment,
-                "credentialType": "IdToken",
-                "secret": TEST_TOKENS.IDTOKEN_V2,
-                "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
-                "homeAccountId": testAccountInfo1.homeAccountId,
-            };
-
-            // Account 2
-            const testAccountInfo2: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
-                environment: "login.windows.net",
-                tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-                username: "example@microsoft.com",
-                name: "Abe Lincoln",
-                localAccountId: TEST_CONFIG.OID,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                idTokenClaims: ID_TOKEN_CLAIMS,
-            };
-
-            const testAccount2: AccountEntity = new AccountEntity();
-            testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-            testAccount2.localAccountId = TEST_CONFIG.OID;
-            testAccount2.environment = testAccountInfo2.environment;
-            testAccount2.realm = testAccountInfo2.tenantId;
-            testAccount2.username = testAccountInfo2.username;
-            testAccount2.name = testAccountInfo2.name;
-            testAccount2.authorityType = "MSSTS";
-            testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-            const idTokenData2 = {
-                "realm": testAccountInfo2.tenantId,
-                "environment": testAccountInfo2.environment,
-                "credentialType": "IdToken",
-                "secret": TEST_TOKENS.IDTOKEN_V2,
-                "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
-                "homeAccountId": testAccountInfo2.homeAccountId,
-            };
-
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
-            const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
-            const idTokenKey1 = idToken1.generateCredentialKey();
-
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
-            const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
-            const idTokenKey2 = idToken2.generateCredentialKey();
-
+        describe("activeAccount getter and setter tests", () => {
             beforeEach(() => {
-                window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
-                window.sessionStorage.setItem(idTokenKey1, JSON.stringify(idToken1));
-
-                window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
-                window.sessionStorage.setItem(idTokenKey2, JSON.stringify(idToken2));
+                sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
+                    const authorityMetadata = new AuthorityMetadataEntity();
+                    authorityMetadata.updateCloudDiscoveryMetadata({
+                        aliases: [host],
+                        preferred_cache: host,
+                        preferred_network: host
+                    }, false);
+                    return authorityMetadata;
+                });
             });
-
+    
             afterEach(() => {
-                window.sessionStorage.clear();
+                sinon.restore();
             });
 
-            it("setActiveAccount sets both home id and local id", () => {
+            it("active account is initialized as null", () => {
+                // Public client should initialze with active account set to null.
                 expect(pca.getActiveAccount()).toBe(null);
-
+            });
+    
+            it("setActiveAccount() sets the active account local id value correctly", () => {
+                expect(pca.getActiveAccount()).toBe(null);
                 pca.setActiveAccount(testAccountInfo1);
                 const activeAccount = pca.getActiveAccount();
-                expect(activeAccount).not.toBeNull();
-                expect(activeAccount?.idToken).not.toBeUndefined();
-                expect(activeAccount?.homeAccountId).toEqual(testAccountInfo1.homeAccountId);
-                expect(activeAccount?.localAccountId).toEqual(testAccountInfo1.localAccountId);
-            });
-
-            it("getActiveAccount gets correct account when two accounts with same local id are present in cache", () => {
-                expect(pca.getActiveAccount()).toBe(null);
-
-                pca.setActiveAccount(testAccountInfo1);
-                let activeAccount = pca.getActiveAccount();
                 expect(activeAccount?.idToken).not.toBeUndefined();
                 expect(activeAccount).toEqual(testAccountInfo1);
-                expect(activeAccount).not.toEqual(testAccountInfo2);
-
-                pca.setActiveAccount(testAccountInfo2);
-                activeAccount = pca.getActiveAccount();
-                expect(activeAccount?.idToken).not.toBeUndefined();
-                expect(pca.getActiveAccount()).not.toEqual(testAccountInfo1);
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo2);
+            });
+    
+            it("getActiveAccount looks up the current account values and returns them", () => {
+                pca.setActiveAccount(testAccountInfo1);
+                const activeAccount1 = pca.getActiveAccount();
+                expect(activeAccount1?.idToken).not.toBeUndefined();
+                expect(activeAccount1).toEqual(testAccountInfo1);
+                
+                const newName = "Ben Franklin";
+                const newTestAccountInfo1 = {
+                    ...testAccountInfo1,
+                    name: newName,
+                };
+                const newTestAccount1 = {
+                    ...testAccount1,
+                    name: newName,
+                };
+                
+                const cacheKey = AccountEntity.generateAccountCacheKey(newTestAccountInfo1);
+                window.sessionStorage.setItem(cacheKey, JSON.stringify(newTestAccount1));
+    
+                const activeAccount2 = pca.getActiveAccount();
+                expect(activeAccount2?.idToken).not.toBeUndefined();
+                expect(activeAccount2).toEqual(newTestAccountInfo1);
             });
 
-            it("getActiveAccount returns null when active account is removed from cache when another account with same local id is present", () => {
-                expect(pca.getActiveAccount()).toBe(null);
-
-                pca.setActiveAccount(testAccountInfo2);
-                const activeAccount = pca.getActiveAccount();
-                expect(activeAccount?.idToken).not.toBeUndefined();
-                expect(activeAccount).not.toEqual(testAccountInfo1);
-                expect(activeAccount).toEqual(testAccountInfo2);
-
-                window.sessionStorage.removeItem(cacheKey2);
-                window.sessionStorage.removeItem(idTokenKey2);
-                expect(pca.getActiveAccount()).toBe(null);
+            describe("activeAccount tests with two accounts, both with same localId", () => {
+                // Account 1
+                const testAccountInfo1: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow1",
+                    environment: "login.windows.net",
+                    tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                    username: "example@microsoft.com",
+                    name: "Abe Lincoln",
+                    localAccountId: TEST_CONFIG.OID,
+                    idToken: TEST_TOKENS.IDTOKEN_V2,
+                    idTokenClaims: ID_TOKEN_CLAIMS,
+                };
+    
+                const testAccount1: AccountEntity = new AccountEntity();
+                testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+                testAccount1.localAccountId = TEST_CONFIG.OID;
+                testAccount1.environment = testAccountInfo1.environment;
+                testAccount1.realm = testAccountInfo1.tenantId;
+                testAccount1.username = testAccountInfo1.username;
+                testAccount1.name = testAccountInfo1.name;
+                testAccount1.authorityType = "MSSTS";
+                testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+    
+                const idTokenData1 = {
+                    "realm": testAccountInfo1.tenantId,
+                    "environment": testAccountInfo1.environment,
+                    "credentialType": "IdToken",
+                    "secret": TEST_TOKENS.IDTOKEN_V2,
+                    "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
+                    "homeAccountId": testAccountInfo1.homeAccountId,
+                };
+    
+                // Account 2
+                const testAccountInfo2: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
+                    environment: "login.windows.net",
+                    tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                    username: "example@microsoft.com",
+                    name: "Abe Lincoln",
+                    localAccountId: TEST_CONFIG.OID,
+                    idToken: TEST_TOKENS.IDTOKEN_V2,
+                    idTokenClaims: ID_TOKEN_CLAIMS,
+                };
+    
+                const testAccount2: AccountEntity = new AccountEntity();
+                testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
+                testAccount2.localAccountId = TEST_CONFIG.OID;
+                testAccount2.environment = testAccountInfo2.environment;
+                testAccount2.realm = testAccountInfo2.tenantId;
+                testAccount2.username = testAccountInfo2.username;
+                testAccount2.name = testAccountInfo2.name;
+                testAccount2.authorityType = "MSSTS";
+                testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+    
+                const idTokenData2 = {
+                    "realm": testAccountInfo2.tenantId,
+                    "environment": testAccountInfo2.environment,
+                    "credentialType": "IdToken",
+                    "secret": TEST_TOKENS.IDTOKEN_V2,
+                    "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
+                    "homeAccountId": testAccountInfo2.homeAccountId,
+                };
+    
+                const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
+                const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
+                const idTokenKey1 = idToken1.generateCredentialKey();
+    
+                const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
+                const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
+                const idTokenKey2 = idToken2.generateCredentialKey();
+    
+                beforeEach(() => {
+                    window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
+                    window.sessionStorage.setItem(idTokenKey1, JSON.stringify(idToken1));
+    
+                    window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
+                    window.sessionStorage.setItem(idTokenKey2, JSON.stringify(idToken2));
+                });
+    
+                afterEach(() => {
+                    window.sessionStorage.clear();
+                });
+    
+                it("setActiveAccount sets both home id and local id", () => {
+                    expect(pca.getActiveAccount()).toBe(null);
+    
+                    pca.setActiveAccount(testAccountInfo1);
+                    const activeAccount = pca.getActiveAccount();
+                    expect(activeAccount).not.toBeNull();
+                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount?.homeAccountId).toEqual(testAccountInfo1.homeAccountId);
+                    expect(activeAccount?.localAccountId).toEqual(testAccountInfo1.localAccountId);
+                });
+    
+                it("getActiveAccount gets correct account when two accounts with same local id are present in cache", () => {
+                    expect(pca.getActiveAccount()).toBe(null);
+    
+                    pca.setActiveAccount(testAccountInfo1);
+                    let activeAccount = pca.getActiveAccount();
+                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount).toEqual(testAccountInfo1);
+                    expect(activeAccount).not.toEqual(testAccountInfo2);
+    
+                    pca.setActiveAccount(testAccountInfo2);
+                    activeAccount = pca.getActiveAccount();
+                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(pca.getActiveAccount()).not.toEqual(testAccountInfo1);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo2);
+                });
+    
+                it("getActiveAccount returns null when active account is removed from cache when another account with same local id is present", () => {
+                    expect(pca.getActiveAccount()).toBe(null);
+    
+                    pca.setActiveAccount(testAccountInfo2);
+                    const activeAccount = pca.getActiveAccount();
+                    expect(activeAccount?.idToken).not.toBeUndefined();
+                    expect(activeAccount).not.toEqual(testAccountInfo1);
+                    expect(activeAccount).toEqual(testAccountInfo2);
+    
+                    window.sessionStorage.removeItem(cacheKey2);
+                    window.sessionStorage.removeItem(idTokenKey2);
+                    expect(pca.getActiveAccount()).toBe(null);
+                });
             });
         });
-
+        
         describe("activeAccount logout", () => {
             const testAccountInfo2: AccountInfo = {
                 homeAccountId: "different-home-account-id",
@@ -3049,12 +3059,16 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "anotherExample@microsoft.com",
                 name: "Abe Lincoln",
                 localAccountId: TEST_CONFIG.OID,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                idTokenClaims: ID_TOKEN_CLAIMS,
             };
 
+            const testAccountInfo3: AccountInfo = {
+                ...testAccountInfo1,
+                idToken: undefined,
+                idTokenClaims: undefined,
+            };
+            
             beforeEach(() => {
-                pca.setActiveAccount(testAccountInfo1);
+                pca.setActiveAccount(testAccountInfo3);
                 sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                     expect(urlNavigate).toEqual(testLogoutUrl);
@@ -3067,23 +3081,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(PopupClient.prototype, "cleanPopup");
             });
 
+            afterEach(() => {
+                sinon.restore();
+            });
+
             it("Clears active account on logoutRedirect with no account", async () => {
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
                 await pca.logoutRedirect();
                 expect(pca.getActiveAccount()).toBe(null);
             });
     
             it("Clears active account on logoutRedirect when the given account info matches", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
                     await pca.logoutRedirect({
-                        account: testAccountInfo1
+                        account: testAccountInfo3
                     });
                     expect(pca.getActiveAccount()).toBe(null);
                 }
             );
 
             it("Does not clear active account on logoutRedirect if given account object does not match", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
                     await pca.logoutRedirect({
                         account: testAccountInfo2
                     });
@@ -3092,22 +3110,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
 
             it("Clears active account on logoutPopup with no account", async () => {
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
                 await pca.logoutPopup();
                 expect(pca.getActiveAccount()).toBe(null);
             });
     
             it("Clears active account on logoutPopup when the given account info matches", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
                     await pca.logoutPopup({
-                        account: testAccountInfo1
+                        account: testAccountInfo3
                     });
                     expect(pca.getActiveAccount()).toBe(null);
                 }
             );
 
             it("Does not clear active account on logoutPopup if given account object does not match", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
                     await pca.logoutPopup({
                         account: testAccountInfo2
                     });
