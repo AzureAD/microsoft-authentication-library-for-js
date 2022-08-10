@@ -202,7 +202,6 @@ extends:
           steps:
             # Core Artifacts
             - task: DownloadPipelineArtifact@2
-              name: download_core_artifacts
               condition: eq(variables.msalCoreResult, 'Succeeded')
               continueOnError: true
               inputs:
@@ -211,7 +210,6 @@ extends:
                 path: $(Build.SourcesDirectory)/core-artifacts
             - task: CmdLine@2
               name: copy_core_artifacts
-              dependsOn: download_core_artifacts
               displayName: 'Save Core CDN SRI Hashes'
               continueOnError: true
               inputs:
@@ -219,30 +217,28 @@ extends:
                   cp core-artifacts/README.md lib/msal-core/README.md
                   cp core-artifacts/docs/cdn-usage.md lib/msal-core/docs/cdn-usage.md
             - task: CmdLine@2
-              dependsOn: copy_core_artifacts
               displayName: 'Remove core artifacts directory'
+              condition: eq(variables.msalCoreResult, 'Success')
               inputs:
                 script: 'rm -rf core-artifacts'
 
             # Browser Artifacts
             - task: DownloadPipelineArtifact@2
-              name: download_browser_artifacts
               condition: eq(variables.msalBrowserResult, 'Succeeded')
               inputs:
                 source: 'current'
                 artifact: 'drop_publish_publish_msal_browser'
                 path: $(Build.SourcesDirectory)/browser-artifacts
             - task: CmdLine@2
-              name: copy_browser_artifacts
-              dependsOn: download_browser_artifacts
               displayName: 'Save Browser CDN SRI Hashes'
+              condition: eq(variables.msalBrowserResult, 'Succeeded')
               inputs:
                 script: |
                   cp browser-artifacts/README.md lib/msal-browser/README.md
                   cp browser-artifacts/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
             - task: CmdLine@2
               displayName: 'Remove browser artifacts directory'
-              dependsOn: copy_browser_artifacts
+              condition: eq(variables.msalBrowserResult, 'Succeeded')
               inputs:
                 script: 'rm -rf browser-artifacts'
 
