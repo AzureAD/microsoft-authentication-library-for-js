@@ -209,8 +209,8 @@ extends:
                 artifact: 'drop_publish_publish_msal_core'
                 path: $(Build.SourcesDirectory)/core-artifacts
             - task: CmdLine@2
-              name: copy_core_artifacts
               displayName: 'Save Core CDN SRI Hashes'
+              condition: eq(variables.msalCoreResult, 'Succeeded')
               continueOnError: true
               inputs:
                 script: |
