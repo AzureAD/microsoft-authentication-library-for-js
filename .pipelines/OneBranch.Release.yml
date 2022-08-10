@@ -311,10 +311,10 @@ extends:
               displayName: 'Get Release Date'
               condition: always()
               inputs:
+                workingDir: './release-scripts'
                 script: |
                   "##vso[task.setvariable variable=date]$(env TZ='America/Los_Angeles' node getReleaseDate.js)"
                   "echo $(variables.date)"
-                workingDir: './release-scripts'
             - task: CmdLine@2
               displayName: 'Get branch'
               inputs:
