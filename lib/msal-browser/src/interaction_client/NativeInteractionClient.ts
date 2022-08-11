@@ -85,6 +85,18 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     extensionId: this.nativeMessageHandler.getExtensionId(),
                     extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
                     broker_version: mats ? mats.broker_version : undefined,
+                    account_join_on_start: mats ? mats.account_join_on_start : undefined,
+                    account_join_on_end: mats ? mats.account_join_on_end : undefined,
+                    device_join: mats ? mats.device_join : undefined,
+                    prompt_behavior: mats ? mats.prompt_behavior : undefined,
+                    api_error_code: mats ? mats.api_error_code : undefined,
+                    ui_visible: mats ? mats.ui_visible : undefined,
+                    silent_code: mats ? mats.silent_code : undefined,
+                    silent_bi_sub_code: mats ? mats.silent_bi_sub_code : undefined,
+                    silent_message: mats ? mats.silent_message : undefined,
+                    silent_status: mats ? mats.silent_status : undefined,
+                    http_status: mats ? mats.http_status : undefined,
+                    http_event_count: mats ? mats.http_event_count : undefined
                 });
                 return result;
             })
@@ -95,7 +107,20 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     subErrorCode: error.subError,
                     isNativeBroker: true,
                     extensionId: this.nativeMessageHandler.getExtensionId(),
-                    extensionVersion: this.nativeMessageHandler.getExtensionVersion()
+                    extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
+                    broker_version: mats ? mats.broker_version : undefined,
+                    account_join_on_start: mats ? mats.account_join_on_start : undefined,
+                    account_join_on_end: mats ? mats.account_join_on_end : undefined,
+                    device_join: mats ? mats.device_join : undefined,
+                    prompt_behavior: mats ? mats.prompt_behavior : undefined,
+                    api_error_code: mats ? mats.api_error_code : undefined,
+                    ui_visible: mats ? mats.ui_visible : undefined,
+                    silent_code: mats ? mats.silent_code : undefined,
+                    silent_bi_sub_code: mats ? mats.silent_bi_sub_code : undefined,
+                    silent_message: mats ? mats.silent_message : undefined,
+                    silent_status: mats ? mats.silent_status : undefined,
+                    http_status: mats ? mats.http_status : undefined,
+                    http_event_count: mats ? mats.http_event_count : undefined
                 });
                 throw error;
             });
