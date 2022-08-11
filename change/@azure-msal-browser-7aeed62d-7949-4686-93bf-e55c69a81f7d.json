@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add additional telemetry fields for native broker scenarios #5098",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

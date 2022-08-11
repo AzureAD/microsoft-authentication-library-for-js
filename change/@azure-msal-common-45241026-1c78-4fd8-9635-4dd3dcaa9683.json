@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Emit all telemetry fields provided on submeasurements #5098",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
