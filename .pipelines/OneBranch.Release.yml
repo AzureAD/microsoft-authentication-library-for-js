@@ -353,7 +353,6 @@ extends:
                 KeyVaultName: 'ADALTestInfo'
                 SecretsFilter: 'MSALJSGITHUB'
                 RunAsPreJob: false
-            - task: ShellScript@2
             - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
               displayName: "Post Release Pull Request"
               workingDirectory: 'release-scripts/'
