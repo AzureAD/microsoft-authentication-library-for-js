@@ -59,7 +59,7 @@
             }
         }
     },
-    "ignoreIssuesOpenedBefore": "2022-08-05",
+    "ignoreIssuesOpenedBefore": "2022-08-13",
     "enforceTemplate": true,
     "templateEnforcementLabel": "more-information-needed",
     "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
