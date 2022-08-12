@@ -200,6 +200,11 @@ extends:
             msalAngularResult: $[ stageDependencies.publish.publish_msal_angular.result ]
             msalNodeExtensionsResult: $[ stageDependencies.publish.publish_msal_node_extensions.result ]
           steps:
+            - task: NodeTool@0
+              displayName: Install Node
+              inputs:
+                versionSpec: '16.x'
+                checkLatest: true
             # Core Artifacts
             - task: DownloadPipelineArtifact@2
               condition: eq(variables.msalCoreResult, 'Succeeded')
@@ -234,7 +239,9 @@ extends:
               condition: eq(variables.msalBrowserResult, 'Succeeded')
               inputs:
                 script: |
+                  echo 'BROWSER ARTIFACTS'
                   ls browser-artifacts
+                  echo 'BROWSER DIRECTORY'
                   ls lib/msal-browser/
                   cp browser-artifacts/README.md lib/msal-browser/README.md
                   cp browser-artifacts/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
@@ -347,11 +354,10 @@ extends:
                 SecretsFilter: 'MSALJSGITHUB'
                 RunAsPreJob: false
             - task: ShellScript@2
-              name: post_release_pull_request
+            - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
               displayName: "Post Release Pull Request"
-              inputs:
-                scriptPath: "release-scripts/pullRequest.sh"
-                args: '"$(releaseDate) Post Release" $(branch)'
+              workingDirectory: 'release-scripts/'
+              name: post_release_pull_request
               env:
                 GITHUBTOKEN: $(MSALJSGITHUB)
 
