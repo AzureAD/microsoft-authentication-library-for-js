@@ -1326,6 +1326,12 @@
             "parameters": {
               "user": "jmprieur"
             }
+          },
+          {
+            "name": "assignToUser",
+            "parameters": {
+              "user": "bgavrilMS"
+            }
           }
         ]
       }

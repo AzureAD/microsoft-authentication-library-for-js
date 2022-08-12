@@ -1,4 +1,4 @@
-* @jasonnutter @tnorling @sameerag @jo-arroyo @hectormmg @bmahall @peterzenz
+* @jasonnutter @tnorling @sameerag @jo-arroyo @hectormmg @bmahall @peterzenz @bgavrilMS
 
 # MSAL Angular
 /lib/msal-angular/ @jasonnutter @jo-arroyo @tnorling @peterzenz
@@ -12,30 +12,30 @@
 /samples/msal-browser-samples/ @jasonnutter @tnorling @peterzenz
 
 # MSAL Common
-/lib/msal-common/ @sameerag @tnorling @peterzenz
+/lib/msal-common/ @sameerag @tnorling @peterzenz @bgavrilMS
 
 # MSAL Core
 /lib/msal-core/ @jasonnutter @sameerag @tnorling @peterzenz
 /samples/msal-core-samples/ @jasonnutter @sameerag @tnorling @peterzenz
 
 # MSAL Node
-/lib/msal-node/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur
-/samples/msal-node-samples/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur
-/extensions/msal-node-extensions/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur
+/lib/msal-node/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur @bgavrilMS
+/samples/msal-node-samples/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur @bgavrilMS
+/extensions/msal-node-extensions/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur @bgavrilMS
 
 # ADAL Node
-/maintenance/adal-node @sameerag @peterzenz
+/maintenance/adal-node @sameerag @peterzenz @bgavrilMS
 
 # Passport Azure Ad
-/maintenance/passport-azure-ad @jennyf19 @jmprieur
+/maintenance/passport-azure-ad @jennyf19 @jmprieur @bgavrilMS
 
 # MSAL React
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo @peterzenz
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo @peterzenz
 
 # Node Token Validation
-/lib/node-token-validation @jennyf19 @jmprieur
-/samples/node-token-validation @jennyf19 @jmprieur
+/lib/node-token-validation @jennyf19 @jmprieur @bgavrilMS
+/samples/node-token-validation @jennyf19 @jmprieur @bgavrilMS
 
 ## ADAL.js
 /maintenance/adal-angular @jasonnutter @sameerag @peterzenz
