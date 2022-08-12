@@ -407,7 +407,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
     private getMATSFromResponse(response: NativeResponse): MATS|null {
         if (response.properties.MATS) {
             try {
-                // start the perf measurement
                 return JSON.parse(response.properties.MATS);
             } catch (e) {
                 this.logger.error("NativeInteractionClient - Error parsing MATS telemetry, returning null instead");
