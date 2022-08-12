@@ -10,7 +10,7 @@ const octokit = new Octokit({
   auth: process.env.GITHUBTOKEN
 })
 
-await octokit.request("POST /repos/AzureAD/microsoft-authentication-library-for-js/pulls", {
+octokit.request("POST /repos/AzureAD/microsoft-authentication-library-for-js/pulls", {
   owner: "AzureAD",
   repo: "microsoft-authentication-library-for-js",
   title: `${titleDate} Post Release`,
