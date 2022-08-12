@@ -337,4 +337,18 @@ extends:
               inputs:
                 script: |
                   git log
+            - task: AzureKeyVault@2
+              inputs:
+                azureSubscription: 'MSIDLABKeyVault'
+                KeyVaultName: 'ADALTestInfo'
+                SecretsFilter: 'MSALJSGITHUB'
+                RunAsPreJob: false
+            - task: ShellScript@2
+              name: post_release_pull_request
+              displayName: "Post Release Pull Request"
+              inputs:
+                scriptPath: "release-scripts/pullRequest.sh"
+                args: '"$(releaseDate) Post Release" $(branch)'
+              env:
+                GITHUBTOKEN: $(MSALJSGITHUB)
 
