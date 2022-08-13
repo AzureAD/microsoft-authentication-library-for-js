@@ -331,6 +331,12 @@ extends:
                 workingDirectory: 'release-scripts/'
               env:
                 TZ: "America/Los_Angeles"
+            - task: AzureKeyVault@2
+              inputs:
+                azureSubscription: 'MSIDLABKeyVault'
+                KeyVaultName: 'ADALTestInfo'
+                SecretsFilter: 'MSALJSGITHUB'
+                RunAsPreJob: false
             - task: CmdLine@2
               displayName: 'Commit Changes'
               inputs:
@@ -345,17 +351,6 @@ extends:
                   git push https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git post-release-$(branch)
               env:
                 GITHUBTOKEN: $(MSALJSGITHUB)
-            - task: CmdLine@2
-              displayName: 'Test Git Log'
-              inputs:
-                script: |
-                  git log
-            - task: AzureKeyVault@2
-              inputs:
-                azureSubscription: 'MSIDLABKeyVault'
-                KeyVaultName: 'ADALTestInfo'
-                SecretsFilter: 'MSALJSGITHUB'
-                RunAsPreJob: false
             - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
               displayName: "Post Release Pull Request"
               workingDirectory: 'release-scripts/'
