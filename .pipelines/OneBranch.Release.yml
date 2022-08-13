@@ -339,11 +339,12 @@ extends:
                   echo "PR Branch: $(branch)"
                   git config --global user.email "release@msaljs.com"
                   git config --global user.name "OneBranch release Pipeline"
-                  git remote add upstream https://github.com/AzureAD/microsoft-authentication-library-for-js.git
                   git checkout -b post-release-$(branch)
                   git add .
                   git commit -m "$(releaseDate) Post Release"
-                  git push upstream post-release-$(branch)
+                  git push https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git post-release-$(branch)
+              env:
+                GITHUBTOKEN: $(MSALJSGITHUB)
             - task: CmdLine@2
               displayName: 'Test Git Log'
               inputs:
