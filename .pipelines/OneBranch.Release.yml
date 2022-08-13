@@ -223,7 +223,7 @@ extends:
                   cp core-artifacts/docs/cdn-usage.md lib/msal-core/docs/cdn-usage.md
             - task: CmdLine@2
               displayName: 'Remove core artifacts directory'
-              condition: eq(variables.msalCoreResult, 'Success')
+              condition: eq(variables.msalCoreResult, 'Succeeded')
               inputs:
                 script: 'rm -rf core-artifacts'
 
@@ -348,6 +348,7 @@ extends:
                   git checkout -b post-release-$(branch)
                   git add .
                   git commit -m "$(releaseDate) Post Release"
+                  git pull https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git post-release-$(branch)
                   git push https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git post-release-$(branch)
               env:
                 GITHUBTOKEN: $(MSALJSGITHUB)
