@@ -77,7 +77,7 @@ describe('/profileRawContext', () => {
         await popupWindowClosed;
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {timeout: 5000});
+        await page.waitForSelector("xpath//div/ul/li[contains(., 'Name')]", {timeout: 5000});
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify tokens are in cache

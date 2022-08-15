@@ -64,7 +64,7 @@ describe('/profile', () => {
     it("MsalAuthenticationTemplate - invokes loginRedirect if user is not signed in", async () => {
         const testName = "MsalAuthenticationTemplateBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await page.waitForSelector("xpath//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Home page loaded");
 
         // Navigate to /profile and expect redirect to occur to AAD without interaction
@@ -75,12 +75,12 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Returned to app");
 
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
+        await page.waitForSelector("xpath//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(.,'Welcome,')]");
-        const profileButton = await page.waitForXPath("//header//button");
+        await page.waitForSelector("xpath//header[contains(.,'Welcome,')]");
+        const profileButton = await page.waitForSelector("xpath//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout with')]");
         expect(logoutButtons.length).toBe(2);
@@ -93,7 +93,7 @@ describe('/profile', () => {
     it("MsalAuthenticationTemplate - renders children without invoking login if user is already signed in", async () => {
         const testName = "MsalAuthenticationTemplateSignedInCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await page.waitForSelector("xpath//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
@@ -108,12 +108,12 @@ describe('/profile', () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForSelector("xpath//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(.,'Welcome,')]");
-        const profileButton = await page.waitForXPath("//header//button");
+        await page.waitForSelector("xpath//header[contains(.,'Welcome,')]");
+        const profileButton = await page.waitForSelector("xpath//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout with')]");
         expect(logoutButtons.length).toBe(2);
@@ -122,7 +122,7 @@ describe('/profile', () => {
         // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
         // Wait for Graph data to display
-        await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
+        await page.waitForSelector("xpath//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
