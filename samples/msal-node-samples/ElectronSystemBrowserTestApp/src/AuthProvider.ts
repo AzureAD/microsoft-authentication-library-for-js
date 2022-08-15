@@ -11,12 +11,11 @@ import {
     AuthenticationResult,
     SilentFlowRequest,
     CryptoProvider,
-} from "@azure/msal-node"
+} from "@azure/msal-node";
 import { cachePlugin } from "./CachePlugin";
-import  * as urlparse  from "url-parse";
+import * as urlparse from "url-parse";
 
 const Opener = require("opener");
-
 
 export default class AuthProvider {
     private clientApplication: PublicClientApplication;
@@ -97,7 +96,7 @@ export default class AuthProvider {
         if (account) {
             request.account = account;
             authResponse = await this.getTokenSilent(request);
-        } else {         
+        } else {
             await this.login();
         }
 
@@ -111,19 +110,15 @@ export default class AuthProvider {
             return await this.clientApplication.acquireTokenSilent(
                 tokenRequest
             );
-        } 
-        
-        catch (error) {
+        } catch (error) {
             console.log(
                 "Silent token acquisition failed, acquiring token using pop up"
             );
-            
+
             await this.login();
-            return null
-            
+            return null;
         }
     }
-
 
     async getAuthCode(tokenRequest: AuthorizationUrlRequest): Promise<string> {
         // Generate PKCE Challenge and Verifier before request
@@ -157,20 +152,18 @@ export default class AuthProvider {
         Opener(getAuthURL);
     }
 
-    async getTokenByCode(url: string): Promise<AccountInfo>{
+    async getTokenByCode(url: string): Promise<AccountInfo> {
         try {
             const parsedUtl = urlparse(url, true);
-             let code = parsedUtl.query.code;
-             const authResult = await this.clientApplication.acquireTokenByCode(
-                 {
-                     ...this.authCodeRequest,
-                     code: code,
-                     codeVerifier: this.verifier,
-                 }
-             );
+            let code = parsedUtl.query.code;
+            const authResult = await this.clientApplication.acquireTokenByCode({
+                ...this.authCodeRequest,
+                code: code,
+                codeVerifier: this.verifier,
+            });
             return this.handleResponse(authResult);
         } catch (error) {
-            throw error
+            throw error;
         }
     }
 
@@ -191,17 +184,12 @@ export default class AuthProvider {
         }
     }
 
-
     /**
      * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
      * @param response
      */
     private async handleResponse(response: AuthenticationResult) {
-        if (response !== null) {
-            this.account = response.account;
-        } else {
-            this.account = await this.getAccount();
-        }
+        this.account = response?.account || (await this.getAccount());
 
         return this.account;
     }

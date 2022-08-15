@@ -2,6 +2,43 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-common_v7.3.0",
+      "version": "7.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "ellymakuba@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e035fe595a8f4b809514b1ad26ec9f7e3eb41161",
+            "comment": "adding network performance measurement #4834"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "20161fd619c3795e3456ad8106e53c3495941268",
+            "comment": "Add error handling for server errors in device-code (#5033)"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae9ef92674606e8d357438946463827bc04dc2ff",
+            "comment": "Send login_hint claim instead of sid if available #4990"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": " Package-lock updates"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 18 Jul 2022 23:26:21 GMT",
       "tag": "@azure/msal-common_v7.2.0",
       "version": "7.2.0",

@@ -19,3 +19,8 @@ export enum IpcMessages {
     GET_MAIL = "GET_MAIL",
     SET_MAIL = "SET_MAIL"
 }
+
+export const APPLICATION_DIMENSIONS = {
+    WIDTH: 1000,
+    HEIGHT: 1000
+}

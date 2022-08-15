@@ -8,8 +8,8 @@ import * as path from "path";
 
 import AuthProvider from "./AuthProvider";
 import { FetchManager } from "./FetchManager";
-import { IpcMessages, GRAPH_CONFIG } from "./Constants";
-import * as authConfig from './config/customConfig.json';
+import { IpcMessages, GRAPH_CONFIG, APPLICATION_DIMENSIONS } from "./Constants";
+import * as authConfig from "./config/customConfig.json";
 
 export default class Main {
     static application: Electron.App;
@@ -63,11 +63,8 @@ export default class Main {
     }
 
     private static onWindowAllClosed(): void {
-        // Windows and Linux will quit the application when all windows are closed
-        if (process.platform !== "darwin") {
-            // macOS requires explicit quitting
-            Main.application.quit();
-        }
+        // Windows and Linux will quit the application when all windows are closed. In macOS requires explicit quitting
+        if (process.platform !== "darwin") Main.application.quit();
     }
 
     private static onClose(): void {
@@ -75,34 +72,32 @@ export default class Main {
     }
 
     /**
-     * On Windows and Linux, this is where we receive login responses
+     * This method should focus on our window when running a Second instance of the app
      */
-    private static onSecondInstance(
-        event: any,
-        commandLine: string[],
-        workingDirectory: string
-    ): void {   
+    private static handleWindowState(): void {
         // Someone tried to run a second instance, we should focus our window.
         if (Main.mainWindow) {
             if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
             Main.mainWindow.focus();
         }
-
-        const url = Main.getDeepLinkUrl(commandLine);
-
-        if (url) {
-            Main.getCodeFromDeepLinkUrl(url);
-        }
     }
 
-    private static onOpenUrl(event: any, schemeData: string) {
+    /**
+     * On Windows and Linux, this is where we receive login responses
+     */
+    private static onSecondInstance(event: any, commandLine: string[]): void {
         event.preventDefault();
+        Main.handleWindowState();
+        const url = Main.getDeepLinkUrl(commandLine);
+        if (url) Main.getCodeFromDeepLinkUrl(url);
+    }
 
-        if (Main.mainWindow) {
-            if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
-            Main.mainWindow.focus();
-        }
-
+    /**
+     * On macOS, this is where we receive login responses
+     */
+    private static onOpenUrl(event: any, schemeData: string): void {
+        event.preventDefault();
+        Main.handleWindowState();
         Main.getCodeFromDeepLinkUrl(schemeData);
     }
 
@@ -112,9 +107,8 @@ export default class Main {
     private static getDeepLinkUrl(argv: string[]): string {
         for (const arg of argv) {
             const value = arg;
-            if (value.indexOf(authConfig.customProtocol.name) !== -1) {
-                return value;
-            }
+            if (value.indexOf(authConfig.customProtocol.name) !== -1)  return value;
+            
         }
         return null;
     }
@@ -133,8 +127,8 @@ export default class Main {
     // Creates main application window
     private static createMainWindow(): void {
         this.mainWindow = new BrowserWindow({
-            width: 1000,
-            height: 1000,
+            width: APPLICATION_DIMENSIONS.WIDTH,
+            height: APPLICATION_DIMENSIONS.HEIGHT,
             /**
              * Preload script serves as an interface between the Main process
              * that has access to Node API and the Renderer process which controls

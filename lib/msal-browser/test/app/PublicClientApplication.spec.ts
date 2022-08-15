@@ -201,7 +201,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const nativeRequest: NativeTokenRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
                 accountId: testAccount.nativeAccountId!,
                 redirectUri: window.location.href,
                 correlationId: RANDOM_TEST_GUID,

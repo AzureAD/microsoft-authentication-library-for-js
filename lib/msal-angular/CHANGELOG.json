@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-angular_v2.4.1",
+      "version": "2.4.1",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.28.1",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 18 Jul 2022 23:26:21 GMT",
       "tag": "@azure/msal-angular_v2.4.0",
       "version": "2.4.0",

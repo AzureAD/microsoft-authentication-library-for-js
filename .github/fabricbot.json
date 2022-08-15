@@ -6,7 +6,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssueCommentResponder",
       "version": "1.0",
-      "id": "CQBypI3kv",
       "config": {
         "conditions": {
           "operator": "and",
@@ -85,7 +84,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssueCommentResponder",
       "version": "1.0",
-      "id": "mC75gHvIk",
       "config": {
         "conditions": {
           "operator": "and",
@@ -159,7 +157,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "OpJxYJEc3",
       "config": {
         "conditions": {
           "operator": "or",
@@ -253,7 +250,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "nODiqBd1T",
       "config": {
         "conditions": {
           "operator": "and",
@@ -338,15 +334,13 @@
         "packageRegex": "(@azure\\/)?(.+)\\s(v.*)",
         "packageNameGroup": 2,
         "packageVersionGroup": 3
-      },
-      "id": "4vek5a3rA"
+      }
     },
     {
       "taskType": "trigger",
       "capabilityId": "IssueResponder",
       "subCapability": "IssueCommentResponder",
       "version": "1.0",
-      "id": "9hXtgM3mL",
       "config": {
         "conditions": {
           "operator": "and",
@@ -421,7 +415,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "c9NE9mRpmqH2uKiC8BP-T",
       "config": {
         "frequency": [
           {
@@ -537,7 +530,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "UCLDq74lwGtd92JIUfv2D",
       "config": {
         "frequency": [
           {
@@ -633,7 +625,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "BDSD7hoCDFDeSkKbii8A5",
       "config": {
         "frequency": [
           {
@@ -731,7 +722,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "2x-EuGmpFi6h5M95IEGb7",
       "config": {
         "frequency": [
           {
@@ -802,7 +792,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "W3yxmbeKpyCbjvM71F7sp",
       "config": {
         "conditions": {
           "operator": "and",
@@ -840,7 +829,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "RSurH_0VeAGrCHYi8_sGx",
       "config": {
         "conditions": {
           "operator": "and",
@@ -878,7 +866,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "Yw4oejkcGU4b8AXoTajc8",
       "config": {
         "conditions": {
           "operator": "and",
@@ -916,7 +903,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "IssuesOnlyResponder",
       "version": "1.0",
-      "id": "RJFdy7myBqhrZ57KDZdTS",
       "config": {
         "conditions": {
           "operator": "and",
@@ -940,15 +926,8 @@
           "issues",
           "project_card"
         ],
-        "taskName": "On question issue open assign to On-call Engineer and add Needs: Attention label",
+        "taskName": "On question issue open add Needs: Attention label",
         "actions": [
-          {
-            "name": "assignToIcmUserGroup",
-            "parameters": {
-              "groupId": "60ddfa574ab5702958084812",
-              "assignmentTarget": "Primary"
-            }
-          },
           {
             "name": "addLabel",
             "parameters": {
@@ -961,52 +940,8 @@
     {
       "taskType": "trigger",
       "capabilityId": "IssueResponder",
-      "subCapability": "IssueCommentResponder",
-      "version": "1.0",
-      "id": "LSQ8Ia8RDF0mVqQovOWqO",
-      "config": {
-        "conditions": {
-          "operator": "and",
-          "operands": [
-            {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAssignedToSomeone",
-                  "parameters": {}
-                }
-              ]
-            },
-            {
-              "name": "hasLabel",
-              "parameters": {
-                "label": "question"
-              }
-            }
-          ]
-        },
-        "eventType": "issue",
-        "eventNames": [
-          "issue_comment"
-        ],
-        "taskName": "Assign question issues to On-Call Engineer if issue does not have an assignee",
-        "actions": [
-          {
-            "name": "assignToIcmUserGroup",
-            "parameters": {
-              "groupId": "60ddfa574ab5702958084812",
-              "assignmentTarget": "Primary"
-            }
-          }
-        ]
-      }
-    },
-    {
-      "taskType": "trigger",
-      "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "ltdFO5wgfwQwPvoTUTmx_",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1071,7 +1006,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "Fx9Oh5LWgyOqeXhhlaoii",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1143,7 +1077,6 @@
       "capabilityId": "ScheduledSearch",
       "subCapability": "ScheduledSearch",
       "version": "1.1",
-      "id": "kBg1npmdbXeBk9nFBacbd",
       "config": {
         "frequency": [
           {
@@ -1210,7 +1143,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestResponder",
       "version": "1.0",
-      "id": "FqwsbN9U20Ecn2Dh374pb",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1268,7 +1200,6 @@
       "capabilityId": "IssueResponder",
       "subCapability": "PullRequestReviewResponder",
       "version": "1.0",
-      "id": "p0lUILIZheatyXWH9VcVr",
       "config": {
         "conditions": {
           "operator": "and",
@@ -1295,6 +1226,115 @@
           }
         ]
       }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isAssignedToSomeone",
+                  "parameters": {}
+                }
+              ]
+            },
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "labeled"
+              }
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "public-client"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Assign public client issues to MSAL.js on-call",
+        "actions": [
+          {
+            "name": "assignToIcmUserGroup",
+            "parameters": {
+              "groupId": "60ddfa574ab5702958084812",
+              "assignmentTarget": "Primary"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssuesOnlyResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "operator": "not",
+              "operands": [
+                {
+                  "name": "isAssignedToSomeone",
+                  "parameters": {}
+                }
+              ]
+            },
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "labeled"
+              }
+            },
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "confidential-client"
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issues",
+          "project_card"
+        ],
+        "taskName": "Assign confidential client issues",
+        "actions": [
+          {
+            "name": "assignToUser",
+            "parameters": {
+              "user": "jennyf19"
+            }
+          },
+          {
+            "name": "assignToUser",
+            "parameters": {
+              "user": "jmprieur"
+            }
+          },
+          {
+            "name": "assignToUser",
+            "parameters": {
+              "user": "bgavrilMS"
+            }
+          }
+        ]
+      }
     }
   ],
   "userGroups": [
@@ -1302,11 +1342,7 @@
       "_id": "60ddfa574ab5702958084812",
       "groupType": "ICM",
       "name": "MSAL.js Team",
-      "onCallTeamId": 80279,
-      "modifiedBy": {
-        "upn": "thnorlin@microsoft.com",
-        "timestamp": "2021-07-01T17:24:39.347Z"
-      }
+      "onCallTeamId": 80279
     }
   ]
 }
