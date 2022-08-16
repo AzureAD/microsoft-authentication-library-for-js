@@ -51,10 +51,10 @@
         "Public or Confidential Client?": {
             "labels": {
                 "public-client": {
-                    "searchStrings": "Public"
+                    "searchStrings": ["Public"]
                 },
                 "confidential-client": {
-                    "searchStrings": "Confidential"
+                    "searchStrings": ["Confidential"]
                 }
             }
         }
