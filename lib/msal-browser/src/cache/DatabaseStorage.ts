@@ -234,20 +234,27 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         if (this.db && this.dbOpen) {
             this.closeConnection();
         }
-        
-        // @ts-ignore
-        const existingDatabases = await window.indexedDB.databases();
-        const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
 
-        // If database exists, delete it
-        if (database) {
+        let existingDatabases: IDBDatabaseInfo[];
+        try {
+            // @ts-ignore
+            existingDatabases = await window.indexedDB.databases();
+        } catch (e) {
+            existingDatabases = [];
+        }
+
+        const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
+        /**
+         * If existingDatabases is not empty, we only delete if the DB_NAME is present Ii.e. database is defined) for performance reasons.
+         * In FireFox there is no way to list databases so we do a blind delete if existingDatabases is empty.
+         */
+        if ((existingDatabases.length > 0 && database) || (existingDatabases.length === 0)) {
             return new Promise<boolean>((resolve: Function, reject: Function) => {
                 const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
                 deleteDbRequest.addEventListener("success", () => resolve(true));
                 deleteDbRequest.addEventListener("error", () => reject(false));
             });
         }
-
         // Database doesn't exist, return true
         return true;
     }
