@@ -23,8 +23,6 @@ export class NodeAuthError extends AuthError {
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "NodeAuthError";
-
-        Object.setPrototypeOf(this, NodeAuthError.prototype);
     }
 
     /**
