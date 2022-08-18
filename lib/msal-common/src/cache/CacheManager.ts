@@ -182,6 +182,7 @@ export abstract class CacheManager implements ICacheManager {
                 const accountInfo = accountEntity.getAccountInfo();
                 const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
                 if (idToken && !accountInfo.idTokenClaims) {
+                    accountInfo.idToken = idToken.secret;
                     accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
                 }
 
