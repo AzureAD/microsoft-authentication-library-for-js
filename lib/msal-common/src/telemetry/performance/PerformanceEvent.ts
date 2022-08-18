@@ -303,17 +303,17 @@ export type PerformanceEvent = {
      */
     extensionId?: string,
     extensionVersion?: string
-    broker_version?: string;
-    account_join_on_start?: string;
-    account_join_on_end?: string;
-    device_join?: string;
-    prompt_behavior?: string;
-    api_error_code?: number;
-    ui_visible?: boolean;
-    silent_code?: number;
-    silent_bi_sub_code?: number;
-    silent_message?: string;
-    silent_status?: number;
-    http_status?: number
-    http_event_count?: number;
+    mats_broker_version?: string;
+    mats_account_join_on_start?: string;
+    mats_account_join_on_end?: string;
+    mats_device_join?: string;
+    mats_prompt_behavior?: string;
+    mats_pi_error_code?: number;
+    mats_ui_visible?: boolean;
+    mats_silent_code?: number;
+    mats_silent_bi_sub_code?: number;
+    mats_silent_message?: string;
+    mats_silent_status?: number;
+    mats_http_status?: number
+    mats_http_event_count?: number;
 };
