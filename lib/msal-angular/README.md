@@ -139,7 +139,7 @@ This library controls how users sign-in and access services. We recommend you al
 
 ## Contribute
 
-We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.
+We enthusiastically welcome contributions and feedback. Please read the [contributing guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) before you begin.
 
 ## Security Reporting
 

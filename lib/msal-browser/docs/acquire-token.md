@@ -15,7 +15,7 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 ## Acquiring an Access Token
 
-MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
+MSAL uses a [cache](./caching.md) to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
 
 It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs if you have already logged in. This allows you to prevent unnecessary user interactions. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you. You should use a `loginXXXXX` or `acquireTokenXXXXX` (interactive) API before this to establish a session with the server.
 
