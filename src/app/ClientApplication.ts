@@ -622,7 +622,7 @@ export abstract class ClientApplication {
                  */
                 if (isServerError && isInvalidGrantError && !isInteractionRequiredError
                     && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly)
-                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheWithExistingRefreshTokenOnly)) {
+                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheOrExistingRefreshToken)) {
                     this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
