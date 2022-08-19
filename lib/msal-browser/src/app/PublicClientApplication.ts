@@ -93,11 +93,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        // check to make sure a valid silent token retrieval stratgey was passed in, if applicable
-        if (request.silentTokenRetrievalStrategy && !Object.values(SilentTokenRetrievalStrategy).includes(request.silentTokenRetrievalStrategy as SilentTokenRetrievalStrategy)) {
-            throw BrowserAuthError.createInvalidSilentTokenRetrievalStrategyError();
-        }
-
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         
