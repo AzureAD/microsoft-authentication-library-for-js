@@ -405,10 +405,13 @@ export enum JsonTypes {
 export enum SilentTokenRetrievalStrategy {
     // Look in cache, then use existing RT, then renew RT (existing default behavior)
     CacheAndNetwork = 0, // 0 is falsy, is equivalent to not passing in a SilentTokenRetrievalStrategy
-    // Only look in cache, and dont go to network
+    // Only look in cache, and dont go to network (either there's a cached AT, or throw error)
     CacheOnly = 1,
-    // Only look in cache, use existing RT
-    CacheWithExistingRefreshTokenOnly = 2,
+    /*
+     * look in cache, if not in cache then use existing RT to get AT
+     * if existing RT is not valid, do not attempt to silently renew it
+     */
+    CacheOrExistingRefreshToken = 2,
     // Only go to network, use existing RT but don't renew it
     NetworkWithExistingRefreshTokenOnly = 3,
     // Only go to network, use existing RT and renew it (existing forceRefresh flag equals true)

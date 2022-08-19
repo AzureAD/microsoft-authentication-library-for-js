@@ -14,7 +14,7 @@ import {
     TEST_TOKENS,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AuthenticationScheme, Constants, CredentialType } from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants, CredentialType, SilentTokenRetrievalStrategy } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass, mockCrypto } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
@@ -308,6 +308,36 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: true
             };
 
+            expect(client.acquireCachedToken(silentFlowRequest)).rejects.toMatchObject(ClientAuthError.createRefreshRequiredError());
+        });
+        
+        it("acquireCachedToken throws refresh requiredError if SilentTokenRetrievalStrategy is set to any of the network-only values", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
+            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config,stubPerformanceClient);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+            };
+
+            silentFlowRequest.silentTokenRetrievalStrategy = SilentTokenRetrievalStrategy.NetworkOnly;
+            expect(client.acquireCachedToken(silentFlowRequest)).rejects.toMatchObject(ClientAuthError.createRefreshRequiredError());
+
+            silentFlowRequest.silentTokenRetrievalStrategy = SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly;
+            expect(client.acquireCachedToken(silentFlowRequest)).rejects.toMatchObject(ClientAuthError.createRefreshRequiredError());
+
+            silentFlowRequest.silentTokenRetrievalStrategy = SilentTokenRetrievalStrategy.NetworkWithRefreshToken;
             expect(client.acquireCachedToken(silentFlowRequest)).rejects.toMatchObject(ClientAuthError.createRefreshRequiredError());
         });
 
