@@ -6,7 +6,7 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest, TEST_SSH_VALUES, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
-import { AuthorityMetadataEntity, ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest, InteractionRequiredAuthError, IdTokenEntity, CacheManager } from "@azure/msal-common";
+import { AuthorityMetadataEntity, ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest, InteractionRequiredAuthError, IdTokenEntity, CacheManager, SilentTokenRetrievalStrategy } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { EventType } from "../../src/event/EventType";
@@ -2043,6 +2043,104 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentCacheSpy.calledOnce).toBe(true);
             expect(silentRefreshSpy.called).toBe(false);
             expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Does't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to NetworkWithExistingRefreshTokenOnly", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly});
+            await expect(response).rejects.toMatchObject(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.notCalled).toBe(true);
+        });
+
+        it("Does't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to CacheWithExistingRefreshTokenOnly", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+            
+            const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy.CacheWithExistingRefreshTokenOnly});
+            await expect(response).rejects.toMatchObject(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.notCalled).toBe(true);
+        });
+
+        it("Don't make network call when SilentTokenRetrievalStrategy is set to CacheOnly", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Access Token not in cache");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy.CacheOnly});
+            await expect(response).rejects.toMatchObject(new ServerError("", "Can't make network call when SilentTokenRetrievalStrategy is set to CacheOnly"));
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.notCalled).toBe(true);
         });
 
         it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {

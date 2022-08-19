@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, SilentTokenRetrievalStrategy } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -95,12 +95,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
+
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
+
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
             authority: request.authority || Constants.EMPTY_STRING,
@@ -114,9 +117,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             sshKid: request.sshKid
         };
         const silentRequestKey = JSON.stringify(thumbprint);
+
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
+
             const response = this.acquireTokenSilentAsync({
                 ...request,
                 correlationId
@@ -188,6 +193,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
             result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
+                    throw new AuthError("", "Can't make network call when SilentTokenRetrievalStrategy is set to CacheOnly");
+                }
+
                 return this.acquireTokenByRefreshToken(silentRequest);
             });
         }

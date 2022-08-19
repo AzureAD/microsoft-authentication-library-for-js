@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, SilentTokenRetrievalStrategy } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -600,6 +600,7 @@ export abstract class ClientApplication {
 
         const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
 
+        // attempt to acquire AT with existing RT
         return silentRefreshClient.acquireToken(request)
             .then((result: AuthenticationResult) => {
                 atbrtMeasurement.endMeasurement({
@@ -614,7 +615,14 @@ export abstract class ClientApplication {
                 const isServerError = e instanceof ServerError;
                 const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
                 const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-                if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+
+                /*
+                 * if RT has expired and SilentTokenRetrievalStrategy is not set to use only existing RT,
+                 * then renew the RT with a hidden iFrame (which uses the network)
+                 */
+                if (isServerError && isInvalidGrantError && !isInteractionRequiredError
+                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly)
+                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheWithExistingRefreshTokenOnly)) {
                     this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
