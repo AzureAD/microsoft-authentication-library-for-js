@@ -185,14 +185,6 @@ export const BrowserAuthErrorMessage = {
         code: "native_prompt_not_supported",
         desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
     },
-    accessTokenNotInCache: {
-        code: "access_token_not_in_cache",
-        desc: "The Silent Token Retrieval Strategy was set to 'CacheOnly'. However, the token is not in the cache."
-    },
-    invalidSilentTokenRetrieval: {
-        code: "invalid_silent_token_retrieval_strategy",
-        desc: "The Silent Token Retrieval Strategy is invalid."
-    },
 };
 
 /**
@@ -538,19 +530,5 @@ export class BrowserAuthError extends AuthError {
      */
     static createNativePromptParameterNotSupportedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.nativePromptNotSupported.code, BrowserAuthErrorMessage.nativePromptNotSupported.desc);
-    }
-
-    /**
-     * Create an error thrown when the silent token retrieval strategy is set to "CacheOnly" and the token is not in the cache.
-     */
-    static createAccessTokenNotInCacheError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.accessTokenNotInCache.code, BrowserAuthErrorMessage.accessTokenNotInCache.desc);
-    }
-
-    /**
-     * Create an error thrown when the silent token retrieval strategy passed in by the user does not match any of the values in the enum.
-     */
-    static createInvalidSilentTokenRetrievalStrategyError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.invalidSilentTokenRetrieval.code, BrowserAuthErrorMessage.invalidSilentTokenRetrieval.desc);
     }
 }
