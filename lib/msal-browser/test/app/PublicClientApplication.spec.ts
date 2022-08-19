@@ -2078,7 +2078,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy.notCalled).toBe(true);
         });
 
-        it("Does't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to CacheWithExistingRefreshTokenOnly", async () => {
+        it("Does't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to CacheOrExistingRefreshToken", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2104,7 +2104,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
             const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
             
-            const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy.CacheWithExistingRefreshTokenOnly});
+            const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy.CacheOrExistingRefreshToken});
             await expect(response).rejects.toMatchObject(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
             expect(silentCacheSpy.calledOnce).toBe(true);
             expect(silentRefreshSpy.calledOnce).toBe(true);
