@@ -4,7 +4,7 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions, PerformanceEvents, SilentTokenRetrievalStrategy, InteractionRequiredAuthError, ServerError } from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions, PerformanceEvents, SilentTokenRetrievalStrategy, ServerError } from "@azure/msal-common";
 import { ApiId, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
