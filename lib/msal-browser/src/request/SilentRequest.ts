@@ -18,6 +18,7 @@ import { AccountInfo, CommonSilentFlowRequest, StringDict, SilentTokenRetrievalS
  * - extraQueryParameters       - String to string map of custom query parameters added to the /authorize call. Only used when renewing the refresh token.
  * - tokenQueryParameters       - String to string map of custom query parameters added to the /token call. Only used when renewing access tokens.
  * - redirectUri            - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
+ * - silentTokenRetrievalStrategy - Enum of different ways the silent token can be retrieved.
  */
 export type SilentRequest = Omit<CommonSilentFlowRequest, "authority"|"correlationId"|"forceRefresh"|"account"|"requestedClaimsHash"> & {
     redirectUri?: string;

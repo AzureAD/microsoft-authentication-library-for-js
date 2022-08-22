@@ -18,6 +18,7 @@ import { SilentTokenRetrievalStrategy } from "../utils/Constants";
  * - forceRefresh           - Forces silent requests to make network calls if true.
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
+ * - silentTokenRetrievalStrategy - Enum of different ways the silent token can be retrieved.
  */
 export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
