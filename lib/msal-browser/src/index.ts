@@ -87,7 +87,8 @@ export {
     OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction, 
     PerformanceEvent, 
-    PerformanceEvents
+    PerformanceEvents,
+    SilentTokenRetrievalStrategy
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

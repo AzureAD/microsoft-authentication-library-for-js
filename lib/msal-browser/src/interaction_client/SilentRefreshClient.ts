@@ -15,6 +15,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
      */
     async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly) {
+            this.logger.error("SilentTokenRetrievalStrategy is set to NetworkOnly, not attempting to acquire refresh token");
             throw new ServerError(BrowserConstants.INVALID_GRANT_ERROR);
         }
 
