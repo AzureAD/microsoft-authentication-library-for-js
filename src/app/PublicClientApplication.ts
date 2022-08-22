@@ -192,9 +192,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-            result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+            result = silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
                 if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
-                    throw new AuthError("", "Can't make network call when SilentTokenRetrievalStrategy is set to CacheOnly");
+                    this.logger.error("SilentTokenRetrievalStrategy is set to CacheOnly, not attempting to renew token silently.");
+                    throw error;
                 }
 
                 return this.acquireTokenByRefreshToken(silentRequest);

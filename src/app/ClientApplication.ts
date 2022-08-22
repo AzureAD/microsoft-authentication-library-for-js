@@ -646,6 +646,12 @@ export abstract class ClientApplication {
                             throw error;
                         });
                 }
+
+                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly ||
+                    request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOrExistingRefreshToken) {
+                    this.logger.info("SilentTokenRetrievalStrategy set to not renew expired refresh token.");
+                }
+
                 atbrtMeasurement.endMeasurement({
                     success: false
                 });

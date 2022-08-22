@@ -27,6 +27,14 @@ You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md).
 
 You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
 
+A Silent Token Retrieval Strategy can be optionally provided to the request. The Retrieval Strategies are:
+- CacheAndNetwork - acquireTokenSilent will first look in the cache before going to the network with the existing refresh token. The refresh token will be renewed if it is expired. This is existing default behavior.
+- CacheOnly - acquireTokenSilent will only look in the cache, and will not go to the network with the existing refresh token. The refresh token will not be renewed if it is expired.
+- CacheOrExistingRefreshToken - acquireTokenSilent will first look in the cache before going to the network with the existing refresh token. The refresh token will not be renewed if it is expired.
+- NetworkWithExistingRefreshTokenOnly - acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache. The refresh token will not be renewed if it is expired.
+- NetworkWithRefreshToken - acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache. The refresh token not be renewed if it is expired. This is existing "`forceRefresh: true`" behavior.
+- NetworkOnly - acquireTokenSilent will only go to network, and not look in the cache. It will not use the existing refresh token, regardless of whether it is expired or not.
+
 - Popup
 
 ```javascript
