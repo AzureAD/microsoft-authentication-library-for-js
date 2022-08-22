@@ -65,6 +65,14 @@ export const ClientAuthErrorMessage = {
         code: "nonce_not_found",
         desc: "nonce not found"
     },
+    authTimeNotFoundError: {
+        code: "auth_time_not_found",
+        desc: "Max Age was requested, and the ID token is missing the Auth Time variable (auth_time)"
+    },
+    maxAgeTranspiredError: {
+        code: "max_age_transpired",
+        desc: "Too much time has elapsed since the last end-user authentication"
+    },
     noTokensFoundError: {
         code: "no_tokens_found",
         desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken()."
@@ -309,6 +317,23 @@ export class ClientAuthError extends AuthError {
     static createNonceMismatchError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             ClientAuthErrorMessage.nonceMismatchError.desc);
+    }
+
+    /**
+     * Creates an error thrown when max_age was provided in the request, but auth_time is not in the token claims
+     * @param missingNonce
+     */
+    static createAuthTimeNotFoundError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.authTimeNotFoundError.code,
+            ClientAuthErrorMessage.authTimeNotFoundError.desc);
+    }
+
+    /**
+     * Creates an error thrown when oo much time has elapsed since the last end-user authentication
+     */
+    static createMaxAgeTranspiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.maxAgeTranspiredError.code,
+            ClientAuthErrorMessage.maxAgeTranspiredError.desc);
     }
 
     /**
