@@ -18,7 +18,7 @@
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4",
         "jest": "^27.1.1",
-        "puppeteer": "^15.1.1",
+        "puppeteer": "^16.2.0",
         "ts-jest": "^27.0.5",
         "wait-on": "^5.2.1",
         "playwright": "^1.21.1"
