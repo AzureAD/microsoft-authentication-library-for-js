@@ -36,4 +36,5 @@ export type BaseAuthRequest = {
     sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     requestedClaimsHash?: string;
+    maxAge?: number;
 };

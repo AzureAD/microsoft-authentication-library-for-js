@@ -126,6 +126,20 @@ export class ResponseHandler {
                     throw ClientAuthError.createNonceMismatchError();
                 }
             }
+
+            // token max_age check
+            if (request.maxAge) {
+                const authTime = idTokenObj.claims.auth_time;
+
+                if (!authTime) {
+                    throw ClientAuthError.createAuthTimeNotFoundError();
+                }
+
+                const twoMinuteSkew = 120000; // two minutes in milliseconds
+                if ((Date.now() - twoMinuteSkew) > (authTime + request.maxAge)) {
+                    throw ClientAuthError.createMaxAgeTranspiredError();
+                }
+            }
         }
 
         // generate homeAccountId
