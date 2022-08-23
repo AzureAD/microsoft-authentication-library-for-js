@@ -1,0 +1,12 @@
+{
+    "routes": [
+        {
+            "route": "/silent",
+            "rewrite": "/"
+        },
+        {
+            "route": "/interactive",
+            "rewrite": "/"
+        }
+    ]
+}

@@ -1,0 +1,8 @@
+{
+    "routes": [
+        {
+            "route": "/demo",
+            "rewrite": "/"
+        }
+    ]
+}

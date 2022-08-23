@@ -1,0 +1,25 @@
+body {
+    background-color: white;
+    margin: 0 auto;
+    min-width: 768px;
+    text-align: left;
+}
+
+.interactive-page {
+    background-image: url("https://aadcdn.msauth.net/shared/1.0/content/images/backgrounds/2_bc3d32a696895f78c19df6c717586a5d.svg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    height: 100vh;
+    width: 100vw;
+}
+
+.interactive-page .wrapper {
+    margin: 0 auto;
+    padding-top: 25%;
+    width: 450px;
+}
+
+label {
+    margin-top: .5rem;
+}

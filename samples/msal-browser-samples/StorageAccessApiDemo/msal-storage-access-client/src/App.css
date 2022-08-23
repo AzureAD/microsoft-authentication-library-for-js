@@ -1,0 +1,27 @@
+body {
+    margin: 0 auto;
+    width: 960px;
+
+}
+
+.App {
+    padding: 1rem;
+}
+
+#server-iframe {
+    width: 100%;
+    min-height: 1000px;
+    margin: 1rem 0;
+}
+
+dd {
+    margin-bottom: 1rem;
+}
+
+dt {
+    font-weight: bold;
+}
+
+label {
+    margin-top: .5rem;
+}
