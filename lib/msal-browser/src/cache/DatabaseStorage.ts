@@ -234,21 +234,23 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         if (this.db && this.dbOpen) {
             this.closeConnection();
         }
-        
-        // @ts-ignore
-        const existingDatabases = await window.indexedDB.databases();
-        const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
 
-        // If database exists, delete it
-        if (database) {
-            return new Promise<boolean>((resolve: Function, reject: Function) => {
-                const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
-                deleteDbRequest.addEventListener("success", () => resolve(true));
-                deleteDbRequest.addEventListener("error", () => reject(false));
-            });
+        try {
+            // @ts-ignore
+            const existingDatabases = await window.indexedDB.databases();
+            const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
+            return (database) ? await this.deleteCurrentDatabase() : true;
+        } catch (e) {
+            // For cases where window.indexedDB.databases is not available
+            return await this.deleteCurrentDatabase();
         }
+    }
 
-        // Database doesn't exist, return true
-        return true;
+    async deleteCurrentDatabase(): Promise<boolean> {
+        return new Promise<boolean>((resolve: Function, reject: Function) => {
+            const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
+            deleteDbRequest.addEventListener("success", () => resolve(true));
+            deleteDbRequest.addEventListener("error", () => reject(false));
+        });
     }
 }
