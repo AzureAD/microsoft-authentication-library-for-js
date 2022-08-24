@@ -10,20 +10,20 @@ import {
     CommonDeviceCodeRequest,
     AuthError,
     ResponseMode,
-    UrlString,
     OIDC_DEFAULT_SCOPES,
     CodeChallengeMethodValues,
-    Constants as CommonConstants
+    Constants as CommonConstants,
+    ServerError
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { createServer, IncomingMessage, ServerResponse } from "http";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { InteractiveRequest } from "../request/InteractiveRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
+import { LoopbackClient } from "../network/LoopbackClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -92,75 +92,43 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
         const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
 
-        return new Promise(async (resolve, reject) => {
-            const server = createServer((req: IncomingMessage, res: ServerResponse) => {
-                const url = req.url;
-                if (!url) {
-                    res.end(errorTemplate || "Error occurred loading redirectUrl");
-                    return;
-                } else if (url === CommonConstants.FORWARD_SLASH) {
-                    res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
-                    return;
-                }
-
-                const authCodeResponse = UrlString.getDeserializedQueryString(url);
-                const code = authCodeResponse.code;
-                if (code) {
-                    const redirectUri = `${Constants.HTTP_PROTOCOL}${req.headers.host}`;
-                    res.writeHead(302, { location: redirectUri }); // Prevent auth code from being saved in the browser history
-                    res.end();
-
-                    if (!req.headers.host) {
-                        server.close();
-                        reject(NodeAuthError.createHostHeaderMissingError());
-                    }
-                    
-                    const clientInfo = authCodeResponse.client_info;
-                    const tokenRequest: AuthorizationCodeRequest = {
-                        code: code,
-                        scopes: OIDC_DEFAULT_SCOPES,
-                        redirectUri: redirectUri,
-                        codeVerifier: verifier,
-                        clientInfo: clientInfo || CommonConstants.EMPTY_STRING
-                    };
-                    this.acquireTokenByCode(tokenRequest).then(response => {
-                        resolve(response);
-                    }).catch((e) => {
-                        reject(e);
-                    }).finally(() => {
-                        server.close();
-                    });
-                } else if (authCodeResponse.error) {
-                    res.end(errorTemplate || `Error occurred: ${authCodeResponse.error}`);
-                } else {
-                    res.end(errorTemplate || "Unknown error occurred");
-                }
-            });
-            server.listen(0); // Listen on any available port
-            const port: number = await new Promise((resolvePort) => {
-                const id = setInterval(() => {
-                    const address = server.address();
-                    if (typeof address === "string") {
-                        clearInterval(id);
-                        reject(NodeAuthError.createAddressWrongTypeError());
-                    } else if (address && address.port) {
-                        clearInterval(id);
-                        resolvePort(address.port);
-                    }
-                }, 100);
-            });
-
-            const validRequest: AuthorizationUrlRequest = {
-                ...remainingProperties,
-                scopes: request.scopes || [],
-                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}:${port}`,
-                responseMode: ResponseMode.QUERY,
-                codeChallenge: challenge, 
-                codeChallengeMethod: CodeChallengeMethodValues.S256
-            };
-
-            const authCodeUrl = await this.getAuthCodeUrl(validRequest);
-            await openBrowser(authCodeUrl);
+        const loopbackClient = new LoopbackClient();
+        const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
+        const port = await loopbackClient.getPort().catch((err) => {
+            // Close server and re-throw any error thrown when getting port
+            loopbackClient.closeServer();
+            throw err;
         });
+
+        const validRequest: AuthorizationUrlRequest = {
+            ...remainingProperties,
+            scopes: request.scopes || [],
+            redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}:${port}`,
+            responseMode: ResponseMode.QUERY,
+            codeChallenge: challenge, 
+            codeChallengeMethod: CodeChallengeMethodValues.S256
+        };
+
+        const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+        await openBrowser(authCodeUrl);
+        const authCodeResponse = await authCodeListener.finally(() => {
+            loopbackClient.closeServer();
+        });
+
+        if (authCodeResponse.error) {
+            throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
+        } else if (!authCodeResponse.code) {
+            throw NodeAuthError.createNoAuthCodeInResponseError();
+        }
+
+        const clientInfo = authCodeResponse.client_info;
+        const tokenRequest: AuthorizationCodeRequest = {
+            code: authCodeResponse.code,
+            scopes: OIDC_DEFAULT_SCOPES,
+            redirectUri: validRequest.redirectUri,
+            codeVerifier: verifier,
+            clientInfo: clientInfo || CommonConstants.EMPTY_STRING
+        };
+        return this.acquireTokenByCode(tokenRequest);
     }
 }

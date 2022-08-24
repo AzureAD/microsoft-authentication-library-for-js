@@ -86,3 +86,8 @@ export const JwtConstants = {
     NOT_BEFORE: "nbf",
     JWT_ID: "jti",
 };
+
+export const LOOPBACK_SERVER_CONSTANTS = {
+    GET_PORT_INTERVAL_MS: 100,
+    GET_PORT_TIMEOUT_MS: 5000
+};
