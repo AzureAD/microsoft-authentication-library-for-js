@@ -7,15 +7,16 @@
   "scripts": {
     "start": "node index.js",
     "test": "jest",
+    "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]",
     "install:local": "npm install ../../../lib/msal-node"
   },
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^1.0.1",
-    "axios": "^0.19.2",
+    "axios": "^0.25.0",
     "express": "^4.17.1",
-    "express-handlebars": "^4.0.4",
+    "express-handlebars": "^5.3.5",
     "express-promise-router": "^4.0.1"
   },
   "devDependencies": {

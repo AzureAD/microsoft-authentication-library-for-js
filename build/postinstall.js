@@ -11,20 +11,10 @@ if (parseInt(process.env.BEACHBALL)) {
         console.error('stderr: ' + stderr);
         if (error !== null) {
              console.log('exec error: ' + error);
+             process.exitCode = 1;
         }
     });
 } else {
-    // Update caniuse browser db to ensure we're using up to date browserlist
-    exec("lerna exec \"npx browserslist@latest --update-db\"", function (error, stdout, stderr) {
-        if (stdout) {
-            console.log('browserslist update stdout: ' + stdout);
-        }
-        console.error('browserslist update stderr: ' + stderr);
-        if (error !== null) {
-             console.log('browserslist update exec error: ' + error);
-        }
-    });
-
     console.log("Running full bootstrap");
     exec("lerna bootstrap", function (error, stdout, stderr) {
         if (stdout) {
@@ -33,6 +23,7 @@ if (parseInt(process.env.BEACHBALL)) {
         console.error('stderr: ' + stderr);
         if (error !== null) {
              console.log('exec error: ' + error);
+             process.exitCode = 1;
         }
     });
 }

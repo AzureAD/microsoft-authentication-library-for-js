@@ -37,7 +37,7 @@ const Validator = require("./validator").Validator;
 // global variable definitions
 const log = new Log("AzureAD: OIDC Passport Strategy");
 
-const memoryCache = cacheManager.caching({ store: "memory", max: 3600, ttl: 1800 /* seconds */ });
+const memoryCache = cacheManager.caching({ store: "memory", max: 3600, shouldCloneBeforeSet: false, ttl: 1800 /* seconds */ });
 const ttl = 1800; // 30 minutes cache
 // Note: callback is optional in set() and del().
 

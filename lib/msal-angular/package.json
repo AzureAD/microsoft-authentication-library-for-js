@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.0.5",
+  "version": "2.4.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -20,13 +20,14 @@
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm run build:all && npm publish dist",
+    "deploy": "npm run build:all && npm publish ./dist",
     "test": "ng test",
     "test:coverage": "npm test",
     "lint": "cd ../../ && npm run lint:angular",
     "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e",
     "prepack": "npm run build:all",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-angular",
     "prepublishOnly": "echo Use npm run deploy && exit 1"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
@@ -48,17 +49,17 @@
     "@angular/platform-browser": "~11.2.12",
     "@angular/platform-browser-dynamic": "~11.2.12",
     "@angular/router": "~11.2.12",
-    "@azure/msal-browser": "^2.19.0",
+    "@azure/msal-browser": "^2.28.1",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
-    "jasmine-core": "~3.6.0",
+    "jasmine-core": "~4.0.0",
     "jasmine-spec-reporter": "~5.0.0",
     "karma": "~6.3.2",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~4.0.0",
-    "karma-jasmine-html-reporter": "^1.5.0",
+    "karma-jasmine": "~5.0.0",
+    "karma-jasmine-html-reporter": "^2.0.0",
     "ng-packagr": "^11.2.4",
     "protractor": "~7.0.0",
     "rxjs": "~6.5.5",
@@ -68,8 +69,8 @@
     "zone.js": "~0.10.3"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.19.0",
-    "rxjs": "^6.0.0"
+    "@azure/msal-browser": "^2.28.1",
+    "rxjs": "^6.0.0 || ^7.0.0"
   },
   "dependencies": {}
 }

@@ -16,6 +16,7 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { ServerError } from "../error/ServerError";
 
 /**
  * OAuth2.0 Device code client
@@ -69,11 +70,11 @@ export class DeviceCodeClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
 
@@ -106,7 +107,8 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers
+                headers: headers,
+                proxyUrl: this.config.systemOptions.proxyUrl
             });
 
         return {
@@ -188,24 +190,30 @@ export class DeviceCodeClient extends BaseClient {
                 clientId: this.config.authOptions.clientId,
                 authority: request.authority,
                 scopes: request.scopes,
+                claims: request.claims,
                 authenticationScheme: request.authenticationScheme,
                 resourceRequestMethod: request.resourceRequestMethod,
                 resourceRequestUri: request.resourceRequestUri,
                 shrClaims: request.shrClaims,
-                sshJwk: request.sshJwk,
                 sshKid: request.sshKid
             };
+
             const response = await this.executePostToTokenEndpoint(
                 this.authority.tokenEndpoint,
                 requestBody,
                 headers,
                 thumbprint);
 
-            if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
+            if (response.body && response.body.error) {
                 // user authorization is pending. Sleep for polling interval and try again
-                this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
-  
-                await TimeUtils.delay(pollingIntervalMilli);
+                if(response.body.error === Constants.AUTHORIZATION_PENDING) {
+                    this.logger.info("Authorization pending. Continue polling.");
+                    await TimeUtils.delay(pollingIntervalMilli);
+                } else {
+                    // for any other error, throw
+                    this.logger.info("Unexpected error in polling from the server");
+                    throw ServerError.createPostRequestFailed(response.body.error);
+                }
             } else {
                 this.logger.verbose("Authorization completed successfully. Polling stopped.");
                 return response.body;
@@ -237,6 +245,7 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
         requestParameters.addLibraryInfo(this.config.libraryInfo);
+        requestParameters.addApplicationTelemetry(this.config.telemetry.application);
         requestParameters.addThrottling();
         
         if (this.serverTelemetryManager) {

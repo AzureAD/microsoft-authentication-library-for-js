@@ -84,7 +84,7 @@ Any major MSAL Node release:
 
 | MSAL Node version | MSAL support status     | Supported Node versions |
 |-------------------|-------------------------|-------------------------|
-| 1.x.x             | Active development      | 10, 12, 14, 16          |
+| 1.x.x             | Active development      | 10, 12, 14, 16, 18      |
 
 
 ##  Usage
@@ -112,12 +112,11 @@ AAD samples:
 - [username-password](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/username-password): Web application using OAuth 2.0 resource owner password credentials (ROPC) flow to acquire a token for a web API.
 - [ElectronTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/ElectronTestApp): Electron desktop application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
 - [ExpressTestApp](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/ExpressTestApp): Express.js MVC web application using OAuth 2.0 auth code with PKCE flow to acquire a token for a web API such as Microsoft Graph.
+- [Hybrid Spa Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/HybridSample): Sample demonstrating how to use `enableSpaAuthorizationCode` to perform SSO for applications that leverage server-side and client-side authentication using MSAL Browser and MSAL Node.
 
 B2C samples:
 
-- [b2c-auth-code](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-auth-code): Express app using OAuth2.0 authorization code flow.
-- [b2c-auth-code-pkce](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-auth-code-pkce): Express app using OAuth2.0 authorization code flow with PKCE.
-- [b2c-silent-flow](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-silent-flow): Express app using OAuth2.0 authorization code flow to acquire a token and store in the token cache, and silent flow to use tokens in the token cache.
+- [b2c-user-flows](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/b2c-user-flows): Express app using OAuth2.0 authorization code flow.
 - [ms-identity-b2c-javascript-nodejs-management](https://github.com/Azure-Samples/ms-identity-b2c-javascript-nodejs-management/tree/main/Chapter2): Command line app using OAuth 2.0 client credentials flow for performing user management operations on an Azure AD / Azure AD B2C tenant
 
 Others:

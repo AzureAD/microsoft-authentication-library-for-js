@@ -1,8 +1,122 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 01 Nov 2021 23:53:22 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.12.1
+
+Mon, 01 Aug 2022 22:22:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.3.0
+
+## 1.12.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- App Token Provider extensibiliy for AzureSDK (bogavril@microsoft.com)
+- add forceCache property to rt token request (#4844) (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v7.2.0
+
+## 1.11.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Bump @azure/msal-common to v7.1.0
+
+## 1.10.0
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Minor changes
+
+- Fix ClientAssertion configuration typing between common and node #4846 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v7.0.0
+
+### Patches
+
+- Add strict assertion checks for OBO clients (#4691) (bmahal@microsoft.com)
+
+## 1.9.1
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Patches
+
+- Use native http modules instead of axios for regular and proxied network requests #4744 (rginsburg@microsoft.com)
+- Updated the regex and added a test for detecting public cert for SNI #4790 (email not defined)
+- export AuthorizationCodePayload type from msal-common #4803 (git@hens.by)
+- Bump @azure/msal-common to v6.4.0
+
+## 1.9.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Add Node 18 to msal-node supported versions #4727 (13023439+WikiRik@users.noreply.github.com)
+- Bump @azure/msal-common to v6.3.0
+
+## 1.8.0
+
+Mon, 04 Apr 2022 21:12:42 GMT
+
+### Minor changes
+
+- Add Client Application telemetry parameters to MSAL #4616 (prithviraj.kanherkar@microsoft.com)
+- Bump @azure/msal-common to v6.2.0
+
+### Patches
+
+- Use IGuidGenerator interface for GuidGenerator class #4570 (janutter@microsoft.com)
+
+## 1.7.0
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Minor changes
+
+- Added nonce support to MSAL Node #4504 (marionminayo@microsoft.com)
+
+### Patches
+
+- Fix support for claims-based token caching #4533 (hemoral@microsoft.com)
+- Persist authority in in memory cache #4081 (sameera.gajjarapu@microsoft.com)
+
+## 1.6.0
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Minor changes
+
+- feat: add the redis distributed cache layer (kamausamuel11@gmail.com)
+- Add AzureCloudInstance to JS libraries (sameera.gajjarapu@microsoft.com)
+- Support proxy in msal-node(#4447) (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v6.1.0
+
+## 1.5.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Bump @azure/msal-common to v6.0.0
+
+## 1.4.0
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Minor changes
+
+- Add support for hybrid spa flow #3478 (janutter@microsoft.com)
+- Bump @azure/msal-common to v5.2.0
 
 ## 1.3.3
 

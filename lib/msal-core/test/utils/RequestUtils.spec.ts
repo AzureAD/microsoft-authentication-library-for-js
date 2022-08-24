@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { RequestUtils } from "../../src/utils/RequestUtils";
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { AuthenticationParameters } from "../../src/AuthenticationParameters";
@@ -23,10 +22,10 @@ describe("RequestUtils.ts class", () => {
             undefinedScopesError = e;
         };
 
-        expect(undefinedScopesError instanceof ClientConfigurationError).to.be.true;
-        expect(undefinedScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-        expect(undefinedScopesError.name).to.equal("ClientConfigurationError");
-        expect(undefinedScopesError.stack).to.include("RequestUtils.spec.ts");
+        expect(undefinedScopesError instanceof ClientConfigurationError).toBe(true);
+        expect(undefinedScopesError.errorCode).toBe(ClientConfigurationErrorMessage.scopesRequired.code);
+        expect(undefinedScopesError.name).toBe("ClientConfigurationError");
+        expect(undefinedScopesError.stack).toContain("RequestUtils.spec.ts");
     });
 
     it("Scopes cannot be empty", () => {
@@ -40,10 +39,10 @@ describe("RequestUtils.ts class", () => {
             emptyScopesError = e;
         };
 
-        expect(emptyScopesError instanceof ClientConfigurationError).to.be.true;
-        expect(emptyScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-        expect(emptyScopesError.name).to.equal("ClientConfigurationError");
-        expect(emptyScopesError.stack).to.include("RequestUtils.spec.ts");
+        expect(emptyScopesError instanceof ClientConfigurationError).toBe(true);
+        expect(emptyScopesError.errorCode).toBe(ClientConfigurationErrorMessage.emptyScopes.code);
+        expect(emptyScopesError.name).toBe("ClientConfigurationError");
+        expect(emptyScopesError.stack).toContain("RequestUtils.spec.ts");
     });
 
     it("validate prompt", () => {
@@ -56,10 +55,10 @@ describe("RequestUtils.ts class", () => {
             promptError = e;
         };
 
-        expect(promptError instanceof ClientConfigurationError).to.be.true;
-        expect(promptError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidPrompt.code);
-        expect(promptError.name).to.equal("ClientConfigurationError");
-        expect(promptError.stack).to.include("RequestUtils.spec.ts");
+        expect(promptError instanceof ClientConfigurationError).toBe(true);
+        expect(promptError.errorCode).toBe(ClientConfigurationErrorMessage.invalidPrompt.code);
+        expect(promptError.name).toBe("ClientConfigurationError");
+        expect(promptError.stack).toContain("RequestUtils.spec.ts");
     });
 
     it("remove duplicated extraQueryParameters", () => {
@@ -67,11 +66,11 @@ describe("RequestUtils.ts class", () => {
         const extraQueryParameters: StringDict = {param1: "param1", param2: "param2", login_hint: "random", sid: "someSID"};
         const eqParams = RequestUtils.validateEQParameters(extraQueryParameters, null);
 
-        expect(extraQueryParameters.login_hint).to.be.equal("random");
-        expect(extraQueryParameters.sid).to.be.equal("someSID");
-        expect(eqParams.param1).to.be.eq("param1");
-        expect(eqParams.login_hint).to.be.eq(undefined);
-        expect(eqParams.sid).to.be.eq(undefined);
+        expect(extraQueryParameters.login_hint).toBe("random");
+        expect(extraQueryParameters.sid).toBe("someSID");
+        expect(eqParams.param1).toBe("param1");
+        expect(eqParams.login_hint).toBeUndefined();
+        expect(eqParams.sid).toBeUndefined();
     });
 
     it("validate and generate state", () => {
@@ -80,11 +79,11 @@ describe("RequestUtils.ts class", () => {
         const state: string = RequestUtils.validateAndGenerateState(userState, Constants.interactionTypeSilent);
         const now = TimeUtils.now();
         const splitKey: Array<string> = state.split("|");
-        expect(splitKey[1]).to.contain("abcd");
+        expect(splitKey[1]).toContain("abcd");
 
         const parsedState = RequestUtils.parseLibraryState(state);
-        expect(CryptoUtils.isGuid(parsedState.id)).to.be.equal(true);
-        expect(parsedState.ts).to.be.equal(now);
+        expect(CryptoUtils.isGuid(parsedState.id)).toBe(true);
+        expect(parsedState.ts).toBe(now);
         nowStub.restore();
     });
 
@@ -92,7 +91,7 @@ describe("RequestUtils.ts class", () => {
         const state = "eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello";
 
         const parsedState = RequestUtils.parseLibraryState(state);
-        expect(CryptoUtils.isGuid(parsedState.id)).to.be.equal(true);
+        expect(CryptoUtils.isGuid(parsedState.id)).toBe(true);
     });
 
     it("parses old guid state format", () => {
@@ -103,16 +102,14 @@ describe("RequestUtils.ts class", () => {
 
         const parsedState = RequestUtils.parseLibraryState(`${stateGuid}|user-state`);
 
-        expect(parsedState.id).to.be.equal(stateGuid);
-        expect(parsedState.method).to.be.equal(Constants.interactionTypeRedirect);
-        expect(parsedState.ts).to.be.equal(now);
+        expect(parsedState.id).toBe(stateGuid);
+        expect(parsedState.method).toBe(Constants.interactionTypeRedirect);
+        expect(parsedState.ts).toBe(now);
 
         nowStub.restore();
     })
 
     it("generates expected state if there is a delay between generating and parsing", function(done) {
-        this.timeout(5000);
-
         sinon.restore();
         const now = TimeUtils.now();
         const nowStub = sinon.stub(TimeUtils, "now").returns(now);
@@ -124,34 +121,34 @@ describe("RequestUtils.ts class", () => {
         // Mimicks tab suspending
         setTimeout(() => {
             const parsedState = RequestUtils.parseLibraryState(state);
-            expect(parsedState.ts).to.be.equal(now);
+            expect(parsedState.ts).toBe(now);
             done();
         }, 4000);
-    });
+    }, 5000);
 
     it("validate and generate correlationId", () => {
         const userCorrelationId: string = null;
         const correlationId: string = RequestUtils.validateAndGenerateCorrelationId(userCorrelationId);
 
-        expect(CryptoUtils.isGuid(correlationId)).to.be.equal(true);
+        expect(CryptoUtils.isGuid(correlationId)).toBe(true);
     });
 
     it("validate empty request", () => {
         const userRequest: AuthenticationParameters = null;
         const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, true, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
 
-        expect(request.scopes).to.be.equal(undefined);
-        expect(request.prompt).to.be.equal(undefined);
-        expect(request.extraQueryParameters).to.be.equal(undefined);
-        expect(typeof request.state).to.be.equal("string");
-        expect(CryptoUtils.isGuid(request.correlationId)).to.be.equal(true);
+        expect(request.scopes).toBeUndefined();
+        expect(request.prompt).toBeUndefined();
+        expect(request.extraQueryParameters).toBeUndefined();
+        expect(typeof request.state).toBe("string");
+        expect(CryptoUtils.isGuid(request.correlationId)).toBe(true);
     });
 
     it("generate request signature", () => {
         const userRequest: AuthenticationParameters = { scopes: ["s1", "s2", "s3"], authority: TEST_CONFIG.validAuthority};
         const requestSignature = RequestUtils.createRequestSignature(userRequest);
 
-        expect(requestSignature).to.be.equal("s1 s2 s3|https://login.microsoftonline.com/common/");
+        expect(requestSignature).toBe("s1 s2 s3|https://login.microsoftonline.com/common/");
     });
 
 });

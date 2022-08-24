@@ -16,6 +16,10 @@ Note: ADFS is currently supported, a standalone sample is not yet published. Ple
 ### What is a Public App or a Confidential App? What do I need to know during app registration?
 Please find this in the [MSAL basics](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#msal-basics)
 
+## What does authority string default to if I provide "authority" and "azureCloudOptions"?
+
+If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value provided in the `authority`. MSAL.js will also give preference to the parameters provided in a `request` over `configuration`. Please note that if `azureCloudOptions` are set in the configuration, they will take precedence over `authority` in the `request`. If the developer needs to overwrite this, they need to set `azureCloudOptions` in the `request`.
+
 ### What will be the token lifetimes?
 * AAD: Please find the latest reference for AAD [here](https://docs.microsoft.com/azure/active-directory/develop/active-directory-configurable-token-lifetimes). Please note that few of the configurable features for specific token types are retired recently.
 * B2C: Please find the B2C token lifetime guidance [here](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview#configuration)
@@ -23,7 +27,7 @@ Please find this in the [MSAL basics](https://github.com/AzureAD/microsoft-authe
 ### How do I get the Refresh Token?
 MSAL Node does not return the refresh token to the user. Instead we manage the refresh token through the cache and update it as required to fetch the corresponding IdToken and AccessToken for the developer. A detailed discussion on this can be found [here](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview#configuration)
 
-### Is Electron supported? 
+### Is Electron supported?
 Yes. We also provide a sample for [MSAL Node with Electron](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/ElectronTestApp).
 
 ### Is interactive flow supported?
@@ -48,13 +52,16 @@ If you want to work around this, please note:
 ### How do I implement self-service sign-up with MSAL Node?
 MSAL Node supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationurlrequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
 
+### Why doesn't my app function correctly when it's running behind a proxy?
+MSAL Node uses Axios as the default network manager. However, Axios does not support proxies. To mitigate this, MSAL Node now supports proxies by utilizing [this workaround](https://github.com/axios/axios/issues/2072#issuecomment-567473812). Developers can provide a `proxyUrl` string in the system config options as detailed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md#system-config-options). Developers can also implement their own NetworkManager by instantiating an INetworkModule and building proxy support in it.
+
 ## B2C
 
 ### How do I handle the password-reset user-flow?
 
-The [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) is now part of the sign-up or sign-in policy. When the user selects the **Forgot your password?** link, they are immediately sent to the Forgot Password experience. You don't need a separate policy for password reset anymore. See this in action: [MSAL Node B2C web app sample (using PKCE)](../../../samples/msal-node-samples/b2c-auth-code-pkce/README.md)
+The [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) is now part of the sign-up or sign-in policy. When the user selects the **Forgot your password?** link, they are immediately sent to the Forgot Password experience.
 
-Our recommendation is to move to the new password reset experience since it simplifies the app state and reduces error handling on the user-end. If for some reason you have to use the legacy password-reset user-flow, you'll have to handle the `AADB2C90118` error code returned from B2C service when a user selects the **Forgot your password?** link. To see how this is done, refer to the sample: [MSAL Node B2C web app sample (using auth code)](../../../samples/msal-node-samples/b2c-auth-code/README.md)
+Our recommendation is to move to the new password reset experience since it simplifies the app state and reduces error handling on the user-end. If for some reason you have to use the legacy password-reset user-flow, you'll have to handle the `AADB2C90118` error code returned from B2C service when a user selects the **Forgot your password?** link. To see how this is done, refer to the sample: [MSAL Node B2C web app sample (using auth code)](../../../samples/msal-node-samples/b2c-user-flows/README.md)
 
 ## Compatibility
 

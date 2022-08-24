@@ -12,6 +12,10 @@ export const AuthErrorMessage = {
     unexpectedError: {
         code: "unexpected_error",
         desc: "Unexpected error in authentication."
+    },
+    postRequestFailed: {
+        code: "post_request_failed",
+        desc: "Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details."
     }
 };
 
@@ -46,8 +50,8 @@ export class AuthError extends Error {
         Object.setPrototypeOf(this, AuthError.prototype);
 
         this.errorCode = errorCode || Constants.EMPTY_STRING;
-        this.errorMessage = errorMessage || "";
-        this.subError = suberror || "";
+        this.errorMessage = errorMessage || Constants.EMPTY_STRING;
+        this.subError = suberror || Constants.EMPTY_STRING;
         this.name = "AuthError";
     }
 
@@ -61,5 +65,14 @@ export class AuthError extends Error {
      */
     static createUnexpectedError(errDesc: string): AuthError {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
+    }
+
+    /**
+     * Creates an error for post request failures.
+     * @param errDesc 
+     * @returns 
+     */
+    static createPostRequestFailed(errDesc: string): AuthError {
+        return new AuthError(AuthErrorMessage.postRequestFailed.code, `${AuthErrorMessage.postRequestFailed.desc}: ${errDesc}`);
     }
 }

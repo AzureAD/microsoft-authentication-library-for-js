@@ -11,7 +11,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *
  * Key:Value Schema:
  *
- * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<scheme>
+ * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<requestedClaims*>-<scheme*>
  *
  * Value Schema:
  * {
@@ -23,8 +23,9 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      familyId: Family ID identifier, usually only used for refresh tokens
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
- *      oboAssertion: access token passed in as part of OBO request
  *      tokenType: Matches the authentication scheme for which the token was issued (i.e. Bearer or pop)
+ *      requestedClaimsHash: Matches the SHA 256 hash of the claims object included in the token request
+ *      userAssertionHash: Matches the SHA 256 hash of the obo_assertion for the OBO flow
  * }
  */
 export class CredentialEntity {
@@ -36,9 +37,10 @@ export class CredentialEntity {
     familyId?: string;
     realm?: string;
     target?: string;
-    oboAssertion?: string;
+    userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    requestedClaimsHash?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -78,7 +80,8 @@ export class CredentialEntity {
             this.realm,
             this.target,
             this.familyId,
-            this.tokenType
+            this.tokenType,
+            this.requestedClaimsHash,
         );
     }
 
@@ -133,18 +136,16 @@ export class CredentialEntity {
         realm?: string,
         target?: string,
         familyId?: string,
-        tokenType?: AuthenticationScheme
+        tokenType?: AuthenticationScheme,
+        requestedClaimsHash?: string
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
-            this.generateTargetForCacheKey(target)
+            this.generateTargetForCacheKey(target),
+            this.generateClaimsHashForCacheKey(requestedClaimsHash),
+            this.generateSchemeForCacheKey(tokenType)
         ];
-
-        // PoP Tokens and SSH certs include scheme in cache key
-        if (tokenType && tokenType !== AuthenticationScheme.BEARER) {
-            credentialKey.push(tokenType.toLowerCase());
-        }
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
@@ -182,7 +183,7 @@ export class CredentialEntity {
         const credentialId: Array<string> = [
             credentialType,
             clientOrFamilyId,
-            realm || "",
+            realm || Constants.EMPTY_STRING,
         ];
 
         return credentialId.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -192,6 +193,24 @@ export class CredentialEntity {
      * Generate target key component as per schema: <target>
      */
     private static generateTargetForCacheKey(scopes?: string): string {
-        return (scopes || "").toLowerCase();
+        return (scopes || Constants.EMPTY_STRING).toLowerCase();
+    }
+
+    /**
+     * Generate requested claims key component as per schema: <requestedClaims>
+     */
+    private static generateClaimsHashForCacheKey(requestedClaimsHash?: string): string {
+        return(requestedClaimsHash || Constants.EMPTY_STRING).toLowerCase();
+    }
+
+    /**
+     * Generate scheme key componenet as per schema: <scheme>
+     */
+    private static generateSchemeForCacheKey(tokenType?: string): string {
+        /*
+         * PoP Tokens and SSH certs include scheme in cache key
+         * Cast to lowercase to handle "bearer" from ADFS
+         */
+        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
     }
 }

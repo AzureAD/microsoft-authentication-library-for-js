@@ -1,6 +1,6 @@
-# Accounts in MSAL Javascript
+# Accounts in MSAL JavaScript
 
-MSAL Javascript libraries (`msal-browser` and `msal-node`) support both single account and multiple accounts scenarios in javascript applications. An `account` object is standardized across the libraries and can be referenced [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#accountinfo).
+MSAL JavaScript libraries (`msal-browser` and `msal-node`) support both single account and multiple accounts scenarios in javascript applications. An `account` object is standardized across the libraries and can be referenced [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#accountinfo).
 ## Account Identifiers
 
 The following `AccountInfo` attributes are used identify user accounts in authentication contexts.

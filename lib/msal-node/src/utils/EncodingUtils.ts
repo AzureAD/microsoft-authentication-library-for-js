@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "@azure/msal-common";
+
 export class EncodingUtils {
     /**
      * 'utf8': Multibyte encoded Unicode characters. Many web pages and other document formats use UTF-8.
@@ -20,7 +22,7 @@ export class EncodingUtils {
      */
     static base64EncodeUrl(str: string, encoding?: BufferEncoding): string {
         return EncodingUtils.base64Encode(str, encoding)
-            .replace(/=/g, "")
+            .replace(/=/g, Constants.EMPTY_STRING)
             .replace(/\+/g, "-")
             .replace(/\//g, "_");
     }

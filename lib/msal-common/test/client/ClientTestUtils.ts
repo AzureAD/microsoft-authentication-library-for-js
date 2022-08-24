@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType } from "../../src";
+import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -117,6 +117,20 @@ export class MockStorageClass extends CacheManager {
     async clear(): Promise<void> {
         this.store = {};
     }
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.store[currentCacheKey];
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.store[updatedCacheKey] = cacheItem;
+                return updatedCacheKey;
+            }
+        }
+
+        return currentCacheKey;
+    }
 }
 
 export const mockCrypto = {
@@ -124,6 +138,9 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
+        if (AUTHENTICATION_RESULT.body.id_token.includes(input)) {
+            return JSON.stringify(ID_TOKEN_CLAIMS);
+        }
         switch (input) {
             case TEST_POP_VALUES.ENCODED_REQ_CNF:
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -158,6 +175,9 @@ export const mockCrypto = {
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
+    },
+    async hashString(): Promise<string> {
+        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
     }
 };
 
@@ -214,6 +234,12 @@ export class ClientTestUtils {
                 os: TEST_CONFIG.TEST_OS,
                 cpu: TEST_CONFIG.TEST_CPU,
             },
+            telemetry: {
+                application: {
+                    appName: TEST_CONFIG.applicationName,
+                    appVersion: TEST_CONFIG.applicationVersion
+                }
+            }
         };
     }
 }

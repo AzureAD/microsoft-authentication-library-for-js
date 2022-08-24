@@ -1,5 +1,8 @@
 import { AccessTokenEntity, IdTokenEntity, RefreshTokenEntity, AccountEntity, AppMetadataEntity } from "@azure/msal-common";
 
+export const MOCK_PARTITION_KEY = "mock_partition_key";
+export const MOCK_CACHE_STRING = "mock_cache_string";
+
 // mock tokens
 export const mockAccessTokenEntity_1 = {
     homeAccountId: "uid.utid",

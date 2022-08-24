@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -61,6 +61,9 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async clearKeystore(): Promise<boolean> {
             return Promise.resolve(true);
+        },
+        async hashString(): Promise<string> {
+            return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
         }
     };
 
@@ -74,8 +77,10 @@ describe("PopTokenGenerator Unit Tests", () => {
         };
         it("Generates the req_cnf correctly", async () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-            const req_cnf = await popTokenGenerator.generateCnf(testRequest);
-            expect(req_cnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            const reqCnfData = await popTokenGenerator.generateCnf(testRequest);
+            expect(reqCnfData.reqCnfString).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
+            expect(reqCnfData.reqCnfHash).toBe(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
         });
     });
 
@@ -132,7 +137,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 done();
                 return Promise.resolve("");
             };
-            popTokenGenerator.signPopToken(accessToken, popRequest);
+            popTokenGenerator.signPopToken(accessToken, TEST_POP_VALUES.KID, popRequest);
         });
 
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
@@ -156,7 +161,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 done();
                 return Promise.resolve("");
             };
-            popTokenGenerator.signPopToken(accessToken, testRequest);
+            popTokenGenerator.signPopToken(accessToken, TEST_POP_VALUES.KID, testRequest);
         });
     });
 });

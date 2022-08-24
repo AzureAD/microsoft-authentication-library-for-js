@@ -81,6 +81,10 @@ export const ClientConfigurationErrorMessage = {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
     },
+    invalidAzureCloudInstance: {
+        code: "invalid_azure_cloud_instance",
+        desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs: aks.ms/msaljs/azure_cloud_instance for valid values"
+    },
     missingSshJwk: {
         code: "missing_ssh_jwk",
         desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme."
@@ -259,7 +263,16 @@ export class ClientConfigurationError extends ClientAuthError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
     }
-    /*
+
+    /**
+     * Throws error when the AzureCloudInstance is set to an invalid value
+     */
+    static createInvalidAzureCloudInstanceError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAzureCloudInstance.code,
+            ClientConfigurationErrorMessage.invalidAzureCloudInstance.desc);
+    }
+
+    /**
      * Throws an error when the authentication scheme is set to SSH but the SSH public key is omitted from the request
      */
     static createMissingSshJwkError(): ClientConfigurationError {

@@ -12,7 +12,7 @@ describe("IdTokenEntity.ts Unit Tests", () => {
     it("Create an IdTokenEntity", () => {
         const idT = new IdTokenEntity();
         Object.assign(idT, mockIdTokenEntity);
-        expect(idT.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-");
+        expect(idT.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---");
     });
 
     it("Throws error if IdTokenEntity is not assigned a type", () => {

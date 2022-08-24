@@ -53,13 +53,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByDeviceCode called", request.correlationId);
-        const validRequest: CommonDeviceCodeRequest = Object.assign(request, this.initializeBaseRequest(request));
+        const validRequest: CommonDeviceCodeRequest = Object.assign(request,  await this.initializeBaseRequest(request));
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager
+                serverTelemetryManager,
+                undefined,
+                request.azureCloudOptions
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             this.logger.verbose("Device code client created", validRequest.correlationId);

@@ -1,5 +1,5 @@
 import { AuthToken } from "../../src/account/AuthToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../test_kit/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
 import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
@@ -69,6 +69,9 @@ describe("AuthToken.ts Class Unit Tests", () => {
             },
             async clearKeystore(): Promise<boolean> {
                 return Promise.resolve(true);
+            },
+            async hashString(): Promise<string> {
+                return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             }
         };
     });

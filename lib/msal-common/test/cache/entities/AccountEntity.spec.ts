@@ -5,7 +5,7 @@ import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
-import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS, TEST_CRYPTO_VALUES } from "../../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
 import { AccountInfo } from "../../../src/account/AccountInfo";
@@ -61,6 +61,9 @@ const cryptoInterface: ICrypto = {
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
+    },
+    async hashString(): Promise<string> {
+        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
     }
 };
 
@@ -401,16 +404,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 100,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
+                    ...acc1.idTokenClaims,
+                    iat: 100,
                 }
             };
             const acc3: AccountInfo = {
@@ -420,15 +415,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
+                    ...acc1.idTokenClaims,
+                    iat: undefined,
                 }
             };
 
@@ -450,16 +438,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 1536361411,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "56789",
+                    ...acc1.idTokenClaims,
+                    nonce: "56789",
                 }
             };
             const acc3: AccountInfo = {
@@ -469,15 +449,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 1536361411,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad"
+                    ...acc1.idTokenClaims,
+                    nonce: undefined,
                 }
             };
 

@@ -8,7 +8,11 @@ import {
     INetworkModule,
     LogLevel,
     ProtocolMode,
-    ICachePlugin, Constants
+    ICachePlugin,
+    Constants,
+    AzureCloudInstance,
+    AzureCloudOptions,
+    ApplicationTelemetry
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -20,13 +24,14 @@ import { NetworkUtils } from "../utils/NetworkUtils";
  * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * - skipAuthorityMetadataCache - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  * @public
  */
 export type NodeAuthOptions = {
     clientId: string;
     authority?: string;
     clientSecret?: string;
-    clientAssertion?:string;
+    clientAssertion?: string;
     clientCertificate?: {
         thumbprint: string,
         privateKey: string,
@@ -34,9 +39,11 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    authorityMetadata?: string,
+    authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    azureCloudOptions?: AzureCloudOptions;
+    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -59,6 +66,11 @@ export type CacheOptions = {
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
+    proxyUrl?: string;
+};
+
+export type NodeTelemetryOptions = {
+    application?: ApplicationTelemetry;
 };
 
 /**
@@ -73,23 +85,29 @@ export type Configuration = {
     auth: NodeAuthOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
+    telemetry?: NodeTelemetryOptions;
 };
 
 const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
-    clientId: "",
+    clientId: Constants.EMPTY_STRING,
     authority: Constants.DEFAULT_AUTHORITY,
-    clientSecret: "",
-    clientAssertion: "",
+    clientSecret: Constants.EMPTY_STRING,
+    clientAssertion: Constants.EMPTY_STRING,
     clientCertificate: {
-        thumbprint: "",
-        privateKey: "",
-        x5c: ""
+        thumbprint: Constants.EMPTY_STRING,
+        privateKey: Constants.EMPTY_STRING,
+        x5c: Constants.EMPTY_STRING
     },
     knownAuthorities: [],
-    cloudDiscoveryMetadata: "",
-    authorityMetadata: "",
+    cloudDiscoveryMetadata: Constants.EMPTY_STRING,
+    authorityMetadata: Constants.EMPTY_STRING,
     clientCapabilities: [],
-    protocolMode: ProtocolMode.AAD
+    protocolMode: ProtocolMode.AAD,
+    azureCloudOptions: {
+        azureCloudInstance: AzureCloudInstance.None,
+        tenant: Constants.EMPTY_STRING
+    },
+    skipAuthorityMetadataCache: false,
 };
 
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
@@ -105,12 +123,21 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),
+    proxyUrl: Constants.EMPTY_STRING,
+};
+
+const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
+    application: {
+        appName: Constants.EMPTY_STRING,
+        appVersion: Constants.EMPTY_STRING
+    }
 };
 
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
+    telemetry: Required<NodeTelemetryOptions>;
 };
 
 /**
@@ -119,6 +146,7 @@ export type NodeConfiguration = {
  * @param auth - Authentication options
  * @param cache - Cache options
  * @param system - System options
+ * @param telemetry - Telemetry options
  *
  * @returns Configuration
  * @public
@@ -127,10 +155,13 @@ export function buildAppConfiguration({
     auth,
     cache,
     system,
+    telemetry
 }: Configuration): NodeConfiguration {
+
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
     };
 }

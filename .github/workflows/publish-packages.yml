@@ -1,0 +1,330 @@
+name: Publish Packages
+
+# This action will trigger when Release PR from release-staging branch is merged into dev
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+  # Enable ability to manually trigger workflow
+  workflow_dispatch:
+    inputs:
+      msal-core:
+        description: "Publish msal-core?"
+        required: false
+      msal-common:
+        description: "Publish msal-common?"
+        required: false
+      msal-browser:
+        description: "Publish msal-browser?"
+        required: false
+      msal-node:
+        description: "Publish msal-node?"
+        required: false
+      msal-react:
+        description: "Publish msal-react?"
+        required: false
+      msal-angular:
+        description: "Publish msal-angular?"
+        required: false
+      msal-node-extensions:
+        description: "Publish msal-node-extensions?"
+        required: false
+
+concurrency:
+  group: publish-packages
+
+# Job will run on a ubuntu instance
+permissions:
+  contents: read
+
+jobs:
+  pre-publish:
+    permissions:
+      contents: read  # for dorny/paths-filter to fetch a list of changed files
+      pull-requests: read  # for dorny/paths-filter to read pull requests
+    if: (github.event.pull_request.merged == true && github.head_ref == 'release-staging')
+    runs-on: ubuntu-latest
+
+    outputs:
+      packages: ${{ steps.filter.outputs.changes }}
+
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            core:
+              - 'lib/msal-core/package.json'
+            common: 
+              - 'lib/msal-common/package.json'
+            browser: 
+              - 'lib/msal-browser/package.json'
+            node:
+              - 'lib/msal-node/package.json'
+            angular:
+              - 'lib/msal-angular/package.json'
+            react:
+              - 'lib/msal-react/package.json'
+            node-extensions:
+              - 'extensions/msal-node-extensions/package.json'
+          list-files: json
+
+  publish-msal-core:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-core
+    needs: pre-publish
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'core') || 
+      github.event.inputs.msal-core == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'lib'
+      lib-name: 'msal-core'
+      cdn: true
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS }}
+      CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS }}
+
+  publish-msal-common:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-common
+    needs: pre-publish
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'common') || 
+      github.event.inputs.msal-common == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'lib'
+      lib-name: 'msal-common'
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-msal-browser:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-browser
+    needs: [pre-publish, publish-msal-common]
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'browser') || 
+      github.event.inputs.msal-browser == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'lib'
+      lib-name: 'msal-browser'
+      cdn: true
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS }}
+      CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS }}
+
+  publish-msal-node:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-node
+    needs: [pre-publish, publish-msal-common]
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'node') || 
+      github.event.inputs.msal-node == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'lib'
+      lib-name: 'msal-node'
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-msal-angular:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-angular
+    needs: [pre-publish, publish-msal-browser]
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'angular') || 
+      github.event.inputs.msal-angular == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'lib'
+      lib-name: 'msal-angular'
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-msal-react:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-react
+    needs: [pre-publish, publish-msal-browser]
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'react') || 
+      github.event.inputs.msal-react == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'lib'
+      lib-name: 'msal-react'
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-msal-node-extensions:
+    permissions:
+      discussions: write
+      contents: write # to create releases and milestones
+    name: msal-node-extensions
+    needs: [pre-publish, publish-msal-common]
+    if: |
+      !failure() && 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'node-extensions') || 
+      github.event.inputs.msal-node-extensions == 'y') 
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
+    with:
+      path: 'extensions'
+      lib-name: 'msal-node-extensions'
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  post-publish:
+    permissions:
+      contents: write  # for peter-evans/create-pull-request to create branch
+      pull-requests: write  # for peter-evans/create-pull-request to create a PR
+    needs: [
+      publish-msal-core, 
+      publish-msal-common, 
+      publish-msal-browser, 
+      publish-msal-angular, 
+      publish-msal-react, 
+      publish-msal-node, 
+      publish-msal-node-extensions
+    ]
+    # Only run if no previous job failed and at least one succeeded
+    if: |
+      !failure() && (
+      needs.publish-msal-core.result == 'success' ||
+      needs.publish-msal-common.result == 'success' ||
+      needs.publish-msal-browser.result == 'success' ||
+      needs.publish-msal-angular.result == 'success' ||
+      needs.publish-msal-react.result == 'success' ||
+      needs.publish-msal-node.result == 'success' ||
+      needs.publish-msal-node-extensions.result == 'success')
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - uses: actions/checkout@v3
+        # Setup node with version 16.x
+      - uses: actions/setup-node@v3
+
+      # Save CDN hashes
+      - name: Download msal-core Artifacts
+        if: needs.publish-msal-core.result == 'success'
+        uses: actions/download-artifact@v3
+        with: 
+          name: msal-core-artifacts
+          path: artifacts/msal-core
+
+      - name: Save Core CDN SRI Hashes
+        if: needs.publish-msal-core.result == 'success'
+        run: |
+          cp artifacts/msal-core/README.md lib/msal-core/README.md
+          cp artifacts/msal-core/docs/cdn-usage.md lib/msal-core/docs/cdn-usage.md
+
+      - name: Download msal-browser Artifacts
+        if: needs.publish-msal-browser.result == 'success'
+        uses: actions/download-artifact@v3
+        with: 
+          name: msal-browser-artifacts
+          path: artifacts/msal-browser
+
+      - name: Save Browser CDN SRI Hashes
+        if: needs.publish-msal-browser.result == 'success'
+        run: |
+          cp artifacts/msal-browser/README.md lib/msal-browser/README.md
+          cp artifacts/msal-browser/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
+
+      - name: Remove artifacts working-directory
+        run: rm -rf artifacts
+
+      # Update package-lock files
+      - name: Update msal-core package-lock
+        if: needs.publish-msal-core.result == 'success'
+        working-directory: lib/msal-core
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-common package-lock
+        if: needs.publish-msal-common.result == 'success'
+        working-directory: lib/msal-common
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-browser package-lock
+        if: needs.publish-msal-browser.result == 'success'
+        working-directory: lib/msal-browser
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-node package-lock
+        if: needs.publish-msal-node.result == 'success'
+        working-directory: lib/msal-node
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-angular package-lock
+        if: needs.publish-msal-angular.result == 'success'
+        working-directory: lib/msal-angular
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-react package-lock
+        if: needs.publish-msal-react.result == 'success'
+        working-directory: lib/msal-react
+        continue-on-error: true
+        run: npm install
+
+      - name: Update msal-node-extensions package-lock
+        if: needs.publish-msal-node-extensions.result == 'success'
+        working-directory: extensions/msal-node-extensions
+        continue-on-error: true
+        run: npm install
+
+      # Create Pull Request from post-release-month-year to dev 
+      - name: Install Release Scripts Dependencies
+        working-directory: ./release-scripts
+        run: npm ci
+
+      - name: Set Timezone
+        run: sudo timedatectl set-timezone America/Los_Angeles
+
+      - name: Get release date
+        id: release-date
+        working-directory: ./release-scripts
+        run: echo "::set-output name=date::$(node getReleaseDate.js)"
+
+      - name: Get branch
+        id: get-branch
+        working-directory: ./release-scripts
+        run: echo "::set-output name=date::$(node getReleaseDate.js -branch)"
+
+      - name: Create Pull Request
+        id: pr
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: Post-release
+          branch: post-release-${{steps.get-branch.outputs.date}}
+          title: "${{ steps.release-date.outputs.date }} Post Release"
+          body: |
+            This PR contains package lock updates & cdn README updates for msal-browser and msal-core.
+          labels: release
+          draft: false

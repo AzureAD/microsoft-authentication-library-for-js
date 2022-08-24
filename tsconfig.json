@@ -1,6 +1,6 @@
 {
-    "include": ["lib"],
-    "exclude": ["**/node_modules", "**/test", "**/stories", "**/*.spec.ts"],
+    "include": ["lib", "extensions"],
+    "exclude": ["**/node_modules", "**/test", "**/stories", "**/*.spec.ts", "**/samples"],
     "compilerOptions": {
         "module": "esnext",
         "target": "es5",
@@ -22,4 +22,3 @@
         }
     }
   }
-  

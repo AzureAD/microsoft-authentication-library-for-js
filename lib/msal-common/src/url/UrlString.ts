@@ -20,7 +20,7 @@ export class UrlString {
     public get urlString(): string {
         return this._urlString;
     }
-    
+
     constructor(url: string) {
         this._urlString = url;
         if (StringUtils.isEmpty(this._urlString)) {
@@ -35,7 +35,7 @@ export class UrlString {
 
     /**
      * Ensure urls are lower case and end with a / character.
-     * @param url 
+     * @param url
      */
     static canonicalizeUri(url: string): string {
         if (url) {
@@ -82,8 +82,8 @@ export class UrlString {
 
     /**
      * Given a url and a query string return the url with provided query string appended
-     * @param url 
-     * @param queryString 
+     * @param url
+     * @param queryString
      */
     static appendQueryString(url: string, queryString: string): string {
         if (StringUtils.isEmpty(queryString)) {
@@ -95,7 +95,7 @@ export class UrlString {
 
     /**
      * Returns a url with the hash removed
-     * @param url 
+     * @param url
      */
     static removeHashFromUrl(url: string): string {
         return UrlString.canonicalizeUri(url.split("#")[0]);
@@ -173,13 +173,13 @@ export class UrlString {
 
             return baseComponents.Protocol + "//" + baseComponents.HostNameAndPort + relativeUrl;
         }
-        
+
         return relativeUrl;
     }
-    
+
     /**
      * Parses hash string from given string. Returns empty string if no hash symbol is found.
-     * @param hashString 
+     * @param hashString
      */
     static parseHash(hashString: string): string {
         const hashIndex1 = hashString.indexOf("#");
@@ -189,7 +189,7 @@ export class UrlString {
         } else if (hashIndex1 > -1) {
             return hashString.substring(hashIndex1 + 1);
         }
-        return "";
+        return Constants.EMPTY_STRING;
     }
 
     static constructAuthorityUriFromObject(urlObject: IUri): UrlString {

@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
 
@@ -11,10 +10,10 @@ describe("TelemetryEvent", () =>{
             correlationId,
             "FakeEvent"
         );
-        expect(telemetryEvent.telemetryCorrelationId).to.eql(correlationId);
-        expect(telemetryEvent.eventName).to.eql(eventName);
-        expect(telemetryEvent.displayName).to.eql(`Msal-FakeEvent-${correlationId}`);
-        expect(telemetryEvent.key).to.eq(`${correlationId}_${telemetryEvent.get()["eventId"]}-${eventName}`);
+        expect(telemetryEvent.telemetryCorrelationId).toEqual(correlationId);
+        expect(telemetryEvent.eventName).toEqual(eventName);
+        expect(telemetryEvent.displayName).toEqual(`Msal-FakeEvent-${correlationId}`);
+        expect(telemetryEvent.key).toBe(`${correlationId}_${telemetryEvent.get()["eventId"]}-${eventName}`);
     });
 
     it("stop event and get elapsed time", done => {
@@ -31,8 +30,8 @@ describe("TelemetryEvent", () =>{
             telemetryEvent.stop();
             const event = telemetryEvent.get();
             // greater than exact, //less than 100ms over
-            expect(event["msal.elapsed_time"]).to.be.greaterThan(time - 1);
-            expect(event["msal.elapsed_time"]).to.be.lessThan(time + 100);
+            expect(event["msal.elapsed_time"]).toBeGreaterThan(time - 1);
+            expect(event["msal.elapsed_time"]).toBeLessThan(time + 100);
             done();
         } , time);
     });

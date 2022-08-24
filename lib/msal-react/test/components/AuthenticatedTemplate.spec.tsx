@@ -169,10 +169,13 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Does not show child component if inProgress value is startup", async () => {        
+    test("Does not show child component if inProgress value is startup", async () => {
+        let handleRedirectPromiseResolve = () => {};        
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            // Prevent handleRedirectPromise from raising an event and updating inProgress
-            return Promise.resolve(null);
+            // Prevent handleRedirectPromise from raising an event or resolving and updating inProgress
+            return new Promise((resolve) => {
+                handleRedirectPromiseResolve = resolve;
+            });
         });
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -188,5 +191,8 @@ describe("AuthenticatedTemplate tests", () => {
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+
+        handleRedirectPromiseResolve();
+        await waitFor(() => expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument());
     });
 });

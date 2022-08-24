@@ -18,7 +18,7 @@ import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
  * - codeVerifier            - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636
  * @public
  */
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes"|"redirectUri"|"code"|"authenticationScheme"|"resourceRequestMethod"|"resourceRequestUri">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes"|"redirectUri"|"code"|"authenticationScheme"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;

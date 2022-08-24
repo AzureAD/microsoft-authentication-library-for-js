@@ -65,11 +65,11 @@ export class UsernamePasswordClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
         const requestBody = this.createTokenRequestBody(request);
@@ -94,11 +94,13 @@ export class UsernamePasswordClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
 
+        parameterBuilder.addResponseTypeForTokenAndIdToken();
+
         parameterBuilder.addGrantType(GrantType.RESOURCE_OWNER_PASSWORD_GRANT);
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager) {

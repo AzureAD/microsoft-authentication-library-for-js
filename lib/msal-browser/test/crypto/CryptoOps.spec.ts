@@ -1,4 +1,4 @@
-import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
@@ -41,9 +41,11 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
+    let browserCrypto: BrowserCrypto;
     let oldWindowCrypto = window.crypto;
 
     beforeEach(() => {
+        browserCrypto = new BrowserCrypto(new Logger({}))
         cryptoObj = new CryptoOps(new Logger({}));
         oldWindowCrypto = window.crypto;
         //@ts-ignore
@@ -63,7 +65,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("createNewGuid()", () => {
-        expect(GuidGenerator.isGuid(cryptoObj.createNewGuid())).toBe(true);
+        expect(new GuidGenerator(browserCrypto).isGuid(cryptoObj.createNewGuid())).toBe(true);
     });
 
     it("base64Encode()", () => {
@@ -104,6 +106,98 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(cryptoObj.base64Decode("Zm9vYg==")).toBe("foob");
         expect(cryptoObj.base64Decode("Zm9vYmE=")).toBe("fooba");
         expect(cryptoObj.base64Decode("Zm9vYmFy")).toBe("foobar");
+    });
+
+    describe("Localization tests", () => {
+        it("Arabic", () => {
+            const TEST_STRING = "أهـــلاً12";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Chinese (Simplified)", () => {
+            const TEST_STRING = "你好熊猫僜刓嘰塡奬媆孿偁乢猒峗芲偁A偄E偆I偊O偍U";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Chinese (Traditional)", () => {
+            const TEST_STRING = "僜刓嘰塡奬媆孿屋台灣一才中丙禳讒讖籲乂氕氶汋纘鼊龤牷A礜I略U礎E漼O尐赨塿槙箤踊ａｂｃＡＢＣ巢巢巢悴矱悴矱勗脣勗脣";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("German", () => {
+            const TEST_STRING = "freistoß für böse";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Hebrew", () => {
+            const TEST_STRING = "אם במקרה אף שכחת לנסוע צפון לזיג'ץ טד,ן.";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Hindi", () => {
+            const TEST_STRING = "नमस्ते धन्यवाद";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Japanese", () => {
+            const TEST_STRING = "とよた小百合俊晴㊞ソ十申暴構能雲契活神点農ボ施倍府本宮マ笠急党図迎 ミ円救降冬梅ゼ夕票充端納 ゾ従転脳評競怜蒟栁ょ溷瑯";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Korean", () => {
+            const TEST_STRING = "도망각하갂詰野";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Thai", () => {
+            const TEST_STRING = "กุ้งจิ้มน้ปลาตั้งจเรียน";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Turkish", () => {
+            const TEST_STRING = "İkşzler Açık iıüğİIÜĞ";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Portugese", () => {
+            const TEST_STRING = "áéíóúàêôãç";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Russian", () => {
+            const TEST_STRING = "яЧчЁёр";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Italian", () => {
+            const TEST_STRING = "àÀèÈéÉìÌòÒùÙ";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("French", () => {
+            const TEST_STRING = "æÆœŒçÇîÎ";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Greek", () => {
+            const TEST_STRING = "Σσς";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Czech", () => {
+            const TEST_STRING = "ŠšŤŽ";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Danish", () => {
+            const TEST_STRING = "åæø";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
+
+        it("Finnish", () => {
+            const TEST_STRING = "åäö";
+            expect(cryptoObj.base64Decode(cryptoObj.base64Encode(TEST_STRING))).toBe(TEST_STRING);
+        });
     });
 
     it("generatePkceCode() creates a valid Pkce code", async () => {
@@ -157,4 +251,15 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
+
+    it("hashString() returns a valid SHA-256 hash of an input string", async() => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+        });
+        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+        const result = await cryptoObj.hashString("testString");
+        expect(regExp.test(result)).toBe(true);
+    });
 });

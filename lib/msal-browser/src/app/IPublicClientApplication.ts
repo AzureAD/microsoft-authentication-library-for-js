@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AccountInfo, Logger } from "@azure/msal-common";
+import { AuthenticationResult, AccountInfo, Logger, PerformanceCallbackFunction } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
@@ -14,14 +14,19 @@ import { WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
 
 export interface IPublicClientApplication {
+    initialize(): Promise<void>;
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string;
+    removePerformanceCallback(callbackId: string): boolean;
     enableAccountStorageEvents(): void;
     disableAccountStorageEvents(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -46,6 +51,9 @@ export interface IPublicClientApplication {
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
+    initialize: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
+    },
     acquireTokenPopup: () => {
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
     },
@@ -54,7 +62,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },	
     acquireTokenSilent: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
-    },	
+    },
+    acquireTokenByCode: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
+    },
     getAllAccounts: () => {
         return [];	
     },	
@@ -93,6 +104,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     removeEventCallback: () => {
         return;
+    },
+    addPerformanceCallback: () => {
+        return "";
+    },
+    removePerformanceCallback: () => {
+        return false;
     },
     enableAccountStorageEvents: () => {
         return;

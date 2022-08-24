@@ -15,6 +15,7 @@ import { Logout } from "./pages/Logout";
 // Class-based equivalents of "Profile" component
 import { ProfileWithMsal } from "./pages/ProfileWithMsal";
 import { ProfileRawContext } from "./pages/ProfileRawContext";
+import { ProfileUseMsalAuthenticationHook } from "./pages/ProfileUseMsalAuthenticationHook";
 
 function App({ pca }) {
   // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
@@ -44,6 +45,9 @@ function Pages() {
       </Route>
       <Route path="/profileRawContext">
         <ProfileRawContext />
+      </Route>
+      <Route path="/profileUseMsalAuthenticationHook">
+        <ProfileUseMsalAuthenticationHook />
       </Route>
       <Route path="/logout">
           <Logout />

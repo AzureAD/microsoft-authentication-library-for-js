@@ -12,6 +12,8 @@
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
 export { ITokenCache } from "./cache/ITokenCache";
+export { ICacheClient } from "./cache/distributed/ICacheClient";
+export { IPartitionManager } from "./cache/distributed/IPartitionManager";
 
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication";
@@ -24,6 +26,7 @@ export { ClientAssertion } from "./client/ClientAssertion";
 export { TokenCache } from "./cache/TokenCache";
 export { NodeStorage } from "./cache/NodeStorage";
 export { CacheKVStore, JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedAppMetadataEntity, SerializedRefreshTokenEntity } from "./cache/serializer/SerializerTypes";
+export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";
 
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
@@ -43,6 +46,7 @@ export {
     // Request
     PromptValue,
     ResponseMode,
+    AuthorizationCodePayload,
     // Response
     AuthenticationResult,
     // Cache
@@ -69,7 +73,14 @@ export {
     ProtocolMode,
     ICachePlugin,
     TokenCacheContext,
-    ISerializableTokenCache
+    ISerializableTokenCache,
+    // AzureCloudInstance enum
+    AzureCloudInstance,
+    AzureCloudOptions,
+    // IAppTokenProvider
+    IAppTokenProvider,
+    AppTokenProviderParameters,
+    AppTokenProviderResult
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

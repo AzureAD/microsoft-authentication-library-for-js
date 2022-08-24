@@ -1,8 +1,100 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 01 Nov 2021 23:53:22 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Aug 2022 22:22:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.1
+
+Mon, 01 Aug 2022 22:22:35 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.28.1
+
+## 2.4.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Add MsalBroadcastService configurations, allow replay of past events #4998 (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v2.28.0
+
+## 2.3.3
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.27.0
+
+## 2.3.2
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.26.0
+
+## 2.3.1
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.25.0
+
+## 2.3.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Add support for acquiring tokens from the native broker #4531 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.24.0
+
+## 2.2.0
+
+Mon, 04 Apr 2022 21:12:41 GMT
+
+### Minor changes
+
+- Add support for rxjs v7 and Angular 13 #4605 (rginsburg@microsoft.com)
+- Bump @azure/msal-browser to v2.23.0
+
+## 2.1.2
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.22.1
+
+## 2.1.1
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.22.0
+
+## 2.1.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v2.21.0
+
+## 2.0.6
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Patches
+
+- Fix angular guard /code check to ensure proper length #4249 (janutter@microsoft.com)
+- Bump @azure/msal-browser to v2.20.0
 
 ## 2.0.5
 

@@ -1,8 +1,0 @@
-{
-    "extends": "@istanbuljs/nyc-config-babel",
-    "extension": [
-        ".ts"
-    ],
-    "all": true,
-    "reporter": "lcov"
-}

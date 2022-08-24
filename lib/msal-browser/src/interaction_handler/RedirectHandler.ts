@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError, Logger } from "@azure/msal-common";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger, ServerError } from "@azure/msal-common";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
@@ -22,8 +22,8 @@ export class RedirectHandler extends InteractionHandler {
 
     private browserCrypto: ICrypto;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, browserRequestLogger: Logger, browserCrypto: ICrypto) {
-        super(authCodeModule, storageImpl, authCodeRequest, browserRequestLogger);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, browserCrypto: ICrypto) {
+        super(authCodeModule, storageImpl, authCodeRequest, logger);
         this.browserCrypto = browserCrypto;
     }
 
@@ -32,20 +32,19 @@ export class RedirectHandler extends InteractionHandler {
      * @param urlNavigate
      */
     async initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
-        this.browserRequestLogger.verbose("RedirectHandler.initiateAuthRequest called");
+        this.logger.verbose("RedirectHandler.initiateAuthRequest called");
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (params.redirectStartPage) {
-                this.browserRequestLogger.verbose("RedirectHandler.initiateAuthRequest: redirectStartPage set, caching start page");
+                this.logger.verbose("RedirectHandler.initiateAuthRequest: redirectStartPage set, caching start page");
                 this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, params.redirectStartPage, true);
             }
 
             // Set interaction status in the library.
-            this.browserStorage.setInteractionInProgress(true);
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.authCodeRequest.correlationId, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
-            this.browserRequestLogger.infoPii(`RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`);
+            this.logger.infoPii(`RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`);
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.acquireTokenRedirect,
                 timeout: params.redirectTimeout,
@@ -54,27 +53,27 @@ export class RedirectHandler extends InteractionHandler {
             
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
-                this.browserRequestLogger.verbose("RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback");
+                this.logger.verbose("RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback");
                 const navigate = params.onRedirectNavigate(requestUrl);
 
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
-                    this.browserRequestLogger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating");
+                    this.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating");
                     await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                     return;
                 } else {
-                    this.browserRequestLogger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation");
+                    this.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation");
                     return;
                 }
             } else {
                 // Navigate window to request URL
-                this.browserRequestLogger.verbose("RedirectHandler.initiateAuthRequest: Navigating window to navigate url");
+                this.logger.verbose("RedirectHandler.initiateAuthRequest: Navigating window to navigate url");
                 await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                 return;
             }
         } else {
             // Throw error if request URL is empty.
-            this.browserRequestLogger.info("RedirectHandler.initiateAuthRequest: Navigate url is empty");
+            this.logger.info("RedirectHandler.initiateAuthRequest: Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
     }
@@ -83,8 +82,8 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
-        this.browserRequestLogger.verbose("RedirectHandler.handleCodeResponse called");
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+        this.logger.verbose("RedirectHandler.handleCodeResponse called");
 
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
@@ -100,7 +99,18 @@ export class RedirectHandler extends InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+
+        let authCodeResponse;
+        try {
+            authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        } catch (e) {
+            if (e instanceof ServerError && e.subError === BrowserAuthErrorMessage.userCancelledError.code) {
+                // Translate server error caused by user closing native prompt to corresponding first class MSAL error
+                throw BrowserAuthError.createUserCancelledError();
+            } else {
+                throw e;
+            }
+        }
 
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
@@ -125,11 +135,6 @@ export class RedirectHandler extends InteractionHandler {
             if (cachedCcsCred) {
                 this.authCodeRequest.ccsCredential = cachedCcsCred;
             }
-        }
-
-        // Remove throttle if it exists
-        if (clientId) {
-            ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest);
         }
 
         // Acquire token with retrieved code.

@@ -4,6 +4,8 @@
  */
 
 export enum EventType {
+    INITIALIZE_START = "msal:initializeStart",
+    INITIALIZE_END = "msal:initializeEnd",
     ACCOUNT_ADDED = "msal:accountAdded",
     ACCOUNT_REMOVED = "msal:accountRemoved",
     LOGIN_START = "msal:loginStart",
@@ -16,6 +18,9 @@ export enum EventType {
     SSO_SILENT_START = "msal:ssoSilentStart",
     SSO_SILENT_SUCCESS = "msal:ssoSilentSuccess",
     SSO_SILENT_FAILURE = "msal:ssoSilentFailure",
+    ACQUIRE_TOKEN_BY_CODE_START = "msal:acquireTokenByCodeStart",
+    ACQUIRE_TOKEN_BY_CODE_SUCCESS = "msal:acquireTokenByCodeSuccess",
+    ACQUIRE_TOKEN_BY_CODE_FAILURE = "msal:acquireTokenByCodeFailure",
     HANDLE_REDIRECT_START = "msal:handleRedirectStart",
     HANDLE_REDIRECT_END = "msal:handleRedirectEnd",
     POPUP_OPENED = "msal:popupOpened",

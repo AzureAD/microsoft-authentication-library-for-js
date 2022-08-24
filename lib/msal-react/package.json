@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.1.1",
+  "version": "1.4.5",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -37,24 +37,25 @@
     "build:all": "npm run build:common && npm run build:browser && npm run build",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-react",
     "prepack": "npm run build:all"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.19.0",
-    "react": "^16.8.0 || ^17"
+    "@azure/msal-browser": "^2.28.1",
+    "react": "^16.8.0 || ^17 || ^18"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.19.0",
+    "@azure/msal-browser": "^2.28.1",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.2.3",
-    "@types/jest": "^26.0.15",
-    "@types/react": "^16.9.43",
-    "@types/react-dom": "^16.9.8",
+    "@types/jest": "^27.0.0",
+    "@types/react": "^17.0.2",
+    "@types/react-dom": "^17.0.2",
     "jest": "^27.0.4",
     "jest-environment-jsdom-fifteen": "^1.0.2",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
     "ts-jest": "^27.0.2",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",

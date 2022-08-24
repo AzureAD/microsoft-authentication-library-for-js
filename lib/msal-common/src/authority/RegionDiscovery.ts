@@ -8,12 +8,17 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
 import { Constants, RegionDiscoverySources, ResponseCodes } from "../utils/Constants";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
+import { ImdsOptions } from "./ImdsOptions";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
     // Options for the IMDS endpoint request
-    protected static IMDS_OPTIONS = {headers: {"Metadata": "true"}};
+    protected static IMDS_OPTIONS: ImdsOptions = {
+        headers: {
+            Metadata: "true",
+        },
+    };
 
     constructor(networkInterface: INetworkModule) {
         this.networkInterface = networkInterface;
@@ -24,14 +29,19 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata): Promise<string | null> {
+    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata, proxyUrl: string): Promise<string | null> {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
         // Check if a region was detected from the environment, if not, attempt to get the region from IMDS 
         if (!autodetectedRegionName) {
+            const options = RegionDiscovery.IMDS_OPTIONS;
+            if (proxyUrl) {
+                options.proxyUrl = proxyUrl;
+            }
+
             try {
-                const localIMDSVersionResponse = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
+                const localIMDSVersionResponse = await this.getRegionFromIMDS(Constants.IMDS_VERSION, options);
                 if (localIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
                     autodetectedRegionName = localIMDSVersionResponse.body;
                     regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
@@ -39,13 +49,13 @@ export class RegionDiscovery {
                 
                 // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry. 
                 if (localIMDSVersionResponse.status === ResponseCodes.httpBadRequest) {
-                    const currentIMDSVersion = await this.getCurrentVersion();
+                    const currentIMDSVersion = await this.getCurrentVersion(options);
                     if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
-                    const currentIMDSVersionResponse = await this.getRegionFromIMDS(currentIMDSVersion);
+                    const currentIMDSVersionResponse = await this.getRegionFromIMDS(currentIMDSVersion, options);
                     if (currentIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
                         autodetectedRegionName = currentIMDSVersionResponse.body;
                         regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
@@ -73,8 +83,8 @@ export class RegionDiscovery {
      * @param imdsEndpointUrl
      * @returns Promise<NetworkResponse<string>>
      */
-    private async getRegionFromIMDS(version: string): Promise<NetworkResponse<string>> {
-        return this.networkInterface.sendGetRequestAsync<string>(`${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, RegionDiscovery.IMDS_OPTIONS, Constants.IMDS_TIMEOUT);
+    private async getRegionFromIMDS(version: string, options: ImdsOptions): Promise<NetworkResponse<string>> {
+        return this.networkInterface.sendGetRequestAsync<string>(`${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, options, Constants.IMDS_TIMEOUT);
     }
 
     /**
@@ -82,9 +92,9 @@ export class RegionDiscovery {
      *  
      * @returns Promise<string | null>
      */
-    private async getCurrentVersion(): Promise<string | null> {
+    private async getCurrentVersion(options: ImdsOptions): Promise<string | null> {
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, RegionDiscovery.IMDS_OPTIONS);
+            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, options);
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
             if (response.status === ResponseCodes.httpBadRequest && response.body && response.body["newest-versions"] && response.body["newest-versions"].length > 0) {

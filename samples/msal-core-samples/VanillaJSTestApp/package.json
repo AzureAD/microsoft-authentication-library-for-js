@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@azure/identity": "^1.0.2",
-    "axios": "^0.19.2",
+    "axios": "^0.25.0",
     "clear-module": "^4.1.1",
     "express": "^4.12.3",
     "morgan": "^1.5.2",

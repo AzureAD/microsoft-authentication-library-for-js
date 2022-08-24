@@ -1,8 +1,106 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 01 Nov 2021 23:53:22 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.5
+
+Mon, 01 Aug 2022 22:22:36 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.28.1
+
+## 1.4.4
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.28.0
+
+## 1.4.3
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.27.0
+
+## 1.4.2
+
+Mon, 13 Jun 2022 22:28:09 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.26.0
+
+## 1.4.1
+
+Mon, 06 Jun 2022 22:13:00 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.25.0
+
+## 1.4.0
+
+Mon, 02 May 2022 22:23:33 GMT
+
+### Minor changes
+
+- Add support for acquiring tokens from the native broker #4531 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.24.0
+
+### Patches
+
+- Ensure MsalProvider doesnt rerender if inProgress or accounts do not change #4713 (janutter@microsoft.com)
+
+## 1.3.2
+
+Mon, 04 Apr 2022 21:12:41 GMT
+
+### Patches
+
+- Use React 17 for dev deps #4570 (janutter@microsoft.com)
+- Bump @azure/msal-browser to v2.23.0
+
+## 1.3.1
+
+Mon, 07 Mar 2022 23:28:43 GMT
+
+### Patches
+
+- Update MsalProvider state values concurrently #4477 (thomas.norling@microsoft.com)
+- Add react 18 as supported peer dependency #4546 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.22.1
+
+## 1.3.0
+
+Tue, 08 Feb 2022 00:41:07 GMT
+
+### Minor changes
+
+- useMsalAuthentication hook acquires a token if user is already signed in #4280 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.22.0
+
+## 1.2.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v2.21.0
+
+## 1.1.2
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Patches
+
+- Fix inProgress stuck in startup state #4302 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.20.0
 
 ## 1.1.1
 

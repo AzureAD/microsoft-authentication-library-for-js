@@ -1,5 +1,3 @@
-import { expect } from "chai";
-import { describe, it } from "mocha";
 import { WindowUtils } from "../../src/utils/WindowUtils";
 import { FramePrefix, TemporaryCacheKeys, Constants } from "../../src/utils/Constants";
 import { TEST_CONFIG } from "../TestConstants";
@@ -30,8 +28,6 @@ describe("WindowUtils", () => {
         });
 
         it("times out when event loop is suspended", function(done) {
-            this.timeout(5000);
-
             const iframe = {
                 contentWindow: {
                     location: {
@@ -64,7 +60,7 @@ describe("WindowUtils", () => {
             setTimeout(() => {
                 Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, pauseDuration);
             }, startPauseDelay);
-        });
+        }, 5000);
 
         it("returns hash", done => {
             const iframe = {
@@ -79,7 +75,7 @@ describe("WindowUtils", () => {
             // @ts-ignore
             WindowUtils.monitorIframeForHash(iframe.contentWindow, 1000, "url", logger)
                 .then((hash: string) => {
-                    expect(hash).to.equal("#access_token=hello");
+                    expect(hash).toBe("#access_token=hello");
                     done();
                 });
 
@@ -126,7 +122,7 @@ describe("WindowUtils", () => {
             // @ts-ignore
             WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
                 .then((hash: string) => {
-                    expect(hash).to.equal("#access_token=hello");
+                    expect(hash).toBe("#access_token=hello");
                     done();
                 });
 
@@ -152,7 +148,7 @@ describe("WindowUtils", () => {
             // @ts-ignore
             WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
                 .catch((error: ClientAuthError) => {
-                    expect(error.errorCode).to.equal('user_cancelled');
+                    expect(error.errorCode).toBe('user_cancelled');
                     done();
                 });
 
@@ -171,8 +167,8 @@ describe("WindowUtils", () => {
             const idTokenFrameName = WindowUtils.generateFrameName(FramePrefix.ID_TOKEN_FRAME, requestSignature);
             const tokenFrameName = WindowUtils.generateFrameName(FramePrefix.TOKEN_FRAME, requestSignature);
 
-            expect(idTokenFrameName).to.equal(`${FramePrefix.ID_TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
-            expect(tokenFrameName).to.equal(`${FramePrefix.TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
+            expect(idTokenFrameName).toBe(`${FramePrefix.ID_TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
+            expect(tokenFrameName).toBe(`${FramePrefix.TOKEN_FRAME}|s1 s2 s3|${TEST_CONFIG.validAuthority}`);
         });
     });
 
@@ -181,41 +177,41 @@ describe("WindowUtils", () => {
             const logger = new Logger(() => {});
             const iframe = WindowUtils.loadFrameSync("https://test1.com/", "testFrame", logger);
 
-            expect(iframe.getAttribute("id")).to.equal("testFrame");
+            expect(iframe.getAttribute("id")).toBe("testFrame");
         });
 
         it("sets src for iframe", () => {
             const logger = new Logger(() => {});
             const iframe = WindowUtils.loadFrameSync("https://test2.com/", "testFrame2", logger);
 
-            expect(iframe.src).to.equal("https://test2.com/");
+            expect(iframe.src).toBe("https://test2.com/");
         });
     });
 
     describe("addHiddenIFrame", () => {
         it("returns null if iframeId is undefined", () => {
             const iframe = WindowUtils.addHiddenIFrame(undefined, null);
-            expect(iframe).to.equals(null);
+            expect(iframe).toBe(null);
         });
 
         it("creates and returns an iframe with expected attributes", () => {
             const logger = new Logger(() => {});
             const iframe = WindowUtils.addHiddenIFrame("testIframe", logger);
 
-            expect(iframe.getAttribute("id")).to.equals("testIframe");
-            expect(iframe.getAttribute("aria-hidden")).to.equals("true");
-            expect(iframe.getAttribute("sandbox")).to.equals("allow-scripts allow-same-origin allow-forms");
-            expect(iframe.style.visibility).to.equals("hidden");
-            expect(iframe.style.position).to.equals("absolute");
-            expect(iframe.style.width).to.equals("0px");
-            expect(iframe.style.border).to.equals("0px");
+            expect(iframe.getAttribute("id")).toBe("testIframe");
+            expect(iframe.getAttribute("aria-hidden")).toBe("true");
+            expect(iframe.getAttribute("sandbox")).toBe("allow-scripts allow-same-origin allow-forms");
+            expect(iframe.style.visibility).toBe("hidden");
+            expect(iframe.style.position).toBe("absolute");
+            expect(iframe.style.width).toBe("0px");
+            expect(iframe.style.border).toBe("0px");
         });
 
         it("sets iframeId if window.frames exists", () => {
             const logger = new Logger(() => {});
             const iframe = WindowUtils.addHiddenIFrame("testId", logger);
 
-            expect(iframe).to.equals(window.frames["testId"]);
+            expect(iframe).toBe(window.frames["testId"]);
         });
     });
 
@@ -235,8 +231,8 @@ describe("WindowUtils", () => {
             sinon.stub(UrlUtils, "urlContainsHash").returns(false);
 
             WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
-            expect(resetTempCacheSpy.calledOnce).to.be.true;
-            expect(resetTempCacheSpy.calledWith(requestState)).to.be.true;
+            expect(resetTempCacheSpy.calledOnce).toBe(true);
+            expect(resetTempCacheSpy.calledWith(requestState)).toBe(true);
         });
 
         it("clears temp cache items if back button pressed, user state provided", () => {
@@ -247,8 +243,8 @@ describe("WindowUtils", () => {
             sinon.stub(UrlUtils, "urlContainsHash").returns(false);
 
             WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
-            expect(resetTempCacheSpy.calledOnce).to.be.true;
-            expect(resetTempCacheSpy.calledWith(requestState)).to.be.true;
+            expect(resetTempCacheSpy.calledOnce).toBe(true);
+            expect(resetTempCacheSpy.calledWith(requestState)).toBe(true);
         });
 
         it("does not clear temp cache if redirect request is not cached", () => {
@@ -256,7 +252,7 @@ describe("WindowUtils", () => {
             sinon.stub(UrlUtils, "urlContainsHash").returns(false);
 
             WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
-            expect(resetTempCacheSpy.notCalled).to.be.true;
+            expect(resetTempCacheSpy.notCalled).toBe(true);
         });
 
         it("does not clear temp cache if hash in the current url", () => {
@@ -267,7 +263,7 @@ describe("WindowUtils", () => {
             sinon.stub(UrlUtils, "urlContainsHash").returns(true);
 
             WindowUtils.checkIfBackButtonIsPressed(cacheStorage);
-            expect(resetTempCacheSpy.notCalled).to.be.true;
+            expect(resetTempCacheSpy.notCalled).toBe(true);
         });
     });
 
@@ -275,7 +271,7 @@ describe("WindowUtils", () => {
         it("clearHash() clears the window hash", () => {
             window.location.hash = "thisIsAHash";
             WindowUtils.clearUrlFragment(window);
-            expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+            expect(window.location.href.includes("#thisIsAHash")).toBe(false);
         });
     
         it("clearHash() clears the window hash (office addin)", () => {
@@ -285,7 +281,7 @@ describe("WindowUtils", () => {
     
             window.location.hash = "thisIsAHash";
             WindowUtils.clearUrlFragment(window);
-            expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+            expect(window.location.href.includes("#thisIsAHash")).toBe(false);
             
             history.replaceState = oldReplaceState;
         });

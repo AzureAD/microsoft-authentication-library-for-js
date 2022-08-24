@@ -3,9 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError } from "@azure/msal-common";
+
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 
 export type InteractionParams = {};
@@ -13,32 +14,26 @@ export type InteractionParams = {};
 /**
  * Abstract class which defines operations for a browser interaction handling class.
  */
-export abstract class InteractionHandler {
+export class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: CommonAuthorizationCodeRequest;
-    protected browserRequestLogger: Logger;
+    protected logger: Logger;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, browserRequestLogger: Logger) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
         this.authCodeRequest = authCodeRequest;
-        this.browserRequestLogger = browserRequestLogger;
+        this.logger = logger;
     }
-
-    /**
-     * Function to enable user interaction.
-     * @param requestUrl
-     */
-    abstract initiateAuthRequest(requestUrl: string, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
 
     /**
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
-        this.browserRequestLogger.verbose("InteractionHandler.handleCodeResponse called");
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+        this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -50,8 +45,40 @@ export abstract class InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
+        let authCodeResponse;
+        try {
+            authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        } catch (e) {
+            if (e instanceof ServerError && e.subError === BrowserAuthErrorMessage.userCancelledError.code) {
+                // Translate server error caused by user closing native prompt to corresponding first class MSAL error
+                throw BrowserAuthError.createUserCancelledError();
+            } else {
+                throw e;
+            }
+        }
+
+        return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
+    }
+
+    /**
+     * Process auth code response from AAD
+     * @param authCodeResponse 
+     * @param state 
+     * @param authority 
+     * @param networkModule 
+     * @returns 
+     */
+    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true): Promise<AuthenticationResult> {
+        this.logger.trace("InteractionHandler.handleCodeResponseFromServer called");
+
+        // Handle code response.
+        const stateKey = this.browserStorage.generateStateKey(state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
+        
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
@@ -64,7 +91,11 @@ export abstract class InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce || undefined;
+        // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
+        if (validateNonce) {
+            authCodeResponse.nonce = cachedNonce || undefined;
+        }
+        
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available

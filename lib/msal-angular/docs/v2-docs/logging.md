@@ -4,13 +4,13 @@ The logger definition has the following properties:
 
 1. correlationId
 1. logLevel
-    * logLevels include: `Error`, `Warning`, `Info`, and `Verbose`
+    * logLevels include: `Error`, `Warning`, `Info`, `Trace`, and `Verbose`
 1. piiLoggingEnabled
 
 You can enable logging in your app as shown below:
 
 ```js
-import { LogLevel } from '@azure/msal-browser';
+import { LogLevel, PublicClientApplication } from '@azure/msal-browser';
 
 export function loggerCallback(logLevel, message) {
     console.log(message);
@@ -18,7 +18,7 @@ export function loggerCallback(logLevel, message) {
 
 @NgModule({
     imports: [ 
-        MsalModule.forRoot({
+        MsalModule.forRoot(new PublicClientApplication({
             auth: {
                 clientId: 'Your client ID',
             },
@@ -29,7 +29,7 @@ export function loggerCallback(logLevel, message) {
                     logLevel: LogLevel.Info
                 }
             }
-        })
+        }))
     ]
 })
 ```

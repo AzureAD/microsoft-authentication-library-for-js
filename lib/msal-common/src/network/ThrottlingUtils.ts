@@ -101,11 +101,11 @@ export class ThrottlingUtils {
             authority: request.authority,
             scopes: request.scopes,
             homeAccountIdentifier: homeAccountIdentifier,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
 

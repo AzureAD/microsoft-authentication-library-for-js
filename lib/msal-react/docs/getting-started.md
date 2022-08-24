@@ -288,7 +288,7 @@ export function App() {
 }
 ```
 
-## Acquiring an access token outside of a React component
+### Acquiring an access token outside of a React component
 
 If you require an access token outside of a React component you can directly call the `acquireTokenSilent` function on the `PublicClientApplication`.
 We do not recommend calling functions that change the user's authenticated state (login, logout) outside the react context provided by `MsalProvider` as the components inside the context may not properly update.

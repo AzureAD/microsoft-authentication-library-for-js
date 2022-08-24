@@ -22,7 +22,7 @@ describe("SilentRefreshClient", () => {
         });
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
         // @ts-ignore
-        silentRefreshClient = new SilentRefreshClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+        silentRefreshClient = new SilentRefreshClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
     });
 
     afterEach(() => {

@@ -1,0 +1,27 @@
+h1 {
+    color: red;
+}
+
+#card-div {
+    min-width: 40%;
+    margin: 5% auto 5% auto;
+}
+
+#form-area-div {
+    width: 55%;
+    margin: 5% auto 5% auto;
+}
+
+.table-area-div {
+    width: 70%;
+    margin: 5% auto 5% auto;
+}
+
+.footer {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+}
+

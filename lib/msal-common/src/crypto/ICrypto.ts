@@ -17,7 +17,9 @@ export type PkceCodes = {
     challenge: string
 };
 
-export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce">;
+export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims" | "shrNonce" > & {
+    correlationId?: string
+};
 
 /**
  * Interface for crypto functions used by library
@@ -59,7 +61,12 @@ export interface ICrypto {
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
      */
-    signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
+    signJwt(payload: SignedHttpRequest, kid: string, correlationId?: string): Promise<string>;
+    /**
+     * Returns the SHA-256 hash of an input string
+     * @param plainText
+     */
+    hashString(plainText: string): Promise<string>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -93,6 +100,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async hashString(): Promise<string> {
+        const notImplErr = "Crypto interface - hashString() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };

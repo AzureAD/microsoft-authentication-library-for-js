@@ -290,6 +290,7 @@ export class UserAgentApplication {
     private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: Function) : void {
         this.logger.verbose("AuthResponseHandler has been called");
 
+        this.cacheStorage.setInteractionInProgress(false);
         if (interactionType === Constants.interactionTypeRedirect) {
             this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
@@ -432,13 +433,10 @@ export class UserAgentApplication {
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
 
-        const interactionProgress = this.cacheStorage.isInteractionInProgress(false);
-        if(interactionType === Constants.interactionTypeRedirect) {
-            this.cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${request.state}`);
-        }
-
-        // If already in progress, do not proceed
-        if (interactionProgress) {
+        try {
+            this.cacheStorage.setInteractionInProgress(true);
+        } catch (e) {
+            // If already in progress, do not proceed
             const thrownError = isLoginCall ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
             const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request.state));
             this.cacheStorage.resetTempCacheItems(request.state);
@@ -447,6 +445,10 @@ export class UserAgentApplication {
                 stateOnlyResponse,
                 reject);
             return;
+        }
+
+        if(interactionType === Constants.interactionTypeRedirect) {
+            this.cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${request.state}`);
         }
 
         // Get the account object if a session exists
@@ -521,8 +523,6 @@ export class UserAgentApplication {
         this.logger.verbose("AcquireTokenHelper has been called");
         this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
 
-        // Track the acquireToken progress
-        this.cacheStorage.setInteractionInProgress(true);
         const requestSignature = request.scopes ? request.scopes.join(" ").toLowerCase() : Constants.oidcScopes.join(" ");
         this.logger.verbosePii(`Request signature: ${requestSignature}`);
 

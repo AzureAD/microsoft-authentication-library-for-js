@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { Authority, AuthorityType } from "../../src/authority/Authority";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError"
 import { TEST_CONFIG, TENANT_DISCOVERY_RESPONSE, ADFS_TEST_CONFIG } from "../TestConstants";
@@ -32,7 +31,7 @@ describe("Authority.ts Class", function () {
 
     describe("Constructor", () => {
         it("tests initialization of Authority", function() {
-            expect(authority).to.be.instanceOf(Authority);
+            expect(authority).toBeInstanceOf(Authority);
         });
 
         it("throws invalidAuthorityType on init if authority is not url", function () {
@@ -40,7 +39,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType)
+                expect(e).toBe(ClientConfigurationErrorMessage.invalidAuthorityType)
             }
         });
     
@@ -49,7 +48,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("http://login.microsoftonline.com/common", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInsecure)
+                expect(e).toBe(ClientConfigurationErrorMessage.authorityUriInsecure)
             }
         });
     
@@ -58,7 +57,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("https://login.microsoftonline.com", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath)
+                expect(e).toBe(ClientConfigurationErrorMessage.authorityUriInvalidPath)
             }
         });
     });
@@ -67,13 +66,13 @@ describe("Authority.ts Class", function () {
         it("Default type", () => {
             authority = new Authority(TEST_CONFIG.validAuthority, true);
 
-            expect(authority.AuthorityType).to.equal(AuthorityType.Default)
+            expect(authority.AuthorityType).toBe(AuthorityType.Default)
         });
 
         it("ADFS type", () => {
             authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
 
-            expect(authority.AuthorityType).to.equal(AuthorityType.Adfs)
+            expect(authority.AuthorityType).toBe(AuthorityType.Adfs)
         });
     });
 
@@ -83,14 +82,14 @@ describe("Authority.ts Class", function () {
                 const authEndpoint = authority.AuthorizationEndpoint
             }
             catch(e) {
-                expect(e).to.be.equal("Please call ResolveEndpointsAsync first");
+                expect(e).toBe("Please call ResolveEndpointsAsync first");
             }
         });
 
         it("tests AuthorizationEndpoint", async function () {
             const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
 
-            expect(authority.AuthorizationEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/authorize")
+            expect(authority.AuthorizationEndpoint).toBe("https://login.microsoftonline.com/common/oauth2/v2.0/authorize")
         });
     });
 
@@ -100,14 +99,14 @@ describe("Authority.ts Class", function () {
                 const authEndpoint = authority.EndSessionEndpoint
             }
             catch(e) {
-                expect(e).to.be.equal("Please call ResolveEndpointsAsync first");
+                expect(e).toBe("Please call ResolveEndpointsAsync first");
             }
         });
 
         it("tests EndSessionEndpoint", async function () {
             const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
     
-            expect(authority.EndSessionEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/logout")
+            expect(authority.EndSessionEndpoint).toBe("https://login.microsoftonline.com/common/oauth2/v2.0/logout")
         });
     });
 
@@ -117,14 +116,14 @@ describe("Authority.ts Class", function () {
                 const authEndpoint = authority.SelfSignedJwtAudience
             }
             catch(e) {
-                expect(e).to.be.equal("Please call ResolveEndpointsAsync first");
+                expect(e).toBe("Please call ResolveEndpointsAsync first");
             }
         });
 
         it("tests SelfSignedJwtAudience", async function () {
             const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
     
-            expect(authority.SelfSignedJwtAudience).to.equal("https://login.microsoftonline.com/common/v2.0")
+            expect(authority.SelfSignedJwtAudience).toBe("https://login.microsoftonline.com/common/v2.0")
         });
     });
 
@@ -132,9 +131,9 @@ describe("Authority.ts Class", function () {
         it("returns authority metadata", async function () {
             const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
 
-            expect(endpoints.EndSessionEndpoint).to.not.be.undefined;
-            expect(endpoints.AuthorizationEndpoint).to.not.be.undefined;
-            expect(endpoints.Issuer).to.not.be.undefined;
+            expect(endpoints.EndSessionEndpoint).toBeDefined();
+            expect(endpoints.AuthorizationEndpoint).toBeDefined();
+            expect(endpoints.Issuer).toBeDefined();
         });
 
         it("returns authority metadata with validateAuthority false", async function () {
@@ -142,9 +141,9 @@ describe("Authority.ts Class", function () {
             sinon.stub(TrustedAuthority, "getTrustedHostList").throws("Validation is disabled. This function should not be called.");
             const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
 
-            expect(endpoints.EndSessionEndpoint).to.not.be.undefined;
-            expect(endpoints.AuthorizationEndpoint).to.not.be.undefined;
-            expect(endpoints.Issuer).to.not.be.undefined;
+            expect(endpoints.EndSessionEndpoint).toBeDefined();
+            expect(endpoints.AuthorizationEndpoint).toBeDefined();
+            expect(endpoints.Issuer).toBeDefined();
         });
 
         it("Calls Instance Discovery Endpoint if TrustedHostList not set", async function () {
@@ -157,7 +156,7 @@ describe("Authority.ts Class", function () {
             });
 
             await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
-            expect(setFromNetworkCalled).to.be.true;
+            expect(setFromNetworkCalled).toBe(true);
         });
 
         it("Throws error if authority is not in TrustedHostList", async function () {
@@ -166,24 +165,24 @@ describe("Authority.ts Class", function () {
             try {
                 const endpoints = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
             } catch(e) {
-                expect(e).to.be.instanceOf(ClientConfigurationError);
+                expect(e).toBeInstanceOf(ClientConfigurationError);
                 err = e;
             }
 
-            expect(err.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
-            expect(err.errorMessage).to.contain(ClientConfigurationErrorMessage.untrustedAuthority.desc);
+            expect(err.errorCode).toBe(ClientConfigurationErrorMessage.untrustedAuthority.code);
+            expect(err.errorMessage).toContain(ClientConfigurationErrorMessage.untrustedAuthority.desc);
         });
     });
 
     describe("hasCachedMetadata", () => {
         it("returns false if metadata no fetched", () => {
-            expect(authority.hasCachedMetadata()).to.be.false;
+            expect(authority.hasCachedMetadata()).toBe(false);
         });
     
         it("returns true when metadata is provided", () => {
             const testAuthorityWithMetadata = new Authority(TEST_CONFIG.validAuthority, true, TENANT_DISCOVERY_RESPONSE);
     
-            expect(testAuthorityWithMetadata.hasCachedMetadata()).to.be.true;
+            expect(testAuthorityWithMetadata.hasCachedMetadata()).toBe(true);
         });
     });
 
@@ -191,21 +190,23 @@ describe("Authority.ts Class", function () {
         it("returns well-known endpoint", () => {
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(TEST_CONFIG.validAuthority + "v2.0/.well-known/openid-configuration");
+            expect(endpoint).toBe(TEST_CONFIG.validAuthority + "v2.0/.well-known/openid-configuration");
         });
     
         it("returns well-known endpoint, alternate authority", () => {
             authority = new Authority(TEST_CONFIG.alternateValidAuthority, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(TEST_CONFIG.alternateValidAuthority + "v2.0/.well-known/openid-configuration");
+            expect(endpoint).toBe(
+                TEST_CONFIG.alternateValidAuthority + "v2.0/.well-known/openid-configuration"
+            );
         });
 
         it("returns v1 well-known endpoint, ADFS scenario", () => {
             authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
             const endpoint = authority.GetOpenIdConfigurationEndpoint();
     
-            expect(endpoint).to.equal(ADFS_TEST_CONFIG.validAuthority + ".well-known/openid-configuration");
+            expect(endpoint).toBe(ADFS_TEST_CONFIG.validAuthority + ".well-known/openid-configuration");
         });
     });
 });

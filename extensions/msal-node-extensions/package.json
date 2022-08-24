@@ -1,6 +1,10 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.12",
+  "version": "1.0.0-alpha.22",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -23,12 +27,14 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
-    "link:common": "npm link @azure/msal-common",
+    "build:common": "cd ../../lib/msal-common && npm run build",
+    "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
+    "test:coverage": "tsdx test --coverage",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
-    "prepack": "npm run build"
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
+    "prepack": "npm run build:all"
   },
   "author": {
     "name": "Microsoft",
@@ -44,14 +50,14 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "^5.1.0",
-    "bindings": "git://github.com/samuelkubai/node-bindings.git#v1.6.0",
-    "keytar": "^7.6.0",
+    "@azure/msal-common": "^7.3.0",
+    "bindings": "git+https://github.com/samuelkubai/node-bindings.git#v1.6.0",
+    "keytar": "^7.8.0",
     "nan": "^2.13.2"
   },
   "devDependencies": {
     "husky": "^4.2.5",
-    "node-gyp": "^7.0.0",
+    "node-gyp": "^9.0.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.3"

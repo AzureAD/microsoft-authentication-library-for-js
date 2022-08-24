@@ -11,6 +11,7 @@ import fs from "fs";
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 export const SAMPLE_HOME_URL = "http://localhost";
 export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+export const SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID = "token-acquired-silently";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -32,6 +33,22 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
+
+    // agce: which type of account do you want to use
+    try {
+        await page.waitForSelector('#aadTile', {timeout: 1000});
+        await screenshot.takeScreenshot(page, "accountType");
+        await Promise.all([
+            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+            page.click("#aadTile")
+        ]).catch(async (e) => {
+            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+            throw e;
+        });
+    } catch (e) {
+        //
+    }
+
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await page.waitForSelector("#i0118");
     await page.waitForSelector("#idSIButton9");
@@ -56,9 +73,34 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     }
     await screenshot.takeScreenshot(page, "passwordSubmitted")
 
+    // agce: check if the "help us protect your account" dialog appears
+    try {
+        const selector = "#lightbox > div:nth-child(3) > div > div.pagination-view.has-identity-banner.animate.slide-in-next > div > div:nth-child(3) > a";
+        await page.waitForSelector(selector, {timeout: 1000});
+        await page.click(selector);
+    } catch(e) {
+        // continue
+    }
+
+    // keep me signed in page
     try {
         await page.waitForSelector('#idSIButton9', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "kmsiPage");
+        await screenshot.takeScreenshot(page, "keepMeSignedInPage");
+        await Promise.all([
+            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+            page.click("#idSIButton9")
+        ]).catch(async (e) => {
+            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+            throw e;
+        });
+    } catch (e) {
+        return;
+    }
+
+    // agce: private tenant sign in page
+    try {
+        await page.waitForSelector('#idSIButton9', {timeout: 1000});
+        await screenshot.takeScreenshot(page, "privateTenantSignInPage");
         await Promise.all([
             page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
             page.click("#idSIButton9")
@@ -89,8 +131,8 @@ export async function approveRemoteConnect(page: Page, screenshot: Screenshot): 
 }
 
 export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await this.enterCredentialsADFS(page, screenshot, username, accountPwd);
-    await this.approveConsent(page, screenshot);
+    await enterCredentialsADFS(page, screenshot, username, accountPwd);
+    await approveConsent(page, screenshot);
 }
 
 export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
@@ -102,7 +144,7 @@ export async function approveConsent(page: Page, screenshot: Screenshot): Promis
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
-    await screenshot.takeScreenshot(page, 'consentApproved'); 
+    await screenshot.takeScreenshot(page, 'consentApproved');
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
@@ -164,6 +206,32 @@ export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: 
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
+}
+
+export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MSIDLAB4_AzureAD");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MSIDLAB4_AzureAD");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MicrosoftAccountExchange");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MicrosoftAccountExchange");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
 }
 
 export async function validateCacheLocation(cacheLocation: string): Promise<void> {

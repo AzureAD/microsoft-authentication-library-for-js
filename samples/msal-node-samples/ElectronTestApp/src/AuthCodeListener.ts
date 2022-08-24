@@ -21,6 +21,6 @@ export abstract class AuthCodeListener {
         return this.hostName;
     }
 
-    public abstract start(): void;
+    public abstract start(): Promise<string>;
     public abstract close(): void;
 }

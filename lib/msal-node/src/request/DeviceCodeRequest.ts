@@ -14,7 +14,7 @@ import { CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common
  * - cancel                     - Boolean to cancel polling of device code endpoint. While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true.
  * @public
  */
-export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes"|"deviceCodeCallback"|"resourceRequestMethod"|"resourceRequestUri">> & {
+export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes"|"deviceCodeCallback"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
     scopes: Array<string>;
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
 };

@@ -1,5 +1,3 @@
-import * as mocha from "mocha";
-import { expect } from "chai";
 import { ServerError, ServerErrorMessage } from "../../src/error/ServerError";
 import { AuthError } from "../../src";
 
@@ -17,14 +15,14 @@ describe("ServerError.ts Class", () => {
       err = error;
     }
 
-    expect(err instanceof ServerError).to.be.true;
-    expect(err instanceof AuthError).to.be.true;
-    expect(err instanceof Error).to.be.true;
-    expect(err.errorCode).to.equal(TEST_ERROR_CODE);
-    expect(err.errorMessage).to.equal(TEST_ERROR_MSG);
-    expect(err.message).to.equal(TEST_ERROR_MSG);
-    expect(err.name).to.equal("ServerError");
-    expect(err.stack).to.include("ServerError.spec.ts");
+    expect(err instanceof ServerError).toBe(true);
+    expect(err instanceof AuthError).toBe(true);
+    expect(err instanceof Error).toBe(true);
+    expect(err.errorCode).toBe(TEST_ERROR_CODE);
+    expect(err.errorMessage).toBe(TEST_ERROR_MSG);
+    expect(err.message).toBe(TEST_ERROR_MSG);
+    expect(err.name).toBe("ServerError");
+    expect(err.stack).toContain("ServerError.spec.ts");
   });
 
   it("createServerUnavailableError creates a ServerError object", () => {
@@ -38,11 +36,11 @@ describe("ServerError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(ServerErrorMessage.serverUnavailable.code);
-    expect(err.errorMessage).to.equal(ServerErrorMessage.serverUnavailable.desc);
-    expect(err.message).to.equal(ServerErrorMessage.serverUnavailable.desc);
-    expect(err.name).to.equal("ServerError");
-    expect(err.stack).to.include("ServerError.spec.ts");
+    expect(err.errorCode).toBe(ServerErrorMessage.serverUnavailable.code);
+    expect(err.errorMessage).toBe(ServerErrorMessage.serverUnavailable.desc);
+    expect(err.message).toBe(ServerErrorMessage.serverUnavailable.desc);
+    expect(err.name).toBe("ServerError");
+    expect(err.stack).toContain("ServerError.spec.ts");
   });
 
   it("createUnknownServerError creates a ServerError object", () => {
@@ -57,11 +55,11 @@ describe("ServerError.ts Class", () => {
       err = error;
     }
 
-    expect(err.errorCode).to.equal(ServerErrorMessage.unknownServerError.code);
-    expect(err.errorMessage).to.contain(ERROR_FROM_SERVER);
-    expect(err.message).to.equal(ERROR_FROM_SERVER);
-    expect(err.name).to.equal("ServerError");
-    expect(err.stack).to.include("ServerError.spec.ts");
+    expect(err.errorCode).toBe(ServerErrorMessage.unknownServerError.code);
+    expect(err.errorMessage).toContain(ERROR_FROM_SERVER);
+    expect(err.message).toBe(ERROR_FROM_SERVER);
+    expect(err.name).toBe("ServerError");
+    expect(err.stack).toContain("ServerError.spec.ts");
   });
 
 });

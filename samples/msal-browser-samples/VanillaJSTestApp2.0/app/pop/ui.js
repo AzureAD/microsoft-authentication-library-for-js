@@ -2,10 +2,12 @@
 const welcomeDiv = document.getElementById("WelcomeMessage");
 const signInButton = document.getElementById("SignIn");
 const cardDiv = document.getElementById("card-div");
-const mailButton = document.getElementById("readMail");
+const popCardDiv = document.getElementById("pop-card-div");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
 const popTokenAcquired = document.getElementById("PopTokenAcquired");
+const jwtBodyView = document.getElementById("jwtBodyView");
+const jwtHeaderView = document.getElementById("jwtHeaderView");
 
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
@@ -17,11 +19,20 @@ function showWelcomeMessage(account) {
     signInButton.innerHTML = "Sign Out";
 }
 
-function showPopTokenAcquired() {
+function showPopTokenAcquired(encodedJwt) {
+    popCardDiv.style.display = 'initial';
     const popTokenAcquired = document.createElement('p');
     popTokenAcquired.setAttribute("id", "PopTokenAcquired");
     popTokenAcquired.innerHTML = "Successfully acquired PoP Token";
     profileDiv.appendChild(popTokenAcquired);
+
+    const jwtWindow = document.getElementById("jwtWindow");
+    const splitJwt = encodedJwt.split(".");
+    const jwtHeader = JSON.stringify(JSON.parse(atob(splitJwt[0])), null, 4);
+    const jwtBody = JSON.stringify(JSON.parse(atob(splitJwt[1])), null, 4);
+    jwtBodyView.style = "white-space: pre-wrap";
+    jwtHeaderView.textContent = jwtHeader;
+    jwtBodyView.textContent = jwtBody;
 }
 
 function updateUI(data, endpoint) {
@@ -40,35 +51,5 @@ function updateUI(data, endpoint) {
         profileDiv.appendChild(email);
         profileDiv.appendChild(phone);
         profileDiv.appendChild(address);
-    } else if (endpoint === graphConfig.graphMailEndpoint) {
-        if (data.value.length < 1) {
-            alert("Your mailbox is empty!")
-        } else {
-            const tabList = document.getElementById("list-tab");
-            const tabContent = document.getElementById("nav-tabContent");
-
-            data.value.map((d, i) => {
-                // Keeping it simple
-                if (i < 10) {
-                    const listItem = document.createElement("a");
-                    listItem.setAttribute("class", "list-group-item list-group-item-action")
-                    listItem.setAttribute("id", "list" + i + "list")
-                    listItem.setAttribute("data-toggle", "list")
-                    listItem.setAttribute("href", "#list" + i)
-                    listItem.setAttribute("role", "tab")
-                    listItem.setAttribute("aria-controls", i)
-                    listItem.innerHTML = d.subject;
-                    tabList.appendChild(listItem)
-
-                    const contentItem = document.createElement("div");
-                    contentItem.setAttribute("class", "tab-pane fade")
-                    contentItem.setAttribute("id", "list" + i)
-                    contentItem.setAttribute("role", "tabpanel")
-                    contentItem.setAttribute("aria-labelledby", "list" + i + "list")
-                    contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
-                    tabContent.appendChild(contentItem);
-                }
-            });
-        }
-    }
+    } 
 }

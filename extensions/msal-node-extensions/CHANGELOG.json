@@ -2,6 +2,263 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Mon, 01 Aug 2022 22:22:36 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.22",
+      "version": "1.0.0-alpha.22",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": "Package-lock updates"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.3.0",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.21",
+      "version": "1.0.0-alpha.21",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.2.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.20",
+      "version": "1.0.0-alpha.20",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "511ec6c19263c558562a8d4b26b576c0d137c144",
+            "comment": "fix: updated extensions to use msal-common 6.4.0 #4536"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.1.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 13 Jun 2022 22:28:09 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.19",
+      "version": "1.0.0-alpha.19",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.0.0",
+            "commit": "e325d870a211b4ad6fa97bb95b6b224299247940"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Jun 2022 22:13:00 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.18",
+      "version": "1.0.0-alpha.18",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c03bd9cbf5a3c31cfcd86de7ab718c10b7d08304",
+            "comment": "Update extensions package-lock to fix audit #4786"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.4.0",
+            "commit": "3b8942d3cf281352236b820c931a89b4dbcbf85b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 02 May 2022 22:23:33 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.17",
+      "version": "1.0.0-alpha.17",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.3.0",
+            "commit": "cbf5e7a6c81d01ce40bfbcbca9be158c5ee395aa"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Apr 2022 21:12:42 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.16",
+      "version": "1.0.0-alpha.16",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "35b26ea1a6f9ced206b1a801626cd898a4f1a5ca",
+            "comment": "fix: resolve the minimist audit error"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.2.0",
+            "commit": "63c34341780208480edc2f86e623ba12a7f847c3"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Mar 2022 23:28:43 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.15",
+      "version": "1.0.0-alpha.15",
+      "comments": {
+        "none": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "4939a80fc6dea18841099446da011a9211243f54",
+            "comment": "Update node-gyp to version 9 #4567"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 08 Feb 2022 00:41:06 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.15",
+      "version": "1.0.0-alpha.15",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "5767008f8ef9f3b05aeba421cc4aa6c6bb616e86",
+            "comment": "fix: update package-lock files"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
+            "comment": "Test changes #4383"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "539ca525a356c0d4a7bd1d4da5271f8a2988f944",
+            "comment": "Resolve lint errors #4363"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "33e9d56dd3e8c1523d70b6e3cff4214035b44e08",
+            "comment": "Update keytar dependency to ^7.8.0 #4483"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.1.0",
+            "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.14",
+      "version": "1.0.0-alpha.14",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v6.0.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.13",
+      "version": "1.0.0-alpha.13",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
+            "comment": "deps: run an audit fix for msal-node-extensions"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e020f3511ddc25be0c04a60362698da0112b8c0c",
+            "comment": "Use https to install bindings dependency #4234"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v5.2.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Nov 2021 23:53:22 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.12",
       "version": "1.0.0-alpha.12",

@@ -12,13 +12,13 @@ describe("RefreshTokenEntity.ts Unit Tests", () => {
     it("Create a RefreshTokenEntity", () => {
         const rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntity);
-        expect(rt.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id--");
+        expect(rt.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id----");
     });
 
     it("Create a RefreshTokenEntity with familyId", () => {
         const rt = new RefreshTokenEntity();
         Object.assign(rt, mockRefreshTokenEntityWithFamilyId);
-        expect(rt.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-1--");
+        expect(rt.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-refreshtoken-1----");
     });
 
     it("Throws error if RefreshTokenEntity is not assigned a type", () => {

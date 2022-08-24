@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { ResponseUtils } from "../../src/utils/ResponseUtils"
 import { AuthResponse } from "../../src/AuthResponse";
 import { IdToken } from "../../src/IdToken";
@@ -28,19 +27,19 @@ describe("ResponseUtils.ts class", () => {
 
     it("setResponseIdToken sets authResponse idToken value", () => {
         let newAuthResponse = ResponseUtils.setResponseIdToken(EMPTY_RESPONSE, idTokenObj);
-        expect(newAuthResponse.idToken).to.be.equal(idTokenObj);
-        expect(newAuthResponse.idTokenClaims).to.be.equal(idTokenObj.claims);
-        expect(newAuthResponse.uniqueId).to.be.equal(idTokenObj.objectId || idTokenObj.subject);
-        expect(newAuthResponse.tenantId).to.be.equal(idTokenObj.tenantId);
+        expect(newAuthResponse.idToken).toBe(idTokenObj);
+        expect(newAuthResponse.idTokenClaims).toBe(idTokenObj.claims);
+        expect(newAuthResponse.uniqueId).toBe(idTokenObj.objectId || idTokenObj.subject);
+        expect(newAuthResponse.tenantId).toBe(idTokenObj.tenantId);
     });
 
     it("setResponseIdToken returns null if given a null original request.", () => {
         let newAuthResponse = ResponseUtils.setResponseIdToken(null, idTokenObj);
-        expect(newAuthResponse).to.be.null;
+        expect(newAuthResponse).toBeNull();
     });
 
     it("setResponseIdToken returns original response if given a null idTokenObj", () => {
         let newAuthResponse = ResponseUtils.setResponseIdToken(EMPTY_RESPONSE, null);
-        expect(newAuthResponse).to.be.equal(EMPTY_RESPONSE);
+        expect(newAuthResponse).toBe(EMPTY_RESPONSE);
     })
 });

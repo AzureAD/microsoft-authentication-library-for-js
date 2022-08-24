@@ -54,7 +54,7 @@ var request = {
 const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch(async (error) => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
-        return await myMSALObj.acquireTokenPopup(request).catch(error => {
+        return await msalInstance.acquireTokenPopup(request).catch(error => {
             handleError(error);
         });
     }
@@ -79,7 +79,7 @@ var request = {
 const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch(error => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
-        return myMSALObj.acquireTokenRedirect(request)
+        return msalInstance.acquireTokenRedirect(request)
     }
 });
 ```

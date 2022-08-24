@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { sign } from "jsonwebtoken";
-import { TimeUtils, ClientAuthError } from "@azure/msal-common";
+import { JwtHeader, sign } from "jsonwebtoken";
+import { TimeUtils, ClientAuthError, Constants } from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from "../utils/EncodingUtils";
 import { JwtConstants } from "../utils/Constants";
@@ -87,15 +87,15 @@ export class ClientAssertion {
         const issuedAt = TimeUtils.nowSeconds();
         this.expirationTime = issuedAt + 600;
 
-        const header = {
-            [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
-            [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
+        const header: JwtHeader = {
+            alg: JwtConstants.RSA_256,
+            x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
         };
 
         if (this.publicCertificate) {
             Object.assign(header, {
-                [JwtConstants.X5C]: this.publicCertificate
-            });
+                x5c: this.publicCertificate
+            } as Partial<JwtHeader>);
         }
 
         const payload = {
@@ -107,7 +107,7 @@ export class ClientAssertion {
             [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid()
         };
 
-        this.jwt = sign(payload, this.privateKey, { header: header });
+        this.jwt = sign(payload, this.privateKey, { header });
         return this.jwt;
     }
 
@@ -130,13 +130,13 @@ export class ClientAssertion {
          * "." means any string character, "+" means match 1 or more times, and "?" means the shortest match.
          * The "g" at the end of the regex means search the string globally, and the "s" enables the "." to match newlines.
          */
-        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\n(.+?)\n-----END CERTIFICATE-----/gs;
+        const regexToFindCerts = /-----BEGIN CERTIFICATE-----\r*\n(.+?)\r*\n-----END CERTIFICATE-----/gs;
         const certs: string[] = [];
 
         let matches;
         while ((matches = regexToFindCerts.exec(publicCertificate)) !== null) {
             // matches[1] represents the first parens capture group in the regex.
-            certs.push(matches[1].replace(/\n/, ""));
+            certs.push(matches[1].replace(/\r*\n/g, Constants.EMPTY_STRING));
         }
 
         return certs;

@@ -7,16 +7,14 @@
 
 ## `useAccount` hook
 
-The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not.
+The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not. If no account identifier is provided the current [active account](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md#active-account-apis) will be returned.
 You can read more about the `AccountInfo` object returned in the `@azure/msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
-
-Note: At least one account identifier must be provided, all others are optional. Additionally we do not recommend relying only on `username`.
 
 ```javascript
 const accountIdentifier = {
     localAccountId: "example-local-account-identifier",
     homeAccountId: "example-home-account-identifier"
-    username: "example-username"
+    username: "example-username" // We do not recommend relying only on username
 }
 
 const accountInfo = useAccount(accountIdentifier);
@@ -87,27 +85,48 @@ The `useMsal` hook returns the context. This can be used if you need access to t
 Note: The `accounts` value returned by `useMsal` will only update when accounts are added or removed, and will not update when claims are updated. If you need access to updated claims for the current user, use the `useAccount` hook or call `acquireTokenSilent` instead.
 
 ```javascript
+import { useState, useEffect } from "react";
+import { useMsal } from "@azure/msal-react";
+import { InteractionStatus } from "@azure/msal-browser";
+
 const { instance, accounts, inProgress } = useMsal();
-let accessToken = null;
+const [loading, setLoading] = useState(false);
+const [apiData, setApiData] = useState(null);
+
 useEffect(() => {
-    if (inProgress === "none" && accounts.length > 0) {
-        // Retrieve an access token
-        accessToken = instance.acquireTokenSilent({
-            account: accounts[0],
+    if (!loading && inProgress === InteractionStatus.None && accounts.length > 0) {
+        if (apiData) {
+            // Skip data refresh if already set - adjust logic for your specific use case
+            return;
+        }
+
+        const tokenRequest = {
+            account: accounts[0], // This is an example - Select account based on your app's requirements
             scopes: ["User.Read"]
-        }).then(response => {
-            if (response.accessToken) {
-                return response.accessToken;
+        }
+
+        // Acquire an access token
+        instance.acquireTokenSilent(tokenRequest).then((response) => {
+            // Call your API with the access token and return the data you need to save in state
+            callApi(response.accessToken).then((data) => {
+                setApiData(data);
+                setLoading(false);
+            });
+        }).catch(async (e) => {
+            // Catch interaction_required errors and call interactive method to resolve
+            if (e instanceof InteractionRequiredAuthError) {
+                await instance.acquireTokenRedirect(tokenRequest);
             }
-            return null;
+
+            throw e;
         });
     }
-}, [inProgress, accounts, instance]);
+}, [inProgress, accounts, instance, loading, apiData]);
 
-if (inProgress === "login") {
+if (loading || inProgress === InteractionStatus.Login) {
     // Render loading component
-} else if (accessToken) {
-    // Call your api and render component
+} else if (apiData) {
+    // Render content that depends on data from your API
 }
 ```
 
@@ -121,9 +140,22 @@ Docs for the APIs `PublicClientApplication` exposes can be found in the `@azure/
 
 ## `useMsalAuthentication` hook
 
-The `useMsalAuthentication` hook will initiate a login if a user is not already signed in. It accepts an `interactionType` ("Popup", "Redirect", or "Silent") and optionally accepts a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-browser/docs/request-response-object.md#request) and an `accountIdentifiers` object if you would like to ensure a specific user is signed in. The hook will return the `response` or `error` from the login call and the `login` callback which can be used to retry a failed login.
+The `useMsalAuthentication` hook will initiate a login if a user is not already signed in, otherwise it will attempt to acquire a token.
 
-Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, when using the "Silent" type the request object is required and should contain either a `loginHint` or `sid` parameter.
+### Input Parameters
+
+- [interactionType](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.interactiontype.html) (Popup, Redirect, or Silent) specifies how you would like to acquire tokens or login when interaction is required (note the Silent option has some extra considerations explained below)
+- [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md) (optional) specifies additional parameters to be used by the login or token acquisition call
+- [accountIdentifiers](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html#accountidentifiers) object is used to tell the hook which user it should log-in or acquire tokens for
+
+### Return Properties
+
+- [result](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult) - The response from the last successful login or token acquisition. Note that this hook only attempts to login or acquire tokens automatically one time. It is the application's responsiblity to call the `login` or `acquireToken` function, when needed, to update this value.
+- [error](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.autherror.html) - If an error occurs during login or token acquisition this property will contain information about the error. You can use the `login` or `acquireToken` functions returned by this hook to retry. The `error` property will be cleared on the next successful login or token acquisition.
+- `login` - function which can be used to retry a failed login. The `response` and `error` properties will be updated.
+- `acquireToken` - function which can be used to get a new access token before calling a protected API. The `response` and `error` properties will be updated.
+
+Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, the request object is required when using the "Silent" type. If you already have the user's sign-in information, you can pass either the `loginHint` or `sid` optional parameters to sign-in a specific account. Note: there are [additional considerations](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) - when using `ssoSilent` without providing any information about the user's session.
 
 ### `ssoSilent` example
 
@@ -133,7 +165,7 @@ If you use silent you should catch any errors and attempt an interactive login a
 import React, { useEffect } from 'react';
 
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useMsalAuthentication } from "@azure/msal-react";
-import { InteractionType } from '@azure/msal-browser';
+import { InteractionType, InteractionRequiredAuthError } from '@azure/msal-browser';
 
 function App() {
     const request = {
@@ -143,7 +175,7 @@ function App() {
     const { login, result, error } = useMsalAuthentication(InteractionType.Silent, request);
 
     useEffect(() => {
-        if (error) {
+        if (error instanceof InteractionRequiredAuthError) {
             login(InteractionType.Popup, request);
         }
     }, [error]);
@@ -173,6 +205,7 @@ If you would like to ensure a specific user is signed in, provide an `accountIde
 ```javascript
 import React from 'react';
 import { useMsalAuthentication } from "@azure/msal-react";
+import { InteractionType } from '@azure/msal-browser';
 
 export function App() {
     const accountIdentifiers = {
@@ -182,7 +215,7 @@ export function App() {
         loginHint: "example-username",
         scopes: ["User.Read"]
     }
-    const [login, response, error] = useMsalAuthentication("popup", request, accountIdentifiers);
+    const [login, response, error] = useMsalAuthentication(InteractionType.Popup, request, accountIdentifiers);
 
     return (
         <React.Fragment>

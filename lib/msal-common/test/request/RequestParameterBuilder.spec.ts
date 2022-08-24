@@ -39,6 +39,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addCodeVerifier(TEST_CONFIG.TEST_VERIFIER);
         requestParameterBuilder.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameterBuilder.addSid(TEST_CONFIG.SID);
+        requestParameterBuilder.addLogoutHint(TEST_CONFIG.LOGIN_HINT);
 
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(requestQueryString.includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`)).toBe(true);
@@ -59,6 +60,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString.includes(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`)).toBe(true);
         expect(requestQueryString.includes(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`)).toBe(true);
         expect(requestQueryString.includes(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.LOGOUT_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`)).toBe(true);
     });
 
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
@@ -74,7 +76,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addPopToken("");
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(Object.keys(requestQueryString)).toHaveLength(0);
-        
+
         const requestParameterBuilder2 = new RequestParameterBuilder();
         //@ts-ignore
         requestParameterBuilder.addPopToken(undefined);
@@ -95,7 +97,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addSshJwk("");
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(Object.keys(requestQueryString)).toHaveLength(0);
-        
+
         const requestParameterBuilder2 = new RequestParameterBuilder();
         //@ts-ignore
         requestParameterBuilder.addSshJwk(undefined);
@@ -148,12 +150,46 @@ describe("RequestParameterBuilder unit tests", () => {
         );
     });
 
+    it("addResponseTypeForIdToken does add response_type correctly", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addResponseTypeForTokenAndIdToken();
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`)).toBe(true);
+    });
+
     it("throws error if claims is not stringified JSON object", () => {
         const claims = "not-a-valid-JSON-object";
         sinon.stub(RequestParameterBuilder.prototype, "addClientCapabilitiesToClaims").returns(claims);
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(() => requestParameterBuilder.addClaims(claims, [])).toThrowError(ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
         sinon.restore();
+    });
+
+    it("adds clientAssertion and assertionType if they are passed in as strings", () => {
+        const clientAssertion = {
+            assertion: "testAssertion",
+            assertionType: "jwt-bearer"        };
+
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
+        requestParameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLIENT_ASSERTION}=${encodeURIComponent("testAssertion")}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLIENT_ASSERTION_TYPE}=${encodeURIComponent("jwt-bearer")}`)).toBe(true);
+    });
+
+    it("doesn't add client assertion and client assertion type if they are empty strings", () => {
+        const clientAssertion = {
+            assertion: "",
+            assertionType: ""
+        };
+
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addClientAssertion(clientAssertion.assertion);
+        requestParameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION)).toBe(false);
+        expect(requestQueryString.includes(AADServerParamKeys.CLIENT_ASSERTION_TYPE)).toBe(false);
     });
 
     describe("CCS parameters", () => {
@@ -167,7 +203,7 @@ describe("RequestParameterBuilder unit tests", () => {
             const requestQueryString = requestParameterBuilder.createQueryString();
             expect(requestQueryString.includes(`${HeaderNames.CCS_HEADER}=${encodeURIComponent(`Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`)}`)).toBeTruthy();
         });
-        
+
         it("adds CCS parameter from given UPN", () => {
             const requestParameterBuilder = new RequestParameterBuilder();
             const testUpn = "AbeLi@microsoft.com";

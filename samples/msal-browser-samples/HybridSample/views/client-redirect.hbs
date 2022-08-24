@@ -1,0 +1,98 @@
+<a href="/">Go Back</a><br />
+<a href="/auth/logout">Logout</a>
+
+<script src="/auth/lib/msal-browser.js"></script>
+<script type="text/javascript">
+    const msalInstance = new msal.PublicClientApplication({
+        auth: {
+            clientId: "{{clientId}}",
+            redirectUri: "http://localhost:3000/auth/client-redirect",
+            authority: "{{authority}}"
+        }
+    })
+
+    // Only handle hash when in top frame
+    if (window === window.top) {
+        msalInstance.handleRedirectPromise()
+            .then(result => {
+                if (result) {
+                    console.log('MSAL: Returning from login');
+                    return result;
+                }
+                
+                const sid = "{{sid}}";
+                const code = "{{code}}";
+                const preferredUsername = "{{preferredUsername}}";
+                const loginHint = "{{{loginHint}}}";
+
+                const scopes = [ "user.read" ];
+                const tokenQueryParameters = {
+                    dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
+                    hybridspa: "true"
+                }
+
+                const hybridParams = !!(code);
+                console.log(`MSAL: Initiating client-side auth (hybrid: ${hybridParams})`);
+
+                if (hybridParams) {
+                    const timeLabel = "Time for acquireTokenByCode";
+                    console.time(timeLabel);
+                    console.log('MSAL: acquireTokenByCode hybrid parameters present');
+
+                    return msalInstance.acquireTokenByCode({
+                        code,
+                        scopes,
+                        tokenQueryParameters
+                    })
+                        .then(result => {
+                            console.timeEnd(timeLabel);
+                            console.log('MSAL: acquireTokenByCode completed successfully', result);
+                        })
+                        .catch(error => {
+                            console.timeEnd(timeLabel);
+                            console.error('MSAL: acquireTokenByCode failed', error);
+
+                            if (error instanceof msal.InteractionRequiredAuthError) {
+                                console.log('MSAL: acquireTokenByCode failed, redirecting')
+                                // Use loginHint from server to ensure same user
+                                return msalInstance.loginRedirect({
+                                    loginHint,
+                                    scopes
+                                })
+                            }
+                        });
+                } else {
+                    const timeLabel = "Time for ssoSilent";
+                    console.time(timeLabel);
+                    console.log('MSAL: ssoSilent hybrid parameters not present');
+
+                    return msalInstance.ssoSilent({
+                        sid: loginHint ? undefined : sid, // If loginHint claim is provided, dont use sid
+                        loginHint: loginHint || preferredUsername, // Prefer loginHint claim over email
+                        tokenQueryParameters,
+                        scopes
+                    })
+                        .then(result => {
+                            console.timeEnd(timeLabel);
+                            console.log('MSAL: ssoSilent completed successfully', result);
+                        })
+                        .catch((error) => {
+                            console.timeEnd(timeLabel);
+                            console.error('MSAL: ssoSilent failed', error);
+
+                            if (error instanceof msal.InteractionRequiredAuthError) {
+                                console.log('MSAL: ssoSilent failed, redirecting')
+                                // Use loginHint from server to ensure same user
+                                return msalInstance.loginRedirect({
+                                    loginHint,
+                                    scopes
+                                })
+                            }
+                        });
+                }
+            })
+            .catch(error => {
+                console.error("MSAL: Error returning from redirect", error);
+            });
+    }
+</script>

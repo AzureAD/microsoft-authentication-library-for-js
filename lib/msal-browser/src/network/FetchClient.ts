@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
+import { Constants, INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
@@ -51,7 +51,7 @@ export class FetchClient implements INetworkModule {
      * @param body 
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
-        const reqBody = (options && options.body) || "";
+        const reqBody = (options && options.body) || Constants.EMPTY_STRING;
 
         let response;
         try {

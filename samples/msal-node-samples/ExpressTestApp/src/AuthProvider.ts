@@ -26,7 +26,6 @@ import {
 } from '@azure/msal-node';
 
 import { ConfigurationUtils } from './ConfigurationUtils';
-import { TokenValidator } from './TokenValidator';
 
 import {
     AppSettings,
@@ -58,7 +57,6 @@ export class AuthProvider {
     msalClient: ConfidentialClientApplication;
 
     private cryptoProvider: CryptoProvider;
-    private tokenValidator: TokenValidator;
 
     constructor(appSettings: AppSettings, cache: ICachePlugin = null) {
         ConfigurationUtils.validateAppSettings(appSettings);
@@ -67,7 +65,6 @@ export class AuthProvider {
 
         this.appSettings = appSettings;
         this.msalConfig = ConfigurationUtils.getMsalConfiguration(appSettings, cache);
-        this.tokenValidator = new TokenValidator(this.appSettings, this.msalConfig);
         this.msalClient = new ConfidentialClientApplication(this.msalConfig);
     }
 
@@ -189,28 +186,17 @@ export class AuthProvider {
                         req.session.tokenRequest.code = req.query.code as string;
 
                         try {
+
                             // exchange auth code for tokens
                             const tokenResponse = await this.msalClient.acquireTokenByCode(req.session.tokenRequest)
                             console.log("\nResponse: \n:", tokenResponse);
 
-                            try {
-                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken);
+                            // assign session variables
+                            req.session.account = tokenResponse.account;
+                            req.session.isAuthenticated = true;
 
-                                if (isIdTokenValid) {
-
-                                    // assign session variables
-                                    req.session.account = tokenResponse.account;
-                                    req.session.isAuthenticated = true;
-
-                                    return res.status(200).redirect(this.appSettings.settings.homePageRoute);
-                                } else {
-                                    console.log(ErrorMessages.INVALID_TOKEN);
-                                    return res.status(401).send(ErrorMessages.NOT_PERMITTED);
-                                }
-                            } catch (error) {
-                                console.log(error);
-                                next(error);
-                            }
+                            return res.status(200).redirect(this.appSettings.settings.homePageRoute);
+                            
                         } catch (error) {
                             console.log(error);
                             next(error);

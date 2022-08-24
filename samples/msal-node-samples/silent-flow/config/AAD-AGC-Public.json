@@ -1,0 +1,19 @@
+{
+    "authOptions": {
+        "redirectUri": "http://localhost:3004/redirect"
+    },
+    "request": {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "http://localhost:3004/redirect"
+        },
+        "tokenRequest": {
+            "code": "",
+            "scopes": ["user.read"],
+            "redirectUri": "http://localhost:3004/redirect"
+        },
+        "silentRequest": {
+            "scopes": ["user.read"]
+        }
+    }
+}

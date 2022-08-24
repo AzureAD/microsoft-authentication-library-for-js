@@ -8,6 +8,7 @@ import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
+import { AuthenticationScheme } from "../../../src/utils/Constants";
 
 // mock tokens
 export const mockAccessTokenEntity_1 = {
@@ -106,6 +107,16 @@ export class mockCache {
     static createMockATTwo(): AccessTokenEntity {
         const at = new AccessTokenEntity();
         Object.assign(at, mockAccessTokenEntity_2);
+
+        return at;
+    }
+
+    static createMockAdfsAt(): AccessTokenEntity {
+        const at = new AccessTokenEntity();
+        Object.assign(at, mockAccessTokenEntity_1);
+
+        // @ts-ignore
+        at.tokenType = AuthenticationScheme.BEARER.toLowerCase(); // ADFS may return type as "bearer" (lowercase)
 
         return at;
     }

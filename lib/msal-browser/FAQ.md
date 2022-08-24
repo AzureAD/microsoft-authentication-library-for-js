@@ -167,7 +167,7 @@ For a full implementation, please refer to the app creation scripts in the [Vani
 
 The redirect flow can be confusing, as redirecting away from the page means you are creating a whole new instance of the application when you return. This means that calling a redirect method cannot return anything. Rather, what happens is that the page is redirected away, you enter your credentials, and you are redirected back to your application with the response in the url hash.
 
-If `navigateToRequestUrl` property in MSAL configuration parameters is set to **true**, you will be redirected again to the page you were on when you called `loginRedirect`, unless that page was also set as your `redirectUri`. On the final page your application must call `handleRedirectPromise()` in order to process the hash and cache tokens in local/session storage.
+If `navigateToLoginRequestUrl` property in MSAL configuration parameters is set to **true**, you will be redirected again to the page you were on when you called `loginRedirect`, unless that page was also set as your `redirectUri`. On the final page your application must call `handleRedirectPromise()` in order to process the hash and cache tokens in local/session storage.
 
 As this function returns a promise you can call `.then` and `.catch`, similar to `loginPopup`.
 
@@ -239,6 +239,10 @@ For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/micros
 
 The `authority` string that you need to supplant to MSAL app configuration is not explicitly listed among the **Endpoint** links on `Azure Portal/AzureAD/App Registration/Overview` page. It is simply the domain part of a `/token` or `/authorize` endpoint, followed by the tenant name or ID e.g. `https://login.microsoftonline.com/common`.
 
+## What does authority string default to if I provide "authority" and "azureCloudOptions"?
+
+If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value provided in the `authority`. MSAL.js will also give preference to the parameters provided in a `request` over `configuration`. Please note that if `azureCloudOptions` are set in the configuration, they will take precedence over `authority` in the `request`. If the developer needs to overwrite this, they need to set `azureCloudOptions` in the `request`.
+
 ## What should I set my `redirectUri` to?
 
 When you attempt to authenticate MSAL will navigate to your IDP's sign in page either in the current window, a popup window or a hidden iframe depending on whether you used a redirect, popup or silent API respectively. When authentication is complete the IDP will redirect the window to the `redirectUri` specified in the request with the authentication response in the url hash. You can use any page in your application as your `redirectUri` but there are some additional considerations you should be aware of depending on which API you are using. All pages used as a `redirectUri` **must** be registered as a Reply Url of type "SPA" on your app registration.
@@ -262,7 +266,7 @@ The library is built to specifically use the fragment response mode. This is a s
 
 ## How do I configure the position and dimensions of popups?
 
-A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. If no configurations are passed, MSAL defaults will be used. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details. 
+A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. If no configurations are passed, MSAL defaults will be used. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details.
 
 Note that popup dimensions should be positioned on screen and sized smaller than the parent window. Popups that are positioned off-screen or larger than the parent window will use MSAL defaults instead.
 
@@ -312,7 +316,7 @@ Please refer to our performance guide [here](https://github.com/AzureAD/microsof
 
 ## I'm seeing scopes `openid`, `profile`, `email`, `offline_access` and `User.Read` in my tokens, even though I haven't requested them. What are they?
 
-The first four (`openid`, `profile`, `email` and `offline_access`) are called **default scopes**. They are added to Azure AD as part of Azure AD - OAuth 2.0/OpenID Connect compliance. They are **not** part of any particular API. You can read more about them [here](https://openid.net/specs/openid-connect-core-1_0.html). 
+The first four (`openid`, `profile`, `email` and `offline_access`) are called **default scopes**. They are added to Azure AD as part of Azure AD - OAuth 2.0/OpenID Connect compliance. They are **not** part of any particular API. You can read more about them [here](https://openid.net/specs/openid-connect-core-1_0.html).
 
 The scope `User.Read`, on the other hand, is an MS Graph API scope. It is also added by default to every app registration. However if your application is not calling MS Graph API, you can simply ignore it.
 
@@ -329,6 +333,9 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 ## My application has multiple resources it needs to access to. How should I handle scopes for access tokens?
 
 Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
+
+## Register custom scopes for a web API
+[How to register custom scopes for my web API](https://docs.microsoft.com/azure/active-directory/develop/quickstart-configure-app-expose-web-apis).
 
 # B2C
 
@@ -366,7 +373,7 @@ Our recommendation is to move to the new password reset experience since it simp
 pca.loginPopup()
     .then((response) => {
         // do something with auth response
-    }).catch(error => {     
+    }).catch(error => {
         // Error handling
         if (error.errorMessage) {
             // Check for forgot password error
@@ -402,3 +409,5 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 
 In that case, please file a support ticket with the B2C team by following the instructions here: [B2C support options](https://docs.microsoft.com/azure/active-directory-b2c/support-options).
+
+
