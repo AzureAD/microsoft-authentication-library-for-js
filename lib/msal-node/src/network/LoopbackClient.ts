@@ -23,7 +23,7 @@ export class LoopbackClient {
         }
 
         return new Promise((resolve, reject) => {
-            this.server = createServer((req: IncomingMessage, res: ServerResponse) => {
+            this.server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
                 const url = req.url;
                 if (!url) {
                     res.end(errorTemplate || "Error occurred loading redirectUrl");
@@ -36,7 +36,7 @@ export class LoopbackClient {
     
                 const authCodeResponse = UrlString.getDeserializedQueryString(url);
                 if (authCodeResponse.code) {
-                    const redirectUri = `${Constants.HTTP_PROTOCOL}${req.headers.host}`;
+                    const redirectUri = await this.getRedirectUri();
                     res.writeHead(302, { location: redirectUri }); // Prevent auth code from being saved in the browser history
                     res.end();
                 }
@@ -50,7 +50,7 @@ export class LoopbackClient {
      * Get the port that the loopback server is running on
      * @returns 
      */
-    async getPort(): Promise<number> {
+    async getRedirectUri(): Promise<string> {
         if (!this.server) {
             throw NodeAuthError.createNoLoopbackServerExistsError();
         }
@@ -73,7 +73,7 @@ export class LoopbackClient {
             }, LOOPBACK_SERVER_CONSTANTS.GET_PORT_INTERVAL_MS);
         });
 
-        return port;
+        return `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}:${port}`;
     }
 
     /**

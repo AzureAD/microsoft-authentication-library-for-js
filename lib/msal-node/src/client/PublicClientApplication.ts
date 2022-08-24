@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId, Constants } from "../utils/Constants";
+import { ApiId } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
@@ -94,8 +94,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const loopbackClient = new LoopbackClient();
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
-        const port = await loopbackClient.getPort().catch((err) => {
-            // Close server and re-throw any error thrown when getting port
+        const redirectUri = await loopbackClient.getRedirectUri().catch((err) => {
+            // Close server and re-throw any error thrown when getting redirectUri
             loopbackClient.closeServer();
             throw err;
         });
@@ -103,7 +103,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const validRequest: AuthorizationUrlRequest = {
             ...remainingProperties,
             scopes: request.scopes || [],
-            redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}:${port}`,
+            redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
             codeChallenge: challenge, 
             codeChallengeMethod: CodeChallengeMethodValues.S256
