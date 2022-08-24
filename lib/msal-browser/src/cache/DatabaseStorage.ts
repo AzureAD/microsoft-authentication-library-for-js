@@ -67,7 +67,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
      */
     closeConnection(): void {
         const db = this.db;
-        if (db && this.dbOpen) {
+        if (db) {
+            console.log("CLOSING DB");
             db.close();
             this.dbOpen = false;
         }
@@ -235,21 +236,23 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             this.closeConnection();
         }
 
-        try {
-            // @ts-ignore
-            const existingDatabases = await window.indexedDB.databases();
-            const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
-            return (database) ? await this.deleteCurrentDatabase() : true;
-        } catch (e) {
-            // For cases where window.indexedDB.databases is not available
-            return await this.deleteCurrentDatabase();
-        }
-    }
-
-    async deleteCurrentDatabase(): Promise<boolean> {
+        /**
+         * Firefox doesn't support listing databases and window.indexedDB.deleteDatabase doesn't throw
+         * if the database doesn't exist so we attempt to delete the database without checking if it exists
+         */
         return new Promise<boolean>((resolve: Function, reject: Function) => {
             const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
             deleteDbRequest.addEventListener("success", () => resolve(true));
+            /**
+             * If the connection hasn't finished closing before deleteDatabase is called, 
+             * IndexedDB will fire a blocked event, but the database will still be deleted
+             * after the connection closes so we can treat it as a success case. Not handling
+             * the blocked event this way can reuslt in logout hanging indefinitely and requiring a reload.
+             * https://www.w3.org/TR/IndexedDB/#dfn-steps-for-deleting-a-database
+             */
+            deleteDbRequest.addEventListener("blocked", () => { 
+                resolve(true);
+            });
             deleteDbRequest.addEventListener("error", () => reject(false));
         });
     }

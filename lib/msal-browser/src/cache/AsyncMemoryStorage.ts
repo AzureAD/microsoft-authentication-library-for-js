@@ -124,13 +124,17 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         this.logger.verbose(`Deleting persistent keystore ${this.storeName}`);
         
         try {
-            const dbDeleted = await this.indexedDBCache.deleteDatabase();
-            
-            if (dbDeleted) {
-                this.logger.verbose(`Persistent keystore ${this.storeName} deleted`);
-            }
-            
-            return dbDeleted;
+            return this.indexedDBCache.deleteDatabase().then((dbDeleted) => {
+                console.log(dbDeleted);
+                if (dbDeleted) {
+                    this.logger.verbose(`Persistent keystore ${this.storeName} deleted`);
+                }
+                
+                return dbDeleted;
+            }).catch(() => {
+                return false;
+            });
+
         } catch (e) {
             this.handleDatabaseAccessError(e);
             return false;

@@ -57,7 +57,7 @@ function signOut() {
         account: myMSALObj.getAccountByUsername(username)
     };
 
-    myMSALObj.logoutRedirect(logoutRequest);
+    myMSALObj.logoutRedirect();
 }
 
 async function getPopToken() {
