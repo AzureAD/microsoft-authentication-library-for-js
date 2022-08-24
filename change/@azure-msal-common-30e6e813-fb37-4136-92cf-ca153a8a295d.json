@@ -1,9 +1,6 @@
 {
   "type": "minor",
-  "comment": {
-    "title": "",
-    "value": ""
-  },
+  "comment": "Added 'no_session' to prompt enum",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
