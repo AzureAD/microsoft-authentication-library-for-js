@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "@azure/msal-common";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { ISubtleCrypto } from "./ISubtleCrypto";
@@ -32,11 +33,11 @@ export class MsBrowserCrypto implements ISubtleCrypto {
                 const resultBuffer: ArrayBuffer = e.target.result;
 
                 const resultString = BrowserStringUtils.utf8ArrToString(new Uint8Array(resultBuffer))
-                    .replace(/\r/g, "")
-                    .replace(/\n/g, "")
-                    .replace(/\t/g, "")
-                    .split(" ").join("")
-                    .replace("\u0000", "");
+                    .replace(/\r/g, Constants.EMPTY_STRING)
+                    .replace(/\n/g, Constants.EMPTY_STRING)
+                    .replace(/\t/g, Constants.EMPTY_STRING)
+                    .split(" ").join(Constants.EMPTY_STRING)
+                    .replace("\u0000", Constants.EMPTY_STRING);
 
                 try {
                     resolve(JSON.parse(resultString));
