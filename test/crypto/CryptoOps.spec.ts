@@ -254,8 +254,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("hashString() returns a valid SHA-256 hash of an input string", async() => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
