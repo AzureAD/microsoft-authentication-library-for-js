@@ -12,6 +12,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type LoadTokenOptions = {
     clientInfo?: string,
+    expiresOn?: number,
     extendedExpiresOn?: number
 };
 
@@ -37,12 +38,12 @@ export class TokenCache implements ITokenCache {
         this.logger = logger;
         this.cryptoObj = cryptoObj;
     }
-    
+
     // Move getAllAccounts here and cache utility APIs
 
     /**
-     * API to load tokens to msal-browser cache. 
-     * @param request 
+     * API to load tokens to msal-browser cache.
+     * @param request
      * @param response
      * @param options
      */
@@ -58,13 +59,15 @@ export class TokenCache implements ITokenCache {
             this.loadAccessToken(request, response, request.account.homeAccountId, request.account.environment, request.account.tenantId, options);
         } else if (request.authority) {
 
+            const authorityUrl = Authority.generateAuthority(request.authority, request.azureCloudOptions);
             const authorityOptions: AuthorityOptions = {
                 protocolMode: this.config.auth.protocolMode,
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-                authorityMetadata: this.config.auth.authorityMetadata
+                authorityMetadata: this.config.auth.authorityMetadata,
+                skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
             };
-            const authority = new Authority(request.authority, this.config.system.networkClient, this.storage, authorityOptions);
+            const authority = new Authority(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
 
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {
@@ -85,19 +88,19 @@ export class TokenCache implements ITokenCache {
 
     /**
      * Helper function to load id tokens to msal-browser cache
-     * @param idToken 
-     * @param homeAccountId 
-     * @param environment 
-     * @param tenantId 
-     * @param options 
+     * @param idToken
+     * @param homeAccountId
+     * @param environment
+     * @param tenantId
+     * @param options
      */
     private loadIdToken(idToken: string, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(homeAccountId, environment, idToken, this.config.auth.clientId, tenantId);
         const idAuthToken = new AuthToken(idToken, this.cryptoObj);
         const accountEntity = options.clientInfo ?
-            AccountEntity.createAccount(options.clientInfo, homeAccountId, idAuthToken, undefined, undefined, undefined, undefined, environment) :
-            AccountEntity.createGenericAccount(homeAccountId, idAuthToken, undefined, undefined, undefined, undefined, environment);
+            AccountEntity.createAccount(options.clientInfo, homeAccountId, idAuthToken, undefined, undefined, undefined, environment) :
+            AccountEntity.createGenericAccount(homeAccountId, idAuthToken, undefined, undefined, undefined, environment);
 
         if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading id token");
@@ -110,13 +113,13 @@ export class TokenCache implements ITokenCache {
 
     /**
      * Helper function to load access tokens to msal-browser cache
-     * @param request 
-     * @param response 
-     * @param options 
-     * @param homeAccountId 
-     * @param environment 
-     * @param tenantId 
-     * @returns 
+     * @param request
+     * @param response
+     * @param options
+     * @param homeAccountId
+     * @param environment
+     * @param tenantId
+     * @returns
      */
     private loadAccessToken(request: SilentRequest, response: ExternalTokenResponse, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
@@ -132,9 +135,9 @@ export class TokenCache implements ITokenCache {
         if (!options.extendedExpiresOn) {
             throw BrowserAuthError.createUnableToLoadTokenError("Please provide an extendedExpiresOn value in the options.");
         }
-        
+
         const scopes = new ScopeSet(request.scopes).printScopes();
-        const expiresOn = response.expires_in;
+        const expiresOn = options.expiresOn || (response.expires_in + new Date().getTime() / 1000);
         const extendedExpiresOn = options.extendedExpiresOn;
 
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(homeAccountId, environment, response.access_token, this.config.auth.clientId, tenantId, scopes, expiresOn, extendedExpiresOn, this.cryptoObj);
@@ -147,3 +150,4 @@ export class TokenCache implements ITokenCache {
         }
     }
 }
+

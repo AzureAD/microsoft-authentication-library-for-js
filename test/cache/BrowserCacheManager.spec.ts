@@ -7,12 +7,13 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, ClientAuthError, AuthError } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
+import { ClientAuthErrorMessage } from "@azure/msal-common";
 
 describe("BrowserCacheManager tests", () => {
 
@@ -270,7 +271,7 @@ describe("BrowserCacheManager tests", () => {
                 );
 
                 it("getIdTokenCredential returns IdTokenEntity", () => {
-                    const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, "client-id", "tenantId", "oboAssertion");
+                    const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, "client-id", "tenantId");
 
                     browserLocalStorage.setIdTokenCredential(testIdToken);
                     browserSessionStorage.setIdTokenCredential(testIdToken);
@@ -515,6 +516,7 @@ describe("BrowserCacheManager tests", () => {
                 testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
                 testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
                 testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
+                testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
                 testObj.aliasesFromNetwork = false;
                 testObj.endpointsFromNetwork = false;
 
@@ -829,6 +831,12 @@ describe("BrowserCacheManager tests", () => {
             expect(document.cookie).toBe(`${msalCacheKey}=${cacheVal}`);
         });
 
+        it("sets samesite", () => {
+            const cookieSpy = jest.spyOn(document, "cookie", "set");
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(cookieSpy.mock.calls[0][0]).toContain("SameSite=Lax");
+        });
+
         it("getItemCookie()", () => {
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
             expect(browserSessionStorage.getItemCookie(msalCacheKey)).toBe(cacheVal);
@@ -1054,6 +1062,20 @@ describe("BrowserCacheManager tests", () => {
             browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             expect(browserStorage.getKeys()).toHaveLength(0);
         });
+        it("cleanRequestByInteractionType() interaction status even no request is in progress", () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {
+                ...cacheConfig,
+                storeAuthStateInCookie: true
+            }, browserCrypto, logger);
+            
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
+            expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+        });
 
         describe("getAccountInfoByFilter", () => {
             cacheConfig = {
@@ -1179,6 +1201,164 @@ describe("BrowserCacheManager tests", () => {
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
             });
+        });
+
+        describe("getAccountInfoByHints", () => {
+            cacheConfig = {
+                cacheLocation: BrowserCacheLocation.SessionStorage,
+                storeAuthStateInCookie: false,
+                secureCookies: false
+            };
+            logger = new Logger({
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+                piiLoggingEnabled: true
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+
+            const accountEntity1 = {
+                homeAccountId: "test-home-accountId-1",
+                localAccountId: "test-local-accountId-1",
+                username: "user-1@example.com",
+                environment: "test-environment-1",
+                realm: "test-tenantId-1",
+                name: "name-1",
+                idTokenClaims: {
+                    sid: "session-1"
+                },
+                authorityType: "AAD"
+            }
+
+            const accountEntity2 = {
+                homeAccountId: "test-home-accountId-2",
+                localAccountId: "test-local-accountId-2",
+                username: "user-2@example.com",
+                environment: "test-environment-2",
+                realm: "test-tenantId-2",
+                name: "name-2",
+                idTokenClaims: {
+                    sid: "session-2"
+                },
+                authorityType: "AAD"
+            }
+
+            const account1: AccountInfo = {
+                homeAccountId: accountEntity1.homeAccountId,
+                localAccountId: accountEntity1.localAccountId,
+                username: accountEntity1.username,
+                environment: accountEntity1.environment,
+                tenantId: accountEntity1.realm,
+                name: accountEntity1.name,
+                idTokenClaims: accountEntity1.idTokenClaims,
+                nativeAccountId: undefined
+            };
+
+            const account2: AccountInfo = {
+                homeAccountId: accountEntity2.homeAccountId,
+                localAccountId: accountEntity2.localAccountId,
+                username: accountEntity2.username,
+                environment: accountEntity2.environment,
+                tenantId: accountEntity2.realm,
+                name: accountEntity2.name,
+                idTokenClaims: accountEntity2.idTokenClaims,
+                nativeAccountId: undefined
+            };
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
+            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
+
+            beforeEach(() => {
+                browserStorage.setItem(cacheKey1, JSON.stringify(accountEntity1));
+                browserStorage.setItem(cacheKey2, JSON.stringify(accountEntity2));
+            });
+
+            afterEach(() => {
+                browserStorage.clear();
+            });
+
+            it("Matches account by loginHint", () => {
+                expect(browserStorage.getAccountInfoByHints(account1.username)).toEqual(account1);
+                expect(browserStorage.getAccountInfoByHints(account2.username)).toEqual(account2);
+            });
+
+            it("Matches account by sid", () => {
+                expect(browserStorage.getAccountInfoByHints(undefined, account1.idTokenClaims!.sid)).toEqual(account1);
+                expect(browserStorage.getAccountInfoByHints(undefined, account2.idTokenClaims!.sid)).toEqual(account2);
+            });
+
+            it("Throws if multiple accounts match by loginHint", (done) => {
+                const accountEntity3 = {
+                    homeAccountId: "test-home-accountId-3",
+                    localAccountId: "test-local-accountId-3",
+                    username: accountEntity1.username, // Keep this the same as account 1
+                    environment: "test-environment-3",
+                    realm: "test-tenantId-3",
+                    name: "name-3",
+                    idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1 
+                    authorityType: "AAD"
+                }
+
+                const account3: AccountInfo = {
+                    homeAccountId: accountEntity3.homeAccountId,
+                    localAccountId: accountEntity3.localAccountId,
+                    username: accountEntity3.username,
+                    environment: accountEntity3.environment,
+                    tenantId: accountEntity3.realm,
+                    name: accountEntity3.name,
+                    idTokenClaims: accountEntity3.idTokenClaims,
+                    nativeAccountId: undefined
+                };
+
+                const cacheKey3 = AccountEntity.generateAccountCacheKey(account3);
+                browserStorage.setItem(cacheKey3, JSON.stringify(accountEntity3));
+
+                try {
+                    browserStorage.getAccountInfoByHints(accountEntity3.username);
+                } catch (e) {
+                    expect((e as AuthError).errorCode).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
+                    expect((e as AuthError).errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+                    done();
+                }
+            });
+
+            it("Throws if multiple accounts match by sid", (done) => {
+                const accountEntity3 = {
+                    homeAccountId: "test-home-accountId-3",
+                    localAccountId: "test-local-accountId-3",
+                    username: accountEntity1.username, // Keep this the same as account 1
+                    environment: "test-environment-3",
+                    realm: "test-tenantId-3",
+                    name: "name-3",
+                    idTokenClaims: accountEntity1.idTokenClaims, // Keep this the same as account 1 
+                    authorityType: "AAD"
+                }
+
+                const account3: AccountInfo = {
+                    homeAccountId: accountEntity3.homeAccountId,
+                    localAccountId: accountEntity3.localAccountId,
+                    username: accountEntity3.username,
+                    environment: accountEntity3.environment,
+                    tenantId: accountEntity3.realm,
+                    name: accountEntity3.name,
+                    idTokenClaims: accountEntity3.idTokenClaims,
+                    nativeAccountId: undefined
+                };
+
+                const cacheKey3 = AccountEntity.generateAccountCacheKey(account3);
+                browserStorage.setItem(cacheKey3, JSON.stringify(accountEntity3));
+
+                try {
+                    browserStorage.getAccountInfoByHints(undefined, accountEntity3.idTokenClaims!.sid);
+                } catch (e) {
+                    expect((e as AuthError).errorCode).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.code);
+                    expect((e as AuthError).errorMessage).toEqual(ClientAuthErrorMessage.multipleMatchingAccounts.desc);
+                    done();
+                }
+            });
+
+            it("Returns null if no accounts match", () => {
+                expect(browserStorage.getAccountInfoByHints("fakeUser@contoso.com")).toBe(null);
+                expect(browserStorage.getAccountInfoByHints(undefined, "fake-sid")).toBe(null);
+            });
+
         });
     });
 });
