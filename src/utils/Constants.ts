@@ -167,7 +167,8 @@ export const PromptValue = {
     SELECT_ACCOUNT: "select_account",
     CONSENT: "consent",
     NONE: "none",
-    CREATE: "create"
+    CREATE: "create",
+    NO_SESSION: "no_session"
 };
 
 /**
