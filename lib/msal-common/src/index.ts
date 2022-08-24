@@ -15,7 +15,8 @@ export { ClientCredentialClient } from "./client/ClientCredentialClient";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
-export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
+export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, 
+    ApplicationTelemetry } from "./config/ClientConfiguration";
 export { IAppTokenProvider, AppTokenProviderParameters, AppTokenProviderResult } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
@@ -34,7 +35,8 @@ export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, 
+    ValidCredentialType } from "./cache/utils/CacheTypes";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -89,7 +91,9 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, Errors, ThrottlingConstants, THE_FAMILY_ID, 
+    PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, 
+    AuthenticationScheme, SSOTypes, PasswordGrantConstants, ClaimsRequestKeys } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
@@ -99,7 +103,8 @@ export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManage
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
 
 // Performance Telemetry
-export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent } from "./telemetry/performance/IPerformanceClient";
+export { IPerformanceClient, PerformanceCallbackFunction, 
+    InProgressPerformanceEvent } from "./telemetry/performance/IPerformanceClient";
 export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient";

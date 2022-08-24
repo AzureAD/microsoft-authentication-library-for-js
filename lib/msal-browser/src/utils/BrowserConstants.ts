@@ -126,7 +126,8 @@ export enum InteractionType {
 
 /**
  * Types of interaction currently in progress.
- * Used in events in wrapper libraries to invoke functions when certain interaction is in progress or all interactions are complete.
+ * Used in events in wrapper libraries to invoke functions when certain interaction is in progress 
+ * or all interactions are complete.
  */
 export enum InteractionStatus {
     /**
