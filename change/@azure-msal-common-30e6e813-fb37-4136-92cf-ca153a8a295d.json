@@ -1,0 +1,10 @@
+{
+  "type": "minor",
+  "comment": {
+    "title": "",
+    "value": ""
+  },
+  "packageName": "@azure/msal-common",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
