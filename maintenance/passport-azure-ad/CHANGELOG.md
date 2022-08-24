@@ -1,5 +1,8 @@
 <a name="4.0.0"></a>
 
+# 4.3.4
+- Update `passport` to 0.6.0: #5034
+
 # 4.3.3.
 - Replace `request` with native `https` module to resolve security vulnerability: #4805
 
