@@ -2,6 +2,96 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-browser_v2.28.1",
+      "version": "2.28.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cbd1697063b933c8b6bca93a14a645d1ef471f5c",
+            "comment": "Rename native request property scopes to scope #5043"
+          },
+          {
+            "author": "ellymakuba@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e035fe595a8f4b809514b1ad26ec9f7e3eb41161",
+            "comment": "adding network performance measurement #4834"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9520dd864e2fef29ceb8d8969d5c6ac88ea73a33",
+            "comment": "Send login_hint claim instead of sid if available #4990"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.3.0",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": " Package-lock updates"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-browser_v2.28.0",
+      "version": "2.28.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0c23631c04e48d14115fd7f2c74e3367bec6ea6f",
+            "comment": "Added new token size field in the perf telemetry data #4973"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1cf6266c2a5e52067744fe800772a7740670ca75",
+            "comment": "Add local cache support for JS-WAM bridge #4971"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.2.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ],
+        "patch": [
+          {
+            "author": "t-ssummers@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "aff6dd392ec3a07b6ef0375f625dbcb9617c2dbf",
+            "comment": "Fix bug with activeAccount when two accounts have same local account id #5004"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 05 Jul 2022 22:37:04 GMT",
       "tag": "@azure/msal-browser_v2.27.0",
       "version": "2.27.0",
