@@ -91,9 +91,9 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, Errors, ThrottlingConstants, THE_FAMILY_ID, 
-    PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, 
-    AuthenticationScheme, SSOTypes, PasswordGrantConstants, ClaimsRequestKeys } from "./utils/Constants";
+export { AuthenticationScheme, CacheAccountType, CacheSchemaType, CacheType, ClaimsRequestKeys, CredentialType, Constants, 
+    Errors, OIDC_DEFAULT_SCOPES, PasswordGrantConstants, PersistentCacheKeys, PromptValue, ResponseMode, 
+    SSOTypes, THE_FAMILY_ID, ThrottlingConstants } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

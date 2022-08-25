@@ -132,7 +132,7 @@ export enum AADServerParamKeys {
     X_APP_NAME = "x-app-name",
     X_APP_VER = "x-app-ver",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
-    ID_TOKEN_HINT= "id_token_hint",
+    ID_TOKEN_HINT = "id_token_hint",
     DEVICE_CODE = "device_code",
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
