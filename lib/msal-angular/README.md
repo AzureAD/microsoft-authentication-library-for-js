@@ -44,7 +44,7 @@ At a minimum, `@azure/msal-angular` will follow the [support schedule of the mai
 
 | MSAL Angular version | MSAL support status     | Supported Angular versions |
 |----------------------|-------------------------|----------------------------|
-| MSAL Angular v2      | Active development      | 9, 10, 11, 12, 13          |
+| MSAL Angular v2      | Active development      | 9, 10, 11, 12, 13, 14      |
 | MSAL Angular v1      | Active development      | 6, 7, 8, 9                 |
 | MSAL Angular v0      | In maintenance          | 4, 5                       |
 
@@ -139,7 +139,7 @@ This library controls how users sign-in and access services. We recommend you al
 
 ## Contribute
 
-We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.
+We enthusiastically welcome contributions and feedback. Please read the [contributing guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md) before you begin.
 
 ## Security Reporting
 

@@ -5,7 +5,7 @@
 
 import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
-import { TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
+import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -40,8 +40,20 @@ export class MockCache {
             "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         };
         const account = CacheManager.toObject(new AccountEntity(), accountData);
-
         this.cacheManager.setAccount(account);
+
+        const accountDataWithNativeAccountId = {
+            "username": "John Doe",
+            "localAccountId": "object1234",
+            "realm": "microsoft",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
+            "nativeAccountId": "mocked_native_account_id"
+        };
+        const accountWithNativeAccountId = CacheManager.toObject(new AccountEntity(), accountDataWithNativeAccountId);
+        this.cacheManager.setAccount(accountWithNativeAccountId);
     }
 
     // create id token entries in the cache
@@ -50,7 +62,7 @@ export class MockCache {
             "realm": "microsoft",
             "environment": "login.microsoftonline.com",
             "credentialType": "IdToken",
-            "secret": "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
+            "secret": TEST_TOKENS.IDTOKEN_V2,
             "clientId": "mock_client_id",
             "homeAccountId": "uid.utid"
         };
@@ -183,7 +195,7 @@ export class MockCache {
             "environment": "login.microsoftonline.com",
             "credentialType": "RefreshToken",
             "secret": "a refresh token",
-            "clientId": "mock_client_id_1",
+            "clientId": "mock_client_id",
             "homeAccountId": "uid.utid",
             "familyId": "1"
         };
@@ -196,7 +208,7 @@ export class MockCache {
         const appMetaData_data = {
             "environment": "login.microsoftonline.com",
             "familyId": "1",
-            "clientId": "mock_client_id_1"
+            "clientId": "mock_client_id"
         };
         const appMetaData = CacheManager.toObject(new AppMetadataEntity(), appMetaData_data);
         this.cacheManager.setAppMetadata(appMetaData);

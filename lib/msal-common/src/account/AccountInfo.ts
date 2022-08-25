@@ -12,6 +12,7 @@ import { TokenClaims } from "./TokenClaims";
  * - username               - preferred_username claim of the id_token that represents this account
  * - localAccountId         - Local, tenant-specific account identifer for this account object, usually used in legacy cases
  * - name                   - Full name for the account, including given name and family name
+ * - idToken                - raw ID token
  * - idTokenClaims          - Object contains claims from ID token
  * - localAccountId         - The user's account ID
  * - nativeAccountId        - The user's native account ID
@@ -23,6 +24,12 @@ export type AccountInfo = {
     username: string;
     localAccountId: string;
     name?: string;
+    idToken?: string;
     idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | object | undefined | unknown };
     nativeAccountId?: string;
+};
+
+export type ActiveAccountFilters = {
+    homeAccountId: string;
+    localAccountId: string;
 };
