@@ -101,16 +101,6 @@ export enum PerformanceEvents {
     RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
 
     /**
-     * Time spent creating default headers for requests to token endpoint
-     */
-    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
-
-    /**
-     * Time taken for token acquisition by broker
-     */
-    AcquireTokenByBroker = "acquireTokenByBroker",
-
-    /**
      * Time taken for acquiring refresh token , records RT size
      */
     RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
@@ -118,7 +108,17 @@ export enum PerformanceEvents {
     /**
      * Time taken for acquiring cached refresh token 
      */
-    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken"
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+
+    /**
+     * Time taken for token acquisition by broker
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker"
 
 }
 
