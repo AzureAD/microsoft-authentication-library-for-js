@@ -2,9 +2,9 @@
 
 ## The loadExternalTokens() API
 
-MSAL Browser starting version 2.17.0 has added the `loadExternalTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be fetched  using `acquireTokenSilent()`. 
+MSAL Browser starting version 2.17.0 has added the `loadExternalTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be fetched using `acquireTokenSilent()`. 
 
-**Note: This is an advanced feature that is intended for testing purposes in the browser environment only. Loading tokens to your application's cache may cause your app to break.**
+**Note: This is an advanced feature that is intended for testing purposes in the browser environment only. Loading tokens to your application's cache may cause your app to break. Additionally, we recommend `loadExternalTokens()` API to be used with unit and integration tests. For E2E testing, please refer to our [TestingSample](../../../samples/msal-browser-samples/TestingSample) instead.**
 
 The `loadExternalTokens()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance. 
 
@@ -21,7 +21,7 @@ See the type definitions for each, which can be imported from `@azure/msal-brows
 - [`ExternalTokenResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#externaltokenresponse)
     - Note that the server response you receive will also have a refresh token attached. Currently, `loadExternalTokens()` does not load refresh tokens.
 
-```js
+```ts
 export type LoadTokenOptions = {
     clientInfo?: string,
     extendedExpiresOn?: number
@@ -42,7 +42,7 @@ An account will also be set in the cache based on the information provided above
 
 See the code examples below:
 
-```js
+```ts
 const silentRequest: SilentRequest = {
     scopes: ["User.Read", "email"],
     account: {
@@ -55,15 +55,15 @@ const silentRequest: SilentRequest = {
 };
 
 const serverResponse: ExternalTokenResponse = {
-    token_type: "Bearer",
-    scopes: "User.Read email",
+    token_type: AuthenticationScheme.BEARER, // "Bearer"
+    scope: "User.Read email",
     expires_in: 3599,
     id_token: "id-token-here"
 }
 
 const loadTokenOptions: LoadTokenOptions = {};
 
-OR
+// OR
 
 const silentRequest: SilentRequest = {
     scopes: ["User.Read", "email"],
@@ -71,8 +71,8 @@ const silentRequest: SilentRequest = {
 };
 
 const serverResponse: ExternalTokenResponse = {
-    token_type: "Bearer",
-    scopes: "User.Read email",
+    token_type: AuthenticationScheme.BEARER, // "Bearer"
+    scope: "User.Read email",
     expires_in: 3599,
     id_token: "id-token-here",
 }
@@ -81,7 +81,7 @@ const loadTokenOptions: LoadTokenOptions = {
     clientInfo: "client-info-here"
 };
 
-OR
+// OR
 
 const silentRequest: SilentRequest = {
     scopes: ["User.Read", "email"],
@@ -89,8 +89,8 @@ const silentRequest: SilentRequest = {
 };
 
 const serverResponse: ExternalTokenResponse = {
-    token_type: "Bearer",
-    scopes: "User.Read email",
+    token_type: AuthenticationScheme.BEARER, // "Bearer"
+    scope: "User.Read email",
     expires_in: 3599,
     id_token: "id-token-here",
     client_info: "client-info-here"
@@ -112,7 +112,8 @@ Access tokens can optionally be loaded using `loadExternalTokens()`. Provide the
 1. The `LoadTokenOptions` object must also have an `extendedExpiresOn` value.
 
 See the code examples below:
-```js
+
+```ts
 const silentRequest: SilentRequest = {
     scopes: ["User.Read", "email"],
     account: {
@@ -125,8 +126,8 @@ const silentRequest: SilentRequest = {
 };
 
 const serverResponse: ExternalTokenResponse = {
-    token_type: "Bearer",
-    scopes: "User.Read email",
+    token_type: AuthenticationScheme.BEARER, // "Bearer"
+    scope: "User.Read email",
     expires_in: 3599,
     id_token: "id-token-here",
     access_token: "access-token-here"

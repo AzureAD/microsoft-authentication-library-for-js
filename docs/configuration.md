@@ -71,7 +71,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `clientId` | App ID of your application. Can be found in your [portal registration](../README#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
-| `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
+| `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}` (see [Authority](../../msal-common/docs/authority.md)) | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in absolute or relative URI format | Login request page (`window.location.href` of page which made auth request) |
@@ -85,9 +85,11 @@ const msalInstance = new PublicClientApplication(msalConfig);
 
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `cacheLocation` | Location of token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"` | `sessionStorage` |
+| `cacheLocation` | Location of token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
 | `storeAuthStateInCookie` | If true, stores cache items in cookies as well as browser cache. Should be set to true for use cases using IE. | boolean | `false` |
 | `secureCookies` | If true and `storeAuthStateInCookies` is also enabled, MSAL adds the `Secure` flag to the browser cookie so it can only be sent over HTTPS. | boolean | `false` |
+
+See [Caching in MSAL](./caching.md) for more.
 
 ### System Config Options
 
