@@ -105,7 +105,20 @@ export enum PerformanceEvents {
      */
     BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
 
-    AcquireTokenByBroker = "acquireTokenByBroker"
+    /**
+     * Time taken for token acquisition by broker
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker",
+
+    /**
+     * Time taken for acquiring refresh token , records RT size
+     */
+    RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
+
+    /**
+     * Time taken for acquiring cached refresh token 
+     */
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken"
 
 }
 

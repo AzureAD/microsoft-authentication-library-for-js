@@ -37,7 +37,7 @@ export class RefreshTokenClient extends BaseClient {
     }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         // @ts-ignore
-        const atsMeasurement = this.performanceClient?.startMeasurement("RefreshTokenClientAcquireToken", request.correlationId);
+        const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
@@ -51,18 +51,6 @@ export class RefreshTokenClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(response.body);
-        if (response.body?.refresh_token) {
-            atsMeasurement?.endMeasurement({
-                success: true,
-                refreshTokenSize: response?.body?.refresh_token.length
-            });
-        }
-        else {
-            atsMeasurement?.endMeasurement({
-                success: true,
-                refreshTokenSize: -1
-            });
-        }
 
         return responseHandler.handleServerTokenResponse(
             response.body,
@@ -73,7 +61,30 @@ export class RefreshTokenClient extends BaseClient {
             undefined,
             true,
             request.forceCache
-        );
+        ).then((result: AuthenticationResult) => {
+            if (response.body?.refresh_token) {
+                atsMeasurement?.endMeasurement({
+                    success: true,
+                    refreshTokenSize: response?.body?.refresh_token.length || 0
+                });
+            }
+            else {
+                atsMeasurement?.endMeasurement({
+                    success: true,
+                    refreshTokenSize: undefined
+                });
+            }
+
+            return result;
+        })
+        .catch((error) => {
+            atsMeasurement?.endMeasurement({
+                errorCode: error.errorCode,
+                subErrorCode: error.subError,
+                success: false
+            });
+            throw error;
+        });
     }
 
     /**
@@ -125,7 +136,7 @@ export class RefreshTokenClient extends BaseClient {
         // fetches family RT or application RT based on FOCI value
 
         // @ts-ignore
-        const atsMeasurement = this.performanceClient?.startMeasurement("RefreshTokenClientAcquireTokenWithCachedRefreshToken", request.correlationId);
+        const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
         if (!refreshToken) {
@@ -134,8 +145,7 @@ export class RefreshTokenClient extends BaseClient {
         }
         // attach cached RT size to the current measurement
         atsMeasurement?.endMeasurement({
-            success: true,
-            refreshTokenSize: refreshToken.secret.length
+            success: true
         });
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
