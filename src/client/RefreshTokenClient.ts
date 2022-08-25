@@ -32,7 +32,7 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
  */
 export class RefreshTokenClient extends BaseClient {
     constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
-        super(configuration,performanceClient);
+        super(configuration, performanceClient);
 
     }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
@@ -68,23 +68,17 @@ export class RefreshTokenClient extends BaseClient {
                     refreshTokenSize: response?.body?.refresh_token.length || 0
                 });
             }
-            else {
-                atsMeasurement?.endMeasurement({
-                    success: true,
-                    refreshTokenSize: undefined
-                });
-            }
-
             return result;
         })
-        .catch((error) => {
-            atsMeasurement?.endMeasurement({
-                errorCode: error.errorCode,
-                subErrorCode: error.subError,
-                success: false
+            .catch((error) => {
+                atsMeasurement?.endMeasurement({
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
+                    success: false,
+                    refreshTokenSize: undefined
+                });
+                throw error;
             });
-            throw error;
-        });
     }
 
     /**
