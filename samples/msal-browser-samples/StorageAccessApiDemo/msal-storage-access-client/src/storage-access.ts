@@ -19,26 +19,28 @@ export const checkStorageAccess = async (serverUrl: string = getServerUrl()): Pr
         // Add event listener for response from iframe
         const onMessageCallback = (ev: MessageEvent) => {
             // Step 4: Top frame receives result
-            ev.ports[0].addEventListener("message", (e) => {
-                console.log("Step 4: Top frame receives result")
-                console.log("Result", e.data);
-
-                // Clean up
-                ev.ports[0].close();
-                document.getElementById(iframe.id)?.remove();
-                window.removeEventListener("message", onMessageCallback);
+            if (ev.ports.length > 0 && ev.origin === getServerUrl()) {
+                ev.ports[0].addEventListener("message", (e) => {
+                    console.log("Step 4: Top frame receives result")
+                    console.log("Result", e.data);
     
-                return resolve({
-                    hasStorageAccess: e.data["hasStorageAccess"],
-                    canWriteCookies: e.data["canWriteCookies"]
-                })
-            });
-            ev.ports[0].start();
-    
-            // Step 2: Top frame echos ready event
-            if (ev.data === "ready") {
-                console.log("Step 2: Top frame echos ready");
-                ev.ports[0].postMessage("ready");
+                    // Clean up
+                    ev.ports[0].close();
+                    document.getElementById(iframe.id)?.remove();
+                    window.removeEventListener("message", onMessageCallback);
+        
+                    return resolve({
+                        hasStorageAccess: e.data["hasStorageAccess"],
+                        canWriteCookies: e.data["canWriteCookies"]
+                    })
+                });
+                ev.ports[0].start();
+        
+                // Step 2: Top frame echos ready event
+                if (ev.data === "ready") {
+                    console.log("Step 2: Top frame echos ready");
+                    ev.ports[0].postMessage("ready");
+                }
             }
         };
         window.addEventListener("message", onMessageCallback);
@@ -70,33 +72,35 @@ export const promptForStorageAccess = async (serverUrl: string = getServerUrl())
         // Add event listener for response from iframe
         const onMessageCallback = (ev: MessageEvent) => {
             // Step 4: Top frame receives result
-            ev.ports[0].addEventListener("message", (e) => {
-                console.log("Step 4: Top frame receives result")
-                console.log("Result", e.data);
-
-                // Message received to make iframe visible
-                if (!!e.data["promptForStorageAccess"]) {
-                    console.log("Message received to make iframe visible")
-                    iframe.style.display = "block";
-                    return;
+            if (ev.ports.length > 0 && ev.origin === getServerUrl()) {
+                ev.ports[0].addEventListener("message", (e) => {
+                    console.log("Step 4: Top frame receives result")
+                    console.log("Result", e.data);
+    
+                    // Message received to make iframe visible
+                    if (!!e.data["promptForStorageAccess"]) {
+                        console.log("Message received to make iframe visible")
+                        iframe.style.display = "block";
+                        return;
+                    }
+    
+                    // Clean up
+                    ev.ports[0].close();
+                    document.getElementById(iframe.id)?.remove();
+                    window.removeEventListener("message", onMessageCallback);
+        
+                    return resolve({
+                        hasStorageAccess: e.data["hasStorageAccess"],
+                        canWriteCookies: e.data["canWriteCookies"]
+                    })
+                });
+                ev.ports[0].start();
+        
+                // Step 2: Top frame echos ready event
+                if (ev.data === "ready") {
+                    console.log("Step 2: Top frame echos ready");
+                    ev.ports[0].postMessage("ready");
                 }
-
-                // Clean up
-                ev.ports[0].close();
-                document.getElementById(iframe.id)?.remove();
-                window.removeEventListener("message", onMessageCallback);
-    
-                return resolve({
-                    hasStorageAccess: e.data["hasStorageAccess"],
-                    canWriteCookies: e.data["canWriteCookies"]
-                })
-            });
-            ev.ports[0].start();
-    
-            // Step 2: Top frame echos ready event
-            if (ev.data === "ready") {
-                console.log("Step 2: Top frame echos ready");
-                ev.ports[0].postMessage("ready");
             }
         };
         window.addEventListener("message", onMessageCallback);
@@ -109,7 +113,7 @@ export const promptForStorageAccess = async (serverUrl: string = getServerUrl())
 
 export function getServerUrl() {
     if (window.location.href.includes("azurestaticapps")) {
-        return "https://black-meadow-0b8da171e.1.azurestaticapps.net/";
+        return "https://black-meadow-0b8da171e.1.azurestaticapps.net";
     }
 
     return "http://localhost:4000";

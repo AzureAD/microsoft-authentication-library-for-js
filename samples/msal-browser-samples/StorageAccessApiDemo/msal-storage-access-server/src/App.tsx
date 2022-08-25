@@ -8,7 +8,7 @@ initializeIcons();
 
 function getClientUrl() {
     if (window.location.href.includes("azurestaticapps")) {
-        return "https://icy-ocean-083803b1e.1.azurestaticapps.net/";
+        return "https://icy-ocean-083803b1e.1.azurestaticapps.net";
     }
 
     return "http://localhost:3000";
