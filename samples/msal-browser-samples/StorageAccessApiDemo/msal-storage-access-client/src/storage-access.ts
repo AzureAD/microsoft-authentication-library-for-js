@@ -108,5 +108,9 @@ export const promptForStorageAccess = async (serverUrl: string = getServerUrl())
 
 
 export function getServerUrl() {
+    if (window.location.href.includes("azurestaticapps")) {
+        return "https://black-meadow-0b8da171e.1.azurestaticapps.net/";
+    }
+
     return "http://localhost:4000";
 }
