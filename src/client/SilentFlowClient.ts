@@ -39,7 +39,6 @@ export class SilentFlowClient extends BaseClient {
             }
         }
     }
-
     /**
      * Retrieves token from cache or throws an error if it must be refreshed.
      * @param request
