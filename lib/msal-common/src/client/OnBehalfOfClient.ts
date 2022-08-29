@@ -221,10 +221,11 @@ export class OnBehalfOfClient extends BaseClient {
             reqTimestamp,
             request,
             undefined,
+            userAssertionHash,
             undefined,
-            undefined,
-            response.headers["x-ms-httpver"],
-            userAssertionHash
+            undefined, 
+            response.headers["x-ms-httpver"]
+            
         );
 
         return tokenResponse;

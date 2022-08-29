@@ -189,6 +189,8 @@ export abstract class ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
+        // Block token acquisition before initialize has been called if native brokering is enabled
+        BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
 
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {

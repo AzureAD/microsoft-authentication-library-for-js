@@ -58,8 +58,8 @@ export class RefreshTokenClient extends BaseClient {
             undefined,
             undefined,
             true,
-            response.headers["x-ms-httpver"],
-            request.forceCache
+            request.forceCache, 
+            response.headers["x-ms-httpver"] 
         );
     }
 
