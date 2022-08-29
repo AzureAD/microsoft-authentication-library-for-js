@@ -43,7 +43,8 @@ export class ScopeSet {
 
     /**
      * Used to validate the scopes input parameter requested  by the developer.
-     * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
+     * @param {Array<string>} inputScopes - Developer requested permissions. 
+     * Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
      */
     private validateInputScopes(inputScopes: Array<string>): void {
