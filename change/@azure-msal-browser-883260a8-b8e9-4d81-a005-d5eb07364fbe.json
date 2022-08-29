@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "RT size in telemetry data",
+  "type": "patch",
+  "comment": "RT size in telemetry data #5063",
   "packageName": "@azure/msal-browser",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
