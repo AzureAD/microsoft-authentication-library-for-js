@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-const { exec } = require('child_process');
-const waitOn  = require('wait-on');
+const { spawn } = require('child_process');
+const http = require("http");
 const find = require("find-process");
 const path = require("path");
 
@@ -12,20 +12,59 @@ const path = require("path");
  * Returns boolean true/false if the given port is currently serving
  */
 async function isServerUp(port, timeout) {
-    try {
-        await waitOn({ resources: [`http://localhost:${port}`], timeout: timeout});
-    } catch (e) {
-        return false;
-    }
+    return new Promise((resolve) => {
+        const startTime = Date.now();
+        const interval = setInterval(() => {
+            if ((Date.now() - startTime) > timeout) {
+                resolve(false);
+                clearInterval(interval);
+                return;
+            }
 
-    return true;
+            const request = {
+                protocol: "http:",
+                host: "localhost",
+                port: port,
+                family: 4
+            };
+
+            http.get(request, (res) => {
+                const { statusCode } = res;
+    
+                if (statusCode === 200) {
+                    resolve(true);
+                    clearInterval(interval);
+                }
+            }).on('error', (e) => {
+                // errors will be raised until the server is up. Ignore errors
+            });
+        }, 100);
+    });
 }
 
 /**
  * Spawns a child process to serve the sample
  */
-function startServer(cmd, directory, callback) {
-    exec(cmd, {cwd: directory}, callback);
+function startServer(cmd, directory) {
+    const serverProcess = spawn(cmd, {shell: true, cwd: directory});
+
+    serverProcess.on('error', (err) => {
+        console.error('Failed to start sample.');
+        throw err;
+      });
+
+    serverProcess.stdout.on('data', (data) => {
+        console.log(`stdout: ${data}`);
+    });
+      
+    serverProcess.stderr.on('data', (data) => {
+        console.error(`stderr: ${data}`);
+    });
+    
+    serverProcess.on('close', (code) => {
+        console.log(`child process exited with code ${code}`);
+    });
+
 }
 
 /**
