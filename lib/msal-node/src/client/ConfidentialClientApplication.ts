@@ -19,6 +19,7 @@ import {
     AuthError,
     Constants,
     OIDC_DEFAULT_SCOPES
+    IAppTokenProvider
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -30,6 +31,7 @@ import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
  * @public
  */
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
+    private appTokenProvider?: IAppTokenProvider;
 
     /**
      * Constructor for the ConfidentialClientApplication
@@ -53,6 +55,17 @@ export class ConfidentialClientApplication extends ClientApplication implements 
     constructor(configuration: Configuration) {
         super(configuration);
         this.setClientCredential(this.config);
+        this.appTokenProvider = undefined;
+    }
+
+    /**               
+     * This extensibility point only works for the client_credential flow, i.e. acquireTokenByClientCredential and
+     * is meant for Azure SDK to enhance Managed Identity support.
+     * 
+     * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.     
+     */
+    SetAppTokenProvider(provider: IAppTokenProvider): void {
+        this.appTokenProvider = provider;
     }
 
     /**
@@ -96,7 +109,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 azureRegionConfiguration,
                 request.azureCloudOptions
             );
-            const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
+            const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig, this.appTokenProvider);
             this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
         } catch (e) {
@@ -152,6 +165,14 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             privateKey: Constants.EMPTY_STRING
         };
         const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
+
+        /*
+         * If app developer configures this callback, they don't need a credential
+         * i.e. AzureSDK can get token from Managed Identity without a cert / secret
+         */
+        if (this.appTokenProvider) {
+            return;
+        }
 
         // Check that at most one credential is set on the application
         if (

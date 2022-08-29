@@ -46,7 +46,7 @@ export type ClientConfiguration = {
     telemetry?: TelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
-    serializableCache?: ISerializableTokenCache | null
+    serializableCache?: ISerializableTokenCache | null,        
 };
 
 export type CommonClientConfiguration = {
@@ -61,7 +61,7 @@ export type CommonClientConfiguration = {
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
-    serializableCache: ISerializableTokenCache | null
+    serializableCache: ISerializableTokenCache | null,     
 };
 
 /**
@@ -214,7 +214,7 @@ export function buildClientConfiguration(
         telemetry: telemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
-        serializableCache: serializableCache
+        serializableCache: serializableCache,                 
     }: ClientConfiguration): CommonClientConfiguration {
 
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
@@ -231,7 +231,7 @@ export function buildClientConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
-        serializableCache: serializableCache || null
+        serializableCache: serializableCache || null,              
     };
 }
 

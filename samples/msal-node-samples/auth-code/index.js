@@ -6,6 +6,7 @@
 const express = require("express");
 const session = require("express-session")
 const msal = require('@azure/msal-node');
+const url = require('url');
 
 /**
  * Command line arguments can be used to configure:
@@ -24,7 +25,7 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the customConfig.json file in the
  * /config directory.
- * 
+ *
  * You can create your own configuration file and replace the path inside the "config" require statement below
  * with the path to your custom configuraiton.
  */
@@ -52,10 +53,13 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     const requestConfig = scenarioConfig.request;
 
     app.get("/", (req, res) => {
+        // if redirectUri is set to the main route "/", redirect to "/redirect" route for handling authZ code
+        if (req.query.code ) return res.redirect(url.format({pathname: "/redirect", query: req.query}));
+
         const { authCodeUrlParameters } = requestConfig;
 
         const cryptoProvider = new msal.CryptoProvider()
-            
+
         if (req.query) {
             // Check for the state parameter
             if(req.query.state) authCodeUrlParameters.state = req.query.state;
@@ -64,9 +68,9 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
              * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
              * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
              * used to populate the nonce value if none is provided.
-             * 
+             *
              * The generated nonce is then cached and passed as part of authCodeUrlParameters during authentication request.
-             * 
+             *
              * For more information about nonce,
              * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
              */
@@ -88,13 +92,13 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         }
 
         req.session.nonce = authCodeUrlParameters.nonce //switch to a more persistent storage method.
-        
+
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.getAuthCodeUrl API.
-         * 
+         *
          * Authorization Code Grant: First Leg
-         * 
+         *
          * In this code block, the application uses MSAL to obtain an authorization code request URL. Once the URL is
          * returned by MSAL, the express application is redirected to said request URL, concluding the first leg of the
          * Authorization Code Grant flow.
@@ -110,11 +114,11 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.
-         * 
+         *
          * Authorization Code Grant: Second Leg
-         * 
+         *
          * In this code block, the application uses MSAL to obtain an Access Token from the configured authentication service.
-         * The cached nonce is passed in authCodeResponse object and shall later be validated by MSAL once the Access Token and ID 
+         * The cached nonce is passed in authCodeResponse object and shall later be validated by MSAL once the Access Token and ID
          * token are returned.
          * The response contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
          * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
@@ -147,7 +151,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             piiLoggingEnabled: false,
         logLevel: msal.LogLevel.Verbose,
     }
-    
+
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
         auth: config.authOptions,
@@ -158,11 +162,11 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         /*
          *   system: {
          *    loggerOptions: loggerOptions
-         *   } 
+         *   }
          */
     };
-    
-    // Create an MSAL PublicClientApplication object 
+
+    // Create an MSAL PublicClientApplication object
     const publicClientApplication = new msal.PublicClientApplication(clientConfig);
 
     // Execute sample application with the configured MSAL PublicClientApplication

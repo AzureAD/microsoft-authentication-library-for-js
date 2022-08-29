@@ -457,6 +457,13 @@ export const AUTHORIZATION_PENDING_RESPONSE = {
     }
 };
 
+export const SERVER_UNEXPECTED_ERROR = {
+    status: 503,
+    body: {
+        error: "Service Unavailable"
+    }
+};
+
 export const DEFAULT_NETWORK_IMPLEMENTATION = {
     sendGetRequestAsync: async (): Promise<any> => {
         return { test: "test" };
@@ -494,6 +501,14 @@ export const CACHE_MOCKS = {
         environment: "login.microsoftonline.com",
         tenantId: "microsoft",
         username: "mocked_username"
+    },
+    MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID: {
+        homeAccountId: "uid.utid",
+        localAccountId: "uid",
+        environment: "login.microsoftonline.com",
+        tenantId: "microsoft",
+        username: "mocked_username",
+        nativeAccountId: "mocked_native_account_id"
     },
 };
 
