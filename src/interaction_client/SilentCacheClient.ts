@@ -59,7 +59,6 @@ export class SilentCacheClient extends StandardInteractionClient {
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<SilentFlowClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
-
         return new SilentFlowClient(clientConfig, this.performanceClient);
     }
 
