@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Fixing linter errors #6861",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "none"
+}
