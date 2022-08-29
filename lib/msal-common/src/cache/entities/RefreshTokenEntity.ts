@@ -17,7 +17,8 @@ import { CredentialType } from "../../utils/Constants";
  * {
  *      homeAccountId: home account identifier for the auth scheme,
  *      environment: entity that issued the token, represented as a full host
- *      credentialType: Type of credential as a string, can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
+ *      credentialType: Type of credential as a string, 
+ *              can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
  *      clientId: client ID of the application
  *      secret: Actual credential as a string
  *      familyId: Family ID identifier, '1' represents Microsoft Family

@@ -3,7 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, CLIENT_INFO, AuthenticationScheme, ClaimsRequestKeys, PasswordGrantConstants, OIDC_DEFAULT_SCOPES, ThrottlingConstants, HeaderNames} from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, CLIENT_INFO, 
+    AuthenticationScheme, ClaimsRequestKeys, PasswordGrantConstants, OIDC_DEFAULT_SCOPES, 
+    ThrottlingConstants, HeaderNames} from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
@@ -35,7 +37,8 @@ export class RequestParameterBuilder {
      */
     addResponseTypeForTokenAndIdToken(): void {
         this.parameters.set(
-            AADServerParamKeys.RESPONSE_TYPE, encodeURIComponent(`${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`)
+            AADServerParamKeys.RESPONSE_TYPE, 
+            encodeURIComponent(`${Constants.TOKEN_RESPONSE_TYPE} ${Constants.ID_TOKEN_RESPONSE_TYPE}`)
         );
     }
 

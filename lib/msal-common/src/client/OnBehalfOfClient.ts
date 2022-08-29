@@ -8,7 +8,8 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, AuthenticationScheme } from "../utils/Constants";
+import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, 
+    AuthenticationScheme } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
@@ -51,7 +52,10 @@ export class OnBehalfOfClient extends BaseClient {
         try {
             return await this.getCachedAuthenticationResult(request);
         } catch (e) {
-            // Any failure falls back to interactive request, once we implement distributed cache, we plan to handle `createRefreshRequiredError` to refresh using the RT
+            /*
+             * Any failure falls back to interactive request, once we implement distributed cache, 
+             * we plan to handle `createRefreshRequiredError` to refresh using the RT
+             */
             return await this.executeTokenRequest(request, this.authority, this.userAssertionHash);
         }
     }
@@ -60,7 +64,8 @@ export class OnBehalfOfClient extends BaseClient {
      * look up cache for tokens
      * Find idtoken in the cache
      * Find accessToken based on user assertion and account info in the cache
-     * Please note we are not yet supported OBO tokens refreshed with long lived RT. User will have to send a new assertion if the current access token expires
+     * Please note we are not yet supported OBO tokens refreshed with long lived RT. 
+     * User will have to send a new assertion if the current access token expires
      * This is to prevent security issues when the assertion changes over time, however, longlived RT helps retaining the session
      * @param request
      */
@@ -76,7 +81,9 @@ export class OnBehalfOfClient extends BaseClient {
         } else if (TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             // Access token expired, will need to renewed
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
-            this.logger.info(`OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`);
+            this.logger.info(
+                `OnbehalfofFlow:getCachedAuthenticationResult - Cached access token is expired or will \
+                expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`);
             throw ClientAuthError.createRefreshRequiredError();
         }
 
@@ -119,7 +126,8 @@ export class OnBehalfOfClient extends BaseClient {
     }
 
     /**
-     * read idtoken from cache, this is a specific implementation for OBO as the requirements differ from a generic lookup in the cacheManager
+     * read idtoken from cache, this is a specific implementation for OBO as the requirements differ 
+     * from a generic lookup in the cacheManager
      * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
      * @param request
      */
@@ -154,7 +162,9 @@ export class OnBehalfOfClient extends BaseClient {
          * Distinguish between Bearer and PoP/SSH token cache types
          * Cast to lowercase to handle "bearer" from ADFS
          */
-        const credentialType = (authScheme && authScheme.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
+        const credentialType = (authScheme && authScheme.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) 
+            ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME 
+            : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,

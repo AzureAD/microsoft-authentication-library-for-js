@@ -23,7 +23,8 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  * {
  *      homeAccountId: home account identifier for the auth scheme,
  *      environment: entity that issued the token, represented as a full host
- *      credentialType: Type of credential as a string, can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
+ *      credentialType: Type of credential as a string, 
+ *              can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
  *      clientId: client ID of the application
  *      secret: Actual credential as a string
  *      familyId: Family ID identifier, usually only used for refresh tokens
@@ -31,7 +32,8 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
  *      cachedAt: Absolute device time when entry was created in the cache.
  *      expiresOn: Token expiry time, calculated based on current UTC time in seconds. Represented as a string.
- *      extendedExpiresOn: Additional extended expiry time until when token is valid in case of server-side outage. Represented as string in UTC seconds.
+ *      extendedExpiresOn:  Additional extended expiry time until when token is valid in case of server-side outage. 
+ *                          Represented as string in UTC seconds.
  *      keyId: used for POP and SSH tokenTypes
  *      tokenType: Type of the token issued. Usually "Bearer"
  * }
@@ -87,7 +89,8 @@ export class AccessTokenEntity extends CredentialEntity {
 
         /*
          * Token expiry time.
-         * This value should be  calculated based on the current UTC time measured locally and the value  expires_in Represented as a string in JSON.
+         * This value should be calculated based on the current UTC time measured locally 
+         * and the value  expires_in Represented as a string in JSON.
          */
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
@@ -149,7 +152,8 @@ export class AccessTokenEntity extends CredentialEntity {
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("secret") &&
             entity.hasOwnProperty("target") &&
-            (entity["credentialType"] === CredentialType.ACCESS_TOKEN || entity["credentialType"] === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
+            (entity["credentialType"] === CredentialType.ACCESS_TOKEN || 
+                entity["credentialType"] === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
         );
     }
 }

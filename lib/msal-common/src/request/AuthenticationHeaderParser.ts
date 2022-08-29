@@ -37,7 +37,9 @@ export class AuthenticationHeaderParser {
             if (authenticationInfoChallenges.nextnonce) {
                 return authenticationInfoChallenges.nextnonce;
             }
-            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(HeaderNames.AuthenticationInfo, "nextnonce challenge is missing.");
+            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(
+                HeaderNames.AuthenticationInfo, 
+                "nextnonce challenge is missing.");
         }
 
         // Attempt to parse nonce from WWW-Authenticate
@@ -47,7 +49,9 @@ export class AuthenticationHeaderParser {
             if (wwwAuthenticateChallenges.nonce){
                 return wwwAuthenticateChallenges.nonce;
             }
-            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(HeaderNames.WWWAuthenticate, "nonce challenge is missing.");
+            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(
+                HeaderNames.WWWAuthenticate, 
+                "nonce challenge is missing.");
         }
 
         // If neither header is present, throw missing headers error

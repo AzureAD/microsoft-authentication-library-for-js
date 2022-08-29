@@ -58,14 +58,18 @@ export class SilentFlowClient extends BaseClient {
             throw ClientAuthError.createRefreshRequiredError();
         }
 
-        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
+        /*
+         * We currently do not support silent flow for account === null use cases; 
+         * This will be revisited for confidential flow usecases
+         */
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
 
         const environment = request.authority || this.authority.getPreferredCache();
 
-        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, request, environment);
+        const cacheRecord = this.cacheManager.readCacheRecord(
+            request.account, this.config.authOptions.clientId, request, environment);
 
         if (!cacheRecord.accessToken) {
             // Must refresh due to non-existent access_token.
@@ -78,12 +82,15 @@ export class SilentFlowClient extends BaseClient {
         ) {
             // Must refresh due to expired access_token.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
-            this.logger.info(`SilentFlowClient:acquireCachedToken - Cached access token is expired or will expire within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`);
+            this.logger.info(
+                `SilentFlowClient:acquireCachedToken - Cached access token is expired or will expire \
+                within ${this.config.systemOptions.tokenRenewalOffsetSeconds} seconds.`);
             throw ClientAuthError.createRefreshRequiredError();
         } else if (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)) {
             // Must refresh due to the refresh_in value.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN);
-            this.logger.info("SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'.");
+            this.logger.info(
+                "SilentFlowClient:acquireCachedToken - Cached access token's refreshOn property has been exceeded'.");
             throw ClientAuthError.createRefreshRequiredError();
         }
 
@@ -98,7 +105,9 @@ export class SilentFlowClient extends BaseClient {
      * Helper function to build response object from the CacheRecord
      * @param cacheRecord
      */
-    private async generateResultFromCacheRecord(cacheRecord: CacheRecord, request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+    private async generateResultFromCacheRecord(
+        cacheRecord: CacheRecord, 
+        request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         let idTokenObj: AuthToken | undefined;
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);

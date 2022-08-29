@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, Separators, CacheOutcome, Constants, RegionDiscoverySources, RegionDiscoveryOutcomes } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, Separators, CacheOutcome, Constants, RegionDiscoverySources, 
+    RegionDiscoveryOutcomes } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
@@ -42,7 +43,8 @@ export class ServerTelemetryManager {
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
         const requestWithRegionDiscoveryFields = [request, regionDiscoveryFields].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
-        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, 
+            requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }
 
     /**
@@ -60,7 +62,10 @@ export class ServerTelemetryManager {
         const overflow = maxErrors < errorCount ? SERVER_TELEM_CONSTANTS.OVERFLOW_TRUE : SERVER_TELEM_CONSTANTS.OVERFLOW_FALSE;
         const platformFields = [errorCount, overflow].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
-        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, lastRequests.cacheHits, failedRequests, errors, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, 
+            lastRequests.cacheHits, 
+            failedRequests, errors, platformFields]
+            .join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }
 
     /**
@@ -127,7 +132,10 @@ export class ServerTelemetryManager {
         } else {
             // Partial data was flushed to server, construct a new telemetry cache item with errors that were not flushed
             const serverTelemEntity = new ServerTelemetryEntity();
-            serverTelemEntity.failedRequests = lastRequests.failedRequests.slice(numErrorsFlushed*2); // failedRequests contains 2 items for each error
+            serverTelemEntity.failedRequests 
+                = lastRequests
+                    .failedRequests
+                    .slice(numErrorsFlushed*2); // failedRequests contains 2 items for each error
             serverTelemEntity.errors = lastRequests.errors.slice(numErrorsFlushed);
 
             this.cacheManager.setServerTelemetry(this.telemetryCacheKey, serverTelemEntity);
@@ -149,7 +157,10 @@ export class ServerTelemetryManager {
             const correlationId = serverTelemetryEntity.failedRequests[2*i + 1] || Constants.EMPTY_STRING;
             const errorCode = serverTelemetryEntity.errors[i] || Constants.EMPTY_STRING;
 
-            // Count number of characters that would be added to header, each character is 1 byte. Add 3 at the end to account for separators
+            /*
+             * Count number of characters that would be added to header, each character is 1 byte. 
+             * Add 3 at the end to account for separators
+             */
             dataSize += apiId.toString().length + correlationId.toString().length + errorCode.length + 3;
 
             if (dataSize < SERVER_TELEM_CONSTANTS.MAX_LAST_HEADER_BYTES) {

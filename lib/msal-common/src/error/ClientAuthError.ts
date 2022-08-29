@@ -35,7 +35,8 @@ export const ClientAuthErrorMessage = {
     },
     unableToGetOpenidConfigError: {
         code: "openid_config_error",
-        desc: "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints."
+        desc: "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint \
+        returns the required endpoints."
     },
     hashNotDeserialized: {
         code: "hash_not_deserialized",
@@ -47,7 +48,8 @@ export const ClientAuthErrorMessage = {
     },
     invalidStateError: {
         code: "invalid_state",
-        desc: "State was not the expected format. Please check the logs to determine whether the request was sent using ProtocolUtils.setRequestState()."
+        desc: "State was not the expected format. Please check the logs to determine whether \
+        the request was sent using ProtocolUtils.setRequestState()."
     },
     stateMismatchError: {
         code: "state_mismatch",
@@ -67,7 +69,8 @@ export const ClientAuthErrorMessage = {
     },
     noTokensFoundError: {
         code: "no_tokens_found",
-        desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken()."
+        desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. \
+        You must retrieve an authorization code before making a call to acquireToken()."
     },
     multipleMatchingTokens: {
         code: "multiple_matching_tokens",
@@ -76,11 +79,13 @@ export const ClientAuthErrorMessage = {
     },
     multipleMatchingAccounts: {
         code: "multiple_matching_accounts",
-        desc: "The cache contains multiple accounts satisfying the given parameters. Please pass more info to obtain the correct account"
+        desc: "The cache contains multiple accounts satisfying the given parameters. \
+        Please pass more info to obtain the correct account"
     },
     multipleMatchingAppMetadata: {
         code: "multiple_matching_appMetadata",
-        desc: "The cache contains multiple appMetadata satisfying the given parameters. Please pass more info to obtain the correct appMetadata"
+        desc: "The cache contains multiple appMetadata satisfying the given parameters. \
+        Please pass more info to obtain the correct appMetadata"
     },
     tokenRequestCannotBeMade: {
         code: "request_cannot_be_made",
@@ -156,11 +161,14 @@ export const ClientAuthErrorMessage = {
     },
     invalidClientCredential: {
         code: "invalid_client_credential",
-        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating a confidential client. An application should at most have one credential"
+        desc: "Client credential (secret, certificate, or assertion) must not be empty when creating \
+        a confidential client. An application should at most have one credential"
     },
     tokenRefreshRequired: {
         code: "token_refresh_required",
-        desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
+        desc: "Cannot return token from cache because it must be refreshed. This may be due to \
+        one of the following reasons: forceRefresh parameter is set to true, \
+        claims have been requested, there is no cached access token or it is expired."
     },
     userTimeoutReached: {
         code: "user_timeout_reached",
@@ -192,7 +200,8 @@ export const ClientAuthErrorMessage = {
     },
     keyIdMissing: {
         code: "key_id_missing",
-        desc: "A keyId value is missing from the requested bound token's cache record and is required to match the token to it's stored binding key."
+        desc: "A keyId value is missing from the requested bound token's cache record and \
+        is required to match the token to it's stored binding key."
     }
 };
 
@@ -257,7 +266,8 @@ export class ClientAuthError extends AuthError {
      */
     static createNetworkError(endpoint: string, errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.networkError.code,
-            `${ClientAuthErrorMessage.networkError.desc} | Fetch client threw: ${errDetail} | Attempted to reach: ${endpoint.split("?")[0]}`);
+            `${ClientAuthErrorMessage.networkError.desc} | Fetch client threw: ${errDetail} \
+            | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
     /**
@@ -348,7 +358,9 @@ export class ClientAuthError extends AuthError {
      * Throws error when no auth code or refresh token is given to ServerTokenRequestParameters.
      */
     static createTokenRequestCannotBeMadeError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenRequestCannotBeMade.code, ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.tokenRequestCannotBeMade.code, 
+            ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
     }
 
     /**
@@ -356,7 +368,9 @@ export class ClientAuthError extends AuthError {
      * @param givenScope
      */
     static createAppendEmptyScopeToSetError(givenScope: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.appendEmptyScopeError.code, `${ClientAuthErrorMessage.appendEmptyScopeError.desc} Given Scope: ${givenScope}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.appendEmptyScopeError.code, 
+            `${ClientAuthErrorMessage.appendEmptyScopeError.desc} Given Scope: ${givenScope}`);
     }
 
     /**
@@ -364,7 +378,9 @@ export class ClientAuthError extends AuthError {
      * @param givenScope
      */
     static createRemoveEmptyScopeFromSetError(givenScope: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.removeEmptyScopeError.code, `${ClientAuthErrorMessage.removeEmptyScopeError.desc} Given Scope: ${givenScope}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.removeEmptyScopeError.code, 
+            `${ClientAuthErrorMessage.removeEmptyScopeError.desc} Given Scope: ${givenScope}`);
     }
 
     /**
@@ -372,7 +388,9 @@ export class ClientAuthError extends AuthError {
      * @param appendError
      */
     static createAppendScopeSetError(appendError: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.appendScopeSetError.code, `${ClientAuthErrorMessage.appendScopeSetError.desc} Detail Error: ${appendError}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.appendScopeSetError.code, 
+            `${ClientAuthErrorMessage.appendScopeSetError.desc} Detail Error: ${appendError}`);
     }
 
     /**
@@ -380,63 +398,81 @@ export class ClientAuthError extends AuthError {
      * @param givenScopeSet
      */
     static createEmptyInputScopeSetError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.emptyInputScopeSetError.code, 
+            `${ClientAuthErrorMessage.emptyInputScopeSetError.desc}`);
     }
 
     /**
      * Throws error if user sets CancellationToken.cancel = true during polling of token endpoint during device code flow
      */
     static createDeviceCodeCancelledError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodePollingCancelled.code, `${ClientAuthErrorMessage.DeviceCodePollingCancelled.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.DeviceCodePollingCancelled.code, 
+            `${ClientAuthErrorMessage.DeviceCodePollingCancelled.desc}`);
     }
 
     /**
      * Throws error if device code is expired
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.DeviceCodeExpired.code, 
+            `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
     }
 
     /**
      * Throws error if device code is expired
      */
     static createDeviceCodeUnknownError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.DeviceCodeUnknownError.code, 
+            `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**
      * Throws error when silent requests are made without an account object
      */
     static createNoAccountInSilentRequestError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.NoAccountInSilentRequest.code, `${ClientAuthErrorMessage.NoAccountInSilentRequest.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.NoAccountInSilentRequest.code, 
+            `${ClientAuthErrorMessage.NoAccountInSilentRequest.desc}`);
     }
 
     /**
      * Throws error when cache record is null or undefined.
      */
     static createNullOrUndefinedCacheRecord(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheRecord.code, ClientAuthErrorMessage.invalidCacheRecord.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.invalidCacheRecord.code, 
+            ClientAuthErrorMessage.invalidCacheRecord.desc);
     }
 
     /**
      * Throws error when provided environment is not part of the CloudDiscoveryMetadata object
      */
     static createInvalidCacheEnvironmentError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheEnvironment.code, ClientAuthErrorMessage.invalidCacheEnvironment.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.invalidCacheEnvironment.code, 
+            ClientAuthErrorMessage.invalidCacheEnvironment.desc);
     }
 
     /**
      * Throws error when account is not found in cache.
      */
     static createNoAccountFoundError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noAccountFound.code, ClientAuthErrorMessage.noAccountFound.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.noAccountFound.code, 
+            ClientAuthErrorMessage.noAccountFound.desc);
     }
 
     /**
      * Throws error if ICachePlugin not set on CacheManager.
      */
     static createCachePluginError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.CachePluginError.code, `${ClientAuthErrorMessage.CachePluginError.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.CachePluginError.code, 
+            `${ClientAuthErrorMessage.CachePluginError.desc}`);
     }
 
     /**
@@ -444,87 +480,113 @@ export class ClientAuthError extends AuthError {
      * @param operationName
      */
     static createNoCryptoObjectError(operationName: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noCryptoObj.code, `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.noCryptoObj.code, 
+            `${ClientAuthErrorMessage.noCryptoObj.desc}${operationName}`);
     }
 
     /**
      * Throws error if cache type is invalid.
      */
     static createInvalidCacheTypeError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidCacheType.code, `${ClientAuthErrorMessage.invalidCacheType.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.invalidCacheType.code, 
+            `${ClientAuthErrorMessage.invalidCacheType.desc}`);
     }
 
     /**
      * Throws error if unexpected account type.
      */
     static createUnexpectedAccountTypeError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.unexpectedAccountType.code, `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.unexpectedAccountType.code, 
+            `${ClientAuthErrorMessage.unexpectedAccountType.desc}`);
     }
 
     /**
      * Throws error if unexpected credential type.
      */
     static createUnexpectedCredentialTypeError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.unexpectedCredentialType.code, `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.unexpectedCredentialType.code, 
+            `${ClientAuthErrorMessage.unexpectedCredentialType.desc}`);
     }
 
     /**
      * Throws error if client assertion is not valid.
      */
     static createInvalidAssertionError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidAssertion.code, `${ClientAuthErrorMessage.invalidAssertion.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.invalidAssertion.code, 
+            `${ClientAuthErrorMessage.invalidAssertion.desc}`);
     }
 
     /**
      * Throws error if client assertion is not valid.
      */
     static createInvalidCredentialError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.invalidClientCredential.code, `${ClientAuthErrorMessage.invalidClientCredential.desc}`);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.invalidClientCredential.code, 
+            `${ClientAuthErrorMessage.invalidClientCredential.desc}`);
     }
 
     /**
      * Throws error if token cannot be retrieved from cache due to refresh being required.
      */
     static createRefreshRequiredError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenRefreshRequired.code, ClientAuthErrorMessage.tokenRefreshRequired.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.tokenRefreshRequired.code, 
+            ClientAuthErrorMessage.tokenRefreshRequired.desc);
     }
 
     /**
      * Throws error if the user defined timeout is reached.
      */
     static createUserTimeoutReachedError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.userTimeoutReached.code, ClientAuthErrorMessage.userTimeoutReached.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.userTimeoutReached.code, 
+            ClientAuthErrorMessage.userTimeoutReached.desc);
     }
 
     /*
      * Throws error if token claims are not populated for a signed jwt generation
      */
     static createTokenClaimsRequiredError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.tokenClaimsRequired.code, ClientAuthErrorMessage.tokenClaimsRequired.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.tokenClaimsRequired.code, 
+            ClientAuthErrorMessage.tokenClaimsRequired.desc);
     }
 
     /**
      * Throws error when the authorization code is missing from the server response
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, 
+            ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
     }
 
     static createBindingKeyNotRemovedError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.bindingKeyNotRemovedError.code, ClientAuthErrorMessage.bindingKeyNotRemovedError.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.bindingKeyNotRemovedError.code, 
+            ClientAuthErrorMessage.bindingKeyNotRemovedError.desc);
     }
 
     /**
      * Thrown when logout is attempted for an authority that doesnt have an end_session_endpoint
      */
     static createLogoutNotSupportedError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.logoutNotSupported.code, ClientAuthErrorMessage.logoutNotSupported.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.logoutNotSupported.code, 
+            ClientAuthErrorMessage.logoutNotSupported.desc);
     }
 
     /**
      * Create an error when kid attribute is missing from a PoP token's cache record
      */
     static createKeyIdMissingError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.keyIdMissing.code, ClientAuthErrorMessage.keyIdMissing.desc);
+        return new ClientAuthError(
+            ClientAuthErrorMessage.keyIdMissing.code, 
+            ClientAuthErrorMessage.keyIdMissing.desc);
     }
 }

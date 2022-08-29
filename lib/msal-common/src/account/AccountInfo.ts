@@ -7,7 +7,8 @@ import { TokenClaims } from "./TokenClaims";
 /**
  * Account object with the following signature:
  * - homeAccountId          - Home account identifier for this account object
- * - environment            - Entity which issued the token represented by the domain of the issuer (e.g. login.microsoftonline.com)
+ * - environment            - Entity which issued the token represented by the domain of the issuer 
+ *                            (e.g. login.microsoftonline.com)
  * - tenantId               - Full tenant or organizational id that this account belongs to
  * - username               - preferred_username claim of the id_token that represents this account
  * - localAccountId         - Local, tenant-specific account identifer for this account object, usually used in legacy cases

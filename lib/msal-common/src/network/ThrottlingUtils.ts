@@ -46,7 +46,10 @@ export class ThrottlingUtils {
      * @param thumbprint
      * @param response
      */
-    static postProcess(cacheManager: CacheManager, thumbprint: RequestThumbprint, response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
+    static postProcess(
+        cacheManager: CacheManager, 
+        thumbprint: RequestThumbprint, 
+        response: NetworkResponse<ServerAuthorizationTokenResponse>): void {
         if (ThrottlingUtils.checkResponseStatus(response) || ThrottlingUtils.checkResponseForRetryAfter(response)) {
             const thumbprintValue: ThrottlingEntity = {
                 throttleTime: ThrottlingUtils.calculateThrottleTime(parseInt(response.headers[HeaderNames.RETRY_AFTER])),
@@ -95,7 +98,11 @@ export class ThrottlingUtils {
         ) * 1000);
     }
 
-    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): boolean {
+    static removeThrottle(
+        cacheManager: CacheManager, 
+        clientId: string, 
+        request: BaseAuthRequest, 
+        homeAccountIdentifier?: string): boolean {
         const thumbprint: RequestThumbprint = {
             clientId: clientId,
             authority: request.authority,

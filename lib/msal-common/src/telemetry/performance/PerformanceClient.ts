@@ -45,7 +45,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryName Name of the library
      * @param {string} libraryVersion Version of the library
      */
-    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry) {
+    constructor(
+        clientId: string, 
+        authority: string, 
+        logger: Logger, 
+        libraryName: string, 
+        libraryVersion: string, 
+        applicationTelemetry: ApplicationTelemetry) 
+    {
         this.authority = authority;
         this.libraryName = libraryName;
         this.libraryVersion = libraryVersion;
@@ -156,7 +163,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             const durationMs = performanceMeasurement.flushMeasurement();
             // null indicates no measurement was taken (e.g. needed performance APIs not present)
             if (durationMs !== null) {
-                this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
+                this.logger.trace(
+                    `PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
 
                 const completedEvent: PerformanceEvent = {
                     // Allow duration to be overwritten when event ends (e.g. testing), but not status
@@ -227,7 +235,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             const completedEvents: PerformanceEvent[] = [];
             eventsForCorrelationId.forEach(event => {
                 if (event.name !== measureName && event.status !== PerformanceEventStatus.Completed) {
-                    this.logger.trace(`PerformanceClient: Incomplete submeasurement ${event.name} found for ${measureName}`, correlationId);
+                    this.logger.trace(
+                        `PerformanceClient: Incomplete submeasurement ${event.name} found for ${measureName}`, correlationId);
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
@@ -242,14 +251,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
             const sortedCompletedEvents = completedEvents.sort((eventA, eventB) => eventA.startTimeMs - eventB.startTimeMs);
 
             // Take completed top level event and add completed submeasurements durations as properties
-            const topLevelEvents = sortedCompletedEvents.filter(event => event.name === measureName && event.status === PerformanceEventStatus.Completed);
+            const topLevelEvents = sortedCompletedEvents.filter(
+                event => event.name === measureName && event.status === PerformanceEventStatus.Completed);
             if (topLevelEvents.length > 0) {
                 /*
                  * Only take the first top-level event if there are multiple events with the same correlation id.
                  * This greatly simplifies logic for submeasurements.
                  */
                 if (topLevelEvents.length > 1) {
-                    this.logger.verbose("PerformanceClient: Multiple distinct top-level performance events found, using the first", correlationId);
+                    this.logger.verbose(
+                        "PerformanceClient: Multiple distinct top-level performance events found, using the first",
+                        correlationId);
                 }
                 const topLevelEvent = topLevelEvents[0];
 
@@ -269,7 +281,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         if (!previous[subMeasurementName]) {
                             previous[subMeasurementName] = current.durationMs;
                         } else {
-                            this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
+                            this.logger.verbose(
+                                `PerformanceClient: Submeasurement for ${measureName} \
+                                already exists for ${current.name}, ignoring`, correlationId);
                         }
                         if (current.accessTokenSize) {
                             previous.accessTokenSize = current.accessTokenSize;
@@ -284,7 +298,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                 this.emitEvents([eventToEmit], eventToEmit.correlationId);
             } else {
-                this.logger.verbose(`PerformanceClient: No completed top-level measurements found for ${measureName}`, correlationId);
+                this.logger.verbose(
+                    `PerformanceClient: No completed top-level measurements found for ${measureName}`, correlationId);
             }
         } else {
             this.logger.verbose("PerformanceClient: No measurements found", correlationId);

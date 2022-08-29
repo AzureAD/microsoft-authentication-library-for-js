@@ -60,7 +60,9 @@ export class UsernamePasswordClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(
+        authority: Authority, 
+        request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -120,7 +122,9 @@ export class UsernamePasswordClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) 
+        || this.config.authOptions.clientCapabilities 
+        && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 

@@ -23,9 +23,19 @@ export class AuthorityFactory {
      * @param networkClient
      * @param protocolMode
      */
-    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string): Promise<Authority> {
+    static async createDiscoveredInstance(
+        authorityUri: string, 
+        networkClient: INetworkModule, 
+        cacheManager: ICacheManager, 
+        authorityOptions: AuthorityOptions, 
+        proxyUrl?: string): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
-        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, proxyUrl);
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
+            authorityUri, 
+            networkClient, 
+            cacheManager, 
+            authorityOptions, 
+            proxyUrl);
 
         try {
             await acquireTokenAuthority.resolveEndpointsAsync();
@@ -45,7 +55,12 @@ export class AuthorityFactory {
      * @param networkInterface
      * @param protocolMode
      */
-    static createInstance(authorityUrl: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string): Authority {
+    static createInstance(
+        authorityUrl: string, 
+        networkInterface: INetworkModule, 
+        cacheManager: ICacheManager, 
+        authorityOptions: AuthorityOptions, 
+        proxyUrl?: string): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();

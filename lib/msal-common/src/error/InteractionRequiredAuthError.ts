@@ -6,7 +6,8 @@
 import { AuthError } from "./AuthError";
 
 /**
- * InteractionRequiredServerErrorMessage contains string constants used by error codes and messages returned by the server indicating interaction is required
+ * InteractionRequiredServerErrorMessage contains string constants used by error codes 
+ * and messages returned by the server indicating interaction is required
  */
 export const InteractionRequiredServerErrorMessage = [
     "interaction_required",
@@ -32,7 +33,8 @@ export const InteractionRequiredAuthErrorMessage = {
     },
     native_account_unavailable: {
         code: "native_account_unavailable",
-        desc: "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API."
+        desc: "The requested account is not available in the native broker. It may have been deleted or logged out. \
+        Please sign-in again using an interactive API."
     }
 };
 
@@ -68,14 +70,19 @@ export class InteractionRequiredAuthError extends AuthError {
      * Creates an error thrown when the authorization code required for a token request is null or empty.
      */
     static createNoTokensFoundError(): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.noTokensFoundError.code, InteractionRequiredAuthErrorMessage.noTokensFoundError.desc);
+        return new InteractionRequiredAuthError(
+            InteractionRequiredAuthErrorMessage.noTokensFoundError.code, 
+            InteractionRequiredAuthErrorMessage.noTokensFoundError.desc);
     }
 
     /**
-     * Creates an error thrown when the native broker returns ACCOUNT_UNAVAILABLE status, indicating that the account was removed and interactive sign-in is required
+     * Creates an error thrown when the native broker returns ACCOUNT_UNAVAILABLE status, 
+     * indicating that the account was removed and interactive sign-in is required
      * @returns 
      */
     static createNativeAccountUnavailableError(): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.native_account_unavailable.code, InteractionRequiredAuthErrorMessage.native_account_unavailable.desc);
+        return new InteractionRequiredAuthError(
+            InteractionRequiredAuthErrorMessage.native_account_unavailable.code, 
+            InteractionRequiredAuthErrorMessage.native_account_unavailable.desc);
     }
 }

@@ -75,7 +75,12 @@ export class Logger {
      * Create new Logger with existing configurations.
      */
     public clone(packageName: string, packageVersion: string, correlationId?: string): Logger {
-        return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level, correlationId: correlationId || this.correlationId}, packageName, packageVersion);
+        return new Logger(
+            {loggerCallback: this.localCallback, 
+                piiLoggingEnabled: this.piiLoggingEnabled, 
+                logLevel: this.level, 
+                correlationId: correlationId || this.correlationId}, 
+            packageName, packageVersion);
     }
 
     /**
@@ -98,7 +103,10 @@ export class Logger {
         }
 
         const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
-        // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": Constants.EMPTY_STRING}${options.context ? `:${options.context}` : Constants.EMPTY_STRING}`)(logMessage);
+        /*
+         * debug(`msal:${LogLevel[options.logLevel]}${options.containsPii 
+         * ? "-Pii": Constants.EMPTY_STRING}${options.context ? `:${options.context}` : Constants.EMPTY_STRING}`)(logMessage);
+         */
         this.executeCallback(options.logLevel, log, options.containsPii || false);
     }
 

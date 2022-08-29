@@ -27,7 +27,9 @@ export type CredentialCache = {
 /**
  * Object type of all accepted cache types
  */
-export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | AuthorityMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
+export type ValidCacheType 
+        = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity 
+        | AuthorityMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
 
 /**
  * Object type of all credential types

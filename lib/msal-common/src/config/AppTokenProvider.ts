@@ -4,7 +4,8 @@
  */
 
 /**
- * Extensibility interface, which allows the app developer to return a token, based on the passed-in parameters, instead of fetching tokens from
+ * Extensibility interface, which allows the app developer to return a token, 
+ * based on the passed-in parameters, instead of fetching tokens from
  * the Identity Provider (AAD).
  * Developers need to construct and return an AppTokenProviderResult object back to MSAL. MSAL will cache the token response
  * in the same way it would do if the result were comming from AAD.
@@ -34,9 +35,12 @@ export type AppTokenProviderParameters = {
 /**
  * Output object for IAppTokenProvider extensiblity. 
  * 
- * - accessToken            - the actual access token, typically in JWT format, that satisfies the request data AppTokenProviderParameters 
- * - expiresInSeconds       - how long the tokens has before expiry, in seconds. Similar to the "expires_in" field in an AAD token response.
- * - refreshInSeconds       - how long the token has before it should be proactively refreshed. Similar to the "refresh_in" field in an AAD token response.
+ * - accessToken            - the actual access token, typically in JWT format, that satisfies the 
+ *                              request data AppTokenProviderParameters 
+ * - expiresInSeconds       - how long the tokens has before expiry, in seconds. Similar to the 
+ *                              "expires_in" field in an AAD token response.
+ * - refreshInSeconds       - how long the token has before it should be proactively refreshed. 
+ *                              Similar to the "refresh_in" field in an AAD token response.
  */
 export type AppTokenProviderResult = {
     accessToken: string;

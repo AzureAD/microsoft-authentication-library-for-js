@@ -131,7 +131,9 @@ export class DeviceCodeClient extends BaseClient {
         parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmpty(request.claims) 
+            || this.config.authOptions.clientCapabilities 
+            && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
@@ -151,12 +153,17 @@ export class DeviceCodeClient extends BaseClient {
         if (userSpecifiedCancelFlag) {
             this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
             throw ClientAuthError.createDeviceCodeCancelledError();
-        } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
-            this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
+        } else if (userSpecifiedTimeout 
+            && userSpecifiedTimeout < deviceCodeExpirationTime 
+            && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
+            this.logger.error(
+                `User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
             throw ClientAuthError.createUserTimeoutReachedError();
         } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
             if (userSpecifiedTimeout) {
-                this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
+                this.logger.verbose(
+                    `User specified timeout ignored as the device code has expired before the timeout elapsed. \
+                    The user specified timeout was set for ${userSpecifiedTimeout}`);
             }
             this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
             throw ClientAuthError.createDeviceCodeExpiredError();
@@ -252,7 +259,9 @@ export class DeviceCodeClient extends BaseClient {
             requestParameters.addServerTelemetry(this.serverTelemetryManager);
         }
 
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) 
+            || this.config.authOptions.clientCapabilities 
+            && this.config.authOptions.clientCapabilities.length > 0) {
             requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
         return requestParameters.createQueryString();

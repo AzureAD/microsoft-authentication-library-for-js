@@ -17,7 +17,8 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  * {
  *      homeAccountId: home account identifier for the auth scheme,
  *      environment: entity that issued the token, represented as a full host
- *      credentialType: Type of credential as a string, can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
+ *      credentialType: Type of credential as a string, 
+ *          can be one of the following: RefreshToken, AccessToken, IdToken, Password, Cookie, Certificate, Other
  *      clientId: client ID of the application
  *      secret: Actual credential as a string
  *      familyId: Family ID identifier, usually only used for refresh tokens
@@ -211,6 +212,8 @@ export class CredentialEntity {
          * PoP Tokens and SSH certs include scheme in cache key
          * Cast to lowercase to handle "bearer" from ADFS
          */
-        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
+        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) 
+            ? tokenType.toLowerCase() 
+            : Constants.EMPTY_STRING;
     }
 }

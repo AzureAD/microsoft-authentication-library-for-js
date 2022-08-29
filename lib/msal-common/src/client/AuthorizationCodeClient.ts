@@ -61,7 +61,9 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+    async acquireToken(
+        request: CommonAuthorizationCodeRequest, 
+        authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -81,7 +83,12 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
+        return await responseHandler.handleServerTokenResponse(
+            response.body, 
+            this.authority, 
+            reqTimestamp, 
+            request, 
+            authCodePayload);
     }
 
     /**
@@ -91,7 +98,13 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger, null, null);
+        const responseHandler = new ResponseHandler(
+            this.config.authOptions.clientId, 
+            this.cacheManager, 
+            this.cryptoUtils, 
+            this.logger, 
+            null, 
+            null);
 
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
@@ -133,7 +146,9 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(
+        authority: Authority, 
+        request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -161,7 +176,9 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
         const headers: Record<string, string> = this.createTokenRequestHeaders(ccsCredential || request.ccsCredential);
-        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+        const endpoint = StringUtils.isEmpty(queryParameters) 
+            ? authority.tokenEndpoint 
+            : `${authority.tokenEndpoint}?${queryParameters}`;
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
@@ -250,7 +267,9 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) 
+            || this.config.authOptions.clientCapabilities 
+            && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
@@ -291,7 +310,8 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add hybrid spa parameters if not already provided
-        if (request.enableSpaAuthorizationCode && (!request.tokenBodyParameters || !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
+        if (request.enableSpaAuthorizationCode 
+            && (!request.tokenBodyParameters || !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
             parameterBuilder.addExtraQueryParameters({
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1"
             });
@@ -344,7 +364,10 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addDomainHint(request.domainHint);
         }
 
-        // Add sid or loginHint with preference for login_hint claim (in request) -> sid -> loginHint (upn/email) -> username of AccountInfo object
+        /*
+         * Add sid or loginHint with preference for login_hint claim 
+         * (in request) -> sid -> loginHint (upn/email) -> username of AccountInfo object
+         */
         if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
             // AAD will throw if prompt=select_account is passed with an account hint
             if (request.sid && request.prompt === PromptValue.NONE) {
@@ -409,7 +432,9 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addState(request.state);
         }
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmpty(request.claims) 
+            || this.config.authOptions.clientCapabilities 
+            && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 

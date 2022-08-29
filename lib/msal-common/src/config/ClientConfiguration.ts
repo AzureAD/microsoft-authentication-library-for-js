@@ -71,9 +71,11 @@ export type CommonClientConfiguration = {
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
- * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
+ * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property 
+ *                                  on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
+ * - skipAuthorityMetadataCache  - A flag to choose whether to use or not use the local metadata cache during authority 
+ *                                  initialization. Defaults to false.
  */
 export type AuthOptions = {
     clientId: string;
@@ -223,7 +225,8 @@ export function buildClientConfiguration(
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION),
+        storageInterface: storageImplementation 
+            || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,

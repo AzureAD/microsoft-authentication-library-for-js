@@ -109,7 +109,11 @@ export class UrlString {
     replaceTenantPath(tenantId: string): UrlString {
         const urlObject = this.getUrlComponents();
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === AADAuthorityConstants.COMMON || pathArray[0] === AADAuthorityConstants.ORGANIZATIONS))) {
+        if (tenantId 
+            && (pathArray.length !== 0 
+                && (pathArray[0] === AADAuthorityConstants.COMMON 
+                    || pathArray[0] === AADAuthorityConstants.ORGANIZATIONS)
+            )) {
             pathArray[0] = tenantId;
         }
         return UrlString.constructAuthorityUriFromObject(urlObject);
@@ -124,7 +128,8 @@ export class UrlString {
 
     /**
      * Parses out the components from a url string.
-     * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
+     * @returns An object with the various components. Please cache this value insted of 
+     * calling this multiple times on the same url.
      */
     getUrlComponents(): IUri {
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
@@ -207,7 +212,9 @@ export class UrlString {
         // Strip the # symbol if present
         const parsedHash = UrlString.parseHash(hash);
         // If # symbol was not present, above will return empty string, so give original hash value
-        const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedHash) ? hash : parsedHash);
+        const deserializedHash: ServerAuthorizationCodeResponse 
+            = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(
+                StringUtils.isEmpty(parsedHash) ? hash : parsedHash);
         // Check if deserialization didn't work
         if (!deserializedHash) {
             throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));

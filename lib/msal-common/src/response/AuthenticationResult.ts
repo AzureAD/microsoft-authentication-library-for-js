@@ -16,7 +16,8 @@ import { AccountInfo } from "../account/AccountInfo";
  * - accessToken            - Access token or SSH certificate received as part of the response
  * - fromCache              - Boolean denoting whether token came from cache
  * - expiresOn              - Javascript Date object representing relative expiration of access token
- * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
+ * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token 
+ *                              in case of server outage
  * - state                  - Value passed in by user in request
  * - familyId               - Family ID identifier, usually only used for refresh tokens
  */

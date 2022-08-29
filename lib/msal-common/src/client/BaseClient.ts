@@ -21,7 +21,8 @@ import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
- * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
+ * Base application class which will construct requests to send to and 
+ * handle responses from the Microsoft STS using the authorization code flow.
  */
 export abstract class BaseClient {
     // Logger object
@@ -112,7 +113,11 @@ export abstract class BaseClient {
      * @param headers
      * @param thumbprint
      */
-    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    protected async executePostToTokenEndpoint(
+        tokenEndpoint: string, 
+        queryString: string, 
+        headers: Record<string, string>, 
+        thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
             tokenEndpoint,
@@ -133,7 +138,8 @@ export abstract class BaseClient {
      */
     updateAuthority(updatedAuthority: Authority): void {
         if (!updatedAuthority.discoveryComplete()) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Updated authority has not completed endpoint discovery.");
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
+                "Updated authority has not completed endpoint discovery.");
         }
         this.authority = updatedAuthority;
     }

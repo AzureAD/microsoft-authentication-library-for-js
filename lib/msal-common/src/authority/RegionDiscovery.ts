@@ -29,7 +29,10 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata, proxyUrl: string): Promise<string | null> {
+    public async detectRegion(
+        environmentRegion: string | undefined, 
+        regionDiscoveryMetadata: RegionDiscoveryMetadata, 
+        proxyUrl: string): Promise<string | null> {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
@@ -69,7 +72,10 @@ export class RegionDiscovery {
             regionDiscoveryMetadata.region_source = RegionDiscoverySources.ENVIRONMENT_VARIABLE;
         }
 
-        // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
+        /*
+         * If no region was auto detected from the environment or from the IMDS endpoint, 
+         * mark the attempt as a FAILED_AUTO_DETECTION
+         */
         if (!autodetectedRegionName) {
             regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
         }
@@ -84,7 +90,11 @@ export class RegionDiscovery {
      * @returns Promise<NetworkResponse<string>>
      */
     private async getRegionFromIMDS(version: string, options: ImdsOptions): Promise<NetworkResponse<string>> {
-        return this.networkInterface.sendGetRequestAsync<string>(`${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, options, Constants.IMDS_TIMEOUT);
+        return this.networkInterface.sendGetRequestAsync<string>(
+            `${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, 
+            options, 
+            Constants.IMDS_TIMEOUT
+        );
     }
 
     /**
@@ -94,10 +104,19 @@ export class RegionDiscovery {
      */
     private async getCurrentVersion(options: ImdsOptions): Promise<string | null> {
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, options);
+            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(
+                `${Constants.IMDS_ENDPOINT}?format=json`, 
+                options
+            );
 
-            // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
-            if (response.status === ResponseCodes.httpBadRequest && response.body && response.body["newest-versions"] && response.body["newest-versions"].length > 0) {
+            /*
+             * When IMDS endpoint is called without the api version query param, 
+             * bad request response comes back with latest version.
+             */
+            if (response.status === ResponseCodes.httpBadRequest 
+                && response.body 
+                && response.body["newest-versions"] 
+                && response.body["newest-versions"].length > 0) {
                 return response.body["newest-versions"][0];
             }
 

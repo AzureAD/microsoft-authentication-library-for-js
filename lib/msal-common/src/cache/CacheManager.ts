@@ -3,9 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
+import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, 
+    AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, 
+    AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -239,7 +241,8 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         const currentScopes = ScopeSet.fromString(credential.target);
-        const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
+        const currentAccessTokens: AccessTokenEntity[] 
+            = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
 
         if (currentAccessTokens) {
             const removedAccessTokens: Array<Promise<boolean>> = [];
@@ -256,7 +259,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
-     * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
+     * not checking for casing as keys are all generated in lower case, 
+     * remember to convert to lower case if object properties are compared
      * @param homeAccountId
      * @param environment
      * @param realm
@@ -272,7 +276,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
-     * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
+     * not checking for casing as keys are all generated in lower case, 
+     * remember to convert to lower case if object properties are compared
      * @param homeAccountId
      * @param environment
      * @param realm
@@ -747,7 +752,9 @@ export abstract class CacheManager implements ICacheManager {
          * Distinguish between Bearer and PoP/SSH token cache types
          * Cast to lowercase to handle "bearer" from ADFS
          */
-        const credentialType = (authScheme && authScheme.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
+        const credentialType = (authScheme && authScheme.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) 
+            ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME 
+            : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
@@ -919,7 +926,9 @@ export abstract class CacheManager implements ICacheManager {
      * @param target
      */
     private matchTarget(entity: CredentialEntity, target: string): boolean {
-        const isNotAccessTokenCredential = (entity.credentialType !== CredentialType.ACCESS_TOKEN && entity.credentialType !== CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+        const isNotAccessTokenCredential 
+            = (entity.credentialType !== CredentialType.ACCESS_TOKEN 
+            && entity.credentialType !== CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
 
         if ( isNotAccessTokenCredential || !entity.target) {
             return false;
@@ -1030,19 +1039,23 @@ export class DefaultStorageClass extends CacheManager {
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setAccessTokenCredential(): void {
-        const notImplErr = "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        const notImplErr 
+            = "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     getAccessTokenCredential(): AccessTokenEntity {
-        const notImplErr = "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
+        const notImplErr 
+            = "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setRefreshTokenCredential(): void {
-        const notImplErr = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        const notImplErr 
+            = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     getRefreshTokenCredential(): RefreshTokenEntity {
-        const notImplErr = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
+        const notImplErr 
+            = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setAppMetadata(): void {
@@ -1070,7 +1083,8 @@ export class DefaultStorageClass extends CacheManager {
         throw AuthError.createUnexpectedError(notImplErr);
     }
     getAuthorityMetadataKeys(): Array<string> {
-        const notImplErr = "Storage interface - getAuthorityMetadataKeys() has not been implemented for the cacheStorage interface.";
+        const notImplErr 
+            = "Storage interface - getAuthorityMetadataKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setThrottlingCache(): void {
@@ -1098,7 +1112,8 @@ export class DefaultStorageClass extends CacheManager {
         throw AuthError.createUnexpectedError(notImplErr);
     }
     updateCredentialCacheKey(): string {
-        const notImplErr = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
+        const notImplErr 
+            = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 }

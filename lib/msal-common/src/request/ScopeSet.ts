@@ -10,8 +10,8 @@ import { Constants, OIDC_SCOPES } from "../utils/Constants";
 
 /**
  * The ScopeSet class creates a set of scopes. Scopes are case-insensitive, unique values, so the Set object in JS makes
- * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings in intersection and union functions
- * to ensure uniqueness of strings.
+ * the most sense to implement for this class. All scopes are trimmed and converted to lower case strings in intersection 
+ * and union functions to ensure uniqueness of strings.
  */
 export class ScopeSet {
     // Scopes as a Set of strings

@@ -72,7 +72,10 @@ export class RefreshTokenClient extends BaseClient {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
 
-        // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
+        /*
+         * We currently do not support silent flow for account === null use cases; 
+         * This will be revisited for confidential flow usecases
+         */
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
@@ -85,10 +88,15 @@ export class RefreshTokenClient extends BaseClient {
             try {
                 return this.acquireTokenWithCachedRefreshToken(request, true);
             } catch (e) {
-                const noFamilyRTInCache = e instanceof InteractionRequiredAuthError && e.errorCode === InteractionRequiredAuthErrorMessage.noTokensFoundError.code;
-                const clientMismatchErrorWithFamilyRT = e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
+                const noFamilyRTInCache = e instanceof InteractionRequiredAuthError 
+                    && e.errorCode === InteractionRequiredAuthErrorMessage.noTokensFoundError.code;
+                const clientMismatchErrorWithFamilyRT = e instanceof ServerError 
+                    && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
 
-                // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
+                /*
+                 * if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, 
+                 * reattempt with application Refresh Token (ART)
+                 */
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
                     return this.acquireTokenWithCachedRefreshToken(request, false);
                     // throw in all other cases
@@ -103,7 +111,8 @@ export class RefreshTokenClient extends BaseClient {
     }
 
     /**
-     * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
+     * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; 
+     * throws if refresh token is not cached
      * @param request
      */
     private async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
@@ -135,7 +144,9 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);    
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(
+            PerformanceEvents.RefreshTokenClientExecuteTokenRequest, 
+            request.correlationId);    
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -187,7 +198,9 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const correlationId = request.correlationId;
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); 
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(
+            PerformanceEvents.BaseClientCreateTokenRequestHeaders, 
+            correlationId); 
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -236,7 +249,9 @@ export class RefreshTokenClient extends BaseClient {
             }
         }
 
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) 
+        || this.config.authOptions.clientCapabilities 
+        && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 

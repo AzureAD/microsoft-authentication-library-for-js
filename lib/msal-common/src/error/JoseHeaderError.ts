@@ -11,11 +11,13 @@ import { AuthError } from "./AuthError";
 export const JoseHeaderErrorMessage = {
     missingKidError: {
         code: "missing_kid_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured as the 'kid' header claim. No 'kid' value was provided."
+        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires a keyId to be configured \
+        as the 'kid' header claim. No 'kid' value was provided."
     },
     missingAlgError: {
         code: "missing_alg_error",
-        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as the 'alg' header claim. No 'alg' value was provided."
+        desc: "The JOSE Header for the requested JWT, JWS or JWK object requires an algorithm to be specified as \
+        the 'alg' header claim. No 'alg' value was provided."
     },
 };
 

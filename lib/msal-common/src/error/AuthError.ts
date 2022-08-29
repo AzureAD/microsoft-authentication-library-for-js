@@ -15,7 +15,8 @@ export const AuthErrorMessage = {
     },
     postRequestFailed: {
         code: "post_request_failed",
-        desc: "Post request failed from the network, could be a 4xx/5xx or a network unavailability. Please check the exact error code for details."
+        desc: "Post request failed from the network, could be a 4xx/5xx or a network unavailability. \
+        Please check the exact error code for details."
     }
 };
 

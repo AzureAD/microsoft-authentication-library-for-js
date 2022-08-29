@@ -71,31 +71,38 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
-        desc: "Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields"
+        desc: "Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object \
+        containing tenant_discovery_endpoint and metadata fields"
     },
     invalidAuthorityMetadata: {
         code: "invalid_authority_metadata",
-        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, issuer fields."
+        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, \
+        token_endpoint, issuer fields."
     },
     untrustedAuthority: {
         code: "untrusted_authority",
-        desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
+        desc: "The provided authority is not a trusted authority. Please include this authority \
+        in the knownAuthorities config parameter."
     },
     invalidAzureCloudInstance: {
         code: "invalid_azure_cloud_instance",
-        desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs: aks.ms/msaljs/azure_cloud_instance for valid values"
+        desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs: \
+        aks.ms/msaljs/azure_cloud_instance for valid values"
     },
     missingSshJwk: {
         code: "missing_ssh_jwk",
-        desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme."
+        desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key \
+        is required when using the SSH authentication scheme."
     },
     missingSshKid: {
         code: "missing_ssh_kid",
-        desc: "Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme."
+        desc: "Missing sshKid in SSH certificate request. A string that uniquely identifies the \
+        public SSH key is required when using the SSH authentication scheme."
     },
     missingNonceAuthenticationHeader: {
         code: "missing_nonce_authentication_header",
-        desc: "Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce."
+        desc: "Unable to find an authentication header containing server nonce. \
+        Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce."
     },
     invalidAuthenticationHeader: {
         code: "invalid_authentication_header",
@@ -301,6 +308,7 @@ export class ClientConfigurationError extends ClientAuthError {
      */
     static createInvalidAuthenticationHeaderError(invalidHeaderName: string, details: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthenticationHeader.code,
-            `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. Invalid header: ${invalidHeaderName}. Details: ${details}`);
+            `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. \
+            Invalid header: ${invalidHeaderName}. Details: ${details}`);
     }
 }
