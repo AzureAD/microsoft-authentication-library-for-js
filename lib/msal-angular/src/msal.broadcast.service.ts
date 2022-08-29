@@ -24,7 +24,9 @@ export class MsalBroadcastService {
     ) {
         // Make _msalSubject a ReplaySubject if configured to replay past events
         if (this.msalBroadcastConfig && this.msalBroadcastConfig.eventsToReplay > 0) {
-            this.authService.getLogger().verbose(`BroadcastService - replayPastEvents set on BroadcastConfig, replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`);
+            this.authService.getLogger().verbose(
+                `BroadcastService - replayPastEvents set on BroadcastConfig, \
+                replaying the last ${this.msalBroadcastConfig.eventsToReplay} events`);
             this._msalSubject = new ReplaySubject<EventMessage>(this.msalBroadcastConfig.eventsToReplay);
         } else {
             // Defaults to _msalSubject being a Subject
@@ -41,7 +43,8 @@ export class MsalBroadcastService {
             this._msalSubject.next(message);
             const status = EventMessageUtils.getInteractionStatusFromEvent(message, this._inProgress.value);
             if (status !== null) {
-                this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`);
+                this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} \
+                results in setting inProgress from ${this._inProgress.value} to ${status}`);
                 this._inProgress.next(status);
             }
         });

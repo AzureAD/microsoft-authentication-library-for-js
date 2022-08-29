@@ -3,11 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, 
+    UrlTree, Router } from "@angular/router";
 import { MsalService } from "./msal.service";
 import { Injectable, Inject, VERSION } from "@angular/core";
 import { Location } from "@angular/common";
-import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
+import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, 
+    RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";

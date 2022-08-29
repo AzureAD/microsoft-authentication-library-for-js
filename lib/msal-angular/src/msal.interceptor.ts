@@ -13,10 +13,12 @@ import { Location, DOCUMENT } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
-import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, 
+    StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes, MatchingResources } from "./msal.interceptor.config";
+import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes, 
+    MatchingResources } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -34,8 +36,12 @@ export class MsalInterceptor implements HttpInterceptor {
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-        if (this.msalInterceptorConfig.interactionType !== InteractionType.Popup && this.msalInterceptorConfig.interactionType !== InteractionType.Redirect) {
-            throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
+        if (this.msalInterceptorConfig.interactionType !== InteractionType.Popup 
+            && this.msalInterceptorConfig.interactionType !== InteractionType.Redirect) {
+            throw new BrowserConfigurationAuthError(
+                "invalid_interaction_type", 
+                "Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, \
+                InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
         }
 
         this.authService.getLogger().verbose("MSAL Interceptor activated");
@@ -68,12 +74,15 @@ export class MsalInterceptor implements HttpInterceptor {
         return this.authService.acquireTokenSilent({...authRequest, scopes, account })
             .pipe(
                 catchError(() => {
-                    this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
+                    this.authService.getLogger().error(
+                        "Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
                     return this.acquireTokenInteractively(authRequest, scopes);
                 }),
                 switchMap((result: AuthenticationResult)  => {
                     if (!result.accessToken) {
-                        this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
+                        this.authService.getLogger().error(
+                            "Interceptor - acquireTokenSilent resolved with null access token. \
+                            Known issue with B2C tenants, invoking interaction to resolve.");
                         return this.acquireTokenInteractively(authRequest, scopes);
                     }
                     return of(result);
@@ -95,7 +104,9 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param scopes Array of scopes for the request
      * @returns Result from the interactive request
      */
-    private acquireTokenInteractively(authRequest: MsalInterceptorAuthRequest, scopes: string[]): Observable<AuthenticationResult> {
+    private acquireTokenInteractively(
+        authRequest: MsalInterceptorAuthRequest, 
+        scopes: string[]): Observable<AuthenticationResult> {
         if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
             return this.authService.acquireTokenPopup({ ...authRequest, scopes });
@@ -123,11 +134,16 @@ export class MsalInterceptor implements HttpInterceptor {
 
         const matchingProtectedResources = this.matchResourcesToEndpoint(protectedResourcesArray, normalizedEndpoint);
 
-        // Check absolute urls of resources first before checking relative to prevent incorrect matching where multiple resources have similar relative urls
+        /*
+         *  Check absolute urls of resources first before checking relative to 
+         * prevent incorrect matching where multiple resources have similar relative urls
+         */
         if (matchingProtectedResources.absoluteResources.length > 0) {
-            return this.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources.absoluteResources, httpMethod);
+            return this.matchScopesToEndpoint(
+                this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources.absoluteResources, httpMethod);
         } else if (matchingProtectedResources.relativeResources.length > 0){
-            return this.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources.relativeResources, httpMethod);
+            return this.matchScopesToEndpoint(
+                this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources.relativeResources, httpMethod);
         }
 
         return null;
@@ -143,7 +159,10 @@ export class MsalInterceptor implements HttpInterceptor {
         const matchingResources: MatchingResources = {absoluteResources: [], relativeResources: []};
 
         protectedResourcesEndpoints.forEach(key => {
-            // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
+            /*
+             * Normalizes and adds resource to matchingResources.absoluteResources 
+             * if key matches endpoint. StringUtils.matchPattern accounts for wildcards
+             */
             const normalizedKey = this.location.normalize(key);
             if (StringUtils.matchPattern(normalizedKey, endpoint)){
                 matchingResources.absoluteResources.push(key);
@@ -156,10 +175,14 @@ export class MsalInterceptor implements HttpInterceptor {
             const endpointComponents = new UrlString(absoluteEndpoint).getUrlComponents();
 
             // Normalized key should include query strings if applicable
-            const relativeNormalizedKey = keyComponents.QueryString ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` : this.location.normalize(keyComponents.AbsolutePath);
+            const relativeNormalizedKey = keyComponents.QueryString 
+                ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` 
+                : this.location.normalize(keyComponents.AbsolutePath);
 
             // Add resource to matchingResources.relativeResources if same origin, relativeKey matches endpoint, and is not empty
-            if (keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort && StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) && relativeNormalizedKey !== "" && relativeNormalizedKey !== "/*"){
+            if (keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort 
+                && StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) 
+                && relativeNormalizedKey !== "" && relativeNormalizedKey !== "/*"){
                 matchingResources.relativeResources.push(key);
             }
         });
@@ -185,7 +208,10 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param httpMethod Http method of the request
      * @returns 
      */
-    private matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
+    private matchScopesToEndpoint(
+        protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, 
+        endpointArray: string[], 
+        httpMethod: string): Array<string>|null {
         const allMatchedScopes = [];
 
         // Check each matched endpoint for matching HttpMethod and scopes

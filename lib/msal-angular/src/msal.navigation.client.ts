@@ -37,7 +37,9 @@ export class MsalCustomNavigationClient extends NavigationClient {
         } else {
             // Normalizing newUrl if no query string
             const urlComponents = new UrlString(url).getUrlComponents();
-            const newUrl = urlComponents.QueryString ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` : this.location.normalize(urlComponents.AbsolutePath);
+            const newUrl = urlComponents.QueryString 
+                ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` 
+                : this.location.normalize(urlComponents.AbsolutePath);
             this.router.navigateByUrl(newUrl, { replaceUrl: options.noHistory });
         }
         return Promise.resolve(options.noHistory);
