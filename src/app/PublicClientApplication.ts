@@ -147,11 +147,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
             console.log("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
 
-            atsMeasurement.endMeasurement({ //this doesnt emit right? //maybe try commenting out 146-148??
+            atsMeasurement.endMeasurement({ 
                 success: true
             });
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            //atsMeasurement.discardMeasurement();
+            atsMeasurement.discardMeasurement();
             return cachedResponse;
         }
     }
