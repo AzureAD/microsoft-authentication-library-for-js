@@ -85,11 +85,11 @@ export class ProtocolUtils {
             // Split the state between library state and user passed state and decode them separately
             const splitState = state.split(Constants.RESOURCE_DELIM);
             const libraryState = splitState[0];
-            const userState = splitState.length > 1 ? splitState.slice(1).join(Constants.RESOURCE_DELIM) : "";
+            const userState = splitState.length > 1 ? splitState.slice(1).join(Constants.RESOURCE_DELIM) : Constants.EMPTY_STRING;
             const libraryStateString = cryptoObj.base64Decode(libraryState);
             const libraryStateObj = JSON.parse(libraryStateString) as LibraryStateObject;
             return {
-                userRequestState: !StringUtils.isEmpty(userState) ? userState : "",
+                userRequestState: !StringUtils.isEmpty(userState) ? userState : Constants.EMPTY_STRING,
                 libraryState: libraryStateObj
             };
         } catch(e) {

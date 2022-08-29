@@ -2,9 +2,9 @@
     "compilerOptions": {
         "moduleResolution": "node",
         "module": "commonjs",
-        "target": "es5",
+        "target": "es6",
         "lib": [
-            "es2015",
+            "ES2021",
             "dom",
             "es2015.promise"
         ],
@@ -17,6 +17,7 @@
         "experimentalDecorators": true,
         "importHelpers": true,
         "noImplicitAny": true,
+        "downlevelIteration": true,
     },
     "include": ["**/test/*.spec.ts"],
     "exclude": [

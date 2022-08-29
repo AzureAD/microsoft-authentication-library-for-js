@@ -1,26 +1,25 @@
-import { TokenValidator } from './../../src/api/TokenValidator';
-import { Configuration } from './../../src/config/Configuration';
-import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from './../utils/TestConstants';
-import { TokenValidationParameters } from '../../src';
-import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from '../../src/error/ValidationConfigurationError';
-import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
-import { mocked } from 'jest-mock';
-import { TokenType } from '../../src/utils/Constants';
-import { BaseValidationParameters } from '../../src/config/TokenValidationParameters';
-import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
-import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
-import 'regenerator-runtime';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-jest.mock('jose');
+import { AuthenticationResult } from "@azure/msal-common";
+import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from "jose";
+import { mocked } from "jest-mock";
+import { TokenValidator } from "../../src/api/TokenValidator";
+import { TEST_CONSTANTS, TEST_HASH_CONSTANTS } from "../utils/TestConstants";
+import { TokenValidationParameters } from "../../src";
+import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from "../../src/error/ValidationConfigurationError";
+import { TokenType } from "../../src/utils/Constants";
+import { BaseValidationParameters } from "../../src/config/TokenValidationParameters";
+import { ValidationError, ValidationErrorMessage } from "../../src/error/ValidationError";
+import { OpenIdConfigProvider } from "../../src/config/OpenIdConfigProvider";
+import "regenerator-runtime";
+
+jest.mock("jose");
 
 describe("TokenValidator", () => {
-    let config: Configuration = {
-        auth: {
-            clientId: TEST_CONSTANTS.CLIENT_ID
-        }
-    };
-
-    let joseMockResult: (JWTVerifyResult & ResolvedKey) = {
+    const joseMockResult: (JWTVerifyResult & ResolvedKey) = {
         payload: {
             aud: "audience"
         },
@@ -32,12 +31,12 @@ describe("TokenValidator", () => {
         }
     };
 
-    let defaultOptions: TokenValidationParameters = {
+    const defaultOptions: TokenValidationParameters = {
         validIssuers: ["issuer"],
         validAudiences: ["audiences"]
     };
 
-    let defaultValidationParams: BaseValidationParameters = {
+    const defaultValidationParams: BaseValidationParameters = {
         validIssuers: ["issuer"],
         validAudiences: ["audiences"],
         validAlgorithms: [TEST_CONSTANTS.DEFAULT_ALGORITHM],
@@ -46,13 +45,13 @@ describe("TokenValidator", () => {
         requireSignedTokens: true,
     };
 
-    let defaultPayload: JWTPayload = {
+    const defaultPayload: JWTPayload = {
         aud: "audience"
-    }
+    };
     let validator: TokenValidator;
 
     beforeEach(() => {
-        validator = new TokenValidator(config);
+        validator = new TokenValidator();
     });
 
     afterEach(() => {
@@ -60,8 +59,333 @@ describe("TokenValidator", () => {
     });
 
     describe("exports a class", () => {
-        const validator = new TokenValidator(config);
+        const validator = new TokenValidator();
         expect(validator).toBeInstanceOf(TokenValidator);
+    });
+
+    describe("validateTokenMiddleware", () => {
+
+        it("adds access token to request header if resource passed in and access token exists on session", (done) => {
+            const req = {
+                session: {
+                    protectedResources: {
+                        myApi: {
+                            accessToken: "access-token"
+                        }
+                    }
+                },
+                headers: {
+                    authorization: ""
+                }
+            };
+
+            const validateTokenResponse = {
+                token: "Bearer access-token",
+                tokenType: "JWT"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateTokenFromRequest").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const next = jest.fn((error) => {
+                expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+                expect(req.headers.authorization).toEqual(validateTokenResponse.token);
+                
+                expect(error).toBeUndefined();
+                done();
+            });
+
+            const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
+            
+            middlewareFunction(req, {}, next);
+        });
+
+        it("calls next with missing token error if resource exists but has no access token in req sessions", (done) => {
+            const req = {
+                session: {
+                    protectedResources: {
+                        myApi: {}
+                    }
+                },
+                headers: {
+                    authorization: ""
+                }
+            };
+
+            const next = jest.fn((error) => {
+                expect(error).toBeInstanceOf(ValidationConfigurationError);
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.missingToken.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.missingToken.desc);
+                done();
+            });
+
+            const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
+            
+            middlewareFunction(req, {}, next);
+        });
+
+        it("calls next with missing token error if resource does not exist in req sessions", (done) => {
+            const req = {
+                session: {
+                    protectedResources: {
+                        anotherApi: {}
+                    }
+                },
+                headers: {
+                    authorization: ""
+                }
+            };
+
+            const next = jest.fn((error) => {
+                expect(error).toBeInstanceOf(ValidationConfigurationError);
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.missingToken.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.missingToken.desc);
+                done();
+            });
+
+            const middlewareFunction = validator.validateTokenMiddleware(defaultOptions, "myApi");
+            
+            middlewareFunction(req, {}, next);
+        });
+
+    });
+
+    describe("validateTokenFromRequest", () => {
+
+        it("validates token from request authorization header", async () => {
+            const validateTokenResponse = {
+                token: "access-token-from-header",
+                tokenType: "JWT"
+            };
+
+            const request = {
+                headers: {
+                    authorization: "Bearer access-token-from-header"
+                },
+                body: {
+                    access_token: "access-token-from-body"
+                }
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromRequest(request, defaultOptions);
+
+            expect(result.token).toEqual("access-token-from-header");
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith("access-token-from-header", defaultOptions);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+        it("throws error if authorization header in request is not bearer, and no token in body", async () => {
+            const request = {
+                headers: {
+                    authorization: "Basic access-token"
+                }
+            };
+
+            await validator.validateTokenFromRequest(request, defaultOptions)
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(ValidationConfigurationError);
+                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.missingToken.code);
+                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.missingToken.desc);
+                });
+        });
+
+        it("validates token from request body", async () => {
+            const validateTokenResponse = {
+                token: "access-token-from-body",
+                tokenType: "JWT"
+            };
+
+            const request = {
+                headers: {},
+                body: {
+                    access_token: "access-token-from-body"
+                }
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromRequest(request, defaultOptions);
+
+            expect(result.token).toEqual("access-token-from-body");
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith("access-token-from-body", defaultOptions);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+    });
+
+    describe("validateTokenFromResponse", () => {
+
+        it("validates id token if present on msal response and options provided", async () => {
+            const msalResponse = {
+                idToken: "id-token",
+                tokenType: "Bearer"
+            } as AuthenticationResult;
+
+            const validateTokenResponse = {
+                token: "id-token",
+                tokenType: "JWT"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromResponse(msalResponse, defaultOptions);
+
+            expect(result).toEqual([validateTokenResponse]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith("id-token", defaultOptions);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+        it("does not validate id token if present but idTokenOptions not passed in", async () => {
+            const msalResponse = {
+                idToken: "id-token",
+                tokenType: "Bearer"
+            } as AuthenticationResult;
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken");
+
+            const result = await validator.validateTokenFromResponse(msalResponse);
+
+            expect(result).toEqual([]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("validates id token with code if code returned in response", async () => {
+            const msalResponse = {
+                idToken: "id-token",
+                tokenType: "Bearer",
+                code: "code1234"
+            } as AuthenticationResult;
+
+            const validateTokenResponse = {
+                token: "id-token",
+                tokenType: "JWT"
+            };
+
+            const idTokenOptions = {
+                validIssuers: ["issuer"],
+                validAudiences: ["audiences"]
+            };
+
+            const validateTokenOptionsWithCode = {
+                ...idTokenOptions,
+                code: "code1234"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromResponse(msalResponse, idTokenOptions);
+
+            expect(result).toEqual([validateTokenResponse]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith("id-token", validateTokenOptionsWithCode);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+        it("validates id token with accessToken if accessToken returned in response", async () => {
+            const msalResponse = {
+                idToken: "id-token",
+                tokenType: "Bearer",
+                accessToken: "access-token"
+            } as AuthenticationResult;
+
+            const validateTokenResponse = {
+                token: "id-token",
+                tokenType: "JWT"
+            };
+
+            const idTokenOptions = {
+                validIssuers: ["issuer"],
+                validAudiences: ["audiences"]
+            };
+
+            const validateTokenOptionsWithAccessToken = {
+                ...idTokenOptions,
+                accessTokenForAtHash: "access-token"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromResponse(msalResponse, idTokenOptions);
+
+            expect(result).toEqual([validateTokenResponse]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith("id-token", validateTokenOptionsWithAccessToken);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+        it("validates access token if present on msal response and options provided", async () => {
+            const msalResponse = {
+                accessToken: "access-token",
+                tokenType: "Bearer"
+            } as AuthenticationResult;
+
+            const validateTokenResponse = {
+                token: "access-token",
+                tokenType: "JWT"
+            };
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken").mockReturnValue(Promise.resolve(validateTokenResponse));
+
+            const result = await validator.validateTokenFromResponse(msalResponse, undefined, defaultOptions);
+
+            expect(result).toEqual([validateTokenResponse]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(1);
+            expect(validateTokenSpy).toHaveBeenCalledWith("access-token", defaultOptions);
+            expect(validateTokenSpy).toReturnWith(Promise.resolve(validateTokenResponse));
+        });
+
+        it("does not validate access token if present but accessTokenOptions not passed in", async () => {
+            const msalResponse = {
+                accessToken: "access-token",
+                tokenType: "Bearer"
+            } as AuthenticationResult;
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken");
+
+            const result = await validator.validateTokenFromResponse(msalResponse);
+
+            expect(result).toEqual([]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("returns empty response array if no id token or access token on response", async () => {
+            const msalResponse = {
+                tokenType: "Bearer"
+            } as AuthenticationResult;
+
+            const validateTokenSpy = jest.spyOn(validator, "validateToken");
+
+            const result = await validator.validateTokenFromResponse(msalResponse);
+
+            expect(result).toEqual([]);
+
+            expect(validateTokenSpy).toHaveBeenCalledTimes(0);
+        });
+
+        it("throws error if tokenType in response is not bearer", async () => {
+            const msalResponse = {
+                accessToken: "access-token",
+                tokenType: "Basic"
+            } as AuthenticationResult;
+
+            await validator.validateTokenFromResponse(msalResponse)
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(ValidationConfigurationError);
+                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code);
+                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc);
+                });
+        });
+
     });
 
     describe("validateToken", () => {
@@ -113,7 +437,7 @@ describe("TokenValidator", () => {
             };
             const testJSONWebKeySet: JSONWebKeySet = {
                 keys: TEST_CONSTANTS.ISSUER_SIGNING_KEYS
-            }
+            };
 
             const mock = mocked(createLocalJWKSet);
 
@@ -139,14 +463,13 @@ describe("TokenValidator", () => {
         });
         
         it("calls createRemoteJWKSet with uri retrieved from metadata endpoint if no issuerSigningKeys or issuerSigningJwksUri provided in params", async () => {
-            jest.spyOn(OpenIdConfigProvider.prototype, 'fetchJwksUriFromEndpoint').mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
+            jest.spyOn(OpenIdConfigProvider.prototype, "fetchJwksUriFromEndpoint").mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
             const mock = mocked(createRemoteJWKSet);
 
             await validator.getJWKS(defaultValidationParams);
 
             expect(mock).toHaveBeenCalledTimes(1);
             expect(mock).toHaveBeenCalledWith(new URL(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
-
 
         });
 
@@ -167,7 +490,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setIssuerParams(testValidationParams)
+                validator.setIssuerParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -184,7 +507,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setIssuerParams(testValidationParams)
+                validator.setIssuerParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -212,7 +535,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setAudienceParams(testValidationParams)
+                validator.setAudienceParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -229,7 +552,7 @@ describe("TokenValidator", () => {
             };
 
             try {
-                validator.setAudienceParams(testValidationParams)
+                validator.setAudienceParams(testValidationParams);
             } catch (e) {
                 expect(e).toBeInstanceOf(ValidationConfigurationError);
 
@@ -241,6 +564,33 @@ describe("TokenValidator", () => {
 
     });
 
+    describe("setClockTolerance", () => {
+
+        it("returns clockSkew if set to positive integer", () => {
+            const result = validator.setClockTolerance(300);
+
+            expect(result).toEqual(300);
+        });
+
+        it("returns clockSkew if set to zero", () => {
+            const result = validator.setClockTolerance(0);
+
+            expect(result).toEqual(0);
+        });
+
+        it("throw error if validAudiences is negative integer", () => {
+            try {
+                validator.setClockTolerance(-1);
+            } catch (e) {
+                expect(e).toBeInstanceOf(ValidationConfigurationError);
+
+                const error = e as ValidationConfigurationError;
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.negativeClockSkew.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.negativeClockSkew.desc);
+            }
+        });
+
+    });
 
     describe("validateClaims", () => {
 

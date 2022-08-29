@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, PerformanceEvents, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, Constants, UrlString, ServerAuthorizationCodeResponse, ProtocolUtils, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -14,13 +14,17 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { NativeInteractionClient } from "./NativeInteractionClient";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
+    protected nativeStorage: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
+        this.nativeStorage = nativeStorageImpl;
     }
 
     /**
@@ -48,29 +52,22 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
-        this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || "", silentRequest.account || null);
+        this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
         try {
-            // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
-
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
-            // Create authorize request url
-            const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
-
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger)
-                .then((result: AuthenticationResult) => {
-                    acquireTokenMeasurement.endMeasurement({
-                        success: true,
-                        fromCache: false
-                    });
-                    return result;
+            return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
+                acquireTokenMeasurement.endMeasurement({
+                    success: true,
+                    fromCache: false
                 });
+                return result;
+            });
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
@@ -78,6 +75,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
             acquireTokenMeasurement.endMeasurement({
+                errorCode: e instanceof AuthError && e.errorCode || undefined,
+                subErrorCode: e instanceof AuthError && e.subError || undefined,
                 success: false
             });
             throw e;
@@ -98,14 +97,39 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    protected async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient, browserRequestLogger: Logger): Promise<AuthenticationResult> {
+    protected async silentTokenHelper(authClient: AuthorizationCodeClient, silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+        // Create auth code request and generate PKCE params
+        const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
+        // Create authorize request url
+        const navigateUrl = await authClient.getAuthCodeUrl({
+            ...silentRequest,
+            nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
+        });
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, browserRequestLogger, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
-        const state = this.validateAndExtractStateFromHash(hash, InteractionType.Silent, authCodeRequest.correlationId);
+        // Deserialize hash fragment response parameters.
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+        const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Silent, authCodeRequest.correlationId);
+
+        if (serverParams.accountId) {
+            this.logger.verbose("Account id found in hash, calling WAM for token");
+            if (!this.nativeMessageHandler) {
+                throw BrowserAuthError.createNativeConnectionNotEstablishedError();
+            }
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.browserStorage, this.correlationId);
+            const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
+            return nativeInteractionClient.acquireToken({
+                ...silentRequest,
+                state: userRequestState,
+                prompt: PromptValue.NONE
+            }).finally(() => {
+                this.browserStorage.cleanRequestByState(state);
+            });
+        }
 
         // Handle response from hash string
         return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);

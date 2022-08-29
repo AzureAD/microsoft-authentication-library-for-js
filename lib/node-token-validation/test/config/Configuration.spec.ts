@@ -1,16 +1,12 @@
-import { Configuration, buildConfiguration } from "../../src/config/Configuration";
+import { Configuration, buildConfiguration, TokenValidationConfiguration } from "../../src/config/Configuration";
 import { HttpClient } from "../../src/network/HttpClient";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { LogLevel, NetworkRequestOptions } from "@azure/msal-common";
+import { LogLevel, NetworkRequestOptions, ProtocolMode } from "@azure/msal-common";
 import 'regenerator-runtime';
 
 describe("Configuration", () => {
     it("builds configuration and assigns default functions", () => {
-        const config: Configuration = buildConfiguration({
-            auth: {
-                clientId: TEST_CONSTANTS.CLIENT_ID
-            }
-        });
+        const config: TokenValidationConfiguration = buildConfiguration();
 
         // network options
         expect(config.system!.networkClient).toBeDefined();
@@ -57,8 +53,9 @@ describe("Configuration", () => {
 
         // auth options
         expect(config.auth.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
-        expect(config.auth.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
         expect(config.auth.clockSkew).toEqual(TEST_CONSTANTS.DEFAULT_CLOCK_SKEW);
+        expect(config.auth.knownAuthorities).toEqual([]);
+        expect(config.auth.protocolMode).toEqual(ProtocolMode.OIDC);
 
     });
 
@@ -69,7 +66,6 @@ describe("Configuration", () => {
 
         const config: Configuration = {
             auth: {
-                clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY
             },
             system: {
@@ -113,15 +109,17 @@ describe("Configuration", () => {
             body: '',
         };
 
+        const builtConfig: TokenValidationConfiguration = buildConfiguration(config);
+
         // network options
         expect(
-            config.system!.networkClient!.sendGetRequestAsync(
+            builtConfig.system.networkClient!.sendGetRequestAsync(
                 TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC,
                 testNetworkOptions
             )
         ).resolves.toEqual(testNetworkResult);
         expect(
-            config.system!.networkClient!.sendPostRequestAsync(
+            builtConfig.system.networkClient!.sendPostRequestAsync(
                 TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC,
                 testNetworkOptions
             )
@@ -133,6 +131,5 @@ describe("Configuration", () => {
 
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
-        expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
     });
 });

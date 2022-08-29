@@ -3,19 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, IPerformanceClient } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
-import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -24,13 +20,6 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
 export abstract class StandardInteractionClient extends BaseInteractionClient {
-    protected navigationClient: INavigationClient;
-
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, performanceClient, correlationId);
-        this.navigationClient = navigationClient;
-    }
-
     /**
      * Generates an auth code request tied to the url request.
      * @param request
@@ -42,7 +31,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
-            code: "",
+            code: Constants.EMPTY_STRING,
             codeVerifier: generatedPkceParams.verifier
         };
 
@@ -60,7 +49,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
         const validLogoutRequest: CommonEndSessionRequest = {
-            correlationId: this.browserCrypto.createNewGuid(),
+            correlationId: this.correlationId || this.browserCrypto.createNewGuid(),
             ...logoutRequest
         };
 
@@ -175,9 +164,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
                 version: version,
-                cpu: "",
-                os: ""
-            }
+                cpu: Constants.EMPTY_STRING,
+                os: Constants.EMPTY_STRING
+            },
+            telemetry: this.config.telemetry
         };
     }
 
@@ -185,10 +175,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param hash
      * @param interactionType
      */
-    protected validateAndExtractStateFromHash(hash: string, interactionType: InteractionType, requestCorrelationId?: string): string {
+    protected validateAndExtractStateFromHash(serverParams: ServerAuthorizationCodeResponse, interactionType: InteractionType, requestCorrelationId?: string): string {
         this.logger.verbose("validateAndExtractStateFromHash called", requestCorrelationId);
-        // Deserialize hash fragment response parameters.
-        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         if (!serverParams.state) {
             throw BrowserAuthError.createHashDoesNotContainStateError();
         }
@@ -219,6 +207,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
+            skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache
         };
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
@@ -235,8 +224,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
                 return result;
             })
-            .catch((error:Error) => {
+            .catch((error:AuthError) => {
                 getAuthorityMeasurement.endMeasurement({
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
                     success: false
                 });
 

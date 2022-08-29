@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent } from "@azure/msal-common";
+import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent, ApplicationTelemetry } from "@azure/msal-common";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
@@ -12,8 +12,8 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
     private browserCrypto: BrowserCrypto;
     private guidGenerator: GuidGenerator;
     
-    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {
-        super(clientId, authority, logger, libraryName, libraryVersion);
+    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry) {
+        super(clientId, authority, logger, libraryName, libraryVersion, applicationTelemetry);
         this.browserCrypto = new BrowserCrypto(this.logger);
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
     }

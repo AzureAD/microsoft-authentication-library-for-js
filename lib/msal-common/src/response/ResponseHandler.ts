@@ -111,16 +111,16 @@ export class ResponseHandler {
         reqTimestamp: number,
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
-        oboAssertion?: string,
+        userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
-        httpVer?: string,
-    ): Promise<AuthenticationResult> {
+        forceCacheRefreshTokenResponse?: boolean,
+        httpVer?: string): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-            
+
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -141,7 +141,7 @@ export class ResponseHandler {
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, userAssertionHash, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -152,9 +152,10 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
              */
-            if (handlingRefreshTokenResponse && cacheRecord.account) {
+            if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
@@ -178,7 +179,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, idTokenObj?: AuthToken, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, idTokenObj?: AuthToken, userAssertionHash?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -194,14 +195,12 @@ export class ResponseHandler {
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
                 this.clientId,
                 idTokenObj.claims.tid || Constants.EMPTY_STRING,
-                oboAssertion
             );
 
             cachedAccount = this.generateAccountEntity(
                 serverTokenResponse,
                 idTokenObj,
                 authority,
-                oboAssertion,
                 authCodePayload
             );
         }
@@ -237,13 +236,13 @@ export class ResponseHandler {
                 this.cryptoObj,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
-                oboAssertion,
+                userAssertionHash,
                 serverTokenResponse.key_id,
                 request.claims,
                 request.requestedClaimsHash
             );
         }
-        
+
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
@@ -253,7 +252,7 @@ export class ResponseHandler {
                 serverTokenResponse.refresh_token || Constants.EMPTY_STRING,
                 this.clientId,
                 serverTokenResponse.foci,
-                oboAssertion
+                userAssertionHash
             );
         }
 
@@ -272,15 +271,15 @@ export class ResponseHandler {
      * @param idToken
      * @param authority
      */
-    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): AccountEntity {
+    private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, authCodePayload?: AuthorizationCodePayload): AccountEntity {
         const authorityType = authority.authorityType;
-        const cloudGraphHostName = authCodePayload ? authCodePayload.cloud_graph_host_name : "";
-        const msGraphhost = authCodePayload ? authCodePayload.msgraph_host : "";
+        const cloudGraphHostName = authCodePayload ? authCodePayload.cloud_graph_host_name : Constants.EMPTY_STRING;
+        const msGraphhost = authCodePayload ? authCodePayload.msgraph_host : Constants.EMPTY_STRING;
 
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
+            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, cloudGraphHostName, msGraphhost);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -289,8 +288,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost) :
-            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, cloudGraphHostName, msGraphhost) :
+            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, cloudGraphHostName, msGraphhost);
     }
 
     /**
@@ -304,17 +303,17 @@ export class ResponseHandler {
      * @param stateString
      */
     static async generateAuthenticationResult(
-        cryptoObj: ICrypto, 
+        cryptoObj: ICrypto,
         authority: Authority,
-        cacheRecord: CacheRecord, 
-        fromTokenCache: boolean, 
+        cacheRecord: CacheRecord,
+        fromTokenCache: boolean,
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
         code?: string,
         httpVer?: string,
     ): Promise<AuthenticationResult> {
-        let accessToken: string = "";
+        let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
@@ -323,7 +322,13 @@ export class ResponseHandler {
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
+                const { secret, keyId } = cacheRecord.accessToken;
+
+                if (!keyId) {
+                    throw ClientAuthError.createKeyIdMissingError();
+                }
+
+                accessToken = await popTokenGenerator.signPopToken(secret, keyId, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
@@ -358,6 +363,7 @@ export class ResponseHandler {
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code,
             httpVer,
+            fromNativeBroker: false
         };
     }
 }

@@ -1,6 +1,6 @@
 name: Feature request
 description: Suggest a feature for one of our libraries.
-labels: [feature]
+labels: [feature-unconfirmed, question]
 body:
 - type: dropdown
   attributes:
@@ -26,6 +26,17 @@ body:
       - "MSAL Node Extensions (@azure/msal-node-extensions)"
       - "ADAL Angular (adal-angular)"
       - "Not Applicable"
+  validations:
+    required: true
+
+- type: dropdown
+  attributes:
+    label: Public or Confidential Client?
+    description: Are you using PublicClientApplication or ConfidentialClientApplication? (Issues regarding msal-browser, msal-react and msal-angular are always "Public")
+    multiple: true
+    options: 
+      - "Public"
+      - "Confidential"
   validations:
     required: true
 

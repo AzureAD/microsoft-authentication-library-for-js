@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType , CredentialType, CacheOutcome } from "../utils/Constants";
+import { GrantType , CredentialType, CacheOutcome, Constants, AuthenticationScheme } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
@@ -18,6 +18,8 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { IAppTokenProvider } from "../config/AppTokenProvider";
 
 /**
  * OAuth2.0 client credential grant
@@ -25,9 +27,11 @@ import { ClientAuthError } from "../error/ClientAuthError";
 export class ClientCredentialClient extends BaseClient {
 
     private scopeSet: ScopeSet;
+    private readonly appTokenProvider?: IAppTokenProvider;
 
-    constructor(configuration: ClientConfiguration) {
+    constructor(configuration: ClientConfiguration, appTokenProvider?: IAppTokenProvider) {
         super(configuration);
+        this.appTokenProvider = appTokenProvider;
     }
 
     /**
@@ -88,7 +92,7 @@ export class ClientCredentialClient extends BaseClient {
      */
     private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
-            homeAccountId: "",
+            homeAccountId: Constants.EMPTY_STRING,
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
@@ -112,23 +116,48 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonClientCredentialRequest, authority: Authority)
         : Promise<AuthenticationResult | null> {
+        
+        let serverTokenResponse: ServerAuthorizationTokenResponse;
+        let reqTimestamp: number;
 
-        const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders();
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
-            authority: request.authority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid
-        };
+        if (this.appTokenProvider) {
+            this.logger.info("Using appTokenProvider extensibility.");
 
-        const reqTimestamp = TimeUtils.nowSeconds();
-        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+            const appTokenPropviderParameters = {
+                correlationId: request.correlationId,
+                tenantId: this.config.authOptions.authority.tenant,
+                scopes: request.scopes,
+                claims: request.claims,
+            };
+
+            reqTimestamp = TimeUtils.nowSeconds();
+            const appTokenProviderResult = await this.appTokenProvider(appTokenPropviderParameters);
+
+            serverTokenResponse = {
+                access_token: appTokenProviderResult.accessToken, 
+                expires_in: appTokenProviderResult.expiresInSeconds,
+                refresh_in: appTokenProviderResult.refreshInSeconds,
+                token_type : AuthenticationScheme.BEARER
+            };
+        } else {
+            const requestBody = this.createTokenRequestBody(request);
+            const headers: Record<string, string> = this.createTokenRequestHeaders();
+            const thumbprint: RequestThumbprint = {
+                clientId: this.config.authOptions.clientId,
+                authority: request.authority,
+                scopes: request.scopes,
+                claims: request.claims,
+                authenticationScheme: request.authenticationScheme,
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+                shrClaims: request.shrClaims,
+                sshKid: request.sshKid
+            };
+    
+            reqTimestamp = TimeUtils.nowSeconds();
+            const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+            serverTokenResponse = response.body;
+        }
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -139,9 +168,10 @@ export class ClientCredentialClient extends BaseClient {
             this.config.persistencePlugin
         );
 
-        responseHandler.validateTokenResponse(response.body);
+        responseHandler.validateTokenResponse(serverTokenResponse);
+       
         const tokenResponse = await responseHandler.handleServerTokenResponse(
-            response.body,
+            serverTokenResponse,
             this.authority,
             reqTimestamp,
             request,
@@ -168,6 +198,7 @@ export class ClientCredentialClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.CLIENT_CREDENTIALS_GRANT);
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
 
         parameterBuilder.addThrottling();
         
@@ -182,8 +213,10 @@ export class ClientCredentialClient extends BaseClient {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
         }
 
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
+        // Use clientAssertion from request, fallback to client assertion in base configuration
+        const clientAssertion = request.clientAssertion || this.config.clientCredentials.clientAssertion;
+
+        if (clientAssertion) {
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }

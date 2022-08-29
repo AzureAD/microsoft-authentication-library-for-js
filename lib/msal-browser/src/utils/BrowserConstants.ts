@@ -41,6 +41,19 @@ export const BrowserConstants = {
     MSAL_SKU: "msal.js.browser",
 };
 
+export const NativeConstants = {
+    CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
+    PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji",
+    MATS_TELEMETRY: "MATS"
+};
+
+export enum NativeExtensionMethod {
+    HandshakeRequest = "Handshake",
+    HandshakeResponse = "HandshakeResponse",
+    GetToken = "GetToken",
+    Response = "Response"
+}
+
 export enum BrowserCacheLocation {
     LocalStorage = "localStorage",
     SessionStorage = "sessionStorage",
@@ -71,7 +84,8 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes",
     INTERACTION_STATUS_KEY = "interaction.status",
     CCS_CREDENTIAL = "ccs.credential",
-    CORRELATION_ID = "request.correlationId"
+    CORRELATION_ID = "request.correlationId",
+    NATIVE_REQUEST = "request.native"
 }
 
 /**

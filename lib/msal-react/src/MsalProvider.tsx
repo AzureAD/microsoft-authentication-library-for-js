@@ -47,7 +47,6 @@ type MsalProviderReducerAction = {
  */
 const reducer = (previousState: MsalState, action: MsalProviderReducerAction): MsalState => {
     const { type, payload } = action;
-    let newAccounts = previousState.accounts;
     let newInProgress = previousState.inProgress;
 
     switch (type) {
@@ -68,20 +67,32 @@ const reducer = (previousState: MsalState, action: MsalProviderReducerAction): M
         default:
             throw new Error(`Unknown action type: ${type}`);
     }
-
+    
     const currentAccounts = payload.instance.getAllAccounts();
-    if (!accountArraysAreEqual(currentAccounts, previousState.accounts)) {
-        payload.logger.info("MsalProvider - updating account state");
-        newAccounts = currentAccounts;
+    if (newInProgress !== previousState.inProgress && 
+        !accountArraysAreEqual(currentAccounts, previousState.accounts)) {
+        // Both inProgress and accounts changed
+        return {
+            ...previousState,
+            inProgress: newInProgress,
+            accounts: currentAccounts
+        };
+    } else if (newInProgress !== previousState.inProgress) {
+        // Only only inProgress changed
+        return {
+            ...previousState,
+            inProgress: newInProgress
+        };
+    } else if (!accountArraysAreEqual(currentAccounts, previousState.accounts)) {
+        // Only accounts changed
+        return {
+            ...previousState,
+            accounts: currentAccounts
+        };
     } else {
-        payload.logger.verbose("MsalProvider - no account changes");
+        // Nothing changed
+        return previousState;
     }
-
-    return {
-        ...previousState,
-        inProgress: newInProgress,
-        accounts: newAccounts
-    };
 };
 
 /**
@@ -117,20 +128,22 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         });
         logger.verbose(`MsalProvider - Registered event callback with id: ${callbackId}`);
 
-        instance.handleRedirectPromise().catch(() => {
-            // Errors should be handled by listening to the LOGIN_FAILURE event
-            return;
-        }).finally(() => {
-            /*
-             * If handleRedirectPromise returns a cached promise the necessary events may not be fired
-             * This is a fallback to prevent inProgress from getting stuck in 'startup'
-             */
-            updateState({
-                payload: {
-                    instance,
-                    logger
-                },
-                type: MsalProviderActionType.UNBLOCK_INPROGRESS 
+        instance.initialize().then(() => {
+            instance.handleRedirectPromise().catch(() => {
+                // Errors should be handled by listening to the LOGIN_FAILURE event
+                return;
+            }).finally(() => {
+                /*
+                 * If handleRedirectPromise returns a cached promise the necessary events may not be fired
+                 * This is a fallback to prevent inProgress from getting stuck in 'startup'
+                 */
+                updateState({
+                    payload: {
+                        instance,
+                        logger
+                    },
+                    type: MsalProviderActionType.UNBLOCK_INPROGRESS 
+                });
             });
         });
 

@@ -53,3 +53,18 @@ updates:
       interval: "monthly"
     allow:
       - dependency-name: "caniuse-lite"
+
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/samples" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    allow:
+      - dependency-name: "puppeteer"
+    ignore:
+      - dependency-name: "puppeteer"
+        update-types: ["version-update:semver-patch", "version-update:semver-minor"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

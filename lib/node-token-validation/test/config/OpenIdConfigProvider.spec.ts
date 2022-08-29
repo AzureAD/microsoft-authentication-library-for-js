@@ -1,19 +1,23 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { buildConfiguration } from "../../src/config/Configuration";
 import { OpenIdConfigProvider } from "../../src/config/OpenIdConfigProvider";
-import { TEST_CONSTANTS } from "../utils/TestConstants";
-import { Logger, NetworkResponse, ProtocolMode } from "@azure/msal-common";
-import { OpenIdConfigResponse } from "../../src/response/OpenIdConfigResponse";
+import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from "../utils/TestConstants";
+import { Authority, AuthorityFactory, Logger } from "@azure/msal-common";
 import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from "../../src/error/ValidationConfigurationError";
-import 'regenerator-runtime';
-import { HttpClient } from "../../src/network/HttpClient";
+import { NodeCacheManager } from "../../src/cache/NodeCacheManager";
+import "regenerator-runtime";
 
 describe("OpenIdConfigProvider", () => {
-    let config = buildConfiguration({
+    const config = buildConfiguration({
         auth: {
-            clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: TEST_CONSTANTS.DEFAULT_AUTHORITY
         }
     });
+    const logger = new Logger(config.system.loggerOptions);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -21,7 +25,8 @@ describe("OpenIdConfigProvider", () => {
 
     describe("constructor", () => {
         it("exports a class", () => {
-            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
+            const cache = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+            const provider = new OpenIdConfigProvider(config, config.system.networkClient, cache, logger);
             expect(provider).toBeInstanceOf(OpenIdConfigProvider);
         });
     });
@@ -29,97 +34,57 @@ describe("OpenIdConfigProvider", () => {
     describe("fetchJwksUriFromEndpoint", () => {
 
         it("returns jwks_uri", async () => {
-            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
+            const cache = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+            const provider = new OpenIdConfigProvider(config, config.system.networkClient, cache,logger);
 
-            const mockResponse: NetworkResponse<OpenIdConfigResponse> = {
-                headers: { },
-                body: {
-                    jwks_uri: TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC
+            const mockAuthority = {
+                regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
+                resolveEndpointsAsync: () => {
+                    return new Promise<void>(resolve => {
+                        resolve();
+                    });
                 },
-                status: 200
-            }
+                discoveryComplete: () => {
+                    return true;
+                },
+                jwksUri: TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC
+            } as unknown as Authority;
 
-            const getEndpointSpy = jest.spyOn(provider, 'getOpenIdConfigurationEndpoint').mockReturnValue(Promise.resolve(TEST_CONSTANTS.WELL_KNOWN_ENDPOINT));
-
-            const sendRequestSpy = jest.spyOn(HttpClient.prototype, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
+            const mockDiscoveredInstance = jest.spyOn(AuthorityFactory, "createDiscoveredInstance").mockReturnValue(Promise.resolve(mockAuthority));
     
             const response = await provider.fetchJwksUriFromEndpoint();
     
+            expect(mockDiscoveredInstance).toHaveBeenCalledTimes(1);
             expect(response).toEqual(TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC);
-
-            expect(getEndpointSpy).toHaveBeenCalledTimes(1);
-            expect(getEndpointSpy).toHaveBeenCalledWith(TEST_CONSTANTS.DEFAULT_AUTHORITY, ProtocolMode.OIDC);
-
-            expect(sendRequestSpy).toHaveBeenCalledTimes(1);
-            expect(sendRequestSpy).toHaveBeenCalledWith(TEST_CONSTANTS.WELL_KNOWN_ENDPOINT);
         });
     
         it("throws error if openIdResponse does not contain jwks_uri", async () => {
-            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
+            const cache = new NodeCacheManager(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+            const provider = new OpenIdConfigProvider(config, config.system.networkClient, cache, logger);
 
-            const mockResponse = {
-                headers: { },
-                body: {},
-                status: 200
-            };
+            const mockAuthority = {
+                regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
+                resolveEndpointsAsync: () => {
+                    return new Promise<void>(resolve => {
+                        resolve();
+                    });
+                },
+                discoveryComplete: () => {
+                    return true;
+                }
+            } as unknown as Authority;
 
-            jest.spyOn(HttpClient.prototype, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
+            const mockDiscoveredInstance = jest.spyOn(AuthorityFactory, "createDiscoveredInstance").mockReturnValue(Promise.resolve(mockAuthority));
     
             await provider.fetchJwksUriFromEndpoint()
                 .catch((e) => {
+                    expect(mockDiscoveredInstance).toHaveBeenCalledTimes(1);
                     expect(e).toBeInstanceOf(ValidationConfigurationError);
                     expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.invalidMetadata.code);
                     expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.invalidMetadata.desc);
                 });
         });
 
-    });
-
-    describe("getOpenIdConfigurationEndpoint", () => {
-        it("returns a well-known endpoint", async () => {
-            const config = buildConfiguration({
-                auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
-                    authority: TEST_CONSTANTS.DEFAULT_AUTHORITY
-                }
-            });
-            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
-
-            const result = await provider.getOpenIdConfigurationEndpoint(config.auth.authority, config.auth.protocolMode);
-
-            expect(result).toEqual(TEST_CONSTANTS.WELL_KNOWN_ENDPOINT);
-        });
-
-        it("returns an AAD endpoint if ProtocolMode.AAD is configured", async () => {
-            const config = buildConfiguration({
-                auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
-                    authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,
-                    protocolMode: ProtocolMode.AAD
-                }
-            });
-            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
-
-            const result = await provider.getOpenIdConfigurationEndpoint(config.auth.authority, config.auth.protocolMode);
-
-            expect(result).toEqual(TEST_CONSTANTS.WELL_KNOWN_ENDPOINT_AAD);
-        });
-
-        it("returns valid endpoint even when authority does not end with /", async () => {
-            const config = buildConfiguration({
-                auth: {
-                    clientId: TEST_CONSTANTS.CLIENT_ID,
-                    authority: TEST_CONSTANTS.AUTHORITY
-                }
-            });
-            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
-
-            const result = await provider.getOpenIdConfigurationEndpoint(config.auth.authority, config.auth.protocolMode);
-
-            const expectedEndpoint = "https://login.microsoftonline.com/TenantId/.well-known/openid-configuration";
-
-            expect(result).toEqual(expectedEndpoint);
-        });
     });
 
 });
