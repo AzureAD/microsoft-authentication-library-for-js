@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "adding RT size to perf",
+  "type": "patch",
+  "comment": "adding RT size to perf #5063",
   "packageName": "@azure/msal-common",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
