@@ -40,4 +40,5 @@ export type AuthenticationResult = {
     msGraphHost?: string;
     code?: string;
     httpVer?: string;
+    fromNativeBroker?: boolean;
 };

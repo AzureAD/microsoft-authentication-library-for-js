@@ -9,7 +9,8 @@ import {
     TEST_URIS,
     TEST_POP_VALUES,
     CORS_SIMPLE_REQUEST_HEADERS,
-    RANDOM_TEST_GUID
+    RANDOM_TEST_GUID,
+    SERVER_UNEXPECTED_ERROR
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "../../src/utils/Constants";
@@ -20,6 +21,7 @@ import { AuthToken } from "../../src/account/AuthToken";
 import { DeviceCodeClient } from "../../src/client/DeviceCodeClient";
 import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { AuthError } from "../../src";
 
 describe("DeviceCodeClient unit tests", () => {
     let config: ClientConfiguration;
@@ -155,6 +157,8 @@ describe("DeviceCodeClient unit tests", () => {
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+            expect(tokenReturnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+            expect(tokenReturnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
 
         });
@@ -196,6 +200,8 @@ describe("DeviceCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+            expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+            expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
@@ -236,6 +242,8 @@ describe("DeviceCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+            expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+            expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
@@ -308,6 +316,21 @@ describe("DeviceCodeClient unit tests", () => {
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(ClientAuthError.createUserTimeoutReachedError());
             expect(tokenRequestStub.callCount).toBe(1);
+        }, 15000);
+
+        it("Throws if server throws an unexpected error", async () => {
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(SERVER_UNEXPECTED_ERROR);
+
+            const request: CommonDeviceCodeRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: "test-correlationId",
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                deviceCodeCallback: () => {}
+            };
+
+            const client = new DeviceCodeClient(config);
+            await expect(client.acquireToken(request)).rejects.toMatchObject(AuthError.createPostRequestFailed("Service Unavailable"));
         }, 15000);
     });
 });

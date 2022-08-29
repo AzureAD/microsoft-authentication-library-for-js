@@ -15,11 +15,12 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 export class SilentFlowClient extends BaseClient {
-
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration,performanceClient);
     }
 
     /**
@@ -32,7 +33,7 @@ export class SilentFlowClient extends BaseClient {
             return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                const refreshTokenClient = new RefreshTokenClient(this.config);
+                const refreshTokenClient = new RefreshTokenClient(this.config, this.performanceClient);
                 return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;
@@ -65,7 +66,7 @@ export class SilentFlowClient extends BaseClient {
         const environment = request.authority || this.authority.getPreferredCache();
 
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, request, environment);
-        
+
         if (!cacheRecord.accessToken) {
             // Must refresh due to non-existent access_token.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);

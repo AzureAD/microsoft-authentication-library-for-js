@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
 import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
@@ -13,10 +14,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
     protected libraryName: string;
     protected libraryVersion: string;
+    protected applicationTelemetry: ApplicationTelemetry;
     protected clientId: string;
     protected logger: Logger;
     protected callbacks: Map<string, PerformanceCallbackFunction>;
-    
+
     /**
      * Multiple events with the same correlation id.
      * Double keyed by correlation id and event id.
@@ -24,7 +26,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @type {Map<string, Map<string, PerformanceEvent>>}
      */
     protected eventsByCorrelationId: Map<string, Map<string, PerformanceEvent>>;
-    
+
     /**
      * Underlying performance measurements for each operation
      *
@@ -32,7 +34,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @type {Map<string, IPerformanceMeasurement>}
      */
     protected measurementsById: Map<string, IPerformanceMeasurement>;
-    
+
     /**
      * Creates an instance of PerformanceClient, 
      * an abstract class containing core performance telemetry logic.
@@ -44,10 +46,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} libraryName Name of the library
      * @param {string} libraryVersion Version of the library
      */
-    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string) {
+    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry) {
         this.authority = authority;
         this.libraryName = libraryName;
         this.libraryVersion = libraryVersion;
+        this.applicationTelemetry = applicationTelemetry;
         this.clientId = clientId;
         this.logger = logger;
         this.callbacks = new Map();
@@ -55,7 +58,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.measurementsById = new Map();
         this.httpVer = undefined;
     }
-    
+
     /**
      * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
      *
@@ -65,7 +68,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {IPerformanceMeasurement}
      */
     abstract startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
-    
+
     /**
      * Generates and returns a unique id, typically a guid.
      *
@@ -73,7 +76,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {string}
      */
     abstract generateId(): string;
-    
+
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
      *
@@ -98,6 +101,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             authority: this.authority,
             libraryName: this.libraryName,
             libraryVersion: this.libraryVersion,
+            appName: this.applicationTelemetry?.appName,
+            appVersion: this.applicationTelemetry?.appVersion,
             clientId: this.clientId,
             name: measureName,
             startTimeMs: Date.now(),
@@ -118,13 +123,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     // Properties set when event ends
                     ...event
                 });
-    
+
                 if (completedEvent) {
                     // Cache event so that submeasurements can be added downstream
                     this.cacheEventByCorrelationId(completedEvent);
                 }
-                console.log("Completed event");
-                console.log(completedEvent);
                 return completedEvent;
             },
             flushMeasurement: () => {
@@ -136,9 +139,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
             measurement: performanceMeasurement,
             event: inProgressEvent
         };
-        
+
     }
-    
+
     /**
      * Stops measuring the performance for an operation. Should only be called directly by PerformanceClient classes,
      * as consumers should instead use the function returned by startMeasurement.
@@ -151,20 +154,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (performanceMeasurement) {
             // Immediately delete so that the same event isnt ended twice
             this.measurementsById.delete(event.eventId);
-            performanceMeasurement.endMeasurement(); //loop????
+            performanceMeasurement.endMeasurement(); // loop????
             const durationMs = performanceMeasurement.flushMeasurement();
             // null indicates no measurement was taken (e.g. needed performance APIs not present)
             if (durationMs !== null) {
                 this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
-                console.log(`**!!! PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
-                
                 const completedEvent: PerformanceEvent = {
                     // Allow duration to be overwritten when event ends (e.g. testing), but not status
                     durationMs: Math.round(durationMs),
                     ...event,
                     status: PerformanceEventStatus.Completed,
                 };
-        
+
                 return completedEvent;
             } else {
                 this.logger.trace("PerformanceClient: Performance measurement not taken", event.correlationId);
@@ -175,7 +176,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         return null;
     }
-    
+
     /**
      * Upserts event into event cache.
      * First key is the correlation id, second key is the event id.
@@ -195,7 +196,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.eventsByCorrelationId.set(event.correlationId, new Map().set(event.eventId, event));
         }
     }
-    
+
     /**
      * Cache measurements by their id.
      *
@@ -206,7 +207,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     private cacheMeasurement(event: PerformanceEvent, measurement: IPerformanceMeasurement) {
         this.measurementsById.set(event.eventId, measurement);
     }
-    
+
     /**
      * Gathers and emits performance events for measurements taked for the given top-level API and correlation ID.
      *
@@ -216,10 +217,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
     flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
-        console.log('EVENTS', eventsForCorrelationId);
+        console.log("EVENTS", eventsForCorrelationId);
         if (eventsForCorrelationId) {
             this.discardMeasurements(correlationId);
-            
+
             /*
              * Manually end incomplete submeasurements to ensure there arent orphaned/never ending events.
              * Incomplete submeasurements are likely an instrumentation bug that should be fixed.
@@ -232,7 +233,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
-                        completedEvents.push(completedEvent);  //why this???
+                        completedEvents.push(completedEvent);  // why this???
                     }
                 }
 
@@ -272,14 +273,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
-
-                        
+                        if (current.accessTokenSize) {
+                            previous.accessTokenSize = current.accessTokenSize;
+                        }
+                        if (current.idTokenSize) {
+                            previous.idTokenSize = current.idTokenSize;
+                        }
                     }
                     else{
                         console.log("current name is same which is ....");
                         console.log(current.name);
                     }
-                    return previous;  //should we always return previous?
+                    return previous;  
                     
                 }, topLevelEvent);
 
@@ -294,7 +299,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.verbose("PerformanceClient: No measurements found", correlationId);
         }
     }
-    
+
     /**
      * Removes measurements for a given correlation id.
      *
@@ -304,7 +309,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.logger.trace("PerformanceClient: Performance measurements discarded", correlationId);
         this.eventsByCorrelationId.delete(correlationId);
     }
-    
+
     /**
      * Registers a callback function to receive performance events.
      *
@@ -318,7 +323,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         return callbackId;
     }
-    
+
     /**
      * Removes a callback registered with addPerformanceCallback.
      *
@@ -333,10 +338,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.logger.verbose(`PerformanceClient: Performance callback ${callbackId} not removed.`);
         }
-        
+
         return result;
     }
-    
+
     /**
      * Emits events to all registered callbacks.
      *

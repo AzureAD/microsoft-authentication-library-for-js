@@ -7,10 +7,33 @@
  * Type which describes Id Token claims known by MSAL.
  */
 export type TokenClaims = {
+    /**
+     * Audience
+     */
+    aud?: string,
+    /**
+     * Issuer
+     */
     iss?: string,
+    /**
+     * Issued at
+     */
     iat?: number,
+    /**
+     * Not valid before
+     */
+    nbf?: number,
+    /**
+     * Immutable object identifier, this ID uniquely identifies the user across applications
+     */
     oid?: string,
+    /**
+     * Immutable subject identifier, this is a pairwise identifier - it is unique to a particular application ID
+     */
     sub?: string,
+    /**
+     * Users' tenant or '9188040d-6c67-4c5b-b112-36a304b66dad' for personal accounts.
+     */
     tid?: string,
     ver?: string,
     upn?: string,
@@ -19,6 +42,9 @@ export type TokenClaims = {
     emails?: string[],
     name?: string,
     nonce?: string,
+    /**
+     * Expiration
+     */
     exp?: number,
     home_oid?: string,
     sid?: string,
@@ -26,10 +52,13 @@ export type TokenClaims = {
     cnf?: {
         kid: string;
     };
-    x5c_ca?: string,
+    x5c_ca?: string[],
     ts?: number,
     at?: string,
     u?: string,
     p?: string,
-    m?: string
+    m?: string,
+    roles?: string[],
+    amr?: string[],
+    idp?: string,
 };
