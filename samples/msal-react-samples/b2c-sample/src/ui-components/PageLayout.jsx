@@ -1,4 +1,4 @@
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import NavBar from "./NavBar";
 
 export const PageLayout = (props) => {
@@ -6,7 +6,7 @@ export const PageLayout = (props) => {
         <>
             <NavBar />
             <Typography variant="h5">
-                <center>Welcome to the Microsoft Authentication Library For React B2C Sample</center>
+                <center>Welcome to the Microsoft Authentication Library For React Quickstart</center>
             </Typography>
             <br/>
             <br/>

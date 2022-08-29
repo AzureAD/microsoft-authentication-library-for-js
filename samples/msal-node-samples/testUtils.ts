@@ -208,32 +208,6 @@ export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: 
     });
 }
 
-export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForSelector("#MSIDLAB4_AzureAD");
-    await screenshot.takeScreenshot(page, "b2cSignInPage");
-    // Select Lab Provider
-    await page.click("#MSIDLAB4_AzureAD");
-    // Enter credentials
-    await enterCredentials(page, screenshot, username, accountPwd);
-}
-
-export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForSelector("#MicrosoftAccountExchange");
-    await screenshot.takeScreenshot(page, "b2cSignInPage");
-    // Select Lab Provider
-    await page.click("#MicrosoftAccountExchange");
-    // Enter credentials
-    await enterCredentials(page, screenshot, username, accountPwd);
-}
-
-export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
-    await page.waitForSelector("#logonIdentifier");
-    await screenshot.takeScreenshot(page, "b2cSignInPage");
-    await page.type("#logonIdentifier", username);
-    await page.type("#password", accountPwd);
-    await page.click("#next");
-}
-
 export async function validateCacheLocation(cacheLocation: string): Promise<void> {
     return new Promise((resolve, reject) => {
         fs.readFile(cacheLocation, "utf-8", (err, data) => {
