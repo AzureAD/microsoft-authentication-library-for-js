@@ -178,7 +178,7 @@ export class ClientCredentialClient extends BaseClient {
             undefined,
             undefined,
             undefined,
-            response.headers["x-ms-httpver"],
+            undefined
         );
 
         return tokenResponse;
