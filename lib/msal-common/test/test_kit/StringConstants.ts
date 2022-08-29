@@ -122,6 +122,7 @@ export const TEST_CONFIG = {
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
+    DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
     b2cValidAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",

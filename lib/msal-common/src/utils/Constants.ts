@@ -14,6 +14,7 @@ export const Constants = {
     DEFAULT_COMMON_TENANT: "common",
     // ADFS String
     ADFS: "adfs",
+    DSTS: "dstsv2",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // Resource delimiter - used for certain cache entries
