@@ -93,26 +93,28 @@ const event: PerformanceEvent = {
     clientId: "b50703d7-d12b-4ddc-8758-91053fe0aba4",
     authority: "https://login.microsoftonline.com/common",
     libraryName: "@azure/msal-browser-1p",
-    libraryVersion: "2.22.2-beta.2"
+    libraryVersion: "2.22.2-beta.2",
+    appName: "my-application",
+    appVersion: "1.0.0"
 }
 ```
 
-The complete details for `PerformanceEvents` objects can be found [here](../../msal-common/src/telemetry/performance/PerformanceEvent.ts). Below is a list of notable properties:
+The complete details for `PerformanceEvents` objects can be found [here](../../msal-common/src/telemetry/performance/PerformanceEvent.ts). Below is a list of some notable properties:
 
-| **Property**                       | Type      | Description                                                  |
-| ---------------------------------- | --------- | ------------------------------------------------------------ |
+| **Property**                       | Type      | Description                                                            |
+| ---------------------------------- | --------- | ---------------------------------------------------------------------- |
 | `name`                             | `string`  | Name of the operation, usually matches the top-level API name (e.g. `acquireTokenSilent`, `acquireTokenByCode`, `ssoSilent`). |
-| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.       |
-| `success`                          | `boolean` | Whether the operation was successful or not.                 |
-| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.   |
-| `correlationId`                    | `string`  | Correlation ID used for the operation.                       |
-| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                   |
-| `authority`                        | `string`  | Authority used for the operation.                            |
-| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.          |
+| `durationMs`                       | `number`  | End-to-end duration in milliseconds for the operation.                 |
+| `success`                          | `boolean` | Whether the operation was successful or not.                           |
+| `fromCache`                        | `boolean` | Whether the operation retrieved the result from the cache.             |
+| `correlationId`                    | `string`  | Correlation ID used for the operation (preferably unique per request). |
+| `libraryVersion`                   | `string`  | Version of MSAL.js used for the operation.                             |
+| `authority`                        | `string`  | Authority used for the operation.                                      |
+| `<internalFunctionName>DurationMs` | `number`  | Duration in milliseconds for an internal operation.                    |
 
 ### removePerformanceCallback
 
-The `addPerformanceCallback` API will return a callback id, which an application can pass to `PublicClientApplication.removePerformanceCallback` to unregister that callback from receiving performance events. It will return a boolean indicating whether or the callback was successfully removed.
+The `addPerformanceCallback` API will return a callback id, which an application can pass to `PublicClientApplication.removePerformanceCallback` to unregister that callback from receiving performance events. It will return a boolean indicating whether or not the callback was successfully removed.
 
 #### Example
 

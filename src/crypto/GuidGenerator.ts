@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
+import { Constants , IGuidGenerator } from "@azure/msal-common";
 import { MathUtils } from "../utils/MathUtils";
 import { BrowserCrypto } from "./BrowserCrypto";
-import { IGuidGenerator } from "@azure/msal-common";
-
 export class GuidGenerator implements IGuidGenerator {
 
     // browser crypto object used to generate random values
@@ -64,7 +63,7 @@ export class GuidGenerator implements IGuidGenerator {
             const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
             const hex: string = "0123456789abcdef";
             let r: number = 0;
-            let guidResponse: string = "";
+            let guidResponse: string = Constants.EMPTY_STRING;
             for (let i: number = 0; i < 36; i++) {
                 if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
                     // each x and y needs to be random

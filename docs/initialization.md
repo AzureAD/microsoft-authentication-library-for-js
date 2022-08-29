@@ -62,6 +62,14 @@ const msalConfig = {
 };
 ```
 
+**Note**: The `protocolMode` configuration option, which tells MSAL whether to enable AAD-specific quirks, changes the following behavior:
+
+- Authority metadata (since `v2.4.0`):
+  - When set to `OIDC`, the library will not include `/v2.0/` in the authority path when fetching authority metadata.
+  - When set to `AAD` (the default value), the library will include `/v2.0/` in the authority path when fetching authority metadata.
+
+For more information on authority, please refer to: [Authority in MSAL](../../msal-common/docs/authority.md).
+
 ## (Optional) Configure Redirect URI
 
 By default, MSAL is configured to set the redirect URI to the current page that it is running on. If you would like to receive the authorization code on a different page than the one running MSAL, you can set this in the configuration:
