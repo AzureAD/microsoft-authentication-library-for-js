@@ -18,8 +18,8 @@ import {
     AzureRegionConfiguration,
     AuthError,
     Constants,
+    IAppTokenProvider,
     OIDC_DEFAULT_SCOPES
-    IAppTokenProvider
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -83,16 +83,18 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             };
         }
 
-        const originalRequest: CommonClientCredentialRequest = {
-            ...request,
-            ...await this.initializeBaseRequest(request),
-            clientAssertion
-        };
+        const baseRequest = await this.initializeBaseRequest(request);
 
-        // a valid client credentials request should not contain delegated permissions
+        // valid base request should not contain oidc scopes
+        const validBaseRequest = {
+            ...baseRequest,
+            scopes: baseRequest.scopes.filter((scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope))
+        }
+
         const validRequest: CommonClientCredentialRequest = {
-            ...originalRequest,
-            scopes: originalRequest.scopes.filter(scope => !OIDC_DEFAULT_SCOPES.includes(scope))
+            ...request,
+            ...validBaseRequest,
+            clientAssertion
         };
 
         const azureRegionConfiguration: AzureRegionConfiguration = {

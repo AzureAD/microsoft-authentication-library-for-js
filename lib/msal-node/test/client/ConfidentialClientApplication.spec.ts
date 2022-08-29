@@ -12,7 +12,7 @@ import * as msalCommon from '@azure/msal-common';
 import { ClientCredentialRequest } from '../../src/request/ClientCredentialRequest';
 import { OnBehalfOfRequest } from '../../src';
 import { getMsalCommonAutoMock } from '../utils/MockUtils';
-import { AuthError } from "@azure/msal-common";
+import { AuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 
 describe('ConfidentialClientApplication', () => {
     let appConfig: Configuration = {
@@ -221,5 +221,28 @@ describe('ConfidentialClientApplication', () => {
             expect(e).toBeInstanceOf(AuthError);
             expect(AuthError.prototype.setCorrelationId).toHaveBeenCalledTimes(1);
         }
+    });
+
+    test('acquireTokenByClientCredential request does not contain OIDC scopes', async () => {
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: false
+        };
+
+        setupAuthorityFactory_createDiscoveredInstance_mock();
+        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
+
+        jest.spyOn(msalCommon, 'ClientCredentialClient')
+            .mockImplementation((conf) => new MockClientCredentialClient(conf));
+
+        MockClientCredentialClient.prototype.acquireToken = jest.fn((request: msalCommon.CommonClientCredentialRequest) => {
+            OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
+                expect(request.scopes).not.toContain(scope);
+            });
+            return Promise.resolve(null);
+        });
+
+        const authApp = new ConfidentialClientApplication(appConfig);
+        await authApp.acquireTokenByClientCredential(request);
     });
 });
