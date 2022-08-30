@@ -67,7 +67,9 @@ export const ClientAuthErrorMessage = {
     },
     authTimeNotFoundError: {
         code: "auth_time_not_found",
-        desc: "Max Age was requested, and the ID token is missing the Auth Time variable (auth_time)"
+        desc: "Max Age was requested and the ID token is missing the auth_time variable." +
+            " auth_time is an optional claim and is not enabled by default - it must be enabled." +
+            " See https://aka.ms/msaljs/optional-claims for more information."
     },
     maxAgeTranspiredError: {
         code: "max_age_transpired",

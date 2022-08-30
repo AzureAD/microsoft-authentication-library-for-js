@@ -47,4 +47,27 @@ export class AuthToken {
             throw ClientAuthError.createTokenParsingError(err);
         }
     }
+
+    /**
+     * Determine if the token's max_age has transpired
+     */
+    static checkMaxAge(authTime: number | undefined, maxAge: number): void {
+        /*
+         * per https://auth0.com/docs/authenticate/login/max-age-reauthentication
+         * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
+         * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
+         */
+        if (maxAge === 0) {
+            throw ClientAuthError.createMaxAgeTranspiredError();
+        }
+
+        if (!authTime) {
+            throw ClientAuthError.createAuthTimeNotFoundError();
+        }
+
+        const twoMinuteSkew = 120000; // two minutes in milliseconds
+        if ((Date.now() - twoMinuteSkew) > (authTime + maxAge)) {
+            throw ClientAuthError.createMaxAgeTranspiredError();
+        }
+    }
 }

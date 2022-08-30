@@ -128,17 +128,8 @@ export class ResponseHandler {
             }
 
             // token max_age check
-            if (request.maxAge) {
-                const authTime = idTokenObj.claims.auth_time;
-
-                if (!authTime) {
-                    throw ClientAuthError.createAuthTimeNotFoundError();
-                }
-
-                const twoMinuteSkew = 120000; // two minutes in milliseconds
-                if ((Date.now() - twoMinuteSkew) > (authTime + request.maxAge)) {
-                    throw ClientAuthError.createMaxAgeTranspiredError();
-                }
+            if (request.maxAge || (request.maxAge === 0)) {
+                AuthToken.checkMaxAge(idTokenObj.claims.auth_time, request.maxAge);
             }
         }
 

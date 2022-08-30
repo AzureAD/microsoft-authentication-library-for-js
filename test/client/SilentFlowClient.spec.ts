@@ -492,8 +492,25 @@ describe("SilentFlowClient unit tests", () => {
             expect(authResult.state).toHaveLength(0);
         });
 
+        it("acquireCachedToken throws max_age_transpired if max age has transpired or is equal to 0", async () => {
+            const client = new SilentFlowClient(config, stubPerformanceClient);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                maxAge: 0
+            };
+            
+            await expect(client.acquireCachedToken(silentFlowRequest))
+                .rejects.toMatchObject(ClientAuthError.createMaxAgeTranspiredError());
+        });
+
         it("acquireCachedToken throws refresh requiredError if access token is expired", async () => {
-            const client = new SilentFlowClient(config,stubPerformanceClient);
+            const client = new SilentFlowClient(config, stubPerformanceClient);
             sinon.stub(TimeUtils, "isTokenExpired").returns(true);
 
             const silentFlowRequest: CommonSilentFlowRequest = {
