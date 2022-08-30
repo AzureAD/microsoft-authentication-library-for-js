@@ -408,7 +408,7 @@ export enum SilentTokenRetrievalStrategy {
      * The refresh token will be renewed if it is expired.
      * (existing default behavior)
      */
-    CacheAndNetwork = 0, // 0 is falsy, is equivalent to not passing in a SilentTokenRetrievalStrategy
+    Default = 0, // 0 is falsy, is equivalent to not passing in a SilentTokenRetrievalStrategy
     /*
      * acquireTokenSilent will only look in the cache, and will not go to the network with the existing refresh token.
      * The refresh token will not be renewed if it is expired.
@@ -418,12 +418,12 @@ export enum SilentTokenRetrievalStrategy {
      * acquireTokenSilent will first look in the cache before going to the network with the existing refresh token.
      * The refresh token will not be renewed if it is expired.
      */
-    CacheOrExistingRefreshToken = 2,
+    CacheOrRefreshToken = 2,
     /*
      * acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache.
      * The refresh token will not be renewed if it is expired.
      */
-    NetworkWithExistingRefreshTokenOnly = 3,
+    RefreshTokenOnly = 3,
     /*
      * acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache.
      * The refresh token not be renewed if it is expired.
