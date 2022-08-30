@@ -58,7 +58,6 @@ describe('B2C user-flow tests (local account)', () => {
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginRedirectButton = await page.waitForSelector("xpath=//li[contains(., 'Sign in using Redirect')]");
         await loginRedirectButton.click();
-        await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
 
         await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
@@ -88,7 +87,6 @@ describe('B2C user-flow tests (local account)', () => {
         ]);
         await page.click("#continue");
         await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
-        await page.waitForTimeout(1500); // wait for react to rerender ui
         await page.waitForSelector("#idTokenClaims");
         const htmlBody = await page.evaluate(() => document.body.innerHTML);
         expect(htmlBody).toContain(`${displayName}`);

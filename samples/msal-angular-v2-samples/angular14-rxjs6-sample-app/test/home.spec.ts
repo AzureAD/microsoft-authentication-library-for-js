@@ -69,7 +69,6 @@ describe('/ (Home Page)', () => {
             await signInButton.click();
         }
         
-        await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginRedirectButton = await page.waitForSelector("xpath=//button[contains(., 'Login using Redirect')]");
         if (loginRedirectButton) {

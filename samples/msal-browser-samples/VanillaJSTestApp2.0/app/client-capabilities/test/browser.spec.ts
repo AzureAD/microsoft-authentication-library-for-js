@@ -126,7 +126,6 @@ describe("Browser tests", function () {
         await screenshot.takeScreenshot(page, "caePopTokenClicked");
 
         // Check for both tokens in cache
-        await page.waitForTimeout(5000);
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.accessTokens).to.be.length(2);
 

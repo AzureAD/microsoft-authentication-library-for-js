@@ -21,14 +21,33 @@ async function isServerUp(port, timeout) {
                 return;
             }
 
-            const request = {
+            const requestIPv4 = {
                 protocol: "http:",
                 host: "localhost",
                 port: port,
                 family: 4
             };
 
-            http.get(request, (res) => {
+            http.get(requestIPv4, (res) => {
+                const { statusCode } = res;
+    
+                if (statusCode === 200) {
+                    resolve(true);
+                    clearInterval(interval);
+                }
+            }).on('error', (e) => {
+                // errors will be raised until the server is up. Ignore errors
+            });
+
+            // Sometimes samples may be hosted in IPv6 instead - check that too
+            const requestIPv6 = {
+                protocol: "http:",
+                host: "localhost",
+                port: port,
+                family: 6
+            };
+
+            http.get(requestIPv6, (res) => {
                 const { statusCode } = res;
     
                 if (statusCode === 200) {

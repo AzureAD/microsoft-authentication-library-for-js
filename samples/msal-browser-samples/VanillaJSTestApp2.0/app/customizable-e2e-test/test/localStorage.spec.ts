@@ -92,7 +92,6 @@ describe("LocalStorage Tests", function () {
             await page.waitForNavigation({ waitUntil: "networkidle0"});
             // Navigate back to home page
             await page.goto(SAMPLE_HOME_URL);
-            await page.waitForTimeout(500);
 
             // Temporary Cache always uses sessionStorage
             const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
@@ -122,8 +121,6 @@ describe("LocalStorage Tests", function () {
             await popupPage.close();
             // Wait until popup window closes
             await popupWindowClosed;
-            // Wait for processing
-            await page.waitForTimeout(200);
             // Temporary Cache always uses sessionStorage
             const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
             const sessionStorage = await sessionBrowserStorage.getWindowStorage();
