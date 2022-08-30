@@ -53,7 +53,7 @@ describe('B2C user-flow tests (local account)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         if (signInButton) {
             await signInButton.click();
         }
@@ -77,7 +77,7 @@ describe('B2C user-flow tests (local account)', () => {
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
         
         // initiate edit profile flow
-        const editProfileButton = await page.waitForXPath("//span[contains(., 'Edit Profile')]");
+        const editProfileButton = await page.waitForSelector("xpath=//span[contains(., 'Edit Profile')]");
         if (editProfileButton) {
             await editProfileButton.click();
         }
