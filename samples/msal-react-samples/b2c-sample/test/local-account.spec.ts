@@ -53,10 +53,10 @@ describe('B2C user-flow tests (local account)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginRedirectButton] = await page.$x("//li[contains(., 'Sign in using Redirect')]");
+        const loginRedirectButton = await page.waitForSelector("xpath=//li[contains(., 'Sign in using Redirect')]");
         await loginRedirectButton.click();
         await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
