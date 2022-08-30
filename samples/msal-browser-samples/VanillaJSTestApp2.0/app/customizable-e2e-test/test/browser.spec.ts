@@ -242,6 +242,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenRedirect", async () => {
+                testName = "acquireTokenRedirect";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenRedirect");
                 
                 // Remove access_tokens from cache so we can verify acquisition
@@ -257,6 +259,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenPopup", async () => {
+                testName = "acquireTokenPopup";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenPopup");
 
                 // Remove access_tokens from cache so we can verify acquisition
@@ -272,6 +276,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenSilent from Cache", async () => {
+                testName = "acquireTokenSilentCache";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenSilent");
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector("#scopes-acquired");
@@ -288,6 +294,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenSilent via RefreshToken", async () => {
+                testName = "acquireTokenSilentRT";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenSilent");
 
                 // Remove access_tokens from cache so we can verify acquisition

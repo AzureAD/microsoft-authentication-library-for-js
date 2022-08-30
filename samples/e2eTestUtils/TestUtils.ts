@@ -196,25 +196,6 @@ export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Scre
         return;
     }
 
-    try {
-        await page.waitForSelector('input#iLandingViewAction', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "securityInfoPage");
-        await Promise.all([
-            page.click('input#iLandingViewAction'),
-    
-            // Wait either for another navigation to Keep me signed in page or back to redirectUri
-            Promise.race([
-                page.waitForNavigation({ waitUntil: "networkidle0" }),
-                page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
-            ])
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
-    } catch (e) {
-        console.log(e) // catch the error but do not throw if the selector is not found
-    }
-
     await page.waitForSelector('input#KmsiCheckboxField', {timeout: 1000});
     await page.waitForSelector("input#idSIButton9");
     await screenshot.takeScreenshot(page, "kmsiPage");

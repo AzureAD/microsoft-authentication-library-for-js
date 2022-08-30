@@ -7,7 +7,8 @@ import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
 
-describe('B2C user-flow tests (msa account)', () => {
+// Problem with MSA logins displaying a security info notice - re-enable these tests when that gets resolved
+describe.skip('B2C user-flow tests (msa account)', () => {
     jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -88,9 +89,8 @@ describe('B2C user-flow tests (msa account)', () => {
         await page.click("#continue");
         await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
         await page.waitForSelector("#idTokenClaims");
-        const htmlBody = await page.evaluate(() => document.body.innerHTML);
-        expect(htmlBody).toContain(`${displayName}`);
-        expect(htmlBody).toContain("B2C_1_SISOPolicy"); // implies the current active account
+        await page.waitForSelector(`xpath=//li[contains(., '${displayName}')]`);
+        await page.waitForSelector("xpath=//li[contains(., 'B2C_1_SISOPolicy')]"); // implies the current active account
 
         // Verify tokens are in cache
         const tokenStoreAfterEdit = await BrowserCache.getTokens();

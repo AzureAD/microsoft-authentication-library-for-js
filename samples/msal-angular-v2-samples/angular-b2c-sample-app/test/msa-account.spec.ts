@@ -7,7 +7,8 @@ import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
 
-describe('B2C user-flow tests (msa account)', () => {
+// Problem with MSA logins displaying a security info notice - re-enable these tests when that gets resolved
+describe.skip('B2C user-flow tests (msa account)', () => {
     jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
