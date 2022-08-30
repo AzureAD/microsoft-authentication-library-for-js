@@ -4,7 +4,7 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, b2cMsaAccountEnterCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -14,8 +14,7 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
-    validateCacheLocation,
-    b2cMsaAccountEnterCredentials
+    validateCacheLocation
 } from "../../testUtils";
 
 import { PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
