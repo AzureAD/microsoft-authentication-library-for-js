@@ -2045,7 +2045,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy.called).toBe(false);
         });
 
-        it("Does't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to NetworkWithExistingRefreshTokenOnly", async () => {
+        it("Doesn't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to NetworkWithExistingRefreshTokenOnly", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2078,7 +2078,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(silentIframeSpy.notCalled).toBe(true);
         });
 
-        it("Does't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to CacheOrExistingRefreshToken", async () => {
+        it("Doesn't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when SilentTokenRetrievalStrategy is set to CacheOrExistingRefreshToken", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,

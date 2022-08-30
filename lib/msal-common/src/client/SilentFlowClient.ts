@@ -52,9 +52,10 @@ export class SilentFlowClient extends BaseClient {
         }
 
         // if forceRefresh, or any of the three SilentTokenRetrievalStrategy network options
-        if (request.forceRefresh || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly)
-            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly)
-            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithRefreshToken)) {
+        if (request.forceRefresh
+            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly)
+            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithRefreshToken)
+            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly)) {
 
             if (request.forceRefresh) {
                 this.logger.warning("request.forceRefresh is deprecated. Please use SilentTokenRetrievalStrategy.");

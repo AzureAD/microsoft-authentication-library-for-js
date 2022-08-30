@@ -133,7 +133,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         fromCache: result.fromCache,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
-                        isNativeBroker: result.fromNativeBroker
+                        isNativeBroker: result.fromNativeBroker,
+                        silentTokenRetrievalStrategy: request.silentTokenRetrievalStrategy,
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -193,8 +194,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
             result = silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
+                /*
+                 * do not attempt to get the token via the refresh token or the network if the
+                 * silentTokenRetrievalStrategy is set to cacheOnly
+                 */
                 if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
-                    this.logger.error("SilentTokenRetrievalStrategy is set to CacheOnly, not attempting to renew token silently.");
+                    this.logger.error(
+                        "SilentTokenRetrievalStrategy is set to CacheOnly, not attempting to renew token silently."
+                    );
                     throw error;
                 }
 

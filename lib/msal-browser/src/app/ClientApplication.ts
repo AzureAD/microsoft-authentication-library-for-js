@@ -621,8 +621,8 @@ export abstract class ClientApplication {
                  * then renew the RT with a hidden iFrame (which uses the network)
                  */
                 if (isServerError && isInvalidGrantError && !isInteractionRequiredError
-                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly)
-                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheOrExistingRefreshToken)) {
+                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.RefreshTokenOnly)
+                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheOrRefreshToken)) {
                     this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
@@ -647,8 +647,9 @@ export abstract class ClientApplication {
                         });
                 }
 
-                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithExistingRefreshTokenOnly ||
-                    request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOrExistingRefreshToken) {
+                // inform the developer if RT has expired and SilentTokenRetrievalStrategy is set to use only existing RT
+                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly
+                    || request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOrRefreshToken) {
                     this.logger.info("SilentTokenRetrievalStrategy set to not renew expired refresh token.");
                 }
 
