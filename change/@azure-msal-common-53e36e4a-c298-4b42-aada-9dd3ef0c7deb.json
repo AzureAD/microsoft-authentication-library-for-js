@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "refactoring code for reusability in msal 1p #6886",
+  "packageName": "@azure/msal-common",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "none"
+}
