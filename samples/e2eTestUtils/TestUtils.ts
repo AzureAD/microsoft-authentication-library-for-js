@@ -24,6 +24,28 @@ export function createFolder(foldername: string) {
     }
 }
 
+export async function storagePoller(callback: ()=>Promise<void>, timeoutMs: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        let lastError: Error;
+        const interval = setInterval(async () => {
+            if ((Date.now() - startTime) > timeoutMs) {
+                clearInterval(interval);
+                console.error(lastError);
+                reject(new Error("Timed out while polling storage"));
+            }
+            await callback().then(() => {
+                // If callback resolves - success
+                clearInterval(interval);
+                resolve();
+            }).catch((e: Error)=>{
+                // If callback throws storage hasn't been updated yet - check again on next interval
+                lastError = e;
+            });
+        }, 200);
+    });
+};
+
 export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
     let clientID = "";
     let clientSecret = "";

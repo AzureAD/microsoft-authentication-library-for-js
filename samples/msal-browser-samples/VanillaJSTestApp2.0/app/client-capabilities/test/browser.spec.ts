@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
@@ -126,9 +126,12 @@ describe("Browser tests", function () {
         await screenshot.takeScreenshot(page, "caePopTokenClicked");
 
         // Check for both tokens in cache
-        const tokenStore = await BrowserCache.getTokens();
-        expect(tokenStore.accessTokens).to.be.length(2);
+        await storagePoller(async () => {
+            const tokenStore = await BrowserCache.getTokens();
+            expect(tokenStore.accessTokens).to.be.length(2);
+        }, 5000);
 
+        const tokenStore = await BrowserCache.getTokens();
         const cachedBearerToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
         expect(cachedBearerToken).to.be.true;
 
