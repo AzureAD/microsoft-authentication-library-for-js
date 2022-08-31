@@ -1316,21 +1316,10 @@
         "taskName": "Assign confidential client issues",
         "actions": [
           {
-            "name": "assignToUser",
+            "name": "assignToIcmUserGroup",
             "parameters": {
-              "user": "jennyf19"
-            }
-          },
-          {
-            "name": "assignToUser",
-            "parameters": {
-              "user": "jmprieur"
-            }
-          },
-          {
-            "name": "assignToUser",
-            "parameters": {
-              "user": "bgavrilMS"
+              "groupId": "60ddfa574ab5702958084812",
+              "assignmentTarget": "Primary"
             }
           }
         ]
