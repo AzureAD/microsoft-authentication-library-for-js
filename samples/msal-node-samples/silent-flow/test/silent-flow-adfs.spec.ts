@@ -133,6 +133,9 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const expiredAccessToken = tokens.accessTokens[0];
+            
+            // Wait to ensure new token has new iat
+            await new Promise(r => setTimeout(r, 1000));
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
             await page.click("#callGraph");
