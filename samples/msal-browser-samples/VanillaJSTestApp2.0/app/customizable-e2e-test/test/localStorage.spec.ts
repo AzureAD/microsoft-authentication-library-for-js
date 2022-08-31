@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
@@ -100,7 +100,7 @@ describe("LocalStorage Tests", function () {
                 const localStorage = await BrowserCache.getWindowStorage();
                 expect(Object.keys(localStorage).length).to.be.eq(0);
                 expect(Object.keys(sessionStorage).length).to.be.eq(0);
-            }, 1000);
+            }, ONE_SECOND_IN_MS);
 
         });
         
@@ -132,7 +132,7 @@ describe("LocalStorage Tests", function () {
                 const localStorage = await BrowserCache.getWindowStorage();
                 expect(Object.keys(localStorage).length).to.be.eq(1); // Telemetry
                 expect(Object.keys(sessionStorage).length).to.be.eq(0);
-            }, 1000)
+            }, ONE_SECOND_IN_MS)
         });
     });
 });

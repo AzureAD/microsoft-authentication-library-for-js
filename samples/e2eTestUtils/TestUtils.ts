@@ -3,6 +3,8 @@ import{ Page, HTTPResponse } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
+export const ONE_SECOND_IN_MS = 1000;
+
 export class Screenshot {
     private folderName: string;
     private screenshotNum: number;

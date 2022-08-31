@@ -37,7 +37,7 @@ async function startServer(jestConfig) {
         throw new Error ();
     }
 
-    // Optional __TIMEOUT__ parameter or default to 30 seconds
+    // Optional __TIMEOUT__ parameter or default to 60 seconds
     const timeoutMs = jestConfig.globals.__TIMEOUT__ || 60000;
 
     console.log(`Starting Server for: ${sampleName} on port ${port}`);
