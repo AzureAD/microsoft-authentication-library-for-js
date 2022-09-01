@@ -21,8 +21,7 @@ export class PersistenceCreator {
         if (Environment.isWindowsPlatform()) {
             if (!config.cachePath || !config.dataProtectionScope) {
                 throw PersistenceError.createPersistenceNotValidatedError(
-                    "Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection \
-                    cache plugin");
+                    "Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin");
             }
 
             peristence = await FilePersistenceWithDataProtection.create(config.cachePath, DataProtectionScope.CurrentUser);
