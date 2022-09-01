@@ -401,38 +401,3 @@ export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
 }
-
-export enum SilentTokenRetrievalStrategy {
-    /*
-     * acquireTokenSilent will first look in the cache before going to the network with the existing refresh token.
-     * The refresh token will be renewed if it is expired.
-     * (existing default behavior)
-     */
-    Default = 0, // 0 is falsy, is equivalent to not passing in a SilentTokenRetrievalStrategy
-    /*
-     * acquireTokenSilent will only look in the cache, and will not go to the network with the existing refresh token.
-     * The refresh token will not be renewed if it is expired.
-     */
-    CacheOnly = 1,
-    /*
-     * acquireTokenSilent will first look in the cache before going to the network with the existing refresh token.
-     * The refresh token will not be renewed if it is expired.
-     */
-    CacheOrRefreshToken = 2,
-    /*
-     * acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache.
-     * The refresh token will not be renewed if it is expired.
-     */
-    RefreshTokenOnly = 3,
-    /*
-     * acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache.
-     * The refresh token not be renewed if it is expired.
-     * (existing forceRefresh=true behavior)
-     */
-    NetworkWithRefreshToken = 4,
-    /*
-     * acquireTokenSilent will only go to network, and not look in the cache.
-     * It will not use the existing refresh token, regardless of whether it is expired or not.
-     */
-    NetworkOnly = 5,
-}

@@ -14,7 +14,7 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { CacheOutcome, SilentTokenRetrievalStrategy } from "../utils/Constants";
+import { CacheOutcome } from "../utils/Constants";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 export class SilentFlowClient extends BaseClient {
@@ -52,14 +52,7 @@ export class SilentFlowClient extends BaseClient {
         }
 
         // if forceRefresh, or any of the three SilentTokenRetrievalStrategy network options
-        if (request.forceRefresh
-            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly)
-            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithRefreshToken)
-            || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly)) {
-
-            if (request.forceRefresh) {
-                this.logger.warning("request.forceRefresh is deprecated. Please use SilentTokenRetrievalStrategy.");
-            }
+        if (request.forceRefresh) {
 
             // Must refresh due to present force_refresh flag.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
