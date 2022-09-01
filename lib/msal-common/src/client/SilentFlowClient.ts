@@ -51,9 +51,7 @@ export class SilentFlowClient extends BaseClient {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
 
-        // if forceRefresh, or any of the three SilentTokenRetrievalStrategy network options
         if (request.forceRefresh) {
-
             // Must refresh due to present force_refresh flag.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
             this.logger.info("SilentFlowClient:acquireCachedToken - Skipping cache because forceRefresh is true.");
