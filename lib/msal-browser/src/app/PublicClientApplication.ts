@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, SilentTokenRetrievalStrategy } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents , ClientAuthError , ServerError , CommonSilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
+import { BrowserConstants, DEFAULT_REQUEST, InteractionType, ApiId, SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -193,20 +193,64 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-            result = silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
+
+            const acquireTokenByRefreshToken = (silentRequest: CommonSilentFlowRequest, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy | undefined): Promise<AuthenticationResult> => {
+                const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
+
                 /*
-                 * do not attempt to get the token via the refresh token or the network if the
-                 * silentTokenRetrievalStrategy is set to cacheOnly
+                 * do not attempt to get the access token via the refresh token (just go to the iframe) if the
+                 * silentTokenRetrievalStrategy is set to NetworkOnly
                  */
-                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
-                    this.logger.error(
-                        "SilentTokenRetrievalStrategy is set to CacheOnly, not attempting to renew token silently."
-                    );
-                    throw error;
+                if (silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly) {
+                    const networkOnly = true;
+                    return this.acquireTokenBySilentIframe(undefined, silentRequest, atbrtMeasurement, networkOnly);
                 }
 
-                return this.acquireTokenByRefreshToken(silentRequest);
-            });
+                // otherwise, attempt to get the access token via the refresh token before going to the iframe
+                return this.acquireTokenByRefreshToken(silentRequest, atbrtMeasurement).catch(async (error) => {
+                    /*
+                     * only attempt to get the access token via the iframe (network) if the
+                     * silentTokenRetrievalStrategy is not set to RefreshTokenOnly or CacheOrRefreshToken
+                     */
+                    if ((silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.RefreshTokenOnly)
+                        && (silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheOrRefreshToken)) {
+                        const networkOnly = false;
+                        return this.acquireTokenBySilentIframe(error, silentRequest, atbrtMeasurement, networkOnly);
+                    } else {
+                        this.logger.info("SilentTokenRetrievalStrategy set to not renew expired refresh token.");
+                        atbrtMeasurement.endMeasurement({
+                            success: false
+                        });
+                        throw error;
+                    }
+                });
+            };
+
+            /*
+             * do not look in the cache (just go to the network) if the silentTokenRetrievalStrategy
+             * is set to one of the network-only options
+             */
+            if ((request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly)
+                || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithRefreshToken)
+                || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly)) {
+                this.logger.info("SilentCacheClient:acquireToken - Skipping cache because SilentTokenRetrievalStrategy is set to one of the network-only options.");
+                
+                result = acquireTokenByRefreshToken(silentRequest, request.silentTokenRetrievalStrategy);
+            // otherwise, attempt to go to the cache before going to the network
+            } else {
+                result = silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
+                    /*
+                     * do not attempt to get the access token via the refresh token or the network if the
+                     * silentTokenRetrievalStrategy is set to cacheOnly
+                     */
+                    if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
+                        this.logger.error("SilentTokenRetrievalStrategy is set to CacheOnly, not attempting to renew token silently.");
+                        throw error;
+                    }
+
+                    return acquireTokenByRefreshToken(silentRequest, request.silentTokenRetrievalStrategy);
+                });
+            }
         }
 
         return result.then((response) => {

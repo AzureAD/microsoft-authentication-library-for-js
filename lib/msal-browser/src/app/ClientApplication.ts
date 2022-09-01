@@ -4,10 +4,10 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, SilentTokenRetrievalStrategy } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -582,20 +582,18 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Use this function to obtain a token before every call to the API / resource provider
-     *
-     * MSAL return's a cached token when available
-     * Or it send's a request to the STS to obtain a new token using a refresh token.
-     *
-     * @param {@link SilentRequest}
-     *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     * Attempt to acquire an access token via a refresh token
+     * @param request CommonSilentFlowRequest
+     * @param atbrtMeasurement measurement API
+     * @returns A promise that, when resolved, returns the access token
      */
-    protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByRefreshToken(
+        request: CommonSilentFlowRequest,
+        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+        atbrtMeasurement: any
+    ): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
         const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
@@ -611,53 +609,64 @@ export abstract class ClientApplication {
                 });
                 return result;
             })
-            .catch(e => {
-                const isServerError = e instanceof ServerError;
-                const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
-                const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-
-                /*
-                 * if RT has expired and SilentTokenRetrievalStrategy is not set to use only existing RT,
-                 * then renew the RT with a hidden iFrame (which uses the network)
-                 */
-                if (isServerError && isInvalidGrantError && !isInteractionRequiredError
-                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.RefreshTokenOnly)
-                    && (request.silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheOrRefreshToken)) {
-                    this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
-
-                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                    return silentIframeClient.acquireToken(request)
-                        .then((result: AuthenticationResult) => {
-                            atbrtMeasurement.endMeasurement({
-                                success: true,
-                                fromCache: result.fromCache,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                            });
-
-                            return result;
-                        })
-                        .catch((error) => {
-                            atbrtMeasurement.endMeasurement({
-                                errorCode: error.errorCode,
-                                subErrorCode: error.subError,
-                                success: false
-                            });
-                            throw error;
-                        });
-                }
-
-                // inform the developer if RT has expired and SilentTokenRetrievalStrategy is set to use only existing RT
-                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly
-                    || request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOrRefreshToken) {
-                    this.logger.info("SilentTokenRetrievalStrategy set to not renew expired refresh token.");
-                }
-
-                atbrtMeasurement.endMeasurement({
-                    success: false
-                });
-                throw e;
+            .catch((error) => {
+                throw error;
             });
+    }
+
+    /**
+     * Attempt to acquire an access token via an iframe
+     * @param error an error that may have occurred when trying to acquire an access token
+     * via the refresh token, prior to this function
+     * @param request CommonSilentFlowRequest
+     * @param atbrtMeasurement measurement API
+     * @param networkOnly a boolean indicating if this function is being called as a result of an error that may
+     * have occurred when trying to acquire an access token via the refresh token, or if the SilentTokenRetrievalStrategy
+     * is set to NetworkOnly
+     * @returns A promise that, when resolved, returns the access token
+     */
+    protected async acquireTokenBySilentIframe(
+        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+        error: any,
+        request: CommonSilentFlowRequest,
+        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
+        atbrtMeasurement: any,
+        networkOnly: boolean
+    ): Promise<AuthenticationResult> {
+        const isServerError = error instanceof ServerError;
+        const isInteractionRequiredError = error instanceof InteractionRequiredAuthError;
+        const isInvalidGrantError = (error.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+
+        if ((isServerError && isInvalidGrantError && !isInteractionRequiredError) || networkOnly) {
+            const errorMessage = networkOnly ?
+                "SilentTokenRetrievalStrategy set to NetworkOnly"
+                :
+                "Refresh token expired or invalid";
+            this.logger.verbose(`${errorMessage}, attempting acquire token by iframe.`, request.correlationId);
+
+            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+            return silentIframeClient.acquireToken(request)
+                .then((result: AuthenticationResult) => {
+                    atbrtMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: result.fromCache,
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length,
+                    });
+
+                    return result;
+                })
+                .catch((error) => {
+                    atbrtMeasurement.endMeasurement({
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
+                        success: false
+                    });
+                    throw error;
+                });
+        } else {
+            throw error;
+        }
     }
 
     // #endregion

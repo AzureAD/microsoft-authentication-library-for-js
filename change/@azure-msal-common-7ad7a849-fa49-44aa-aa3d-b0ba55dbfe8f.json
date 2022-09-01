@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Enable MSALJS to retrieve access tokens from the cache only or network only #5014",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
