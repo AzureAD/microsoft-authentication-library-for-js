@@ -11,12 +11,12 @@ jobs:
       vmImage: 'windows-2019'
     steps:
       - template: build/sdl-tasks.yml
-- task: DownloadPipelineArtifact@2
-  inputs:
-    buildType: 'specific'
-    project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-    definition: '1758'
-    specificBuildWithTriggering: true
-    buildVersionToDownload: 'latest'
-    allowFailedBuilds: true
-    targetPath: '$(Pipeline.Workspace)'
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          buildType: 'specific'
+          project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+          definition: '1758'
+          specificBuildWithTriggering: true
+          buildVersionToDownload: 'latest'
+          allowFailedBuilds: true
+          targetPath: '$(Pipeline.Workspace)'
