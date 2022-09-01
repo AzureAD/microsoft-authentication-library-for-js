@@ -19,4 +19,13 @@ jobs:
           specificBuildWithTriggering: true
           buildVersionToDownload: 'latest'
           allowFailedBuilds: true
-          targetPath: '$(Pipeline.Workspace)'
+          targetPath: '$(Pipeline.Workspace)/artifacts'
+      - task: AzureKeyVault@2
+        inputs:
+          azureSubscription: 'MSIDLABKeyVault'
+          KeyVaultName: 'ADALTestInfo'
+          SecretsFilter: 'MSALJSGITHUB'
+          RunAsPreJob: true
+      - task: CmdLine@2
+        inputs:
+          script: 'ls -la'
