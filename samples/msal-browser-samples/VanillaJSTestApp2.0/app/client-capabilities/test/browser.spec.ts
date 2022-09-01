@@ -41,6 +41,7 @@ describe("Browser tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(SAMPLE_HOME_URL);
     });
