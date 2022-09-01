@@ -41,7 +41,7 @@
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "module": "dist/test.esm.js",
+  "module": "dist/msal-node-extensions.esm.js",
   "beachball": {
     "disallowedChangeTypes": [
       "patch",

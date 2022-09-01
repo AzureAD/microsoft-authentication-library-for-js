@@ -5,19 +5,18 @@
 
 import puppeteer from "puppeteer";
 
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, b2cLocalAccountEnterCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
-    b2cLocalAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL
 } from "../../testUtils";
 
-import { ConfidentialClientApplication, PublicClientApplication } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication } from "../../../../lib/msal-node/dist";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/b2c-local.cache.json`;
