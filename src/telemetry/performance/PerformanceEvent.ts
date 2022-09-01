@@ -291,12 +291,5 @@ export type PerformanceEvent = {
      *
      * @type {?boolean}
      */
-    isNativeBroker?: boolean,
-
-    /**
-     * The Silent Token Retrieval Strategy
-     *
-     * @type {?(number | undefined)}
-     */
-    silentTokenRetrievalStrategy?: number | undefined
+    isNativeBroker?: boolean
 };
