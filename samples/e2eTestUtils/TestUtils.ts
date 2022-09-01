@@ -3,6 +3,8 @@ import{ Page, HTTPResponse } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
+export const ONE_SECOND_IN_MS = 1000;
+
 export class Screenshot {
     private folderName: string;
     private screenshotNum: number;
@@ -23,6 +25,28 @@ export function createFolder(foldername: string) {
         fs.mkdirSync(foldername, { recursive: true });
     }
 }
+
+export async function storagePoller(callback: ()=>Promise<void>, timeoutMs: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        let lastError: Error;
+        const interval = setInterval(async () => {
+            if ((Date.now() - startTime) > timeoutMs) {
+                clearInterval(interval);
+                console.error(lastError);
+                reject(new Error("Timed out while polling storage"));
+            }
+            await callback().then(() => {
+                // If callback resolves - success
+                clearInterval(interval);
+                resolve();
+            }).catch((e: Error)=>{
+                // If callback throws storage hasn't been updated yet - check again on next interval
+                lastError = e;
+            });
+        }, 200);
+    });
+};
 
 export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
     let clientID = "";
@@ -194,25 +218,6 @@ export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Scre
 
     if (page.url().startsWith("http://localhost")) {
         return;
-    }
-
-    try {
-        await page.waitForSelector('input#iLandingViewAction', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "securityInfoPage");
-        await Promise.all([
-            page.click('input#iLandingViewAction'),
-    
-            // Wait either for another navigation to Keep me signed in page or back to redirectUri
-            Promise.race([
-                page.waitForNavigation({ waitUntil: "networkidle0" }),
-                page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
-            ])
-        ]).catch(async (e) => {
-            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
-            throw e;
-        });
-    } catch (e) {
-        console.log(e) // catch the error but do not throw if the selector is not found
     }
 
     await page.waitForSelector('input#KmsiCheckboxField', {timeout: 1000});
