@@ -4,8 +4,8 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions, PerformanceEvents, SilentTokenRetrievalStrategy, ServerError } from "@azure/msal-common";
-import { ApiId, BrowserConstants } from "../utils/BrowserConstants";
+import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError, AzureCloudOptions, PerformanceEvents } from "@azure/msal-common";
+import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class SilentRefreshClient extends StandardInteractionClient {
@@ -14,11 +14,6 @@ export class SilentRefreshClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly) {
-            this.logger.error("SilentTokenRetrievalStrategy is set to NetworkOnly, not attempting to acquire refresh token");
-            throw new ServerError(BrowserConstants.INVALID_GRANT_ERROR);
-        }
-
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...await this.initializeBaseRequest(request)

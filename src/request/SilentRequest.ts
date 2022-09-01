@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest, StringDict, SilentTokenRetrievalStrategy } from "@azure/msal-common";
+import { AccountInfo, CommonSilentFlowRequest, StringDict } from "@azure/msal-common";
+import { SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
 
 /**
  * SilentRequest: Request object passed by user to retrieve tokens from the
