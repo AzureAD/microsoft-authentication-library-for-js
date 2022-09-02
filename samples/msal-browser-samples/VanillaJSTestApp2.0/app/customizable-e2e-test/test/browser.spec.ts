@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
@@ -69,6 +69,7 @@ describe("Default tests", function () {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                 BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
                 await page.goto(SAMPLE_HOME_URL);
             });
@@ -173,6 +174,7 @@ describe("Default tests", function () {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                 BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
                 await page.goto(SAMPLE_HOME_URL);
 
@@ -220,6 +222,7 @@ describe("Default tests", function () {
             before(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
+                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                 BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
                 await page.goto(SAMPLE_HOME_URL);
 
@@ -242,6 +245,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenRedirect", async () => {
+                testName = "acquireTokenRedirect";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenRedirect");
                 
                 // Remove access_tokens from cache so we can verify acquisition
@@ -257,6 +262,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenPopup", async () => {
+                testName = "acquireTokenPopup";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenPopup");
 
                 // Remove access_tokens from cache so we can verify acquisition
@@ -272,6 +279,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenSilent from Cache", async () => {
+                testName = "acquireTokenSilentCache";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenSilent");
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector("#scopes-acquired");
@@ -288,6 +297,8 @@ describe("Default tests", function () {
             });
 
             it("acquireTokenSilent via RefreshToken", async () => {
+                testName = "acquireTokenSilentRT";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.waitForSelector("#acquireTokenSilent");
 
                 // Remove access_tokens from cache so we can verify acquisition
@@ -329,6 +340,7 @@ describe("Default tests", function () {
                 beforeEach(async () => {
                     context = await browser.createIncognitoBrowserContext();
                     page = await context.newPage();
+                    page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                     BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                     await page.goto(SAMPLE_HOME_URL);
                 });
@@ -369,6 +381,7 @@ describe("Default tests", function () {
                 before(async () => {
                     context = await browser.createIncognitoBrowserContext();
                     page = await context.newPage();
+                    page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                     BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                     await page.goto(SAMPLE_HOME_URL);
     
@@ -472,6 +485,7 @@ describe("Default tests", function () {
                 beforeEach(async () => {
                     context = await browser.createIncognitoBrowserContext();
                     page = await context.newPage();
+                    page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                     BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                     await page.goto(SAMPLE_HOME_URL);
                 });
@@ -512,6 +526,7 @@ describe("Default tests", function () {
                 before(async () => {
                     context = await browser.createIncognitoBrowserContext();
                     page = await context.newPage();
+                    page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
                     BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                     await page.goto(SAMPLE_HOME_URL);
     
