@@ -11,6 +11,11 @@ export enum HttpMethod {
     POST = "post",
 }
 
+export enum HttpStatus {
+    OK = 200,
+    REDIRECT = 302
+}
+
 /**
  * Constants used for region discovery
  */
@@ -88,6 +93,6 @@ export const JwtConstants = {
 };
 
 export const LOOPBACK_SERVER_CONSTANTS = {
-    GET_PORT_INTERVAL_MS: 100,
-    GET_PORT_TIMEOUT_MS: 5000
+    INTERVAL_MS: 100,
+    TIMEOUT_MS: 5000
 };

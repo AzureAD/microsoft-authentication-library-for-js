@@ -238,9 +238,9 @@ export class UrlString {
         if (StringUtils.isEmpty(query)) {
             return {};
         }
-        // Strip the # symbol if present
+        // Strip the ? symbol if present
         const parsedQueryString = UrlString.parseQueryString(query);
-        // If # symbol was not present, above will return empty string, so give original query value
+        // If ? symbol was not present, above will return empty string, so give original query value
         const deserializedQueryString: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedQueryString) ? query : parsedQueryString);
         // Check if deserialization didn't work
         if (!deserializedQueryString) {

@@ -9,9 +9,9 @@ import { AuthError } from "@azure/msal-common";
  * NodeAuthErrorMessage class containing string constants used by error codes and messages.
  */
 export const NodeAuthErrorMessage = {
-    addressWrongType: {
-        code: "address_wrong_type",
-        desc: "Server address is not type string. This is unexpected."
+    invalidLoopbackAddressType: {
+        code: "invalid_loopback_server_address_type",
+        desc: "Loopback server address is not type string. This is unexpected."
     },
     unableToLoadRedirectUri: {
         code: "unable_to_load_redirectUrl",
@@ -29,9 +29,9 @@ export const NodeAuthErrorMessage = {
         code: "loopback_server_already_exists",
         desc: "Loopback server already exists. Cannot create another."
     },
-    getPortTimeout: {
-        code: "get_port_timeout",
-        desc: "Timed out when attempting to get the port the loopback server is running on. This is unexpected."
+    loopbackServerTimeout: {
+        code: "loopback_server_timeout",
+        desc: "Timed out waiting for auth code listener to be registered."
     }
 };
 
@@ -42,11 +42,11 @@ export class NodeAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown if the client info is empty.
+     * Creates an error thrown if loopback server address is of type string.
      */
-    static createAddressWrongTypeError(): NodeAuthError {
-        return new NodeAuthError(NodeAuthErrorMessage.addressWrongType.code,
-            `${NodeAuthErrorMessage.addressWrongType.desc}`);
+    static createInvalidLoopbackAddressTypeError(): NodeAuthError {
+        return new NodeAuthError(NodeAuthErrorMessage.invalidLoopbackAddressType.code,
+            `${NodeAuthErrorMessage.invalidLoopbackAddressType.desc}`);
     }
 
     /**
@@ -82,10 +82,10 @@ export class NodeAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown if the loopback server getPort API times out.
+     * Creates an error thrown if the loopback server times out registering the auth code listener.
      */
-    static createGetPortTimeoutError(): NodeAuthError {
-        return new NodeAuthError(NodeAuthErrorMessage.getPortTimeout.code,
-            `${NodeAuthErrorMessage.getPortTimeout.desc}`);
+    static createLoopbackServerTimeoutError(): NodeAuthError {
+        return new NodeAuthError(NodeAuthErrorMessage.loopbackServerTimeout.code,
+            `${NodeAuthErrorMessage.loopbackServerTimeout.desc}`);
     }
 }

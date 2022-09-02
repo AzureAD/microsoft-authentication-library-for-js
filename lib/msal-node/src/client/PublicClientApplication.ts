@@ -94,11 +94,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const loopbackClient = new LoopbackClient();
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
-        const redirectUri = await loopbackClient.getRedirectUri().catch((err) => {
-            // Close server and re-throw any error thrown when getting redirectUri
-            loopbackClient.closeServer();
-            throw err;
-        });
+        const redirectUri = loopbackClient.getRedirectUri();
 
         const validRequest: AuthorizationUrlRequest = {
             ...remainingProperties,
