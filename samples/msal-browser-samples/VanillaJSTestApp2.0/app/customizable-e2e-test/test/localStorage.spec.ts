@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
@@ -65,6 +65,7 @@ describe("LocalStorage Tests", function () {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
+            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
             BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
             await page.goto(SAMPLE_HOME_URL);
         });
@@ -92,14 +93,16 @@ describe("LocalStorage Tests", function () {
             await page.waitForNavigation({ waitUntil: "networkidle0"});
             // Navigate back to home page
             await page.goto(SAMPLE_HOME_URL);
-            await page.waitForTimeout(500);
+            // Wait for processing
+            await storagePoller(async () => {
+                // Temporary Cache always uses sessionStorage
+                const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
+                const sessionStorage = await sessionBrowserStorage.getWindowStorage();
+                const localStorage = await BrowserCache.getWindowStorage();
+                expect(Object.keys(localStorage).length).to.be.eq(0);
+                expect(Object.keys(sessionStorage).length).to.be.eq(0);
+            }, ONE_SECOND_IN_MS);
 
-            // Temporary Cache always uses sessionStorage
-            const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
-            const sessionStorage = await sessionBrowserStorage.getWindowStorage();
-            const localStorage = await BrowserCache.getWindowStorage();
-            expect(Object.keys(localStorage).length).to.be.eq(0);
-            expect(Object.keys(sessionStorage).length).to.be.eq(0);
         });
         
         it("Performs loginPopup", async () => {
@@ -123,13 +126,14 @@ describe("LocalStorage Tests", function () {
             // Wait until popup window closes
             await popupWindowClosed;
             // Wait for processing
-            await page.waitForTimeout(200);
-            // Temporary Cache always uses sessionStorage
-            const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
-            const sessionStorage = await sessionBrowserStorage.getWindowStorage();
-            const localStorage = await BrowserCache.getWindowStorage();
-            expect(Object.keys(localStorage).length).to.be.eq(1); // Telemetry
-            expect(Object.keys(sessionStorage).length).to.be.eq(0);
+            await storagePoller(async () => {
+                // Temporary Cache always uses sessionStorage
+                const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
+                const sessionStorage = await sessionBrowserStorage.getWindowStorage();
+                const localStorage = await BrowserCache.getWindowStorage();
+                expect(Object.keys(localStorage).length).to.be.eq(1); // Telemetry
+                expect(Object.keys(sessionStorage).length).to.be.eq(0);
+            }, ONE_SECOND_IN_MS)
         });
     });
 });
