@@ -53,7 +53,7 @@ export class AuthToken {
      */
     static checkMaxAge(authTime: number | undefined, maxAge: number): void {
         /*
-         * per https://auth0.com/docs/authenticate/login/max-age-reauthentication
+         * per https://openid.net/specs/openid-connect-core-1_0.html#AuthRequest
          * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
          * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
          */
@@ -65,7 +65,7 @@ export class AuthToken {
             throw ClientAuthError.createAuthTimeNotFoundError();
         }
 
-        const twoMinuteSkew = 120000; // two minutes in milliseconds
+        const twoMinuteSkew = 300000; // five minutes in milliseconds
         if ((Date.now() - twoMinuteSkew) > (authTime + maxAge)) {
             throw ClientAuthError.createMaxAgeTranspiredError();
         }
