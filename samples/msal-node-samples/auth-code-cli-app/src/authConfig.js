@@ -6,8 +6,8 @@ const cachePlugin = require('../../cachePlugin')(cacheLocation);
 module.exports = {
     authConfig: {
         auth: {
-            clientId: "c3a8e9df-f1d4-427d-be73-acab139c40fd",
-            authority: "https://login.microsoftonline.com/common"
+            clientId: "ENTER_CLIENT_ID",
+            authority: "https://login.microsoftonline.com/ENTER_TENANT_ID"
         },
         cache: {
             cachePlugin

@@ -7,11 +7,12 @@ const open = require("open");
 const { authConfig } = require("./authConfig.js");
 const { callMicrosoftGraph } = require("./graph.js");
 
-// Before running the sample, you will need to replace the values in the config.
+// Before running the sample, you will need to replace the values in src/authConfig.js
 
 
-// Get url to sign user in and consent to scopes needed for application
+// Open browser to sign user in and consent to scopes needed for application
 const openBrowser = async (url) => {
+    // You can open a browser window with any library or method you wish to use - the 'open' npm package is used here for demonstration purposes.
     open(url);
 };
 
