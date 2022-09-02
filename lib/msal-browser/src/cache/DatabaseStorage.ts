@@ -19,11 +19,6 @@ interface IDBRequestEvent extends Event {
     target: IDBRequest & EventTarget;
 }
 
-interface IDBDatabaseInfo {
-    name?: string;
-    version?: number;
-}
-
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
