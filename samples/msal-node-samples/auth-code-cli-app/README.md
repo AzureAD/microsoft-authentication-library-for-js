@@ -1,4 +1,4 @@
-# MSAL Node Standalone Sample: Authorization Code Grant (PKCE) In Typescript
+# MSAL Node Standalone Sample: Authorization Code Grant (PKCE)
 
 This sample demonstrates an MSAL Node [public client application](../../../lib/msal-node/docs/initialize-public-client-application.md) that lets users authenticate against **Azure AD**.
 
@@ -20,7 +20,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 1. In the **Register an application page** that appears, enter your application's registration information:
    - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-webapp`.
    - Under **Supported account types**, select **Accounts in this organizational directory only**.
-   - In the **Redirect URI (optional)** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `http://localhost:3000/redirect`.
+   - In the **Redirect URI (optional)** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `http://localhost`.
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
 
