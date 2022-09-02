@@ -4,7 +4,6 @@ This sample demonstrates an MSAL Node [public client application](../../../lib/m
 
 This sample uses the [OAuth 2.0 Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) flow with [Proof-Key For Code Exchange](https://oauth.net/2/pkce/) (PKCE). This flow is particularly suitable for public client applications like desktop and mobile apps.
 
-> This sample demonstrates how to use and setup `msal-node` in a [typescript](https://www.typescriptlang.org) project.
 
 ## Setup
 
@@ -44,7 +43,7 @@ In the same folder, type:
     npm start
 ```
 
-The server should start at port **3000**. Navigate to `http://localhost:3000` in your browser, which will trigger the token acquisition process.
+The app should attempt to acquire a token interactively and make a call to Microsoft Graph afterwards.
 
 ## More information
 
