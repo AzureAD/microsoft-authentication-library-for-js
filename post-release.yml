@@ -28,4 +28,4 @@ jobs:
           RunAsPreJob: true
       - task: CmdLine@2
         inputs:
-          script: 'ls -la'
+          script: 'ls -la $(Pipeline.Workspace)/artifacts'
