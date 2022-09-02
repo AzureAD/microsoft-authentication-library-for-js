@@ -43,7 +43,7 @@ In the same folder, type:
     npm start
 ```
 
-The server should start at port **3000**. Navigate to `http://localhost:3000` in your browser, which will trigger the token acquisition process.
+The app should attempt to acquire a token interactively and make a call to Microsoft Graph afterwards.
 
 ## More information
 
