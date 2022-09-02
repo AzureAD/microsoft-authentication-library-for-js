@@ -15,27 +15,27 @@ export enum CryptoKeyStoreNames {
  * MSAL CryptoKeyStore DB Version 2
  */
 export class CryptoKeyStore {
-	public asymmetricKeys: AsyncMemoryStorage<CachedKeyPair>;
-	public symmetricKeys: AsyncMemoryStorage<CryptoKey>;
-	public logger: Logger;
+    public asymmetricKeys: AsyncMemoryStorage<CachedKeyPair>;
+    public symmetricKeys: AsyncMemoryStorage<CryptoKey>;
+    public logger: Logger;
 
-	constructor(logger: Logger){
-		this.logger = logger;
-        this.asymmetricKeys = new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys),
-        this.symmetricKeys = new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys)
-	};
+    constructor(logger: Logger){
+        this.logger = logger;
+        this.asymmetricKeys = new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys);
+        this.symmetricKeys = new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys);
+    }
 
-	async clear(): Promise<boolean> {
-		// Delete in-memory keystores
-		this.asymmetricKeys.clearInMemory();
-		this.symmetricKeys.clearInMemory();
+    async clear(): Promise<boolean> {
+        // Delete in-memory keystores
+        this.asymmetricKeys.clearInMemory();
+	    this.symmetricKeys.clearInMemory();
 		
-		/**
-		 * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
-		 * every persistent keystore
-		 */
+        /**
+         * There is only one database, so calling clearPersistent on asymmetric keystore takes care of
+         * every persistent keystore
+         */
         try {
-			await this.asymmetricKeys.clearPersistent();
+            await this.asymmetricKeys.clearPersistent();
             return true;
         } catch (e) {
             if (e instanceof Error) {
@@ -46,5 +46,5 @@ export class CryptoKeyStore {
             
             return false;
         }
-	}
+    }
 }
