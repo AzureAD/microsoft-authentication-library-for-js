@@ -4,7 +4,6 @@ This sample demonstrates an MSAL Node [public client application](../../../lib/m
 
 This sample uses the [OAuth 2.0 Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) flow with [Proof-Key For Code Exchange](https://oauth.net/2/pkce/) (PKCE). This flow is particularly suitable for public client applications like desktop and mobile apps.
 
-> This sample demonstrates how to use and setup `msal-node` in a [typescript](https://www.typescriptlang.org) project.
 
 ## Setup
 
