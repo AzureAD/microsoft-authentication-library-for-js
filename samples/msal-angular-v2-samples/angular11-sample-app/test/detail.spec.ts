@@ -64,7 +64,7 @@ describe('/ (Detail Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login via MsalGuard by clicking Profile
-        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
@@ -80,7 +80,7 @@ describe('/ (Detail Page)', () => {
         await page.waitForXPath("//strong[contains(., 'First Name: ')]");
 
         // Navigate to details page 
-        const detailsButton = await page.waitForXPath("//a[contains(., 'details')]");
+        const detailsButton = await page.waitForSelector("xpath=//a[contains(., 'details')]");
         await detailsButton.click();
         await screenshot.takeScreenshot(page, "Details page");
         

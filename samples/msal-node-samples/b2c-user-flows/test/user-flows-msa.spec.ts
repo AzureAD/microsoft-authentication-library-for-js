@@ -5,13 +5,12 @@
 
 import puppeteer from "puppeteer";
 
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, b2cMsaAccountEnterCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { B2cProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
-    b2cMsaAccountEnterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL
@@ -31,7 +30,8 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-MSA.json");
 
-describe("B2C User Flow Tests", () => {
+// Problem with MSA logins displaying a security info notice - re-enable these tests when that gets resolved
+describe.skip("B2C User Flow Tests", () => {
     jest.retryTimes(1);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;

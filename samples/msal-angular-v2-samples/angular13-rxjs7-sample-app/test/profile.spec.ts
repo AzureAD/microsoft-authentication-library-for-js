@@ -65,7 +65,7 @@ describe('/ (Profile Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login via MsalGuard by clicking Profile
-        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton?.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
