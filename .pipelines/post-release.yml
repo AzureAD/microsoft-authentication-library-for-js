@@ -46,7 +46,7 @@ stages:
               script: |
                 cp $(Pipeline.Workspace)/core-artifacts/README.md lib/msal-core/README.md
                 cp $(Pipeline.Workspace)/core-artifacts/docs/cdn-usage.md lib/msal-core/docs/cdn-usage.md
-                cp $(Pipeline.Workpsace)/core-artifacts/package.json lib/msal-core/package.json
+                cp $(Pipeline.Workspace)/core-artifacts/package.json lib/msal-core/package.json
           - task: CmdLine@2
             displayName: 'Remove core artifacts directory'
             inputs:
