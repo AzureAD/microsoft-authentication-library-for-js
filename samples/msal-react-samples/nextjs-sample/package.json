@@ -6,7 +6,7 @@
     "dev": "next dev",
     "test": "jest",
     "build": "next build",
-    "build:package": "cd ../../../lib/msal-react & npm run build:all",
+    "build:package": "cd ../../../lib/msal-react && npm run build:all",
     "start": "next start",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"

@@ -11,6 +11,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { TokenCache } from "../cache/TokenCache";
+import { InteractiveRequest } from "../request/InteractiveRequest";
 
 /**
  * Interface for the PublicClientApplication class defining the public API signatures
@@ -22,7 +23,10 @@ export interface IPublicClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
     /** Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
+
+    /** Acquires a token interactively */
+    acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult>;
 
     /** Acquires a token silently when a user specifies the account the token is requested for */
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;

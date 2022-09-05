@@ -68,6 +68,7 @@
         "import/no-unresolved": 2,
         "import/no-unused-modules": 2,
         "import/no-useless-path-segments": 2,
+        "max-len": [0, { "code": 130, "ignoreComments": false, "ignoreRegExpLiterals": true, "ignoreTrailingComments": false, "ignoreUrls": true}],
         "multiline-comment-style": [2, "starred-block" ],
         "no-console": 2,
         "no-multiple-empty-lines": [2, { "max": 1 }],
