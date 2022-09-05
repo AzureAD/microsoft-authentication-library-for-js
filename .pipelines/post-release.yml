@@ -41,7 +41,6 @@ stages:
               script: 'ls -la $(Pipeline.Workspace)/core-artifacts'
           - task: CmdLine@2
             displayName: 'Save Core CDN SRI Hashes'
-            condition: eq(variables.msalCoreResult, 'Succeeded')
             continueOnError: true
             inputs:
               script: |
@@ -50,7 +49,6 @@ stages:
                 cp $(Pipeline.Workpsace)/core-artifacts/package.json lib/msal-core/package.json
           - task: CmdLine@2
             displayName: 'Remove core artifacts directory'
-            condition: eq(variables.msalCoreResult, 'Succeeded')
             inputs:
               script: 'rm -rf $(Pipeline.Workspace)/core-artifacts'
 
@@ -169,6 +167,7 @@ stages:
                 git add .
                 git commit -m "$(releaseDate) Post Release"
                 git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
+                git pull upstream post-release-$(branch)
                 git push upstream post-release-$(branch)
             env:
               GITHUBTOKEN: $(MSALJSGITHUB)
