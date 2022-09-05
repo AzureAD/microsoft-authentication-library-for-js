@@ -28,7 +28,7 @@ stages:
               specificBuildWithTriggering: true
               buildVersionToDownload: 'latest'
               allowFailedBuilds: true
-              artifactName: ''drop_publish_publish_msal_core''
+              artifactName: 'drop_publish_publish_msal_core'
               targetPath: '$(Pipeline.Workspace)/core-artifacts'
           - task: AzureKeyVault@2
             inputs:
