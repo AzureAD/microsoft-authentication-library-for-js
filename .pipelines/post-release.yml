@@ -164,12 +164,11 @@ stages:
                 echo "PR DATE: $(releaseDate)"
                 echo "PR Branch: $(branch)"
                 git config --global user.email "release@msaljs.com"
-                git config --global user.name "OneBranch release Pipeline"
+                git config --global user.name "Release Pipeline"
                 git checkout -b post-release-$(branch)
                 git add .
                 git commit -m "$(releaseDate) Post Release"
                 git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
-                git pull upstream post-release-$(branch)
                 git push upstream post-release-$(branch)
             env:
               GITHUBTOKEN: $(MSALJSGITHUB)
