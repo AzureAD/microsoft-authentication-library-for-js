@@ -105,7 +105,7 @@ describe('ConfidentialClientApplication', () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,                                
-                // no secret or cert
+                clientAssertion: "testAssertion"
             },
         }                  
 
@@ -126,7 +126,7 @@ describe('ConfidentialClientApplication', () => {
         expect(ClientCredentialClient).toHaveBeenCalledTimes(1);      
     });
 
-    test.only('acquireTokenByClientCredential with client assertion', async () => {
+    test('acquireTokenByClientCredential with client assertion', async () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false,

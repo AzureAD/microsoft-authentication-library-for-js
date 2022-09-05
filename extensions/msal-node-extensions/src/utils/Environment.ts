@@ -65,7 +65,8 @@ export class Environment {
 
     static getUserHomeDirOnUnix(): string | null {
         if (this.isWindowsPlatform()) {
-            throw PersistenceError.createNotSupportedError("Getting the user home directory for unix is not supported in windows");
+            throw PersistenceError.createNotSupportedError(
+                "Getting the user home directory for unix is not supported in windows");
         }
 
         if (!StringUtils.isEmpty(this.homeEnvVar)) {
@@ -92,7 +93,8 @@ export class Environment {
                 return !StringUtils.isEmpty(username) ? path.join("/home", username) : null;
             }
         } else {
-            throw PersistenceError.createNotSupportedError("Getting the user home directory for unix is not supported in windows");
+            throw PersistenceError.createNotSupportedError(
+                "Getting the user home directory for unix is not supported in windows");
         }
 
     }
