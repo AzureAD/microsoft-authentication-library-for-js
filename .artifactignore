@@ -1,0 +1,3 @@
+**/*
+!lib/msal-core/
+!lib/msal-browser/
