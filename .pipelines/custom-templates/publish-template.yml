@@ -84,7 +84,7 @@ jobs:
       # Publish to npm
       - task: Npm@1
         displayName: Publish to npm
-        condition: and(not(eq(${{ parameters.libName }}, 'msal-angular')), not(${{ parameters.testMode }}))
+        condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), not(${{ parameters.testMode }}))
         continueOnError: true
         inputs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
@@ -92,7 +92,7 @@ jobs:
           publishEndpoint: MSALJSNPM
       - task: Npm@1
         displayName: Publish to npm - Test Mode
-        condition: and(not(eq(${{ parameters.libName }}, 'msal-angular')), ${{ parameters.testMode }})
+        condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), ${{ parameters.testMode }})
         continueOnError: true
         inputs:
           command: 'custom'
@@ -110,14 +110,14 @@ jobs:
       # Deploy to npm (Angular only)
       - task: Npm@1
         displayName: Deploy to npm (Angular only)
-        condition: and(eq(${{ parameters.libName }}, 'msal-angular'), not(${{ parameters.testMode }}))
+        condition: and(eq('${{ parameters.libName }}', 'msal-angular'), not(${{ parameters.testMode }}))
         inputs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'deploy'
       - task: Npm@1
         displayName: Deploy to npm (Angular only) - Test Mode
-        condition: and(eq(${{ parameters.libName }}, 'msal-angular'), ${{ parameters.testMode }})
+        condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
         inputs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
