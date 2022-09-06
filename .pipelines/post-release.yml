@@ -6,11 +6,12 @@
 pool:
   vmImage: ubuntu-latest
 stages:
-  - stage: post_publish
-    displayName: 'Post-release'
+  # - stage: download_artifacts
+  #   displayName: 'Download Release Artifacts'
+  - stage: update_github_repo
+    displayName: 'Update GitHub Repository' 
     jobs:
       - job: updateGithubRepo
-        displayName: 'Update GitHub Repository'
         variables:
           repoName: 'msal-javascript-internal'
         steps:
@@ -25,7 +26,7 @@ stages:
               KeyVaultName: 'ADALTestInfo'
               SecretsFilter: 'MSALJSGITHUB'
               RunAsPreJob: true
-          # Download Core Artifacts
+          # Update each package with artifacts from release
           - template: custom-templates/post-publish-template.yml
             parameters:
               libName: 'core'
@@ -33,264 +34,63 @@ stages:
           - template: custom-templates/post-publish-template.yml
             parameters:
               libName: 'common'
-          
-
-        #   # Common Artifacts
-        #   - task: DownloadPipelineArtifact@2
-        #     name: download_common_artifacts
-        #     inputs:
-        #       buildType: 'specific'
-        #       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-        #       definition: '1758'
-        #       specificBuildWithTriggering: true
-        #       buildVersionToDownload: 'latest'
-        #       allowFailedBuilds: true
-        #       artifactName: 'drop_publish_publish_msal_common'
-        #       targetPath: '$(Pipeline.Workspace)/common-artifacts'
-        #     continueOnError: true
-        #   - task: CmdLine@2
-        #     displayName: 'Save Common CDN SRI Hashes'
-        #     dependsOn: download_common_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: |
-        #         cp $(Pipeline.Workspace)/common-artifacts/README.md lib/msal-common/README.md
-        #         cp $(Pipeline.Workspace)/common-artifacts/docs/cdn-usage.md lib/msal-common/docs/cdn-usage.md
-        #         cp $(Pipeline.Workspace)/common-artifacts/package.json lib/msal-common/package.json
-        #   - task: CmdLine@2
-        #     displayName: 'Remove Common artifacts directory'
-        #     dependsOn: download_common_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: 'rm -rf $(Pipeline.Workspace)/common-artifacts'
-        #   - task: Npm@1
-        #     displayName: 'Update msal-common package-lock'
-        #     dependsOn: download_common_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       command: 'install'
-        #       workingDir: 'lib/msal-common'
-        #       verbose: false
-        #   # Browser Artifacts
-        #   - task: DownloadPipelineArtifact@2
-        #     name: download_browser_artifacts
-        #     inputs:
-        #       buildType: 'specific'
-        #       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-        #       definition: '1758'
-        #       specificBuildWithTriggering: true
-        #       buildVersionToDownload: 'latest'
-        #       allowFailedBuilds: true
-        #       artifactName: 'drop_publish_publish_msal_browser'
-        #       targetPath: '$(Pipeline.Workspace)/browser-artifacts'
-        #     continueOnError: true
-        #   - task: CmdLine@2
-        #     displayName: 'Save Browser CDN SRI Hashes'
-        #     dependsOn: download_browser_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: |
-        #         cp $(Pipeline.Workspace)/browser-artifacts/README.md lib/msal-browser/README.md
-        #         cp $(Pipeline.Workspace)/browser-artifacts/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
-        #         cp $(Pipeline.Workspace)/browser-artifacts/package.json lib/msal-browser/package.json
-        #   - task: CmdLine@2
-        #     displayName: 'Remove browser artifacts directory'
-        #     dependsOn: download_browser_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: 'rm -rf $(Pipeline.Workspace)/browser-artifacts'
-        #   - task: Npm@1
-        #     displayName: 'Update msal-browser package-lock'
-        #     dependsOn: download_browser_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       command: 'install'
-        #       workingDir: 'lib/msal-browser'
-        #       verbose: false
-        #     continueOnError: true
-
-        #   # Node Artifacts
-        #   - task: DownloadPipelineArtifact@2
-        #     name: download_node_artifacts
-        #     inputs:
-        #       buildType: 'specific'
-        #       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-        #       definition: '1758'
-        #       specificBuildWithTriggering: true
-        #       buildVersionToDownload: 'latest'
-        #       allowFailedBuilds: true
-        #       artifactName: 'drop_publish_publish_msal_node'
-        #       targetPath: '$(Pipeline.Workspace)/node-artifacts'
-        #     continueOnError: true
-        #   - task: CmdLine@2
-        #     displayName: 'Save Node Package.json'
-        #     dependsOn: download_node_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: |
-        #         cp $(Pipeline.Workspace)/node-artifacts/package.json lib/msal-node/package.json
-        #   - task: CmdLine@2
-        #     displayName: 'Remove Node artifacts directory'
-        #     dependsOn: download_node_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: 'rm -rf $(Pipeline.Workspace)/node-artifacts'
-        #   - task: Npm@1
-        #     displayName: 'Update msal-node package-lock'
-        #     dependsOn: download_node_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       command: 'install'
-        #       workingDir: 'lib/msal-node'
-        #       verbose: false
-        #     continueOnError: true
-          
-        #   # React Artifacts
-        #   - task: DownloadPipelineArtifact@2
-        #     name: download_react_artifacts
-        #     inputs:
-        #       buildType: 'specific'
-        #       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-        #       definition: '1758'
-        #       specificBuildWithTriggering: true
-        #       buildVersionToDownload: 'latest'
-        #       allowFailedBuilds: true
-        #       artifactName: 'drop_publish_publish_msal_react'
-        #       targetPath: '$(Pipeline.Workspace)/react-artifacts'
-        #     continueOnError: true
-        #   - task: CmdLine@2
-        #     displayName: 'Save React Package.json'
-        #     dependsOn: download_react_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: |
-        #         cp $(Pipeline.Workspace)/react-artifacts/package.json lib/msal-react/package.json
-        #   - task: CmdLine@2
-        #     displayName: 'Remove React artifacts directory'
-        #     dependsOn: download_react_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: 'rm -rf $(Pipeline.Workspace)/react-artifacts'
-        #   - task: Npm@1
-        #     displayName: 'Update msal-react package-lock'
-        #     dependsOn: download_react_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       command: 'install'
-        #       workingDir: 'lib/msal-react'
-        #       verbose: false
-        #     continueOnError: true
-        #  # Angular Artifacts
-        #   - task: DownloadPipelineArtifact@2
-        #     name: download_angular_artifacts
-        #     inputs:
-        #       buildType: 'specific'
-        #       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-        #       definition: '1758'
-        #       specificBuildWithTriggering: true
-        #       buildVersionToDownload: 'latest'
-        #       allowFailedBuilds: true
-        #       artifactName: 'drop_publish_publish_msal_angular'
-        #       targetPath: '$(Pipeline.Workspace)/angular-artifacts'
-        #     continueOnError: true
-        #   - task: CmdLine@2
-        #     displayName: 'Save Angular Package.json'
-        #     dependsOn: download_angular_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: |
-        #         cp $(Pipeline.Workspace)/angular-artifacts/package.json lib/msal-angular/package.json
-        #   - task: CmdLine@2
-        #     displayName: 'Remove Angular artifacts directory'
-        #     dependsOn: download_angular_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: 'rm -rf $(Pipeline.Workspace)/angular-artifacts'
-        #   - task: Npm@1
-        #     displayName: 'Update msal-angular package-lock'
-        #     dependsOn: download_angular_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       command: 'install'
-        #       workingDir: 'lib/msal-angular'
-        #       verbose: false
-        #     continueOnError: true
-        #  # Node Extensions Artifacts
-        #   - task: DownloadPipelineArtifact@2
-        #     name: download_extensions_artifacts
-        #     inputs:
-        #       buildType: 'specific'
-        #       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-        #       definition: '1758'
-        #       specificBuildWithTriggering: true
-        #       buildVersionToDownload: 'latest'
-        #       allowFailedBuilds: true
-        #       artifactName: 'drop_publish_publish_msal_node_extensions'
-        #       targetPath: '$(Pipeline.Workspace)/extensions-artifacts'
-        #     continueOnError: true
-        #   - task: CmdLine@2
-        #     displayName: 'Save Node Extensions Package.json'
-        #     dependsOn: download_extensions_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: |
-        #         cp $(Pipeline.Workspace)/extensions-artifacts/package.json lib/msal-node-extensions/package.json
-        #   - task: CmdLine@2
-        #     displayName: 'Remove Node Extensions artifacts directory'
-        #     dependsOn: download_extensions_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       script: 'rm -rf $(Pipeline.Workspace)/extensions-artifacts'
-        #   - task: Npm@1
-        #     displayName: 'Update msal-node-extensions package-lock'
-        #     dependsOn: download_extensions_artifacts
-        #     condition: succeeded()
-        #     inputs:
-        #       command: 'install'
-        #       workingDir: 'extensions/msal-node-extensions'
-        #       verbose: false
-        #     continueOnError: true
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              libName: 'browser'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              libName: 'node'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              libName: 'react'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              libName: 'angular'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              libName: 'node-extensions'
         
-        #   # Create Pull Request from post-release-month-year to dev 
-        #   - task: Npm@1
-        #     displayName: Install release scripts dependencies
-        #     condition: always()
-        #     inputs:
-        #       command: 'custom'
-        #       customCommand: 'ci'
-        #       workingDirectory: 'release-scripts/'
-        #   - task: CmdLine@2
-        #     displayName: 'Get Release Date'
-        #     condition: always()
-        #     inputs:
-        #       script: echo "##vso[task.setvariable variable=releaseDate]$(node getReleaseDate.js)"
-        #       workingDirectory: 'release-scripts/'
-        #     env:
-        #       TZ: "America/Los_Angeles"
-        #   - task: CmdLine@2
-        #     displayName: 'Get branch'
-        #     inputs:
-        #       script: echo "##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)"
-        #       workingDirectory: 'release-scripts/'
-        #     env:
-        #       TZ: "America/Los_Angeles"
-        #   - task: CmdLine@2
-        #     displayName: 'Commit Changes'
-        #     inputs:
-        #       script: |
-        #         git config --global user.email "release@msaljs.com"
-        #         git config --global user.name "Release Pipeline"
-        #         git checkout -b post-release-$(branch)
-        #         git add .
-        #         git commit -m "$(releaseDate) Post Release"
-        #         git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
-        #         git pull upstream post-release-$(branch)
-        #         git push upstream post-release-$(branch)
-        #     env:
-        #       GITHUBTOKEN: $(MSALJSGITHUB)
-        #   - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
-        #     displayName: "Post Release Pull Request"
-        #     workingDirectory: 'release-scripts/'
-        #     name: post_release_pull_request
-        #     env:
-        #       GITHUBTOKEN: $(MSALJSGITHUB)
+        
+          # Create Pull Request from post-release-month-year to dev 
+          - task: Npm@1
+            displayName: Install release scripts dependencies
+            condition: always()
+            inputs:
+              command: 'custom'
+              customCommand: 'ci'
+              workingDirectory: 'release-scripts/'
+          - task: CmdLine@2
+            displayName: 'Get Release Date'
+            condition: always()
+            inputs:
+              script: echo "##vso[task.setvariable variable=releaseDate]$(node getReleaseDate.js)"
+              workingDirectory: 'release-scripts/'
+            env:
+              TZ: "America/Los_Angeles"
+          - task: CmdLine@2
+            displayName: 'Get branch'
+            inputs:
+              script: echo "##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)"
+              workingDirectory: 'release-scripts/'
+            env:
+              TZ: "America/Los_Angeles"
+          - task: CmdLine@2
+            displayName: 'Commit Changes'
+            inputs:
+              script: |
+                git config --global user.email "release@msaljs.com"
+                git config --global user.name "Release Pipeline"
+                git checkout -b post-release-$(branch)
+                git add .
+                git commit -m "$(releaseDate) Post Release"
+                git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
+                git pull upstream post-release-$(branch)
+                git push upstream post-release-$(branch)
+            env:
+              GITHUBTOKEN: $(MSALJSGITHUB)
+          - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
+            displayName: "Post Release Pull Request"
+            workingDirectory: 'release-scripts/'
+            name: post_release_pull_request
+            env:
+              GITHUBTOKEN: $(MSALJSGITHUB)

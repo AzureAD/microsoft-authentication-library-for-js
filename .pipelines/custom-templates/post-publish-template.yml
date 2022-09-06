@@ -16,7 +16,6 @@ steps:
       allowFailedBuilds: true
       artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
       targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
-    continueOnError: true
   - task: CmdLine@2
     inputs:
       script: 'ls -la $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
