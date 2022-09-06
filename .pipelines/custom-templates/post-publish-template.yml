@@ -9,6 +9,8 @@ parameters:
 
 jobs:
   - job: update_${{ parameters.name }}
+    variables:
+      download_succeeded: false
     steps:
       - task: NodeTool@0
         displayName: Install Node
@@ -25,25 +27,32 @@ jobs:
           allowFailedBuilds: true
           artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
           targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+      - task: CmdLine@2
+        condition: succeeded()
+        inputs:
+          script: "echo ##vso[task.setvariable variable=download_succeeded]true"
         continueOnError: true
       - task: CmdLine@2
         displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
-        condition: eq(${{ parameters.cdn }}, true)
+        condition: and(eq(variables.download_succeeded, true), eq(${{ parameters.cdn }}, true)
         inputs:
           script: |
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md lib/msal-${{ parameters.libName }}/README.md
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md lib/msal-${{ parameters.libName }}/docs/cdn-usage.md
       - task: CmdLine@2
         displayName: 'Save package.json'
+        condition: eq(variables.download_succeeded, true)
         inputs:
           script: | 
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
       - task: CmdLine@2
         displayName: 'Remove ${{ parameters.libName }} artifacts directory'
+        condition: eq(variables.download_succeeded, true)
         inputs:
           script: 'rm -rf $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
       - task: Npm@1
         displayName: 'Update msal-${{ parameters.libName }} package-lock'
+        condition: eq(variables.download_succeeded, true)
         inputs:
           command: 'install'
           workingDir: 'lib/msal-${{ parameters.libName }}'
