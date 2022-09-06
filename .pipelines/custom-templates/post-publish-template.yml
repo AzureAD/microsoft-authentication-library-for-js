@@ -29,9 +29,9 @@ steps:
         cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md lib/msal-${{ parameters.libName }}/docs/cdn-usage.md
   - task: CmdLine@2
     displayName: 'Save package.json'
-    inputs: |
+    inputs:
+      script: | 
         cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
-      script: 
   - task: CmdLine@2
     displayName: 'Remove ${{ parameters.libName }} artifacts directory'
     inputs:
