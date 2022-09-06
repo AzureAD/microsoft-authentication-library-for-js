@@ -193,6 +193,10 @@ export const ClientAuthErrorMessage = {
     keyIdMissing: {
         code: "key_id_missing",
         desc: "A keyId value is missing from the requested bound token's cache record and is required to match the token to it's stored binding key."
+    },
+    invalidRequest: {
+        code: "invalid_request",
+        desc: "The request body must contain the following parameter: 'username'"
     }
 };
 
@@ -527,4 +531,9 @@ export class ClientAuthError extends AuthError {
     static createKeyIdMissingError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.keyIdMissing.code, ClientAuthErrorMessage.keyIdMissing.desc);
     }
+
+    static createInvalidRequestError(desc:string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.invalidRequest.code, desc);
+    }
+
 }

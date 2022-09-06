@@ -33,6 +33,10 @@ export const InteractionRequiredAuthErrorMessage = {
     native_account_unavailable: {
         code: "native_account_unavailable",
         desc: "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API."
+    },
+    invalid_grant: {
+        code: "invalid_grant",
+        desc: "",
     }
 };
 
@@ -77,5 +81,9 @@ export class InteractionRequiredAuthError extends AuthError {
      */
     static createNativeAccountUnavailableError(): InteractionRequiredAuthError {
         return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.native_account_unavailable.code, InteractionRequiredAuthErrorMessage.native_account_unavailable.desc);
+    }
+
+    static createInvalidGrantError(desc: string): InteractionRequiredAuthError {
+        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.invalid_grant.code, desc);
     }
 }
