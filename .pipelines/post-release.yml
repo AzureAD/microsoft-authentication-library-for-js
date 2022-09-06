@@ -12,25 +12,32 @@ stages:
       # Update each package with artifacts from release
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_core'
           libName: 'core'
           cdn: true
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_common'
           libName: 'common'
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_browser'
           libName: 'browser'
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_node'
           libName: 'node'
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_react'
           libName: 'react'
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_angular'
           libName: 'angular'
       - template: custom-templates/post-publish-template.yml
         parameters:
+          name: 'msal_node_extensions'
           libName: 'node-extensions'
       - job: publish_updates_to_github
         steps:
