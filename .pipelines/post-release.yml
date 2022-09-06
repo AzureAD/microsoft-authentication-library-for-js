@@ -14,59 +14,46 @@ stages:
   - stage: update_packages
     displayName: 'Update Packages' 
     jobs:
-      # Update each package with artifacts from release
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_core'
-          libName: 'core'
-          cdn: true
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_common'
-          libName: 'common'
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_browser'
-          libName: 'browser'
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_node'
-          libName: 'node'
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_react'
-          libName: 'react'
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_angular'
-          libName: 'angular'
-      - template: custom-templates/post-publish-template.yml
-        parameters:
-          name: 'msal_node_extensions'
-          libName: 'node-extensions'
-      - job: publish_updates_to_github
-        dependsOn:
-          - update_msal_core
-          - update_msal_common
-          - update_msal_browser
-          - update_msal_node
-          - update_msal_react
-          - update_msal_angular
-          - update_msal_node_extensions
-        condition: |
-          or
-          (
-            eq(dependencies.update_msal_core.result, 'Succeeded'),
-            eq(dependencies.update_msal_common.result, 'Succeeded'),
-            eq(dependencies.update_msal_browser.result, 'Succeeded'),
-            eq(dependencies.update_msal_node.result, 'Succeeded'),
-            eq(dependencies.update_msal_react.result, 'Succeeded'),
-            eq(dependencies.update_msal_angular.result, 'Succeeded'),
-            eq(dependencies.update_msal_node_extensions.result, 'Succeeded')
-          )
+      - job: update_and_push_to_github
         steps:
+          - task: NodeTool@0
+            displayName: Install Node
+            inputs:
+              versionSpec: '16.x'
+              checkLatest: true
+          # Update each package with artifacts from release
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_core'
+              libName: 'core'
+              cdn: true
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_common'
+              libName: 'common'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_browser'
+              libName: 'browser'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_node'
+              libName: 'node'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_react'
+              libName: 'react'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_angular'
+              libName: 'angular'
+          - template: custom-templates/post-publish-template.yml
+            parameters:
+              name: 'msal_node_extensions'
+              libName: 'node-extensions'
           # Get GitHub PAT
           - task: AzureKeyVault@2
+            condition: awlays()
             continueOnError: true
             inputs:
               azureSubscription: 'MSIDLABKeyVault'
@@ -76,6 +63,7 @@ stages:
           # Create Pull Request from post-release-month-year to dev 
           - task: Npm@1
             displayName: Install release scripts dependencies
+            condition: awlays()
             inputs:
               command: 'custom'
               customCommand: 'ci'
@@ -83,6 +71,7 @@ stages:
           # Get Release Date
           - task: CmdLine@2
             displayName: 'Get Release Date'
+            condition: awlays()
             inputs:
               script: echo "##vso[task.setvariable variable=releaseDate]$(node getReleaseDate.js)"
               workingDirectory: 'release-scripts/'
@@ -91,6 +80,7 @@ stages:
           # Create branch name from release date
           - task: CmdLine@2
             displayName: 'Get branch'
+            condition: awlays()
             inputs:
               script: echo "##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)"
               workingDirectory: 'release-scripts/'
@@ -99,6 +89,7 @@ stages:
           # Commit the changes and push to GitHub
           - task: CmdLine@2
             displayName: 'Commit and Push Changes'
+            condition: awlays()
             inputs:
               script: |
                 git config --global user.email "release@msaljs.com"
