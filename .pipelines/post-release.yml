@@ -27,12 +27,10 @@ stages:
               RunAsPreJob: true
           # Download Core Artifacts
           - template: .pipelines/custom-templates/post-publish-template.yml
-            continueOnError: true
             parameters:
               libName: 'core'
               cdn: true
           - template: .pipelines/custom-templates/post-publish-template.yml
-            continueOnError: true
             parameters:
               libName: 'common'
           
