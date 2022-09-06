@@ -9,6 +9,7 @@ parameters:
 
 steps:
   - task: DownloadPipelineArtifact@2
+    condition: always()
     inputs:
       buildType: 'specific'
       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
