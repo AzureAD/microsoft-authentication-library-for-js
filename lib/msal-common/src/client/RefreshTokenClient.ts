@@ -68,6 +68,13 @@ export class RefreshTokenClient extends BaseClient {
                     refreshTokenSize: response?.body?.refresh_token.length || 0
                 });
             }
+            else{
+                // no refresh token in response
+                atsMeasurement?.endMeasurement({
+                    success: true,
+                    refreshTokenSize: undefined
+                });
+            }
             return result;
         })
             .catch((error) => {
