@@ -32,7 +32,7 @@ stages:
       - template: custom-templates/post-publish-template.yml
         parameters:
           libName: 'node-extensions'
-      job: publish_updates_to_github
+      - job: publish_updates_to_github
         steps:
           # Create Pull Request from post-release-month-year to dev 
           - task: Npm@1
