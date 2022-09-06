@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Merge branch 'dev' of github.com:AzureAD/microsoft-authentication-library-for-js into node_error_masking",
+  "packageName": "@azure/msal-common",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
