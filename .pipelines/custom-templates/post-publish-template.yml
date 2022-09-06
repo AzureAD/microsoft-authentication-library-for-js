@@ -1,4 +1,6 @@
 parameters:
+  - name: name
+    type: string
   - name: libName
     type: string
   - name: cdn
@@ -6,7 +8,7 @@ parameters:
     default: false
 
 jobs:
-  - job: update_msal_${{ parameters.libName }}
+  - job: update_${{ parameters.name }}
     steps:
       - task: AzureKeyVault@2
         inputs:
