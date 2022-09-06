@@ -15,10 +15,10 @@ jobs:
           SecretsFilter: 'MSALJSGITHUB'
           RunAsPreJob: true
       - task: NodeTool@0
-      displayName: Install Node
-      inputs:
-        versionSpec: '16.x'
-        checkLatest: true
+        displayName: Install Node
+        inputs:
+          versionSpec: '16.x'
+          checkLatest: true
       - task: DownloadPipelineArtifact@2
         inputs:
           buildType: 'specific'
