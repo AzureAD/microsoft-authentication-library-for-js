@@ -53,7 +53,7 @@ stages:
               libName: 'node-extensions'
           # Get GitHub PAT
           - task: AzureKeyVault@2
-            condition: awlays()
+            condition: always()
             continueOnError: true
             inputs:
               azureSubscription: 'MSIDLABKeyVault'
@@ -63,7 +63,7 @@ stages:
           # Create Pull Request from post-release-month-year to dev 
           - task: Npm@1
             displayName: Install release scripts dependencies
-            condition: awlays()
+            condition: always()
             inputs:
               command: 'custom'
               customCommand: 'ci'
@@ -71,7 +71,7 @@ stages:
           # Get Release Date
           - task: CmdLine@2
             displayName: 'Get Release Date'
-            condition: awlays()
+            condition: always()
             inputs:
               script: echo "##vso[task.setvariable variable=releaseDate]$(node getReleaseDate.js)"
               workingDirectory: 'release-scripts/'
@@ -80,7 +80,7 @@ stages:
           # Create branch name from release date
           - task: CmdLine@2
             displayName: 'Get branch'
-            condition: awlays()
+            condition: always()
             inputs:
               script: echo "##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)"
               workingDirectory: 'release-scripts/'
@@ -89,7 +89,7 @@ stages:
           # Commit the changes and push to GitHub
           - task: CmdLine@2
             displayName: 'Commit and Push Changes'
-            condition: awlays()
+            condition: always()
             inputs:
               script: |
                 git config --global user.email "release@msaljs.com"
