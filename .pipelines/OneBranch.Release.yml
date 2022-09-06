@@ -16,6 +16,10 @@ parameters: # parameters are shown up in ADO UI in a build queue time
   displayName: 'Enable debug output'
   type: boolean
   default: false
+- name: 'testMode'
+  displayName: 'Run in test mode'
+  type: boolean
+  default: false
 - name: 'overrideMsalCore'
   displayName: 'Publish MSAL Core'
   type: boolean
@@ -118,6 +122,7 @@ extends:
             cdn: true
             publishFlagName: 'MsalCore'
             publishOverride: ${{ parameters.overrideMsalCore }}
+            testMode: $${{ parameters.testMode }}
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -127,6 +132,7 @@ extends:
             cdn: false
             publishFlagName: 'MsalCommon'
             publishOverride: ${{ parameters.overrideMsalCommon }}
+            testMode: $${{ parameters.testMode }}
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -137,6 +143,7 @@ extends:
             publishFlagName: 'MsalBrowser'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalBrowser }}
+            testMode: $${{ parameters.testMode }}
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -157,6 +164,7 @@ extends:
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
             publishOverride: ${{ parameters.overrideMsalAngular }}
+            testMode: $${{ parameters.testMode }}
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -167,6 +175,7 @@ extends:
             publishFlagName: 'MsalNode'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNode }}
+            testMode: $${{ parameters.testMode }}
         # Release MSAL Node Extensions
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -177,6 +186,7 @@ extends:
             publishFlagName: 'MsalNodeExtensions'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
+            testMode: $${{ parameters.testMode }}
 
  
 
