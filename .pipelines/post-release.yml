@@ -91,6 +91,7 @@ stages:
                 git config --global user.email "release@msaljs.com"
                 git config --global user.name "Release Pipeline"
                 git checkout -b post-release-$(branch)
+                git status
                 git add .
                 git commit -m "$(releaseDate) Post Release"
                 git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
