@@ -279,7 +279,7 @@ export type PerformanceEvent = {
      * @type {number}
      */
 
-    refreshTokenSize?: number,
+    refreshTokenSize?: number | undefined,
 
     /**
      * Application name as specified by the app.

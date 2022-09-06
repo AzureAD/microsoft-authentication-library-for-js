@@ -38,6 +38,7 @@ export class RefreshTokenClient extends BaseClient {
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         // @ts-ignore
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
+        this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
@@ -69,7 +70,7 @@ export class RefreshTokenClient extends BaseClient {
                 });
             }
             else{
-                // no refresh token in response
+                // no refresh token is returned
                 atsMeasurement?.endMeasurement({
                     success: true,
                     refreshTokenSize: undefined
@@ -78,6 +79,7 @@ export class RefreshTokenClient extends BaseClient {
             return result;
         })
             .catch((error) => {
+                this.logger.verbose("Error in fetching refresh token", request.correlationId);
                 atsMeasurement?.endMeasurement({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
@@ -138,6 +140,7 @@ export class RefreshTokenClient extends BaseClient {
 
         // @ts-ignore
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
+        this.logger.verbose("RefreshTokenClientAcquireTokenWithCachedRefreshToken called", request.correlationId);
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
         if (!refreshToken) {
