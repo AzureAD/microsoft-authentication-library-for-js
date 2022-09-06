@@ -57,7 +57,7 @@ jobs:
         inputs:
           azureSubscription: 'MSIDLABKeyVault'
           KeyVaultName: 'ADALTestInfo'
-          SecretsFilter: 'MSALJS-CDN-SAS-EUNO, MSALJS-CDN-SAS-USWE, MSALJSNPMTOKEN'
+          SecretsFilter: 'MSALJS-CDN-SAS-EUNO, MSALJS-CDN-SAS-USWE, MSALJSNPMTOKEN, MSALJSGITHUB'
           RunAsPreJob: false
       # Publish to CDN
       # - task: Npm@1
@@ -101,11 +101,6 @@ jobs:
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 
-      # Remove .npmrc file
-      # - script: rm .npmrc
-      #   displayName: Remove .npmrc file
-      #   workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
-
       # Install Release Scripts dependencies
       - task: Npm@1
         displayName: Install release scripts dependencies
@@ -119,7 +114,9 @@ jobs:
         workingDirectory: 'release-scripts/'
       
       # Create GitHub releases, discussions and milestones
-      # - script: echo 'Run node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}'
+      # - script: node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}
       #   displayName: Create GitHub releases, discussions and milestones
       #   workingDirectory: 'release-scripts/'
       #   continueOnError: true
+      #   env:
+      #     GITHUB_AUTH: $(MSALJSGITHUB)
