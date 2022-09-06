@@ -149,7 +149,7 @@ jobs:
         env:
           GITHUB_AUTH: $(MSALJSGITHUB)
 
-      - script: echo "node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}""
+      - script: echo " Run node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}"
         displayName: Create GitHub releases, discussions and milestones - Test Mode
         condition: ${{ parameters.testMode }}
         workingDirectory: 'release-scripts/'
