@@ -10,7 +10,8 @@ parameters:
 jobs:
   - job: update_${{ parameters.name }}
     variables:
-      download_succeeded: false
+      - name: download_succeeded
+        value: false
     steps:
       - task: NodeTool@0
         displayName: Install Node
