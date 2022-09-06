@@ -55,7 +55,6 @@ stages:
               KeyVaultName: 'ADALTestInfo'
               SecretsFilter: 'MSALJSGITHUB'
               RunAsPreJob: true
-            failOnStderr: true
           - task: CmdLine@2
             condition: succeeded()
             inputs:
