@@ -45,7 +45,7 @@ stages:
     jobs:
       - job: publish_updates_to_github
         variables:
-          - download_succeeded: false
+          download_succeeded: false
         steps:
           # Get GitHub PAT
           - task: AzureKeyVault@2
