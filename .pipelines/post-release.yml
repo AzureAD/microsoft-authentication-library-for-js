@@ -44,59 +44,69 @@ stages:
     condition: always()
     jobs:
       - job: publish_updates_to_github
+        variables:
+          - download_succeeded: false
         steps:
           # Get GitHub PAT
           - task: AzureKeyVault@2
+            continueOnError: true
             inputs:
               azureSubscription: 'MSIDLABKeyVault'
               KeyVaultName: 'ADALTestInfo'
               SecretsFilter: 'MSALJSGITHUB'
               RunAsPreJob: true
-        ${{ if succeeded() }}:
-            # Create Pull Request from post-release-month-year to dev 
-            - task: Npm@1
-              displayName: Install release scripts dependencies
-              inputs:
-                command: 'custom'
-                customCommand: 'ci'
-                workingDirectory: 'release-scripts/'
-            # Get Release Date
-            - task: CmdLine@2
-              displayName: 'Get Release Date'
-              condition: always()
-              inputs:
-                script: echo "##vso[task.setvariable variable=releaseDate]$(node getReleaseDate.js)"
-                workingDirectory: 'release-scripts/'
-              env:
-                TZ: "America/Los_Angeles"
-            # Create branch name from release date
-            - task: CmdLine@2
-              displayName: 'Get branch'
-              inputs:
-                script: echo "##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)"
-                workingDirectory: 'release-scripts/'
-              env:
-                TZ: "America/Los_Angeles"
-            # Commit the changes and push to GitHub
-            - task: CmdLine@2
-              displayName: 'Commit and Push Changes'
-              inputs:
-                script: |
-                  git config --global user.email "release@msaljs.com"
-                  git config --global user.name "Release Pipeline"
-                  git checkout -b post-release-$(branch)
-                  git add .
-                  git commit -m "$(releaseDate) Post Release"
-                  git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
-                  git pull upstream post-release-$(branch)
-                  git push upstream post-release-$(branch)
-              env:
-                GITHUBTOKEN: $(MSALJSGITHUB)
-            # Create Pull Request through GitHub's REST API
-            - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
-              displayName: "Post Release Pull Request"
-              condition: always()
+            failOnStderr: true
+          - task: CmdLine@2
+            condition: succeeded()
+            inputs:
+              script: "echo ##vso[task.setvariable variable=download_succeeded]true"
+          # Create Pull Request from post-release-month-year to dev 
+          - task: Npm@1
+            displayName: Install release scripts dependencies
+            condition: eq(variables.download_succeeded, true)
+            inputs:
+              command: 'custom'
+              customCommand: 'ci'
               workingDirectory: 'release-scripts/'
-              name: post_release_pull_request
-              env:
-                GITHUBTOKEN: $(MSALJSGITHUB)
+          # Get Release Date
+          - task: CmdLine@2
+            displayName: 'Get Release Date'
+            condition: eq(variables.download_succeeded, true)
+            inputs:
+              script: echo "##vso[task.setvariable variable=releaseDate]$(node getReleaseDate.js)"
+              workingDirectory: 'release-scripts/'
+            env:
+              TZ: "America/Los_Angeles"
+          # Create branch name from release date
+          - task: CmdLine@2
+            displayName: 'Get branch'
+            condition: eq(variables.download_succeeded, true)
+            inputs:
+              script: echo "##vso[task.setvariable variable=branch]$(node getReleaseDate.js -branch)"
+              workingDirectory: 'release-scripts/'
+            env:
+              TZ: "America/Los_Angeles"
+          # Commit the changes and push to GitHub
+          - task: CmdLine@2
+            displayName: 'Commit and Push Changes'
+            condition: eq(variables.download_succeeded, true)
+            inputs:
+              script: |
+                git config --global user.email "release@msaljs.com"
+                git config --global user.name "Release Pipeline"
+                git checkout -b post-release-$(branch)
+                git add .
+                git commit -m "$(releaseDate) Post Release"
+                git remote add upstream https://${GITHUBTOKEN}@github.com/AzureAD/microsoft-authentication-library-for-js.git
+                git pull upstream post-release-$(branch)
+                git push upstream post-release-$(branch)
+            env:
+              GITHUBTOKEN: $(MSALJSGITHUB)
+          # Create Pull Request through GitHub's REST API
+          - script: node pullRequest.js --titleDate=$(releaseDate) --branch=post-release-$(branch)
+            displayName: "Post Release Pull Request"
+            condition: succeeded()
+            workingDirectory: 'release-scripts/'
+            name: post_release_pull_request
+            env:
+              GITHUBTOKEN: $(MSALJSGITHUB)
