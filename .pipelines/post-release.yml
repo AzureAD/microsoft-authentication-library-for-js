@@ -44,13 +44,26 @@ stages:
         parameters:
           name: 'msal_node_extensions'
           libName: 'node-extensions'
-  - stage: update_github_repo
-    displayName: 'Update GitHub Repository'
-    condition: always()
-    jobs:
       - job: publish_updates_to_github
-        variables:
-          download_succeeded: false
+        dependsOn:
+          - update_msal_core
+          - update_msal_common
+          - update_msal_browser
+          - update_msal_node
+          - update_msal_react
+          - update_msal_angular
+          - update_msal_node_extensions
+        condition: |
+          or
+          (
+            eq(dependencies.update_msal_core.result, 'Succeeded'),
+            eq(dependencies.update_msal_common.result, 'Succeeded'),
+            eq(dependencies.update_msal_browser.result, 'Succeeded'),
+            eq(dependencies.update_msal_node.result, 'Succeeded'),
+            eq(dependencies.update_msal_react.result, 'Succeeded'),
+            eq(dependencies.update_msal_angular.result, 'Succeeded'),
+            eq(dependencies.update_msal_node_extensions.result, 'Succeeded')
+          )
         steps:
           # Get GitHub PAT
           - task: AzureKeyVault@2
