@@ -69,6 +69,12 @@ stages:
               workingDirectory: 'release-scripts/'
             env:
               TZ: "America/Los_Angeles"
+          - task: AzureKeyVault@2
+            inputs:
+              azureSubscription: 'MSIDLABKeyVault'
+              KeyVaultName: 'ADALTestInfo'
+              SecretsFilter: 'MSALJSGITHUB'
+              RunAsPreJob: true
           - task: CmdLine@2
             displayName: 'Commit Changes'
             condition: always()
