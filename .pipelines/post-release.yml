@@ -5,11 +5,9 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 resources:
   pipelines:
-    - pipeline: ReleasePipeline
+    - pipeline: releasePipeline
       source: msal-javascript-internal-Buddy
-      trigger:
-        branches:
-          include: ['dev', 'post-release-pipeline']
+      trigger: true
 pool:
   vmImage: ubuntu-latest
 stages:
