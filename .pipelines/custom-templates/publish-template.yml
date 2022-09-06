@@ -84,7 +84,7 @@ jobs:
       # Publish to npm
       - task: Npm@1
         displayName: Publish to npm
-        condition: and(not(eq(${{ parameters.libName }}, 'msal-angular')), not(${{ parameters.testMode }})) }}
+        condition: and(not(eq(${{ parameters.libName }}, 'msal-angular')), not(${{ parameters.testMode }}))
         continueOnError: true
         inputs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
