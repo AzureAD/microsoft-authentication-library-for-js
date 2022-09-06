@@ -52,29 +52,110 @@ stages:
             inputs:
               script: 'rm -rf $(Pipeline.Workspace)/core-artifacts'
 
-          # # Browser Artifacts
-          # - task: DownloadPipelineArtifact@2
-          #   condition: eq(variables.msalBrowserResult, 'Succeeded')
-          #   inputs:
-          #     source: 'current'
-          #     artifact: 'drop_publish_publish_msal_browser'
-          #     path: $(Build.SourcesDirectory)/browser-artifacts
-          # - task: CmdLine@2
-          #   displayName: 'Save Browser CDN SRI Hashes'
-          #   condition: eq(variables.msalBrowserResult, 'Succeeded')
-          #   inputs:
-          #     script: |
-          #       echo 'BROWSER ARTIFACTS'
-          #       ls browser-artifacts
-          #       echo 'BROWSER DIRECTORY'
-          #       ls lib/msal-browser/
-          #       cp browser-artifacts/README.md lib/msal-browser/README.md
-          #       cp browser-artifacts/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
-          # - task: CmdLine@2
-          #   displayName: 'Remove browser artifacts directory'
-          #   condition: eq(variables.msalBrowserResult, 'Succeeded')
-          #   inputs:
-          #     script: 'rm -rf browser-artifacts'
+          # Browser Artifacts
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'specific'
+              project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+              definition: '1758'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              allowFailedBuilds: true
+              artifactName: 'drop_publish_publish_msal_browser'
+              targetPath: '$(Pipeline.Workspace)/browser-artifacts'
+          - task: CmdLine@2
+            displayName: 'Save Browser CDN SRI Hashes'
+            inputs:
+              script: |
+                cp $(Pipeline.Workspace)/browser-artifacts/README.md lib/msal-browser/README.md
+                cp $(Pipeline.Workspace)/browser-artifacts/docs/cdn-usage.md lib/msal-browser/docs/cdn-usage.md
+                cp $(Pipeline.Workspace)/browser-artifacts/package.json lib/msal-browser/package.json
+          - task: CmdLine@2
+            displayName: 'Remove browser artifacts directory'
+            inputs:
+              script: 'rm -rf $(Pipeline.Workspace)/browser-artifacts'
+
+          # Node Artifacts
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'specific'
+              project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+              definition: '1758'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              allowFailedBuilds: true
+              artifactName: 'drop_publish_publish_msal_node'
+              targetPath: '$(Pipeline.Workspace)/node-artifacts'
+          - task: CmdLine@2
+            displayName: 'Save Node Package.json'
+            inputs:
+              script: |
+                cp $(Pipeline.Workspace)/node-artifacts/package.json lib/msal-node/package.json
+          - task: CmdLine@2
+            displayName: 'Remove Node artifacts directory'
+            inputs:
+              script: 'rm -rf $(Pipeline.Workspace)/node-artifacts'
+          
+          # React Artifacts
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'specific'
+              project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+              definition: '1758'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              allowFailedBuilds: true
+              artifactName: 'drop_publish_publish_msal_react'
+              targetPath: '$(Pipeline.Workspace)/react-artifacts'
+          - task: CmdLine@2
+            displayName: 'Save React Package.json'
+            inputs:
+              script: |
+                cp $(Pipeline.Workspace)/react-artifacts/package.json lib/msal-react/package.json
+          - task: CmdLine@2
+            displayName: 'Remove React artifacts directory'
+            inputs:
+              script: 'rm -rf $(Pipeline.Workspace)/react-artifacts'
+         # Angular Artifacts
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'specific'
+              project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+              definition: '1758'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              allowFailedBuilds: true
+              artifactName: 'drop_publish_publish_msal_angular'
+              targetPath: '$(Pipeline.Workspace)/angular-artifacts'
+          - task: CmdLine@2
+            displayName: 'Save Angular Package.json'
+            inputs:
+              script: |
+                cp $(Pipeline.Workspace)/angular-artifacts/package.json lib/msal-angular/package.json
+          - task: CmdLine@2
+            displayName: 'Remove Angular artifacts directory'
+            inputs:
+              script: 'rm -rf $(Pipeline.Workspace)/angular-artifacts'
+         # Node Extensions Artifacts
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'specific'
+              project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+              definition: '1758'
+              specificBuildWithTriggering: true
+              buildVersionToDownload: 'latest'
+              allowFailedBuilds: true
+              artifactName: 'drop_publish_publish_msal_node_extensions'
+              targetPath: '$(Pipeline.Workspace)/extensions-artifacts'
+          - task: CmdLine@2
+            displayName: 'Save Node Extensions Package.json'
+            inputs:
+              script: |
+                cp $(Pipeline.Workspace)/extensions-artifacts/package.json lib/msal-node-extensions/package.json
+          - task: CmdLine@2
+            displayName: 'Remove Node Extensions artifacts directory'
+            inputs:
+              script: 'rm -rf $(Pipeline.Workspace)/extensions-artifacts'
 
         # Update package-locks
           - task: Npm@1
@@ -84,55 +165,49 @@ stages:
               workingDir: 'lib/msal-core'
               verbose: false
             continueOnError: true
-          # - task: Npm@1
-          #   displayName: 'Update msal-common package-lock'
-          #   condition: eq(variables.msalCommonResult, 'Succeeded')
-          #   inputs:
-          #     command: 'install'
-          #     workingDir: 'lib/msal-common'
-          #     verbose: false
-          # - task: Npm@1
-          #   displayName: 'Update msal-browser package-lock'
-          #   condition: eq(variables.msalBrowserResult, 'Succeeded')
-          #   inputs:
-          #     command: 'install'
-          #     workingDir: 'lib/msal-browser'
-          #     verbose: false
-          #   continueOnError: true
-          # - task: Npm@1
-          #   displayName: 'Update msal-node package-lock'
-          #   condition: eq(variables.msalNodeResult, 'Succeeded')
-          #   inputs:
-          #     command: 'install'
-          #     workingDir: 'lib/msal-node'
-          #     verbose: false
-          #   continueOnError: true
-          # - task: Npm@1
-          #   displayName: 'Update msal-react package-lock'
-          #   condition: eq(variables.msalReactResult, 'Succeeded')
-          #   inputs:
-          #     command: 'install'
-          #     workingDir: 'lib/msal-react'
-          #     verbose: false
-          #   continueOnError: true
-          # - task: Npm@1
-          #   displayName: 'Update msal-angular package-lock'
-          #   condition: eq(variables.msalAngularResult, 'Succeeded')
-          #   inputs:
-          #     command: 'install'
-          #     workingDir: 'lib/msal-angular'
-          #     verbose: false
-          #   continueOnError: true
-          # - task: Npm@1
-          #   displayName: 'Update msal-node-extensions package-lock'
-          #   condition: eq(variables.msalNodeExtensionsResult, 'Succeeded')
-          #   inputs:
-          #     command: 'install'
-          #     workingDir: 'extensions/msal-node-extensions'
-          #     verbose: false
-          #   continueOnError: true
+          - task: Npm@1
+            displayName: 'Update msal-common package-lock'
+            inputs:
+              command: 'install'
+              workingDir: 'lib/msal-common'
+              verbose: false
+          - task: Npm@1
+            displayName: 'Update msal-browser package-lock'
+            inputs:
+              command: 'install'
+              workingDir: 'lib/msal-browser'
+              verbose: false
+            continueOnError: true
+          - task: Npm@1
+            displayName: 'Update msal-node package-lock'
+            inputs:
+              command: 'install'
+              workingDir: 'lib/msal-node'
+              verbose: false
+            continueOnError: true
+          - task: Npm@1
+            displayName: 'Update msal-react package-lock'
+            inputs:
+              command: 'install'
+              workingDir: 'lib/msal-react'
+              verbose: false
+            continueOnError: true
+          - task: Npm@1
+            displayName: 'Update msal-angular package-lock'
+            inputs:
+              command: 'install'
+              workingDir: 'lib/msal-angular'
+              verbose: false
+            continueOnError: true
+          - task: Npm@1
+            displayName: 'Update msal-node-extensions package-lock'
+            inputs:
+              command: 'install'
+              workingDir: 'extensions/msal-node-extensions'
+              verbose: false
+            continueOnError: true
         
-              # Create Pull Request from post-release-month-year to dev 
+          # Create Pull Request from post-release-month-year to dev 
           - task: Npm@1
             displayName: Install release scripts dependencies
             condition: always()
@@ -159,8 +234,6 @@ stages:
             displayName: 'Commit Changes'
             inputs:
               script: |
-                echo "PR DATE: $(releaseDate)"
-                echo "PR Branch: $(branch)"
                 git config --global user.email "release@msaljs.com"
                 git config --global user.name "Release Pipeline"
                 git checkout -b post-release-$(branch)
