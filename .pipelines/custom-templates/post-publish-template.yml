@@ -21,6 +21,10 @@ jobs:
         inputs:
           versionSpec: '16.x'
           checkLatest: true
+      - task: CmdLine@2
+        displayName: 'Turn on publish flag by default'
+        inputs:
+          script: echo "##vso[task.setvariable variable=updateMsal${{ parameters.libName }}]true"
       - task: DownloadPipelineArtifact@2
         inputs:
           buildType: 'specific'
@@ -31,27 +35,33 @@ jobs:
           allowFailedBuilds: true
           artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
           targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+        continueOnError: true
       - task: CmdLine@2
+        displayName: 'Turn off publish flag if failed'
+        condition: failed()
         inputs:
-          script: 'ls -la $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+          script: echo "##vso[task.setvariable variable=updateMsal${{ parameters.libName }}]false"
       - task: CmdLine@2
         displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
-        condition: eq(${{ parameters.cdn }}, true)
+        condition: and(eq(variables.updateMsal${{ parameters.libName }}, true), eq(${{ parameters.cdn }}, true)
         inputs:
           script: |
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md lib/msal-${{ parameters.libName }}/README.md
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md lib/msal-${{ parameters.libName }}/docs/cdn-usage.md
       - task: CmdLine@2
         displayName: 'Save package.json'
+        condition: and(eq(variables.updateMsal${{ parameters.libName }}, true), eq(${{ parameters.cdn }}, true)
         inputs:
           script: | 
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
       - task: CmdLine@2
         displayName: 'Remove ${{ parameters.libName }} artifacts directory'
+        condition: and(eq(variables.updateMsal${{ parameters.libName }}, true), eq(${{ parameters.cdn }}, true)
         inputs:
           script: 'rm -rf $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
       - task: Npm@1
         displayName: 'Update msal-${{ parameters.libName }} package-lock'
+        condition: and(eq(variables.updateMsal${{ parameters.libName }}, true), eq(${{ parameters.cdn }}, true)
         inputs:
           command: 'install'
           workingDir: 'lib/msal-${{ parameters.libName }}'
