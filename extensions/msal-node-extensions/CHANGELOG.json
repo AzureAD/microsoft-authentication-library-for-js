@@ -2,6 +2,41 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.23",
+      "version": "1.0.0-alpha.23",
+      "comments": {
+        "none": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "191e574ad0384623b6c96e198791412f0867f5f1",
+            "comment": "Fixing files to follow max-len rule #5136"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "65a790ce0e53305831c1a20f162dad028be91eb4",
+            "comment": "fix for failing unit test #6899"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "miles@svtrobotics.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e2e8e8cc3894302e55873b86b0ab8300054d7863",
+            "comment": "Point to the correct esm file in msal-node-extensions package.json (#5135)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Aug 2022 22:22:36 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.22",
       "version": "1.0.0-alpha.22",
