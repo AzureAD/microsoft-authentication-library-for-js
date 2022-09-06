@@ -34,7 +34,7 @@ jobs:
         continueOnError: true
       - task: CmdLine@2
         displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
-        condition: and(eq(variables.download_succeeded, true), eq(${{ parameters.cdn }}, true)
+        condition: and(eq(variables.download_succeeded, true), eq(${{ parameters.cdn }}, true))
         inputs:
           script: |
             cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md lib/msal-${{ parameters.libName }}/README.md
