@@ -30,7 +30,7 @@ jobs:
       - task: CmdLine@2
         condition: succeeded()
         inputs:
-          script: "echo ##vso[task.setvariable variable=download_succeeded]true"
+          script: "echo ##vso[task.setvariable variable=download_succeeded;]true"
         continueOnError: true
       - task: CmdLine@2
         displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
