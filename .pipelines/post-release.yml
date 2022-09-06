@@ -26,11 +26,11 @@ stages:
               SecretsFilter: 'MSALJSGITHUB'
               RunAsPreJob: true
           # Download Core Artifacts
-          - template: .pipelines/custom-templates/post-publish-template.yml
+          - template: custom-templates/post-publish-template.yml
             parameters:
               libName: 'core'
               cdn: true
-          - template: .pipelines/custom-templates/post-publish-template.yml
+          - template: custom-templates/post-publish-template.yml
             parameters:
               libName: 'common'
           
