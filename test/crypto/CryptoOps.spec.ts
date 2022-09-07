@@ -266,11 +266,22 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     describe("Browser Crypto Interfaces", () => {
+        beforeAll(() => {
+            // Ensure MSR Crypto is only used when the other interfaces arent present, even if MSR Crypto is loaded
+            window.msrCrypto = msrCrypto;
+        });
+
+        afterAll(() => {
+            // @ts-ignore
+            window.msrCrypto = undefined;
+        })
+
         it("uses modern crypto if available", () => {
             const crypto = new BrowserCrypto(new Logger({}));
             // @ts-ignore
             expect(crypto.subtleCrypto).toBeInstanceOf(ModernBrowserCrypto);
         });
+        
         it("uses MS crypto if available", () => {
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
@@ -290,9 +301,8 @@ describe("CryptoOps.ts Unit Tests", () => {
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
 
-            window.msrCrypto = msrCrypto;
-            
             const crypto = new BrowserCrypto(new Logger({}));
+            
             // @ts-ignore
             expect(crypto.subtleCrypto).toBeInstanceOf(MsrBrowserCrypto);
         });
