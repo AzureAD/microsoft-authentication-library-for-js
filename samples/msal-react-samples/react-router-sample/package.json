@@ -12,7 +12,7 @@
     "react-app-polyfill": "^2.0.0",
     "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^4.0.2"
+    "react-scripts": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

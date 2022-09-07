@@ -1,6 +1,6 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration } from './../../src/index';
-import { ID_TOKEN_CLAIMS, TEST_CONSTANTS } from '../utils/TestConstants';
+import { Configuration, InteractiveRequest } from './../../src/index';
+import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult,
     AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, SilentFlowClient, ProtocolMode, Logger, LogLevel
@@ -15,6 +15,7 @@ import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import { mocked } from 'ts-jest/utils';
 import { AccountInfo } from '@azure/msal-common';
+import http from "http";
 
 
 import * as msalCommon from '@azure/msal-common';
@@ -92,12 +93,11 @@ describe('PublicClientApplication', () => {
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
 
-
-
         const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
 
         jest.spyOn(msalCommon, 'AuthorizationCodeClient')
             .mockImplementation((config) => new MockAuthorizationCodeClient(config));
+
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
@@ -217,6 +217,39 @@ describe('PublicClientApplication', () => {
         );
     });
 
+    test("acquireTokenInteractive", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+
+        let redirectUri: string;
+        
+        const openBrowser = (url: string) => {
+            expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+            http.get(`${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`);
+            return Promise.resolve();
+        }
+        const request: InteractiveRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            openBrowser: openBrowser
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+        jest.spyOn(msalCommon, 'AuthorizationCodeClient').mockImplementation((config) => new MockAuthorizationCodeClient(config));
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "getAuthCodeUrl").mockImplementation((req) => {
+            redirectUri = req.redirectUri;
+            return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+        });
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "acquireToken").mockImplementation(() => {
+            return Promise.resolve(mockAuthenticationResult);
+        });
+
+        const response = await authApp.acquireTokenInteractive(request);
+        expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
+        expect(response.accessToken).toEqual(mockAuthenticationResult.accessToken);
+        expect(response.account).toEqual(mockAuthenticationResult.account);
+    });
+
     test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
         const account: AccountInfo = {
             homeAccountId: "",
@@ -286,8 +319,6 @@ describe('PublicClientApplication', () => {
         );
     });
 
-
-
     test('acquireToken default authority', async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
@@ -319,8 +350,6 @@ describe('PublicClientApplication', () => {
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
-
-
 
     test('authority overridden by acquire token request parameters', async () => {
         // Authority set on client app, but should be overridden by authority passed in request

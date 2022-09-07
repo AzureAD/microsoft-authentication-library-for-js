@@ -37,31 +37,19 @@ async function startServer(jestConfig) {
         throw new Error ();
     }
 
-    // Optional __TIMEOUT__ parameter or default to 30 seconds
-    const timeoutMs = jestConfig.globals.__TIMEOUT__ || 30000;
+    // Optional __TIMEOUT__ parameter or default to 60 seconds
+    const timeoutMs = jestConfig.globals.__TIMEOUT__ || 60000;
 
     console.log(`Starting Server for: ${sampleName} on port ${port}`);
     process.env.PORT = port;
-    let serverOutput = "";
-    const serverCallback = (error, stdout, stderr) => {
-        if (error) {
-            serverOutput += error;
-        } 
-        if (stderr) {
-            serverOutput += stderr;
-        }
-        if (stdout) {
-            serverOutput += stdout;
-        }
-    };
-    serverUtils.startServer(startCommand, jestConfig.rootDir, serverCallback);
+
+    serverUtils.startServer(startCommand, jestConfig.rootDir);
 
     const serverUp = await serverUtils.isServerUp(port, timeoutMs);
     if (serverUp) {
         console.log(`Server for ${sampleName} running on port ${port}`);
     } else {
         console.error(`Unable to start server for ${sampleName} on port ${port}`);
-        console.log(serverOutput);
         throw new Error();
     }
 }
