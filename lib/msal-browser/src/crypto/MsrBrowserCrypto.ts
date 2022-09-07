@@ -8,11 +8,18 @@ import { ISubtleCrypto } from "./ISubtleCrypto";
 
 declare global {
     interface Window {
-        msrCrypto: Crypto
+        msrCrypto: Crypto & {
+            initPrng: (entropy: Uint8Array | number[]) => void
+        }
     }
 }
 
 export class MsrBrowserCrypto implements ISubtleCrypto {
+    initPrng(entropy : Uint8Array): void {
+        // Turn into array, as initPrng seems to not always like Uint8Array (even though it should support both)
+        return window.msrCrypto.initPrng([...entropy]);
+    }
+
     getRandomValues(dataBuffer: Uint8Array): Uint8Array {
         return window.msrCrypto.getRandomValues(dataBuffer);
     }
@@ -34,6 +41,6 @@ export class MsrBrowserCrypto implements ISubtleCrypto {
     }
 
     async digest(algorithm: AlgorithmIdentifier, data: Uint8Array): Promise<ArrayBuffer> {
-        return window.msrCrypto.subtle.digest(algorithm, data) as Promise<ArrayBuffer>;
+        return window.msrCrypto.subtle.digest(algorithm, data) as Promise<ArrayBuffer>; 
     }
 }

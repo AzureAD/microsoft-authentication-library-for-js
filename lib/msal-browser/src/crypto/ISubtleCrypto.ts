@@ -4,6 +4,7 @@
  */
 
 export interface ISubtleCrypto {
+    initPrng?(entropy: Uint8Array): void;
     getRandomValues(dataBuffer: Uint8Array): Uint8Array;
     generateKey(algorithm: RsaHashedKeyGenParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair>;
     exportKey(key: CryptoKey): Promise<JsonWebKey>;
