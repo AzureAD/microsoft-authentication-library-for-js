@@ -22,13 +22,15 @@ export abstract class BasePersistence {
             if (!retrievedDummyData) {
                 throw PersistenceError.createCachePersistenceError(
                     "Persistence check failed. Data was written but it could not be read. " +
-                    "Possible cause: on Linux, LibSecret is installed but D-Bus isn't running because it cannot be started over SSH."
+                    "Possible cause: on Linux, LibSecret is installed but D-Bus isn't running \
+                    because it cannot be started over SSH."
                 );
             }
 
             if (retrievedDummyData !== Constants.PERSISTENCE_TEST_DATA) {
                 throw PersistenceError.createCachePersistenceError(
-                    `Persistence check failed. Data written ${Constants.PERSISTENCE_TEST_DATA} is different from data read ${retrievedDummyData}`
+                    `Persistence check failed. Data written ${Constants.PERSISTENCE_TEST_DATA} is different \
+                    from data read ${retrievedDummyData}`
                 );
             }
             await persistenceValidator.delete();
