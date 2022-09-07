@@ -143,9 +143,17 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type CryptoOptions = {
-    // Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
+    
+    /**
+     * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
+     * @type {?boolean}
+     */
     useMsrCrypto?: boolean;
-    // Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers.
+     
+    /**
+     * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
+     * @type {?Uint8Array}
+     */
     entropy?: Uint8Array;
 };
 

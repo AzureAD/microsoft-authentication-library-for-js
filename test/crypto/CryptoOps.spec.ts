@@ -8,6 +8,7 @@ import { BrowserAuthError } from "../../src";
 import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
 import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
 import { MsrBrowserCrypto } from "../../src/crypto/MsrBrowserCrypto";
+import nodeCrypto from "crypto";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
@@ -301,10 +302,39 @@ describe("CryptoOps.ts Unit Tests", () => {
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
 
-            const crypto = new BrowserCrypto(new Logger({}));
+            const crypto = new BrowserCrypto(new Logger({}), {
+                useMsrCrypto: true,
+                entropy: nodeCrypto.randomBytes(48)
+            });
             
             // @ts-ignore
             expect(crypto.subtleCrypto).toBeInstanceOf(MsrBrowserCrypto);
+        });
+
+        it("throws if MSR Crypto is available but useMsrCrypto is not enabled", () => {
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
+
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
+
+            expect(() => new BrowserCrypto(new Logger({}), {
+                useMsrCrypto: false,
+                entropy: nodeCrypto.randomBytes(48)
+            })).toThrow();
+        });
+
+        it("throws if MSR Crypto is available but entropy is not provided", () => {
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
+
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
+
+            expect(() => new BrowserCrypto(new Logger({}), {
+                useMsrCrypto: true,
+                entropy: undefined
+            })).toThrow();
         });
     })
 });
