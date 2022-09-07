@@ -435,6 +435,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             // If request is interactive, check if prompt provided is allowed to go directly to native broker
             switch (request.prompt) {
                 case PromptValue.NONE:
+                case PromptValue.NO_SESSION:
                 case PromptValue.CONSENT:
                 case PromptValue.LOGIN:
                     this.logger.trace("initializeNativeRequest: prompt is compatible with native flow");

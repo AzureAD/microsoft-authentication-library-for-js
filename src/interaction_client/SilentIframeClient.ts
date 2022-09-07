@@ -28,7 +28,7 @@ export class SilentIframeClient extends StandardInteractionClient {
     }
 
     /**
-     * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none
+     * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none or prompt=no_session
      * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
@@ -40,7 +40,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
-        if (request.prompt && request.prompt !== PromptValue.NONE) {
+        if (request.prompt && (request.prompt !== PromptValue.NONE) && (request.prompt !== PromptValue.NO_SESSION)) {
             acquireTokenMeasurement.endMeasurement({
                 success: false
             });
@@ -50,7 +50,6 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create silent request
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
-            prompt: PromptValue.NONE
         }, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
@@ -125,7 +124,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             return nativeInteractionClient.acquireToken({
                 ...silentRequest,
                 state: userRequestState,
-                prompt: PromptValue.NONE
             }).finally(() => {
                 this.browserStorage.cleanRequestByState(state);
             });

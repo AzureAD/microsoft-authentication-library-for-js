@@ -95,7 +95,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentPromptValueError: {
         code: "silent_prompt_value_error",
-        desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none'."
+        desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none' or 'no_session'."
     },
     noTokenRequestCacheError: {
         code: "no_token_request_cache_error",
