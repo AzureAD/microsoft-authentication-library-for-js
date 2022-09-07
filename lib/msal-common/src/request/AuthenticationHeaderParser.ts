@@ -8,6 +8,7 @@ import { Constants, HeaderNames } from "../utils/Constants";
 
 type WWWAuthenticateChallenges = {
     nonce?: string,
+    claims?: string
 };
 
 type AuthenticationInfoChallenges = {
@@ -19,7 +20,7 @@ type AuthenticationInfoChallenges = {
  * header challenge values that can be used outside the basic authorization flows.
  */
 export class AuthenticationHeaderParser {
-    private headers: Record<string, string>;
+    protected headers: Record<string, string>;
 
     constructor(headers: Record<string, string>) {
         this.headers = headers;
@@ -55,11 +56,31 @@ export class AuthenticationHeaderParser {
     }
 
     /**
+     * This method parses the claims value out of the WWW-Authenticate authentication header.
+     * See: https://docs.microsoft.com/en-us/azure/active-directory/develop/claims-challenge
+     * @returns 
+     */
+    getClaims(): string {
+        // Attempt to parse claims from WWW-Authenticate
+        const wwwAuthenticate = this.headers[HeaderNames.WWWAuthenticate];
+        if (wwwAuthenticate) {
+            const wwwAuthenticateChallenges = this.parseChallenges<WWWAuthenticateChallenges>(wwwAuthenticate);     
+            if (wwwAuthenticateChallenges.claims){
+                return wwwAuthenticateChallenges.claims;
+            }
+            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(HeaderNames.WWWAuthenticate, "claims challenge is missing.");
+        }
+
+        // If header is not present, throw missing headers error
+        throw ClientConfigurationError.createMissingClaimsAuthenticationHeadersError();
+    }
+
+    /**
      * Parses an HTTP header's challenge set into a key/value map.
      * @param header 
      * @returns 
      */
-    private parseChallenges<T>(header: string): T {
+    protected parseChallenges<T>(header: string): T {
         const schemeSeparator = header.indexOf(" ");
         const challenges = header.substr(schemeSeparator + 1).split(",");
         const challengeMap = {} as T;
@@ -67,7 +88,7 @@ export class AuthenticationHeaderParser {
         challenges.forEach((challenge: string) => {
             const [ key, value ] = challenge.split("=");
             // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
-            challengeMap[key] = unescape(value.replace(/['"]+/g, Constants.EMPTY_STRING));
+            challengeMap[key.trim()] = unescape(value.replace(/['"]+/g, Constants.EMPTY_STRING));
         });
 
         return challengeMap;

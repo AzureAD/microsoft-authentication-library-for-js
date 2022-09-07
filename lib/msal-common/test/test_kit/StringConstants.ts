@@ -164,6 +164,10 @@ export const TEST_POP_VALUES = {
     SHR_NONCE: "eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc"
 };
 
+export const TEST_CLAIMS_CHALLENGE_VALUES = {
+    CLAIMS_CHALLENGE_ENCODED: "eyJhY2Nlc3NfdG9rZW4iOnsibmJmIjp7ImVzc2VudGlhbCI6dHJ1ZSwgInZhbHVlIjoiMTYwNDEwNjY1MSJ9fX0",
+};
+
 export const TEST_SSH_VALUES = {
     SSH_JWK: "{\"kty\":\"RSA\",\"n\":\"wDJwv083ZhGGkpMPVcBMwtSBNLu7qhT2VmKv7AyPEz_dWb8GQzNEnWT1niNjFI0isDMFWQ7X2O-dhTL9J1QguQ==\",\"e\":\"AQAB\"}",
     ENCODED_SSH_JWK: "%7B%22kty%22%3A%22RSA%22%2C%22n%22%3A%22wDJwv083ZhGGkpMPVcBMwtSBNLu7qhT2VmKv7AyPEz_dWb8GQzNEnWT1niNjFI0isDMFWQ7X2O-dhTL9J1QguQ%3D%3D%22%2C%22e%22%3A%22AQAB%22%7D",
@@ -521,11 +525,16 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
     "content-type"
 ];
 
-export const TEST_AUTHENTICATION_HEADERS = {
+export const TEST_AUTHENTICATION_HEADERS_NONCE = {
     authenticationInfo: `PoP nextnonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc"`,
     invalidAuthenticationInfo: `PoP test_challenge="test_challenge"`,
     wwwAuthenticate: `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`,
     invalidWwwAuthenticate: `PoP test_challenge="test_challenge`
+};
+
+export const TEST_AUTHENTICATION_HEADERS_CLAIMS = {
+    wwwAuthenticate: `Bearer authorization_uri="https://login.windows.net/common/oauth2/authorize", error="insufficient_claims", claims="eyJhY2Nlc3NfdG9rZW4iOnsibmJmIjp7ImVzc2VudGlhbCI6dHJ1ZSwgInZhbHVlIjoiMTYwNDEwNjY1MSJ9fX0="`,
+    invalidWwwAuthenticate: `Bearer test_challenge="test_challenge`
 };
 
 export const TEST_CRYPTO_ALGORITHMS = {
