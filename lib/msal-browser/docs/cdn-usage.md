@@ -84,8 +84,8 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
-2.28.2        | msal-browser.js     | `sha384-tVMTKCss1h7MeMfi6mHdukbd2k8OkpWNtCuEmQJShq2PKmsEuNvbzAtoyQKCjr4O`
-2.28.2        | msal-browser.min.js | `sha384-raDTdytrdrnJpAyIiP9Szl0O6MlGduS23rZardfePInvi8MoyuPnEeR1UjUO80rp`
+2.28.2        | msal-browser.js     | `sha384-bTszrDBNEw/vuvCJ58o9obswP5dg379zO8MJx53LyZCsKsSnrErje1LM+6Bk8Lkl`
+2.28.2        | msal-browser.min.js | `sha384-203jB5A+1LERtg89ajpErgNu5XzbM4Hye182KOJTVuHD19rezlVuwnwQ3WVbhZVF`
 2.28.1        | msal-browser.js     | `sha384-M6geA+l92SitR/WGDtbiK0tt/MAv3qimyNK2vaOatn2c+OrHVbwYaG85IIlSq7eY`
 2.28.1        | msal-browser.min.js | `sha384-ei8xVSyFPTuRnbO1sdYy5qJT6Kd9neBfVG8AjZySEwdMG1GhCThbceSqxJnx0Ci3`
 2.28.0        | msal-browser.js     | `sha384-q8S4bw8Wfzedv3LPXdOP0+IKu+LqXg4l9xZaOwTp3h40FYMw6YeO/6FX+aG6vgXx`
