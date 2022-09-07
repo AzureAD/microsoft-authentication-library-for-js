@@ -301,7 +301,7 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Throws error when provided headers don't contain a header that a server nonce can be extracted from
+     * Throws error when provided headers don't contain a header that a claims challenge can be extracted from
      */
     static createMissingClaimsAuthenticationHeadersError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.missingClaimsAuthenticationHeader.code,
