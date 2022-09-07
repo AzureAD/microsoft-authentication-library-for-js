@@ -103,7 +103,10 @@ export class BrowserConfigurationAuthError extends AuthError {
     static createInMemoryRedirectUnavailableError(): BrowserConfigurationAuthError {
         return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.inMemRedirectUnavailable.code, BrowserConfigurationAuthErrorMessage.inMemRedirectUnavailable.desc);
     }
-
+    
+    /**
+     * Creates an error thrown when a crypto interface that requires entropy is initialized without entropy
+     */
     static createEntropyNotProvided(): BrowserConfigurationAuthError {
         return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.entropyNotProvided.code, BrowserConfigurationAuthErrorMessage.entropyNotProvided.desc);
     }

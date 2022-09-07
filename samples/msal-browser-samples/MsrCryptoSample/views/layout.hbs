@@ -5,6 +5,10 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <script type="text/javascript" src="./javascripts/msrcrypto.js"></script>
     <script src="../../lib/msal-browser.js"></script>
+    
+  </head>
+  <body>
+    {{{body}}}
     <script type="text/javascript">
         const entropy = Uint8Array.from([{{entropy}}]);
         const msalInstance = new msal.PublicClientApplication({
@@ -43,9 +47,46 @@
                 }
             }
         })
+
+        msalInstance.handleRedirectPromise()
+            .then(result => {
+                console.log("result", result);
+
+                if (result) {
+                    msalInstance.setActiveAccount(result.account)
+                } else if (msalInstance.getAllAccounts().length > 0) {
+                    msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0])
+                }
+            })
+            .catch(error => {
+                console.error(error);
+            })
+
+        document.getElementById("login").addEventListener("click", e => {
+            msalInstance.loginRedirect();
+        });
+
+        document.getElementById("token").addEventListener("click", e => {
+            msalInstance.acquireTokenSilent({
+                scopes: [ "user.read" ]
+            })
+                .catch(error => {
+                    if (error instanceof msal.InteractionRequiredAuthError) {
+                        return msalInstance.acquireTokenPopup({
+                            scopes: [ "user.read" ]
+                        })
+                    }
+
+                    throw error;
+                })
+                .then(result => {
+                    console.log("result", result);
+                });
+        });
+
+        document.getElementById("logout").addEventListener("click", e => {
+            msalInstance.logoutRedirect();
+        });
     </script>
-  </head>
-  <body>
-    {{{body}}}
   </body>
 </html>
