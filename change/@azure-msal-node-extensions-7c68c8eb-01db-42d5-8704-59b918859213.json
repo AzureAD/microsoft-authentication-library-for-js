@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix for failing unit test #6899",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "none"
-}
