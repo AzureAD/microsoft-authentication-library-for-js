@@ -32,7 +32,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
-import { BrowserAuthError  } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
@@ -221,6 +221,7 @@ export abstract class ClientApplication {
                 response = redirectResponse.then((result: AuthenticationResult | null) => {
                     if (result) {
                         // Emit login event if number of accounts change
+
                         const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                         if (isLoggingIn) {
                             this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
@@ -349,7 +350,9 @@ export abstract class ClientApplication {
                 this.browserStorage.setInteractionInProgress(false);
                 atPopupMeasurement.endMeasurement({
                     success: true,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    accessTokenSize: response.accessToken.length,
+                    idTokenSize: response.idToken.length,
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -372,7 +375,10 @@ export abstract class ClientApplication {
         }
 
         return result.then((result) => {
-            // If logged in, emit acquire token events
+
+            /*
+             *  If logged in, emit acquire token events
+             */
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
                 this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Popup, result);
@@ -381,8 +387,11 @@ export abstract class ClientApplication {
             }
 
             atPopupMeasurement.endMeasurement({
-                success: true
+                success: true,
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length,
             });
+
             atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e: AuthError) => {
@@ -456,11 +465,13 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
             ssoSilentMeasurement.endMeasurement({
                 success: true,
-                isNativeBroker: response.fromNativeBroker
+                isNativeBroker: response.fromNativeBroker,
+                accessTokenSize: response.accessToken.length,
+                idTokenSize: response.idToken.length
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
-        }).catch ((e: AuthError) => {
+        }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             ssoSilentMeasurement.endMeasurement({
                 errorCode: e.errorCode,
@@ -504,6 +515,8 @@ export abstract class ClientApplication {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.endMeasurement({
                                 success: true,
+                                accessTokenSize: result.accessToken.length,
+                                idTokenSize: result.idToken.length,
                                 isNativeBroker: result.fromNativeBroker
                             });
                             atbcMeasurement.flushMeasurement();
@@ -591,7 +604,9 @@ export abstract class ClientApplication {
             .then((result: AuthenticationResult) => {
                 atbrtMeasurement.endMeasurement({
                     success: true,
-                    fromCache: result.fromCache
+                    fromCache: result.fromCache,
+                    accessTokenSize: result.accessToken.length,
+                    idTokenSize: result.idToken.length,
                 });
                 return result;
             })
@@ -607,7 +622,9 @@ export abstract class ClientApplication {
                         .then((result: AuthenticationResult) => {
                             atbrtMeasurement.endMeasurement({
                                 success: true,
-                                fromCache: result.fromCache
+                                fromCache: result.fromCache,
+                                accessTokenSize: result.accessToken.length,
+                                idTokenSize: result.idToken.length,
                             });
 
                             return result;
@@ -664,7 +681,7 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
-        try{
+        try {
             const correlationId = this.getRequestCorrelationId(logoutRequest);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const popupClient = this.createPopupClient(correlationId);
@@ -698,7 +715,7 @@ export abstract class ClientApplication {
      * @param userName
      * @returns The account object stored in MSAL
      */
-    getAccountByUsername(userName: string): AccountInfo|null {
+    getAccountByUsername(userName: string): AccountInfo | null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
             this.logger.verbose("Account matching username found, returning");
@@ -717,7 +734,7 @@ export abstract class ClientApplication {
      * @param homeAccountId
      * @returns The account object stored in MSAL
      */
-    getAccountByHomeId(homeAccountId: string): AccountInfo|null {
+    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
             this.logger.verbose("Account matching homeAccountId found, returning");
@@ -824,7 +841,7 @@ export abstract class ClientApplication {
      * Acquire a token from native device (e.g. WAM)
      * @param request
      */
-    protected async acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult> {
+    protected async acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
@@ -839,7 +856,7 @@ export abstract class ClientApplication {
      * Returns boolean indicating if this request can use the native broker
      * @param request
      */
-    protected canUseNative(request: RedirectRequest|PopupRequest|SsoSilentRequest, accountId?: string): boolean {
+    protected canUseNative(request: RedirectRequest | PopupRequest | SsoSilentRequest, accountId?: string): boolean {
         this.logger.trace("canUseNative called");
         if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme)) {
             this.logger.trace("canUseNative: isNativeAvailable returned false, returning false");
@@ -872,7 +889,7 @@ export abstract class ClientApplication {
      * @param request
      * @returns
      */
-    protected getNativeAccountId(request: RedirectRequest|PopupRequest|SsoSilentRequest): string {
+    protected getNativeAccountId(request: RedirectRequest | PopupRequest | SsoSilentRequest): string {
         const account = request.account || this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid) || this.getActiveAccount();
 
         return account && account.nativeAccountId || "";

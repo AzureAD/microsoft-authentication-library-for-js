@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.20",
+  "version": "1.0.0-alpha.23",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -41,7 +41,7 @@
     "email": "nugetaad@microsoft.com",
     "url": "https://www.microsoft.com"
   },
-  "module": "dist/test.esm.js",
+  "module": "dist/msal-node-extensions.esm.js",
   "beachball": {
     "disallowedChangeTypes": [
       "patch",
@@ -50,7 +50,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "^7.1.0",
+    "@azure/msal-common": "^7.4.0",
     "bindings": "git+https://github.com/samuelkubai/node-bindings.git#v1.6.0",
     "keytar": "^7.8.0",
     "nan": "^2.13.2"

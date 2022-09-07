@@ -192,6 +192,21 @@ export class UrlString {
         return Constants.EMPTY_STRING;
     }
 
+    /**
+     * Parses query string from given string. Returns empty string if no query symbol is found.
+     * @param queryString
+     */
+    static parseQueryString(queryString: string): string {
+        const queryIndex1 = queryString.indexOf("?");
+        const queryIndex2 = queryString.indexOf("/?");
+        if (queryIndex2 > -1) {
+            return queryString.substring(queryIndex2 + 2);
+        } else if (queryIndex1 > -1) {
+            return queryString.substring(queryIndex1 + 1);
+        }
+        return Constants.EMPTY_STRING;
+    }
+
     static constructAuthorityUriFromObject(urlObject: IUri): UrlString {
         return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + urlObject.PathSegments.join("/"));
     }
@@ -213,6 +228,25 @@ export class UrlString {
             throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
         }
         return deserializedHash;
+    }
+
+    /**
+     * Returns URL query string as server auth code response object.
+     */
+    static getDeserializedQueryString(query: string): ServerAuthorizationCodeResponse {
+        // Check if given query is empty
+        if (StringUtils.isEmpty(query)) {
+            return {};
+        }
+        // Strip the ? symbol if present
+        const parsedQueryString = UrlString.parseQueryString(query);
+        // If ? symbol was not present, above will return empty string, so give original query value
+        const deserializedQueryString: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedQueryString) ? query : parsedQueryString);
+        // Check if deserialization didn't work
+        if (!deserializedQueryString) {
+            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedQueryString));
+        }
+        return deserializedQueryString;
     }
 
     /**

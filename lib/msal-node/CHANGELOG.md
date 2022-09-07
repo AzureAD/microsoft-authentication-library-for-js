@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 05 Jul 2022 22:37:04 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Sep 2022 18:06:53 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.13.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Add acquireTokenInteractive API #5062 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v7.4.0
+
+## 1.12.1
+
+Mon, 01 Aug 2022 22:22:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.3.0
+
+## 1.12.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- App Token Provider extensibiliy for AzureSDK (bogavril@microsoft.com)
+- add forceCache property to rt token request (#4844) (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v7.2.0
 
 ## 1.11.0
 

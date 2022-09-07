@@ -24,6 +24,7 @@ export class SilentCacheClient extends StandardInteractionClient {
 
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+
             acquireTokenMeasurement.endMeasurement({
                 success: true,
                 fromCache: true
@@ -58,7 +59,7 @@ export class SilentCacheClient extends StandardInteractionClient {
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<SilentFlowClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
-        return new SilentFlowClient(clientConfig);
+        return new SilentFlowClient(clientConfig, this.performanceClient);
     }
 
     async initializeSilentRequest(request: SilentRequest, account: AccountInfo): Promise<CommonSilentFlowRequest> {

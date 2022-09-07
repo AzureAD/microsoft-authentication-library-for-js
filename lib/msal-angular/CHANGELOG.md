@@ -1,8 +1,33 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 05 Jul 2022 22:37:04 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Sep 2022 18:06:53 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.4.2
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.28.2
+
+## 2.4.1
+
+Mon, 01 Aug 2022 22:22:35 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.28.1
+
+## 2.4.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Add MsalBroadcastService configurations, allow replay of past events #4998 (joarroyo@microsoft.com)
+- Bump @azure/msal-browser to v2.28.0
 
 ## 2.3.3
 

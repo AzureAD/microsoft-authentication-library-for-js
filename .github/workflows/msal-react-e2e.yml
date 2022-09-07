@@ -39,6 +39,7 @@ jobs:
           - 'nextjs-sample'
           - 'gatsby-sample'
           - 'typescript-sample'
+          - 'b2c-sample'
 
     name: ${{ matrix.sample }}
 

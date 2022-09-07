@@ -34,14 +34,29 @@ export class ValidationError extends AuthError {
         Object.setPrototypeOf(this, ValidationError.prototype);
     }
 
+    /**
+     * Creates an error thrown when the token was validated and the nonce was found to be invalid.
+     *
+     * @returns {ValidationError} Invalid nonce error
+     */
     static createInvalidNonceError(): ValidationError {
         return new ValidationError(ValidationErrorMessage.invalidNonce.code, ValidationErrorMessage.invalidNonce.desc);
     }
 
+    /**
+     * Creates an error thrown when the c_hash was detected on the id token, but was invalid when validated against the code.
+     *
+     * @returns {ValidationError} Invalid c_hash error
+     */
     static createInvalidCHashError(): ValidationError {
         return new ValidationError(ValidationErrorMessage.invalidCHash.code, ValidationErrorMessage.invalidCHash.desc);
     }
 
+    /**
+     * Creates an error thrown when the at_hash was detected on the id token, but was invalid when validated against the access token.
+     *
+     * @returns {ValidationError} Invalid at_hash error
+     */
     static createInvalidAtHashError(): ValidationError {
         return new ValidationError(ValidationErrorMessage.invalidAtHash.code, ValidationErrorMessage.invalidAtHash.desc);
     }

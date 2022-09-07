@@ -14,9 +14,10 @@ export class HttpClient implements INetworkModule {
 
     /**
      * Http Get request
-     * @param url 
-     * @param options 
-     * @returns 
+     *
+     * @param {string} url URL for request
+     * @param {NetworkRequestOptions} options Network request options 
+     * @returns {Promise<NetworkResponse>} Network response
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
@@ -31,9 +32,10 @@ export class HttpClient implements INetworkModule {
 
     /**
      * Http Post request
-     * @param url 
-     * @param options 
-     * @returns 
+     *
+     * @param {string} url URL for request 
+     * @param {NetworkRequestOptions} options Network request options 
+     * @returns {Promise<NetworkResponse>} Network response
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {

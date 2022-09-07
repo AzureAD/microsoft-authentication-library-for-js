@@ -4,22 +4,23 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
-import { 
+import {
     clickSignIn,
     enterCredentialsADFS,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
-    SUCCESSFUL_GRAPH_CALL_ID, 
-    SUCCESSFUL_GET_ALL_ACCOUNTS_ID, 
-    validateCacheLocation} from "../../testUtils";
+    SUCCESSFUL_GRAPH_CALL_ID,
+    SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
+    validateCacheLocation,
+    SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
 
 import { PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
-    
+
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
 
@@ -34,7 +35,7 @@ const config = require("../config/ADFS.json");
 
 describe("Silent Flow ADFS 2019 Tests", () => {
     jest.retryTimes(1);
-    jest.setTimeout(45000);
+    jest.setTimeout(ONE_SECOND_IN_MS*45);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -87,10 +88,10 @@ describe("Silent Flow ADFS 2019 Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
             await page.goto(homeRoute);
         });
-    
+
         afterEach(async () => {
             await page.close();
             await context.close();
@@ -103,7 +104,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -115,7 +116,9 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
-            await page.waitForSelector("#graph-called-successfully");
+            await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
+            await page.click("#callGraph");
+            await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
         });
 
@@ -124,19 +127,24 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await clickSignIn(page, screenshot);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
-    
-            let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+
+            let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const originalAccessToken = tokens.accessTokens[0];
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const expiredAccessToken = tokens.accessTokens[0];
+            
+            // Wait to ensure new token has new iat
+            await new Promise(r => setTimeout(r, ONE_SECOND_IN_MS));
             await page.click("#acquireTokenSilent");
+            await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
+            await page.click("#callGraph");
             await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const refreshedAccessToken = tokens.accessTokens[0];
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
-    
+
             expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
             expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
             expect(Number(expiredAccessToken.expiresOn)).toBe(0);
@@ -152,7 +160,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
                 page = await context.newPage();
                 await page.goto(homeRoute);
             });
-        
+
             afterEach(async () => {
                 await page.close();
                 await context.close();
@@ -183,7 +191,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
                 await publicClientApplication.clearCache();
                 await page.goto(homeRoute);
             });
-        
+
             afterEach(async () => {
                 await page.close();
                 await context.close();
