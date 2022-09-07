@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Exporting constants",
+  "comment": "Exporting constants #5189",
   "packageName": "@azure/msal-common",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "none"
