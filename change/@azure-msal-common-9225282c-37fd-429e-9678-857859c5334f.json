@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Extend AuthenticationHeaderParser to parse claims challenge #5188",
   "packageName": "@azure/msal-common",
-  "email": "dogan.erisen@gmail.com",
+  "email": "v-derisen@microsoft.com",
   "dependentChangeType": "patch"
 }
