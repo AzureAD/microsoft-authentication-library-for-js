@@ -50,6 +50,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create silent request
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
+            prompt: request.prompt || PromptValue.NONE
         }, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
@@ -124,6 +125,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             return nativeInteractionClient.acquireToken({
                 ...silentRequest,
                 state: userRequestState,
+                prompt: silentRequest.prompt || PromptValue.NONE
             }).finally(() => {
                 this.browserStorage.cleanRequestByState(state);
             });
