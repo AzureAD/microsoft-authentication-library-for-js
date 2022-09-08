@@ -23,7 +23,7 @@ export interface IConfidentialClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
     /**  Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
 
     /**  Acquires a token silently when a user specifies the account the token is requested for */
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;

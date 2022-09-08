@@ -40,6 +40,7 @@ export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
 export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest";
+export type { InteractiveRequest } from "./request/InteractiveRequest";
 
 // Common Object Formats
 export {

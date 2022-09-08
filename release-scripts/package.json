@@ -6,12 +6,12 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
     "@octokit/graphql": "^4.8.0",
     "@octokit/rest": "^18.12.0",
     "dotenv": "^16.0.0",
-    "semver": "^7.3.5"
+    "semver": "^7.3.5",
+    "yargs": "^17.5.1"
   }
 }

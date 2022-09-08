@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
+This log was last generated on Fri, 02 Sep 2022 18:06:53 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.23
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Changes
+
+- Point to the correct esm file in msal-node-extensions package.json (#5135) (miles@svtrobotics.com)
+- Bump @azure/msal-common to v7.4.0
 
 ## 1.0.0-alpha.22
 
