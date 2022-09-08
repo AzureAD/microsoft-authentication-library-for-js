@@ -36,27 +36,12 @@ cca.acquireTokenSilent(silentTokenRequest).then((response) => {
 });
 ```
 
-In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you have several alternatives:
+In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you can:
 
 * Desktop apps, headless apps (public client):
-  * If you don't want persistence, you don't need to do anything else. MSAL's in-memory cache will suffice.
-  * If you do want persistence, use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provide persistence solutions on Windows, Linux and Mac OS
+  * Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provides persistence solutions on Windows, Linux and Mac OS
 * Web apps, web APIs, daemon apps (confidential client):
   * MSAL's in-memory token cache does not scale for production. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem *e.g.* a Redis-like memory cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
-
-## Token cache schema
-
-MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cache is not partitioned and not encrypted: all authentication artifacts by all users are located in a single cache blob, grouped by the type of the authentication artifact (see also: [cache.json](../cache.json)).
-
-```json
-{
-    "Account": {},
-    "IdToken": {},
-    "AccessToken": {},
-    "RefreshToken": {},
-    "AppMetadata": {}
-}
-```
 
 ## Cache in memory
 

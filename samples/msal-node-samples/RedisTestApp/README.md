@@ -121,7 +121,7 @@ Session support in this sample is provided by the [express-session](https://www.
 
 ### Token caching
 
-MSAL Node has an in-memory cache by default. The demo app also features a [partition manager](./TestApp/App/utils/partitionManager.js). The manager illustrates a distributed caching pattern where MSAL's token cache is persisted via an external service (here, Redis) and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory.
+MSAL Node has an in-memory cache by default. The demo app also features a [partition manager](./TestApp/App/utils/partitionManager.js). The manager illustrates the [distributed caching pattern](../../../lib/msal-node/docs/caching.md#performance-and-security).
 
 To facilitate between interaction between the partition manager and the persistence server, an example is implemented in [redisClientWrapper.js](./TestApp/App/utils/redisClientWrapper.js). Your implementation should also consider assigning cache eviction policies, handling connection events from the persistence server and taking performance metrics such as cache hit ratios. For more on caching, see [Caching](../../../lib/msal-node/docs/caching.md).
 
