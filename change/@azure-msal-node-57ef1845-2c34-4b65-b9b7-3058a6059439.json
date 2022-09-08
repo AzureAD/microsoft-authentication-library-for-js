@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add acquireTokenInteractive API #5062",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
