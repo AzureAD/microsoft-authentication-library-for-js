@@ -482,7 +482,7 @@ describe('PublicClientApplication', () => {
         // .toThrow("State not found. Please verify that the request originated from msal.")
     })
 
-    test("should throw an error if state is not provides", async () => {
+    test("should throw an error if state is not provided", async () => {
         const cryptoProvider = new CryptoProvider();
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -505,9 +505,11 @@ describe('PublicClientApplication', () => {
         );
 
         const authApp = new PublicClientApplication(appConfig);
-        const authAppRes = await authApp.acquireTokenByCode(request, authCodePayLoad);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
 
-        expect(authAppRes).toBe(
+        expect(() => {
+            authApp.acquireTokenByCode;
+        }).toThrow(
             "State not found. Please verify that the request originated from msal."
         );
     });
@@ -543,6 +545,4 @@ describe('PublicClientApplication', () => {
             "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     });
-
-
 });
