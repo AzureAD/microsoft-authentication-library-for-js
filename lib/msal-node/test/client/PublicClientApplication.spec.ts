@@ -488,6 +488,7 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            correlationId: "test-correlationId",
             state: ""
         };
 
@@ -535,6 +536,7 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            correlationId: "test-correlationId",
             state: cryptoProvider.createNewGuid()
         };
 
@@ -574,6 +576,7 @@ describe('PublicClientApplication', () => {
             "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     });
+
 
 
 
