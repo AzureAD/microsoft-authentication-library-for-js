@@ -31,8 +31,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-MSA.json");
 
-// Problem with MSA logins displaying a security info notice - re-enable these tests when that gets resolved
-describe.skip("Silent Flow B2C Tests (msa account)", () => {
+describe("Silent Flow B2C Tests (msa account)", () => {
     jest.retryTimes(1);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
     let browser: puppeteer.Browser;
