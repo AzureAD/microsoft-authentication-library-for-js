@@ -518,8 +518,7 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode called",
-            request.correlationId
+            "acquireTokenByCode called test-correlationId"
         );
         expect(mockInfo).toHaveBeenCalledWith(
             "acquireTokenByCode - validating state"
@@ -536,7 +535,6 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-            correlationId: "test-correlationId",
             state: cryptoProvider.createNewGuid()
         };
 
@@ -566,8 +564,7 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode called",
-            request.correlationId
+            "acquireTokenByCode called test-correlationId"
         );
         expect(mockInfo).toHaveBeenCalledWith(
             "acquireTokenByCode - validating state"
@@ -576,6 +573,8 @@ describe('PublicClientApplication', () => {
             "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     });
+
+
 
 
 
