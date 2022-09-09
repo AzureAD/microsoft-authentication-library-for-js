@@ -507,9 +507,8 @@ describe('PublicClientApplication', () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
-        expect(() => {
-            authApp.acquireTokenByCode;
-        }).toThrow(
+        expect(
+            authApp.acquireTokenByCode).toThrow(
             "State not found. Please verify that the request originated from msal."
         );
     });
@@ -539,9 +538,7 @@ describe('PublicClientApplication', () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
-        expect(() => {
-            authApp.acquireTokenByCode;
-        }).toThrow(
+        expect(authApp.acquireTokenByCode).toThrow(
             "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     });
