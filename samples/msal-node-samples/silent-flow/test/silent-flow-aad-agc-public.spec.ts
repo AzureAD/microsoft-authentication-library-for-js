@@ -4,7 +4,7 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, ONE_SECOND_IN_MS } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import {
     clickSignIn,
@@ -41,7 +41,7 @@ config.resourceApi = {
 
 describe("Silent Flow AAD AGC Public Tests", () => {
     jest.retryTimes(1);
-    jest.setTimeout(45000);
+    jest.setTimeout(ONE_SECOND_IN_MS*2);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -86,7 +86,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(5000);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
             await page.goto(homeRoute, {waitUntil: "networkidle0"});
         });
 
@@ -102,7 +102,7 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             await enterCredentials(page, screenshot, username, password);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -129,16 +129,19 @@ describe("Silent Flow AAD AGC Public Tests", () => {
             await enterCredentials(page, screenshot, username, password);
             await page.waitForSelector("#acquireTokenSilent");
 
-            let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const originalAccessToken = tokens.accessTokens[0];
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const expiredAccessToken = tokens.accessTokens[0];
+            
+            // Wait to ensure new token has new iat
+            await new Promise(r => setTimeout(r, ONE_SECOND_IN_MS));
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(`#${SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID}`);
             await page.click("#callGraph");
             await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const refreshedAccessToken = tokens.accessTokens[0];
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);

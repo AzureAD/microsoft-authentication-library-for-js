@@ -105,7 +105,7 @@ describe('ConfidentialClientApplication', () => {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,                                
-                // no secret or cert
+                clientAssertion: "testAssertion"
             },
         }                  
 
