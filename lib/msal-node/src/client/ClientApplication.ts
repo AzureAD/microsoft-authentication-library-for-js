@@ -135,7 +135,7 @@ export abstract class ClientApplication {
     async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called", request.correlationId);
         if (request.state && authCodePayLoad){
-            // this.logger.info("acquireTokenByCode - validating state");
+            this.logger.info("acquireTokenByCode - validating state");
             this.validateState(request.state, authCodePayLoad.state || "");
             // eslint-disable-next-line no-param-reassign
             authCodePayLoad= {...authCodePayLoad, state: ""};

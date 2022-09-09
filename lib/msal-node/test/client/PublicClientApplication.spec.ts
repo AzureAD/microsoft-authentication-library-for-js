@@ -504,9 +504,25 @@ describe('PublicClientApplication', () => {
             config => new MockAuthorizationCodeClient(config)
         );
 
+        const mockInfo = jest.fn();
+        jest.mock("@azure/msal-common", () => {
+            return {
+                getLogger: () => ({
+                    info: mockInfo
+                })
+            };
+        });
+
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
+        expect(mockInfo).toHaveBeenCalledWith(
+            "acquireTokenByCode called",
+            request.correlationId
+        );
+        expect(mockInfo).toHaveBeenCalledWith(
+            "acquireTokenByCode - validating state"
+        );
         expect(
             authApp.acquireTokenByCode).toThrow(
             "State not found. Please verify that the request originated from msal."
@@ -535,11 +551,37 @@ describe('PublicClientApplication', () => {
             config => new MockAuthorizationCodeClient(config)
         );
 
+        const mockInfo = jest.fn();
+        jest.mock("@azure/msal-common", () => {
+            return {
+                getLogger: () => ({
+                    info: mockInfo
+                })
+            };
+        });
+
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
+        expect(mockInfo).toHaveBeenCalledWith(
+            "acquireTokenByCode called",
+            request.correlationId
+        );
+        expect(mockInfo).toHaveBeenCalledWith(
+            "acquireTokenByCode - validating state"
+        );
         expect(authApp.acquireTokenByCode).toThrow(
             "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
         );
     });
+
+
+
+
+
+
+
+
+
+
 });
