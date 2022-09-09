@@ -85,11 +85,11 @@ export class ConfidentialClientApplication extends ClientApplication implements 
 
         const baseRequest = await this.initializeBaseRequest(request);
 
-        // valid base request should not contain oidc scopes
+        // valid base request should not contain oidc scopes in this grant type
         const validBaseRequest = {
             ...baseRequest,
             scopes: baseRequest.scopes.filter((scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope))
-        }
+        };
 
         const validRequest: CommonClientCredentialRequest = {
             ...request,
