@@ -518,7 +518,7 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode called test-correlationId"
+            "acquireTokenByCode called"
         );
         expect(mockInfo).toHaveBeenCalledWith(
             "acquireTokenByCode - validating state"
@@ -564,7 +564,7 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
         expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode called test-correlationId"
+            "acquireTokenByCode called"
         );
         expect(mockInfo).toHaveBeenCalledWith(
             "acquireTokenByCode - validating state"

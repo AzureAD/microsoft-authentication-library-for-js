@@ -133,7 +133,7 @@ export abstract class ClientApplication {
      * AuthorizationCodeRequest are the same.
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult> {
-        this.logger.info("acquireTokenByCode called", request.correlationId);
+        this.logger.info("acquireTokenByCode called");
         if (request.state && authCodePayLoad){
             this.logger.info("acquireTokenByCode - validating state");
             this.validateState(request.state, authCodePayLoad.state || "");
