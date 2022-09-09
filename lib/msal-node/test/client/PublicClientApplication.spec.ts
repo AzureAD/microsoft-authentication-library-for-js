@@ -517,12 +517,8 @@ describe('PublicClientApplication', () => {
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request, authCodePayLoad);
 
-        expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode called"
-        );
-        expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode - validating state"
-        );
+        expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
+        expect(mockInfo).toHaveBeenCalledWith("acquireTokenByCode - validating state");
         expect(
             authApp.acquireTokenByCode).toThrow(
             "State not found. Please verify that the request originated from msal."
