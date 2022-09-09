@@ -39,7 +39,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
         }
 
-        // Check that prompt is set to none, throw error if it is set to anything else.
+        // Check that prompt is set to none or no_session, throw error if it is set to anything else.
         if (request.prompt && (request.prompt !== PromptValue.NONE) && (request.prompt !== PromptValue.NO_SESSION)) {
             acquireTokenMeasurement.endMeasurement({
                 success: false
