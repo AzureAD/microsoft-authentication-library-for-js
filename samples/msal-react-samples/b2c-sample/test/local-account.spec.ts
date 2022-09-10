@@ -86,10 +86,14 @@ describe('B2C user-flow tests (local account)', () => {
             page.type("#displayName", `${displayName}`),
         ]);
         await page.click("#continue");
-        await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
-        await page.waitForSelector("#idTokenClaims");
-        await page.waitForSelector(`xpath=//li[contains(., '${displayName}')]`);
-        await page.waitForSelector("xpath=//li[contains(., 'B2C_1_SISOPolicy')]"); // implies the current active account
+        await Promise.all([
+            page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`),
+            page.waitForSelector("#idTokenClaims"),
+            page.waitForTimeout(4000) // wait for ssoSilent and rerender
+        ]);
+        const idTokenClaims = await page.$eval("#idTokenClaims", (e) => e.textContent);  
+        expect(idTokenClaims).toContain("B2C_1_SISOPolicy"); // implies the current active account
+        expect(idTokenClaims).toContain(`${displayName}`);
 
         // Verify tokens are in cache
         const tokenStoreAfterEdit = await BrowserCache.getTokens();
