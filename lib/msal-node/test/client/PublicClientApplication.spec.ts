@@ -551,13 +551,17 @@ describe('PublicClientApplication', () => {
         });
 
         const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByCode(request, authCodePayLoad);
-        expect(mockInfo).toHaveBeenCalledWith("acquireTokenByCode called");
-        expect(mockInfo).toHaveBeenCalledWith(
-            "acquireTokenByCode - validating state"
-        );
-        expect(authApp.acquireTokenByCode).toThrow(
-            "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
-        );
+
+        try {
+            await authApp.acquireTokenByCode(request, authCodePayLoad);
+        } catch (e) {
+            expect(mockInfo).toHaveBeenCalledWith("acquireTokenByCode called");
+            expect(mockInfo).toHaveBeenCalledWith(
+                "acquireTokenByCode - validating state"
+            );
+            expect(authApp.acquireTokenByCode).toThrow(
+                "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
+            );
+        }
     });
 });
