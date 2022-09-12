@@ -12,6 +12,20 @@ export function Demo() {
 
     const { instance } = useMsal();
     const isAuthenticated = useIsAuthenticated();
+
+    const silentStorageAccessCheck = async () => {
+        setStorageAccessPromptInProgress(true);
+        const result = await checkStorageAccess();
+        setHasStorageAccess(result.hasStorageAccess);
+        setStorageAccessPromptInProgress(false);
+    };
+
+    const interactiveStorageAccessCheck = async () => {
+        setStorageAccessPromptInProgress(true);
+        const result = await promptForStorageAccess();
+        setHasStorageAccess(result.hasStorageAccess);
+        setStorageAccessPromptInProgress(false);
+    };
     
     useEffect(() => {
         // This will be run on component mount
@@ -25,6 +39,8 @@ export function Demo() {
             }
         });
 
+        silentStorageAccessCheck();
+
         return () => {
             // This will be run on component unmount
             if (callbackId) {
@@ -33,6 +49,25 @@ export function Demo() {
         }
         
     }, [ instance ]);
+
+    const checkStorageAccessComponents = (
+        <>
+            <h3>Silent Check</h3>
+            <PrimaryButton
+                disabled={storageAccessCheckInProgress}
+                onClick={silentStorageAccessCheck}
+            >
+                Check for Storage Access
+            </PrimaryButton>
+            <Status status={hasStorageAccess} />
+            <div style={{ width: "250px", height: "1rem" }}>
+                {storageAccessCheckInProgress && (
+                    <ProgressIndicator />
+                )}
+            </div>
+        </>
+    );
+
     return (
         <div>
             <h1>MSAL.js Storage Access Demo</h1>
@@ -48,33 +83,11 @@ export function Demo() {
                         Logout
                     </PrimaryButton>
                     <h2>Storage Access</h2>
-                    <h3>Silent Check</h3>
-                    <PrimaryButton
-                        disabled={storageAccessCheckInProgress}
-                        onClick={async () => {
-                            setStorageAccessCheckInProgress(true);
-                            const result = await checkStorageAccess();
-                            setHasStorageAccess(result.hasStorageAccess);
-                            setStorageAccessCheckInProgress(false);
-                        }}
-                    >
-                        Check for Storage Access
-                    </PrimaryButton>
-                    <Status status={hasStorageAccess} />
-                    <div style={{ width: "250px", height: "1rem" }}>
-                        {storageAccessCheckInProgress && (
-                            <ProgressIndicator />
-                        )}
-                    </div>
+                    {checkStorageAccessComponents}
                     <h3>Interactive Prompt</h3>
                     <PrimaryButton
                         disabled={storageAccessPromptInProgress}
-                        onClick={async () => {
-                            setStorageAccessPromptInProgress(true);
-                            const result = await promptForStorageAccess();
-                            setHasStorageAccess(result.hasStorageAccess);
-                            setStorageAccessPromptInProgress(false);
-                        }}
+                        onClick={interactiveStorageAccessCheck}
                     >
                         Prompt for Storage Access
                     </PrimaryButton>
@@ -94,7 +107,7 @@ export function Demo() {
                     >
                         Login
                     </PrimaryButton>
-                    
+                    {checkStorageAccessComponents}
                 </div>
             )}
         </div>
