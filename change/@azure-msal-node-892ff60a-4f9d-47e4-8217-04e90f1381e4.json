@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add support for the state parameter #4723",
+  "packageName": "@azure/msal-node",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
