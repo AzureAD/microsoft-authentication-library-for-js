@@ -10,22 +10,25 @@ import {
     HttpInterceptor
 } from "@angular/common/http";
 import { Location, DOCUMENT } from "@angular/common";
-import { Observable, EMPTY, of } from "rxjs";
-import { switchMap, catchError } from "rxjs/operators";
+import { Subject,Observable, EMPTY, of } from "rxjs";
+import { filter, takeUntil,switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
-import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult, EventMessage,BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString,InteractionStatus } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes, MatchingResources } from "./msal.interceptor.config";
+import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
     private _document?: Document;
+    private readonly _destroying$ = new Subject<void>();
 
     constructor(
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
         private authService: MsalService,
         private location: Location,
+        private msalBroadcastService: MsalBroadcastService
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
         @Inject(DOCUMENT) document?: any
     ) {
@@ -95,15 +98,26 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param scopes Array of scopes for the request
      * @returns Result from the interactive request
      */
-    private acquireTokenInteractively(authRequest: MsalInterceptorAuthRequest, scopes: string[]): Observable<AuthenticationResult> {
-        if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
-            this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
-            return this.authService.acquireTokenPopup({ ...authRequest, scopes });
-        }
-        this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
-        const redirectStartPage = window.location.href;
-        this.authService.acquireTokenRedirect({...authRequest, scopes, redirectStartPage });
-        return EMPTY;
+    private acquireTokenInteractively(authRequest: MsalInterceptorAuthRequest, scopes: string[]): Observable<AuthenticationResult> { 
+        var subject = new Subject<AuthenticationResult>();
+        this.msalBroadcastService.inProgress$
+            .pipe(
+                    filter((status: InteractionStatus) => status === InteractionStatus.None),
+                    takeUntil(this._destroying$)
+                 )
+            .subscribe( (result: EventMessage)  => {
+                        result.map(result=> {
+                                if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
+                                        this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
+                                        subject.next(this.authService.acquireTokenPopup({ ...authRequest, scopes }));
+                                }
+                                this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
+                                const redirectStartPage = window.location.href;
+                                this.authService.acquireTokenRedirect({...authRequest, scopes, redirectStartPage });
+                                return subject.next(EMPTY);
+                            });                             
+                });
+        return subject.asObservable();
     }
 
     /**
@@ -236,6 +250,10 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         return null;
-    }
+        }
+        ngOnDestroy(): void {
+            this._destroying$.next(undefined);
+            this._destroying$.complete();
+        }
 
 }
