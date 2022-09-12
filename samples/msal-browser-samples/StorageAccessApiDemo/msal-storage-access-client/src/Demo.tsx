@@ -14,10 +14,10 @@ export function Demo() {
     const isAuthenticated = useIsAuthenticated();
 
     const silentStorageAccessCheck = async () => {
-        setStorageAccessPromptInProgress(true);
+        setStorageAccessCheckInProgress(true);
         const result = await checkStorageAccess();
         setHasStorageAccess(result.hasStorageAccess);
-        setStorageAccessPromptInProgress(false);
+        setStorageAccessCheckInProgress(false);
     };
 
     const interactiveStorageAccessCheck = async () => {
