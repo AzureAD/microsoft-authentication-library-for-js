@@ -13,7 +13,7 @@ import { MsalProvider } from "@azure/msal-react";
 
 const instance = new PublicClientApplication({
     auth: {
-        clientId: "f27b1c01-a25d-40e5-b439-06346950c128",
+        clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
         redirectUri: "/demo"
     },
     system: {
