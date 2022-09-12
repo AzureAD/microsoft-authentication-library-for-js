@@ -555,7 +555,7 @@ describe('PublicClientApplication', () => {
         try {
             await authApp.acquireTokenByCode(request, authCodePayLoad);
         } catch (e) {
-            expect(mockInfo).toHaveBeenCalledWith("acquireTokenByCode called");
+            expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
             expect(mockInfo).toHaveBeenCalledWith(
                 "acquireTokenByCode - validating state"
             );
