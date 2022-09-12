@@ -34,7 +34,7 @@ export function Demo() {
             if (message.eventType === EventType.LOGIN_SUCCESS) {
                 const result = message.payload;    
                 if (result) {
-                    promptForStorageAccess();
+                    interactiveStorageAccessCheck();
                 }
             }
         });
