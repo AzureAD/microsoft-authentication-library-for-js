@@ -470,17 +470,6 @@ describe('PublicClientApplication', () => {
 
         authApp.getLogger().info("Message");
     });
-    
-    test("should throw an error if state is not provides", () => {
-        const authApp = new PublicClientApplication(appConfig);
-        expect(() => {
-            authApp.acquireTokenByCode
-        })
-        // expect(() => {
-        //     authApp.validateState("", "ed09b151-1b68-4c2c-8e95-d8dce9882dba");
-        // })
-        // .toThrow("State not found. Please verify that the request originated from msal.")
-    })
 
     test("should throw an error if state is not provided", async () => {
         const cryptoProvider = new CryptoProvider();
