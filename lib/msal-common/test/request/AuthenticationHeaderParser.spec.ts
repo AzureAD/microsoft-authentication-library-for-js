@@ -45,21 +45,16 @@ describe("AuthenticationHeaderParser unit tests", () => {
 			headers = {};
 		});
 
-		it("should return a claims challenge when a valid WWW-Authenticate header is present", () => {
+		it("should return a claims challenge when a valid WWW-Authenticate header is present and has claims", () => {
 			headers[HeaderNames.WWWAuthenticate] = TEST_AUTHENTICATION_HEADERS_CLAIMS.wwwAuthenticate;
 			const authenticationHeaderParser = new AuthenticationHeaderParser(headers);
 			expect(authenticationHeaderParser.getClaims()).toStrictEqual(TEST_CLAIMS_CHALLENGE_VALUES.CLAIMS_CHALLENGE_ENCODED);
 		});
 
-		it ("should throw an error if WWWAuthenticate is present but does not contain claims", () => {
-			headers[HeaderNames.WWWAuthenticate] = TEST_AUTHENTICATION_HEADERS_CLAIMS.invalidWwwAuthenticate;
+		it("should return null when a valid WWW-Authenticate header is present but has no claims", () => {
+			headers[HeaderNames.WWWAuthenticate] = TEST_AUTHENTICATION_HEADERS_CLAIMS.wwwAuthenticateNoClaims;
 			const authenticationHeaderParser = new AuthenticationHeaderParser(headers);
-			expect(() => authenticationHeaderParser.getClaims()).toThrow(ClientConfigurationError.createInvalidAuthenticationHeaderError(HeaderNames.WWWAuthenticate, "claims challenge is missing."));	
-		});
-
-		it("should throw an error if WWW-Authenticate headers is not present", () => {
-			const authenticationHeaderParser = new AuthenticationHeaderParser({});
-			expect(() => authenticationHeaderParser.getClaims()).toThrow(ClientConfigurationError.createMissingClaimsAuthenticationHeadersError());
+			expect(authenticationHeaderParser.getClaims()).toStrictEqual(null);
 		});
 	});
 });

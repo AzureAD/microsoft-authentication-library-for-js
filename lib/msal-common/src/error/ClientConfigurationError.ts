@@ -97,10 +97,6 @@ export const ClientConfigurationErrorMessage = {
         code: "missing_nonce_authentication_header",
         desc: "Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce."
     },
-    missingClaimsAuthenticationHeader: {
-        code: "missing_claims_authentication_header",
-        desc: "Unable to find an authentication header containing claims. The WWW-Authenticate header must be present in order to obtain a claims challenge."
-    },
     invalidAuthenticationHeader: {
         code: "invalid_authentication_header",
         desc: "Invalid authentication header provided"
@@ -298,14 +294,6 @@ export class ClientConfigurationError extends ClientAuthError {
     static createMissingNonceAuthenticationHeadersError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.missingNonceAuthenticationHeader.code,
             ClientConfigurationErrorMessage.missingNonceAuthenticationHeader.desc);
-    }
-
-    /**
-     * Throws error when provided headers don't contain a header that a claims challenge can be extracted from
-     */
-    static createMissingClaimsAuthenticationHeadersError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingClaimsAuthenticationHeader.code,
-            ClientConfigurationErrorMessage.missingClaimsAuthenticationHeader.desc);
     }
 
     /**

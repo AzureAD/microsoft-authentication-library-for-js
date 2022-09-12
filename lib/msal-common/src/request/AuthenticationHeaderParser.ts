@@ -56,11 +56,11 @@ export class AuthenticationHeaderParser {
     }
 
     /**
-     * This method parses the claims value out of the WWW-Authenticate authentication header.
+     * This method parses the claims value (if present) out of the WWW-Authenticate authentication header.
      * See: https://docs.microsoft.com/en-us/azure/active-directory/develop/claims-challenge
      * @returns 
      */
-    getClaims(): string {
+    getClaims(): string | null {
         // Attempt to parse claims from WWW-Authenticate
         const wwwAuthenticate = this.headers[HeaderNames.WWWAuthenticate];
         if (wwwAuthenticate) {
@@ -68,11 +68,9 @@ export class AuthenticationHeaderParser {
             if (wwwAuthenticateChallenges.claims){
                 return wwwAuthenticateChallenges.claims;
             }
-            throw ClientConfigurationError.createInvalidAuthenticationHeaderError(HeaderNames.WWWAuthenticate, "claims challenge is missing.");
         }
 
-        // If header is not present, throw missing headers error
-        throw ClientConfigurationError.createMissingClaimsAuthenticationHeadersError();
+        return null;
     }
 
     /**

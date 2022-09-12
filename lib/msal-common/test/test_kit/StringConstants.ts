@@ -534,6 +534,7 @@ export const TEST_AUTHENTICATION_HEADERS_NONCE = {
 
 export const TEST_AUTHENTICATION_HEADERS_CLAIMS = {
     wwwAuthenticate: `Bearer realm="", authorization_uri="https://login.windows.net/common/oauth2/authorize", error="insufficient_claims", claims="eyJhY2Nlc3NfdG9rZW4iOnsibmJmIjp7ImVzc2VudGlhbCI6dHJ1ZSwgInZhbHVlIjoiMTYwNDEwNjY1MSJ9fX0="`,
+    wwwAuthenticateNoClaims: `Bearer realm="", authorization_uri="https://login.windows.net/common/oauth2/authorize", error="insufficient_claims"`,
     invalidWwwAuthenticate: `Bearer test_challenge="test_challenge`
 };
 
