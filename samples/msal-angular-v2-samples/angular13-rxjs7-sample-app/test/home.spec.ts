@@ -64,18 +64,17 @@ describe('/ (Home Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         await signInButton?.click();
-        await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginRedirectButton = await page.waitForXPath("//button[contains(., 'Login using Redirect')]");
+        const loginRedirectButton = await page.waitForSelector("xpath=//button[contains(., 'Login using Redirect')]");
         await loginRedirectButton?.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//p[contains(., 'Login successful!')]");
-        const logoutButton = await page.waitForXPath("//button[contains(., 'Logout')]");
+        const logoutButton = await page.waitForSelector("xpath=//button[contains(., 'Logout')]");
         await logoutButton?.click();
         await page.waitForXPath("//button[contains(., 'Logout using')]");
         const logoutButtons = await page.$x("//button[contains(., 'Logout using')]");
@@ -87,7 +86,7 @@ describe('/ (Home Page)', () => {
         await verifyTokenStore(BrowserCache, ["User.Read"]);
 
         // Navigate to profile page
-        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton?.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
         
@@ -101,11 +100,10 @@ describe('/ (Home Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
-        await signInButton.click();
-        await page.waitForTimeout(50);
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
+        await signInButton?.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginPopupButton = await page.waitForXPath("//button[contains(., 'Login using Popup')]");
+        const loginPopupButton = await page.waitForSelector("xpath=//button[contains(., 'Login using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await loginPopupButton?.click();
         const popupPage = await newPopupWindowPromise;
@@ -119,7 +117,7 @@ describe('/ (Home Page)', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//p[contains(., 'Login successful!')]");
-        const logoutButton = await page.waitForXPath("//button[contains(., 'Logout')]");
+        const logoutButton = await page.waitForSelector("xpath=//button[contains(., 'Logout')]");
         await logoutButton?.click();
         const logoutButtons = await page.$x("//button[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
@@ -130,7 +128,7 @@ describe('/ (Home Page)', () => {
         await verifyTokenStore(BrowserCache, ["User.Read"]);
 
         // Navigate to profile page
-        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton?.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
         

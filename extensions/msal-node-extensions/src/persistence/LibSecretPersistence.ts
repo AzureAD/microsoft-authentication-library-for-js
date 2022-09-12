@@ -82,6 +82,9 @@ export class LibSecretPersistence extends BasePersistence implements IPersistenc
       
     public createForPersistenceValidation(): Promise<LibSecretPersistence> {
         const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
-        return LibSecretPersistence.create(testCacheFileLocation, "persistenceValidationServiceName", "persistencValidationAccountName");
+        return LibSecretPersistence.create(
+            testCacheFileLocation, 
+            "persistenceValidationServiceName", "persistencValidationAccountName"
+        );
     }
 }

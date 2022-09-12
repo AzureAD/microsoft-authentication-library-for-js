@@ -1,0 +1,192 @@
+#################################################################################
+#                      OneBranch Pipelines - Publish                            #
+# This pipeline was created by EasyStart from a sample located at:              #
+#   https://aka.ms/obpipelines/easystart/samples                                #
+# Documentation:  https://aka.ms/obpipelines                                    #
+# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
+# Retail Tasks:   https://aka.ms/obpipelines/tasks                              #
+# Support:        https://aka.ms/onebranchsup                                   #
+#################################################################################
+
+trigger:
+  - release
+
+parameters: # parameters are shown up in ADO UI in a build queue time
+- name: 'debug'
+  displayName: 'Enable debug output'
+  type: boolean
+  default: false
+- name: 'testMode'
+  displayName: 'Run in test mode'
+  type: boolean
+  default: false
+- name: 'overrideMsalCore'
+  displayName: 'Publish MSAL Core'
+  type: boolean
+  default: false
+- name: 'overrideMsalCommon'
+  displayName: 'Publish MSAL Common'
+  type: boolean
+  default: false
+- name: 'overrideMsalBrowser'
+  displayName: 'Publish MSAL Browser'
+  type: boolean
+  default: false
+- name: 'overrideMsalNode'
+  displayName: 'Publish MSAL Node'
+  type: boolean
+  default: false
+- name: 'overrideMsalReact'
+  displayName: 'Publish MSAL React'
+  type: boolean
+  default: false
+- name: 'overrideMsalAngular'
+  displayName: 'Publish MSAL Angular'
+  type: boolean
+  default: false
+- name: 'overrideMsalNodeExtensions'
+  displayName: 'Publish MSAL Node Extensions'
+  type: boolean
+  default: false
+
+variables:
+  CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
+  system.debug: ${{ parameters.debug }}
+  ENABLE_PRS_DELAYSIGN: 0
+  ROOT: $(Build.SourcesDirectory)
+  REPOROOT: $(Build.SourcesDirectory)
+  OUTPUTROOT: $(REPOROOT)\out
+  NUGET_XMLDOC_MODE: none
+
+  LinuxContainerImage: 'onebranch.azurecr.io/linux/ubuntu-2004:latest' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+
+resources:
+  repositories: 
+    - repository: templates
+      type: git
+      name: OneBranch.Pipelines/GovernedTemplates
+      ref: refs/heads/main
+
+extends:
+  template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+  parameters:
+    cloudvault: # https://aka.ms/obpipelines/cloudvault
+      enabled: false
+    globalSdl: # https://aka.ms/obpipelines/sdl
+      tsa:
+        enabled: false # onebranch publish all sdl results to TSA. If TSA is disabled all SDL tools will forced into 'break' build mode.
+      # credscan:
+      #   suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+      binskim:
+        break: true # always break the build on binskim issues. You can disable it by setting to 'false'
+      policheck:
+        break: true # always break the build on policheck issues. You can disable it by setting to 'false'
+      # suppression:
+      #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
+
+    stages:
+    - stage: pre_release
+      displayName: Pre-Publish
+      jobs:
+        - job: filter
+          pool:
+            type: linux
+          variables:
+            repoName: 'msal-javascript-internal'
+            ob_outputDirectory: '$(REPOROOT)/' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+            ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+          steps:
+          - task: ShellScript@2
+            inputs:
+              scriptPath: "release-scripts/prepublish.sh"
+            name: filter
+    # PUBLISH MSAL Core
+    - stage: publish
+      dependsOn: pre_release
+      displayName: 'Publish Packages'
+      variables:
+        publishMsalCore: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCore'] ]
+        publishMsalCommon: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalCommon'] ]
+        publishMsalBrowser: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalBrowser'] ]
+        publishMsalReact: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalReact'] ]
+        publishMsalAngular: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalAngular'] ]
+        publishMsalNode: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNode'] ]
+        publishMsalNodeExtensions: $[ stageDependencies.pre_release.filter.outputs['filter.publishMsalNodeExtensions'] ]
+      jobs:
+      # Release MSAL Core
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_core'
+            path: 'lib'
+            libName: 'msal-core'
+            cdn: true
+            publishFlagName: 'MsalCore'
+            publishOverride: ${{ parameters.overrideMsalCore }}
+            testMode: ${{ parameters.testMode }}
+      # Release MSAL Common
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_common'
+            path: 'lib'
+            libName: 'msal-common'
+            cdn: false
+            publishFlagName: 'MsalCommon'
+            publishOverride: ${{ parameters.overrideMsalCommon }}
+            testMode: ${{ parameters.testMode }}
+      # Release MSAL Browser
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_browser'
+            path: 'lib'
+            libName: 'msal-browser'
+            cdn: true
+            publishFlagName: 'MsalBrowser'
+            dependsOn: 'publish_msal_common'
+            publishOverride: ${{ parameters.overrideMsalBrowser }}
+            testMode: ${{ parameters.testMode }}
+      # Release MSAL React
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_react'
+            path: 'lib'
+            libName: 'msal-react'
+            cdn: false
+            publishFlagName: 'MsalReact'
+            dependsOn: 'publish_msal_browser'
+            publishOverride: ${{ parameters.overrideMsalReact }}
+      # Release MSAL Angular
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_angular'
+            path: 'lib'
+            libName: 'msal-angular'
+            cdn: false
+            publishFlagName: 'MsalAngular'
+            dependsOn: 'publish_msal_browser'
+            publishOverride: ${{ parameters.overrideMsalAngular }}
+            testMode: ${{ parameters.testMode }}
+      # Release MSAL Node
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_node'
+            path: 'lib'
+            libName: 'msal-node'
+            cdn: false
+            publishFlagName: 'MsalNode'
+            dependsOn: 'publish_msal_common'
+            publishOverride: ${{ parameters.overrideMsalNode }}
+            testMode: ${{ parameters.testMode }}
+        # Release MSAL Node Extensions
+        - template: .pipelines/custom-templates/publish-template.yml@self
+          parameters:
+            jobName: 'publish_msal_node_extensions'
+            path: 'extensions'
+            libName: 'msal-node-extensions'
+            cdn: false
+            publishFlagName: 'MsalNodeExtensions'
+            dependsOn: 'publish_msal_common'
+            publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
+            testMode: ${{ parameters.testMode }}
+
+ 
+
