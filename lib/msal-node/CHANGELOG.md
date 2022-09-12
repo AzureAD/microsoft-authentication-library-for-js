@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Fri, 02 Sep 2022 18:06:53 GMT and should not be manually modified.
+This log was last generated on Mon, 12 Sep 2022 18:19:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.14.0
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Minor changes
+
+- Add support for the state parameter #4723 (marionminayo@microsoft.com)
+- Bump @azure/msal-common to v7.4.1
 
 ## 1.13.0
 
