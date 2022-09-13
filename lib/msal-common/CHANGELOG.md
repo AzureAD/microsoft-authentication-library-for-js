@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Fri, 02 Sep 2022 18:06:53 GMT and should not be manually modified.
+This log was last generated on Mon, 12 Sep 2022 18:19:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.4.1
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Exporting constants #5189 (lalimasharda@microsoft.com)
 
 ## 7.4.0
 

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Restore error codes for acquireTokenSilent telemetry #5190",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
