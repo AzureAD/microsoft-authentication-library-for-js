@@ -142,6 +142,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 .catch((error: AuthError) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.endMeasurement({
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
                         success: false
                     });
                     atsMeasurement.flushMeasurement();

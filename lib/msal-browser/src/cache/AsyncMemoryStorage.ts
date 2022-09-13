@@ -114,20 +114,25 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     }
 
     /**
-     * Clears in-memory Map and tries to delete the IndexedDB database.
+     * Clears in-memory Map
      */
-    async clear(): Promise<boolean> {
+    clearInMemory(): void {
         // InMemory cache is a Map instance, clear is straightforward
         this.logger.verbose(`Deleting in-memory keystore ${this.storeName}`);
         this.inMemoryCache.clear();
         this.logger.verbose(`In-memory keystore ${this.storeName} deleted`);
-        this.logger.verbose(`Deleting persistent keystore ${this.storeName}`);
-        
+    }
+
+    /**
+     * Tries to delete the IndexedDB database
+     * @returns
+     */
+    async clearPersistent(): Promise<boolean> {
         try {
+            this.logger.verbose("Deleting persistent keystore");
             const dbDeleted = await this.indexedDBCache.deleteDatabase();
-            
             if (dbDeleted) {
-                this.logger.verbose(`Persistent keystore ${this.storeName} deleted`);
+                this.logger.verbose("Persistent keystore deleted");
             }
             
             return dbDeleted;

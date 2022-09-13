@@ -32,7 +32,11 @@ export const NodeAuthErrorMessage = {
     loopbackServerTimeout: {
         code: "loopback_server_timeout",
         desc: "Timed out waiting for auth code listener to be registered."
-    }
+    },
+    stateNotFoundError: {
+        code: "state_not_found",
+        desc: "State not found. Please verify that the request originated from msal."
+    },
 };
 
 export class NodeAuthError extends AuthError {
@@ -87,5 +91,12 @@ export class NodeAuthError extends AuthError {
     static createLoopbackServerTimeoutError(): NodeAuthError {
         return new NodeAuthError(NodeAuthErrorMessage.loopbackServerTimeout.code,
             `${NodeAuthErrorMessage.loopbackServerTimeout.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the state is not present.
+     */
+    static createStateNotFoundError(): NodeAuthError {
+        return new NodeAuthError(NodeAuthErrorMessage.stateNotFoundError.code, NodeAuthErrorMessage.stateNotFoundError.desc);
     }
 }
