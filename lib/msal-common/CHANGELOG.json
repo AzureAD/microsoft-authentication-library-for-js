@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-common_v7.4.1",
+      "version": "7.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4b84e7cc7c0dec506f0041ae1202f7403229c3d4",
+            "comment": "Exporting constants #5189"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Sep 2022 18:06:53 GMT",
       "tag": "@azure/msal-common_v7.4.0",
       "version": "7.4.0",

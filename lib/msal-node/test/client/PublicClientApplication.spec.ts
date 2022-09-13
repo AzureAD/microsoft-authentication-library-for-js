@@ -25,7 +25,6 @@ import { getMsalCommonAutoMock } from '../utils/MockUtils';
 import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
 
-
 describe('PublicClientApplication', () => {
 
     const mockTelemetryManager: msalCommon.ServerTelemetryManager = setupServerTelemetryManagerMock();
@@ -122,6 +121,36 @@ describe('PublicClientApplication', () => {
             nonce: cryptoProvider.createNewGuid(),
             code: TEST_CONSTANTS.AUTHORIZATION_CODE
         }
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
+    test("acquireTokenByAuthorizationCode with state validation", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        };
+
+        const cryptoProvider = new CryptoProvider();
+        const authCodePayLoad = {
+            nonce: cryptoProvider.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            state: cryptoProvider.createNewGuid()
+        };
 
         const MockAuthorizationCodeClient = getMsalCommonAutoMock()
             .AuthorizationCodeClient;
@@ -441,4 +470,100 @@ describe('PublicClientApplication', () => {
 
         authApp.getLogger().info("Message");
     });
+
+    test("should throw an error if state is not provided", async () => {
+        const cryptoProvider = new CryptoProvider();
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            correlationId: "test-correlationId",
+            state: ""
+        };
+
+        const authCodePayLoad = {
+            nonce: cryptoProvider.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            state: cryptoProvider.createNewGuid()
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const mockInfo = jest.fn();
+        jest.mock("@azure/msal-common", () => {
+            return {
+                getLogger: () => ({
+                    info: mockInfo
+                })
+            };
+        });
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayLoad);
+
+        try {
+            await authApp.acquireTokenByCode(request, authCodePayLoad);
+        } catch (e) {   
+            expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
+            expect(mockInfo).toHaveBeenCalledWith(
+                "acquireTokenByCode - validating state"
+            );
+            expect(authApp.acquireTokenByCode).toThrow(
+                "State not found. Please verify that the request originated from msal."
+            );
+        }
+    });
+
+    test("should throw error when state and cachedSate don't match", async () => {
+        const cryptoProvider = new CryptoProvider();
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            correlationId: "test-correlationId",
+            state: cryptoProvider.createNewGuid()
+        };
+
+        const authCodePayLoad = {
+            nonce: cryptoProvider.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            state: "ed09b151-1b68-4c2c-8e95-y8dcfffffggh"
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const mockInfo = jest.fn();
+        jest.mock("@azure/msal-common", () => {
+            return {
+                getLogger: () => ({
+                    info: mockInfo
+                })
+            };
+        });
+
+        const authApp = new PublicClientApplication(appConfig);
+
+        try {
+            await authApp.acquireTokenByCode(request, authCodePayLoad);
+        } catch (e) {
+            expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
+            expect(mockInfo).toHaveBeenCalledWith(
+                "acquireTokenByCode - validating state"
+            );
+            expect(authApp.acquireTokenByCode).toThrow(
+                "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
+            );
+        }
+    });
+
 });
