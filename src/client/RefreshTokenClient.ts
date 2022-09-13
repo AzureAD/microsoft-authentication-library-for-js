@@ -36,7 +36,6 @@ export class RefreshTokenClient extends BaseClient {
 
     }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
-        // @ts-ignore
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
         this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -69,7 +68,7 @@ export class RefreshTokenClient extends BaseClient {
                     refreshTokenSize: response?.body?.refresh_token.length || 0
                 });
             }
-            else{
+            else {
                 // no refresh token is returned
                 atsMeasurement?.endMeasurement({
                     success: true,
@@ -124,10 +123,9 @@ export class RefreshTokenClient extends BaseClient {
                     throw e;
                 }
             }
-        } else {
-            // fall back to application refresh token acquisition
-            return this.acquireTokenWithCachedRefreshToken(request, false);
         }
+        // fall back to application refresh token acquisition
+        return this.acquireTokenWithCachedRefreshToken(request, false);
 
     }
 
@@ -138,7 +136,6 @@ export class RefreshTokenClient extends BaseClient {
     private async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
 
-        // @ts-ignore
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
         this.logger.verbose("RefreshTokenClientAcquireTokenWithCachedRefreshToken called", request.correlationId);
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
