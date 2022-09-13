@@ -331,7 +331,7 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when oo much time has elapsed since the last end-user authentication
+     * Creates an error thrown when too much time has elapsed since the last end-user authentication
      */
     static createMaxAgeTranspiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.maxAgeTranspiredError.code,

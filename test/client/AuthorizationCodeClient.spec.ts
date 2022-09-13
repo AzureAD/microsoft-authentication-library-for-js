@@ -31,7 +31,7 @@ import { ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { CcsCredentialType, ClientConfigurationError } from "../../src";
 
-const ONE_DAY_IN_MILLI = 86400000;
+const ONE_DAY_IN_MS = 86400000;
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -994,7 +994,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
                 // the most recent end-user authentication
-                "auth_time": Date.now() - (ONE_DAY_IN_MILLI * 2) // 2 days ago
+                "auth_time": Date.now() - (ONE_DAY_IN_MS * 2) // 2 days ago
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
@@ -1008,7 +1008,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 // the maximum amount of time that can transpire until the end-user must re-authenticate
-                maxAge: ONE_DAY_IN_MILLI
+                maxAge: ONE_DAY_IN_MS
             };
 
             await expect(client.acquireToken(authCodeRequest, {
@@ -1072,7 +1072,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
                 // the most recent end-user authentication
-                "auth_time": Date.now() - (ONE_DAY_IN_MILLI * 2) // 2 days ago
+                "auth_time": Date.now() - (ONE_DAY_IN_MS * 2) // 2 days ago
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
@@ -1086,7 +1086,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 // the maximum amount of time that can transpire until the end-user must re-authenticate
-                maxAge: ONE_DAY_IN_MILLI * 3
+                maxAge: ONE_DAY_IN_MS * 3
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {

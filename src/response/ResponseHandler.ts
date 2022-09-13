@@ -129,7 +129,12 @@ export class ResponseHandler {
 
             // token max_age check
             if (request.maxAge || (request.maxAge === 0)) {
-                AuthToken.checkMaxAge(idTokenObj.claims.auth_time, request.maxAge);
+                const authTime = idTokenObj.claims.auth_time;
+                if (!authTime) {
+                    throw ClientAuthError.createAuthTimeNotFoundError();
+                }
+
+                AuthToken.checkMaxAge(authTime, request.maxAge);
             }
         }
 
