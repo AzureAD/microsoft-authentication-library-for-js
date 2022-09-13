@@ -267,7 +267,6 @@ const networkRequestViaHttps = <T>(
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
                 }
 
                 resolve(networkResponse);
