@@ -584,13 +584,10 @@ export abstract class ClientApplication {
     /**
      * Attempt to acquire an access token via a refresh token
      * @param request CommonSilentFlowRequest
-     * @param atbrtMeasurement measurement API
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenByRefreshToken(
-        request: CommonSilentFlowRequest,
-        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-        atbrtMeasurement: any
+        request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -599,74 +596,23 @@ export abstract class ClientApplication {
         const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
 
         // attempt to acquire AT with existing RT
-        return silentRefreshClient.acquireToken(request)
-            .then((result: AuthenticationResult) => {
-                atbrtMeasurement.endMeasurement({
-                    success: true,
-                    fromCache: result.fromCache,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                });
-                return result;
-            })
-            .catch((error) => {
-                throw error;
-            });
+        return silentRefreshClient.acquireToken(request);
     }
 
     /**
      * Attempt to acquire an access token via an iframe
-     * @param error an error that may have occurred when trying to acquire an access token
-     * via the refresh token, prior to this function
      * @param request CommonSilentFlowRequest
-     * @param atbrtMeasurement measurement API
-     * @param networkOnly a boolean indicating if this function is being called as a result of an error that may
-     * have occurred when trying to acquire an access token via the refresh token, or if the SilentTokenRetrievalStrategy
-     * is set to NetworkOnly
+     * @param message the message to display in the logger
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenBySilentIframe(
-        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-        error: any,
         request: CommonSilentFlowRequest,
-        // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types, @typescript-eslint/no-explicit-any
-        atbrtMeasurement: any,
-        networkOnly: boolean
+        message: string
     ): Promise<AuthenticationResult> {
-        const isServerError = error instanceof ServerError;
-        const isInteractionRequiredError = error instanceof InteractionRequiredAuthError;
-        const isInvalidGrantError = (error.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+        this.logger.verbose(`${message}, attempting acquire token by iframe.`, request.correlationId);
 
-        if ((isServerError && isInvalidGrantError && !isInteractionRequiredError) || networkOnly) {
-            const errorMessage = networkOnly ?
-                "SilentTokenRetrievalStrategy set to NetworkOnly"
-                :
-                "Refresh token expired or invalid";
-            this.logger.verbose(`${errorMessage}, attempting acquire token by iframe.`, request.correlationId);
-
-            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-            return silentIframeClient.acquireToken(request)
-                .then((result: AuthenticationResult) => {
-                    atbrtMeasurement.endMeasurement({
-                        success: true,
-                        fromCache: result.fromCache,
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
-                    });
-
-                    return result;
-                })
-                .catch((error) => {
-                    atbrtMeasurement.endMeasurement({
-                        errorCode: error.errorCode,
-                        subErrorCode: error.subError,
-                        success: false
-                    });
-                    throw error;
-                });
-        } else {
-            throw error;
-        }
+        const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+        return silentIframeClient.acquireToken(request);
     }
 
     // #endregion
