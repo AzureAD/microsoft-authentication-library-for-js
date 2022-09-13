@@ -61,8 +61,8 @@ export class AuthToken {
             throw ClientAuthError.createMaxAgeTranspiredError();
         }
 
-        const twoMinuteSkew = 300000; // five minutes in milliseconds
-        if ((Date.now() - twoMinuteSkew) > (authTime + maxAge)) {
+        const fiveMinuteSkew = 300000; // five minutes in milliseconds
+        if ((Date.now() - fiveMinuteSkew) > (authTime + maxAge)) {
             throw ClientAuthError.createMaxAgeTranspiredError();
         }
     }
