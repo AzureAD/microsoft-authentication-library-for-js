@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Update package-lock.json for published releases",
+  "comment": "Update package-lock.json for published releases #5213",
   "packageName": "@azure/msal-angular",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none"
