@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "added http version changes",
+  "comment": "added http version changes #5211",
   "packageName": "@azure/msal-browser",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
