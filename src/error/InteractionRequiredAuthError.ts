@@ -10,9 +10,7 @@ import { AuthError } from "./AuthError";
  */
 export const InteractionRequiredServerErrorMessage = [
     "interaction_required",
-    "consent_required",
-    "login_required",
-    "invalid_grant"
+    "consent_required"
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
@@ -34,10 +32,6 @@ export const InteractionRequiredAuthErrorMessage = {
     native_account_unavailable: {
         code: "native_account_unavailable",
         desc: "The requested account is not available in the native broker. It may have been deleted or logged out. Please sign-in again using an interactive API."
-    },
-    invalid_grant: {
-        code: "invalid_grant",
-        desc: "",
     }
 };
 
@@ -59,7 +53,7 @@ export class InteractionRequiredAuthError extends AuthError {
      * @param errorString 
      * @param subError 
      */
-    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string) : boolean {
+    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string): boolean {
         const isInteractionRequiredErrorCode = !!errorCode && InteractionRequiredServerErrorMessage.indexOf(errorCode) > -1;
         const isInteractionRequiredSubError = !!subError && InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
         const isInteractionRequiredErrorDesc = !!errorString && InteractionRequiredServerErrorMessage.some((irErrorCode) => {
@@ -84,7 +78,4 @@ export class InteractionRequiredAuthError extends AuthError {
         return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.native_account_unavailable.code, InteractionRequiredAuthErrorMessage.native_account_unavailable.desc);
     }
 
-    static createInvalidGrantError(desc: string): InteractionRequiredAuthError {
-        return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.invalid_grant.code, desc);
-    }
 }
