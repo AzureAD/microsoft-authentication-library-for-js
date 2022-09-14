@@ -401,3 +401,5 @@ export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
 }
+
+export const ONE_DAY_IN_MS = 86400000;

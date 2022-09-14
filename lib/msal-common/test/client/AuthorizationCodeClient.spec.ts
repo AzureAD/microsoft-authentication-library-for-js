@@ -17,7 +17,7 @@ import {
 } from "../test_kit/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme, ThrottlingConstants, Constants, HeaderNames } from "../../src/utils/Constants";
+import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme, ThrottlingConstants, Constants, HeaderNames, ONE_DAY_IN_MS } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
 import { Authority } from "../../src/authority/Authority";
@@ -30,8 +30,6 @@ import { AuthToken } from "../../src/account/AuthToken";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { CcsCredentialType, ClientConfigurationError } from "../../src";
-
-const ONE_DAY_IN_MS = 86400000;
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -941,7 +939,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(stubCalled).toBe(true);
         });
 
-        it("Throws an error if the end-user needs to reauthenticate because the max_age has transpired since the last end-user authentication", async () => {
+        it("Throws error if max age is equal to 0 or has transpired since the last end-user authentication", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
@@ -993,8 +991,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
-                // the most recent end-user authentication
-                "auth_time": Date.now() - (ONE_DAY_IN_MS * 2) // 2 days ago
+                "auth_time": Date.now() - (ONE_DAY_IN_MS * 2)
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
@@ -1007,8 +1004,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
-                // the maximum amount of time that can transpire until the end-user must re-authenticate
-                maxAge: ONE_DAY_IN_MS
+                maxAge: 0 // 0 indicates an immediate refresh
             };
 
             await expect(client.acquireToken(authCodeRequest, {
@@ -1016,6 +1012,81 @@ describe("AuthorizationCodeClient unit tests", () => {
                 nonce: idTokenClaims.nonce,
                 state: testState
             })).rejects.toMatchObject(ClientAuthError.createMaxAgeTranspiredError());
+        });
+
+        it("Throws error if max age is requested and auth time is not included in the token claims", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+
+            // Set up required objects and mocked return values
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
+            
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
+
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                // "auth_time" is missing for the purpose of this test
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const client = new AuthorizationCodeClient(config);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                maxAge: ONE_DAY_IN_MS * 3
+            };
+
+            await expect(client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            })).rejects.toMatchObject(ClientAuthError.createAuthTimeNotFoundError());
         });
 
         it("Acquires a token successfully", async () => {
@@ -1070,9 +1141,112 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const client = new AuthorizationCodeClient(config);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            const authenticationResult = await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            });
+            if (!authenticationResult.expiresOn) {
+                throw TestError.createTestSetupError("mockedAccountInfo does not have a value");
+            }
+
+            expect(authenticationResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            // @ts-ignore
+            expect((Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).toBe(true);
+            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).toBeTruthy();
+
+            const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+            expect(returnVal.includes(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)
+            ).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+        });
+
+        it("Acquires a token successfully when max age is provided and has not transpired yet", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+
+            // Set up required objects and mocked return values
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            });
+            
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            });
+
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
-                // the most recent end-user authentication
-                "auth_time": Date.now() - (ONE_DAY_IN_MS * 2) // 2 days ago
+                "auth_time": Date.now() - (ONE_DAY_IN_MS * 2)
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
@@ -1085,7 +1259,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
-                // the maximum amount of time that can transpire until the end-user must re-authenticate
                 maxAge: ONE_DAY_IN_MS * 3
             };
 

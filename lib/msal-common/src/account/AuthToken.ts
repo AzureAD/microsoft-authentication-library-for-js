@@ -57,12 +57,8 @@ export class AuthToken {
          * To force an immediate re-authentication: If an app requires that a user re-authenticate prior to access,
          * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
          */
-        if (maxAge === 0) {
-            throw ClientAuthError.createMaxAgeTranspiredError();
-        }
-
         const fiveMinuteSkew = 300000; // five minutes in milliseconds
-        if ((Date.now() - fiveMinuteSkew) > (authTime + maxAge)) {
+        if ((maxAge === 0) || ((Date.now() - fiveMinuteSkew) > (authTime + maxAge))) {
             throw ClientAuthError.createMaxAgeTranspiredError();
         }
     }
