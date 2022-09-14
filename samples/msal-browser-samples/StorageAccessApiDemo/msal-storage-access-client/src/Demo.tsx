@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
-import { PrimaryButton, ProgressIndicator } from "@fluentui/react";
+import { Checkbox, PrimaryButton, ProgressIndicator } from "@fluentui/react";
 import { checkStorageAccess, promptForStorageAccess } from "./storage-access";
 import { EventMessage, EventType } from "@azure/msal-browser";
 import { Status } from "./Status";
@@ -9,6 +9,7 @@ export function Demo() {
     const [ hasStorageAccess, setHasStorageAccess ] = useState<boolean | null>(null);
     const [ storageAccessCheckInProgress, setStorageAccessCheckInProgress ] = useState<boolean>(false);
     const [ storageAccessPromptInProgress, setStorageAccessPromptInProgress ] = useState<boolean>(false);
+    const [ forceStorageAccessPrompt, setForceStorageAccessPrompt ] = useState<boolean>(false);
 
     const { instance } = useMsal();
     const isAuthenticated = useIsAuthenticated();
@@ -22,7 +23,7 @@ export function Demo() {
 
     const interactiveStorageAccessCheck = async () => {
         setStorageAccessPromptInProgress(true);
-        const result = await promptForStorageAccess();
+        const result = await promptForStorageAccess(forceStorageAccessPrompt);
         setHasStorageAccess(result.hasStorageAccess);
         setStorageAccessPromptInProgress(false);
     };
@@ -91,6 +92,13 @@ export function Demo() {
                     >
                         Prompt for Storage Access
                     </PrimaryButton>
+                    <Checkbox
+                        label="Show interactive prompt even if already granted"
+                        onChange={(e, checked) => {
+                            setForceStorageAccessPrompt(!!checked);
+                        }}
+                        defaultChecked={forceStorageAccessPrompt}
+                    />
                     <div style={{ width: "250px", height: "1rem" }}>
                         {storageAccessPromptInProgress && (
                             <ProgressIndicator />

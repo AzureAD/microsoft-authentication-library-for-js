@@ -51,7 +51,8 @@ export const checkStorageAccess = async (serverUrl: string = getServerUrl()): Pr
 
 }
 
-export const promptForStorageAccess = async (serverUrl: string = getServerUrl()) => {
+export const promptForStorageAccess = async (forceStorageAccessPrompt?: boolean) => {
+    const serverUrl = getServerUrl();
     return new Promise<HasStorageAccessResult>((resolve, reject) => {
 
         // Create visible iframe
@@ -77,8 +78,9 @@ export const promptForStorageAccess = async (serverUrl: string = getServerUrl())
                     console.log("Step 4: Top frame receives result")
                     console.log("Result", e.data);
     
-                    // Message received to make iframe visible
-                    if (!!e.data["promptForStorageAccess"]) {
+                    // Message received to make iframe visible if server indicates prompt should be made visible, or
+                    // if user checked box to show prompt (and were not receiving a message indicating they have just clicked the button)
+                    if (!!e.data["promptForStorageAccess"] || (forceStorageAccessPrompt && typeof e.data["acquiredStorageAccess"] !== "boolean")) {
                         console.log("Message received to make iframe visible")
                         iframe.style.display = "block";
                         return;

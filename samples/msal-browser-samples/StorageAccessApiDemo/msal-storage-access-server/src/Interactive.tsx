@@ -19,15 +19,15 @@ export function Interactive() {
                             messageChannel.port1.postMessage({
                                 hasStorageAccess: true
                             })
-                            messageChannel.port1.close();
                         } else {
                             // Send message to top frame to make frame visible
                             messageChannel.port1.postMessage({
                                 promptForStorageAccess: true
                             });
                             console.log("Sending message to top frame to make iframe visible")
-                            setReady(true);
                         }
+
+                        setReady(true);
                     })
             }
         })
@@ -74,16 +74,15 @@ export function Interactive() {
                                 document.requestStorageAccess()
                                     .then(() => {
                                         messageChannel.port1.postMessage({
-                                            hasStorageAccess: true
+                                            hasStorageAccess: true,
+                                            acquiredStorageAccess: true // Flag to indicate result is from interactive prompt vs silent
                                         })
-                                        messageChannel.port1.close();
                                     })
                                     .catch(() => {
                                         messageChannel.port1.postMessage({
-                                            hasStorageAccess: false
-
+                                            hasStorageAccess: false,
+                                            acquireStorageAccess: false
                                         })
-                                        messageChannel.port1.close();
                                     })
                             }}
                             disabled={!ready}
