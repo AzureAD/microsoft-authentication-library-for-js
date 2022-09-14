@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { Checkbox, PrimaryButton, ProgressIndicator } from "@fluentui/react";
 import { checkStorageAccess, promptForStorageAccess } from "./storage-access";
@@ -14,19 +14,19 @@ export function Demo() {
     const { instance } = useMsal();
     const isAuthenticated = useIsAuthenticated();
 
-    const silentStorageAccessCheck = async () => {
+    const silentStorageAccessCheck = useCallback(async () => {
         setStorageAccessCheckInProgress(true);
         const result = await checkStorageAccess();
         setHasStorageAccess(result.hasStorageAccess);
         setStorageAccessCheckInProgress(false);
-    };
+    }, []);
 
-    const interactiveStorageAccessCheck = async () => {
+    const interactiveStorageAccessCheck = useCallback(async () => {
         setStorageAccessPromptInProgress(true);
         const result = await promptForStorageAccess(forceStorageAccessPrompt);
         setHasStorageAccess(result.hasStorageAccess);
         setStorageAccessPromptInProgress(false);
-    };
+    }, [ forceStorageAccessPrompt ]);
     
     useEffect(() => {
         // This will be run on component mount
@@ -49,7 +49,7 @@ export function Demo() {
             }
         }
         
-    }, [ instance ]);
+    }, [ instance, interactiveStorageAccessCheck ]);
 
     const checkStorageAccessComponents = (
         <>
