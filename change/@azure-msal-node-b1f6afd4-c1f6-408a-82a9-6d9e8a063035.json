@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Merge branch 'dev' of github.com:AzureAD/microsoft-authentication-library-for-js into node_error_masking",
+  "comment": "This PR modifies HttpClient in Msal-node to return the underlying AAD error in place of wrongfully placed network error, where applicable #5175",
   "packageName": "@azure/msal-node",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
