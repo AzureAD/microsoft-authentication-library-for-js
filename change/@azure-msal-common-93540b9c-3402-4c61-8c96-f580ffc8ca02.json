@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update package-lock.json for published releases",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none"
+}
