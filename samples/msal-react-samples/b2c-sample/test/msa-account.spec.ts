@@ -89,7 +89,7 @@ describe('B2C user-flow tests (msa account)', () => {
         await Promise.all([
             page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`),
             page.waitForSelector("#idTokenClaims"),
-            page.waitForTimeout(4000) // wait for ssoSilent and rerender
+            page.waitForXPath("//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]", {timeout: 4000})
         ]);
         const idTokenClaims = await page.$eval("#idTokenClaims", (e) => e.textContent);  
         expect(idTokenClaims).toContain("B2C_1_SISOPolicy"); // implies the current active account
