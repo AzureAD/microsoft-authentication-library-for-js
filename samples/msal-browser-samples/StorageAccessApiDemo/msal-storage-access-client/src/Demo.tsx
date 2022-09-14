@@ -49,7 +49,7 @@ export function Demo() {
             }
         }
         
-    }, [ instance, interactiveStorageAccessCheck ]);
+    }, [ instance, interactiveStorageAccessCheck, silentStorageAccessCheck ]);
 
     const checkStorageAccessComponents = (
         <>
