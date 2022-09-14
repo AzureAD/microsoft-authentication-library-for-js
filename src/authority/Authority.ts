@@ -15,13 +15,14 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
-import { AuthorityOptions , AzureCloudInstance } from "./AuthorityOptions";
+import { AuthorityOptions, AzureCloudInstance } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -47,8 +48,9 @@ export class Authority {
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
     // Proxy url string
     private proxyUrl: string;
+    private performanceClient?: IPerformanceClient;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string, performanceClient?: IPerformanceClient) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
@@ -57,6 +59,7 @@ export class Authority {
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
         this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
+        this.performanceClient = performanceClient;
     }
 
     // See above for AuthorityType
@@ -129,7 +132,7 @@ export class Authority {
      * OAuth /authorize endpoint for requests
      */
     public get authorizationEndpoint(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.authorization_endpoint);
             return this.replaceTenant(endpoint);
         } else {
@@ -141,7 +144,7 @@ export class Authority {
      * OAuth /token endpoint for requests
      */
     public get tokenEndpoint(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.token_endpoint);
             return this.replaceTenant(endpoint);
         } else {
@@ -150,7 +153,7 @@ export class Authority {
     }
 
     public get deviceCodeEndpoint(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.token_endpoint.replace("/token", "/devicecode"));
             return this.replaceTenant(endpoint);
         } else {
@@ -162,7 +165,7 @@ export class Authority {
      * OAuth logout endpoint for requests
      */
     public get endSessionEndpoint(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             // ROPC policies may not have end_session_endpoint set
             if (!this.metadata.end_session_endpoint) {
                 throw ClientAuthError.createLogoutNotSupportedError();
@@ -178,7 +181,7 @@ export class Authority {
      * OAuth issuer for requests
      */
     public get selfSignedJwtAudience(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.issuer);
             return this.replaceTenant(endpoint);
         } else {
@@ -190,7 +193,7 @@ export class Authority {
      * Jwks_uri for token signing keys
      */
     public get jwksUri(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             const endpoint = this.replacePath(this.metadata.jwks_uri);
             return this.replaceTenant(endpoint);
         } else {
@@ -275,6 +278,9 @@ export class Authority {
      */
     private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         let metadata = this.getEndpointMetadataFromConfig();
+        console.log("METADATA from config");
+        console.log(metadata);
+
         if (metadata) {
             metadataEntity.updateEndpointMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
@@ -287,6 +293,8 @@ export class Authority {
 
         let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         metadata = await this.getEndpointMetadataFromNetwork();
+        console.log("METADATA.......");
+        console.log(metadata);
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
@@ -295,7 +303,7 @@ export class Authority {
 
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
-        }    
+        }
 
         if (harcodedMetadata && !this.authorityOptions.skipAuthorityMetadataCache) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
@@ -359,6 +367,7 @@ export class Authority {
 
         try {
             const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint, options);
+
             return isOpenIdConfigResponse(response.body) ? response.body : null;
         } catch (e) {
             return null;
@@ -431,8 +440,8 @@ export class Authority {
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
-        } 
-        
+        }
+
         if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
@@ -491,6 +500,10 @@ export class Authority {
                     instanceDiscoveryEndpoint,
                     options
                 );
+            const httpVer = response.headers["x-ms-httpver"];
+            if (httpVer) {
+                this.performanceClient?.setHttpVer(httpVer);
+            }
             const metadata = isCloudInstanceDiscoveryResponse(response.body)
                 ? response.body.metadata
                 : [];
@@ -585,7 +598,7 @@ export class Authority {
      * helper function to generate environment from authority object
      */
     getPreferredCache(): string {
-        if(this.discoveryComplete()) {
+        if (this.discoveryComplete()) {
             return this.metadata.preferred_cache;
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
@@ -623,7 +636,7 @@ export class Authority {
 
         const authorityUrlParts = authorityUrlInstance.getUrlComponents();
 
-        let hostNameAndPort= `${region}.${authorityUrlParts.HostNameAndPort}`;
+        let hostNameAndPort = `${region}.${authorityUrlParts.HostNameAndPort}`;
 
         if (this.isPublicCloudAuthority(authorityUrlParts.HostNameAndPort)) {
             hostNameAndPort = `${region}.${Constants.REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX}`;
