@@ -26,7 +26,7 @@ export const checkStorageAccess = async (serverUrl: string = getServerUrl()): Pr
     
                     // Clean up
                     ev.ports[0].close();
-                    document.getElementById(iframe.id)?.remove();
+                    iframe.remove();
                     window.removeEventListener("message", onMessageCallback);
         
                     return resolve({
@@ -66,9 +66,7 @@ export const promptForStorageAccess = async (forceStorageAccessPrompt?: boolean)
         iframe.style.zIndex = "99999";
         iframe.style.width = "100vw";
         iframe.style.height = "100vh";
-
-        // Make iframe initially hidden
-        iframe.style.display = "none";
+        iframe.style.transition = "opacity 0.5s linear";
         
         // Add event listener for response from iframe
         const onMessageCallback = (ev: MessageEvent) => {
@@ -81,14 +79,19 @@ export const promptForStorageAccess = async (forceStorageAccessPrompt?: boolean)
                     // Message received to make iframe visible if server indicates prompt should be made visible, or
                     // if user checked box to show prompt (and were not receiving a message indicating they have just clicked the button)
                     if (!!e.data["promptForStorageAccess"] || (forceStorageAccessPrompt && typeof e.data["acquiredStorageAccess"] !== "boolean")) {
-                        console.log("Message received to make iframe visible")
-                        iframe.style.display = "block";
+                        console.log("Message received to make iframe visible");
+                        iframe.style.visibility = "visible";
+                        iframe.classList.add("visible");
                         return;
                     }
     
                     // Clean up
                     ev.ports[0].close();
-                    document.getElementById(iframe.id)?.remove();
+                    iframe.classList.remove("visible");
+                    // Wait until css transition is done and then remove iframe from the DOM
+                    setTimeout(() => {
+                        iframe.remove();
+                    }, 5000);
                     window.removeEventListener("message", onMessageCallback);
         
                     return resolve({
