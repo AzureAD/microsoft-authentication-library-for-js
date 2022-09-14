@@ -43,11 +43,11 @@ export abstract class BaseInteractionClient {
         this.performanceClient = performanceClient;
     }
 
-    abstract acquireToken(request: RedirectRequest|PopupRequest|SsoSilentRequest): Promise<AuthenticationResult|void>;
+    abstract acquireToken(request: RedirectRequest | PopupRequest | SsoSilentRequest): Promise<AuthenticationResult | void>;
 
     abstract logout(request: EndSessionRequest): Promise<void>;
 
-    protected async clearCacheOnLogout(account?: AccountInfo| null): Promise<void> {
+    protected async clearCacheOnLogout(account?: AccountInfo | null): Promise<void> {
         if (account) {
             if (AccountEntity.accountInfoIsEqual(account, this.browserStorage.getActiveAccount(), false)) {
                 this.logger.verbose("Setting active account to null");
@@ -67,7 +67,7 @@ export abstract class BaseInteractionClient {
                 await this.browserStorage.clear();
                 // Clear any stray keys from IndexedDB
                 await this.browserCrypto.clearKeystore();
-            } catch(e) {
+            } catch (e) {
                 this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
             }
         }
@@ -99,7 +99,7 @@ export abstract class BaseInteractionClient {
                 if (!request.sshJwk) {
                     throw ClientConfigurationError.createMissingSshJwkError();
                 }
-                if(!request.sshKid) {
+                if (!request.sshKid) {
                     throw ClientConfigurationError.createMissingSshKidError();
                 }
             }
@@ -163,10 +163,10 @@ export abstract class BaseInteractionClient {
 
         if (requestAuthority) {
             this.logger.verbose("Creating discovered authority with request authority");
-            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, undefined, this.performanceClient);
         }
 
         this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions, undefined, this.performanceClient);
     }
 }

@@ -60,7 +60,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         if (logoutRequest) {
             // If logoutHint isn't set and an account was passed in, try to extract logoutHint from ID Token Claims
             if (!logoutRequest.logoutHint) {
-                if(logoutRequest.account) {
+                if (logoutRequest.account) {
                     const logoutHint = this.getLogoutHintFromIdTokenClaims(logoutRequest.account);
                     if (logoutHint) {
                         this.logger.verbose("Setting logoutHint to login_hint ID Token Claim value for the account provided");
@@ -214,9 +214,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const userAuthority = requestAuthority ? requestAuthority : this.config.auth.authority;
 
         // fall back to the authority from config
-        const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
+        const builtAuthority = Authority.generateAuthority(userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
-        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions)
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, undefined, this.performanceClient)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({
                     success: true
@@ -224,7 +224,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
                 return result;
             })
-            .catch((error:AuthError) => {
+            .catch((error: AuthError) => {
                 getAuthorityMeasurement.endMeasurement({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
@@ -240,7 +240,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
+    protected async initializeAuthorizationRequest(request: RedirectRequest | PopupRequest | SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("initializeAuthorizationRequest called", this.correlationId);
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
@@ -248,7 +248,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state)|| Constants.EMPTY_STRING,
+            (request && request.state) || Constants.EMPTY_STRING,
             browserState
         );
 
