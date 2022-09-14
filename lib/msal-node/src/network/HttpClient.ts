@@ -4,14 +4,9 @@
  */
 
 import {
-    ClientAuthErrorMessage,
     INetworkModule,
-    InteractionRequiredAuthError,
-    InteractionRequiredAuthErrorMessage,
     NetworkRequestOptions,
-    NetworkResponse,
-    ClientAuthError,
-    AuthError
+    NetworkResponse
 } from "@azure/msal-common";
 import { HttpMethod, Constants } from "../utils/Constants";
 import http from "http";
@@ -272,22 +267,6 @@ const networkRequestViaHttps = <T>(
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    if (networkResponse.body["error"] === InteractionRequiredAuthErrorMessage.invalid_grant.code) {
-                        reject(InteractionRequiredAuthError.createInvalidGrantError(networkResponse.body["error_description"]));
-                    }
-                    else if (networkResponse.body["error"] === InteractionRequiredAuthErrorMessage.noTokensFoundError.code) {
-                        reject(InteractionRequiredAuthError.createNoTokensFoundError());
-                    }
-                    else if (networkResponse.body["error"] === InteractionRequiredAuthErrorMessage.native_account_unavailable.code) {
-                        reject(InteractionRequiredAuthError.createNativeAccountUnavailableError());
-                    }
-                    else if (networkResponse.body["error"] === ClientAuthErrorMessage.invalidRequest.code) {
-                        reject(ClientAuthError.createInvalidRequestError(networkResponse.body["error_description"]));
-                    } 
-                    else {
-                        // Unhandled error
-                        reject( new AuthError(networkResponse.body["error"], networkResponse.body["error_description"], networkResponse.body["suberror"]));
-                    }
 
                 }
 
