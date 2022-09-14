@@ -1,6 +1,6 @@
 # Authority in MSAL
 
-In OAuth 2.0 and OpenID Connect, a client application (aka *relying party*) acquires tokens from an identity provider (IdP), such as Azure AD, to prove authentication (via ID tokens) and/or authorization (via access tokens). In this relationship, the IdP has the *authority* to issue tokens to the client application, and the client application trusts the *authority* of the IdP.
+In OAuth 2.0 and OpenID Connect, a client application (aka *relying party*) acquires tokens from an identity provider (IdP), such as Azure AD, to prove authenticity (via ID tokens) and/or authorization (via access tokens). In this relationship, the IdP has the *authority* to issue tokens to the client application, and the client application trusts the *authority* of the IdP.
 
 MSAL is a token acquisition library. The **authority** parameter in MSAL configuration indicates the URL to request tokens from. This URL points to the service that issues tokens, also called as **security token service** (STS). MSAL needs to have accurate information about an STS to be able to requests tokens from it (either directly from the network or from the cache later on). To do so, MSAL performs steps to gather the necessary **metadata** for making a token request (*endpoint discovery*). The [Authority.ts](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.authority.html) class encapsulates the methods and data required for endpoint discovery, and is instantiated before each token request.
 
@@ -12,7 +12,7 @@ The default authority for MSAL is `https://login.microsoftonline.com/common`. Th
     https://<domain-of-the-service>/<tenant-identifier>
 ```
 
-> :warning: The canonical authority URL differs in the case of B2C and ADFS. See [Choosing an authority](#choosing-an-authority) below for more.
+> :warning: The canonical authority URL differs in the case of B2C, ADFS and dSTS. See [Choosing an authority](#choosing-an-authority) below for more.
 
 The authority URL guides MSAL where to look for the 3 endpoints that are required for successfully acquiring a token:
 
@@ -92,6 +92,20 @@ const pca = new PublicClientApplication({
 ```
 
 See [ADFS](./ADFS.md) for more.
+
+### dSTS
+
+Given that dSTS also uses custom domains in its authority URLs and does not support instance discovery, dSTS authorities must also be explicitly included in the `knownAuthorities` configuration array.
+
+```javascript
+const pca = new ConfidentialClientApplication({
+    auth: {
+        clientId: "<your-client-id>",
+        authority: "https://<your-dsts-domain>/dstsv2/<your-tenant-id>",
+        knownAuthorities: ["<your-dsts-domain>"] // array of domains that are known to be trusted
+    }
+});
+```
 
 ### Other OIDC-compliant IdPs
 
