@@ -73,7 +73,7 @@ export const ClientAuthErrorMessage = {
     },
     maxAgeTranspiredError: {
         code: "max_age_transpired",
-        desc: "Too much time has elapsed since the last end-user authentication"
+        desc: "Max Age is set to 0, or too much time has elapsed since the last end-user authentication."
     },
     noTokensFoundError: {
         code: "no_tokens_found",
