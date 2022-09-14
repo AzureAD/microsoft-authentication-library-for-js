@@ -81,14 +81,6 @@ export class Authority {
     }
 
     /**
-     * Returns true if the authority supports Instance Discovery
-     */
-    public get supportsInstanceDiscovery(): boolean {
-        // DSTS does not support instance discovery
-        return !(this.authorityType === AuthorityType.Dsts);
-    }
-
-    /**
      * ProtocolMode enum representing the way endpoints are constructed.
      */
     public get protocolMode(): ProtocolMode {
@@ -406,7 +398,8 @@ export class Authority {
     private async updateMetadataWithRegionalInformation(metadata: OpenIdConfigResponse): Promise<OpenIdConfigResponse> {
         const autodetectedRegionName = await this.regionDiscovery.detectRegion(
             this.authorityOptions.azureRegionConfiguration?.environmentRegion,
-            this.regionDiscoveryMetadata, this.proxyUrl
+            this.regionDiscoveryMetadata,
+            this.proxyUrl
         );
 
         const azureRegion = 
@@ -459,25 +452,18 @@ export class Authority {
 
         const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
 
-        // Only go to the network if authority supports Instance Discovery
-        if (this.supportsInstanceDiscovery) {
-            metadata = await this.getCloudDiscoveryMetadataFromNetwork();
-            if (metadata) {
-                metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
-                return AuthorityMetadataSource.NETWORK;
-            }
-            
-            if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
-                metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
-                return AuthorityMetadataSource.HARDCODED_VALUES;
-            } else {
-                // Metadata could not be obtained from config, cache or network
-                throw ClientConfigurationError.createUntrustedAuthorityError();
-            }
+        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
+        if (metadata) {
+            metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
+            return AuthorityMetadataSource.NETWORK;
+        }
+        
+        if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
+            metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
+            return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
-            metadata = Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
-            metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
-            return AuthorityMetadataSource.CONFIG;
+            // Metadata could not be obtained from config, cache or network
+            throw ClientConfigurationError.createUntrustedAuthorityError();
         }
     }
 

@@ -119,15 +119,6 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(authority.options).toBe(authorityOptions);
         });
 
-        it("Gets instance discovery support flag", () => {
-            expect(authority.supportsInstanceDiscovery).toBe(true);
-        });
-
-        it("supportsInstanceDiscovery returns false for DSTS authority", () => {
-            const dstsAuthority = new Authority(TEST_CONFIG.DSTS_VALID_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-            expect(dstsAuthority.supportsInstanceDiscovery).toBe(false);
-        });
-
         describe("OAuth Endpoints", () => {
 
             beforeEach(async () => {
@@ -837,10 +828,10 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             
-            it("Sets metadata from host if authority type does not support instance discovery", async () => {
+            it("Sets metadata from host for DSTS authority", async () => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
-                    knownAuthorities: [],
+                    knownAuthorities: ["https://custom-domain.microsoft.com/dstsv2"],
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: ""
                 }
