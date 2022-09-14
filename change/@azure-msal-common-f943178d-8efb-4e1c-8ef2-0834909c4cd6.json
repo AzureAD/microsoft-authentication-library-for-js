@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "http ver telemetry changes",
+  "comment": "http version telemetry data #5211",
   "packageName": "@azure/msal-common",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
