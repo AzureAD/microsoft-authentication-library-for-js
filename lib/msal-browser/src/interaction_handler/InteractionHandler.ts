@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError } from "@azure/msal-common";
+import { AuthorizationCodePayload, StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError, PerformanceClient, IPerformanceClient } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
@@ -20,12 +20,14 @@ export class InteractionHandler {
     protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: CommonAuthorizationCodeRequest;
     protected logger: Logger;
+    private performanceClient?: IPerformanceClient;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, performanceClient?: IPerformanceClient) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
         this.authCodeRequest = authCodeRequest;
         this.logger = logger;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -78,7 +80,7 @@ export class InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        
+
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
@@ -95,7 +97,7 @@ export class InteractionHandler {
         if (validateNonce) {
             authCodeResponse.nonce = cachedNonce || undefined;
         }
-        
+
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available
@@ -122,7 +124,7 @@ export class InteractionHandler {
      */
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options, undefined, this.performanceClient);
         this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 

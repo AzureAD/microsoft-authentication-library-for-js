@@ -10,7 +10,7 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./PerformanceEvent";
 
 export abstract class PerformanceClient implements IPerformanceClient {
-    protected httpVer?: string;
+    protected httpVer: string;
     protected authority: string;
     protected libraryName: string;
     protected libraryVersion: string;
@@ -56,7 +56,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
-        this.httpVer = undefined;
+        this.httpVer = "1.1";
     }
 
     /**
@@ -280,12 +280,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
                             previous.idTokenSize = current.idTokenSize;
                         }
                     }
-                    else{
+                    else {
                         console.log("current name is same which is ....");
                         console.log(current.name);
                     }
-                    return previous;  
-                    
+                    return previous;
+
                 }, topLevelEvent);
 
                 console.log("eventsssToEmit.........*********************");
@@ -356,8 +356,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             callback.apply(null, [events]);
         });
     }
-    
-    setHttpVer(httpVer?: string): void {
+
+    setHttpVer(httpVer: string): void {
         this.httpVer = httpVer;
     }
 }
