@@ -2,6 +2,64 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-browser_v2.28.3",
+      "version": "2.28.3",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b393c6d0c8d7aa142f3b138ce2ffc185039cf203",
+            "comment": "Fix keystore clearing on Firefox #5112"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "318bba8273151a6260c59461d352ef6e33d129ad",
+            "comment": "Restore error codes for acquireTokenSilent telemetry #5190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-browser_v2.28.2",
+      "version": "2.28.2",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5a31694427f380f643df9848d19f44f7cac2cddb",
+            "comment": "Exposed raw id token on account info objects #5036"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Aug 2022 22:22:35 GMT",
       "tag": "@azure/msal-browser_v2.28.1",
       "version": "2.28.1",

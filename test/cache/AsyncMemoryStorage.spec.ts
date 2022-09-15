@@ -16,7 +16,9 @@ const callCounter = {
     getItemPersistent: 0,
     setItemPersistent: 0,
     removeItemPersistent: 0,
+    clearInMemory: 0,
     clearPersistent: 0,
+    getKeys:0, 
     getItem: 0,
     setItem: 0,
     removeItem: 0,
@@ -94,6 +96,11 @@ jest.mock("../../src/cache/MemoryStorage", () => {
                     mockInMemoryCache[TEST_DB_TABLE_NAME][kid] = payload;
                     return mockInMemoryCache[TEST_DB_TABLE_NAME][kid];
                 },
+                getKeys: () => {
+                    callCounter.getKeys += 1;
+                    const cacheKeys: string[] = [];
+                    return Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]);
+                },
                 removeItem: (kid: string) => {
                     callCounter.removeItem += 1;
                     delete mockInMemoryCache[TEST_DB_TABLE_NAME][kid];
@@ -102,7 +109,7 @@ jest.mock("../../src/cache/MemoryStorage", () => {
                     return !!(mockInMemoryCache[TEST_DB_TABLE_NAME][kid]);
                 },
                 clear: () => {
-                    callCounter.clear += 1;
+                    callCounter.clearInMemory += 1;
                     mockInMemoryCache[TEST_DB_TABLE_NAME] = {};
                     return true;
                 }
@@ -215,20 +222,19 @@ describe("AsyncMemoryStorage Unit Tests", () => {
             });
 
             it("should clear in-memory storage by deleting all elements inside", async () => {
-                const deleted = await asyncMemoryStorage.clear();
-                expect(deleted).toBe(true);
-                expect(callCounter.clear).toBe(1);
+                asyncMemoryStorage.clearInMemory();
+                expect(callCounter.clearInMemory).toBe(1);
                 expect(logMessages[0]["message"].indexOf("Deleting in-memory keystore TEST_KEYSTORE")).not.toBe(-1);
                 expect(logMessages[1]["message"].indexOf("In-memory keystore TEST_KEYSTORE deleted")).not.toBe(-1);
                 expect(Object.keys(mockInMemoryCache[TEST_DB_TABLE_NAME]).length).toBe(0);
             });
 
             it("should clear persistent storage by deleting the IndexedDB database", async () => {
-                const deleted = await asyncMemoryStorage.clear();
+                const deleted = await asyncMemoryStorage.clearPersistent();
                 expect(deleted).toBe(true);
                 expect(callCounter.clearPersistent).toBe(1);
-                expect(logMessages[2]["message"].indexOf("Deleting persistent keystore TEST_KEYSTORE")).not.toBe(-1)
-                expect(logMessages[3]["message"].indexOf("Persistent keystore TEST_KEYSTORE deleted")).not.toBe(-1);
+                expect(logMessages[0]["message"].indexOf("Deleting persistent keystore")).not.toBe(-1)
+                expect(logMessages[1]["message"].indexOf("Persistent keystore deleted")).not.toBe(-1);
                 expect(mockDatabase[TEST_DB_TABLE_NAME]).toBe(undefined);
             });
 
@@ -236,7 +242,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
                 mockDatabase[UNEXPECTED_ERROR] = UNEXPECTED_ERROR;
 
                 return new Promise((resolve, reject) => {
-                    asyncMemoryStorage.clear().then(() => {
+                    asyncMemoryStorage.clearPersistent().then(() => {
                         reject("This code path should not be reached");
                     }).catch((error: Error) => {
                         expect(callCounter.clearPersistent).toBe(1);
