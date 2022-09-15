@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Implemented broken test in PublicClientApplication",
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
