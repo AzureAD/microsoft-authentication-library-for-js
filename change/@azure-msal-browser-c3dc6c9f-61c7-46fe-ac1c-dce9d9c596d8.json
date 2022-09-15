@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix keystore clearing on Firefox #5112",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
