@@ -25,6 +25,7 @@ export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
+export { ClientInfo, buildClientInfo, buildClientInfoFromHomeAccountId } from "./account/ClientInfo";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptions";
@@ -88,7 +89,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

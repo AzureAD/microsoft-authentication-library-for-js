@@ -7,7 +7,8 @@ import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
 
-describe('B2C user-flow tests (msa account)', () => {
+// Problem with MSA logins displaying a security info notice - re-enable these tests when that gets resolved
+describe.skip('B2C user-flow tests (msa account)', () => {
     jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -53,11 +54,10 @@ describe('B2C user-flow tests (msa account)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         if (signInButton) {
             await signInButton.click();
         }
-        await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
 
         await b2cMsaAccountEnterCredentials(page, screenshot, username, accountPwd);
@@ -77,7 +77,7 @@ describe('B2C user-flow tests (msa account)', () => {
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
         
         // initiate edit profile flow
-        const editProfileButton = await page.waitForXPath("//span[contains(., 'Edit Profile')]");
+        const editProfileButton = await page.waitForSelector("xpath=//span[contains(., 'Edit Profile')]");
         if (editProfileButton) {
             await editProfileButton.click();
         }
@@ -89,7 +89,6 @@ describe('B2C user-flow tests (msa account)', () => {
         ]);
         await page.click("#continue");
         await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
-        await page.waitForTimeout(50);
         await page.waitForSelector("#idTokenClaims");
         const htmlBody = await page.evaluate(() => document.body.innerHTML);
         expect(htmlBody).toContain(`${displayName}`);

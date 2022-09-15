@@ -2,6 +2,56 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-node_v1.14.0",
+      "version": "1.14.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "minor": [
+          {
+            "author": "marionminayo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fda3675d1a6100e8479a62ead6a980e10e2ebdb5",
+            "comment": "Add support for the state parameter #4723"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-node_v1.13.0",
+      "version": "1.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6",
+            "comment": "Add acquireTokenInteractive API #5062"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Aug 2022 22:22:36 GMT",
       "tag": "@azure/msal-node_v1.12.1",
       "version": "1.12.1",
