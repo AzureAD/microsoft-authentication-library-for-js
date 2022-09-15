@@ -8,7 +8,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse
 } from "@azure/msal-common";
-import { HttpMethod, Constants } from "../utils/Constants";
+import { HttpMethod } from "../utils/Constants";
 import http from "http";
 import https from "https";
 
@@ -105,6 +105,7 @@ const networkRequestViaProxy = <T>(
         request.on("connect", (response, socket) => {
             const statusCode = response?.statusCode || 500;
             if (statusCode < 200 || statusCode > 299) {
+                // error in connection to the proxy
                 request.destroy();
                 socket.destroy();
                 reject(new Error(`HTTP status code ${statusCode}`));
@@ -175,14 +176,6 @@ const networkRequestViaProxy = <T>(
                     body: JSON.parse(body) as T,
                     status: statusCode as number,
                 };
-
-                if ((statusCode < 200 || statusCode > 299) &&
-                    // do not destroy the request for the device code flow
-                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
-                    request.destroy();
-                    socket.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
-                }
 
                 resolve(networkResponse);
             });
@@ -262,13 +255,6 @@ const networkRequestViaHttps = <T>(
                     body: JSON.parse(body) as T,
                     status: statusCode,
                 };
-
-                if ((statusCode < 200 || statusCode > 299) &&
-                    // do not destroy the request for the device code flow
-                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
-                    request.destroy();
-
-                }
 
                 resolve(networkResponse);
             });
