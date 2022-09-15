@@ -278,8 +278,6 @@ export class Authority {
      */
     private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         let metadata = this.getEndpointMetadataFromConfig();
-        console.log("METADATA from config");
-        console.log(metadata);
 
         if (metadata) {
             metadataEntity.updateEndpointMetadata(metadata, false);
@@ -293,8 +291,7 @@ export class Authority {
 
         let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         metadata = await this.getEndpointMetadataFromNetwork();
-        console.log("METADATA.......");
-        console.log(metadata);
+        
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
