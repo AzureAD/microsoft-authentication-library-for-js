@@ -39,7 +39,7 @@ describe("SilentIframeClient", () => {
     });
 
     describe("acquireToken", () => {
-        it("throws error if prompt is not set to 'none'", async () => {
+        it("throws error if prompt is not set to 'none' or 'no_session'", async () => {
             const req: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
@@ -154,7 +154,8 @@ describe("SilentIframeClient", () => {
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                loginHint: "testLoginHint"
+                loginHint: "testLoginHint",
+                prompt: PromptValue.NO_SESSION
             });
             expect(loadFrameSyncSpy.calledOnce).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
@@ -214,6 +215,7 @@ describe("SilentIframeClient", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 sid: TEST_CONFIG.SID
+                // not setting a prompt is equivalent to Prompt: PromptValue.NONE
             });
             expect(loadFrameSyncSpy.calledOnce).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
