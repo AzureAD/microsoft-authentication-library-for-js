@@ -3,6 +3,7 @@ import { createHash } from "crypto";
 import { PkceGenerator } from "../../src/crypto/PkceGenerator";
 import { Logger, PkceCodes } from "@azure/msal-common";
 import { NUM_TESTS } from "../utils/StringConstants";
+import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 describe("PkceGenerator.ts Unit Tests", () => {
@@ -25,8 +26,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
 
     it("generateCodes() generates valid pkce codes", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const browserCrypto = new BrowserCrypto(new Logger({}));
@@ -45,10 +45,10 @@ describe("PkceGenerator.ts Unit Tests", () => {
 
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype, "getMSCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
+        jest.spyOn(MsBrowserCrypto.prototype, "getRandomValues").mockImplementation((data: Uint8Array) => msrCrypto.getRandomValues(data));
         jest.spyOn(BrowserCrypto.prototype, <any>"hasIECrypto").mockReturnValue(true);
         const browserCrypto = new BrowserCrypto(new Logger({}));
 

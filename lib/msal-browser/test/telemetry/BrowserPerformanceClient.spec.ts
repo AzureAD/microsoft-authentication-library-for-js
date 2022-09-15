@@ -10,6 +10,10 @@ const applicationTelemetry: ApplicationTelemetry = {
     appName: "Test App",
     appVersion: "1.0.0-test.0"
 }
+const cryptoOptions = {
+    useMsrCrypto: false,
+    entropy: undefined
+}
 
 jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
     return {
@@ -31,14 +35,14 @@ describe("BrowserPerformanceClient.ts", () => {
 
     describe("generateId", () => {
         it("returns a string", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry);
+            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
 
             expect(typeof browserPerfClient.generateId()).toBe("string");
         });
     });
     describe("startPerformanceMeasuremeant", () => {
         it("calculate performance duration", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry);
+            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
 
             const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
@@ -50,7 +54,7 @@ describe("BrowserPerformanceClient.ts", () => {
         it("captures page visibilityState", () => {
             const spy = jest.spyOn(Document.prototype,"visibilityState", "get").mockReturnValue("visible");
 
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry);
+            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
 
             const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
