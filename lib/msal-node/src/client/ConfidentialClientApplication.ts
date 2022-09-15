@@ -18,7 +18,8 @@ import {
     AzureRegionConfiguration,
     AuthError,
     Constants,
-    IAppTokenProvider
+    IAppTokenProvider,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -30,7 +31,6 @@ import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
  * @public
  */
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
-
     private appTokenProvider?: IAppTokenProvider;
 
     /**
@@ -83,9 +83,17 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             };
         }
 
+        const baseRequest = await this.initializeBaseRequest(request);
+
+        // valid base request should not contain oidc scopes in this grant type
+        const validBaseRequest = {
+            ...baseRequest,
+            scopes: baseRequest.scopes.filter((scope: string) => !OIDC_DEFAULT_SCOPES.includes(scope))
+        };
+
         const validRequest: CommonClientCredentialRequest = {
             ...request,
-            ...await this.initializeBaseRequest(request),
+            ...validBaseRequest,
             clientAssertion
         };
 
