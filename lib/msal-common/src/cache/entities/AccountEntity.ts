@@ -258,7 +258,7 @@ export class AccountEntity {
         const accountId = idToken?.claims?.sub ? idToken.claims.sub : Constants.EMPTY_STRING;
 
         // since ADFS does not have tid and does not set client_info
-        if (authType === AuthorityType.Adfs) {
+        if (authType === AuthorityType.Adfs || authType === AuthorityType.Dsts) {
             return accountId;
         }
 
