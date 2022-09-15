@@ -55,10 +55,7 @@ export class DeviceCodeClient extends BaseClient {
             response,
             this.authority,
             reqTimestamp,
-            request,
-            undefined,
-            undefined,
-            undefined,
+            request
         );
     }
 
@@ -209,7 +206,7 @@ export class DeviceCodeClient extends BaseClient {
 
             if (response.body && response.body.error) {
                 // user authorization is pending. Sleep for polling interval and try again
-                if(response.body.error === Constants.AUTHORIZATION_PENDING) {
+                if (response.body.error === Constants.AUTHORIZATION_PENDING) {
                     this.logger.info("Authorization pending. Continue polling.");
                     await TimeUtils.delay(pollingIntervalMilli);
                 } else {
@@ -250,7 +247,7 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addLibraryInfo(this.config.libraryInfo);
         requestParameters.addApplicationTelemetry(this.config.telemetry.application);
         requestParameters.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             requestParameters.addServerTelemetry(this.serverTelemetryManager);
         }

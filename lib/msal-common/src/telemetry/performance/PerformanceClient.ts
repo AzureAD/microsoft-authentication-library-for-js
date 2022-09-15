@@ -154,7 +154,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         if (performanceMeasurement) {
             // Immediately delete so that the same event isnt ended twice
             this.measurementsById.delete(event.eventId);
-            performanceMeasurement.endMeasurement(); // loop????
+            performanceMeasurement.endMeasurement();
             const durationMs = performanceMeasurement.flushMeasurement();
             // null indicates no measurement was taken (e.g. needed performance APIs not present)
             if (durationMs !== null) {
@@ -217,7 +217,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
-        console.log("EVENTS", eventsForCorrelationId);
         if (eventsForCorrelationId) {
             this.discardMeasurements(correlationId);
 
@@ -233,7 +232,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
-                        completedEvents.push(completedEvent);  // why this???
+                        completedEvents.push(completedEvent);
                     }
                 }
 
@@ -280,17 +279,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
                             previous.idTokenSize = current.idTokenSize;
                         }
                     }
-                    else {
-                        console.log("current name is same which is ....");
-                        console.log(current.name);
-                    }
                     return previous;
 
                 }, topLevelEvent);
 
-                console.log("eventsssToEmit.........*********************");
-                console.log([eventToEmit]);
-                console.log("Emitting above eventssssss with following correlation id......");
                 this.emitEvents([eventToEmit], eventToEmit.correlationId);
             } else {
                 this.logger.verbose(`PerformanceClient: No completed top-level measurements found for ${measureName}`, correlationId);
