@@ -98,7 +98,7 @@ See [ADFS](./ADFS.md) for more.
 Given that dSTS also uses custom domains in its authority URLs and does not support instance discovery, dSTS authorities must also be explicitly included in the `knownAuthorities` configuration array.
 
 ```javascript
-const pca = new ConfidentialClientApplication({
+const cca = new ConfidentialClientApplication({
     auth: {
         clientId: "<your-client-id>",
         authority: "https://<your-dsts-domain>/dstsv2/<your-tenant-id>",
