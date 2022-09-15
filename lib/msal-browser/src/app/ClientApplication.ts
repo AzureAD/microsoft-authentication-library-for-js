@@ -578,7 +578,6 @@ export abstract class ClientApplication {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
-        console.log("RESULT ATC:",silentTokenResult);
         return silentTokenResult;
     }
 
