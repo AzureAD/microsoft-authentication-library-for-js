@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "minor",
   "comment": "Added 'no_session' to prompt enum #5131",
   "packageName": "@azure/msal-browser",
   "email": "rgins16@gmail.com",
