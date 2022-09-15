@@ -174,11 +174,7 @@ export class ClientCredentialClient extends BaseClient {
             serverTokenResponse,
             this.authority,
             reqTimestamp,
-            request,
-            undefined,
-            undefined,
-            undefined,
-            undefined
+            request
         );
 
         return tokenResponse;
