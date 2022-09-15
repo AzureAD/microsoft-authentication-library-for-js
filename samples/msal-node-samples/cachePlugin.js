@@ -14,7 +14,7 @@ module.exports = function (cacheLocation) {
             if (fs.existsSync(cacheLocation)) {
                 fs.readFile(cacheLocation, "utf-8", (err, data) => {
                     if (err) {
-                        reject();
+                        reject(err);
                     } else {
                         cacheContext.tokenCache.deserialize(data);
                         resolve();
@@ -23,7 +23,7 @@ module.exports = function (cacheLocation) {
             } else {
                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
                     if (err) {
-                        reject();
+                        reject(err);
                     }
                 });
             }

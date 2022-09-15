@@ -80,7 +80,7 @@ describe('/profile', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(.,'Welcome,')]");
-        const profileButton = await page.waitForXPath("//header//button");
+        const profileButton = await page.waitForSelector("xpath=//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout with')]");
         expect(logoutButtons.length).toBe(2);
@@ -97,10 +97,10 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginPopupButton] = await page.$x("//li[contains(., 'Sign in using Popup')]");
+        const loginPopupButton = await page.waitForSelector("xpath=//li[contains(., 'Sign in using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
@@ -113,7 +113,7 @@ describe('/profile', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(.,'Welcome,')]");
-        const profileButton = await page.waitForXPath("//header//button");
+        const profileButton = await page.waitForSelector("xpath=//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout with')]");
         expect(logoutButtons.length).toBe(2);
