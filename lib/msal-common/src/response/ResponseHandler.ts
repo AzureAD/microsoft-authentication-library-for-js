@@ -126,6 +126,16 @@ export class ResponseHandler {
                     throw ClientAuthError.createNonceMismatchError();
                 }
             }
+
+            // token max_age check
+            if (request.maxAge || (request.maxAge === 0)) {
+                const authTime = idTokenObj.claims.auth_time;
+                if (!authTime) {
+                    throw ClientAuthError.createAuthTimeNotFoundError();
+                }
+
+                AuthToken.checkMaxAge(authTime, request.maxAge);
+            }
         }
 
         // generate homeAccountId
