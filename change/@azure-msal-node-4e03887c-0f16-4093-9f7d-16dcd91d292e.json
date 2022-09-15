@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Implemented broken test in PublicClientApplication #5219",
+  "comment": "Fixed broken test in PublicClientApplication #5219",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
