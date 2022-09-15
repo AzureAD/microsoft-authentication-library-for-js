@@ -11,7 +11,8 @@ import { AuthError } from "./AuthError";
 export const InteractionRequiredServerErrorMessage = [
     "interaction_required",
     "consent_required",
-    "login_required"
+    "login_required",
+    "invalid_grant"
 ];
 
 export const InteractionRequiredAuthSubErrorMessage = [
