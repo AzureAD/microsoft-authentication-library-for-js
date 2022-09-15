@@ -167,7 +167,8 @@ export const PromptValue = {
     SELECT_ACCOUNT: "select_account",
     CONSENT: "consent",
     NONE: "none",
-    CREATE: "create"
+    CREATE: "create",
+    NO_SESSION: "no_session"
 };
 
 /**
@@ -401,3 +402,5 @@ export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
 }
+
+export const ONE_DAY_IN_MS = 86400000;
