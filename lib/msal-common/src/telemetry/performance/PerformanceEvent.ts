@@ -294,9 +294,9 @@ export type PerformanceEvent = {
     isNativeBroker?: boolean,
 
     /**
-     * The Silent Token Retrieval Strategy
+     * The Silent Token Cache Lookup Policy
      *
      * @type {?(number | undefined)}
      */
-    silentTokenRetrievalStrategy?: number | undefined
+    cacheLookupPolicy?: number | undefined
 };

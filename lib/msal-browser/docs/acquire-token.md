@@ -27,13 +27,13 @@ You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md).
 
 You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
 
-A Silent Token Retrieval Strategy can be optionally provided to the request. The Retrieval Strategies are:
+A Cache Lookup Policy can be optionally provided to the request. The Cache Lookup Policies are:
 - Default - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found the refresh token will be used to acquire a new one. Finally, if the refresh token is expired `acquireTokenSilent` will attempt to acquire new access and refresh tokens.
-- CacheOnly - `acquireTokenSilent` will only look for access tokens in the cache. It will not attempt to renew access or refresh tokens.
-- CacheOrRefreshToken - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found, the refresh token will be used to acquire a new one. If the refresh token is expired, it will not be renewed and `acquireTokenSilent` will fail.
-- RefreshTokenOnly - `acquireTokenSilent` will not attempt to retrieve access tokens from the cache and will instead attempt to exchange the cached refresh token for a new access token. If the refresh token is expired, it will not be renewed and `acquireTokenSilent will fail.
-- NetworkWithRefreshToken - acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache. The refresh token not be renewed if it is expired. This is existing "`forceRefresh: true`" behavior.
-- NetworkOnly - `acquireTokenSilent` will only go to network and not look in the cache. It will not use the existing refresh token, regardless of whether it is expired or not.
+- AccessToken - `acquireTokenSilent` will only look for access tokens in the cache. It will not attempt to renew access or refresh tokens.
+- AccessTokenAndRefreshToken - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found, the refresh token will be used to acquire a new one. If the refresh token is expired, it will not be renewed and `acquireTokenSilent` will fail.
+- RefreshToken - `acquireTokenSilent` will not attempt to retrieve access tokens from the cache and will instead attempt to exchange the cached refresh token for a new access token. If the refresh token is expired, it will not be renewed and `acquireTokenSilent will fail.
+- RefreshTokenAndNetwork - acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache. The refresh token will be renewed if it is expired. This is existing "`forceRefresh: true`" behavior.
+- Skip - `acquireTokenSilent` will only go to network and not look in the cache. It will not use the existing refresh token, regardless of whether it is expired or not.
 
 - Popup
 

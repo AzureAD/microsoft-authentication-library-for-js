@@ -5,7 +5,7 @@
 
 import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType, ApiId, SilentTokenRetrievalStrategy, BrowserConstants } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, InteractionType, ApiId, CacheLookupPolicy, BrowserConstants } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -135,7 +135,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker,
-                        silentTokenRetrievalStrategy: request.silentTokenRetrievalStrategy,
+                        cacheLookupPolicy: request.cacheLookupPolicy,
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -213,10 +213,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
 
-            // set the request's SilentTokenRetrievalStrategy to Default if it was not optionally passed in
-            request.silentTokenRetrievalStrategy = request.silentTokenRetrievalStrategy || 0;
+            // set the request's CacheLookupPolicy to Default if it was not optionally passed in
+            request.cacheLookupPolicy = request.cacheLookupPolicy || 0;
             result = this.acquireTokenFromCache(silentCacheClient, silentRequest, request).catch((cacheError: AuthError) => {
-                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
+                if (request.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
                 }
 
@@ -232,8 +232,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     if (!isServerError ||
                         !isInvalidGrantError ||
                         isInteractionRequiredError ||
-                        request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOrRefreshToken ||
-                        request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly
+                        request.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                        request.cacheLookupPolicy === CacheLookupPolicy.RefreshToken
                     ) {
                         throw refreshTokenError;
                     }

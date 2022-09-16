@@ -7,7 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
+import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -594,10 +594,10 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        switch(silentRequest.silentTokenRetrievalStrategy) {
-            case SilentTokenRetrievalStrategy.Default:
-            case SilentTokenRetrievalStrategy.CacheOnly:
-            case SilentTokenRetrievalStrategy.CacheOrRefreshToken:
+        switch(silentRequest.cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessToken:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
                 return silentCacheClient.acquireToken(commonRequest);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
@@ -614,11 +614,11 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        switch(silentRequest.silentTokenRetrievalStrategy) {
-            case SilentTokenRetrievalStrategy.Default:
-            case SilentTokenRetrievalStrategy.CacheOrRefreshToken:
-            case SilentTokenRetrievalStrategy.RefreshTokenOnly:
-            case SilentTokenRetrievalStrategy.NetworkWithRefreshToken:
+        switch(silentRequest.cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+            case CacheLookupPolicy.RefreshToken:
+            case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
