@@ -179,7 +179,7 @@ export const DB_NAME = "msal.db";
 export const DB_VERSION = 1;
 export const DB_TABLE_NAME = `${DB_NAME}.keys`;
 
-export enum SilentTokenRetrievalStrategy {
+export enum CacheLookupPolicy {
     /*
      * acquireTokenSilent will first look in the cache before going to the network with the existing refresh token.
      * The refresh token will be renewed if it is expired.
@@ -190,26 +190,26 @@ export enum SilentTokenRetrievalStrategy {
      * acquireTokenSilent will only look in the cache, and will not go to the network with the existing refresh token.
      * The refresh token will not be renewed if it is expired.
      */
-    CacheOnly = 1,
+    AccessToken = 1,
     /*
      * acquireTokenSilent will first look in the cache before going to the network with the existing refresh token.
      * The refresh token will not be renewed if it is expired.
      */
-    CacheOrRefreshToken = 2,
+    AccessTokenAndRefreshToken = 2,
     /*
      * acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache.
      * The refresh token will not be renewed if it is expired.
      */
-    RefreshTokenOnly = 3,
+    RefreshToken = 3,
     /*
      * acquireTokenSilent will only go to network with the existing refresh token, and will not look in the cache.
-     * The refresh token not be renewed if it is expired.
+     * The refresh token will be renewed if it is expired.
      * (existing forceRefresh=true behavior)
      */
-    NetworkWithRefreshToken = 4,
+    RefreshTokenAndNetwork = 4,
     /*
      * acquireTokenSilent will only go to network, and not look in the cache.
      * It will not use the existing refresh token, regardless of whether it is expired or not.
      */
-    NetworkOnly = 5,
+    Skip = 5,
 }
