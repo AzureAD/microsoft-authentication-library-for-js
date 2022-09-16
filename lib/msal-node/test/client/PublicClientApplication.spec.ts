@@ -345,7 +345,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-        AuthorityMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -372,7 +372,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-        AuthorityMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -408,7 +408,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-        AuthorityMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -445,7 +445,7 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-        AuthorityMetadataCache: false
+            skipAuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
@@ -552,7 +552,7 @@ describe('PublicClientApplication', () => {
         });
 
         const authApp = new PublicClientApplication(appConfig);
-        
+
         await expect(authApp.acquireTokenByCode(request, authCodePayLoad))
             .rejects.toMatchObject(ClientAuthError.createStateMismatchError());
     });
