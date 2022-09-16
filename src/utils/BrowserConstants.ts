@@ -185,7 +185,7 @@ export enum CacheLookupPolicy {
      * The refresh token will be renewed if it is expired.
      * (existing default behavior)
      */
-    Default = 0, // 0 is falsy, is equivalent to not passing in a SilentTokenRetrievalStrategy
+    Default = 0, // 0 is falsy, is equivalent to not passing in a CacheLookupPolicy
     /*
      * acquireTokenSilent will only look in the cache, and will not go to the network with the existing refresh token.
      * The refresh token will not be renewed if it is expired.
