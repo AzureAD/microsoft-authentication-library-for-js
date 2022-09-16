@@ -195,26 +195,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
 
-            /*
-             * CacheLookupStrategy
-             *            
-             * 
-             * 
-             * Default
-             * CacheOnly -------------- AccessToken
-             * CacheOrRefreshToken -------------- AccessTokenAndRefreshToken
-             * 
-             * RefreshTokenOnly -------------- RefreshToken
-             * 
-             * NetworkWithRefreshToken -------------- RefreshTokenAndNetwork
-             * NetworkOnly -------------- Skip
-             */
-
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
 
             // set the request's CacheLookupPolicy to Default if it was not optionally passed in
-            request.cacheLookupPolicy = request.cacheLookupPolicy || 0;
+            request.cacheLookupPolicy = (request.cacheLookupPolicy === undefined) ? CacheLookupPolicy.Default : request.cacheLookupPolicy;
+            
             result = this.acquireTokenFromCache(silentCacheClient, silentRequest, request).catch((cacheError: AuthError) => {
                 if (request.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
@@ -229,11 +215,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
-                    if (!isServerError ||
+                    if ((!isServerError ||
                         !isInvalidGrantError ||
                         isInteractionRequiredError ||
                         request.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                        request.cacheLookupPolicy === CacheLookupPolicy.RefreshToken
+                        request.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
+                        && (request.cacheLookupPolicy !== CacheLookupPolicy.Skip)
                     ) {
                         throw refreshTokenError;
                     }
