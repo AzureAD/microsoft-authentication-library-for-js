@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, CommonSilentFlowRequest, ServerError, InteractionRequiredAuthError } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId, SilentTokenRetrievalStrategy, BrowserConstants } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -15,6 +15,7 @@ import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -193,117 +194,54 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             });     
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
+
+            /*
+             * CacheLookupStrategy
+             *            
+             * 
+             * 
+             * Default
+             * CacheOnly -------------- AccessToken
+             * CacheOrRefreshToken -------------- AccessTokenAndRefreshToken
+             * 
+             * RefreshTokenOnly -------------- RefreshToken
+             * 
+             * NetworkWithRefreshToken -------------- RefreshTokenAndNetwork
+             * NetworkOnly -------------- Skip
+             */
+
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
 
-            const acquireTokenByRefreshToken = (silentRequest: CommonSilentFlowRequest, silentTokenRetrievalStrategy: SilentTokenRetrievalStrategy | undefined): Promise<AuthenticationResult> => {
-                const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
-
-                /*
-                 * do not attempt to get the access token via the refresh token (just go to the iframe) if the
-                 * silentTokenRetrievalStrategy is set to NetworkOnly
-                 */
-                if (silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly) {
-                    const message = "SilentTokenRetrievalStrategy set to NetworkOnly";
-                    return this.acquireTokenBySilentIframe(silentRequest, message).then((response) => {
-                        atbrtMeasurement.endMeasurement({
-                            success: true,
-                            fromCache: response.fromCache,
-                            accessTokenSize: response.accessToken.length,
-                            idTokenSize: response.idToken.length,
-                        });
-                        
-                        return response;
-                    }).catch((error) => {
-                        atbrtMeasurement.endMeasurement({
-                            errorCode: error.errorCode,
-                            subErrorCode: error.subError,
-                            success: false
-                        });
-                        throw error;
-                    });
+            // set the request's SilentTokenRetrievalStrategy to Default if it was not optionally passed in
+            request.silentTokenRetrievalStrategy = request.silentTokenRetrievalStrategy || 0;
+            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, request).catch((cacheError: AuthError) => {
+                if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
+                    throw cacheError;
                 }
 
-                // otherwise, attempt to get the access token via the refresh token before going to the iframe
-                return this.acquireTokenByRefreshToken(silentRequest).then((response) => {
-                    atbrtMeasurement.endMeasurement({
-                        success: true,
-                        fromCache: response.fromCache,
-                        accessTokenSize: response.accessToken.length,
-                        idTokenSize: response.idToken.length,
-                    });
-                    
-                    return response;
-                }).catch(async (error) => {
-                    /*
-                     * only attempt to get the access token via the iframe (network) if the
-                     * silentTokenRetrievalStrategy is not set to RefreshTokenOnly or CacheOrRefreshToken
-                     */
-                    if ((silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.RefreshTokenOnly)
-                        && (silentTokenRetrievalStrategy !== SilentTokenRetrievalStrategy.CacheOrRefreshToken)) {
-                        const isServerError = error instanceof ServerError;
-                        const isInteractionRequiredError = error instanceof InteractionRequiredAuthError;
-                        const isInvalidGrantError = (error.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+                // block the reload if it occurred inside a hidden iframe
+                BrowserUtils.blockReloadInHiddenIframes();
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
 
-                        if (!isServerError || !isInvalidGrantError || isInteractionRequiredError) {
-                            throw error;
-                        }
+                return this.acquireTokenByRefreshToken(silentRequest, request).catch((refreshTokenError: AuthError) => {
+                    const isServerError = refreshTokenError instanceof ServerError;
+                    const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
+                    const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+
+                    if (!isServerError ||
+                        !isInvalidGrantError ||
+                        isInteractionRequiredError ||
+                        request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOrRefreshToken ||
+                        request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly
+                    ) {
+                        throw refreshTokenError;
+                    }
                         
-                        const message = "Refresh token expired or invalid";        
-                        return this.acquireTokenBySilentIframe(silentRequest, message).then((response) => {
-                            atbrtMeasurement.endMeasurement({
-                                success: true,
-                                fromCache: response.fromCache,
-                                accessTokenSize: response.accessToken.length,
-                                idTokenSize: response.idToken.length,
-                            });
-                            
-                            return response;
-                        }).catch((error) => {
-                            atbrtMeasurement.endMeasurement({
-                                errorCode: error.errorCode,
-                                subErrorCode: error.subError,
-                                success: false
-                            });
-                            throw error;
-                        });
-                    } else {
-                        this.logger.info("SilentTokenRetrievalStrategy set to not renew expired refresh token.");
-                        atbrtMeasurement.endMeasurement({
-                            errorCode: error.errorCode,
-                            subErrorCode: error.subError,
-                            success: false
-                        });
-                        throw error;
-                    }
+                    this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
+                    return this.acquireTokenBySilentIframe(silentRequest);
                 });
-            };
-
-            /*
-             * do not look in the cache (just go to the network) if the silentTokenRetrievalStrategy
-             * is set to one of the network-only options
-             */
-            if ((request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.RefreshTokenOnly)
-                || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkWithRefreshToken)
-                || (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.NetworkOnly)) {
-                this.logger.info("SilentCacheClient:acquireToken - Skipping cache because SilentTokenRetrievalStrategy is set to one of the network-only options.");
-                
-                result = acquireTokenByRefreshToken(silentRequest, request.silentTokenRetrievalStrategy);
-            // otherwise, attempt to go to the cache before going to the network
-            } else {
-                result = silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
-                    /*
-                     * do not attempt to get the access token via the refresh token or the network if the
-                     * silentTokenRetrievalStrategy is set to cacheOnly
-                     */
-                    if (request.silentTokenRetrievalStrategy === SilentTokenRetrievalStrategy.CacheOnly) {
-                        this.logger.error("SilentTokenRetrievalStrategy is set to CacheOnly, not attempting to renew token silently.");
-                        throw error;
-                    }
-
-                    return acquireTokenByRefreshToken(silentRequest, request.silentTokenRetrievalStrategy);
-                });
-            }
+            });
         }
 
         return result.then((response) => {

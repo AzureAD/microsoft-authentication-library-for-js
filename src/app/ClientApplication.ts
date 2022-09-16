@@ -4,10 +4,10 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, SilentTokenRetrievalStrategy } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -583,35 +583,57 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Attempt to acquire an access token from the cache
+     * @param silentCacheClient SilentCacheClient
+     * @param commonRequest CommonSilentFlowRequest
+     * @param silentRequest SilentRequest
+     * @returns A promise that, when resolved, returns the access token
+     */
+    protected async acquireTokenFromCache(
+        silentCacheClient: SilentCacheClient,
+        commonRequest: CommonSilentFlowRequest,
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult> {
+        switch(silentRequest.silentTokenRetrievalStrategy) {
+            case SilentTokenRetrievalStrategy.Default:
+            case SilentTokenRetrievalStrategy.CacheOnly:
+            case SilentTokenRetrievalStrategy.CacheOrRefreshToken:
+                return silentCacheClient.acquireToken(commonRequest);
+            default:
+                throw ClientAuthError.createRefreshRequiredError();
+        }
+    }
+
+    /**
      * Attempt to acquire an access token via a refresh token
-     * @param request CommonSilentFlowRequest
+     * @param commonRequest CommonSilentFlowRequest
+     * @param silentRequest SilentRequest
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenByRefreshToken(
-        request: CommonSilentFlowRequest
+        commonRequest: CommonSilentFlowRequest,
+        silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
-
-        const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
-
-        // attempt to acquire AT with existing RT
-        return silentRefreshClient.acquireToken(request);
+        switch(silentRequest.silentTokenRetrievalStrategy) {
+            case SilentTokenRetrievalStrategy.Default:
+            case SilentTokenRetrievalStrategy.CacheOrRefreshToken:
+            case SilentTokenRetrievalStrategy.RefreshTokenOnly:
+            case SilentTokenRetrievalStrategy.NetworkWithRefreshToken:
+                const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
+                return silentRefreshClient.acquireToken(commonRequest);
+            default:
+                throw ClientAuthError.createRefreshRequiredError();
+        }
     }
 
     /**
      * Attempt to acquire an access token via an iframe
      * @param request CommonSilentFlowRequest
-     * @param message the message to display in the logger
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenBySilentIframe(
-        request: CommonSilentFlowRequest,
-        message: string
+        request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.logger.verbose(`${message}, attempting acquire token by iframe.`, request.correlationId);
-
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
         return silentIframeClient.acquireToken(request);
     }
