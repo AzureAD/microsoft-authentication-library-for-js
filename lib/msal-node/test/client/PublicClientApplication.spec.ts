@@ -51,12 +51,12 @@ describe('PublicClientApplication', () => {
         setupAuthorityFactory_createDiscoveredInstance_mock();
     });
 
-    test.skip('exports a class', () => {
+    test('exports a class', () => {
         const authApp = new PublicClientApplication(appConfig);
         expect(authApp).toBeInstanceOf(PublicClientApplication);
     });
 
-    test.skip('acquireTokenByDeviceCode', async () => {
+    test('acquireTokenByDeviceCode', async () => {
         const request: DeviceCodeRequest = {
             deviceCodeCallback: response => {
                 console.log(response);
@@ -84,7 +84,7 @@ describe('PublicClientApplication', () => {
         expect(result).toEqual(fakeAuthResult);
     });
 
-    test.skip('acquireTokenByAuthorizationCode', async () => {
+    test('acquireTokenByAuthorizationCode', async () => {
 
 
         const request: AuthorizationCodeRequest = {
@@ -109,7 +109,7 @@ describe('PublicClientApplication', () => {
     });
 
 
-    test.skip("acquireTokenByAuthorizationCode with nonce", async () => {
+    test("acquireTokenByAuthorizationCode with nonce", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -138,7 +138,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test.skip("acquireTokenByAuthorizationCode with state validation", async () => {
+    test("acquireTokenByAuthorizationCode with state validation", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -169,7 +169,7 @@ describe('PublicClientApplication', () => {
     });
 
 
-    test.skip('acquireTokenByRefreshToken', async () => {
+    test('acquireTokenByRefreshToken', async () => {
         const request: RefreshTokenRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
@@ -188,7 +188,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test.skip('acquireTokenSilent', async () => {  
+    test('acquireTokenSilent', async () => {  
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
@@ -217,7 +217,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test.skip("acquireTokenInteractive", async () => {
+    test("acquireTokenInteractive", async () => {
         const authApp = new PublicClientApplication(appConfig);
 
         let redirectUri: string;
@@ -250,7 +250,7 @@ describe('PublicClientApplication', () => {
         expect(response.account).toEqual(mockAuthenticationResult.account);
     });
 
-    test.skip('initializeBaseRequest passes a claims hash to acquireToken', async () => {
+    test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
@@ -283,7 +283,7 @@ describe('PublicClientApplication', () => {
     })
 
 
-    test.skip('create AuthorizationCode URL', async () => {
+    test('create AuthorizationCode URL', async () => {
         const request: AuthorizationUrlRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -300,7 +300,7 @@ describe('PublicClientApplication', () => {
 
 
 
-    test.skip('acquireTokenByUsernamePassword', async () => {
+    test('acquireTokenByUsernamePassword', async () => {
         const request: UsernamePasswordRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             username: TEST_CONSTANTS.USERNAME,
@@ -319,7 +319,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test.skip('acquireToken default authority', async () => {
+    test('acquireToken default authority', async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
             auth: {
@@ -345,13 +345,13 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipAuthorityMetadataCache: false
+        AuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
-    test.skip('authority overridden by acquire token request parameters', async () => {
+    test('authority overridden by acquire token request parameters', async () => {
         // Authority set on client app, but should be overridden by authority passed in request
         const request: RefreshTokenRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -372,13 +372,13 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipAuthorityMetadataCache: false
+        AuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
-    test.skip('acquireToken when azureCloudOptions are set', async () => {
+    test('acquireToken when azureCloudOptions are set', async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
             auth: {
@@ -408,13 +408,13 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipAuthorityMetadataCache: false
+        AuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
-    test.skip('acquireToken when azureCloudOptions and authority are set', async () => {
+    test('acquireToken when azureCloudOptions and authority are set', async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
             auth: {
@@ -445,13 +445,13 @@ describe('PublicClientApplication', () => {
             azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: "",
-            skipAuthorityMetadataCache: false
+        AuthorityMetadataCache: false
         });
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
-    test.skip("getLogger and setLogger", async () => {
+    test("getLogger and setLogger", async () => {
         const authApp = new PublicClientApplication(appConfig);
         const logger = new Logger({
             loggerCallback: (level, message, containsPii) => {
@@ -471,7 +471,7 @@ describe('PublicClientApplication', () => {
         authApp.getLogger().info("Message");
     });
 
-    test.skip("should throw an error if state is not provided", async () => {
+    test("should throw an error if state is not provided", async () => {
         const cryptoProvider = new CryptoProvider();
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
