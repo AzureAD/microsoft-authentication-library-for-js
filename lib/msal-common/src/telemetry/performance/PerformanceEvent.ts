@@ -257,39 +257,41 @@ export type PerformanceEvent = {
     libraryVersion: string,
 
     /**
+     * Whether the response is from a native component (e.g., WAM)
+     *
+     * @type {?boolean}
+     */
+    isNativeBroker?: boolean
+};
+
+export type StaticFields = { 
+    /**
      * Size of the id token
      *
      * @type {number}
      */
     idTokenSize?: number,
-
+ 
     /**
      * 
      * Size of the access token
      *
      * @type {number}
      */
-
+ 
     accessTokenSize?: number,
-
+ 
     /**
      * Application name as specified by the app.
      *
      * @type {?string}
      */
     appName?: string,
-
+ 
     /**
      * Application version as specified by the app.
      *
      * @type {?string}
      */
     appVersion?: string,
-
-    /**
-     * Whether the response is from a native component (e.g., WAM)
-     *
-     * @type {?boolean}
-     */
-    isNativeBroker?: boolean
 };
