@@ -132,11 +132,11 @@ export abstract class ClientApplication {
 
         // Initialize performance client
         this.performanceClient = this.isBrowserEnvironment ?
-            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application) :
+            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application, this.config.system.cryptoOptions) :
             new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
 
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient) : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient, this.config.system.cryptoOptions) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -436,7 +436,8 @@ export abstract class ClientApplication {
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
-            prompt: PromptValue.NONE,
+            // will be PromptValue.NONE or PromptValue.NO_SESSION
+            prompt: request.prompt,
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);

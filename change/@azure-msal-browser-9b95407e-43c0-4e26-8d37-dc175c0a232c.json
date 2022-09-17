@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Restore error codes for acquireTokenSilent telemetry #5190",
+  "type": "minor",
+  "comment": "Add support for MSR Crypto #3826",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"

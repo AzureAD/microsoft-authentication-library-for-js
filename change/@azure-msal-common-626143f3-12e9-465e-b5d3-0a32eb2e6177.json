@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Post Release September 2022 #5186",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}
