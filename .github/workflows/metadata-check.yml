@@ -25,7 +25,7 @@ jobs:
       uses: actions/setup-node@v2
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |
