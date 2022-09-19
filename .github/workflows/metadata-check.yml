@@ -22,7 +22,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules for libs
       uses: actions/cache@v3
