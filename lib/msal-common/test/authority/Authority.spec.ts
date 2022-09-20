@@ -939,8 +939,22 @@ describe("Authority.ts Class Unit Tests", () => {
             expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
         });
 
-        it("DSTS authority uses v1 well-known endpoint", async () => {
-            const authorityUrl = "https://login.microsoftonline.com/dstsv2/"
+        it("DSTS authority uses v1 well-known endpoint with common y", async () => {
+            const authorityUrl = "https://login.microsoftonline.com/dstsv2/common/"
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
+        });
+
+        it("DSTS authority uses v1 well-known  with tenanted authority", async () => {
+            const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`
             let endpoint = "";
             authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
             jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
