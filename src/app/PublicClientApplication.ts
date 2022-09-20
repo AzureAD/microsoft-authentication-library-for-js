@@ -197,12 +197,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-
-            // set the request's CacheLookupPolicy to Default if it was not optionally passed in
-            request.cacheLookupPolicy = (request.cacheLookupPolicy === undefined) ? CacheLookupPolicy.Default : request.cacheLookupPolicy;
             
-            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, request).catch((cacheError: AuthError) => {
-                if (request.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+            const requestWithCLP = {
+                ...request,
+                // set the request's CacheLookupPolicy to Default if it was not optionally passed in
+                cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
+            };
+
+            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
+                if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
                 }
 
@@ -210,7 +213,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 BrowserUtils.blockReloadInHiddenIframes();
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
 
-                return this.acquireTokenByRefreshToken(silentRequest, request).catch((refreshTokenError: AuthError) => {
+                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
@@ -218,9 +221,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     if ((!isServerError ||
                         !isInvalidGrantError ||
                         isInteractionRequiredError ||
-                        request.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                        request.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
-                        && (request.cacheLookupPolicy !== CacheLookupPolicy.Skip)
+                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
+                        && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
                     ) {
                         throw refreshTokenError;
                     }
