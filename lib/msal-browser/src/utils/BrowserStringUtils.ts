@@ -109,4 +109,12 @@ export class BrowserStringUtils {
         }
         return sView;
     }
+
+    /**
+     * Returns stringified jwk.
+     * @param jwk 
+     */
+    static getSortedObjectString(obj: object): string {
+        return JSON.stringify(obj, Object.keys(obj).sort());
+    }
 }
