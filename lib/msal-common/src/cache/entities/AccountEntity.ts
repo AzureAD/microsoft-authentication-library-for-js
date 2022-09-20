@@ -174,13 +174,10 @@ export class AccountEntity {
              * In most cases it will contain a single email. This field should not be relied upon if a custom 
              * policy is configured to return more than 1 email.
              */
-            account.username = 
-                idToken?.claims?.preferred_username ||
-                (
-                    idToken?.claims?.emails? 
-                        idToken.claims.emails[0] :
-                        Constants.EMPTY_STRING
-                );
+            const preferredUsername = idToken?.claims?.preferred_username;
+            const email = (idToken?.claims?.emails) ? idToken.claims.emails[0] : null;
+            
+            account.username = preferredUsername || email || Constants.EMPTY_STRING;
             account.name = idToken?.claims?.name;
         }
 

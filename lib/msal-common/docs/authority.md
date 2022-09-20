@@ -1,6 +1,6 @@
 # Authority in MSAL
 
-In OAuth 2.0 and OpenID Connect, a client application (aka *relying party*) acquires tokens from an identity provider (IdP), such as Azure AD, to prove authenticity (via ID tokens) and/or authorization (via access tokens). In this relationship, the IdP has the *authority* to issue tokens to the client application, and the client application trusts the *authority* of the IdP.
+In OAuth 2.0 and OpenID Connect, a client application (aka *relying party*) acquires tokens from an identity provider (IdP), such as Azure AD, to prove authentication (via ID tokens) and/or authorization (via access tokens). In this relationship, the IdP has the *authority* to issue tokens to the client application, and the client application trusts the *authority* of the IdP.
 
 MSAL is a token acquisition library. The **authority** parameter in MSAL configuration indicates the URL to request tokens from. This URL points to the service that issues tokens, also called as **security token service** (STS). MSAL needs to have accurate information about an STS to be able to requests tokens from it (either directly from the network or from the cache later on). To do so, MSAL performs steps to gather the necessary **metadata** for making a token request (*endpoint discovery*). The [Authority.ts](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.authority.html) class encapsulates the methods and data required for endpoint discovery, and is instantiated before each token request.
 
