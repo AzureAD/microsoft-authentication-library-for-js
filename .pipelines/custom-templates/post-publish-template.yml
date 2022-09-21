@@ -7,45 +7,42 @@ parameters:
     type: boolean
     default: false
 
-jobs:
-  - job: update_${{ parameters.name }}
-    steps:
-      - task: NodeTool@0
-        displayName: Install Node
-        inputs:
-          versionSpec: '16.x'
-          checkLatest: true
-      - task: DownloadPipelineArtifact@2
-        inputs:
-          buildType: 'specific'
-          project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
-          definition: '1758'
-          specificBuildWithTriggering: true
-          buildVersionToDownload: 'latest'
-          allowFailedBuilds: true
-          artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
-          targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
-        continueOnError: true
-      - task: CmdLine@2
-        displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
-        condition: eq(${{ parameters.cdn }}, true)
-        inputs:
-          script: |
-            cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md lib/msal-${{ parameters.libName }}/README.md
-            cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md lib/msal-${{ parameters.libName }}/docs/cdn-usage.md
-      - task: CmdLine@2
-        displayName: 'Save package.json'
-        inputs:
-          script: | 
-            cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
-      - task: CmdLine@2
-        displayName: 'Remove ${{ parameters.libName }} artifacts directory'
-        inputs:
-          script: 'rm -rf $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
-      - task: Npm@1
-        displayName: 'Update msal-${{ parameters.libName }} package-lock'
-        inputs:
-          command: 'install'
-          workingDir: 'lib/msal-${{ parameters.libName }}'
-          verbose: false
-        continueOnError: true
+steps:
+  - task: DownloadPipelineArtifact@2
+    condition: always()
+    inputs:
+      buildType: 'specific'
+      project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
+      definition: '1758'
+      specificBuildWithTriggering: true
+      buildVersionToDownload: 'latest'
+      allowFailedBuilds: true
+      artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
+      targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+    continueOnError: true
+  - task: CmdLine@2
+    displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
+    condition: and(succeeded(), eq(${{ parameters.cdn }}, true))
+    inputs:
+      script: |
+        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md lib/msal-${{ parameters.libName }}/README.md
+        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md lib/msal-${{ parameters.libName }}/docs/cdn-usage.md
+  - task: CmdLine@2
+    displayName: 'Save package.json'
+    condition: succeeded()
+    inputs:
+      script: | 
+        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
+  - task: CmdLine@2
+    displayName: 'Remove ${{ parameters.libName }} artifacts directory'
+    condition: succeeded()
+    inputs:
+      script: 'rm -rf $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+  - task: Npm@1
+    displayName: 'Update msal-${{ parameters.libName }} package-lock'
+    condition: succeeded()
+    inputs:
+      command: 'install'
+      workingDir: 'lib/msal-${{ parameters.libName }}'
+      verbose: false
+    continueOnError: true
