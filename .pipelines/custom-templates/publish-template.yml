@@ -137,6 +137,7 @@ jobs:
       # Check npm for package availability
       - script: node checkPackageAvailability.js ${{ parameters.path}}/${{ parameters.libName }}
         displayName: Check npm for package availability
+        condition: not(${{ parameters.testMode }})
         workingDirectory: 'release-scripts/'
       
       # Create GitHub releases, discussions and milestones
