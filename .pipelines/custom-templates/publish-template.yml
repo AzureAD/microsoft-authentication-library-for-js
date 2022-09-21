@@ -99,7 +99,6 @@ jobs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'pack'
       
-      
       # Write NPM authToken
       - script: echo "$NPM_TOKEN" > .npmrc
         displayName: Write npm authToken
@@ -114,7 +113,7 @@ jobs:
         inputs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          customCommand: 'deploy'
+          customCommand: 'run deploy'
       - task: Npm@1
         displayName: Deploy to npm (Angular only) - Test Mode
         condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
