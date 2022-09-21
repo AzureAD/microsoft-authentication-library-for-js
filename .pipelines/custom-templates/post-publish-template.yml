@@ -31,7 +31,9 @@ steps:
     condition: succeeded()
     inputs:
       script: | 
+        diff $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
         cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
+        git diff
   - task: CmdLine@2
     displayName: 'Remove ${{ parameters.libName }} artifacts directory'
     condition: succeeded()
