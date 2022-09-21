@@ -86,13 +86,7 @@ jobs:
         displayName: Publish to npm
         condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), not(${{ parameters.testMode }}))
         continueOnError: true
-        # inputs:
-        #   workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-        #   command: 'publish'
-        #   publishRegistry: useExternalRegistry
-        #   publishEndpoint: MSALJSNPM
         inputs:
-          command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           command: 'publish'
           publishEndpoint: MSALJSNPM
@@ -130,9 +124,9 @@ jobs:
           customCommand: 'pack'
 
       # Remove .npmrc file
-      # - script: rm .npmrc
-      #   displayName: Remove .npmrc file
-      #   workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+      - script: rm .npmrc
+        displayName: Remove .npmrc file
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
 
       # Install Release Scripts dependencies
       - task: Npm@1

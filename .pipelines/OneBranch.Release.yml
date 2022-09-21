@@ -16,13 +16,10 @@ parameters: # parameters are shown up in ADO UI in a build queue time
   displayName: 'Enable debug output'
   type: boolean
   default: false
-<<<<<<< HEAD
-=======
 - name: 'testMode'
   displayName: 'Run in test mode'
   type: boolean
   default: false
->>>>>>> dev
 - name: 'overrideMsalCore'
   displayName: 'Publish MSAL Core'
   type: boolean
@@ -125,10 +122,7 @@ extends:
             cdn: true
             publishFlagName: 'MsalCore'
             publishOverride: ${{ parameters.overrideMsalCore }}
-<<<<<<< HEAD
-=======
             testMode: ${{ parameters.testMode }}
->>>>>>> dev
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -138,10 +132,7 @@ extends:
             cdn: false
             publishFlagName: 'MsalCommon'
             publishOverride: ${{ parameters.overrideMsalCommon }}
-<<<<<<< HEAD
-=======
             testMode: ${{ parameters.testMode }}
->>>>>>> dev
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
