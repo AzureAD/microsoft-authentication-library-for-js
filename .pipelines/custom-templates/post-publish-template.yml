@@ -3,6 +3,9 @@ parameters:
     type: string
   - name: libName
     type: string
+  - name: path
+    type: string
+    default: 'lib'
   - name: cdn
     type: boolean
     default: false
@@ -24,16 +27,16 @@ steps:
     condition: and(succeeded(), eq(${{ parameters.cdn }}, true))
     inputs:
       script: |
-        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md lib/msal-${{ parameters.libName }}/README.md
-        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md lib/msal-${{ parameters.libName }}/docs/cdn-usage.md
+        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md ${{ parameters.path}}/msal-${{ parameters.libName }}/README.md
+        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md ${{ parameters.path}}/msal-${{ parameters.libName }}/docs/cdn-usage.md
   - task: CmdLine@2
     displayName: 'Save package.json'
     condition: succeeded()
     inputs:
       script: | 
         cat $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json
-        cat lib/msal-${{ parameters.libName }}/package.json
-        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json lib/msal-${{ parameters.libName }}/package.json
+        cat ${{ parameters.path}}/msal-${{ parameters.libName }}/package.json
+        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json ${{ parameters.path}}/msal-${{ parameters.libName }}/package.json
         git diff
   - task: CmdLine@2
     displayName: 'Remove ${{ parameters.libName }} artifacts directory'
@@ -45,6 +48,6 @@ steps:
     condition: succeeded()
     inputs:
       command: 'install'
-      workingDir: 'lib/msal-${{ parameters.libName }}'
+      workingDir: '${{ parameters.path}}/msal-${{ parameters.libName }}'
       verbose: false
     continueOnError: true

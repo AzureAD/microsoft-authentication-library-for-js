@@ -51,6 +51,7 @@ stages:
             parameters:
               name: 'msal_node_extensions'
               libName: 'node-extensions'
+              path: 'extensions'
           # Get GitHub PAT
           - task: AzureKeyVault@2
             condition: always()
