@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fixing files to follow max-len rule #5136",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "none"
-}

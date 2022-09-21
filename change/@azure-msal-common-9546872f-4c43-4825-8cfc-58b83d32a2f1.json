@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Exposed raw id token on account info objects #5036",
+  "comment": "Added Support for the OIDC max_age parameter #5125",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
