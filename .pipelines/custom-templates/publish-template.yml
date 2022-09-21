@@ -123,9 +123,9 @@ jobs:
           customCommand: 'pack'
 
       # Remove .npmrc file
-      - script: rm .npmrc
+      - script: rm ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
         displayName: Remove .npmrc file
-        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+        condition: eq('${{ parameters.libName }}', 'msal-angular')
 
       # Install Release Scripts dependencies
       - task: Npm@1

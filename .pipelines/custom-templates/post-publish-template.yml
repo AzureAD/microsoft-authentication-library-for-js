@@ -14,7 +14,6 @@ steps:
       buildType: 'specific'
       project: 'a7934fdd-dcde-4492-a406-7fad6ac00e17'
       definition: '1758'
-      specificBuildWithTriggering: true
       buildVersionToDownload: 'latest'
       allowFailedBuilds: true
       artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
