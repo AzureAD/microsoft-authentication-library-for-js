@@ -1,12 +1,10 @@
 import { EventMessage } from "../../src/event/EventMessage";
 import { EventType } from "../../src/event/EventType";
-import { InteractionType, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
+import { InteractionType } from "../../src/utils/BrowserConstants";
 import sinon from "sinon";
 import { EventHandler } from "../../src/event/EventHandler";
 import { Logger, LogLevel, AccountInfo, AccountEntity } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
-import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { TEST_CONFIG } from "../utils/StringConstants";
 
 describe("Event API tests", () => {
     const loggerOptions = {
