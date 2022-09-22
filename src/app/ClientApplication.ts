@@ -436,7 +436,8 @@ export abstract class ClientApplication {
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
-            prompt: PromptValue.NONE,
+            // will be PromptValue.NONE or PromptValue.NO_SESSION
+            prompt: request.prompt,
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
