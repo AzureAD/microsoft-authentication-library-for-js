@@ -178,7 +178,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return null;
         }
 
-        const cachedRequest = this.browserStorage.getCachedNativeRequest();
+        // remove prompt from the request to prevent WAM from prompting twice
+        const {prompt, ...cachedRequest} = this.browserStorage.getCachedNativeRequest();
         if (!cachedRequest) {
             this.logger.verbose("NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
             return null;
