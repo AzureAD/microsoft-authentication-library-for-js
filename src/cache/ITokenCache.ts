@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ExternalTokenResponse } from "@azure/msal-common";
+import { ExternalTokenResponse, CacheRecord } from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { LoadTokenOptions } from "./TokenCache";
 
@@ -11,8 +11,8 @@ export interface ITokenCache {
 
     /**
      * API to side-load tokens to MSAL cache
-     * @returns The homeAccountId of the account associated with the response.
+     * @returns A `CacheRecord` containing the entities that were loaded.
      */
-    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): string;
+    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): CacheRecord;
 
 }
