@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Include refresh token in ExternalTokenResponse",
+  "packageName": "@azure/msal-common",
+  "email": "louisv@microsoft.com",
+  "dependentChangeType": "patch"
+}

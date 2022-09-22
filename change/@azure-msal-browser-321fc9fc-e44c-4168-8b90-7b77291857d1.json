@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Extend msal-browser TokenCache to load refresh tokens",
+  "packageName": "@azure/msal-browser",
+  "email": "louisv@microsoft.com",
+  "dependentChangeType": "patch"
+}
