@@ -40,7 +40,7 @@ A Cache Lookup Policy can be optionally provided to the request. The Cache Looku
 ```javascript
 var request = {
     scopes: ["Mail.Read"],
-    cacheLookupPolicy: 0 // Default
+    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 msalInstance.acquireTokenSilent(request).then(tokenResponse => {
@@ -60,7 +60,7 @@ msalInstance.acquireTokenSilent(request).then(tokenResponse => {
 ```javascript
 var request = {
     scopes: ["Mail.Read"],
-    cacheLookupPolicy: 0 // Default
+    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 msalInstance.acquireTokenSilent(request).then(tokenResponse => {
