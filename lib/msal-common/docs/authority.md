@@ -107,7 +107,7 @@ const cca = new ConfidentialClientApplication({
 });
 ```
 
-> *Note: dSTS supports both Public and Confidential Client applications*
+> *Note: dSTS supports both Public and Confidential Client applications.*
 
 ### Other OIDC-compliant IdPs
 
