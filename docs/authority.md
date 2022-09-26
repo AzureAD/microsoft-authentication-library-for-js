@@ -12,7 +12,7 @@ The default authority for MSAL is `https://login.microsoftonline.com/common`. Th
     https://<domain-of-the-service>/<tenant-identifier>
 ```
 
-> :warning: The canonical authority URL differs in the case of B2C and ADFS. See [Choosing an authority](#choosing-an-authority) below for more.
+> :warning: The canonical authority URL differs in the case of B2C, ADFS and dSTS. See [Choosing an authority](#choosing-an-authority) below for more.
 
 The authority URL guides MSAL where to look for the 3 endpoints that are required for successfully acquiring a token:
 
@@ -92,6 +92,22 @@ const pca = new PublicClientApplication({
 ```
 
 See [ADFS](./ADFS.md) for more.
+
+### dSTS
+
+Given that dSTS also uses custom domains in its authority URLs and does not support instance discovery, dSTS authorities must also be explicitly included in the `knownAuthorities` configuration array.
+
+```javascript
+const cca = new ConfidentialClientApplication({
+    auth: {
+        clientId: "<your-client-id>",
+        authority: "https://<your-dsts-domain>/dstsv2/<your-tenant-id>",
+        knownAuthorities: ["<your-dsts-domain>"] // array of domains that are known to be trusted
+    }
+});
+```
+
+> *Note: dSTS supports both Public and Confidential Client applications.*
 
 ### Other OIDC-compliant IdPs
 
