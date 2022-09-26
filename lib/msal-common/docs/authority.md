@@ -107,6 +107,8 @@ const cca = new ConfidentialClientApplication({
 });
 ```
 
+> *Note: dSTS supports both Public and Confidential Client applications*
+
 ### Other OIDC-compliant IdPs
 
 MSAL can be configured to acquire tokens from any OIDC-compliant IdP. See [initialization](../../msal-browser/docs/initialization.md#optional-configure-authority) for more.
