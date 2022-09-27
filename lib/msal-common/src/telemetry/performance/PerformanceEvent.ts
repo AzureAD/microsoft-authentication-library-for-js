@@ -291,5 +291,12 @@ export type PerformanceEvent = {
      *
      * @type {?boolean}
      */
-    isNativeBroker?: boolean
+    isNativeBroker?: boolean,
+
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined
 };
