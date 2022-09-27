@@ -107,11 +107,15 @@ export class TokenCache implements ITokenCache {
     private loadIdToken(idToken: string, clientInfo: string, environment: string, tenantId: string, options: LoadTokenOptions, authorityType?: AuthorityType, homeAccountId?: string): CacheRecord {
 
         const idAuthToken = new AuthToken(idToken, this.cryptoObj);
-        const idTokenHomeAccountId = homeAccountId ?
-            homeAccountId :
-            authorityType !== undefined ?
-                AccountEntity.generateHomeAccountId(clientInfo, authorityType, this.logger, this.cryptoObj, idAuthToken) :
-                clientInfo;
+
+        let idTokenHomeAccountId;
+        if (homeAccountId) {
+            idTokenHomeAccountId = homeAccountId;
+        } else if (authorityType !== undefined) {
+            idTokenHomeAccountId = AccountEntity.generateHomeAccountId(clientInfo, authorityType, this.logger, this.cryptoObj, idAuthToken);
+        } else {
+            idTokenHomeAccountId = clientInfo;
+        }
 
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(idTokenHomeAccountId, environment, idToken, this.config.auth.clientId, tenantId);
         const accountEntity = options.clientInfo ?
