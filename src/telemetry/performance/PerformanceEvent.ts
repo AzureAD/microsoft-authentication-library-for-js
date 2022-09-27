@@ -298,5 +298,12 @@ export type PerformanceEvent = {
      *
      * @type {?(number | undefined)}
      */
-    cacheLookupPolicy?: number | undefined
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Request ID returned from the response
+     * 
+     * @type {?string}
+     */
+    requestId?: string
 };
