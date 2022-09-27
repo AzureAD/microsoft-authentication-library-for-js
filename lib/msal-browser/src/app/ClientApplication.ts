@@ -353,6 +353,7 @@ export abstract class ClientApplication {
                     isNativeBroker: true,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
+                    requestId: response.requestId
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -390,6 +391,7 @@ export abstract class ClientApplication {
                 success: true,
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
+                requestId: result.requestId
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -468,7 +470,8 @@ export abstract class ClientApplication {
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
                 accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length
+                idTokenSize: response.idToken.length,
+                requestId: response.requestId
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
@@ -518,7 +521,8 @@ export abstract class ClientApplication {
                                 success: true,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
-                                isNativeBroker: result.fromNativeBroker
+                                isNativeBroker: result.fromNativeBroker,
+                                requestId: result.requestId
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
