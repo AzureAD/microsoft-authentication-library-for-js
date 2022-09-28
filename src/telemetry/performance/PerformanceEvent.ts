@@ -94,6 +94,15 @@ export enum PerformanceEvents {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+
+    /**
+     * Time taken for token acquisition by broker
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker",
 
     /**
      * Time spent on the network for refresh token acquisition
@@ -109,17 +118,6 @@ export enum PerformanceEvents {
      * Time taken for acquiring cached refresh token 
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
-
-    /**
-     * Time spent creating default headers for requests to token endpoint
-     */
-    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
-
-    /**
-     * Time taken for token acquisition by broker
-     */
-    AcquireTokenByBroker = "acquireTokenByBroker"
-
 }
 
 /**
