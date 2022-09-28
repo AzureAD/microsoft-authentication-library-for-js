@@ -62,13 +62,9 @@ export class RefreshTokenClient extends BaseClient {
             true,
             request.forceCache
         ).then((result: AuthenticationResult) => {
-            let refreshTokenSize;
-            if (response.body?.refresh_token) {
-                refreshTokenSize = response.body.refresh_token.length || 0;
-            }
             atsMeasurement?.endMeasurement({
                 success: true,
-                refreshTokenSize: refreshTokenSize
+                refreshTokenSize: response.body.refresh_token?.length || 0
             });
             return result;
         })
