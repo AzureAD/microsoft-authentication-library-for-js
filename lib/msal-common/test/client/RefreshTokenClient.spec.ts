@@ -14,7 +14,8 @@ import {
     AUTHENTICATION_RESULT_WITH_FOCI,
     CORS_SIMPLE_REQUEST_HEADERS,
     POP_AUTHENTICATION_RESULT,
-    SSH_AUTHENTICATION_RESULT
+    SSH_AUTHENTICATION_RESULT,
+    AUTHENTICATION_RESULT_NO_REFRESH_TOKEN
 } from "../test_kit/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -109,6 +110,14 @@ describe("RefreshTokenClient unit tests", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
         };
+        const mockRefreshTokenRequest: CommonRefreshTokenRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            refreshToken : "",
+            claims: TEST_CONFIG.CLAIMS,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+        };
 
         beforeEach(async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -158,6 +167,23 @@ describe("RefreshTokenClient unit tests", () => {
             
             await client.acquireToken(refreshTokenRequest);
             expect(spy).toHaveBeenCalled();
+            expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                refreshTokenSize:19
+            }));
+            spy.mockClear();
+        });
+
+        it("Checks whether performance telemetry endMeasurement method is called- no rt",async () => {
+            const spy = jest.spyOn(stubPerformanceClient, 'endMeasurement');
+            
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_NO_REFRESH_TOKEN);
+            
+            await client.acquireToken(mockRefreshTokenRequest);
+            expect(spy).toHaveBeenCalled();
+            expect(spy).toHaveBeenCalledWith(expect.objectContaining({
+                refreshTokenSize:0
+            }));
             spy.mockClear();
         });
     });
