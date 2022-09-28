@@ -55,13 +55,14 @@ export class TokenCache implements ITokenCache {
             throw BrowserAuthError.createUnableToLoadTokenError("Please ensure server response includes id token.");
         }
 
-        const cacheRecord = new CacheRecord();
-
         if (request.account) {
-            cacheRecord.account = this.loadAccount(response.id_token, request.account.environment, undefined, undefined, request.account.homeAccountId);
-            cacheRecord.idToken = this.loadIdToken(response.id_token, cacheRecord.account.homeAccountId, request.account.environment, request.account.tenantId);
-            cacheRecord.accessToken = this.loadAccessToken(request, response, cacheRecord.account.homeAccountId, request.account.environment, request.account.tenantId, options);
-            cacheRecord.refreshToken = this.loadRefreshToken(request, response, cacheRecord.account.homeAccountId, request.account.environment);
+            const cacheRecordAccount = this.loadAccount(response.id_token, request.account.environment, undefined, undefined, request.account.homeAccountId);
+            return new CacheRecord(
+                cacheRecordAccount,
+                this.loadIdToken(response.id_token, cacheRecordAccount.homeAccountId, request.account.environment, request.account.tenantId),
+                this.loadAccessToken(request, response, cacheRecordAccount.homeAccountId, request.account.environment, request.account.tenantId, options),
+                this.loadRefreshToken(request, response, cacheRecordAccount.homeAccountId, request.account.environment)
+            );
         } else if (request.authority) {
 
             const authorityUrl = Authority.generateAuthority(request.authority, request.azureCloudOptions);
@@ -77,24 +78,28 @@ export class TokenCache implements ITokenCache {
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
-                cacheRecord.account = this.loadAccount(response.id_token, authority.hostnameAndPort, options.clientInfo, authority.authorityType);
-                cacheRecord.idToken = this.loadIdToken(response.id_token, cacheRecord.account.homeAccountId, authority.hostnameAndPort, authority.tenant);
-                cacheRecord.accessToken = this.loadAccessToken(request, response, cacheRecord.account.homeAccountId, authority.hostnameAndPort, authority.tenant, options);
-                cacheRecord.refreshToken = this.loadRefreshToken(request, response, cacheRecord.account.homeAccountId, authority.hostnameAndPort);
+                const cacheRecordAccount = this.loadAccount(response.id_token, authority.hostnameAndPort, options.clientInfo, authority.authorityType);
+                return new CacheRecord(
+                    cacheRecordAccount,
+                    this.loadIdToken(response.id_token, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant),
+                    this.loadAccessToken(request, response, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant, options),
+                    this.loadRefreshToken(request, response, cacheRecordAccount.homeAccountId, authority.hostnameAndPort)
+                );
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
-                cacheRecord.account = this.loadAccount(response.id_token, authority.hostnameAndPort, response.client_info, authority.authorityType);
-                cacheRecord.idToken  = this.loadIdToken(response.id_token, cacheRecord.account.homeAccountId, authority.hostnameAndPort, authority.tenant);
-                cacheRecord.accessToken = this.loadAccessToken(request, response, cacheRecord.account.homeAccountId, authority.hostnameAndPort, authority.tenant, options);
-                cacheRecord.refreshToken = this.loadRefreshToken(request, response, cacheRecord.account.homeAccountId, authority.hostnameAndPort);
+                const cacheRecordAccount = this.loadAccount(response.id_token, authority.hostnameAndPort, response.client_info, authority.authorityType);
+                return new CacheRecord(
+                    cacheRecordAccount,
+                    this.loadIdToken(response.id_token, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant),
+                    this.loadAccessToken(request, response, cacheRecordAccount.homeAccountId, authority.hostnameAndPort, authority.tenant, options),
+                    this.loadRefreshToken(request, response, cacheRecordAccount.homeAccountId, authority.hostnameAndPort)
+                );
             } else {
                 throw BrowserAuthError.createUnableToLoadTokenError("Please provide clientInfo in the response or options.");
             }
         } else {
             throw BrowserAuthError.createUnableToLoadTokenError("Please provide a request with an account or a request with authority.");
         }
-
-        return cacheRecord;
     }
 
     /**
