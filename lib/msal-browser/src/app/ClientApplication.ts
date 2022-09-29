@@ -4,10 +4,10 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -132,11 +132,11 @@ export abstract class ClientApplication {
 
         // Initialize performance client
         this.performanceClient = this.isBrowserEnvironment ?
-            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application) :
+            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application, this.config.system.cryptoOptions) :
             new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
 
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient) : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient, this.config.system.cryptoOptions) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -353,6 +353,7 @@ export abstract class ClientApplication {
                     isNativeBroker: true,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
+                    requestId: response.requestId
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -390,6 +391,7 @@ export abstract class ClientApplication {
                 success: true,
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
+                requestId: result.requestId
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -436,7 +438,8 @@ export abstract class ClientApplication {
         const correlationId = this.getRequestCorrelationId(request);
         const validRequest = {
             ...request,
-            prompt: PromptValue.NONE,
+            // will be PromptValue.NONE or PromptValue.NO_SESSION
+            prompt: request.prompt,
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
@@ -467,7 +470,8 @@ export abstract class ClientApplication {
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
                 accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length
+                idTokenSize: response.idToken.length,
+                requestId: response.requestId
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
@@ -517,7 +521,8 @@ export abstract class ClientApplication {
                                 success: true,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
-                                isNativeBroker: result.fromNativeBroker
+                                isNativeBroker: result.fromNativeBroker,
+                                requestId: result.requestId
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
@@ -582,67 +587,59 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Use this function to obtain a token before every call to the API / resource provider
-     *
-     * MSAL return's a cached token when available
-     * Or it send's a request to the STS to obtain a new token using a refresh token.
-     *
-     * @param {@link SilentRequest}
-     *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     * Attempt to acquire an access token from the cache
+     * @param silentCacheClient SilentCacheClient
+     * @param commonRequest CommonSilentFlowRequest
+     * @param silentRequest SilentRequest
+     * @returns A promise that, when resolved, returns the access token
      */
-    protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-        const atbrtMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, request.correlationId);
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
+    protected async acquireTokenFromCache(
+        silentCacheClient: SilentCacheClient,
+        commonRequest: CommonSilentFlowRequest,
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult> {
+        switch(silentRequest.cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessToken:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+                return silentCacheClient.acquireToken(commonRequest);
+            default:
+                throw ClientAuthError.createRefreshRequiredError();
+        }
+    }
 
-        const silentRefreshClient = this.createSilentRefreshClient(request.correlationId);
+    /**
+     * Attempt to acquire an access token via a refresh token
+     * @param commonRequest CommonSilentFlowRequest
+     * @param silentRequest SilentRequest
+     * @returns A promise that, when resolved, returns the access token
+     */
+    protected async acquireTokenByRefreshToken(
+        commonRequest: CommonSilentFlowRequest,
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult> {
+        switch(silentRequest.cacheLookupPolicy) {
+            case CacheLookupPolicy.Default:
+            case CacheLookupPolicy.AccessTokenAndRefreshToken:
+            case CacheLookupPolicy.RefreshToken:
+            case CacheLookupPolicy.RefreshTokenAndNetwork:
+                const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
+                return silentRefreshClient.acquireToken(commonRequest);
+            default:
+                throw ClientAuthError.createRefreshRequiredError();
+        }
+    }
 
-        return silentRefreshClient.acquireToken(request)
-            .then((result: AuthenticationResult) => {
-                atbrtMeasurement.endMeasurement({
-                    success: true,
-                    fromCache: result.fromCache,
-                    accessTokenSize: result.accessToken.length,
-                    idTokenSize: result.idToken.length,
-                });
-                return result;
-            })
-            .catch(e => {
-                const isServerError = e instanceof ServerError;
-                const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
-                const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-                if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                    this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
-
-                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                    return silentIframeClient.acquireToken(request)
-                        .then((result: AuthenticationResult) => {
-                            atbrtMeasurement.endMeasurement({
-                                success: true,
-                                fromCache: result.fromCache,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                            });
-
-                            return result;
-                        })
-                        .catch((error) => {
-                            atbrtMeasurement.endMeasurement({
-                                errorCode: error.errorCode,
-                                subErrorCode: error.subError,
-                                success: false
-                            });
-                            throw error;
-                        });
-                }
-                atbrtMeasurement.endMeasurement({
-                    success: false
-                });
-                throw e;
-            });
+    /**
+     * Attempt to acquire an access token via an iframe
+     * @param request CommonSilentFlowRequest
+     * @returns A promise that, when resolved, returns the access token
+     */
+    protected async acquireTokenBySilentIframe(
+        request: CommonSilentFlowRequest
+    ): Promise<AuthenticationResult> {
+        const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+        return silentIframeClient.acquireToken(request);
     }
 
     // #endregion

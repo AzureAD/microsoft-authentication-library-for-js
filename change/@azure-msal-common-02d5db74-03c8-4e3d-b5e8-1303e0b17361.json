@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Exposed raw id token on account info objects #5036",
+  "type": "patch",
+  "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

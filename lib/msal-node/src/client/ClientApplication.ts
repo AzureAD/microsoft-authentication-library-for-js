@@ -30,6 +30,7 @@ import {
     AzureCloudOptions,
     AuthorizationCodePayload,
     StringUtils,
+    ClientAuthError,
     Constants,
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
@@ -44,6 +45,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { NodeAuthError } from "../error/NodeAuthError";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -131,12 +133,19 @@ export abstract class ClientApplication {
      * AuthorizationCodeRequest are the same.
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult> {
-        this.logger.info("acquireTokenByCode called", request.correlationId);
+        this.logger.info("acquireTokenByCode called");
+        if (request.state && authCodePayLoad){
+            this.logger.info("acquireTokenByCode - validating state");
+            this.validateState(request.state, authCodePayLoad.state || "");
+            // eslint-disable-next-line no-param-reassign
+            authCodePayLoad= {...authCodePayLoad, state: ""};
+        }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ... await this.initializeBaseRequest(request),
             authenticationScheme: AuthenticationScheme.BEARER
         };
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId);
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
@@ -279,6 +288,25 @@ export abstract class ClientApplication {
     getTokenCache(): TokenCache {
         this.logger.info("getTokenCache called");
         return this.tokenCache;
+    }
+
+    /**
+     * Validates OIDC state by comparing the user cached state with the state received from the server.
+     * 
+     * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
+     * CSRF attacks.
+     * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
+     * @param state
+     * @param cachedState
+     */
+    protected validateState(state: string, cachedState: string): void {
+        if(!state) {
+            throw NodeAuthError.createStateNotFoundError();
+        }
+
+        if(state !== cachedState) {
+            throw ClientAuthError.createStateMismatchError();
+        }
     }
 
     /**

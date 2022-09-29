@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 Aug 2022 22:22:35 GMT and should not be manually modified.
+This log was last generated on Mon, 12 Sep 2022 18:19:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.4.1
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Exporting constants #5189 (lalimasharda@microsoft.com)
+
+## 7.4.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Exposed raw id token on account info objects #5036 (rginsburg@microsoft.com)
+- Export ClientInfo APIs #6886 (lalimasharda@microsoft.com)
+- Add query string parsing helpers #5062 (thomas.norling@microsoft.com)
 
 ## 7.3.0
 

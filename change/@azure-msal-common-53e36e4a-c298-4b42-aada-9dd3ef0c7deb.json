@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Export ClientInfo APIs #6886",
-  "packageName": "@azure/msal-common",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "none"
-}

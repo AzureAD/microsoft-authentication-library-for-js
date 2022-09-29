@@ -2,6 +2,56 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-common_v7.4.1",
+      "version": "7.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4b84e7cc7c0dec506f0041ae1202f7403229c3d4",
+            "comment": "Exporting constants #5189"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-common_v7.4.0",
+      "version": "7.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "82098dcb119883c52b956ae3eb408a80d0bcfe42",
+            "comment": "Exposed raw id token on account info objects #5036"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "92ed1e50702191a99599ff4a1bc512487f5bcff0",
+            "comment": "Export ClientInfo APIs #6886"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6",
+            "comment": "Add query string parsing helpers #5062"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Aug 2022 22:22:35 GMT",
       "tag": "@azure/msal-common_v7.3.0",
       "version": "7.3.0",
