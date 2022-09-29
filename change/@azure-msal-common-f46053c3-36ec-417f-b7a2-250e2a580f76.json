@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fixed broken homeAccountId check in CacheManager",
+  "packageName": "@azure/msal-common",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
