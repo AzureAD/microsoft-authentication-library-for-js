@@ -8,7 +8,7 @@ import {
     NetworkRequestOptions,
     NetworkResponse
 } from "@azure/msal-common";
-import { HttpMethod } from "../utils/Constants";
+import { HttpMethod, Constants } from "../utils/Constants";
 import http from "http";
 import https from "https";
 
@@ -104,13 +104,21 @@ const networkRequestViaProxy = <T>(
         // establish connection to the proxy
         request.on("connect", (response, socket) => {
             const statusCode = response?.statusCode || 500;
-            if (statusCode < 200 || statusCode > 299) {
-                // error in connection to the proxy
-                request.destroy();
-                socket.destroy();
-                reject(new Error(`HTTP status code ${statusCode}`));
-            }
-
+            console.log(statusCode);
+            /*
+             * if (statusCode < 200 || statusCode > 299) {
+             *   // error in connection to the proxy
+             *   request.destroy();
+             *   socket.destroy();
+             *   reject(new Error(`HTTP status code ${statusCode}`));
+             * }
+             */
+            /*
+             * write a test for the original case
+             * remove the code and test should fail
+             * change the test based on the response
+             */
+            
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
                 socket.on("timeout", () => {
@@ -176,7 +184,11 @@ const networkRequestViaProxy = <T>(
                     body: JSON.parse(body) as T,
                     status: statusCode as number,
                 };
-
+                if ((statusCode < 200 || statusCode > 299) &&
+                    // do not destroy the request for the device code flow
+                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
+                    request.destroy();
+                }
                 resolve(networkResponse);
             });
 
@@ -256,6 +268,12 @@ const networkRequestViaHttps = <T>(
                     status: statusCode,
                 };
 
+                if ((statusCode < 200 || statusCode > 299) &&
+                    // do not destroy the request for the device code flow
+                    networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
+                    request.destroy();
+                }
+
                 resolve(networkResponse);
             });
         });
@@ -266,3 +284,4 @@ const networkRequestViaHttps = <T>(
         });
     });
 };
+// test for auth conditon
