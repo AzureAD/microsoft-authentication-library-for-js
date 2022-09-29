@@ -103,22 +103,10 @@ const networkRequestViaProxy = <T>(
 
         // establish connection to the proxy
         request.on("connect", (response, socket) => {
+
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const statusCode = response?.statusCode || 500;
-            console.log(statusCode);
-            /*
-             * if (statusCode < 200 || statusCode > 299) {
-             *   // error in connection to the proxy
-             *   request.destroy();
-             *   socket.destroy();
-             *   reject(new Error(`HTTP status code ${statusCode}`));
-             * }
-             */
-            /*
-             * write a test for the original case
-             * remove the code and test should fail
-             * change the test based on the response
-             */
-            
+
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
                 socket.on("timeout", () => {
@@ -284,4 +272,4 @@ const networkRequestViaHttps = <T>(
         });
     });
 };
-// test for auth conditon
+
