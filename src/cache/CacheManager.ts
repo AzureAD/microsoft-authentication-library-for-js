@@ -390,7 +390,8 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
+            // homeAccountId can be an empty string, and !!("") = false
+            if (!!(typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
