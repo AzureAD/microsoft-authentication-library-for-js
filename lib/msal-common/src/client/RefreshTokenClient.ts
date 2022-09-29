@@ -41,7 +41,7 @@ export class RefreshTokenClient extends BaseClient {
         const response = await this.executeTokenRequest(request, this.authority);
 
         // Retrieve requestId from response headers
-        const requestId = response.headers?[HeaderNames.X_MS_REQUEST_ID];
+        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
