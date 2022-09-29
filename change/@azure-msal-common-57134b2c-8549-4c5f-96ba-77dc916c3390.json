@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add query string parsing helpers #5062",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

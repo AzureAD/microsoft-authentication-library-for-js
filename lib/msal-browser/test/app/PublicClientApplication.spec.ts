@@ -5,9 +5,9 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest, TEST_SSH_VALUES, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
-import { AuthorityMetadataEntity, ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest, InteractionRequiredAuthError, IdTokenEntity, CacheManager } from "@azure/msal-common";
-import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest, TEST_SSH_VALUES, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
+import { AuthorityMetadataEntity, ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest, InteractionRequiredAuthError, IdTokenEntity, CacheManager, ClientAuthError } from "@azure/msal-common";
+import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation, CacheLookupPolicy } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
@@ -38,6 +38,19 @@ const cacheConfig = {
     storeAuthStateInCookie: false,
     secureCookies: false
 };
+
+
+jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
+    return {
+        BrowserPerformanceMeasurement: jest.fn().mockImplementation(() => {
+            return {
+                startMeasurement: () => {},
+                endMeasurement: () => {},
+                flushMeasurement: () => 50
+            }
+        })
+    }
+});
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -2558,6 +2571,250 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(tokenResp).toEqual(testTokenResponse);
             expect(silentTokenHelperStub.args[0][1]).toEqual(expect.objectContaining(expectedRequest));
+        });
+
+        it("emits expect performance event when successful", (done) => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
+            const silentRequest: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount
+            };
+
+            const atsSpy = sinon.stub(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync").resolves({
+                fromCache :true,
+                accessToken: "abc",
+                idToken: "defg",
+                fromNativeBroker: true
+            });
+
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+                expect(events[0].success).toBe(true);
+                expect(events[0].fromCache).toBe(true);
+                expect(events[0].accessTokenSize).toBe(3);
+                expect(events[0].idTokenSize).toBe(4);
+                expect(events[0].isNativeBroker).toBe(true);
+                expect(events[0].requestId).toBe(undefined);
+
+                pca.removePerformanceCallback(callbackId);
+                done();
+            }));
+
+            pca.acquireTokenSilent(silentRequest);
+        });
+
+        it("emits expect performance event when there is an error", (done) => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
+            const silentRequest: SilentRequest = {
+                scopes: ["User.Read"],
+                account: testAccount
+            };
+
+            const atsSpy = sinon.stub(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync").rejects({
+                errorCode: "abc",
+                subError: "defg"
+            });
+
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe("abc");
+                expect(events[0].subErrorCode).toBe("defg");
+
+                pca.removePerformanceCallback(callbackId);
+                done();
+            }));
+
+            pca.acquireTokenSilent(silentRequest).catch(() => {})
+        });
+
+        describe("Cache Lookup Policies", () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+
+            const refreshRequiredCacheError = ClientAuthError.createRefreshRequiredError();
+            const refreshRequiredServerError = new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired")
+
+            afterEach(() => {
+                sinon.restore();
+            });
+            
+            it("Calls SilentCacheClient.acquireToken, SilentRefreshClient.acquireToken and SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when CacheLookupPolicy is set to Default", async () => {
+                const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects(refreshRequiredCacheError);
+                const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(refreshRequiredServerError);
+                const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+                
+                const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, cacheLookupPolicy: CacheLookupPolicy.Default});
+                await expect(response).resolves.toEqual(testTokenResponse);
+                expect(silentCacheSpy.calledOnce).toBeTruthy();
+                expect(silentRefreshSpy.calledOnce).toBeTruthy();
+                expect(silentIframeSpy.calledOnce).toBeTruthy();
+            });
+
+            it("Calls SilentCacheClient.acquireToken, and doesn't call SilentRefreshClient.acquireToken or SilentIframeClient.acquireToken if cache lookup throws when CacheLookupPolicy is set to AccessToken", async () => {
+                const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects(refreshRequiredCacheError);
+                const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken");
+                const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken");
+
+                const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, cacheLookupPolicy: CacheLookupPolicy.AccessToken});
+                await expect(response).rejects.toMatchObject(refreshRequiredCacheError);
+                expect(silentCacheSpy.calledOnce).toBeTruthy();
+                expect(silentRefreshSpy.notCalled).toBeTruthy();
+                expect(silentIframeSpy.notCalled).toBeTruthy();
+            });
+
+            it("Calls SilentCacheClient.acquireToken and SilentRefreshClient.acquireToken, and doesn't call SilentIframeClient.acquireToken if cache lookup throws and refresh token is expired when CacheLookupPolicy is set to AccessTokenAndRefreshToken", async () => {
+                const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects(refreshRequiredCacheError);
+                const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(refreshRequiredServerError);
+                const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken");
+
+                const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, cacheLookupPolicy: CacheLookupPolicy.AccessTokenAndRefreshToken});
+                await expect(response).rejects.toMatchObject(refreshRequiredServerError);
+                expect(silentCacheSpy.calledOnce).toBeTruthy();
+                expect(silentRefreshSpy.calledOnce).toBeTruthy();
+                expect(silentIframeSpy.notCalled).toBeTruthy();
+            });
+
+            it("Calls SilentRefreshClient.acquireToken, and doesn't call SilentCacheClient.acquireToken or SilentIframeClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshToken", async () => {
+                const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken");
+                const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(refreshRequiredServerError);
+                const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken");
+
+                const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, cacheLookupPolicy: CacheLookupPolicy.RefreshToken});
+                await expect(response).rejects.toMatchObject(refreshRequiredServerError);
+                expect(silentCacheSpy.notCalled).toBeTruthy();
+                expect(silentRefreshSpy.calledOnce).toBeTruthy();
+                expect(silentIframeSpy.notCalled).toBeTruthy();
+            });
+
+            it("Calls SilentRefreshClient.acquireToken and SilentIframeClient.acquireToken, and doesn't call SilentCacheClient.acquireToken if refresh token is expired when CacheLookupPolicy is set to RefreshTokenAndNetwork", async () => {
+                const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken");
+                const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(refreshRequiredServerError);
+                const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+                const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, cacheLookupPolicy: CacheLookupPolicy.RefreshTokenAndNetwork});
+                await expect(response).resolves.toEqual(testTokenResponse);
+                expect(silentCacheSpy.notCalled).toBeTruthy();
+                expect(silentRefreshSpy.calledOnce).toBeTruthy();
+                expect(silentIframeSpy.calledOnce).toBeTruthy();
+            });
+
+            it("Calls SilentIframeClient.acquireToken, and doesn't call SilentCacheClient.acquireToken or SilentRefreshClient.acquireToken when CacheLookupPolicy is set to Skip", async () => {
+                const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken");
+                const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken");
+                const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+                const response = pca.acquireTokenSilent({scopes: ["openid"], account: testAccount, cacheLookupPolicy: CacheLookupPolicy.Skip});
+                await expect(response).resolves.toEqual(testTokenResponse);
+                expect(silentCacheSpy.notCalled).toBeTruthy();
+                expect(silentRefreshSpy.notCalled).toBeTruthy();
+                expect(silentIframeSpy.calledOnce).toBeTruthy();
+            });
         });
     });
 
