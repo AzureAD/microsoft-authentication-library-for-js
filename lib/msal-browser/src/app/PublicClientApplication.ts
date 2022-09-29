@@ -136,6 +136,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -241,7 +242,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 fromCache: response.fromCache,
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length,
-                isNativeBroker: response.fromNativeBroker
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
             });
             return response;
         }).catch((tokenRenewalError: AuthError) => {
