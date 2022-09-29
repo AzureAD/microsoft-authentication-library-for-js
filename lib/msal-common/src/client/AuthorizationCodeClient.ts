@@ -71,7 +71,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const response = await this.executeTokenRequest(this.authority, request);
 
         // Retrieve requestId from response headers
-        const requestId = response.headers && response.headers[HeaderNames.X_MS_REQUEST_ID] ? response.headers[HeaderNames.X_MS_REQUEST_ID] : undefined;
+        const requestId = response.headers?[HeaderNames.X_MS_REQUEST_ID];
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
