@@ -178,3 +178,40 @@ export enum WrapperSKU {
 export const DB_NAME = "msal.db";
 export const DB_VERSION = 1;
 export const DB_TABLE_NAME = `${DB_NAME}.keys`;
+
+export enum CacheLookupPolicy {
+    /*
+     * acquireTokenSilent will attempt to retrieve an access token from the cache. If the access token is expired
+     * or cannot be found the refresh token will be used to acquire a new one. Finally, if the refresh token
+     * is expired acquireTokenSilent will attempt to acquire new access and refresh tokens.
+     */
+    Default = 0, // 0 is falsy, is equivalent to not passing in a CacheLookupPolicy
+    /*
+     * acquireTokenSilent will only look for access tokens in the cache. It will not attempt to renew access or
+     * refresh tokens.
+     */
+    AccessToken = 1,
+    /*
+     * acquireTokenSilent will attempt to retrieve an access token from the cache. If the access token is expired or
+     * cannot be found, the refresh token will be used to acquire a new one. If the refresh token is expired, it
+     * will not be renewed and acquireTokenSilent will fail.
+     */
+    AccessTokenAndRefreshToken = 2,
+    /*
+     * acquireTokenSilent will not attempt to retrieve access tokens from the cache and will instead attempt to
+     * exchange the cached refresh token for a new access token. If the refresh token is expired, it will not be
+     * renewed and acquireTokenSilent will fail.
+     */
+    RefreshToken = 3,
+    /*
+     * acquireTokenSilent will not look in the cache for the access token. It will go directly to network with the
+     * cached refresh token. If the refresh token is expired an attempt will be made to renew it. This is equivalent to
+     * setting "forceRefresh: true".
+     */
+    RefreshTokenAndNetwork = 4,
+    /*
+     * acquireTokenSilent will attempt to renew both access and refresh tokens. It will not look in the cache. This will
+     * always fail if 3rd party cookies are blocked by the browser.
+     */
+    Skip = 5,
+}

@@ -103,6 +103,17 @@ export class SilentFlowClient extends BaseClient {
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         }
+
+        // token max_age check
+        if (request.maxAge || (request.maxAge === 0)) {
+            const authTime = idTokenObj?.claims.auth_time;
+            if (!authTime) {
+                throw ClientAuthError.createAuthTimeNotFoundError();
+            }
+
+            AuthToken.checkMaxAge(authTime, request.maxAge);
+        }
+
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,
