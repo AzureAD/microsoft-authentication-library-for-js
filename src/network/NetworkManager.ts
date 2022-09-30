@@ -42,7 +42,6 @@ export class NetworkManager {
                 throw e;
             } else {
                 throw ClientAuthError.createNetworkError(tokenEndpoint, e);
-
             }
         }
 
