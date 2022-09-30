@@ -7,8 +7,7 @@ import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/msa-account-tests`;
 
-// Problem with MSA logins displaying a security info notice - re-enable these tests when that gets resolved
-describe.skip('B2C user-flow tests (msa account)', () => {
+describe('B2C user-flow tests (msa account)', () => {
     jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -74,7 +73,7 @@ describe.skip('B2C user-flow tests (msa account)', () => {
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])).not.toBeNull();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
-        
+
         // initiate edit profile flow
         const editProfileButton = await page.waitForSelector("#editProfileButton");
         if (editProfileButton) {
@@ -87,10 +86,14 @@ describe.skip('B2C user-flow tests (msa account)', () => {
             page.type("#displayName", `${displayName}`),
         ]);
         await page.click("#continue");
-        await page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`);
-        await page.waitForSelector("#idTokenClaims");
-        await page.waitForSelector(`xpath=//li[contains(., '${displayName}')]`);
-        await page.waitForSelector("xpath=//li[contains(., 'B2C_1_SISOPolicy')]"); // implies the current active account
+        await Promise.all([
+            page.waitForFunction(`window.location.href.startsWith("http://localhost:${port}")`),
+            page.waitForSelector("#idTokenClaims"),
+            page.waitForXPath("//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]", {timeout: 4000})
+        ]);
+        const idTokenClaims = await page.$eval("#idTokenClaims", (e) => e.textContent);  
+        expect(idTokenClaims).toContain("B2C_1_SISOPolicy"); // implies the current active account
+        expect(idTokenClaims).toContain(`${displayName}`);
 
         // Verify tokens are in cache
         const tokenStoreAfterEdit = await BrowserCache.getTokens();

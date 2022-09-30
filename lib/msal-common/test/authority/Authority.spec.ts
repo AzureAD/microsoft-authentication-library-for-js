@@ -827,6 +827,38 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             });
 
+            
+            it("Sets metadata from host for DSTS authority", async () => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: ["https://custom-domain.microsoft.com/dstsv2"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                }
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                };
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
+                authority = new Authority("https://custom-domain.microsoft.com/dstsv2", networkInterface, mockStorage, authorityOptions);
+    
+                await authority.resolveEndpointsAsync();
+                expect(authority.isAlias("custom-domain.microsoft.com")).toBe(true);
+                expect(authority.getPreferredCache()).toBe("custom-domain.microsoft.com");
+                expect(authority.canonicalAuthority.includes("custom-domain.microsoft.com"));
+
+                // Test that the metadata is cached
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-custom-domain.microsoft.com`;
+                const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                if (!cachedAuthorityMetadata) {
+                    throw Error("Cached AuthorityMetadata should not be null!");
+                } else {
+                    expect(cachedAuthorityMetadata.aliases).toContain("custom-domain.microsoft.com");
+                    expect(cachedAuthorityMetadata.preferred_cache).toBe("custom-domain.microsoft.com");
+                    expect(cachedAuthorityMetadata.preferred_network).toBe("custom-domain.microsoft.com");
+                    expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(false);
+                }
+            });
+
             it("Throws if cloudDiscoveryMetadata cannot be parsed into json", (done) => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
@@ -895,6 +927,34 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("ADFS authority uses v1 well-known endpoint", async () => {
             const authorityUrl = "https://login.microsoftonline.com/adfs/"
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
+        });
+
+        it("DSTS authority uses v1 well-known endpoint with common y", async () => {
+            const authorityUrl = "https://login.microsoftonline.com/dstsv2/common/"
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
+        });
+
+        it("DSTS authority uses v1 well-known  with tenanted authority", async () => {
+            const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`
             let endpoint = "";
             authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
             jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
