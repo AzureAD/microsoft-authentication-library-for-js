@@ -22,7 +22,6 @@ import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -48,9 +47,8 @@ export class Authority {
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
     // Proxy url string
     private proxyUrl: string;
-    private performanceClient?: IPerformanceClient;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string, performanceClient?: IPerformanceClient) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
@@ -59,7 +57,6 @@ export class Authority {
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
         this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
-        this.performanceClient = performanceClient;
     }
 
     // See above for AuthorityType
