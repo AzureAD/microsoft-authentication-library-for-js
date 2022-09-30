@@ -61,4 +61,5 @@ export type TokenClaims = {
     roles?: string[],
     amr?: string[],
     idp?: string,
+    auth_time?: number,
 };

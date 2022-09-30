@@ -170,10 +170,14 @@ export class AccountEntity {
             account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || Constants.EMPTY_STRING;
 
             /*
-             * In B2C scenarios the emails claim is used instead of preferred_username and it is an array. In most cases it will contain a single email.
-             * This field should not be relied upon if a custom policy is configured to return more than 1 email.
+             * In B2C scenarios the emails claim is used instead of preferred_username and it is an array.
+             * In most cases it will contain a single email. This field should not be relied upon if a custom 
+             * policy is configured to return more than 1 email.
              */
-            account.username = idToken?.claims?.preferred_username || (idToken?.claims?.emails? idToken.claims.emails[0]: Constants.EMPTY_STRING);
+            const preferredUsername = idToken?.claims?.preferred_username;
+            const email = (idToken?.claims?.emails) ? idToken.claims.emails[0] : null;
+            
+            account.username = preferredUsername || email || Constants.EMPTY_STRING;
             account.name = idToken?.claims?.name;
         }
 
@@ -198,7 +202,11 @@ export class AccountEntity {
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
-        account.authorityType = (authority && authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        account.authorityType = (
+            authority &&
+            authority.authorityType === AuthorityType.Adfs
+        ) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        
         account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
         account.realm = Constants.EMPTY_STRING;
@@ -236,12 +244,18 @@ export class AccountEntity {
      * @param serverClientInfo
      * @param authType
      */
-    static generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idToken?: AuthToken): string {
+    static generateHomeAccountId(
+        serverClientInfo: string,
+        authType: AuthorityType,
+        logger: Logger,
+        cryptoObj: ICrypto,
+        idToken?: AuthToken
+    ): string {
 
         const accountId = idToken?.claims?.sub ? idToken.claims.sub : Constants.EMPTY_STRING;
 
         // since ADFS does not have tid and does not set client_info
-        if (authType === AuthorityType.Adfs) {
+        if (authType === AuthorityType.Adfs || authType === AuthorityType.Dsts) {
             return accountId;
         }
 

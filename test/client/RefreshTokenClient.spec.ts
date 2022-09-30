@@ -14,7 +14,9 @@ import {
     AUTHENTICATION_RESULT_WITH_FOCI,
     CORS_SIMPLE_REQUEST_HEADERS,
     POP_AUTHENTICATION_RESULT,
-    SSH_AUTHENTICATION_RESULT
+    SSH_AUTHENTICATION_RESULT,
+    AUTHENTICATION_RESULT_WITH_HEADERS,
+    CORS_RESPONSE_HEADERS
 } from "../test_kit/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -418,6 +420,42 @@ describe("RefreshTokenClient unit tests", () => {
             expect(result.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
             expect(result.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(result.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+        });
+
+        it("includes the requestId in the result when received in server response", async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+
+            const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
+
+            expect(authResult.requestId).toBeTruthy;
+            expect(authResult.requestId).toEqual(CORS_RESPONSE_HEADERS.xMsRequestId);
+        });
+
+        it("does not include the requestId in the result when none in server response", async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            const client = new RefreshTokenClient(config,stubPerformanceClient);
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+
+            const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
+
+            expect(authResult.requestId).toBeFalsy;
+            expect(authResult.requestId).toEqual("");
         });
     });
 
