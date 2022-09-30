@@ -293,7 +293,8 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
+            // homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
+            if ((typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
@@ -390,8 +391,8 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            // homeAccountId can be an empty string, and !!("") = false
-            if (!!(typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
+            // homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
+            if ((typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
@@ -842,7 +843,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param homeAccountId
      */
     private matchHomeAccountId(entity: AccountEntity | CredentialEntity, homeAccountId: string): boolean {
-        return !!(entity.homeAccountId && homeAccountId === entity.homeAccountId);
+        return !!((typeof entity.homeAccountId === "string") && (homeAccountId === entity.homeAccountId));
     }
 
     /**
