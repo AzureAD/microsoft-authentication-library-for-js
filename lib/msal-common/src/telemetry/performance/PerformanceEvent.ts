@@ -119,7 +119,7 @@ export enum PerformanceEvents {
      * acquireToken API in BrokerClientApplication.
      * Used to acquire a token on behalf of the embedded application (PW-Broker).
      */
-    AcquireTokenByBroker = "acquireTokenByBroker"
+    AcquireTokenByBroker = "acquireTokenByBroker",
 }
 
 /**
