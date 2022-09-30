@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "adding RT size to perf #5063",
+  "comment": "Include Refresh token size in perf telemetry data #5250",
   "packageName": "@azure/msal-common",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
