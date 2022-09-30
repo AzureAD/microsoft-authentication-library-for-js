@@ -78,5 +78,4 @@ export class InteractionRequiredAuthError extends AuthError {
     static createNativeAccountUnavailableError(): InteractionRequiredAuthError {
         return new InteractionRequiredAuthError(InteractionRequiredAuthErrorMessage.native_account_unavailable.code, InteractionRequiredAuthErrorMessage.native_account_unavailable.desc);
     }
-
 }

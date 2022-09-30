@@ -15,7 +15,6 @@ jest.mock("https", () => ({
 
 const url: string = "https://www.url.com";
 
-
 // network request options for get and post requests - with and without the proxyUrl
 const proxyUrl: string = "http://proxyUrl.com";
 const getNetworkRequestOptionsWithProxyUrl: NetworkRequestOptions = {
@@ -203,7 +202,7 @@ describe("HttpClient", () => {
 
     describe("Bad Status Code Error", <T>() => {
         const statusCodeError: number = 500;
-        const error: Error = new Error(`Error in socket connection`);
+        const error: Error = new Error("Error in connection to proxy");
         const networkResponse: NetworkResponse<T> = getNetworkResponse(mockGetResponseBody, statusCodeError);
 
         describe("Get Request", () => {
@@ -212,23 +211,22 @@ describe("HttpClient", () => {
                 await expect(httpClient.sendGetRequestAsync(url)).resolves.toEqual(networkResponse);
             });
 
-
             describe("Via Proxy", () => {
                 test("Http Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockGetResponseBody, statusCodeError, statusCodeError));
-                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
 
                 test("Socket Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockGetResponseBody, statusCodeOk, statusCodeError));
-                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
             });
         });
 
         describe("Post Request", <T>() => {
             const networkResponse: NetworkResponse<T> = getNetworkResponse(mockPostResponseBody, statusCodeError);
-            const error: Error = new Error(`Error in socket connection`);
+            const error: Error = new Error("Error in connection to proxy");
             test("Via Https", async () => {
                 (https.request as jest.Mock).mockImplementationOnce(mockHttpsRequest(mockPostResponseBodyBuffer, statusCodeError));
                 await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithoutProxyUrl)).resolves.toEqual(networkResponse);
@@ -237,12 +235,12 @@ describe("HttpClient", () => {
             describe("Via Proxy", () => {
                 test("Http Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockPostResponseBody, statusCodeError, statusCodeError));
-                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
 
                 test("Socket Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockPostResponseBody, statusCodeOk, statusCodeError));
-                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
             });
         });

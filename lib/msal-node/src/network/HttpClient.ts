@@ -103,13 +103,11 @@ const networkRequestViaProxy = <T>(
 
         // establish connection to the proxy
         request.on("connect", (response, socket) => {
-
             const statusCode = response?.statusCode || 500;
             if (statusCode < 200 || statusCode > 299) {
                 request.destroy();
                 socket.destroy();
-                reject(new Error(response?.statusMessage || "Error in socket connection"));
-            
+                reject(new Error(` Error in connection to proxy ${response.statusCode}, ${response?.statusMessage}`));
             }
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
@@ -180,7 +178,6 @@ const networkRequestViaProxy = <T>(
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    // reject ->400
                 }
                 resolve(networkResponse);
             });
@@ -266,7 +263,6 @@ const networkRequestViaHttps = <T>(
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
                 }
-
                 resolve(networkResponse);
             });
         });

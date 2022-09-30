@@ -554,5 +554,4 @@ export class ClientAuthError extends AuthError {
     static createKeyIdMissingError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.keyIdMissing.code, ClientAuthErrorMessage.keyIdMissing.desc);
     }
-
 }
