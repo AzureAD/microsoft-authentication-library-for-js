@@ -51,7 +51,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // initialize native request
         const nativeRequest = await this.initializeNativeRequest(request);
-
+        
         // check if the tokens can be retrieved from internal cache
         try {
             const result = await this.acquireTokensFromCache(this.accountId, nativeRequest);
@@ -79,7 +79,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             .then((result: AuthenticationResult) => {
                 nativeATMeasurement.endMeasurement({
                     success: true,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    httpVer: result.httpVer,
                 });
                 return result;
             })

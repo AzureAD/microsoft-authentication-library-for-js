@@ -128,7 +128,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         fromCache: result.fromCache,
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
-                        isNativeBroker: result.fromNativeBroker
+                        isNativeBroker: result.fromNativeBroker,
+                        httpVer: result.httpVer
+
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -149,7 +151,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
             console.log("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
 
-            atsMeasurement.endMeasurement({ 
+            atsMeasurement.endMeasurement({
                 success: true
             });
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
@@ -164,7 +166,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (AccountInfo:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
-    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult> {
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
@@ -186,7 +188,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
-            });     
+            });
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);

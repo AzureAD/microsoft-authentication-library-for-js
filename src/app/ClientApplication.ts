@@ -353,6 +353,7 @@ export abstract class ClientApplication {
                     isNativeBroker: true,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
+                    httpVer: response.httpVer
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -390,6 +391,7 @@ export abstract class ClientApplication {
                 success: true,
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
+                httpVer: result.httpVer
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -467,7 +469,8 @@ export abstract class ClientApplication {
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
                 accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length
+                idTokenSize: response.idToken.length,
+                httpVer: response.httpVer,
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
@@ -517,7 +520,8 @@ export abstract class ClientApplication {
                                 success: true,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
-                                isNativeBroker: result.fromNativeBroker
+                                isNativeBroker: result.fromNativeBroker,
+                                httpVer: result.httpVer,
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
@@ -607,6 +611,7 @@ export abstract class ClientApplication {
                     fromCache: result.fromCache,
                     accessTokenSize: result.accessToken.length,
                     idTokenSize: result.idToken.length,
+                    httpVer: result.httpVer,
                 });
                 return result;
             })
@@ -625,6 +630,7 @@ export abstract class ClientApplication {
                                 fromCache: result.fromCache,
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
+                                httpVer: result.httpVer,
                             });
 
                             return result;
