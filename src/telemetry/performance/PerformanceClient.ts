@@ -56,7 +56,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
-        this.httpVer = "1.1";
+        this.httpVer = "";
     }
 
     /**
@@ -277,6 +277,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         }
                         if (current.idTokenSize) {
                             previous.idTokenSize = current.idTokenSize;
+                        }
+                        if(current.httpVer)
+                        {
+                            previous.httpVer = current.httpVer;
                         }
                     }
                     return previous;

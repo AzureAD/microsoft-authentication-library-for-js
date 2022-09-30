@@ -291,7 +291,7 @@ export class Authority {
 
         let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         metadata = await this.getEndpointMetadataFromNetwork();
-        
+
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
@@ -497,10 +497,7 @@ export class Authority {
                     instanceDiscoveryEndpoint,
                     options
                 );
-            const httpVer = response.headers["x-ms-httpver"];
-            if (httpVer) {
-                this.performanceClient?.setHttpVer(httpVer);
-            }
+
             const metadata = isCloudInstanceDiscoveryResponse(response.body)
                 ? response.body.metadata
                 : [];
