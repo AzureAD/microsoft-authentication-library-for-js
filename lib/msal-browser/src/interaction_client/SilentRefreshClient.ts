@@ -30,6 +30,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
                     success: true,
                     fromCache: result.fromCache,
                     httpVer: result.httpVer,
+                    requestId: result.requestId
                 });
 
                 return result;
