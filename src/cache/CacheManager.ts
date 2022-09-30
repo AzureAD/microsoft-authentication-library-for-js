@@ -294,7 +294,7 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             // homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
-            if ((typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
+            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
