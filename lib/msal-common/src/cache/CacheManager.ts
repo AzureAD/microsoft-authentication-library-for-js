@@ -293,7 +293,6 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            // homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
             if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
