@@ -47,7 +47,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidPrompt: {
         code: "invalid_prompt_value",
-        desc: "Supported prompt values are 'login', 'select_account', 'consent', 'create' and 'none'.  Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest",
+        desc: "Supported prompt values are 'login', 'select_account', 'consent', 'create', 'none' and 'no_session'.  Please see here for valid configuration options: https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#commonauthorizationurlrequest",
     },
     invalidClaimsRequest: {
         code: "invalid_claims",

@@ -9,7 +9,7 @@ import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest"
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, Errors } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, Errors, HeaderNames } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -39,6 +39,10 @@ export class RefreshTokenClient extends BaseClient {
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
+
+        // Retrieve requestId from response headers
+        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -59,6 +63,7 @@ export class RefreshTokenClient extends BaseClient {
             true,
             request.forceCache,
             response.headers["x-ms-httpver"],
+            requestId
         );
     }
 
