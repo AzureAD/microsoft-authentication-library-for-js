@@ -39,6 +39,7 @@ export class RefreshTokenClient extends BaseClient {
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
+        const httpVer= response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
        
@@ -50,7 +51,6 @@ export class RefreshTokenClient extends BaseClient {
             this.config.serializableCache,
             this.config.persistencePlugin
         );
-
         responseHandler.validateTokenResponse(response.body);
         return responseHandler.handleServerTokenResponse(
             response.body,
@@ -61,7 +61,7 @@ export class RefreshTokenClient extends BaseClient {
             undefined,
             true,
             request.forceCache,
-            response.headers["x-ms-httpver"],
+            httpVer,
             requestId
         );
     }
