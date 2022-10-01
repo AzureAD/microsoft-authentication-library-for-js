@@ -156,8 +156,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return response;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
-            console.log("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
-
             atsMeasurement.endMeasurement({
                 success: true
             });
