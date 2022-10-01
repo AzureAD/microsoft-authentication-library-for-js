@@ -422,7 +422,8 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
 };
 
 export const CORS_RESPONSE_HEADERS = {
-    xMsRequestId: "xMsRequestId"
+    xMsRequestId: "xMsRequestId",
+    xMsHttpVer: "xMsHttpVer"
 };
 
 export const AUTHENTICATION_RESULT_WITH_HEADERS = {

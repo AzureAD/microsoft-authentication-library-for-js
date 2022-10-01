@@ -73,7 +73,8 @@ export enum HeaderNames {
     CCS_HEADER = "X-AnchorMailbox",
     WWWAuthenticate = "WWW-Authenticate",
     AuthenticationInfo = "Authentication-Info",
-    X_MS_REQUEST_ID = "x-ms-request-id"
+    X_MS_REQUEST_ID = "x-ms-request-id",
+    X_MS_HTTP_VERSION= "x-ms-http-ver"
 }
 
 /**
