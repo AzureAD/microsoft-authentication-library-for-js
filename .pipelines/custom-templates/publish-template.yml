@@ -100,7 +100,7 @@ jobs:
           customCommand: 'pack'
       
       # Write NPM authToken
-      - script: echo "$NPM_TOKEN" > .npmrc
+      - script: echo "$NPM_TOKEN" > ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
         displayName: Write npm authToken
         workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
