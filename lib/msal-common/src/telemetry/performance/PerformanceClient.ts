@@ -352,8 +352,4 @@ export abstract class PerformanceClient implements IPerformanceClient {
             callback.apply(null, [events]);
         });
     }
-
-    setHttpVer(httpVer: string): void {
-        this.httpVer = httpVer;
-    }
 }

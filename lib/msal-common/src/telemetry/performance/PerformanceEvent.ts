@@ -256,7 +256,12 @@ export type PerformanceEvent = {
      */
     libraryVersion: string,
 
-    httpVer?: string
+    /**
+     * Version of the http 
+     *
+     * @type {string}
+     */
+    httpVer?: string,
     /**
      * Size of the id token
      *
@@ -292,5 +297,19 @@ export type PerformanceEvent = {
      *
      * @type {?boolean}
      */
-    isNativeBroker?: boolean
+    isNativeBroker?: boolean,
+
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Request ID returned from the response
+     * 
+     * @type {?string}
+     */
+    requestId?: string
 };

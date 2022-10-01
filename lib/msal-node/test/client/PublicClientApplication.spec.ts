@@ -3,7 +3,7 @@ import { Configuration, InteractiveRequest } from './../../src/index';
 import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult,
-    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, SilentFlowClient, ProtocolMode, Logger, LogLevel
+    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError
 } from '@azure/msal-common';
 import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
@@ -553,17 +553,8 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(appConfig);
 
-        try {
-            await authApp.acquireTokenByCode(request, authCodePayLoad);
-        } catch (e) {
-            expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
-            expect(mockInfo).toHaveBeenCalledWith(
-                "acquireTokenByCode - validating state"
-            );
-            expect(authApp.acquireTokenByCode).toThrow(
-                "state_mismatch: State mismatch error. Please check your network. Continued requests may cause cache overflow"
-            );
-        }
+        await expect(authApp.acquireTokenByCode(request, authCodePayLoad))
+            .rejects.toMatchObject(ClientAuthError.createStateMismatchError());
     });
 
 });

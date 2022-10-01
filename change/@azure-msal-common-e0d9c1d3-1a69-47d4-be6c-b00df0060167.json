@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add initial support for DSTS authorities in MSAL Common #5212",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
