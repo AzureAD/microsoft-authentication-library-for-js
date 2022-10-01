@@ -136,6 +136,25 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
     nativeBrokerHandshakeTimeout?: number;
+    /**
+     * Options related to browser crypto APIs
+     */
+    cryptoOptions?: CryptoOptions;
+};
+
+export type CryptoOptions = {
+    
+    /**
+     * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
+     * @type {?boolean}
+     */
+    useMsrCrypto?: boolean;
+     
+    /**
+     * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
+     * @type {?Uint8Array}
+     */
+    entropy?: Uint8Array;
 };
 
 /**
@@ -239,7 +258,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         asyncPopups: false,
         allowRedirectInIframe: false,
         allowNativeBroker: false,
-        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS
+        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+        cryptoOptions: {
+            useMsrCrypto: false,
+            entropy: undefined
+        }
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
