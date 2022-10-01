@@ -429,7 +429,8 @@ export const CORS_RESPONSE_HEADERS = {
 export const AUTHENTICATION_RESULT_WITH_HEADERS = {
     status: 200,
     headers: {
-        "x-ms-request-id": CORS_RESPONSE_HEADERS.xMsRequestId
+        "x-ms-request-id": CORS_RESPONSE_HEADERS.xMsRequestId,
+        "x-ms-http-ver": CORS_RESPONSE_HEADERS.xMsHttpVer
     },
     body: {
         "token_type": AuthenticationScheme.BEARER,
