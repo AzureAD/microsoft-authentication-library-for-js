@@ -135,7 +135,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker,
-                        cacheLookupPolicy: result.cacheLookupPolicy,
                         httpVer: result.httpVer,
                         requestId: result.requestId,
                     });
