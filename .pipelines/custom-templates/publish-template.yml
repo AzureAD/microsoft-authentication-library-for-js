@@ -32,7 +32,7 @@ jobs:
       publishOverride: ${{ parameters.publishOverride }}
       ob_outputDirectory: '${{ parameters.path }}/${{ parameters.libName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
-    condition: and(succeeded(), or(eq(variables.publish${{ parameters.publishFlagName }}, true), eq(variables.publishOverride, true)))
+    condition: and(in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'), or(eq(variables.publish${{ parameters.publishFlagName }}, true), eq(variables.publishOverride, true)))
     steps:
       - task: NodeTool@0
         displayName: Install Node
