@@ -111,9 +111,6 @@ jobs:
         workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
-      - script: cat .npmrc
-        displayName: Echo npm authToken
-        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
 
       # Deploy to npm (Angular only)
       - task: Npm@1
