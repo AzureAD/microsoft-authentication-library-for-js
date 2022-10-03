@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Undo changes in error classes to avoid custom description of server errors. #5175",
+  "packageName": "@azure/msal-common",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "none"
+}
