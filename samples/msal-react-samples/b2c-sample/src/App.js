@@ -53,6 +53,7 @@ function ClientSideNavigation({ pca, children }) {
 
 function Pages() {
   const { instance } = useMsal();
+  const [status, setStatus] = useState(null);
 
   useEffect(() => {
       const callbackId = instance.addEventCallback((event) => {
@@ -83,6 +84,10 @@ function Pages() {
               instance.ssoSilent(signUpSignInFlowRequest);
             }
           }
+
+          if (event.eventType === EventType.SSO_SILENT_SUCCESS && event.payload.account) {
+            setStatus("ssoSilent success");
+          }
       });
 
       return () => {
@@ -97,7 +102,7 @@ function Pages() {
     <Switch>
       <Route path="/profile"><Profile /></Route>
       <Route path="/logout"><Logout /></Route>
-      <Route path="/"><Home /></Route>
+      <Route path="/"><Home status={status}/></Route>
     </Switch>
   )
 }
