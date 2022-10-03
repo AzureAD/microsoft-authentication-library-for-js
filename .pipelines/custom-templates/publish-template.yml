@@ -34,7 +34,7 @@ jobs:
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
     condition: and(
       or(
-         # true if job doesn't have dependencies or the dependency was successful or skipped
+        # true if job doesn't have dependencies or the dependency was successful or skipped
         eq(${{ parameters.dependsOn }}, Null),
         in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
         ),
