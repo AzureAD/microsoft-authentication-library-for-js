@@ -33,7 +33,10 @@ jobs:
       ob_outputDirectory: '${{ parameters.path }}/${{ parameters.libName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
     condition: and(
-      in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'),
+      or(
+        in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped'),
+        eq(${{ parameters.dependsOn}}, Null)
+        ),
       or(
         eq(variables.publish${{ parameters.publishFlagName }}, true),
         eq(variables.publishOverride, true)
