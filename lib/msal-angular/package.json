@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.4.3",
+  "version": "2.4.3-alpha1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
