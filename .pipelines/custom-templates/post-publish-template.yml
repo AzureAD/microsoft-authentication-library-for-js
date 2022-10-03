@@ -30,15 +30,6 @@ steps:
         cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/README.md ${{ parameters.path}}/msal-${{ parameters.libName }}/README.md
         cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/docs/cdn-usage.md ${{ parameters.path}}/msal-${{ parameters.libName }}/docs/cdn-usage.md
   - task: CmdLine@2
-    displayName: 'Save package.json'
-    condition: succeeded()
-    inputs:
-      script: | 
-        cat $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json
-        cat ${{ parameters.path}}/msal-${{ parameters.libName }}/package.json
-        cp $(Pipeline.Workspace)/${{ parameters.libName }}-artifacts/package.json ${{ parameters.path}}/msal-${{ parameters.libName }}/package.json
-        git diff
-  - task: CmdLine@2
     displayName: 'Remove ${{ parameters.libName }} artifacts directory'
     condition: succeeded()
     inputs:

@@ -111,6 +111,7 @@ jobs:
       - script: echo $NPM_TOKEN > .npmrc
         displayName: Write npm authToken
         workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+        condition: eq('${{ parameters.libName }}', 'msal-angular')
         env:
           NPM_TOKEN: $(MSALJSNPMTOKEN)
 
