@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175",
-  "packageName": "@azure/msal-node",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}
