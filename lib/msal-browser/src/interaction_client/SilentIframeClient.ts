@@ -64,7 +64,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
-                    fromCache: false
+                    fromCache: false,
+                    requestId: result.requestId
                 });
                 return result;
             });

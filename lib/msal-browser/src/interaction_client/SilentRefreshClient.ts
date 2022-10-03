@@ -28,7 +28,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
             .then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
-                    fromCache: result.fromCache
+                    fromCache: result.fromCache,
+                    requestId: result.requestId
                 });
 
                 return result;
