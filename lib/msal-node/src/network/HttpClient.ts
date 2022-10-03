@@ -107,7 +107,7 @@ const networkRequestViaProxy = <T>(
             if (statusCode < 200 || statusCode > 299) {
                 request.destroy();
                 socket.destroy();
-                reject(new Error(` Error in connection to proxy ${response.statusCode}, ${response?.statusMessage}`));
+                reject(new Error(` Error connecting to proxy: ${response.statusCode}, ${response?.statusMessage}`));
             }
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);

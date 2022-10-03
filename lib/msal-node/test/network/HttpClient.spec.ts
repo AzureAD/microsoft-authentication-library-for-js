@@ -202,7 +202,7 @@ describe("HttpClient", () => {
 
     describe("Bad Status Code Error", <T>() => {
         const statusCodeError: number = 500;
-        const error: Error = new Error("Error in connection to proxy");
+        const error: Error = new Error("Error connecting to proxy");
         const networkResponse: NetworkResponse<T> = getNetworkResponse(mockGetResponseBody, statusCodeError);
 
         describe("Get Request", () => {
