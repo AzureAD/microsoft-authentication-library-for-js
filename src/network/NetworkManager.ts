@@ -7,8 +7,8 @@ import { INetworkModule, NetworkRequestOptions } from "./INetworkModule";
 import { RequestThumbprint } from "./RequestThumbprint";
 import { ThrottlingUtils } from "./ThrottlingUtils";
 import { CacheManager } from "../cache/CacheManager";
-import { ClientAuthError } from "../error/ClientAuthError";
 import { AuthError } from "../error/AuthError";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 export type NetworkResponse<T> = {
     headers: Record<string, string>;
