@@ -119,7 +119,7 @@ extends:
             jobName: 'publish_msal_core'
             path: 'lib'
             libName: 'msal-core'
-            cdn: true
+            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalCore'
             publishOverride: ${{ parameters.overrideMsalCore }}
             testMode: ${{ parameters.testMode }}
@@ -139,7 +139,7 @@ extends:
             jobName: 'publish_msal_browser'
             path: 'lib'
             libName: 'msal-browser'
-            cdn: true
+            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalBrowser'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalBrowser }}

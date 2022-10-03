@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Include Refresh token size in perf telemetry data #5250",
+  "packageName": "@azure/msal-browser",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
