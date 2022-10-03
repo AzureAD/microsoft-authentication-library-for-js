@@ -33,12 +33,17 @@ jobs:
       ob_outputDirectory: '${{ parameters.path }}/${{ parameters.libName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
     condition: and(
-      in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped', 'Null'),
-      or(
-        eq(variables.publish${{ parameters.publishFlagName }}, true),
-        eq(variables.publishOverride, true)
-        )
-      )
+                  or(
+                    # true if job doesn't have dependencies or the dependency was successful or skipped
+                    eq(${{ parameters.dependsOn }}, Null),
+                    in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
+                    ),
+                  or(
+                    # true if pre-publish filter determined package has changes or a manual override to publish was set
+                    eq(variables.publish${{ parameters.publishFlagName }}, true),
+                    eq(variables.publishOverride, true)
+                    )
+                  )
     steps:
       - task: NodeTool@0
         displayName: Install Node
