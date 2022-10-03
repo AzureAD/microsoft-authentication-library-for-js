@@ -2107,8 +2107,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri:
-                    TEST_URIS.TEST_LOGOUT_URI,
+                postLogoutRedirectUri:TEST_URIS.TEST_LOGOUT_URI,
                 idTokenHint: "id_token_hint",
                 state: "test_state"
             });

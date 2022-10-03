@@ -85,7 +85,17 @@ export class AuthorizationCodeClient extends BaseClient {
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
         const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION] || undefined;
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload, undefined, undefined, undefined, httpVer, requestId);
+        return await responseHandler.handleServerTokenResponse(response.body,
+            this.authority,
+            reqTimestamp,
+            request,
+            authCodePayload,
+            undefined,
+            undefined,
+            undefined,
+            httpVer,
+            requestId
+        );
     }
 
     /**
@@ -244,7 +254,7 @@ export class AuthorizationCodeClient extends BaseClient {
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
-            if(request.sshJwk) {
+            if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 throw ClientConfigurationError.createMissingSshJwkError();
@@ -456,7 +466,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
 
-        if(request.state) {
+        if (request.state) {
             parameterBuilder.addState(request.state);
         }
 
