@@ -160,4 +160,3 @@ Unlike other cache items, `Access Tokens` are saved to the cache asynchronously.
 ## Code samples
 
 * [JavaScript SPA acquiring PoP tokens](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/pop)
-* [Angular SPA calling .NET Core web API using PoP tokens](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/7-AdvancedScenarios/2-call-api-pop)
