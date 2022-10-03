@@ -1,5 +1,6 @@
 import { HttpClient } from '../../src/network/HttpClient';
 import { NetworkResponse, NetworkRequestOptions } from '../../../msal-common';
+import { MockedMetadataResponse } from '../utils/TestConstants';
 
 import http from "http";
 jest.mock("http", () => ({
@@ -200,10 +201,10 @@ describe("HttpClient", () => {
     });
 
 
-    describe("Bad Status Code Error", <T>() => {
+    describe("Bad Status Code Error", () => {
         const statusCodeError: number = 500;
         const error: Error = new Error("Error connecting to proxy");
-        const networkResponse: NetworkResponse<T> = getNetworkResponse(mockGetResponseBody, statusCodeError);
+        const networkResponse: NetworkResponse<MockedMetadataResponse> = getNetworkResponse<MockedMetadataResponse>(mockGetResponseBody, statusCodeError);
 
         describe("Get Request", () => {
             test("Via Https", async () => {
