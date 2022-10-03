@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "This PR modifies HttpClient in Msal-node to return the underlying AAD error in place of wrongfully placed network error, where applicable #5175",
+  "comment": "This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175",
   "packageName": "@azure/msal-node",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
