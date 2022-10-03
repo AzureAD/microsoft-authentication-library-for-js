@@ -34,7 +34,7 @@ jobs:
       ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
     condition: and(
       or(
-        eq('${{ parameters.dependsOn }}'', 'none'),
+        eq('${{ parameters.dependsOn }}', 'none'),
         in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
         ),
       or(
