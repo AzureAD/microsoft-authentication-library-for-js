@@ -2,6 +2,29 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 03 Oct 2022 22:12:27 GMT",
+      "tag": "@azure/msal-react_v1.4.8",
+      "version": "1.4.8",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.29.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 12 Sep 2022 18:19:32 GMT",
       "tag": "@azure/msal-react_v1.4.7",
       "version": "1.4.7",
