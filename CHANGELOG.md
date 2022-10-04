@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 12 Sep 2022 18:19:32 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Oct 2022 22:12:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.5.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
+- Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+
+### Patches
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
 
 ## 7.4.1
 
