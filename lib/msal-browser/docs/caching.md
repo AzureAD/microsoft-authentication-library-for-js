@@ -31,6 +31,8 @@ By default, MSAL stores the various authentication artifacts it obtains from the
 
 > :bulb: While the authentication state may be lost in session and memory storage due to window/tab close or page refresh/navigation, respectively, users will still have an active session with the IdP as long as the session cookie is not expired and might be able to re-authenticate without any prompts.
 
+The choice between different storage locations reflects a trade-off between better user experience vs. increased security. As the table above indicates, local storage results in the best user experience possible, while memory storage provides the best security since no sensitive information will be stored in browser storage. See the section on [security](#security) and [cached artifacts](#cached-artifacts) below for more.
+
 ### Cookie storage
 
 MSAL Browser can be configured to use cookies for storing temporary authentication artifacts. This option allows you to support browsers that may clear local/session storage during redirect-based login flows (e.g. Internet Explorer, Firefox in private mode). Note that when this option is chosen, tokens themselves are still stored in browser or memory storage. Please refer to [configuration](./configuration.md#cache-config-options) for more.
