@@ -249,7 +249,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the id token string is null or empty.
      * @param invalidRawTokenString
      */
-    static createTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+    static createTokenNullOrEmptyError(invalidRawTokenString: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyToken.code,
             `${ClientAuthErrorMessage.nullOrEmptyToken.desc} Raw Token Value: ${invalidRawTokenString}`);
     }
