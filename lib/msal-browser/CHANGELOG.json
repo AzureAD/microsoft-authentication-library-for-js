@@ -2,6 +2,96 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 03 Oct 2022 22:12:26 GMT",
+      "tag": "@azure/msal-browser_v2.29.0",
+      "version": "2.29.0",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0d8f85e56eb9d67ee6c3b2cdd866a30aa6fd8225",
+            "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "53b25d537a22c9491094083407264615d14df15e",
+            "comment": "Add support for MSR Crypto #3826"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fa3f0d8f63e1980945f2c5bdcb4891f0a50f012c",
+            "comment": "Add x-ms-request-id to perf telemetry logging #5244"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "886338aea3543f961f2dbce7814938e874a6955a",
+            "comment": "Added 'no_session' to prompt enum #5131"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.5.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be0c85f6d4940c5f1f3e95c17f3235cb8099559b",
+            "comment": "Include Refresh token size in perf telemetry data #5250"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-browser_v2.28.3",
+      "version": "2.28.3",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b393c6d0c8d7aa142f3b138ce2ffc185039cf203",
+            "comment": "Fix keystore clearing on Firefox #5112"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "318bba8273151a6260c59461d352ef6e33d129ad",
+            "comment": "Restore error codes for acquireTokenSilent telemetry #5190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Sep 2022 18:06:53 GMT",
       "tag": "@azure/msal-browser_v2.28.2",
       "version": "2.28.2",

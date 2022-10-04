@@ -22,7 +22,7 @@ export class SilentFlowClient extends BaseClient {
     constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
         super(configuration,performanceClient);
     }
-
+    
     /**
      * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
      * the given token and returns the renewed token
@@ -40,7 +40,7 @@ export class SilentFlowClient extends BaseClient {
             }
         }
     }
-
+    
     /**
      * Retrieves token from cache or throws an error if it must be refreshed.
      * @param request
@@ -103,6 +103,17 @@ export class SilentFlowClient extends BaseClient {
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         }
+
+        // token max_age check
+        if (request.maxAge || (request.maxAge === 0)) {
+            const authTime = idTokenObj?.claims.auth_time;
+            if (!authTime) {
+                throw ClientAuthError.createAuthTimeNotFoundError();
+            }
+
+            AuthToken.checkMaxAge(authTime, request.maxAge);
+        }
+
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,

@@ -2,6 +2,76 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 03 Oct 2022 22:12:27 GMT",
+      "tag": "@azure/msal-node_v1.14.1",
+      "version": "1.14.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0602df6432278a8b033711db8c3d38aaecb4e7fc",
+            "comment": "sanitize client credentials request against oidc scopes #4999"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0e9e52d3ca225bbe3cb6d3a1b7f1cd9e6a0969ff",
+            "comment": "This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.5.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ],
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b9fc7ab24a1051081fb0f064881e4e80dafa6b14",
+            "comment": "Fixed broken test in PublicClientApplication #5219"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-node_v1.14.0",
+      "version": "1.14.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "minor": [
+          {
+            "author": "marionminayo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fda3675d1a6100e8479a62ead6a980e10e2ebdb5",
+            "comment": "Add support for the state parameter #4723"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 02 Sep 2022 18:06:53 GMT",
       "tag": "@azure/msal-node_v1.13.0",
       "version": "1.13.0",

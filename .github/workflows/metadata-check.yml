@@ -19,13 +19,13 @@ jobs:
   metadata-checker:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |

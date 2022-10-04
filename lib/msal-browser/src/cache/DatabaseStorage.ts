@@ -19,11 +19,6 @@ interface IDBRequestEvent extends Event {
     target: IDBRequest & EventTarget;
 }
 
-interface IDBDatabaseInfo {
-    name?: string;
-    version?: number;
-}
-
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
@@ -234,21 +229,12 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
         if (this.db && this.dbOpen) {
             this.closeConnection();
         }
-        
-        // @ts-ignore
-        const existingDatabases = await window.indexedDB.databases();
-        const database = existingDatabases.find((database: IDBDatabaseInfo) => database.name === DB_NAME );
 
-        // If database exists, delete it
-        if (database) {
-            return new Promise<boolean>((resolve: Function, reject: Function) => {
-                const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
-                deleteDbRequest.addEventListener("success", () => resolve(true));
-                deleteDbRequest.addEventListener("error", () => reject(false));
-            });
-        }
-
-        // Database doesn't exist, return true
-        return true;
+        return new Promise<boolean>((resolve: Function, reject: Function) => {
+            const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
+            deleteDbRequest.addEventListener("success", () => resolve(true));
+            deleteDbRequest.addEventListener("blocked", () => resolve(true));
+            deleteDbRequest.addEventListener("error", () => reject(false));
+        });
     }
 }
