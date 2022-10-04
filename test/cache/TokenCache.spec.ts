@@ -106,12 +106,12 @@ describe("TokenCache tests", () => {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {};
-            const cacheRecord = tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
             const testIdTokenEntity = IdTokenEntity.createIdTokenEntity(requestHomeAccountId, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT);
             const testIdTokenKey = testIdTokenEntity.generateCredentialKey();
 
-            expect(cacheRecord.idToken).toEqual(testIdTokenEntity);
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(testIdTokenEntity);
         });
 
@@ -127,9 +127,9 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo
             };
 
-            const cacheRecord = tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
-            expect(cacheRecord.idToken).toEqual(idTokenEntity);
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
 
@@ -154,10 +154,10 @@ describe("TokenCache tests", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
             const testAccountKey = AccountEntity.generateAccountCacheKey(testAccountInfo);
-            const cacheRecord = tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
-            expect(cacheRecord.idToken).toEqual(idTokenEntity);
-            expect(cacheRecord.account).toEqual(testAccount);
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(result.account).toEqual(testAccount.getAccountInfo());
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
             expect(browserStorage.getAccount(testAccountKey)).toEqual(testAccount);
         });
@@ -172,9 +172,9 @@ describe("TokenCache tests", () => {
                 client_info: testClientInfo
             };
             const options: LoadTokenOptions = {};
-            const cacheRecord = tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
-            expect(cacheRecord.idToken).toEqual(idTokenEntity);
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
 
@@ -281,10 +281,10 @@ describe("TokenCache tests", () => {
                 expiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP
             };
-            const cacheRecord = tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
             expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
-            expect(cacheRecord.accessToken).toEqual(accessTokenEntity);
+            expect(result.accessToken).toEqual(accessTokenEntity.secret);
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
         });
 
@@ -323,9 +323,9 @@ describe("TokenCache tests", () => {
                 clientInfo: testClientInfo,
             };
 
-            const cacheRecord = tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
-            expect(cacheRecord.refreshToken).toEqual(refreshTokenEntity);
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getRefreshTokenCredential(refreshTokenKey)).toEqual(refreshTokenEntity);
         });
 
