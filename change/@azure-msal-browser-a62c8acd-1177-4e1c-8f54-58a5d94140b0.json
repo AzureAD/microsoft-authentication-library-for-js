@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add x-ms-request-id to perf telemetry logging #5244",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

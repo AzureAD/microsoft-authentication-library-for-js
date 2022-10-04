@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fixed broken test in PublicClientApplication #5219",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}
