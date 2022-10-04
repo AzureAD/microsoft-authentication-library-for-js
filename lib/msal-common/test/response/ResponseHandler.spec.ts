@@ -364,6 +364,22 @@ describe("ResponseHandler.ts", () => {
             expect(result.tokenType).toBe(AuthenticationScheme.POP);
             expect(result.accessToken).toBe(signedJwt);
         });
+
+        it("sets default value if requestId not provided", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
+            testResponse.refresh_token = undefined;
+
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
+
+            expect(result.requestId).toBe("");
+        });
     });
 
     describe("validateServerAuthorizationCodeResponse", () => {

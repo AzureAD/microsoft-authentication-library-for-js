@@ -1,5 +1,6 @@
 import { HttpClient } from '../../src/network/HttpClient';
 import { NetworkResponse, NetworkRequestOptions } from '../../../msal-common';
+import { MockedMetadataResponse } from '../utils/TestConstants';
 
 import http from "http";
 jest.mock("http", () => ({
@@ -199,44 +200,48 @@ describe("HttpClient", () => {
         });
     });
 
+
     describe("Bad Status Code Error", () => {
         const statusCodeError: number = 500;
-        const error: Error = new Error(`HTTP status code ${statusCodeError}`);
+        const error: Error = new Error("Error connecting to proxy");
+        const networkResponse: NetworkResponse<MockedMetadataResponse> = getNetworkResponse<MockedMetadataResponse>(mockGetResponseBody, statusCodeError);
 
         describe("Get Request", () => {
             test("Via Https", async () => {
                 (https.request as jest.Mock).mockImplementationOnce(mockHttpsRequest(mockGetResponseBodyBuffer, statusCodeError));
-                await expect(httpClient.sendGetRequestAsync(url)).rejects.toEqual(error);
+                await expect(httpClient.sendGetRequestAsync(url)).resolves.toEqual(networkResponse);
             });
 
             describe("Via Proxy", () => {
                 test("Http Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockGetResponseBody, statusCodeError, statusCodeError));
-                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
 
                 test("Socket Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockGetResponseBody, statusCodeOk, statusCodeError));
-                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendGetRequestAsync(url, getNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
             });
         });
 
-        describe("Post Request", () => {
+        describe("Post Request", <T>() => {
+            const networkResponse: NetworkResponse<T> = getNetworkResponse(mockPostResponseBody, statusCodeError);
+            const error: Error = new Error("Error in connection to proxy");
             test("Via Https", async () => {
                 (https.request as jest.Mock).mockImplementationOnce(mockHttpsRequest(mockPostResponseBodyBuffer, statusCodeError));
-                await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithoutProxyUrl)).rejects.toEqual(error);
+                await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithoutProxyUrl)).resolves.toEqual(networkResponse);
             });
 
             describe("Via Proxy", () => {
                 test("Http Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockPostResponseBody, statusCodeError, statusCodeError));
-                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
 
                 test("Socket Status Code", async () => {
                     (http.request as jest.Mock).mockImplementationOnce(mockHttpRequest(mockPostResponseBody, statusCodeOk, statusCodeError));
-                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(error);
+                    await expect(httpClient.sendPostRequestAsync(url, postNetworkRequestOptionsWithProxyUrl)).rejects.toEqual(expect.objectContaining(error));
                 });
             });
         });
