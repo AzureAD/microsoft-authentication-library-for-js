@@ -83,13 +83,13 @@ jobs:
     name: ${{ matrix.library }}
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: cache
       with:
         path: |
@@ -103,6 +103,14 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_${{ matrix.library }}
+        path: ~/.npm/_logs/**/*
+        retention-days: 2
+
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
       run: npm run build:all
@@ -117,7 +125,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: lib/${{matrix.library}}/coverage/lcov.info
         flags: ${{ matrix.library }}
@@ -130,16 +138,23 @@ jobs:
     name: msal-node-extensions
     
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Clean Install
-      if: steps.cache.outputs.cache-hit != 'true'
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
+
+    - name: Upload npm logs
+      uses: actions/upload-artifact@v3
+      if: failure()
+      with:
+        name: npm_logs_msal-node-extensions
+        path: ~/npm/cache/_logs/**/*
+        retention-days: 2
 
     - name: Build packages
       working-directory: extensions/msal-node-extensions
@@ -155,7 +170,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v2
+      uses: codecov/codecov-action@v3
       with:
         files: extensions/msal-node-extensions/coverage/lcov.info
         flags: msal-node-extensions

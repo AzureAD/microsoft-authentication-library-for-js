@@ -15,7 +15,7 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 ## Acquiring an Access Token
 
-MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
+MSAL uses a [cache](./caching.md) to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
 
 It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs if you have already logged in. This allows you to prevent unnecessary user interactions. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you. You should use a `loginXXXXX` or `acquireTokenXXXXX` (interactive) API before this to establish a session with the server.
 
@@ -27,11 +27,20 @@ You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md).
 
 You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
 
+A Cache Lookup Policy can be optionally provided to the request. The Cache Lookup Policies are:
+- `CacheLookupPolicy.Default` - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found the refresh token will be used to acquire a new one. Finally, if the refresh token is expired, `acquireTokenSilent` will attempt to silently acquire a new access token, id token, and refresh token.
+- `CacheLookupPolicy.AccessToken` - `acquireTokenSilent` will only look for access tokens in the cache. It will not attempt to renew access or refresh tokens.
+- `CacheLookupPolicy.AccessTokenAndRefreshToken` - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found, the refresh token will be used to acquire a new one. If the refresh token is expired, it will not be renewed and `acquireTokenSilent` will fail.
+- `CacheLookupPolicy.RefreshToken` - `acquireTokenSilent` will not attempt to retrieve access tokens from the cache and will instead attempt to exchange the cached refresh token for a new access token. If the refresh token is expired, it will not be renewed and `acquireTokenSilent` will fail.
+- `CacheLookupPolicy.RefreshTokenAndNetwork` - `acquireTokenSilent` will not look in the cache for the access token. It will go directly to network with the cached refresh token. If the refresh token is expired an attempt will be made to renew it. This is equivalent to setting `forceRefresh: true`.
+- `CacheLookupPolicy.Skip` - `acquireTokenSilent` will attempt to renew both access and refresh tokens. It will not look in the cache. This will always fail if 3rd party cookies are blocked by the browser.
+
 - Popup
 
 ```javascript
 var request = {
-    scopes: ["Mail.Read"]
+    scopes: ["Mail.Read"],
+    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 msalInstance.acquireTokenSilent(request).then(tokenResponse => {
@@ -50,7 +59,8 @@ msalInstance.acquireTokenSilent(request).then(tokenResponse => {
 
 ```javascript
 var request = {
-    scopes: ["Mail.Read"]
+    scopes: ["Mail.Read"],
+    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 msalInstance.acquireTokenSilent(request).then(tokenResponse => {

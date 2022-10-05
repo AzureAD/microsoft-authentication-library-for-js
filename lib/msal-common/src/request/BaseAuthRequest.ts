@@ -32,8 +32,9 @@ export type BaseAuthRequest = {
     shrNonce?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
-    sshJwk?: string,
-    sshKid?: string,
+    sshJwk?: string;
+    sshKid?: string;
     azureCloudOptions?: AzureCloudOptions;
     requestedClaimsHash?: string;
+    maxAge?: number;
 };

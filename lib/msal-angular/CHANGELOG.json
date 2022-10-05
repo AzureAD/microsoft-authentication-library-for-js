@@ -2,6 +2,134 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 03 Oct 2022 22:12:26 GMT",
+      "tag": "@azure/msal-angular_v2.4.4",
+      "version": "2.4.4",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.29.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-angular_v2.4.3",
+      "version": "2.4.3",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.28.3",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-angular_v2.4.2",
+      "version": "2.4.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.28.2",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-angular_v2.4.1",
+      "version": "2.4.1",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.28.1",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-angular_v2.4.0",
+      "version": "2.4.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ],
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "9a0b2c0b32c824c549356e29f895672e8439e7e9",
+            "comment": "Add MsalBroadcastService configurations, allow replay of past events #4998"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.28.0",
+            "commit": "1b74296d45864f3721895819733ea5ee39006b6f"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-angular_v2.3.3",
+      "version": "2.3.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.27.0",
+            "commit": "bfd3760ce1aca6b4be8ae937606215676a72e5c5"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 13 Jun 2022 22:28:09 GMT",
       "tag": "@azure/msal-angular_v2.3.2",
       "version": "2.3.2",

@@ -73,6 +73,7 @@ jobs:
   publish-msal-core:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-core
     needs: pre-publish
     if: |
@@ -92,6 +93,7 @@ jobs:
   publish-msal-common:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-common
     needs: pre-publish
     if: |
@@ -108,6 +110,7 @@ jobs:
   publish-msal-browser:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-browser
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -127,6 +130,7 @@ jobs:
   publish-msal-node:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-node
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -143,6 +147,7 @@ jobs:
   publish-msal-angular:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-angular
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -159,6 +164,7 @@ jobs:
   publish-msal-react:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-react
     needs: [pre-publish, publish-msal-browser]
     if: |
@@ -175,6 +181,7 @@ jobs:
   publish-msal-node-extensions:
     permissions:
       discussions: write
+      contents: write # to create releases and milestones
     name: msal-node-extensions
     needs: [pre-publish, publish-msal-common]
     if: |
@@ -215,14 +222,14 @@ jobs:
 
     steps:
       # Checkout the code
-      - uses: actions/checkout@v2
-        # Setup node with version 12.x
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v3
+        # Setup node with version 16.x
+      - uses: actions/setup-node@v3
 
       # Save CDN hashes
       - name: Download msal-core Artifacts
         if: needs.publish-msal-core.result == 'success'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with: 
           name: msal-core-artifacts
           path: artifacts/msal-core
@@ -235,7 +242,7 @@ jobs:
 
       - name: Download msal-browser Artifacts
         if: needs.publish-msal-browser.result == 'success'
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with: 
           name: msal-browser-artifacts
           path: artifacts/msal-browser
@@ -312,7 +319,7 @@ jobs:
 
       - name: Create Pull Request
         id: pr
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Post-release
           branch: post-release-${{steps.get-branch.outputs.date}}

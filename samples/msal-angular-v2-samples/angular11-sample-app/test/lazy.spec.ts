@@ -15,7 +15,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(5);
+    expect(Object.keys(storage).length).toBe(6);
 }
 
 describe('/ (Lazy Loading Page)', () => {
@@ -64,11 +64,10 @@ describe('/ (Lazy Loading Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         await signInButton.click();
-        await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginRedirectButton = await page.waitForXPath("//button[contains(., 'Login using Redirect')]");
+        const loginRedirectButton = await page.waitForSelector("xpath=//button[contains(., 'Login using Redirect')]");
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
@@ -81,7 +80,7 @@ describe('/ (Lazy Loading Page)', () => {
         await verifyTokenStore(BrowserCache, ["User.Read"]);
 
         // Lazy loading
-        const lazyLoadButton = await page.waitForXPath("//span[contains(., 'Lazy-load')]");
+        const lazyLoadButton = await page.waitForSelector("xpath=//span[contains(., 'Lazy-load')]");
         await lazyLoadButton.click();
         await screenshot.takeScreenshot(page, "Lazy loading page");
 

@@ -112,7 +112,9 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
-        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
+        handlingRefreshTokenResponse?: boolean,
+        forceCacheRefreshTokenResponse?: boolean,
+        serverRequestId?: string): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
@@ -124,6 +126,16 @@ export class ResponseHandler {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
                     throw ClientAuthError.createNonceMismatchError();
                 }
+            }
+
+            // token max_age check
+            if (request.maxAge || (request.maxAge === 0)) {
+                const authTime = idTokenObj.claims.auth_time;
+                if (!authTime) {
+                    throw ClientAuthError.createAuthTimeNotFoundError();
+                }
+
+                AuthToken.checkMaxAge(authTime, request.maxAge);
             }
         }
 
@@ -150,14 +162,15 @@ export class ResponseHandler {
             /*
              * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
-             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
+             * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal, unless explicitly flagged by
+             * the developer, as in the case of refresh token flow used in ADAL Node to MSAL Node migration.
              */
-            if (handlingRefreshTokenResponse && cacheRecord.account) {
+            if (handlingRefreshTokenResponse && !forceCacheRefreshTokenResponse && cacheRecord.account) {
                 const key = cacheRecord.account.generateAccountKey();
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
                 }
             }
             await this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -167,7 +180,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId);
     }
 
     /**
@@ -307,7 +320,8 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
-        code?: string
+        code?: string,
+        requestId?: string
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -351,6 +365,7 @@ export class ResponseHandler {
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             correlationId: request.correlationId,
+            requestId: requestId || Constants.EMPTY_STRING,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,

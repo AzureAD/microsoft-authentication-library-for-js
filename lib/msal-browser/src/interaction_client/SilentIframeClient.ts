@@ -19,14 +19,16 @@ import { NativeInteractionClient } from "./NativeInteractionClient";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
+    protected nativeStorage: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
+        this.nativeStorage = nativeStorageImpl;
     }
 
     /**
-     * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none
+     * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none or prompt=no_session
      * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
@@ -37,8 +39,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
         }
 
-        // Check that prompt is set to none, throw error if it is set to anything else.
-        if (request.prompt && request.prompt !== PromptValue.NONE) {
+        // Check that prompt is set to none or no_session, throw error if it is set to anything else.
+        if (request.prompt && (request.prompt !== PromptValue.NONE) && (request.prompt !== PromptValue.NO_SESSION)) {
             acquireTokenMeasurement.endMeasurement({
                 success: false
             });
@@ -48,7 +50,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         // Create silent request
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
-            prompt: PromptValue.NONE
+            prompt: request.prompt || PromptValue.NONE
         }, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
@@ -62,7 +64,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
-                    fromCache: false
+                    fromCache: false,
+                    requestId: result.requestId
                 });
                 return result;
             });
@@ -118,12 +121,12 @@ export class SilentIframeClient extends StandardInteractionClient {
             if (!this.nativeMessageHandler) {
                 throw BrowserAuthError.createNativeConnectionNotEstablishedError();
             }
-            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.correlationId);
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.browserStorage, this.correlationId);
             const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
             return nativeInteractionClient.acquireToken({
                 ...silentRequest,
                 state: userRequestState,
-                prompt: PromptValue.NONE
+                prompt: silentRequest.prompt || PromptValue.NONE
             }).finally(() => {
                 this.browserStorage.cleanRequestByState(state);
             });

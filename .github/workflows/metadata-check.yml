@@ -1,0 +1,44 @@
+# This workflow will triage pull requests and apply a label based on the
+# paths that are modified in the pull request.
+#
+# To use this workflow, you will need to set up a .github/labeler.yml
+# file with configuration.  For more information, see:
+# https://github.com/actions/labeler/blob/master/README.md
+
+name: Metadata Checker 
+on:
+  pull_request:
+    branches: 
+      - dev
+
+concurrency:
+  group: metadata-checker-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  metadata-checker:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+
+    - name: Restore node_modules for libs
+      uses: actions/cache@v3
+      id: lib-cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+
+    - name: Clean Install
+      if: steps.lib-cache.outputs.cache-hit != 'true'
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Check metadata
+      working-directory: lib/msal-common
+      run: npm run metadata:check

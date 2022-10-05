@@ -37,38 +37,46 @@ jobs:
           - 'auth-code'
           - 'device-code'
           - 'silent-flow'
+          - 'b2c-user-flows'
 
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
       with:
         node-version: ${{ matrix.node }}
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |
           node_modules
-          lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+          lib/msal-common/node_modules
+          lib/msal-node/node_modules
+        key: ${{ runner.os }}-node-e2e-${{matrix.node}}-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
-      env:
-        RUNNING_NODE_CI: 1
-      run: npm ci
+      run: npm ci --ignore-scripts
+
+    # Lerna v5 drops support for Node 10
+    - name: Downgrade lerna for Node 10
+      if: matrix.node == '10'
+      run: npm install lerna@4
+
+    - name: Link local packages
+      run: npx lerna --scope @azure/msal-node --scope @azure/msal-common bootstrap
 
     - name: Build Package
       working-directory: samples/msal-node-samples
       run: npm run build:package
 
     - name: Restore node_modules for test tools
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: test-tools-cache
       with:
         path: samples/node_modules
@@ -80,7 +88,7 @@ jobs:
       run: npm ci
 
     - name: Restore node_modules for sample
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: sample-cache
       with:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
@@ -103,7 +111,7 @@ jobs:
       run: npm test
 
     - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: e2e-test-screenshots
@@ -122,15 +130,13 @@ jobs:
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |
@@ -147,7 +153,7 @@ jobs:
       run: npm run build:package
 
     - name: Restore node_modules for test tools
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: test-tools-cache
       with:
         path: samples/node_modules
@@ -159,7 +165,7 @@ jobs:
       run: npm ci
 
     - name: Restore node_modules for sample
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: sample-cache
       with:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
@@ -190,7 +196,7 @@ jobs:
       run: npm test
 
     - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: e2e-test-screenshots

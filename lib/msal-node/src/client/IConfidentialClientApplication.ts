@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger } from "@azure/msal-common";
+import { AuthenticationResult, IAppTokenProvider, Logger } from "@azure/msal-common";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -23,7 +23,7 @@ export interface IConfidentialClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
     /**  Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
 
     /**  Acquires a token silently when a user specifies the account the token is requested for */
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
@@ -51,4 +51,7 @@ export interface IConfidentialClientApplication {
 
     /** Clear the cache */
     clearCache(): void;
+
+    /** This extensibility point is meant for Azure SDK to enhance Managed Identity support */
+    SetAppTokenProvider(provider: IAppTokenProvider): void
 }

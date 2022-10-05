@@ -198,5 +198,91 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(serverRequestParameters.queryParameters).toBe("login_hint=AbeLi%40microsoft.com");
             expect(serverRequestParameters.extraQueryParameters).toBe(null);
         });
+
+        it("populates login_hint claim if available (on request)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), {
+                // @ts-ignore
+                account: {
+                    idTokenClaims: {
+                        login_hint: "opaque-login-hint"
+                    }
+                }
+            });
+
+            expect(serverRequestParameters.queryParameters).toBe("login_hint=opaque-login-hint");
+            expect(serverRequestParameters.extraQueryParameters).toBe(null);
+        });
+
+        it("populates login_hint claim if available (on account)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            const account = Account.createAccount(idToken, clientInfo);
+
+            serverRequestParameters.populateQueryParams({
+                ...account,
+                idTokenClaims: {
+                    ...account.idTokenClaims,
+                    login_hint: "opaque-login-hint"
+                }
+            }, null);
+
+            expect(serverRequestParameters.queryParameters).toBe("login_hint=opaque-login-hint");
+            expect(serverRequestParameters.extraQueryParameters).toBe(null);
+        });
+
+        it("populates sid claim if available (on request)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), {
+                sid: "session-id"
+            });
+
+            expect(serverRequestParameters.queryParameters).toBe("sid=session-id");
+            expect(serverRequestParameters.extraQueryParameters).toBe(null);
+        });
+
+        it("populates sid claim if available (on request account)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            serverRequestParameters.populateQueryParams(Account.createAccount(idToken, clientInfo), {
+                // @ts-ignore
+                account: {
+                    idTokenClaims: {},
+                    sid: "session-id"
+                }
+            });
+
+            expect(serverRequestParameters.queryParameters).toBe("sid=session-id");
+            expect(serverRequestParameters.extraQueryParameters).toBe(null);
+        });
+
+        it("populates sid claim if available (on account)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            const account = Account.createAccount(idToken, clientInfo);
+            account.sid = "session-id";
+
+            serverRequestParameters.populateQueryParams(account, {
+                prompt: "none"
+            });
+
+            expect(serverRequestParameters.queryParameters).toBe("sid=session-id");
+            expect(serverRequestParameters.extraQueryParameters).toBe(null);
+        });
+
+        it("populates loginHint if available (on request)", () => {
+            const serverRequestParameters = new ServerRequestParameters(AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", true), "client-id", "toke", "redirect-uri", [ "user.read" ], "state", "correlationid");
+
+            const account = Account.createAccount(idToken, clientInfo);
+
+            serverRequestParameters.populateQueryParams(account, {
+                loginHint: "test@example.com"
+            });
+
+            expect(serverRequestParameters.queryParameters).toBe("login_hint=test%40example.com");
+            expect(serverRequestParameters.extraQueryParameters).toBe(null);
+        });
     });
 });

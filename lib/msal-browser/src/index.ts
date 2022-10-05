@@ -17,7 +17,7 @@ export { internals };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "./config/Configuration";
-export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
+export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId, CacheLookupPolicy } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors

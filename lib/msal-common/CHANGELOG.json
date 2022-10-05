@@ -2,6 +2,232 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 03 Oct 2022 22:12:26 GMT",
+      "tag": "@azure/msal-common_v7.5.0",
+      "version": "7.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7821413cf910628ac4ae81c5904d6906d3659bd1",
+            "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "bdf4e3a438ce620ec766ef12baef7c69a7ca64c0",
+            "comment": "Include Refresh token size in perf telemetry data #5250"
+          }
+        ],
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "fa3f0d8f63e1980945f2c5bdcb4891f0a50f012c",
+            "comment": "Add x-ms-request-id to perf telemetry logging #5244"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5f0a111c0e9d0bb019fa809b8bfd247d90f2e282",
+            "comment": "Added 'no_session' to prompt enum #5131"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ad96e52d371d91fa63213b533473841f1ce415a1",
+            "comment": "Added Support for the OIDC max_age parameter #5125"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f4f3b99460c216acc64d8caf963030a4b31df7d5",
+            "comment": "Add initial support for DSTS authorities in MSAL Common #5212"
+          }
+        ],
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0e9e52d3ca225bbe3cb6d3a1b7f1cd9e6a0969ff",
+            "comment": "Undo changes in error classes to avoid custom description of server errors. #5175"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-common_v7.4.1",
+      "version": "7.4.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4b84e7cc7c0dec506f0041ae1202f7403229c3d4",
+            "comment": "Exporting constants #5189"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-common_v7.4.0",
+      "version": "7.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "82098dcb119883c52b956ae3eb408a80d0bcfe42",
+            "comment": "Exposed raw id token on account info objects #5036"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "92ed1e50702191a99599ff4a1bc512487f5bcff0",
+            "comment": "Export ClientInfo APIs #6886"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6",
+            "comment": "Add query string parsing helpers #5062"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-common_v7.3.0",
+      "version": "7.3.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "ellymakuba@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e035fe595a8f4b809514b1ad26ec9f7e3eb41161",
+            "comment": "adding network performance measurement #4834"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "20161fd619c3795e3456ad8106e53c3495941268",
+            "comment": "Add error handling for server errors in device-code (#5033)"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ae9ef92674606e8d357438946463827bc04dc2ff",
+            "comment": "Send login_hint claim instead of sid if available #4990"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": " Package-lock updates"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 18 Jul 2022 23:26:21 GMT",
+      "tag": "@azure/msal-common_v7.2.0",
+      "version": "7.2.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "t-ssummers@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "aff6dd392ec3a07b6ef0375f625dbcb9617c2dbf",
+            "comment": "Fix bug with activeAccount when two accounts have same local account id #5004"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "1cf6266c2a5e52067744fe800772a7740670ca75",
+            "comment": "Add local cache support for JS-WAM bridge #4971"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0c23631c04e48d14115fd7f2c74e3367bec6ea6f",
+            "comment": "Added new token size field in perf telemetry data #4973"
+          },
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4517b16c9d66c7873e36da46a79722d824b44ede",
+            "comment": "support caching rt flow response in migration scenarios (#4844)"
+          },
+          {
+            "author": "bogavril@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d2ea64be16ead05c2673c0c84bea3267ebcc7118",
+            "comment": "App Token Provider extensibiliy for AzureSDK"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ff3a2452ff8778a56df04065b798ed827589b434",
+            "comment": "Update package-locks to fix CI issue #5005"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 05 Jul 2022 22:37:04 GMT",
+      "tag": "@azure/msal-common_v7.1.0",
+      "version": "7.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d501fbdded20ff9bdadfe02dc46e13a6e6ed4e56",
+            "comment": "Add InteractionRequired error for native account unavailable #4951"
+          }
+        ],
+        "minor": [
+          {
+            "author": "samuelkamau@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7db977dd3f2994bb69f150ddb0594794c098ac48",
+            "comment": "feat: adding authority metadata resiliency #4536"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "81ea264cdd4b6aab4158816509f4aa47c11fbae4",
+            "comment": "Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 13 Jun 2022 22:28:09 GMT",
       "tag": "@azure/msal-common_v7.0.0",
       "version": "7.0.0",

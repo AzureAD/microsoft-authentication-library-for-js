@@ -39,17 +39,18 @@ jobs:
           - 'nextjs-sample'
           - 'gatsby-sample'
           - 'typescript-sample'
+          - 'b2c-sample'
 
     name: ${{ matrix.sample }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: Use Node.js
-      uses: actions/setup-node@v2
+      uses: actions/setup-node@v3
 
     - name: Restore node_modules for libs
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: lib-cache
       with:
         path: |
@@ -68,7 +69,7 @@ jobs:
       run: npm run build:all
 
     - name: Restore node_modules for test tools
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: test-tools-cache
       with: 
         path: samples/node_modules
@@ -80,7 +81,7 @@ jobs:
       run: npm ci
 
     - name: Restore node_modules for sample
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: sample-cache
       with: 
         path: samples/msal-react-samples/${{ matrix.sample }}/node_modules
@@ -107,7 +108,7 @@ jobs:
       run: npm test
 
     - name: Upload E2E Test Screenshots
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       if: failure()
       with:
         name: e2e-test-screenshots

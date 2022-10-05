@@ -46,7 +46,7 @@ export type ClientConfiguration = {
     telemetry?: TelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
-    serializableCache?: ISerializableTokenCache | null
+    serializableCache?: ISerializableTokenCache | null,   
 };
 
 export type CommonClientConfiguration = {
@@ -61,7 +61,7 @@ export type CommonClientConfiguration = {
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
-    serializableCache: ISerializableTokenCache | null
+    serializableCache: ISerializableTokenCache | null,    
 };
 
 /**
@@ -73,12 +73,14 @@ export type CommonClientConfiguration = {
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * - skipAuthorityMetadataCache      - A flag to choose whether to use or not use the local metadata cache during authority initialization. Defaults to false.
  */
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
     azureCloudOptions?: AzureCloudOptions;
+    skipAuthorityMetadataCache?: boolean;
 };
 
 /**
@@ -212,7 +214,7 @@ export function buildClientConfiguration(
         telemetry: telemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
-        serializableCache: serializableCache
+        serializableCache: serializableCache,             
     }: ClientConfiguration): CommonClientConfiguration {
 
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
@@ -229,7 +231,7 @@ export function buildClientConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
-        serializableCache: serializableCache || null
+        serializableCache: serializableCache || null,             
     };
 }
 
@@ -241,6 +243,7 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
+        skipAuthorityMetadataCache: false,
         ...authOptions
     };
 }

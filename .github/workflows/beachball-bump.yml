@@ -27,13 +27,13 @@ jobs:
 
     steps:
       # Check-out repo
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
       # Install node_modules
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v3
 
       - name: Install beachball
         run: npm ci
@@ -56,7 +56,7 @@ jobs:
       # Create/update Pull Request
       - name: Create Pull Request
         id: pr
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           commit-message: Bump package versions
           branch: release-staging

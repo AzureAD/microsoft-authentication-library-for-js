@@ -4,7 +4,9 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_TOKENS,
-    CORS_SIMPLE_REQUEST_HEADERS
+    CORS_SIMPLE_REQUEST_HEADERS,
+    DSTS_OPENID_CONFIG_RESPONSE,
+    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -18,6 +20,7 @@ import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { AppTokenProviderResult, IAppTokenProvider } from "../../src";
 
 describe("ClientCredentialClient unit tests", () => {
     afterEach(() => {
@@ -70,6 +73,64 @@ describe("ClientCredentialClient unit tests", () => {
         expect(returnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
         expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
         expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+    });
+
+    it("acquires a token from dSTS authority", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
+        };
+
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        const expectedScopes = [TEST_CONFIG.DSTS_TEST_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.accessToken).toEqual(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
+
+        const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+        expect(returnVal.includes(encodeURIComponent(TEST_CONFIG.DSTS_TEST_SCOPE[0]))).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+    });
+
+    it("acquires a token from cache when using dSTS authority", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
+        };
+
+        // First call should return from "network" (mocked)
+        const networkAuthResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        expect(networkAuthResult.fromCache).toBe(false);
+        // Second call should return from cache
+        const cachedAuthResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        expect(cachedAuthResult.fromCache).toBe(true);
+        expect(cachedAuthResult.accessToken).toBe(networkAuthResult.accessToken);
+        expect(cachedAuthResult.expiresOn).toStrictEqual(networkAuthResult.expiresOn);
     });
 
     it("Adds claims when provided", async () => {
@@ -360,4 +421,62 @@ describe("ClientCredentialClient unit tests", () => {
         await expect(client.acquireToken(clientCredentialRequest)).rejects.toMatchObject(ClientAuthError.createMultipleMatchingTokensInCacheError());
     });
 
+    it("Uses the extensibility AppTokenProvider callback to get a token", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        // no need to stub out the token response, MSAL will use the AppTokenProvider instead
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const accessToken = "some_token";
+        const appTokenProviderResult: AppTokenProviderResult = {
+            accessToken: accessToken,
+            expiresInSeconds: 1800,
+            refreshInSeconds: 900,
+        }
+
+        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+
+        let callbackedCalledCount = 0;
+
+        const appTokenProvider: IAppTokenProvider =  (appTokenProviderParameters) => {
+            
+            callbackedCalledCount++;
+
+            expect(appTokenProviderParameters.scopes).toEqual(expectedScopes);
+            expect(appTokenProviderParameters.tenantId).toEqual("common");
+            expect(appTokenProviderParameters.correlationId).toEqual(TEST_CONFIG.CORRELATION_ID);
+            expect(appTokenProviderParameters.claims).toBeUndefined();
+                
+            return new Promise<AppTokenProviderResult>(
+                (resolve) => resolve(appTokenProviderResult));                        
+        };
+    
+        // client credentials not needed
+        config.clientCredentials = undefined;    
+
+        const client = new ClientCredentialClient(config, appTokenProvider);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+
+        expect(callbackedCalledCount).toEqual(1);
+
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.accessToken).toEqual(accessToken);
+        expect(authResult.state).toHaveLength(0);
+        const dateDiff = (authResult.expiresOn!.valueOf() - Date.now().valueOf()) / 1000;
+        expect(dateDiff).toBeLessThanOrEqual(1900);
+        expect(dateDiff).toBeGreaterThan(1700);
+
+        const authResult2 = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+
+        // expect the callback to not be called again, because token comes from the cache
+        expect(callbackedCalledCount).toEqual(1);
+
+        expect(authResult2.scopes).toEqual(expectedScopes);
+        expect(authResult2.accessToken).toEqual(accessToken);
+    });
 });

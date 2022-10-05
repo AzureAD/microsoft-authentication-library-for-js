@@ -1,8 +1,83 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 13 Jun 2022 22:28:09 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Oct 2022 22:12:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.5.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
+- Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+
+### Patches
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
+
+## 7.4.1
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Exporting constants #5189 (lalimasharda@microsoft.com)
+
+## 7.4.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Exposed raw id token on account info objects #5036 (rginsburg@microsoft.com)
+- Export ClientInfo APIs #6886 (lalimasharda@microsoft.com)
+- Add query string parsing helpers #5062 (thomas.norling@microsoft.com)
+
+## 7.3.0
+
+Mon, 01 Aug 2022 22:22:35 GMT
+
+### Minor changes
+
+- adding network performance measurement #4834 (ellymakuba@microsoft.com)
+
+### Patches
+
+- Add error handling for server errors in device-code (#5033) (sameera.gajjarapu@microsoft.com)
+- Send login_hint claim instead of sid if available #4990 (janutter@microsoft.com)
+
+## 7.2.0
+
+Mon, 18 Jul 2022 23:26:21 GMT
+
+### Minor changes
+
+- Add local cache support for JS-WAM bridge #4971 (sameera.gajjarapu@microsoft.com)
+- Added new token size field in perf telemetry data #4973 (bmahal@microsoft.com)
+- support caching rt flow response in migration scenarios (#4844) (v-derisen@microsoft.com)
+- App Token Provider extensibiliy for AzureSDK (bogavril@microsoft.com)
+
+### Patches
+
+- Fix bug with activeAccount when two accounts have same local account id #5004 (t-ssummers@microsoft.com)
+
+## 7.1.0
+
+Tue, 05 Jul 2022 22:37:04 GMT
+
+### Minor changes
+
+- feat: adding authority metadata resiliency #4536 (samuelkamau@microsoft.com)
+- Add jwks_uri to Authority, OpenIdConfigResponse, and AuthorityMetadataEntity #4905 (joarroyo@microsoft.com)
+
+### Patches
+
+- Add InteractionRequired error for native account unavailable #4951 (thomas.norling@microsoft.com)
 
 ## 7.0.0
 

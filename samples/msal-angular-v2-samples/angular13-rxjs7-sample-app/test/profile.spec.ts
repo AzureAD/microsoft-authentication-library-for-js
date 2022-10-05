@@ -15,7 +15,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(6);
+    expect(Object.keys(storage).length).toBe(7);
 }
 
 describe('/ (Profile Page)', () => {
@@ -65,7 +65,7 @@ describe('/ (Profile Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login via MsalGuard by clicking Profile
-        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton?.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);

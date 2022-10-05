@@ -56,8 +56,6 @@ ngOnInit(): void {
 }
 ```
 
-
-
 For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/d46c4455243bd51767f669a13fbb717d786c6716/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L17).
 
 ## Table of events
@@ -194,4 +192,71 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 }
 
+```
+
+## Optional `MsalBroadcastService` Configurations
+
+The `MsalBroadcastService` can be optionally configured to replay past events when subscribed to. By default, events that are emitted after the `MsalBroadcastService` is subscribed to are available. There may be instances where events prior to subscription are needed. By providing a configuration for the `MsalBroadcastService` and setting the `replayPastEvents` parameter to a number, that number of past events will be available upon subscription. 
+
+For more information about replaying events, see the RxJS docs on ReplaySubjects [here](https://rxjs.dev/api/index/class/ReplaySubject).
+
+The `MsalBroadcastService` can be configured in the app.module.ts file as follows:
+
+```typescript
+// app.module.ts
+import { NgModule } from '@angular/core';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AppComponent } from './app.component';
+import { MsalModule, MsalService, MsalGuard, MsalInterceptor, MsalBroadcastService, MsalRedirectComponent, MSAL_BROADCAST_CONFIG } from "@azure/msal-angular"; // Import MsalBroadcastService and MSAL_BROADCAST_CONFIG here
+import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
+
+@NgModule({
+    imports: [
+        MsalModule.forRoot( new PublicClientApplication({ // MSAL Configuration
+            auth: {
+                clientId: "clientid",
+                authority: "https://login.microsoftonline.com/common/",
+                redirectUri: "http://localhost:4200/",
+                postLogoutRedirectUri: "http://localhost:4200/",
+                navigateToLoginRequestUrl: true
+            },
+            cache: {
+                cacheLocation : BrowserCacheLocation.LocalStorage,
+                storeAuthStateInCookie: true, // set to true for IE 11
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback: () => {},
+                    piiLoggingEnabled: false
+                }
+            }
+        }), {
+            interactionType: InteractionType.Popup, // MSAL Guard Configuration
+            authRequest: {
+              scopes: ['user.read']
+            },
+            loginFailedRoute: "/login-failed" 
+        }, {
+            interactionType: InteractionType.Redirect, // MSAL Interceptor Configuration
+            protectedResourceMap
+        })
+    ],
+    providers: [
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
+        },
+        {
+          provide: MSAL_BROADCAST_CONFIG, // Add configuration to providers here
+          useValue: {
+            replayPastEvents: 2 // Set how many events you want to replay when subscribing
+          }
+        },
+        MsalGuard,
+        MsalBroadcastService // Ensure the MsalBroadcastService is provided
+    ],
+    bootstrap: [AppComponent, MsalRedirectComponent]
+})
+export class AppModule {}
 ```

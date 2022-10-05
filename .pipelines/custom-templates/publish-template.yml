@@ -1,0 +1,165 @@
+parameters:
+  - name: jobName
+    type: string
+  - name: path
+    type: string
+  - name: libName
+    type: string
+  - name: dependsOn
+    type: string
+    default: 'none'
+  - name: cdn
+    type: boolean
+    default: false
+  - name: publishFlagName
+    type: string
+  - name: publishOverride
+    type: boolean
+    default: false
+  - name: testMode
+    type: boolean
+    default: false
+
+jobs:
+  - job: ${{ parameters.jobName }}
+    displayName: 'Publish ${{ parameters.libName }}'
+    ${{ if not(eq(parameters.dependsOn, 'none')) }}:
+      dependsOn: ${{ parameters.dependsOn }}
+    pool:
+      type: linux
+    variables:
+      repoName: 'msal-javascript-internal'
+      publishOverride: ${{ parameters.publishOverride }}
+      ob_outputDirectory: '${{ parameters.path }}/${{ parameters.libName }}' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+      ob_sdl_binskim_break: true # https://aka.ms/obpipelines/sdl
+    condition: and(
+      or(
+        eq('${{ parameters.dependsOn }}', 'none'),
+        in(dependencies.${{ parameters.dependsOn }}.result, 'Succeeded', 'SucceededWithIssues', 'Skipped')
+        ),
+      or(
+        eq(variables.publish${{ parameters.publishFlagName }}, true),
+        eq(variables.publishOverride, true)
+        )
+      )
+    steps:
+      - task: NodeTool@0
+        displayName: Install Node
+        inputs:
+          versionSpec: '16.x'
+          checkLatest: true
+      # Install dependencies
+      - task: Npm@1
+        displayName: Install dependencies
+        inputs:
+          command: 'install'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+          verbose: false
+      # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
+      - task: Npm@1
+        displayName: Link dependencies
+        inputs:
+          command: 'custom'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+          customCommand: 'run link:localDeps --if-present'
+
+  # Publish to CDN
+      # KeyVault connection
+      - task: AzureKeyVault@2
+        inputs:
+          azureSubscription: 'MSIDLABKeyVault'
+          KeyVaultName: 'ADALTestInfo'
+          SecretsFilter: 'MSALJS-CDN-SAS-EUNO, MSALJS-CDN-SAS-USWE, MSALJSNPMTOKEN, MSALJSGITHUB'
+          RunAsPreJob: true
+
+      # Publish to CDN 
+      - task: Npm@1
+        displayName: Publish to CDN
+        condition: and(${{ parameters.cdn }}, not(${{ parameters.testMode }}))
+        inputs:
+          command: 'custom'
+          customCommand: 'run cdn'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+        env:
+          CDN_SAS_EUNO: $(MSALJS-CDN-SAS-EUNO)
+          CDN_SAS_USWE: $(MSALJS-CDN-SAS-USWE)
+      - task: CmdLine@2
+        displayName: Publish to CDN (Test Mode)
+        condition: and(${{ parameters.cdn }}, ${{ parameters.testMode }})
+        inputs:
+          script: echo "Publish CDN here"
+
+      # Publish to npm
+      - task: Npm@1
+        displayName: Publish to npm
+        condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), not(${{ parameters.testMode }}))
+        continueOnError: true
+        inputs:
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+          command: 'publish'
+          publishEndpoint: MSALJSNPM
+      - task: Npm@1
+        displayName: Publish to npm - Test Mode
+        condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), ${{ parameters.testMode }})
+        continueOnError: true
+        inputs:
+          command: 'custom'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+          customCommand: 'pack'
+      
+      # Write NPM authToken
+      - script: echo $NPM_TOKEN > .npmrc
+        displayName: Write npm authToken
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+        condition: eq('${{ parameters.libName }}', 'msal-angular')
+        env:
+          NPM_TOKEN: $(MSALJSNPMTOKEN)
+
+      # Deploy to npm (Angular only)
+      - task: Npm@1
+        displayName: Deploy to npm (Angular only)
+        condition: and(eq('${{ parameters.libName }}', 'msal-angular'), not(${{ parameters.testMode }}))
+        inputs:
+          command: 'custom'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+          customCommand: 'run deploy'
+      - task: Npm@1
+        displayName: Deploy to npm (Angular only) - Test Mode
+        condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
+        inputs:
+          command: 'custom'
+          workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
+          customCommand: 'pack'
+
+      # Remove .npmrc file
+      - script: rm ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
+        displayName: Remove .npmrc file
+        condition: eq('${{ parameters.libName }}', 'msal-angular')
+
+      # Install Release Scripts dependencies
+      - task: Npm@1
+        displayName: Install release scripts dependencies
+        inputs:
+          command: 'install'
+          workingDir: 'release-scripts/'
+
+      # Check npm for package availability
+      - script: node checkPackageAvailability.js ${{ parameters.path}}/${{ parameters.libName }}
+        displayName: Check npm for package availability
+        condition: not(${{ parameters.testMode }})
+        workingDirectory: 'release-scripts/'
+      
+      # Create GitHub releases, discussions and milestones
+      - script: node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}
+        displayName: Create GitHub releases, discussions and milestones
+        condition: not(${{ parameters.testMode }})
+        workingDirectory: 'release-scripts/'
+        continueOnError: true
+        env:
+          GITHUB_AUTH: $(MSALJSGITHUB)
+
+      - script: echo " Run node create-releases.js -lib ${{ parameters.path }}/${{ parameters.libName }}"
+        displayName: Create GitHub releases, discussions and milestones - Test Mode
+        condition: ${{ parameters.testMode }}
+        workingDirectory: 'release-scripts/'
+        continueOnError: true

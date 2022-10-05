@@ -15,7 +15,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(6);
+    expect(Object.keys(storage).length).toBe(7);
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry("3fba556e-5d4a-48e3-8e1a-fd57c12cb82e");
     expect(telemetryCacheEntry).not.toBeNull;
     expect(telemetryCacheEntry!.cacheHits).toBe(1);
@@ -78,7 +78,7 @@ describe('/profile', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(., 'Welcome,')]");
-        const profileButton = await page.waitForXPath("//header//button");
+        const profileButton = await page.waitForSelector("xpath=//header//button");
         await profileButton?.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
@@ -94,10 +94,10 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForSelector("xpath=//button[contains(., 'Login')]");
         await signInButton?.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginPopupButton = await page.waitForXPath("//li[contains(., 'Sign in using Popup')]");
+        const loginPopupButton = await page.waitForSelector("xpath=//li[contains(., 'Sign in using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await loginPopupButton?.click();
         const popupPage = await newPopupWindowPromise;
@@ -110,7 +110,7 @@ describe('/profile', () => {
 
         // Verify UI now displays logged in content
         await page.waitForXPath("//header[contains(., 'Welcome,')]");
-        const profileButton = await page.waitForXPath("//header//button");
+        const profileButton = await page.waitForSelector("xpath=//header//button");
         await profileButton?.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);

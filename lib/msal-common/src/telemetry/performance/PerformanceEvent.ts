@@ -94,6 +94,37 @@ export enum PerformanceEvents {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    /**
+     * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
+     */
+    BrokerHandhshake = "brokerHandshake",
+    /**
+     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
+     */
+    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+    /**
+     * Time taken for token acquisition by broker
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker",
+
+    /**
+     * Time spent on the network for refresh token acquisition
+     */
+    RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
+
+    /**
+     * Time taken for acquiring refresh token , records RT size
+     */
+    RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
+
+    /**
+     * Time taken for acquiring cached refresh token 
+     */
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 }
 
 /**
@@ -231,6 +262,31 @@ export type PerformanceEvent = {
     libraryVersion: string,
 
     /**
+     * Size of the id token
+     *
+     * @type {number}
+     */
+    idTokenSize?: number,
+
+    /**
+     * 
+     * Size of the access token
+     *
+     * @type {number}
+     */
+
+    accessTokenSize?: number,
+
+    /**
+     * 
+     * Size of the refresh token
+     *
+     * @type {number}
+     */
+
+    refreshTokenSize?: number | undefined,
+
+    /**
      * Application name as specified by the app.
      *
      * @type {?string}
@@ -249,5 +305,19 @@ export type PerformanceEvent = {
      *
      * @type {?boolean}
      */
-    isNativeBroker?: boolean
+    isNativeBroker?: boolean,
+
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Request ID returned from the response
+     * 
+     * @type {?string}
+     */
+    requestId?: string
 };

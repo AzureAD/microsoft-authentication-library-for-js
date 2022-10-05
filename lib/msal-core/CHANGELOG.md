@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Tue, 08 Feb 2022 00:41:07 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.17
+
+Mon, 01 Aug 2022 22:22:36 GMT
+
+### Patches
+
+- Use login_hint claim over sid/upn for msal v1 #4995 (janutter@microsoft.com)
 
 ## 1.4.16
 

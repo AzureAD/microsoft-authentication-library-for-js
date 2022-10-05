@@ -81,6 +81,9 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
    
     public createForPersistenceValidation(): Promise<KeychainPersistence> {
         const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
-        return KeychainPersistence.create(testCacheFileLocation, "persistenceValidationServiceName", "persistencValidationAccountName");
+        return KeychainPersistence.create(
+            testCacheFileLocation, 
+            "persistenceValidationServiceName", "persistencValidationAccountName"
+        );
     }
 }
