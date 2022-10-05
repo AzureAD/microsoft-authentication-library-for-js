@@ -16,15 +16,31 @@ export class BrowserUtils {
 
     // #region Window Navigation and URL management
 
+    static getWindowObject(): Window | null {
+        if (typeof window !== "undefined") {
+            return window;
+        }
+
+        if (typeof self !== "undefined") {
+            return self;
+        }
+
+        return null;
+    }
+
     /**
      * Clears hash from window url.
      */
     static clearHash(contentWindow: Window): void {
-        // Office.js sets history.replaceState to null
-        contentWindow.location.hash = Constants.EMPTY_STRING;
-        if (typeof contentWindow.history.replaceState === "function") {
-            // Full removes "#" from url
-            contentWindow.history.replaceState(null, Constants.EMPTY_STRING, `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`);
+        // Hash can only be cleared in browser window, not service worker
+        if (typeof window !== "undefined") {
+            contentWindow.location.hash = Constants.EMPTY_STRING;
+
+            // Office.js sets history.replaceState to null
+            if (typeof contentWindow.history.replaceState === "function") {
+                // Full removes "#" from url
+                contentWindow.history.replaceState(null, Constants.EMPTY_STRING, `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`);
+            }
         }
     }
 
@@ -32,16 +48,19 @@ export class BrowserUtils {
      * Replaces current hash with hash from provided url
      */
     static replaceHash(url: string): void {
-        const urlParts = url.split("#");
-        urlParts.shift(); // Remove part before the hash
-        window.location.hash = urlParts.length > 0 ? urlParts.join("#") : Constants.EMPTY_STRING;
+        const windowObject = BrowserUtils.getWindowObject();
+        if (windowObject) {
+            const urlParts = url.split("#");
+            urlParts.shift(); // Remove part before the hash
+            windowObject.location.hash = urlParts.length > 0 ? urlParts.join("#") : Constants.EMPTY_STRING;
+        }
     }
 
     /**
      * Returns boolean of whether the current window is in an iframe or not.
      */
     static isInIframe(): boolean {
-        return window.parent !== window;
+        return typeof window !== "undefined" && window.parent !== window;
     }
 
     /**
@@ -60,23 +79,33 @@ export class BrowserUtils {
      * Returns current window URL as redirect uri
      */
     static getCurrentUri(): string {
-        return window.location.href.split("?")[0].split("#")[0];
+        const windowObject = BrowserUtils.getWindowObject();
+        if (windowObject) {
+            return windowObject.location.href.split("?")[0].split("#")[0];
+        }
+
+        return "";
     }
 
     /**
      * Gets the homepage url for the current window location.
      */
     static getHomepage(): string {
-        const currentUrl = new UrlString(window.location.href);
-        const urlComponents = currentUrl.getUrlComponents();
-        return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
+        const windowObject = BrowserUtils.getWindowObject();
+        if (windowObject) {
+            const currentUrl = new UrlString(windowObject.location.href);
+            const urlComponents = currentUrl.getUrlComponents();
+            return `${urlComponents.Protocol}//${urlComponents.HostNameAndPort}/`;
+        }
+
+        return "";
     }
 
     /**
      * Returns best compatible network client object. 
      */
     static getBrowserNetworkClient(): INetworkModule {
-        if (window.fetch && window.Headers) {
+        if (BrowserUtils.getWindowObject()) {
             return new FetchClient();
         } else {
             return new XhrClient();
@@ -88,10 +117,13 @@ export class BrowserUtils {
      * attempting another auth request inside an iframe.
      */
     static blockReloadInHiddenIframes(): void {
-        const isResponseHash = UrlString.hashContainsKnownProperties(window.location.hash);
-        // return an error if called from the hidden iframe created by the msal js silent calls
-        if (isResponseHash && BrowserUtils.isInIframe()) {
-            throw BrowserAuthError.createBlockReloadInHiddenIframeError();
+        const windowObject = BrowserUtils.getWindowObject();
+        if (windowObject) {
+            const isResponseHash = UrlString.hashContainsKnownProperties(windowObject.location.hash);
+            // return an error if called from the hidden iframe created by the msal js silent calls
+            if (isResponseHash && BrowserUtils.isInIframe()) {
+                throw BrowserAuthError.createBlockReloadInHiddenIframeError();
+            }
         }
     }
 
@@ -143,12 +175,16 @@ export class BrowserUtils {
      * Returns boolean of whether current browser is an Internet Explorer or Edge browser.
      */
     static detectIEOrEdge(): boolean {
-        const ua = window.navigator.userAgent;
-        const msie = ua.indexOf("MSIE ");
-        const msie11 = ua.indexOf("Trident/");
-        const msedge = ua.indexOf("Edge/");
-        const isIE = msie > 0 || msie11 > 0;
-        const isEdge = msedge > 0;
-        return isIE || isEdge;
+        const windowObject = BrowserUtils.getWindowObject();
+        if (windowObject) {
+            const ua = windowObject.navigator.userAgent;
+            const msie = ua.indexOf("MSIE ");
+            const msie11 = ua.indexOf("Trident/");
+            const msedge = ua.indexOf("Edge/");
+            const isIE = msie > 0 || msie11 > 0;
+            const isEdge = msedge > 0;
+            return isIE || isEdge;
+        }
+        return false;
     }
 }

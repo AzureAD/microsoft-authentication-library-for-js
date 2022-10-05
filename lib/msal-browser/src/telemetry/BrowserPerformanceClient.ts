@@ -28,7 +28,11 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
     }
 
     private getPageVisibility(): string | null {
-        return document.visibilityState?.toString() || null;
+        if (typeof document !== "undefined" && document.visibilityState) {
+            return document.visibilityState?.toString();
+        }
+
+        return null;
     }
     
     /**

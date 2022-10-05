@@ -89,11 +89,14 @@ document.getElementById("sign-out").addEventListener("click", async () => {
     await launchWebAuthFlow(logoutUrl);
 });
 
-/**
- * Logout button
- */
 document.getElementById("call-graph").addEventListener("click", async () => {
     const graphResult = await callGraphMeEndpoint();
+
+    document.getElementById("displayname").innerHTML = graphResult.displayName;
+});
+
+document.getElementById("call-graph-browser").addEventListener("click", async () => {
+    const graphResult = await callGraphMeEndpoint(true);
 
     document.getElementById("displayname").innerHTML = graphResult.displayName;
 });
@@ -101,8 +104,8 @@ document.getElementById("call-graph").addEventListener("click", async () => {
 /**
  * Generates a login url
  */
-async function getLoginUrl(request, reject) {
-    return new Promise((resolve) => {
+async function getLoginUrl(request) {
+    return new Promise((resolve, reject) => {
         msalInstance.loginRedirect({
             ...request,
             onRedirectNavigate: (url) => {
@@ -131,14 +134,13 @@ async function getLogoutUrl(request) {
 /**
  * Makes an http request to the MS graph Me endpoint
  */
-async function callGraphMeEndpoint() {
+async function callGraphMeEndpoint(serviceWorker) {
     const {
         accessToken
     } = await acquireToken({
         scopes: [ "user.read" ],
-        account: msalInstance.getAllAccounts()[0]
-    });
-
+        account: serviceWorker ? msalInstance.getAllAccounts()[0] : undefined
+    }, serviceWorker);
     return callMSGraph("https://graph.microsoft.com/v1.0/me", accessToken);
 }
 
@@ -164,7 +166,18 @@ async function callMSGraph(endpoint, accessToken) {
 /**
  * Attempts to silent acquire an access token, falling back to interactive.
  */
-async function acquireToken(request) {
+async function acquireToken(request, serviceWorker) {
+    if (serviceWorker) {
+        return new Promise((resolve, reject) => {
+            chrome.runtime.sendMessage({
+                action: "acquireToken",
+                request
+            }, (response) => {
+                return resolve(response);
+            })
+        })
+    }
+    
     return msalInstance.acquireTokenSilent(request)
         .catch(async (error) => {
             console.error(error);
@@ -195,18 +208,17 @@ async function getAcquireTokenUrl(request) {
  * @param {*} inBrowser Whether to perform login in the browser
  */
 async function launchWebAuthFlow(url, inBrowser) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         if (inBrowser) {
-            chrome.tabs.create({
-                url,
-                //active: false // useful for debugging
-            }, (newTab) => {
-                chrome.runtime.sendMessage({
-                    tabId: newTab.id
-                }, (message) => {
-                    resolve();
-                })
-            });
+            const user = await getSignedInUser();
+            chrome.runtime.sendMessage({
+                action: "login",
+                request: {
+                    loginHing: user.email
+                }
+            }, (message) => {
+                resolve();
+            })
         } else {
             chrome.identity.launchWebAuthFlow({
                 interactive: true,

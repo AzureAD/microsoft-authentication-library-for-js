@@ -65,6 +65,8 @@ export abstract class ClientApplication {
 
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
+    protected isServiceWorker: boolean;
+    protected isBrowserOrServiceWorker: boolean;
 
     protected eventHandler: EventHandler;
 
@@ -111,37 +113,46 @@ export abstract class ClientApplication {
          * This is to support server-side rendering environments.
          */
         this.isBrowserEnvironment = typeof window !== "undefined";
-        // Set the configuration.
-        this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
-        this.initialized = false;
 
+        /**
+         * If loaded in a service worker environment (where this is no DOM),
+         * set internal flag so that certain features can still work (i.e. generating/processing login requests)
+         */
+        this.isServiceWorker = typeof self !== "undefined";
+
+        this.isBrowserOrServiceWorker = this.isBrowserEnvironment || !!(this.isServiceWorker && configuration.system?.enableServiceWorker);
+
+        // Set the configuration.
+        this.config = buildConfiguration(configuration, this.isBrowserOrServiceWorker);
+        this.initialized = false;
+        
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
-
+        
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
-
+        
         // Initialize the navigation client class.
         this.navigationClient = this.config.system.navigationClient;
-
+        
         // Initialize redirectResponse Map
         this.redirectResponse = new Map();
-
+        
         // Initial hybrid spa map
         this.hybridAuthCodeResponses = new Map();
 
         // Initialize performance client
-        this.performanceClient = this.isBrowserEnvironment ?
+        this.performanceClient = this.isBrowserOrServiceWorker ?
             new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application, this.config.system.cryptoOptions) :
             new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
 
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient, this.config.system.cryptoOptions) : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserOrServiceWorker ? new CryptoOps(this.logger, this.performanceClient, this.config.system.cryptoOptions) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
         // Initialize the browser storage class.
-        this.browserStorage = this.isBrowserEnvironment ?
+        this.browserStorage = this.isBrowserOrServiceWorker ?
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) :
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
 
@@ -193,7 +204,7 @@ export abstract class ClientApplication {
         BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
 
         const loggedInAccounts = this.getAllAccounts();
-        if (this.isBrowserEnvironment) {
+        if (this.isBrowserOrServiceWorker) {
             /**
              * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
@@ -701,7 +712,7 @@ export abstract class ClientApplication {
      */
     getAllAccounts(): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
-        return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
+        return this.isBrowserOrServiceWorker ? this.browserStorage.getAllAccounts() : [];
     }
 
     /**
@@ -791,7 +802,7 @@ export abstract class ClientApplication {
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
-        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
+        BrowserUtils.blockNonBrowserEnvironment(this.isBrowserOrServiceWorker);
 
         // Block redirects if in an iframe
         BrowserUtils.blockRedirectInIframe(interactionType, this.config.system.allowRedirectInIframe);
@@ -808,7 +819,8 @@ export abstract class ClientApplication {
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (interactionType === InteractionType.Redirect &&
             this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
-            !this.config.cache.storeAuthStateInCookie) {
+            !this.config.cache.storeAuthStateInCookie &&
+            (this.isServiceWorker && !this.config.system.enableServiceWorker)) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
 
@@ -1046,7 +1058,7 @@ export abstract class ClientApplication {
             return request.correlationId;
         }
 
-        if (this.isBrowserEnvironment) {
+        if (this.isBrowserOrServiceWorker) {
             return this.browserCrypto.createNewGuid();
         }
 

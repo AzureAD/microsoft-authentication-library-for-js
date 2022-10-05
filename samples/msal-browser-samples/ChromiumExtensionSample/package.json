@@ -1,0 +1,13 @@
+{
+  "name": "chromiumextensionsample",
+  "version": "1.0.0",
+  "description": "This folder contains a sample Chromium extensions demonstrating how to integrate MSAL Browser.",
+  "main": "auth.js",
+  "private": true,
+  "scripts": {
+    "build:msal": "cd ../../../lib/msal-browser && npm run build && cp dist/msal.browser.*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

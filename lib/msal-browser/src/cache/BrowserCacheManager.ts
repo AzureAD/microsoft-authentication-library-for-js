@@ -80,7 +80,7 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.SessionStorage:
                 try {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    return new BrowserStorage(cacheLocation); // TODO: Add new configuration option for temp cache location
+                    return new BrowserStorage(BrowserCacheLocation.SessionStorage); // TODO: Add new configuration option for temp cache location
                 } catch (e) {
                     this.logger.verbose(e);
                     return this.internalStorage;
@@ -689,18 +689,20 @@ export class BrowserCacheManager extends CacheManager {
      * Clear all msal-related cookies currently set in the browser. Should only be used to clear temporary cache items.
      */
     clearMsalCookies(): void {
-        const cookiePrefix = `${Constants.CACHE_PREFIX}.${this.clientId}`;
-        const cookieList = document.cookie.split(";");
-        cookieList.forEach((cookie: string): void => {
-            while (cookie.charAt(0) === " ") {
-                // eslint-disable-next-line no-param-reassign
-                cookie = cookie.substring(1);
-            }
-            if (cookie.indexOf(cookiePrefix) === 0) {
-                const cookieKey = cookie.split("=")[0];
-                this.clearItemCookie(cookieKey);
-            }
-        });
+        if (typeof document !== "undefined") {
+            const cookiePrefix = `${Constants.CACHE_PREFIX}.${this.clientId}`;
+            const cookieList = document.cookie.split(";");
+            cookieList.forEach((cookie: string): void => {
+                while (cookie.charAt(0) === " ") {
+                    // eslint-disable-next-line no-param-reassign
+                    cookie = cookie.substring(1);
+                }
+                if (cookie.indexOf(cookiePrefix) === 0) {
+                    const cookieKey = cookie.split("=")[0];
+                    this.clearItemCookie(cookieKey);
+                }
+            });
+        }
     }
 
     /**

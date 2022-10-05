@@ -140,6 +140,10 @@ export type BrowserSystemOptions = SystemOptions & {
      * Options related to browser crypto APIs
      */
     cryptoOptions?: CryptoOptions;
+    /**
+     * Enable MSAL to work in a service worker
+     */
+    enableServiceWorker?: boolean
 };
 
 export type CryptoOptions = {
@@ -262,7 +266,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         cryptoOptions: {
             useMsrCrypto: false,
             entropy: undefined
-        }
+        },
+        enableServiceWorker: false
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {

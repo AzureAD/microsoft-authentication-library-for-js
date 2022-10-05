@@ -66,7 +66,9 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
             // Clear temporary cache if the back button is clicked during the redirect flow.
-            window.addEventListener("pageshow", handleBackButton);
+            if (typeof window !== "undefined") {
+                window.addEventListener("pageshow", handleBackButton);
+            }
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return await interactionHandler.initiateAuthRequest(navigateUrl, {
@@ -79,7 +81,9 @@ export class RedirectClient extends StandardInteractionClient {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
             }
-            window.removeEventListener("pageshow", handleBackButton);
+            if (typeof window !== "undefined") {
+                window.removeEventListener("pageshow", handleBackButton);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
@@ -100,7 +104,9 @@ export class RedirectClient extends StandardInteractionClient {
                 return null;
             }
 
-            const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
+            const windowObject = BrowserUtils.getWindowObject();
+
+            const responseHash = this.getRedirectResponseHash(hash || (windowObject?.location.hash || ""));
             if (!responseHash) {
                 // Not a recognized server response hash or hash not associated with a redirect request
                 this.logger.info("handleRedirectPromise did not detect a response hash as a result of a redirect. Cleaning temporary cache.");
@@ -123,7 +129,8 @@ export class RedirectClient extends StandardInteractionClient {
             // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
             const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true) || Constants.EMPTY_STRING;
             const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl);
-            const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
+            
+            const currentUrlNormalized = UrlString.removeHashFromUrl(windowObject?.location.href || "");
 
             if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
                 // We are on the page we need to navigate to - handle hash
@@ -196,8 +203,9 @@ export class RedirectClient extends StandardInteractionClient {
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
 
-        if (isResponseHash) {
-            BrowserUtils.clearHash(window);
+        const windowObject = BrowserUtils.getWindowObject();
+        if (isResponseHash && windowObject) {
+            BrowserUtils.clearHash(windowObject);
             this.logger.verbose("Hash contains known properties, returning response hash");
             return hash;
         }
@@ -320,7 +328,8 @@ export class RedirectClient extends StandardInteractionClient {
      * @param requestStartPage
      */
     protected getRedirectStartPage(requestStartPage?: string): string {
-        const redirectStartPage = requestStartPage || window.location.href;
+        const windowObject = BrowserUtils.getWindowObject();
+        const redirectStartPage = requestStartPage || (windowObject?.location.href || "");
         return UrlString.getAbsoluteUrl(redirectStartPage, BrowserUtils.getCurrentUri());
     }
 }

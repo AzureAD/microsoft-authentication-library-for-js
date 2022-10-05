@@ -91,7 +91,10 @@ export class BrowserCrypto {
      * Check whether browser crypto is available.
      */
     private hasBrowserCrypto(): boolean {
-        return "crypto" in window;
+        return (
+            (typeof window !== "undefined" && "crypto" in window) || 
+            (typeof self !== "undefined" && "crypto" in self)
+        );
     }
 
     /**
