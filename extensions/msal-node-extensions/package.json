@@ -25,9 +25,10 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch",
+    "start": "tsdx watch --tsconfig ./tsconfig.build.json",
     "compile": "node-gyp build",
-    "build": "tsdx build",
+    "configure": "node-gyp configure",
+    "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:common": "cd ../../lib/msal-common && npm run build",
     "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
@@ -57,6 +58,7 @@
     "node-addon-api": "5.0.0"
   },
   "devDependencies": {
+    "@types/node": "^18.8.3",
     "husky": "^4.2.5",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",

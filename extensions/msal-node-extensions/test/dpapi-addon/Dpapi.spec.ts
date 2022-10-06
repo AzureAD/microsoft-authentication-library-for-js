@@ -4,7 +4,7 @@
  */
 
 import Dpapi from "../../src/dpapi-addon/Dpapi";
-import { DataProtectionScope } from "../../src";
+import { DataProtectionScope } from "../../src/persistence/DataProtectionScope";
 import { platform } from "process"
 
 // DPAPI is only available on windows

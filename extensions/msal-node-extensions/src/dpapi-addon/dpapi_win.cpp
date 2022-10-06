@@ -47,15 +47,15 @@ Napi::Value ProtectDataCommon(bool protect, const Napi::CallbackInfo& info)
 		flags = CRYPTPROTECT_LOCAL_MACHINE;
 	}
 
-	auto buffer = info[0].As<Napi::Uint8Array>().Data();
-	auto len = info[0].As<Napi::Uint8Array>().ElementLength();
+	auto buffer = info[0].As<Napi::Buffer<char>>().Data();
+	auto len = info[0].As<Napi::Buffer<char>>().ElementLength();
 
 	DATA_BLOB entropyBlob;
 	entropyBlob.pbData = nullptr;
 	if (!info[1].IsNull())
 	{
-		entropyBlob.pbData = reinterpret_cast<BYTE*>(info[1].As<Napi::Uint8Array>().Data());
-		entropyBlob.cbData = info[1].As<Napi::Uint8Array>().ElementLength();
+		entropyBlob.pbData = reinterpret_cast<BYTE*>(info[1].As<Napi::Buffer<char>>().Data());
+		entropyBlob.cbData = info[1].As<Napi::Buffer<char>>().ElementLength();
 	}
 
 	DATA_BLOB dataIn;
@@ -99,8 +99,7 @@ Napi::Value ProtectDataCommon(bool protect, const Napi::CallbackInfo& info)
 	}
 
 	// Copy and free the buffer
-	Napi::ArrayBuffer arrayBuffer = Napi::ArrayBuffer::New(env, dataOut.pbData, dataOut.cbData);
-	Napi::Uint8Array returnBuffer = Napi::Uint8Array::New(env, dataOut.cbData, arrayBuffer, 0);
+	Napi::Buffer<char> returnBuffer = Napi::Buffer<char>::Copy(env, reinterpret_cast<char*>(dataOut.pbData), dataOut.cbData);
 	LocalFree(dataOut.pbData);
 
 	return returnBuffer;
