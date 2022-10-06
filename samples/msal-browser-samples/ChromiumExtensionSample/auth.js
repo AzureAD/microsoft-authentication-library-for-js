@@ -9,8 +9,8 @@ console.log("This url must be registered in the Azure portal as a single-page ap
 const msalInstance = new msal.PublicClientApplication({
     auth: {
         authority: "https://login.microsoftonline.com/common/",
-        clientId: "36cb3b59-915a-424e-bc06-f8f557baa72f",
-        redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient", // Page hosted by MSFT that can be used as a redirect uri. Must be a SPA redirect (not native)
+        clientId: "d9c9b66a-1121-4a62-bbd4-685f8d9ed6b6",
+        redirectUri,
         postLogoutRedirectUri: redirectUri
     },
     cache: {
@@ -29,7 +29,8 @@ if (accounts.length) {
  */
 getSignedInUser()
     .then(async (user) => {
-        if (user) {
+        if (user?.email) {
+            // chrome.identity
             const signInHintButton = document.getElementById("sign-in-hint");
             signInHintButton.innerHTML = `Sign In (w/ ${user.email})`;
             signInHintButton.addEventListener("click", async () => {
@@ -39,9 +40,23 @@ getSignedInUser()
 
                 const result = await launchWebAuthFlow(url);
 
-                document.getElementById("username").innerHTML = result.account.username;
+                document.getElementById("username").innerHTML = result?.account.username;
             });
             signInHintButton.classList.remove("hidden");
+
+            // Browser window
+            const signInHintBrowserButton = document.getElementById("sign-in-browser-hint");
+            signInHintBrowserButton.innerHTML = `Sign In (w/ ${user.email})`;
+            signInHintBrowserButton.addEventListener("click", async () => {
+                const url = await getLoginUrl({
+                    loginHint: user.email
+                });
+
+                const result = await launchWebAuthFlow(url, true);
+
+                document.getElementById("username").innerHTML = result?.account.username;
+            });
+            signInHintBrowserButton.classList.remove("hidden");
         }
     })
 
@@ -53,7 +68,7 @@ document.getElementById("sign-in").addEventListener("click", async () => {
 
     const result = await launchWebAuthFlow(url);
 
-    document.getElementById("username").innerHTML = result.account.username;
+    document.getElementById("username").innerHTML = result?.account.username;
 });
 
 document.getElementById("sign-in-browser").addEventListener("click", async () => {
@@ -92,19 +107,19 @@ document.getElementById("sign-out").addEventListener("click", async () => {
 document.getElementById("call-graph").addEventListener("click", async () => {
     const graphResult = await callGraphMeEndpoint();
 
-    document.getElementById("displayname").innerHTML = graphResult.displayName;
+    document.getElementById("displayname").innerHTML = graphResult?.displayName;
 });
 
 document.getElementById("call-graph-browser").addEventListener("click", async () => {
     const graphResult = await callGraphMeEndpoint(true);
 
-    document.getElementById("displayname").innerHTML = graphResult.displayName;
+    document.getElementById("displayname").innerHTML = graphResult?.displayName;
 });
 
 /**
  * Generates a login url
  */
-async function getLoginUrl(request) {
+async function getLoginUrl(request = {}) {
     return new Promise((resolve, reject) => {
         msalInstance.loginRedirect({
             ...request,
@@ -214,7 +229,7 @@ async function launchWebAuthFlow(url, inBrowser) {
             chrome.runtime.sendMessage({
                 action: "login",
                 request: {
-                    loginHing: user.email
+                    loginHint: user.email
                 }
             }, (message) => {
                 resolve();
@@ -225,7 +240,7 @@ async function launchWebAuthFlow(url, inBrowser) {
                 url
             }, (responseUrl) => {
                 // Response urls includes a hash (login, acquire token calls)
-                if (responseUrl.includes("#")) {
+                if (responseUrl?.includes("#")) {
                     msalInstance.handleRedirectPromise(`#${responseUrl.split("#")[1]}`)
                         .then(resolve)
                         .catch(reject)

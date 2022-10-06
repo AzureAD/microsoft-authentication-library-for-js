@@ -1,15 +1,23 @@
+// Load MSAL into service worker
 importScripts("/msal/msal-browser.js")
 
+// Page hosted by MSFT that can be used as a redirect uri. Must be a SPA redirect (not native)
+const redirectUri = "https://login.microsoftonline.com/common/oauth2/nativeclient" 
+
+// Instance of MSAL that will run exclusively in the service worker
 const msalInstance = new msal.PublicClientApplication({
     auth: {
         authority: "https://login.microsoftonline.com/common/",
-        clientId: "36cb3b59-915a-424e-bc06-f8f557baa72f",
-        redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient" // Page hosted by MSFT that can be used as a redirect uri. Must be a SPA redirect (not native)
+        clientId: "d9c9b66a-1121-4a62-bbd4-685f8d9ed6b6",
+        redirectUri,
     },
     cache: {
+        // localStorage and sessionStorage are not available in service workers.
+        // TODO: async cache location (as IDB is supported in service workers)
         cacheLocation: "memoryStorage"
     },
     system: {
+        // Feature flag to enable service worker compatibility
         enableServiceWorker: true
     }
 });
@@ -30,11 +38,16 @@ let tabId;
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
         case "login":
-            getLoginUrl(message.request)
+            // Open the login url in the main browser.
+            // onUpdated listener below will parse the response.
+            // TODO: error handling
+            getLoginUrl({
+                ...request,
+                redirectUri
+            })
                 .then(url => {
                     chrome.tabs.create({
-                        url,
-                        //active: false // useful for debugging
+                        url
                     }, (newTab) => {
                         tabId = newTab.id;
                     });
@@ -42,7 +55,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
             break;
 
+        // Silently acquires a token and returns to the UI.
         case "acquireToken":
+            // TODO: error handling
             msalInstance.acquireTokenSilent(message.request)
                 .then(result => {
                     sendResponse(result);
@@ -57,11 +72,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 });
 
+// Wait for the tab opened by the code above to be redirected to the redirect URI,
+// then parse response and close tab.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (
         changeInfo.status === "complete" &&
         tab.id === tabId && 
-        tab.url.indexOf("https://login.microsoftonline.com/common/oauth2/nativeclient#code=") > -1
+        tab.url.indexOf(`${redirectUri}#code=`) > -1
     ) {
         msalInstance.handleRedirectPromise(`#${tab.url.split("#")[1]}`)
             .then(result => {
