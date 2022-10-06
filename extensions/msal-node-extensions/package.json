@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.23",
+  "version": "1.0.0-alpha.24",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -27,7 +27,6 @@
   "scripts": {
     "start": "tsdx watch --tsconfig ./tsconfig.build.json",
     "compile": "node-gyp build",
-    "configure": "node-gyp configure",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:common": "cd ../../lib/msal-common && npm run build",
     "build:all": "npm run build:common && npm run build",
