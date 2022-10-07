@@ -27,8 +27,7 @@
   },
   "scripts": {
     "start": "tsdx watch --tsconfig ./tsconfig.build.json",
-    "compile": "node-gyp build",
-    "build": "tsdx build --tsconfig ./tsconfig.build.json",
+    "build": "node-gyp rebuild && tsdx build --tsconfig ./tsconfig.build.json",
     "build:common": "cd ../../lib/msal-common && npm run build",
     "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
