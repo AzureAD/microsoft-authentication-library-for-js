@@ -1,4 +1,4 @@
-/*! @azure/msal-browser v2.29.0 2022-10-05 */
+/*! @azure/msal-browser v2.29.0 2022-10-07 */
 'use strict';
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
@@ -15114,15 +15114,7 @@
              * Use window.performance if available (for browser windows),
              * otherwise self.performance (for service workers)
              */
-            if (typeof window !== "undefined") {
-                this.window = window;
-            }
-            else if (typeof self !== "undefined") {
-                this.window = self;
-            }
-            else {
-                this.window = null;
-            }
+            this.window = BrowserUtils.getWindowObject();
         }
         BrowserPerformanceMeasurement.prototype.supportsBrowserPerformance = function () {
             return !!this.window &&

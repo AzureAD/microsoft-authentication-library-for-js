@@ -22,6 +22,7 @@ const msalInstance = new msal.PublicClientApplication({
     }
 });
 
+// Function to generate login url
 async function getLoginUrl(request) {
     return new Promise((resolve, reject) => {
         msalInstance.loginRedirect({
@@ -35,6 +36,7 @@ async function getLoginUrl(request) {
 }
     
 let tabId;
+// Listen for messages from popup UI
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
         case "login":
@@ -42,7 +44,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             // onUpdated listener below will parse the response.
             // TODO: error handling
             getLoginUrl({
-                ...request,
+                ...message.request,
                 redirectUri
             })
                 .then(url => {
@@ -68,8 +70,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     // Allows sendResponse to be called async
+    // https://developer.chrome.com/docs/extensions/mv3/messaging/#simple
     return true;
-
 });
 
 // Wait for the tab opened by the code above to be redirected to the redirect URI,
@@ -87,8 +89,9 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
                 }
                 chrome.tabs.remove(tabId);
             });
-        
     }
+
+    return true;
 });
 
 

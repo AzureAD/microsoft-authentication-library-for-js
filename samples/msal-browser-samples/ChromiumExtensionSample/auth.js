@@ -64,7 +64,9 @@ getSignedInUser()
  * Sign in button
  */
 document.getElementById("sign-in").addEventListener("click", async () => {
-    const url = await getLoginUrl();
+    const url = await getLoginUrl({
+        scopes: [ "user.read" ]
+    });
 
     const result = await launchWebAuthFlow(url);
 
@@ -72,11 +74,14 @@ document.getElementById("sign-in").addEventListener("click", async () => {
 });
 
 document.getElementById("sign-in-browser").addEventListener("click", async () => {
-    const url = await getLoginUrl();
+    const url = await getLoginUrl({
+        scopes: [ "user.read" ]
+    });
 
     await launchWebAuthFlow(url, true);
 });
 
+// Messages from background script to process response
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.url) {
         msalInstance.handleRedirectPromise(`#${message.url.split("#")[1]}`)
