@@ -2,11 +2,12 @@
   "include": ["src", "test"],
   "compilerOptions": {
     "module": "esnext",
+    "moduleResolution": "node",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "./src",
+    "rootDir": "./",
     "noUnusedLocals": true,
     "baseUrl": "./",
     "paths": {
