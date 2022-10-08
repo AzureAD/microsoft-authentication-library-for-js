@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrl
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, PromptValue, Separators, AADServerParamKeys } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue, Separators, AADServerParamKeys, HeaderNames } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -70,6 +70,9 @@ export class AuthorizationCodeClient extends BaseClient {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
+        // Retrieve requestId from response headers
+        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -81,7 +84,17 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
+        return await responseHandler.handleServerTokenResponse(
+            response.body, 
+            this.authority, 
+            reqTimestamp, 
+            request, 
+            authCodePayload,
+            undefined,
+            undefined,
+            undefined,
+            requestId
+        );
     }
 
     /**

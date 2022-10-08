@@ -94,6 +94,22 @@ export enum PerformanceEvents {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    /**
+     * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
+     */
+    BrokerHandhshake = "brokerHandshake",
+    /**
+     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
+     */
+    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+    /**
+     * Time taken for token acquisition by broker
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker",
 
     /**
      * Time spent on the network for refresh token acquisition
@@ -101,25 +117,14 @@ export enum PerformanceEvents {
     RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
 
     /**
-     * Time spent creating default headers for requests to token endpoint
+     * Time taken for acquiring refresh token , records RT size
      */
-    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
 
     /**
-     * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
+     * Time taken for acquiring cached refresh token 
      */
-    BrokerHandhshake = "brokerHandshake",
-
-    /**
-     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
-     */
-    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
-
-    /**
-     * acquireToken API in BrokerClientApplication.
-     * Used to acquire a token on behalf of the embedded application (PW-Broker).
-     */
-    AcquireTokenByBroker = "acquireTokenByBroker"
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 }
 
 /**
@@ -273,6 +278,15 @@ export type PerformanceEvent = {
     accessTokenSize?: number,
 
     /**
+     * 
+     * Size of the refresh token
+     *
+     * @type {number}
+     */
+
+    refreshTokenSize?: number | undefined,
+
+    /**
      * Application name as specified by the app.
      *
      * @type {?string}
@@ -298,5 +312,12 @@ export type PerformanceEvent = {
      *
      * @type {?(number | undefined)}
      */
-    cacheLookupPolicy?: number | undefined
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Request ID returned from the response
+     * 
+     * @type {?string}
+     */
+    requestId?: string
 };

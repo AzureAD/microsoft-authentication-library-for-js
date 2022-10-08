@@ -31,7 +31,7 @@ export const TEST_CONSTANTS = {
     THUMBPRINT: "6182de7d4b84517655fe0bfa97076890d66bf37a",
     PRIVATE_KEY: "PRIVATE_KEY",
     PUBLIC_CERTIFICATE:
-`-----BEGIN CERTIFICATE-----
+        `-----BEGIN CERTIFICATE-----
 line1
 line2
 -----END CERTIFICATE-----
@@ -43,7 +43,7 @@ line4
     `,
     CLAIMS: 'claim1 claim2',
     SNI_CERTIFICATE:
-    `-----BEGIN PRIVATE KEY-----\r
+        `-----BEGIN PRIVATE KEY-----\r
 line1\r
 line2\r
 line3\r
@@ -216,4 +216,11 @@ export const mockAuthenticationResult: AuthenticationResult = {
     expiresOn: new Date(),
     tokenType: "BEARER",
     correlationId: "test-correlationId"
+}
+
+export type MockedMetadataResponse = {
+    tenant_discovery_endpoint: string,
+    token_endpoint: string,
+    authorization_endpoint: string,
+    device_authorization_endpoint: string
 }
