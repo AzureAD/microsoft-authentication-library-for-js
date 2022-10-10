@@ -79,7 +79,8 @@ describe("ClientCredentialClient unit tests", () => {
         expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
     });
 
-    it.only("Multiple access tokens would match, but one of them has a Home Account ID of \"\"", async () => {
+    // regression test for https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5134
+    it("Multiple access tokens would match, but one of them has a Home Account ID of \"\"", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
         
