@@ -2,6 +2,67 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 03 Oct 2022 22:12:26 GMT",
+      "tag": "@azure/msal-common_v7.5.0",
+      "version": "7.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7821413cf910628ac4ae81c5904d6906d3659bd1",
+            "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "bdf4e3a438ce620ec766ef12baef7c69a7ca64c0",
+            "comment": "Include Refresh token size in perf telemetry data #5250"
+          }
+        ],
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "fa3f0d8f63e1980945f2c5bdcb4891f0a50f012c",
+            "comment": "Add x-ms-request-id to perf telemetry logging #5244"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5f0a111c0e9d0bb019fa809b8bfd247d90f2e282",
+            "comment": "Added 'no_session' to prompt enum #5131"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "ad96e52d371d91fa63213b533473841f1ce415a1",
+            "comment": "Added Support for the OIDC max_age parameter #5125"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f4f3b99460c216acc64d8caf963030a4b31df7d5",
+            "comment": "Add initial support for DSTS authorities in MSAL Common #5212"
+          }
+        ],
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0e9e52d3ca225bbe3cb6d3a1b7f1cd9e6a0969ff",
+            "comment": "Undo changes in error classes to avoid custom description of server errors. #5175"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 12 Sep 2022 18:19:32 GMT",
       "tag": "@azure/msal-common_v7.4.1",
       "version": "7.4.1",

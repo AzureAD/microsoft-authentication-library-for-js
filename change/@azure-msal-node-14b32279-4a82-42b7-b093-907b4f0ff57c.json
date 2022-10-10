@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "sanitize client credentials request against oidc scopes #4999",
-  "packageName": "@azure/msal-node",
-  "email": "v-derisen@microsoft.com",
-  "dependentChangeType": "patch"
-}
