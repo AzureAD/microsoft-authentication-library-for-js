@@ -54,7 +54,7 @@ export class InteractionRequiredAuthError extends AuthError {
      * @param errorString 
      * @param subError 
      */
-    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string) : boolean {
+    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string): boolean {
         const isInteractionRequiredErrorCode = !!errorCode && InteractionRequiredServerErrorMessage.indexOf(errorCode) > -1;
         const isInteractionRequiredSubError = !!subError && InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
         const isInteractionRequiredErrorDesc = !!errorString && InteractionRequiredServerErrorMessage.some((irErrorCode) => {

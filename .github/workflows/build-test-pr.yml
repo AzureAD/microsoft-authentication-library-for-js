@@ -8,6 +8,7 @@ on:
   pull_request:
     paths:
       - 'lib/**/*'
+      - 'extensions/msal-node-extensions/**/*'
       - '!**.md'
       - '.github/workflows/build-test-pr.yml'
 

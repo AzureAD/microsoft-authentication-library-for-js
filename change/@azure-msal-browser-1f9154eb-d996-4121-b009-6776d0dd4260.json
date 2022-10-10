@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014",
-  "packageName": "@azure/msal-browser",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

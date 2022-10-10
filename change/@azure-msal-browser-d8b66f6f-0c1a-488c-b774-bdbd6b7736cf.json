@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "Added 'no_session' to prompt enum #5131",
+  "comment": "Make popup poll interval configurable #5276",
   "packageName": "@azure/msal-browser",
-  "email": "rginsburg@microsoft.com",
+  "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
 }
