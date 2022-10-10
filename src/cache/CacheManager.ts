@@ -390,7 +390,10 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            // homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
+            /*
+             * homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
+             * because we don't want a client_credential request to return a cached token that has a homeAccountId
+             */
             if ((typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
