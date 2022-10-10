@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 03 Oct 2022 22:12:26 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.30.0
+
+Mon, 10 Oct 2022 22:27:02 GMT
+
+### Minor changes
+
+- Extend msal-browser TokenCache to load refresh tokens #5233 (louisv@microsoft.com)
+- Make popup poll interval configurable #5276 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v7.6.0
 
 ## 2.29.0
 
