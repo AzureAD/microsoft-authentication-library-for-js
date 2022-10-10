@@ -2,6 +2,33 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 10 Oct 2022 22:27:02 GMT",
+      "tag": "@azure/msal-browser_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "louisv@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a13f3bd96113821e9bed4d5c95f82e7b205def48",
+            "comment": "Extend msal-browser TokenCache to load refresh tokens #5233"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "01171423cfbbf37f445316abacfd2caafc51146a",
+            "comment": "Make popup poll interval configurable #5276"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.6.0",
+            "commit": "1bb8ed44ca44617636fb62199deb005d69341fb7"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Oct 2022 22:12:26 GMT",
       "tag": "@azure/msal-browser_v2.29.0",
       "version": "2.29.0",

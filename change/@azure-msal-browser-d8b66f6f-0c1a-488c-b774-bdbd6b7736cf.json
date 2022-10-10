@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Make popup poll interval configurable #5276",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
