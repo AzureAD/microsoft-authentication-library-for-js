@@ -5,17 +5,19 @@
 
 import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants, Logger } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+import { BrowserSystemOptions, DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, navigateFrameWait: number) {
+    private pollIntervalMilliseconds: number;
+
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, systemOptions: Required<Pick<BrowserSystemOptions, "navigateFrameWait" | "pollIntervalMilliseconds">>) {
         super(authCodeModule, storageImpl, authCodeRequest, logger);
-        this.navigateFrameWait = navigateFrameWait;
+        this.navigateFrameWait = systemOptions.navigateFrameWait;
+        this.pollIntervalMilliseconds = systemOptions.pollIntervalMilliseconds;
     }
 
     /**
@@ -82,7 +84,7 @@ export class SilentHandler extends InteractionHandler {
                     resolve(contentHash);
                     return;
                 }
-            }, BrowserConstants.POLL_INTERVAL_MS);
+            }, this.pollIntervalMilliseconds);
         });
     }
 

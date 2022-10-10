@@ -3,30 +3,28 @@
  * Licensed under the MIT License.
  */
 
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include "dpapi_addon.h"
 
-NAN_METHOD(protectData)
+Napi::Value protectData(const Napi::CallbackInfo& info)
 {
-	ProtectDataCommon(true, info);
+	return ProtectDataCommon(true, info);
 }
 
-NAN_METHOD(unprotectData)
+Napi::Value unprotectData(const Napi::CallbackInfo& info)
 {
-	ProtectDataCommon(false, info);
+	return ProtectDataCommon(false, info);
 }
 
-NAN_MODULE_INIT(init)
-{
-	Nan::Set(
-		target,
-		Nan::New<v8::String>("protectData").ToLocalChecked(),
-		Nan::GetFunction(Nan::New<v8::FunctionTemplate>(protectData)).ToLocalChecked());
+Napi::Object init(Napi::Env env, Napi::Object exports) {
+	exports.Set(Napi::String::New(env, "protectData"),
+		Napi::Function::New(env, protectData));
 
-	Nan::Set(
-		target,
-		Nan::New<v8::String>("unprotectData").ToLocalChecked(),
-		Nan::GetFunction(Nan::New<v8::FunctionTemplate>(unprotectData)).ToLocalChecked());
+	exports.Set(Napi::String::New(env, "unprotectData"),
+		Napi::Function::New(env, unprotectData));
+	
+	return exports;
 }
 
-NODE_MODULE(binding, init)
+NODE_API_MODULE(dpapi, init)
