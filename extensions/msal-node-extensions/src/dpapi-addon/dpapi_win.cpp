@@ -4,63 +4,58 @@
  */
  // Implementation referenced from https://github.com/bradhugh/node-dpapi
 
-#include <node.h>
-#include <nan.h>
+#include <napi.h>
+#include <uv.h>
 #include <Windows.h>
 #include <dpapi.h>
 #include <functional>
 #include <iostream>
 #include <string>
 
-v8::Local<v8::String> CreateUtf8String(v8::Isolate* isolate, char* strData)
+Napi::Value ProtectDataCommon(bool protect, const Napi::CallbackInfo& info)
 {
-	return v8::String::NewFromUtf8(isolate, strData, v8::NewStringType::kNormal).ToLocalChecked();
-}
-
-void ProtectDataCommon(bool protect, Nan::NAN_METHOD_ARGS_TYPE info)
-{
-	v8::Isolate* isolate = info.GetIsolate();
+	Napi::Env env = info.Env();
 
 	if (info.Length() != 3) {
-		isolate->ThrowException(v8::Exception::RangeError(
-			CreateUtf8String(isolate, "3 arguments are required")));
+		throw Napi::RangeError::New(env, "3 arguments are required");
 	}
 
-	if (info[0]->IsNullOrUndefined() || !info[0]->IsUint8Array())
+	if (info[0].IsNull() || 
+		info[0].IsUndefined() || 
+		!info[0].IsTypedArray() || 
+		info[0].As<Napi::TypedArray>().TypedArrayType() != napi_uint8_array)
 	{
-		isolate->ThrowException(v8::Exception::TypeError(
-			CreateUtf8String(isolate, "First argument, data, must be a valid Uint8Array")));
+		throw Napi::TypeError::New(env, "First argument, data, must be a valid Uint8Array");
 	}
 
-	if (!info[1]->IsNull() && !info[1]->IsUint8Array())
+	if (!info[1].IsNull() && 
+		(!info[1].IsTypedArray() || info[1].As<Napi::TypedArray>().TypedArrayType() != napi_uint8_array))
 	{
-		isolate->ThrowException(v8::Exception::TypeError(
-			CreateUtf8String(isolate, "Second argument, optionalEntropy, must be null or an ArrayBuffer")));
+		throw Napi::TypeError::New(env, "Second argument, optionalEntropy, must be null or an ArrayBuffer");
 	}
 
-	if (info[2]->IsNullOrUndefined() || !info[2]->IsString())
+	if (info[2].IsNull() || info[2].IsUndefined() || !info[2].IsString())
 	{
-		isolate->ThrowException(v8::Exception::TypeError(
-			CreateUtf8String(isolate, "Third argument, scope, must be a string")));
+		throw Napi::TypeError::New(env, "Third argument, scope, must be a string");
 	}
 
 	DWORD flags = 0;
-	v8::String::Utf8Value strData(isolate, info[2]);
-	std::string scope(*strData);
+	Napi::String strData = info[2].As<Napi::String>();
+	std::string scope = strData.Utf8Value();
 	if (stricmp(scope.c_str(), "LocalMachine") == 0)
 	{
 		flags = CRYPTPROTECT_LOCAL_MACHINE;
 	}
 
-	auto buffer = node::Buffer::Data(info[0]);
-	auto len = node::Buffer::Length(info[0]);
+	auto buffer = info[0].As<Napi::Buffer<char>>().Data();
+	auto len = info[0].As<Napi::Buffer<char>>().ElementLength();
 
 	DATA_BLOB entropyBlob;
 	entropyBlob.pbData = nullptr;
-	if (!info[1]->IsNull())
+	if (!info[1].IsNull())
 	{
-		entropyBlob.pbData = reinterpret_cast<BYTE*>(node::Buffer::Data(info[1]));
-		entropyBlob.cbData = node::Buffer::Length(info[1]);
+		entropyBlob.pbData = reinterpret_cast<BYTE*>(info[1].As<Napi::Buffer<char>>().Data());
+		entropyBlob.cbData = info[1].As<Napi::Buffer<char>>().ElementLength();
 	}
 
 	DATA_BLOB dataIn;
@@ -100,15 +95,12 @@ void ProtectDataCommon(bool protect, Nan::NAN_METHOD_ARGS_TYPE info)
 	{
 		DWORD errorCode = GetLastError();
 		std::string errorMessage = std::string("Encryption/Decryption failed. Error code: ") + std::to_string(errorCode);
-		isolate->ThrowException(v8::Exception::Error(
-			CreateUtf8String(isolate, &errorMessage[0])));
-
-		return;
+		throw Napi::Error::New(env, &errorMessage[0]);
 	}
 
 	// Copy and free the buffer
-	auto returnBuffer = Nan::CopyBuffer(reinterpret_cast<const char*>(dataOut.pbData), dataOut.cbData).ToLocalChecked();
+	Napi::Buffer<char> returnBuffer = Napi::Buffer<char>::Copy(env, reinterpret_cast<char*>(dataOut.pbData), dataOut.cbData);
 	LocalFree(dataOut.pbData);
 
-	info.GetReturnValue().Set(returnBuffer);
+	return returnBuffer;
 }
