@@ -21,6 +21,7 @@ steps:
       allowFailedBuilds: true
       artifactName: 'drop_publish_publish_msal_${{ parameters.libName }}'
       targetPath: '$(Pipeline.Workspace)/${{ parameters.libName }}-artifacts'
+      checkDownloadedFiles: true
     continueOnError: true
   - task: CmdLine@2
     displayName: 'Save ${{ parameters.libName }} CDN SRI Hashes'
