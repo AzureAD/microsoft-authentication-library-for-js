@@ -23,6 +23,7 @@ export { BrowserUtils } from "./utils/BrowserUtils";
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
 export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
+export { NativeAuthError} from "./error/NativeAuthError";
 
 // Interfaces
 export { IPublicClientApplication, stubbedPublicClientApplication } from "./app/IPublicClientApplication";
