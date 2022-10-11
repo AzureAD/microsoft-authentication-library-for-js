@@ -4,7 +4,7 @@
  */
 
 import sinon from "sinon";
-import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ExternalTokenResponse, AccountEntity, AuthToken } from "@azure/msal-common";
+import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ExternalTokenResponse, AccountEntity, AuthToken, AuthorityType, RefreshTokenEntity } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -52,27 +52,38 @@ describe("TokenCache tests", () => {
         let testEnvironment: string;
         let testClientInfo: string;
         let testIdToken: string;
+        let testIdAuthToken: AuthToken;
+        let testHomeAccountId: string;
         let idTokenEntity: IdTokenEntity;
         let idTokenKey: string;
         let testAccessToken: string;
         let accessTokenEntity: AccessTokenEntity;
         let accessTokenKey: string;
         let scopeString: string;
+        let testRefreshToken: string;
+        let refreshTokenEntity: RefreshTokenEntity;
+        let refreshTokenKey: string;
 
         beforeEach(() => {
             tokenCache = new TokenCache(configuration, browserStorage, logger, cryptoObj);
-            testEnvironment = 'login.microsoftonline.com';
+            testEnvironment = "login.microsoftonline.com";
 
             testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
-
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
-            idTokenEntity = IdTokenEntity.createIdTokenEntity(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT)
+            testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
+            testHomeAccountId = AccountEntity.generateHomeAccountId(testClientInfo, AuthorityType.Default, logger, cryptoObj, testIdAuthToken);
+
+            idTokenEntity = IdTokenEntity.createIdTokenEntity(testHomeAccountId, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT);
             idTokenKey = idTokenEntity.generateCredentialKey();
 
             scopeString = new ScopeSet(TEST_CONFIG.DEFAULT_SCOPES).printScopes();
             testAccessToken = TEST_TOKENS.ACCESS_TOKEN,
-            accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testEnvironment, testAccessToken, configuration.auth.clientId, TEST_CONFIG.TENANT, scopeString, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, cryptoObj);
+            accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(testHomeAccountId, testEnvironment, testAccessToken, configuration.auth.clientId, TEST_CONFIG.TENANT, scopeString, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP, cryptoObj);
             accessTokenKey = accessTokenEntity.generateCredentialKey();
+
+            testRefreshToken = TEST_TOKENS.REFRESH_TOKEN;
+            refreshTokenEntity = RefreshTokenEntity.createRefreshTokenEntity(testHomeAccountId, testEnvironment, testRefreshToken, configuration.auth.clientId);
+            refreshTokenKey = refreshTokenEntity.generateCredentialKey();
         });
 
         afterEach(() => {
@@ -80,10 +91,11 @@ describe("TokenCache tests", () => {
         });
 
         it("loads id token with a request account", () => {
+            const requestHomeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    homeAccountId: requestHomeAccountId,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
@@ -94,9 +106,13 @@ describe("TokenCache tests", () => {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {};
-            tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
-            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
+            const testIdTokenEntity = IdTokenEntity.createIdTokenEntity(requestHomeAccountId, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT);
+            const testIdTokenKey = testIdTokenEntity.generateCredentialKey();
+
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(browserStorage.getIdTokenCredential(testIdTokenKey)).toEqual(testIdTokenEntity);
         });
 
         it("loads id token with request authority and client info provided in options", () => {
@@ -110,8 +126,10 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {
                 clientInfo: testClientInfo
             };
-            tokenCache.loadExternalTokens(request, response, options);
 
+            const result = tokenCache.loadExternalTokens(request, response, options);
+
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
 
@@ -126,18 +144,20 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {
                 clientInfo: testClientInfo
             };
-            const testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
-            const testAccount = AccountEntity.createAccount(testClientInfo, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdAuthToken, undefined, undefined, undefined, testEnvironment, undefined);
+
+            const testAccount = AccountEntity.createAccount(testClientInfo, testHomeAccountId, testIdAuthToken, undefined, undefined, undefined, testEnvironment, undefined);
             const testAccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                homeAccountId: testHomeAccountId,
                 environment: testEnvironment,
                 tenantId: TEST_CONFIG.MSAL_TENANT_ID,
                 username: "AbeLi@microsoft.com",
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
             const testAccountKey = AccountEntity.generateAccountCacheKey(testAccountInfo);
-            tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(result.account).toEqual(testAccount.getAccountInfo());
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
             expect(browserStorage.getAccount(testAccountKey)).toEqual(testAccount);
         });
@@ -152,8 +172,9 @@ describe("TokenCache tests", () => {
                 client_info: testClientInfo
             };
             const options: LoadTokenOptions = {};
-            tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
 
@@ -244,7 +265,7 @@ describe("TokenCache tests", () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    homeAccountId: testHomeAccountId,
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
@@ -260,9 +281,10 @@ describe("TokenCache tests", () => {
                 expiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP,
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP
             };
-            tokenCache.loadExternalTokens(request, response, options);
+            const result = tokenCache.loadExternalTokens(request, response, options);
 
             expect(parseInt(accessTokenEntity.expiresOn)).toBeGreaterThan(TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN);
+            expect(result.accessToken).toEqual(accessTokenEntity.secret);
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
         });
 
@@ -286,6 +308,25 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {};
 
             expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | loadExternalTokens is designed to work in browser environments only.`);
+        });
+
+        it("loads refresh token with request authority and client info provided in options", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
+            };
+            const response: ExternalTokenResponse = {
+                id_token: testIdToken,
+                refresh_token: testRefreshToken,
+            };
+            const options: LoadTokenOptions = {
+                clientInfo: testClientInfo,
+            };
+
+            const result = tokenCache.loadExternalTokens(request, response, options);
+
+            expect(result.idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+            expect(browserStorage.getRefreshTokenCredential(refreshTokenKey)).toEqual(refreshTokenEntity);
         });
 
     });

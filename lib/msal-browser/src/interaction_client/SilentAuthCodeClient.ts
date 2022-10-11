@@ -58,7 +58,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
-            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
+            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system);
 
             // Handle auth code parameters from request
             return silentHandler.handleCodeResponseFromServer(
