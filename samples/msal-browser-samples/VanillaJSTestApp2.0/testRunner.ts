@@ -72,6 +72,7 @@ function runMochaTests(sampleIndex: number) {
 
     // Set up a route for index.html.
     app.get("*", function (req: Request, res: Response) {
+        // @ts-ignore
         res.sendFile(path.join(`${APP_DIR}/${sampleName}/index.html`));
     });
 
