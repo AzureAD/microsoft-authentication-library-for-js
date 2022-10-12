@@ -5,7 +5,7 @@
 
 `openssl.exe req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost`
 
-    b. Alternatively, if there are issues with openssl, use **Git Bash** which has openssl included and run the following command: 
+    b. Alternatively, if there are issues with openssl, use Git Bash which has openssl included and run the following command: 
 
 `openssl.exe req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj //CN=localhost` 
 
