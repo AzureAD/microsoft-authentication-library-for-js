@@ -96,6 +96,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        atsMeasurement.addStaticFields({
+            cacheLookupPolicy: request.cacheLookupPolicy
+        });
         
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
@@ -131,14 +134,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.addStaticFields({
                         accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
-                        cacheLookupPolicy: request.cacheLookupPolicy,
-                        requestId: result.requestId
+                        idTokenSize: result.idToken.length
                     });
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
-                        isNativeBroker: result.fromNativeBroker
+                        isNativeBroker: result.fromNativeBroker,
+                        requestId: result.requestId
                     });
                     atsMeasurement.flushMeasurement();
                     return result;

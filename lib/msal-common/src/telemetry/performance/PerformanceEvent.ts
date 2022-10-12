@@ -269,13 +269,6 @@ export type PerformanceEvent = {
     isNativeBroker?: boolean,
 
     /**
-     * The Silent Token Cache Lookup Policy
-     *
-     * @type {?(number | undefined)}
-     */
-    cacheLookupPolicy?: number | undefined,
-
-    /**
      * Request ID returned from the response
      * 
      * @type {?string}
@@ -284,6 +277,13 @@ export type PerformanceEvent = {
 };
 
 export type StaticFields = { 
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined,
+
     /**
      * Size of the id token
      *

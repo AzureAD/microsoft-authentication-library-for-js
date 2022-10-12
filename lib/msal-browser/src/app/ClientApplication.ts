@@ -386,11 +386,11 @@ export abstract class ClientApplication {
 
             atPopupMeasurement.addStaticFields({
                 accessTokenSize: result.accessToken.length,
-                idTokenSize: result.idToken.length,
-                requestId: result.requestId
+                idTokenSize: result.idToken.length
             });
             atPopupMeasurement.endMeasurement({
-                success: true
+                success: true,
+                requestId: result.requestId
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -467,13 +467,12 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
             ssoSilentMeasurement.addStaticFields({
                 accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
-                accessTokenSize: response.accessToken.length,
-                requestId: response.requestId
+                idTokenSize: response.idToken.length
             });
             ssoSilentMeasurement.endMeasurement({
                 success: true,
-                isNativeBroker: response.fromNativeBroker
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
             });
             ssoSilentMeasurement.flushMeasurement();
             return response;
@@ -521,12 +520,12 @@ export abstract class ClientApplication {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.addStaticFields({
                                 accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
-                                requestId: result.requestId
+                                idTokenSize: result.idToken.length
                             });
                             atbcMeasurement.endMeasurement({
                                 success: true,
-                                isNativeBroker: result.fromNativeBroker
+                                isNativeBroker: result.fromNativeBroker,
+                                requestId: result.requestId
                             });
                             atbcMeasurement.flushMeasurement();
                             return result;
