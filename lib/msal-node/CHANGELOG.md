@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 12 Sep 2022 18:19:32 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.14.2
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.6.0
+
+## 1.14.1
+
+Mon, 03 Oct 2022 22:12:27 GMT
+
+### Patches
+
+- sanitize client credentials request against oidc scopes #4999 (v-derisen@microsoft.com)
+- This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175 (bmahal@microsoft.com)
+- Bump @azure/msal-common to v7.5.0
 
 ## 1.14.0
 

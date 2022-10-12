@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 12 Sep 2022 18:19:32 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:02 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.30.0
+
+Mon, 10 Oct 2022 22:27:02 GMT
+
+### Minor changes
+
+- Extend msal-browser TokenCache to load refresh tokens #5233 (louisv@microsoft.com)
+- Make popup poll interval configurable #5276 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v7.6.0
+
+## 2.29.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Add support for MSR Crypto #3826 (janutter@microsoft.com)
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v7.5.0
+
+### Patches
+
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
 
 ## 2.28.3
 

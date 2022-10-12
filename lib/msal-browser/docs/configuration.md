@@ -102,6 +102,8 @@ See [Caching in MSAL](./caching.md) for more.
 | `navigateFrameWait ` | Delay in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
 | `allowRedirectInIframe` | By default, MSAL will not allow redirect operations to be initiated when the application is inside an iframe. Set this flag to `true` to remove this check. | boolean | `false` |
+| `cryptoOptions` | Config object for crypto operations in the browser. | See [below](#crypto-config-options.) | See [below](#crypto-config-options.) |
+| `pollIntervalMilliseconds` | Interval of time in milliseconds between polls of popup URL hash during authenticaiton. | integer (milliseconds) | `30` |
 
 #### Logger Config Options
 
@@ -109,6 +111,12 @@ See [Caching in MSAL](./caching.md) for more.
 | ------ | ----------- | ------ | ------------- |
 | `loggerCallback` | Callback function which handles the logging of MSAL statements. | Function - `loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void` | See [above](#using-the-config-object). |
 | `piiLoggingEnabled` | If true, personally identifiable information (PII) is included in logs. | boolean | `false` |
+
+#### Crypto Config Options
+| Option | Description | Format | Default Value |
+| ------ | ----------- | ------ | ------------- |
+| `useMsrCrypto` | Whether to use [MSR Crypto](https://github.com/microsoft/MSR-JavaScript-Crypto) if available in the browser (and other crypto interfaces are not available). | boolean | `false`
+| `entropy` | Cryptographically strong random values used to seed MSR Crypto (e.g. `crypto.randomBytes(48)` from Node). 48 bits of entropy is recommended. Required if `useMsrCrypto` is enabled. | `Uint8Array` | `undefined` |
 
 ### Telemetry Config Options
 

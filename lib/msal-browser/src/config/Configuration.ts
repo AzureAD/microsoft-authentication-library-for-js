@@ -5,7 +5,7 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ApplicationTelemetry } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserCacheLocation } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, BrowserConstants } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
 
@@ -136,6 +136,29 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
     nativeBrokerHandshakeTimeout?: number;
+    /**
+     * Options related to browser crypto APIs
+     */
+    cryptoOptions?: CryptoOptions;
+    /**
+     * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
+     */
+    pollIntervalMilliseconds?: number;
+};
+
+export type CryptoOptions = {
+    
+    /**
+     * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
+     * @type {?boolean}
+     */
+    useMsrCrypto?: boolean;
+     
+    /**
+     * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
+     * @type {?Uint8Array}
+     */
+    entropy?: Uint8Array;
 };
 
 /**
@@ -239,7 +262,12 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         asyncPopups: false,
         allowRedirectInIframe: false,
         allowNativeBroker: false,
-        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS
+        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
+        cryptoOptions: {
+            useMsrCrypto: false,
+            entropy: undefined
+        }
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {

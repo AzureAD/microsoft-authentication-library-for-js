@@ -301,6 +301,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
+                        if (current.refreshTokenSize) {
+                            previous.refreshTokenSize = current.refreshTokenSize;
+                        }
                     }
 
                     return previous;
