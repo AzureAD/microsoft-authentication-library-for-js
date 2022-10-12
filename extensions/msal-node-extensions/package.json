@@ -56,7 +56,6 @@
   },
   "devDependencies": {
     "@types/node": "^18.8.3",
-    "husky": "^4.2.5",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.3"
