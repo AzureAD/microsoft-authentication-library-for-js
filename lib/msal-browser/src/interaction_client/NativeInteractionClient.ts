@@ -79,7 +79,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             .then((result: AuthenticationResult) => {
                 nativeATMeasurement.endMeasurement({
                     success: true,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    requestId: result.requestId
                 });
                 return result;
             })

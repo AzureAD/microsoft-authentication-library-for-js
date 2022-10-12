@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added Support for the OIDC max_age parameter #5125",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

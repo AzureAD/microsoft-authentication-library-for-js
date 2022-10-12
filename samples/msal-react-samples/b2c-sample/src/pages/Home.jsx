@@ -10,12 +10,15 @@ import Typography from "@mui/material/Typography";
 import { EditProfileButton } from "../ui-components/EditProfileButton";
 import { TokenClaims } from "../ui-components/TokenClaims";
 
-export function Home() {
+export function Home(props) {
   const { instance } = useMsal();
 
   return (
       <>
           <AuthenticatedTemplate>
+          <Typography id="interactionStatus" variant="h6">
+              <center>{props.status}</center>
+          </Typography>
           <Stack direction="column" spacing={2}>
           <ButtonGroup orientation="vertical">
               <Button component={RouterLink} to="/profile" variant="contained" color="primary" id="callApiButton">Call Hello API</Button>

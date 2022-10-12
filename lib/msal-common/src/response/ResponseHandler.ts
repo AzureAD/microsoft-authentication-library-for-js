@@ -113,7 +113,8 @@ export class ResponseHandler {
         authCodePayload?: AuthorizationCodePayload,
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
-        forceCacheRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
+        forceCacheRefreshTokenResponse?: boolean,
+        serverRequestId?: string): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
@@ -169,7 +170,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
                 }
             }
             await this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -179,7 +180,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId);
     }
 
     /**
@@ -320,6 +321,7 @@ export class ResponseHandler {
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
         code?: string,
+        requestId?: string
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -363,6 +365,7 @@ export class ResponseHandler {
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             correlationId: request.correlationId,
+            requestId: requestId || Constants.EMPTY_STRING,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
