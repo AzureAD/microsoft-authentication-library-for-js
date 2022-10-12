@@ -46,15 +46,14 @@
             .strict()
             .argv;
 
-
-            `// Start the server.` 
-            `const https = require('https');` 
-            `const privateKey  = fs.readFileSync('./key.pem', 'utf8');` 
-            `const certificate = fs.readFileSync('./cert.pem', 'utf8');`
-            `const credentials = {key: privateKey, cert: certificate};` 
-            `const app1_server = https.createServer(credentials, app1);` 
-            `app1_server.listen(port1);`
-            `const app2_server = https.createServer(credentials, app2);` 
-            `app2_server.listen(port2);`
+            // Start the server. 
+            const https = require('https');
+            const privateKey  = fs.readFileSync('./key.pem', 'utf8'); 
+            const certificate = fs.readFileSync('./cert.pem', 'utf8');
+            const credentials = {key: privateKey, cert: certificate}; 
+            const app1_server = https.createServer(credentials, app1); 
+            app1_server.listen(port1);
+            const app2_server = https.createServer(credentials, app2); 
+            app2_server.listen(port2);
 
 4. To run the sample: `npm run -- -s <sample name> -h`
