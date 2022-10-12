@@ -350,7 +350,8 @@ export abstract class ClientApplication {
                 this.browserStorage.setInteractionInProgress(false);
                 atPopupMeasurement.endMeasurement({
                     success: true,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    requestId: response.requestId
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;

@@ -244,7 +244,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
-                isNativeBroker: response.fromNativeBroker
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
             });
             return response;
         }).catch((tokenRenewalError: AuthError) => {
