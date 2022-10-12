@@ -1,8 +1,67 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.6.0
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Minor changes
+
+- Include refresh token in ExternalTokenResponse #5233 (louisv@microsoft.com)
+
+### Patches
+
+- Fixed broken homeAccountId check in CacheManager #5246 (rginsburg@microsoft.com)
+
+## 7.5.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
+- Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+
+### Patches
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
+
+## 7.4.1
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Exporting constants #5189 (lalimasharda@microsoft.com)
+
+## 7.4.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Exposed raw id token on account info objects #5036 (rginsburg@microsoft.com)
+- Export ClientInfo APIs #6886 (lalimasharda@microsoft.com)
+- Add query string parsing helpers #5062 (thomas.norling@microsoft.com)
+
+## 7.3.0
+
+Mon, 01 Aug 2022 22:22:35 GMT
+
+### Minor changes
+
+- adding network performance measurement #4834 (ellymakuba@microsoft.com)
+
+### Patches
+
+- Add error handling for server errors in device-code (#5033) (sameera.gajjarapu@microsoft.com)
+- Send login_hint claim instead of sid if available #4990 (janutter@microsoft.com)
 
 ## 7.2.0
 

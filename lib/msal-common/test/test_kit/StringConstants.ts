@@ -5,7 +5,7 @@
 
 // This file contains the string constants used by the test classes.
 
-import { AuthenticationScheme, Constants } from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants, ONE_DAY_IN_MS } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
@@ -51,7 +51,8 @@ export const ID_TOKEN_CLAIMS = {
     oid: "00000000-0000-0000-66f3-3332eca7ea81",
     tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
     nonce: "123523",
-    aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY"
+    aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY",
+    auth_time: Date.now() - (ONE_DAY_IN_MS * 2)
 };
 
 // Test Expiration Vals
@@ -122,6 +123,7 @@ export const TEST_CONFIG = {
     validAuthority: TEST_URIS.DEFAULT_INSTANCE + "common",
     alternateValidAuthority: TEST_URIS.ALTERNATE_INSTANCE + "common",
     ADFS_VALID_AUTHORITY: "https://on.prem/adfs",
+    DSTS_VALID_AUTHORITY: "https://domain.dsts.subdomain/dstsv2/tenant",
     b2cValidAuthority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_susi",
     applicationName: "msal.js-tests",
     applicationVersion: "msal.js-tests.1.0.fake",
@@ -132,6 +134,7 @@ export const TEST_CONFIG = {
     CODE_CHALLENGE_METHOD: "S256",
     TOKEN_TYPE_BEARER: "Bearer",
     DEFAULT_SCOPES: ["openid", "profile", "offline_access"],
+    DSTS_TEST_SCOPE: ["https://testserviceprincipalname-6df5cfbb-2ff9-45bb-b27a-595f48f4c7e4/.default"],
     DEFAULT_GRAPH_SCOPE: ["User.Read"],
     LOGIN_HINT: "user@test.com",
     DOMAIN_HINT: "test.com",
@@ -222,6 +225,11 @@ export const TEST_TENANT_DISCOVERY_RESPONSE = {
     }
 };
 
+export const DSTS_OPENID_CONFIG_RESPONSE = {
+    body: {
+        "token_endpoint": "https://login.microsoftonline.com/dstsv2/{tenant}/oauth2/v2.0/token",
+    }
+}
 export const DEFAULT_OPENID_CONFIG_RESPONSE = {
     body: {
         "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",
@@ -355,6 +363,21 @@ export const AUTHENTICATION_RESULT = {
     }
 };
 
+export const AUTHENTICATION_RESULT_NO_REFRESH_TOKEN = {
+    status: 200,
+    body: {
+        "token_type": AuthenticationScheme.BEARER,
+        "scope": "openid profile User.Read email",
+        "expires_in": 3599,
+        "ext_expires_in": 3599,
+        "access_token": "thisIs.an.accessT0ken",
+        "refresh_token": "",
+        "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjFMVE16YWtpaGlSbGFfOHoyQkVKVlhlV01xbyJ9.eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vOTE4ODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkL3YyLjAiLCJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwiZXhwIjoxNTM2MzYxNDExLCJpYXQiOjE1MzYyNzQ3MTEsIm5iZiI6MTUzNjI3NDcxMSwibmFtZSI6IkFiZSBMaW5jb2xuIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC02NmYzLTMzMzJlY2E3ZWE4MSIsInRpZCI6IjMzMzgwNDBkLTZjNjctNGM1Yi1iMTEyLTM2YTMwNGI2NmRhZCIsIm5vbmNlIjoiMTIzNTIzIiwiYWlvIjoiRGYyVVZYTDFpeCFsTUNXTVNPSkJjRmF0emNHZnZGR2hqS3Y4cTVnMHg3MzJkUjVNQjVCaXN2R1FPN1lXQnlqZDhpUURMcSFlR2JJRGFreXA1bW5PcmNkcUhlWVNubHRlcFFtUnA2QUlaOGpZIn0=.1AFWW-Ck5nROwSlltm7GzZvDwUkqvhSQpm55TQsmVo9Y59cLhRXpvB8n-55HCr9Z6G_31_UbeUkoz612I2j_Sm9FFShSDDjoaLQr54CreGIJvjtmS3EkK9a7SJBbcpL1MpUtlfygow39tFjY7EVNW9plWUvRrTgVk7lYLprvfzw-CIqw3gHC-T7IK_m_xkr08INERBtaecwhTeN4chPC4W3jdmw_lIxzC48YoQ0dB1L9-ImX98Egypfrlbm0IBL5spFzL6JDZIRRJOu8vecJvj1mq-IUhGt0MacxX8jdxYLP-KUu2d9MbNKpCKJuZ7p8gwTL5B7NlUdh_dmSviPWrw",
+        "client_info": `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+    }
+};
+
+
 export const POP_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
@@ -413,6 +436,27 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     }
 };
 
+export const CORS_RESPONSE_HEADERS = {
+    xMsRequestId: "xMsRequestId"
+};
+
+export const AUTHENTICATION_RESULT_WITH_HEADERS = {
+    status: 200,
+    headers: {
+        "x-ms-request-id": CORS_RESPONSE_HEADERS.xMsRequestId
+    },
+    body: {
+        "token_type": AuthenticationScheme.BEARER,
+        "scope": "openid profile offline_access User.Read",
+        "expires_in": 3599,
+        "ext_expires_in": 3599,
+        "access_token": "thisIs.an.accessT0ken",
+        "refresh_token": "thisIsARefreshT0ken",
+        "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjFMVE16YWtpaGlSbGFfOHoyQkVKVlhlV01xbyJ9.eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vOTE4ODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkL3YyLjAiLCJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwiZXhwIjoxNTM2MzYxNDExLCJpYXQiOjE1MzYyNzQ3MTEsIm5iZiI6MTUzNjI3NDcxMSwibmFtZSI6IkFiZSBMaW5jb2xuIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC02NmYzLTMzMzJlY2E3ZWE4MSIsInRpZCI6IjMzMzgwNDBkLTZjNjctNGM1Yi1iMTEyLTM2YTMwNGI2NmRhZCIsIm5vbmNlIjoiMTIzNTIzIiwiYWlvIjoiRGYyVVZYTDFpeCFsTUNXTVNPSkJjRmF0emNHZnZGR2hqS3Y4cTVnMHg3MzJkUjVNQjVCaXN2R1FPN1lXQnlqZDhpUURMcSFlR2JJRGFreXA1bW5PcmNkcUhlWVNubHRlcFFtUnA2QUlaOGpZIn0=.1AFWW-Ck5nROwSlltm7GzZvDwUkqvhSQpm55TQsmVo9Y59cLhRXpvB8n-55HCr9Z6G_31_UbeUkoz612I2j_Sm9FFShSDDjoaLQr54CreGIJvjtmS3EkK9a7SJBbcpL1MpUtlfygow39tFjY7EVNW9plWUvRrTgVk7lYLprvfzw-CIqw3gHC-T7IK_m_xkr08INERBtaecwhTeN4chPC4W3jdmw_lIxzC48YoQ0dB1L9-ImX98Egypfrlbm0IBL5spFzL6JDZIRRJOu8vecJvj1mq-IUhGt0MacxX8jdxYLP-KUu2d9MbNKpCKJuZ7p8gwTL5B7NlUdh_dmSviPWrw",
+        "client_info": `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`
+    }
+};
+
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
@@ -423,6 +467,16 @@ export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     }
 };
 
+export const DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
+    status: 200,
+    body: {
+        "token_type": AuthenticationScheme.BEARER,
+        "expires_in": 86396,
+        "ext_expires_in": 86396,
+        "refresh_in": 43198,
+        "access_token":"thisIs.a.dsts.accessT0ken"
+    }
+}
 export const DEVICE_CODE_RESPONSE = {
     "userCode": "FRWQDE7YL",
     "deviceCode": "FAQABAAEAAAAm-06blBE1TpVMil8KPQ414yBCo3ZKuMDP8Rw0c8_mKXKdJEpKINnjC1jRfwa_uuF-yqKFw100qeiQDNGuRnS8FxCKeWCybjEPf2KoptmHGa3MEL5MXGl9yEDtaMRGBYpJNx_ssI2zYJP1uXqejSj1Kns69bdClF4BZxRpmJ1rcssZuY1-tTLw0vngmHYqRp0gAA",
@@ -454,6 +508,13 @@ export const AUTHORIZATION_PENDING_RESPONSE = {
         trace_id: "01707a0c-640b-4049-8cbb-ee2304dc0700",
         correlation_id: "78b0fdfc-dd0e-4dfb-b13a-d316333783f6",
         error_uri: "https://login.microsoftonline.com/error?code=70016"
+    }
+};
+
+export const SERVER_UNEXPECTED_ERROR = {
+    status: 503,
+    body: {
+        error: "Service Unavailable"
     }
 };
 

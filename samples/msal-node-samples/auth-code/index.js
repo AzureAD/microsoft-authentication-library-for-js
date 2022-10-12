@@ -62,7 +62,19 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
         if (req.query) {
             // Check for the state parameter
-            if(req.query.state) authCodeUrlParameters.state = req.query.state;
+             /**
+             * MSAL Node supports the OAuth2.0 state parameter which is used to prevent CSRF attacks.
+             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
+             * used to populate the state value if none is provided.
+             * 
+             * The generated state is then cached and passed as part of authCodeUrlParameters during authentication request.
+             * The cached state must then be passed as part of authCodeResponse in ClientApplicaiton.acquireTokenByCode API call, 
+             * to be validated before the authorization code is sent to the server in exchange for an access token.
+             * 
+             * For more information about state,
+             * visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6
+             */
+            authCodeUrlParameters.state = req.query.state ? req.query.state : cryptoProvider.createNewGuid();
             // Check for nonce parameter
             /**
              * MSAL Node supports the OIDC nonce feature which is used to protect against token replay.
@@ -75,11 +87,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
              * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
              */
 
-            if(req.query.nonce) {
-                authCodeUrlParameters.nonce = req.query.nonce
-            } else {
-                authCodeUrlParameters.nonce = cryptoProvider.createNewGuid()
-            }
+            authCodeUrlParameters.nonce = req.query.nonce ? req.query.nonce : cryptoProvider.createNewGuid();
 
             // Check for the prompt parameter
             if (req.query.prompt) authCodeUrlParameters.prompt = req.query.prompt;
@@ -92,7 +100,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
         }
 
         req.session.nonce = authCodeUrlParameters.nonce //switch to a more persistent storage method.
-
+        req.session.state = authCodeUrlParameters.state
+        
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.getAuthCodeUrl API.
@@ -109,8 +118,13 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     app.get("/redirect", (req, res) => {
-        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
-        const authCodeResponse = { nonce: req.session.nonce, code: req.query.code }
+        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code, state:req.query.state };
+        const authCodeResponse = { 
+            nonce: req.session.nonce, 
+            code: req.query.code,
+            state: req.session.state
+        };
+
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.

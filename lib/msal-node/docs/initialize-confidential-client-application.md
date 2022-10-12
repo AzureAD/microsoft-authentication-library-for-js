@@ -36,7 +36,7 @@ const pca = new msal.ConfidentialClientApplication(clientConfig);
 
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) options for node have `common` parameters and `specific` paremeters per authentication flow.
 
-- `clientId` is mandatory to initializae a public client application
+- `clientId` is mandatory to initialize a public client application
 - `authority` defaults to `https://login.microsoftonline.com/common/` if the user does not set it during configuration
 - A Client credential is mandatory for confidential clients. Client credential can be a:
     - `clientSecret` is secret string generated set on the app registration.
@@ -55,6 +55,8 @@ If your application audience is a single tenant, you must provide an authority w
 ```javascript
     authority: 'https://login.microsoftonline.com/{your_tenant_id}'
 ```
+
+For more information on authority, please refer to: [Authority in MSAL](../../msal-common/docs/authority.md).
 
 ## Advanced Configuration
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) has more options which are documented [here](./configuration.md).

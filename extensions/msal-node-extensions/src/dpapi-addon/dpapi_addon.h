@@ -2,5 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+#include <napi.h>
 
-void ProtectDataCommon(bool protect, Nan::NAN_METHOD_ARGS_TYPE info);
+Napi::Value ProtectDataCommon(bool protect, const Napi::CallbackInfo& info);

@@ -29,6 +29,17 @@ body:
   validations:
     required: true
 
+- type: dropdown
+  attributes:
+    label: Public or Confidential Client?
+    description: Are you using PublicClientApplication or ConfidentialClientApplication? (Issues regarding msal-browser, msal-react and msal-angular are always "Public")
+    multiple: true
+    options: 
+      - "Public"
+      - "Confidential"
+  validations:
+    required: true
+
 - type: textarea
   attributes:
     label: Description

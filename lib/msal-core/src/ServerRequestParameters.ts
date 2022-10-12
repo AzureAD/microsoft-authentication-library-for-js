@@ -9,7 +9,6 @@ import { AuthenticationParameters } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, ResponseTypes } from "./utils/Constants";
-import { StringUtils } from "./utils/StringUtils";
 import { ScopeSet } from "./ScopeSet";
 import { version as libraryVersion } from "./packageMetadata";
 
@@ -140,11 +139,14 @@ export class ServerRequestParameters {
         let ssoType;
         let ssoData;
         let serverReqParam: StringDict = {};
-        // if account info is passed, account.sid > account.login_hint
+        // if account info is passed, account.login_hint claim > account.sid > account.username
         if (request) {
             if (request.account) {
                 const account: Account = request.account;
-                if (account.sid) {
+                if (account.idTokenClaims?.login_hint) {
+                    ssoType = SSOTypes.LOGIN_HINT;
+                    ssoData = account.idTokenClaims.login_hint;
+                } else if (account.sid) {
                     ssoType = SSOTypes.SID;
                     ssoData = account.sid;
                 }
@@ -196,16 +198,16 @@ export class ServerRequestParameters {
      * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
      */
         let qParams = params;
-        if (account && !qParams[SSOTypes.SID]) {
-            // sid - populate only if login_hint is not already populated and the account has sid
-            const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
-            if (populateSID) {
-                qParams = this.addSSOParameter(SSOTypes.SID, account.sid, qParams);
-            }
-            // login_hint - account.userName
-            else {
-                const populateLoginHint = !qParams[SSOTypes.LOGIN_HINT] && account.userName && !StringUtils.isEmpty(account.userName);
-                if (populateLoginHint) {
+        if (account) {
+            if (!qParams[SSOTypes.SID] && !qParams[SSOTypes.LOGIN_HINT]) {
+                if (account.idTokenClaims?.login_hint) {
+                    // Use login_hint claim if available over sid or email/upn
+                    qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, account.idTokenClaims?.login_hint, qParams);
+                } else if (account.sid && this.promptValue === PromptState.NONE) {
+                    // sid - populate only if login_hint is not already populated and the account has sid
+                    qParams = this.addSSOParameter(SSOTypes.SID, account.sid, qParams);
+                } else if (account.userName) {
+                    // Add username/upn as loginHint if nothing else available
                     qParams = this.addSSOParameter(SSOTypes.LOGIN_HINT, account.userName, qParams);
                 }
             }

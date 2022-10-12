@@ -79,7 +79,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
             .then((result: AuthenticationResult) => {
                 nativeATMeasurement.endMeasurement({
                     success: true,
-                    isNativeBroker: true
+                    isNativeBroker: true,
+                    requestId: result.requestId
                 });
                 return result;
             })
@@ -104,7 +105,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return {
             authority: request.authority,
             correlationId: this.correlationId,
-            scopes: ScopeSet.fromString(request.scopes).asArray(),
+            scopes: ScopeSet.fromString(request.scope).asArray(),
             account: cachedAccount,
             forceRefresh: false,
         };
@@ -242,7 +243,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.browserStorage.setAccount(accountEntity);
 
         // If scopes not returned in server response, use request scopes
-        const responseScopes = response.scopes ? ScopeSet.fromString(response.scopes) : ScopeSet.fromString(request.scopes);
+        const responseScopes = response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
 
         const accountProperties = response.account.properties || {};
         const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
@@ -359,7 +360,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             response.hasOwnProperty("id_token") &&
             response.hasOwnProperty("client_info") &&
             response.hasOwnProperty("account") &&
-            response.hasOwnProperty("scopes") &&
+            response.hasOwnProperty("scope") &&
             response.hasOwnProperty("expires_in")
         ) {
             return response as NativeResponse;
@@ -410,8 +411,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const canonicalAuthority = new UrlString(authority);
         canonicalAuthority.validateAsUri();
 
-        const scopes = request && request.scopes || [];
-        const scopeSet = new ScopeSet(scopes);
+        // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
+        const { scopes, ...remainingProperties } = request; 
+        const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
         const getPrompt = () => {
@@ -443,13 +445,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     throw BrowserAuthError.createNativePromptParameterNotSupportedError();
             }
         };
-
+        
         const validatedRequest: NativeTokenRequest = {
-            ...request,
+            ...remainingProperties,
             accountId: this.accountId,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,
-            scopes: scopeSet.printScopes(),
+            scope: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             prompt: getPrompt(),
             correlationId: this.correlationId,

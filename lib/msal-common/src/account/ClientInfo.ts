@@ -30,7 +30,7 @@ export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientI
         const decodedClientInfo: string = crypto.base64Decode(rawClientInfo);
         return JSON.parse(decodedClientInfo) as ClientInfo;
     } catch (e) {
-        throw ClientAuthError.createClientInfoDecodingError(e);
+        throw ClientAuthError.createClientInfoDecodingError((e as ClientAuthError).message);
     }
 }
 

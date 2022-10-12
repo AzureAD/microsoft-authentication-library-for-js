@@ -2,6 +2,193 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 10 Oct 2022 22:27:02 GMT",
+      "tag": "@azure/msal-browser_v2.30.0",
+      "version": "2.30.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "louisv@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a13f3bd96113821e9bed4d5c95f82e7b205def48",
+            "comment": "Extend msal-browser TokenCache to load refresh tokens #5233"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "01171423cfbbf37f445316abacfd2caafc51146a",
+            "comment": "Make popup poll interval configurable #5276"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.6.0",
+            "commit": "1bb8ed44ca44617636fb62199deb005d69341fb7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Oct 2022 22:12:26 GMT",
+      "tag": "@azure/msal-browser_v2.29.0",
+      "version": "2.29.0",
+      "comments": {
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          }
+        ],
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0d8f85e56eb9d67ee6c3b2cdd866a30aa6fd8225",
+            "comment": "Implemented Cache Lookup Policy for acquireTokenSilent #5014"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "53b25d537a22c9491094083407264615d14df15e",
+            "comment": "Add support for MSR Crypto #3826"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "fa3f0d8f63e1980945f2c5bdcb4891f0a50f012c",
+            "comment": "Add x-ms-request-id to perf telemetry logging #5244"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "886338aea3543f961f2dbce7814938e874a6955a",
+            "comment": "Added 'no_session' to prompt enum #5131"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.5.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ],
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "be0c85f6d4940c5f1f3e95c17f3235cb8099559b",
+            "comment": "Include Refresh token size in perf telemetry data #5250"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-browser_v2.28.3",
+      "version": "2.28.3",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b393c6d0c8d7aa142f3b138ce2ffc185039cf203",
+            "comment": "Fix keystore clearing on Firefox #5112"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "318bba8273151a6260c59461d352ef6e33d129ad",
+            "comment": "Restore error codes for acquireTokenSilent telemetry #5190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-browser_v2.28.2",
+      "version": "2.28.2",
+      "comments": {
+        "none": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5a31694427f380f643df9848d19f44f7cac2cddb",
+            "comment": "Exposed raw id token on account info objects #5036"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Aug 2022 22:22:35 GMT",
+      "tag": "@azure/msal-browser_v2.28.1",
+      "version": "2.28.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "cbd1697063b933c8b6bca93a14a645d1ef471f5c",
+            "comment": "Rename native request property scopes to scope #5043"
+          },
+          {
+            "author": "ellymakuba@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e035fe595a8f4b809514b1ad26ec9f7e3eb41161",
+            "comment": "adding network performance measurement #4834"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9520dd864e2fef29ceb8d8969d5c6ac88ea73a33",
+            "comment": "Send login_hint claim instead of sid if available #4990"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v7.3.0",
+            "commit": "9ddeaca3f2b983b459cd0b4651aa4a7adc10e18c"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c8eb53d59a2df026832a914284c0bfb61486a016",
+            "comment": " Package-lock updates"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "674ff0c4a543fb2b5b52f3a7aed4fe32b387b7b2",
+            "comment": "Update package-lock"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 18 Jul 2022 23:26:21 GMT",
       "tag": "@azure/msal-browser_v2.28.0",
       "version": "2.28.0",

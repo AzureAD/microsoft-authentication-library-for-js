@@ -15,13 +15,14 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 export class SilentFlowClient extends BaseClient {
-
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration,performanceClient);
     }
-
+    
     /**
      * Retrieves a token from cache if it is still valid, or uses the cached refresh token to renew
      * the given token and returns the renewed token
@@ -32,14 +33,14 @@ export class SilentFlowClient extends BaseClient {
             return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                const refreshTokenClient = new RefreshTokenClient(this.config);
+                const refreshTokenClient = new RefreshTokenClient(this.config, this.performanceClient);
                 return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;
             }
         }
     }
-
+    
     /**
      * Retrieves token from cache or throws an error if it must be refreshed.
      * @param request
@@ -102,6 +103,17 @@ export class SilentFlowClient extends BaseClient {
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         }
+
+        // token max_age check
+        if (request.maxAge || (request.maxAge === 0)) {
+            const authTime = idTokenObj?.claims.auth_time;
+            if (!authTime) {
+                throw ClientAuthError.createAuthTimeNotFoundError();
+            }
+
+            AuthToken.checkMaxAge(authTime, request.maxAge);
+        }
+
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
             this.authority,

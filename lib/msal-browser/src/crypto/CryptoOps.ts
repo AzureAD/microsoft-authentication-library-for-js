@@ -11,7 +11,8 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
+import { CryptoKeyStore } from "../cache/CryptoKeyStore";
+import { CryptoOptions } from "../config/Configuration";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -19,19 +20,6 @@ export type CachedKeyPair = {
     requestMethod?: string,
     requestUri?: string
 };
-
-/**
- * MSAL CryptoKeyStore DB Version 2
- */
-export type CryptoKeyStore = {
-    asymmetricKeys: AsyncMemoryStorage<CachedKeyPair>;
-    symmetricKeys: AsyncMemoryStorage<CryptoKey>;
-};
-
-export enum CryptoKeyStoreNames {
-    asymmetricKeys = "asymmetricKeys",
-    symmetricKeys = "symmetricKeys"
-}
 
 /**
  * This class implements MSAL's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and 
@@ -56,18 +44,15 @@ export class CryptoOps implements ICrypto {
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor(logger: Logger, performanceClient?: IPerformanceClient) {
+    constructor(logger: Logger, performanceClient?: IPerformanceClient, cryptoConfig?: CryptoOptions) {
         this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        this.browserCrypto = new BrowserCrypto(this.logger);
+        this.browserCrypto = new BrowserCrypto(this.logger, cryptoConfig);
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = {
-            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger, CryptoKeyStoreNames.asymmetricKeys),
-            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger, CryptoKeyStoreNames.symmetricKeys)
-        };
+        this.cache = new CryptoKeyStore(this.logger);
         this.performanceClient = performanceClient;
     }
 
@@ -120,8 +105,8 @@ export class CryptoOps implements ICrypto {
             kty: publicKeyJwk.kty,
             n: publicKeyJwk.n
         };
-
-        const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
+        
+        const publicJwkString: string = BrowserStringUtils.getSortedObjectString(pubKeyThumprintObj);
         const publicJwkHash = await this.hashString(publicJwkString);
 
         // Generate Thumbprint for Private Key
@@ -163,23 +148,7 @@ export class CryptoOps implements ICrypto {
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        try {
-            this.logger.verbose("Deleting in-memory and persistent asymmetric key stores");
-            await this.cache.asymmetricKeys.clear();
-            this.logger.verbose("Successfully deleted asymmetric key stores");
-            this.logger.verbose("Deleting in-memory and persistent symmetric key stores");
-            await this.cache.symmetricKeys.clear();
-            this.logger.verbose("Successfully deleted symmetric key stores");
-            return true;
-        } catch (e) {
-            if (e instanceof Error) {
-                this.logger.error(`Clearing keystore failed with error: ${e.message}`);
-            } else {
-                this.logger.error("Clearing keystore failed with unknown error");
-            }
-            
-            return false;
-        }
+        return await this.cache.clear();
     }
 
     /**
@@ -197,11 +166,11 @@ export class CryptoOps implements ICrypto {
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
-        const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
-        
+        const publicKeyJwkString = BrowserStringUtils.getSortedObjectString(publicKeyJwk);
+
         // Base64URL encode public key thumbprint with keyId only: BASE64URL({ kid: "FULL_PUBLIC_KEY_HASH" })
         const encodedKeyIdThumbprint = this.b64Encode.urlEncode(JSON.stringify({ kid: kid }));
-
+        
         // Generate header
         const shrHeader = JoseHeader.getShrHeaderString({ kid: encodedKeyIdThumbprint, alg: publicKeyJwk.alg });
         const encodedShrHeader = this.b64Encode.urlEncode(shrHeader);

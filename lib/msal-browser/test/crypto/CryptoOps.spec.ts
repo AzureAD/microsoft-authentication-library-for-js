@@ -5,6 +5,10 @@ import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src";
+import { ModernBrowserCrypto } from "../../src/crypto/ModernBrowserCrypto";
+import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
+import { MsrBrowserCrypto } from "../../src/crypto/MsrBrowserCrypto";
+import nodeCrypto from "crypto";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
@@ -202,8 +206,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("generatePkceCode() creates a valid Pkce code", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
 
@@ -219,8 +222,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
         jest.setTimeout(30000);
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
@@ -239,8 +241,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
@@ -257,12 +258,83 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("hashString() returns a valid SHA-256 hash of an input string", async() => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         const result = await cryptoObj.hashString("testString");
         expect(regExp.test(result)).toBe(true);
     });
+
+    describe("Browser Crypto Interfaces", () => {
+        beforeAll(() => {
+            // Ensure MSR Crypto is only used when the other interfaces arent present, even if MSR Crypto is loaded
+            window.msrCrypto = msrCrypto;
+        });
+
+        afterAll(() => {
+            // @ts-ignore
+            window.msrCrypto = undefined;
+        })
+
+        it("uses modern crypto if available", () => {
+            const crypto = new BrowserCrypto(new Logger({}));
+            // @ts-ignore
+            expect(crypto.subtleCrypto).toBeInstanceOf(ModernBrowserCrypto);
+        });
+        
+        it("uses MS crypto if available", () => {
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
+
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(true);
+
+            const crypto = new BrowserCrypto(new Logger({}));
+            // @ts-ignore
+            expect(crypto.subtleCrypto).toBeInstanceOf(MsBrowserCrypto);
+        });
+
+        it("uses MSR crypto if available", () => {
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
+
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
+
+            const crypto = new BrowserCrypto(new Logger({}), {
+                useMsrCrypto: true,
+                entropy: nodeCrypto.randomBytes(48)
+            });
+            
+            // @ts-ignore
+            expect(crypto.subtleCrypto).toBeInstanceOf(MsrBrowserCrypto);
+        });
+
+        it("throws if MSR Crypto is available but useMsrCrypto is not enabled", () => {
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
+
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
+
+            expect(() => new BrowserCrypto(new Logger({}), {
+                useMsrCrypto: false,
+                entropy: nodeCrypto.randomBytes(48)
+            })).toThrow();
+        });
+
+        it("throws if MSR Crypto is available but entropy is not provided", () => {
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasBrowserCrypto").mockReturnValue(false);
+
+            // @ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(false);
+
+            expect(() => new BrowserCrypto(new Logger({}), {
+                useMsrCrypto: true,
+                entropy: undefined
+            })).toThrow();
+        });
+    })
 });

@@ -38,6 +38,10 @@ export const BrowserConfigurationAuthErrorMessage = {
     inMemRedirectUnavailable: {
         code: "in_mem_redirect_unavailable",
         desc: "Redirect cannot be supported. In-memory storage was selected and storeAuthStateInCookie=false, which would cause the library to be unable to handle the incoming hash. If you would like to use the redirect API, please use session/localStorage or set storeAuthStateInCookie=true."
+    },
+    entropyNotProvided: {
+        code: "entropy_not_provided",
+        desc: "The available browser crypto interface requires entropy set via system.cryptoOptions.entropy configuration option."
     }
 };
 
@@ -98,5 +102,12 @@ export class BrowserConfigurationAuthError extends AuthError {
      */
     static createInMemoryRedirectUnavailableError(): BrowserConfigurationAuthError {
         return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.inMemRedirectUnavailable.code, BrowserConfigurationAuthErrorMessage.inMemRedirectUnavailable.desc);
+    }
+    
+    /**
+     * Creates an error thrown when a crypto interface that requires entropy is initialized without entropy
+     */
+    static createEntropyNotProvided(): BrowserConfigurationAuthError {
+        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.entropyNotProvided.code, BrowserConfigurationAuthErrorMessage.entropyNotProvided.desc);
     }
 }

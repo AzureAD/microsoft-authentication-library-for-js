@@ -1,8 +1,52 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.14.2
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.6.0
+
+## 1.14.1
+
+Mon, 03 Oct 2022 22:12:27 GMT
+
+### Patches
+
+- sanitize client credentials request against oidc scopes #4999 (v-derisen@microsoft.com)
+- This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175 (bmahal@microsoft.com)
+- Bump @azure/msal-common to v7.5.0
+
+## 1.14.0
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Minor changes
+
+- Add support for the state parameter #4723 (marionminayo@microsoft.com)
+- Bump @azure/msal-common to v7.4.1
+
+## 1.13.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Add acquireTokenInteractive API #5062 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v7.4.0
+
+## 1.12.1
+
+Mon, 01 Aug 2022 22:22:36 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.3.0
 
 ## 1.12.0
 
