@@ -103,6 +103,7 @@ See [Caching in MSAL](./caching.md) for more.
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
 | `allowRedirectInIframe` | By default, MSAL will not allow redirect operations to be initiated when the application is inside an iframe. Set this flag to `true` to remove this check. | boolean | `false` |
 | `cryptoOptions` | Config object for crypto operations in the browser. | See [below](#crypto-config-options.) | See [below](#crypto-config-options.) |
+| `pollIntervalMilliseconds` | Interval of time in milliseconds between polls of popup URL hash during authenticaiton. | integer (milliseconds) | `30` |
 
 #### Logger Config Options
 
