@@ -179,17 +179,23 @@ export class NativeInteractionClient extends BaseInteractionClient {
             return null;
         }
 
+        // remove prompt from the request to prevent WAM from prompting twice
         const cachedRequest = this.browserStorage.getCachedNativeRequest();
         if (!cachedRequest) {
             this.logger.verbose("NativeInteractionClient - handleRedirectPromise called but there is no cached request, returning null.");
             return null;
         }
 
+        const { prompt, ...request} = cachedRequest;
+        if (prompt) {
+            this.logger.verbose("NativeInteractionClient - handleRedirectPromise called and prompt was included in the original request, removing prompt from cached request to prevent second interaction with native broker window.");
+        }
+
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
         const messageBody: NativeExtensionRequestBody = {
             method: NativeExtensionMethod.GetToken,
-            request: cachedRequest
+            request: request
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -198,7 +204,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             this.logger.verbose("NativeInteractionClient - handleRedirectPromise sending message to native broker.");
             const response: object = await this.nativeMessageHandler.sendMessage(messageBody);
             this.validateNativeResponse(response);
-            const result = this.handleNativeResponse(response as NativeResponse, cachedRequest, reqTimestamp);
+            const result = this.handleNativeResponse(response as NativeResponse, request, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {
