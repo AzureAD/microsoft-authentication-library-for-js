@@ -5,10 +5,10 @@
 
 import { DataProtectionScope, FilePersistenceWithDataProtection } from "../../src";
 import { FileSystemUtils } from "../util/FileSystemUtils";
-import { Dpapi } from "../../src/dpapi-addon/Dpapi";
+import { Dpapi } from "../../src/Dpapi";
 import { mocked } from 'ts-jest/utils';
 
-jest.mock("../../src/dpapi-addon/Dpapi");
+jest.mock("../../src/Dpapi");
 
 describe('Test File Persistence with data protection', () => {
     const filePath = "./dpapi-test.json";

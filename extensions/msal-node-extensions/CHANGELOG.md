@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Mon, 03 Oct 2022 22:12:27 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.25
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Changes
+
+- Migrate from nan to node-api #5280 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v7.6.0
 
 ## 1.0.0-alpha.24
 
