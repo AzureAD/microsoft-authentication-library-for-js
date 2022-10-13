@@ -4,7 +4,11 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_TOKENS,
-    CORS_SIMPLE_REQUEST_HEADERS
+    CORS_SIMPLE_REQUEST_HEADERS,
+    DSTS_OPENID_CONFIG_RESPONSE,
+    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    AUTHENTICATION_RESULT_DEFAULT_SCOPES,
+    ID_TOKEN_CLAIMS
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -12,13 +16,15 @@ import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
 import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest";
+import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
+import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AppTokenProviderResult, IAppTokenProvider } from "../../src";
+import { AppTokenProviderResult, AuthToken, IAppTokenProvider } from "../../src";
 
 describe("ClientCredentialClient unit tests", () => {
     afterEach(() => {
@@ -71,6 +77,104 @@ describe("ClientCredentialClient unit tests", () => {
         expect(returnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
         expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
         expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+    });
+
+    // regression test for https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5134
+    it("Multiple access tokens would match, but one of them has a Home Account ID of \"\"", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+        
+        const authenticationScopes = AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+        authenticationScopes.body.scope = "https://graph.microsoft.com/.default";
+        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(authenticationScopes);
+
+        const idTokenClaims = {
+            ...ID_TOKEN_CLAIMS,
+            tid: "common",
+        };
+        sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: "https://login.microsoftonline.com/common",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: ["https://graph.microsoft.com/.default"],
+        };
+
+        const client2 = new UsernamePasswordClient(config);
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: "https://login.microsoftonline.com/common",
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: ["https://graph.microsoft.com/.default"],
+            username: "mock_name",
+            password: "mock_password",
+        };
+
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        expect(authResult.fromCache).toBe(false);
+        const authResult2 = await client2.acquireToken(usernamePasswordRequest) as AuthenticationResult;
+        expect(authResult2.fromCache).toBe(false);
+        await expect(client.acquireToken(clientCredentialRequest)).resolves.not.toThrow(ClientAuthError.createMultipleMatchingTokensInCacheError());
+    });
+
+    it("acquires a token from dSTS authority", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
+        };
+
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        const expectedScopes = [TEST_CONFIG.DSTS_TEST_SCOPE[0]];
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.accessToken).toEqual(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
+        expect(authResult.state).toHaveLength(0);
+
+        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
+
+        const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+        expect(returnVal.includes(encodeURIComponent(TEST_CONFIG.DSTS_TEST_SCOPE[0]))).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+    });
+
+    it("acquires a token from cache when using dSTS authority", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DSTS_TEST_SCOPE,
+        };
+
+        // First call should return from "network" (mocked)
+        const networkAuthResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        expect(networkAuthResult.fromCache).toBe(false);
+        // Second call should return from cache
+        const cachedAuthResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+        expect(cachedAuthResult.fromCache).toBe(true);
+        expect(cachedAuthResult.accessToken).toBe(networkAuthResult.accessToken);
+        expect(cachedAuthResult.expiresOn).toStrictEqual(networkAuthResult.expiresOn);
     });
 
     it("Adds claims when provided", async () => {

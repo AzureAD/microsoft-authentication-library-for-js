@@ -6,7 +6,7 @@
 import {
     INetworkModule,
     NetworkRequestOptions,
-    NetworkResponse,
+    NetworkResponse
 } from "@azure/msal-common";
 import { HttpMethod, Constants } from "../utils/Constants";
 import http from "http";
@@ -107,9 +107,8 @@ const networkRequestViaProxy = <T>(
             if (statusCode < 200 || statusCode > 299) {
                 request.destroy();
                 socket.destroy();
-                reject(new Error(`HTTP status code ${statusCode}`));
+                reject(new Error(` Error connecting to proxy: ${response.statusCode}, ${response?.statusMessage}`));
             }
-
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
                 socket.on("timeout", () => {
@@ -175,15 +174,11 @@ const networkRequestViaProxy = <T>(
                     body: JSON.parse(body) as T,
                     status: statusCode as number,
                 };
-
                 if ((statusCode < 200 || statusCode > 299) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    socket.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
                 }
-
                 resolve(networkResponse);
             });
 
@@ -267,9 +262,7 @@ const networkRequestViaHttps = <T>(
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
                 }
-
                 resolve(networkResponse);
             });
         });
@@ -280,3 +273,4 @@ const networkRequestViaHttps = <T>(
         });
     });
 };
+

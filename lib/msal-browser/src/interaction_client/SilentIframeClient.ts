@@ -64,7 +64,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
-                    fromCache: false
+                    fromCache: false,
+                    requestId: result.requestId
                 });
                 return result;
             });
@@ -106,7 +107,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
         });
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.

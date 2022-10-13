@@ -1,10 +1,10 @@
 # Performance
 
-This document will outline techniques your application can use to improve the performance of acquire tokens using MSAL.js.
+This document will outline techniques your application can use to improve the performance of token acquisition using MSAL.js.
 
 ## Bypass cloud instance discovery resolution
 
-**Note:** If you are using B2C or ADFS authorities this section is not applicable. You will need to provide your authority domains to the `auth.knownAuthorities` property instead.
+**Note:** This section does not apply if you are using B2C, ADFS or dSTS authorities. You will need to provide your authority domains to the `auth.knownAuthorities` property instead.
 
 By default, during the process of retrieving a token, MSAL.js will make a network request to retrieve metadata associated with the various Azure clouds. If you would like to skip this network request, you can provide the required metadata in the configuration of `PublicClientApplication`.
 
