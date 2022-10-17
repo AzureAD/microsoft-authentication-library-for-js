@@ -112,14 +112,6 @@ describe("RefreshTokenClient unit tests", () => {
             correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
         };
-        const mockRefreshTokenRequest: CommonRefreshTokenRequest = {
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            refreshToken : "",
-            claims: TEST_CONFIG.CLAIMS,
-            authority: TEST_CONFIG.validAuthority,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
-        };
 
         beforeEach(async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
