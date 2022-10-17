@@ -126,6 +126,10 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
         });
 
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         it("Adds tokenQueryParameters to the /token request", (done) => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
@@ -150,7 +154,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
         });
 
-        it("Checks whether performance telemetry startMeasurement method is called",async () => {
+        it("Checks whether performance telemetry startMeasurement method is called", async () => {
             const spy = jest.spyOn(stubPerformanceClient, 'startMeasurement');
             
             const client = new RefreshTokenClient(config,stubPerformanceClient);
@@ -158,35 +162,48 @@ describe("RefreshTokenClient unit tests", () => {
             
             await client.acquireToken(refreshTokenRequest);
             expect(spy).toHaveBeenCalled();
-            spy.mockClear();
         });
 
-        it("Checks whether performance telemetry endMeasurement method is called",async () => {
-            const spy = jest.spyOn(stubPerformanceClient, 'endMeasurement');
+        it("Checks whether performance telemetry addStaticFields method is called", async () => {
+            const spy = jest.spyOn(stubPerformanceClient, 'addStaticFields');
             
             const client = new RefreshTokenClient(config,stubPerformanceClient);
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             
-            await client.acquireToken(refreshTokenRequest);
-            expect(spy).toHaveBeenCalled();
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-                refreshTokenSize:19
-            }));
-            spy.mockClear();
+            let refreshTokenSize;
+            await client.acquireToken(refreshTokenRequest).then(() => {
+                expect(spy).toHaveBeenCalled();
+                for (let i=0; i<spy.mock.calls.length; i++) {
+                    const arg = spy.mock.calls[i][0];
+                    if (arg.refreshTokenSize) {
+                        refreshTokenSize = arg.refreshTokenSize;
+                        break;
+                    }
+                }
+            });
+
+            expect(refreshTokenSize).toBe(19);
         });
 
-        it("Checks whether performance telemetry endMeasurement method is called- no rt",async () => {
-            const spy = jest.spyOn(stubPerformanceClient, 'endMeasurement');
+        it("Checks whether performance telemetry addStaticFields method is called- no rt", async () => {
+            const spy = jest.spyOn(stubPerformanceClient, 'addStaticFields');
             
             const client = new RefreshTokenClient(config,stubPerformanceClient);
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_NO_REFRESH_TOKEN);
             
-            await client.acquireToken(mockRefreshTokenRequest);
-            expect(spy).toHaveBeenCalled();
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({
-                refreshTokenSize:0
-            }));
-            spy.mockClear();
+            let refreshTokenSize;
+            await client.acquireToken(refreshTokenRequest).then(() => {
+                expect(spy).toHaveBeenCalled();
+                for (let i=0; i<spy.mock.calls.length; i++) {
+                    const arg = spy.mock.calls[i][0];
+                    if (arg.refreshTokenSize) {
+                        refreshTokenSize = arg.refreshTokenSize;
+                        break;
+                    }
+                }
+            });
+
+            expect(refreshTokenSize).toBe(0);
         });
     });
 
