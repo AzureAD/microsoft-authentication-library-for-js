@@ -322,4 +322,23 @@ export type StaticFields = {
      * @type {?string}
      */
     appVersion?: string,
+
+    /**
+     * The following are fields that may be emitted in native broker scenarios
+     */
+    extensionId?: string,
+    extensionVersion?: string
+    matsBrokerVersion?: string;
+    matsAccountJoinOnStart?: string;
+    matsAccountJoinOnEnd?: string;
+    matsDeviceJoin?: string;
+    matsPromptBehavior?: string;
+    matsApiErrorCode?: number;
+    matsUiVisible?: boolean;
+    matsSilentCode?: number;
+    matsSilentBiSubCode?: number;
+    matsSilentMessage?: string;
+    matsSilentStatus?: number;
+    matsHttpStatus?: number
+    matsHttpEventCount?: number;
 };
