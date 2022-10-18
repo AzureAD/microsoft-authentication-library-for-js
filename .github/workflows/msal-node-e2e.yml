@@ -63,9 +63,9 @@ jobs:
       if: steps.lib-cache.outputs.cache-hit != 'true'
       run: npm ci --ignore-scripts
 
-    # Lerna v5 drops support for Node 10
-    - name: Downgrade lerna for Node 10
-      if: matrix.node == '10'
+    # Lerna v5 drops support for Node 10 and 12
+    - name: Downgrade lerna for Node 10 and 12
+      if: matrix.node == '10' || matrix.node == '12'
       run: npm install lerna@4
 
     - name: Link local packages
