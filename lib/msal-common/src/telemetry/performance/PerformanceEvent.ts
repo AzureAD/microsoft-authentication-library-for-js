@@ -140,12 +140,82 @@ export enum PerformanceEventStatus {
 }
 
 /**
+ * Fields whose value will not change throughout a request
+ */
+export type StaticFields = { 
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Size of the id token
+     *
+     * @type {number}
+     */
+    idTokenSize?: number,
+ 
+    /**
+     * 
+     * Size of the access token
+     *
+     * @type {number}
+     */
+ 
+    accessTokenSize?: number,
+
+    /**
+     * 
+     * Size of the refresh token
+     *
+     * @type {number}
+     */
+
+    refreshTokenSize?: number | undefined,
+ 
+    /**
+     * Application name as specified by the app.
+     *
+     * @type {?string}
+     */
+    appName?: string,
+ 
+    /**
+     * Application version as specified by the app.
+     *
+     * @type {?string}
+     */
+    appVersion?: string,
+
+    /**
+     * The following are fields that may be emitted in native broker scenarios
+     */
+    extensionId?: string,
+    extensionVersion?: string
+    matsBrokerVersion?: string;
+    matsAccountJoinOnStart?: string;
+    matsAccountJoinOnEnd?: string;
+    matsDeviceJoin?: string;
+    matsPromptBehavior?: string;
+    matsApiErrorCode?: number;
+    matsUiVisible?: boolean;
+    matsSilentCode?: number;
+    matsSilentBiSubCode?: number;
+    matsSilentMessage?: string;
+    matsSilentStatus?: number;
+    matsHttpStatus?: number
+    matsHttpEventCount?: number;
+};
+
+/**
  * Performance measurement taken by the library, including metadata about the request and application.
  *
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = {
+export type PerformanceEvent = StaticFields & {
     /**
      * Unique id for the event
      *
@@ -274,71 +344,4 @@ export type PerformanceEvent = {
      * @type {?string}
      */
     requestId?: string
-};
-
-export type StaticFields = { 
-    /**
-     * The Silent Token Cache Lookup Policy
-     *
-     * @type {?(number | undefined)}
-     */
-    cacheLookupPolicy?: number | undefined,
-
-    /**
-     * Size of the id token
-     *
-     * @type {number}
-     */
-    idTokenSize?: number,
- 
-    /**
-     * 
-     * Size of the access token
-     *
-     * @type {number}
-     */
- 
-    accessTokenSize?: number,
-
-    /**
-     * 
-     * Size of the refresh token
-     *
-     * @type {number}
-     */
-
-    refreshTokenSize?: number | undefined,
- 
-    /**
-     * Application name as specified by the app.
-     *
-     * @type {?string}
-     */
-    appName?: string,
- 
-    /**
-     * Application version as specified by the app.
-     *
-     * @type {?string}
-     */
-    appVersion?: string,
-
-    /**
-     * The following are fields that may be emitted in native broker scenarios
-     */
-    extensionId?: string,
-    extensionVersion?: string
-    matsBrokerVersion?: string;
-    matsAccountJoinOnStart?: string;
-    matsAccountJoinOnEnd?: string;
-    matsDeviceJoin?: string;
-    matsPromptBehavior?: string;
-    matsApiErrorCode?: number;
-    matsUiVisible?: boolean;
-    matsSilentCode?: number;
-    matsSilentBiSubCode?: number;
-    matsSilentMessage?: string;
-    matsSilentStatus?: number;
-    matsHttpStatus?: number
-    matsHttpEventCount?: number;
 };

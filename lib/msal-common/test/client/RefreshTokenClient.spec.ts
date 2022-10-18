@@ -167,7 +167,7 @@ describe("RefreshTokenClient unit tests", () => {
                 expect(spy).toHaveBeenCalled();
                 for (let i=0; i<spy.mock.calls.length; i++) {
                     const arg = spy.mock.calls[i][0];
-                    if (arg.refreshTokenSize) {
+                    if (typeof arg.refreshTokenSize !== "undefined") {
                         refreshTokenSize = arg.refreshTokenSize;
                         break;
                     }
@@ -188,7 +188,7 @@ describe("RefreshTokenClient unit tests", () => {
                 expect(spy).toHaveBeenCalled();
                 for (let i=0; i<spy.mock.calls.length; i++) {
                     const arg = spy.mock.calls[i][0];
-                    if (arg.refreshTokenSize) {
+                    if (typeof arg.refreshTokenSize !== "undefined") {
                         refreshTokenSize = arg.refreshTokenSize;
                         break;
                     }

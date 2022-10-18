@@ -6,8 +6,7 @@
 import { PerformanceEvent, PerformanceEvents, StaticFields } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 
-export type EmittedEvent = PerformanceEvent & StaticFields;
-export type PerformanceCallbackFunction = (events: EmittedEvent[]) => void;
+export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type InProgressPerformanceEvent = {
     endMeasurement: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null
@@ -26,7 +25,7 @@ export interface IPerformanceClient {
     addStaticFields(staticFields: StaticFields, correlationId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
-    emitEvents(events: EmittedEvent[], correlationId: string): void;
+    emitEvents(events: PerformanceEvent[], correlationId: string): void;
     startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
 }

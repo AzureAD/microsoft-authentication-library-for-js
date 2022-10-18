@@ -5,7 +5,7 @@
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
-import { EmittedEvent, InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
+import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./PerformanceEvent";
 
@@ -307,7 +307,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 }, topLevelEvent);
 
                 const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
-                const finalEvent: EmittedEvent = {
+                const finalEvent: PerformanceEvent = {
                     ...eventToEmit,
                     ...staticFields
                 };
@@ -369,7 +369,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {PerformanceEvent[]} events
      * @param {?string} [correlationId]
      */
-    emitEvents(events: EmittedEvent[], correlationId: string): void {
+    emitEvents(events: PerformanceEvent[], correlationId: string): void {
         this.logger.verbose("PerformanceClient: Emitting performance events", correlationId);
 
         this.callbacks.forEach((callback: PerformanceCallbackFunction, callbackId: string) => {
