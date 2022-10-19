@@ -57,7 +57,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             const result = await this.acquireTokensFromCache(this.accountId, nativeRequest);
             nativeATMeasurement.endMeasurement({
                 success: true,
-                isNativeBroker: true,
+                isNativeBroker: false, // Should be true only when the result is coming directly from the broker
                 fromCache: true
             });
             return result;
@@ -231,6 +231,26 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
+        // Add Native Broker fields to Telemetry
+        const mats = this.getMATSFromResponse(response);
+        this.performanceClient.addStaticFields({
+            extensionId: this.nativeMessageHandler.getExtensionId(),
+            extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
+            matsBrokerVersion: mats ? mats.broker_version : undefined,
+            matsAccountJoinOnStart: mats ? mats.account_join_on_start : undefined,
+            matsAccountJoinOnEnd: mats ? mats.account_join_on_end : undefined,
+            matsDeviceJoin: mats ? mats.device_join : undefined,
+            matsPromptBehavior: mats ? mats.prompt_behavior : undefined,
+            matsApiErrorCode: mats ? mats.api_error_code : undefined,
+            matsUiVisible: mats ? mats.ui_visible : undefined,
+            matsSilentCode: mats ? mats.silent_code : undefined,
+            matsSilentBiSubCode: mats ? mats.silent_bi_sub_code : undefined,
+            matsSilentMessage: mats ? mats.silent_message : undefined,
+            matsSilentStatus: mats ? mats.silent_status : undefined,
+            matsHttpStatus: mats ? mats.http_status : undefined,
+            matsHttpEventCount: mats ? mats.http_event_count : undefined
+        }, this.correlationId);
+
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw NativeAuthError.createUserSwitchError();
@@ -296,8 +316,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 responseAccessToken = response.access_token;
             }
         }
-
-        const mats = this.getMATSFromResponse(response);
 
         const result: AuthenticationResult = {
             authority: authority.canonicalAuthority,

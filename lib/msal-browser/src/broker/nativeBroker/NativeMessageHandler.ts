@@ -17,6 +17,7 @@ type ResponseResolvers<T> = {
 
 export class NativeMessageHandler {
     private extensionId: string | undefined;
+    private extensionVersion: string | undefined;
     private logger: Logger;
     private handshakeTimeoutMs: number;
     private responseId: number;
@@ -193,6 +194,7 @@ export class NativeMessageHandler {
                 clearTimeout(this.timeoutId); // Clear setTimeout
                 window.removeEventListener("message", this.windowListener, false); // Remove 'No extension' listener
                 this.extensionId = request.extensionId;
+                this.extensionVersion = request.body.version;
                 this.logger.verbose(`NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
 
                 handshakeResolver.resolve();
@@ -210,6 +212,22 @@ export class NativeMessageHandler {
                 handshakeResolver.reject(err as AuthError);
             }
         }
+    }
+
+    /**
+     * Returns the Id for the browser extension this handler is communicating with
+     * @returns 
+     */
+    getExtensionId(): string | undefined {
+        return this.extensionId;
+    }
+
+    /**
+     * Returns the version for the browser extension this handler is communicating with
+     * @returns 
+     */
+    getExtensionVersion(): string | undefined {
+        return this.extensionVersion;
     }
     
     /**
