@@ -140,12 +140,63 @@ export enum PerformanceEventStatus {
 }
 
 /**
+ * Fields whose value will not change throughout a request
+ */
+export type StaticFields = { 
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Size of the id token
+     *
+     * @type {number}
+     */
+    idTokenSize?: number,
+ 
+    /**
+     * 
+     * Size of the access token
+     *
+     * @type {number}
+     */
+ 
+    accessTokenSize?: number,
+
+    /**
+     * 
+     * Size of the refresh token
+     *
+     * @type {number}
+     */
+
+    refreshTokenSize?: number | undefined,
+ 
+    /**
+     * Application name as specified by the app.
+     *
+     * @type {?string}
+     */
+    appName?: string,
+ 
+    /**
+     * Application version as specified by the app.
+     *
+     * @type {?string}
+     */
+    appVersion?: string,
+};
+
+/**
  * Performance measurement taken by the library, including metadata about the request and application.
  *
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = {
+export type PerformanceEvent = StaticFields & {
     /**
      * Unique id for the event
      *
@@ -262,57 +313,11 @@ export type PerformanceEvent = {
     libraryVersion: string,
 
     /**
-     * Size of the id token
-     *
-     * @type {number}
-     */
-    idTokenSize?: number,
-
-    /**
-     * 
-     * Size of the access token
-     *
-     * @type {number}
-     */
-
-    accessTokenSize?: number,
-
-    /**
-     * 
-     * Size of the refresh token
-     *
-     * @type {number}
-     */
-
-    refreshTokenSize?: number | undefined,
-
-    /**
-     * Application name as specified by the app.
-     *
-     * @type {?string}
-     */
-    appName?: string,
-
-    /**
-     * Application version as specified by the app.
-     *
-     * @type {?string}
-     */
-    appVersion?: string,
-
-    /**
      * Whether the response is from a native component (e.g., WAM)
      *
      * @type {?boolean}
      */
     isNativeBroker?: boolean,
-
-    /**
-     * The Silent Token Cache Lookup Policy
-     *
-     * @type {?(number | undefined)}
-     */
-    cacheLookupPolicy?: number | undefined,
 
     /**
      * Request ID returned from the response

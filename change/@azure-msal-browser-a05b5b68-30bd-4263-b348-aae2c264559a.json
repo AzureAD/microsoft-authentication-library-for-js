@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add static fields to telemetry #5224",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

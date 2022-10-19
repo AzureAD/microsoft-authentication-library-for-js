@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Add static fields to telemetry #5224",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
