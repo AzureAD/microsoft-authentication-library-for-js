@@ -72,6 +72,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+        const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -84,7 +85,6 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION] || undefined;
         return await responseHandler.handleServerTokenResponse(response.body,
             this.authority,
             reqTimestamp,
@@ -94,7 +94,7 @@ export class AuthorizationCodeClient extends BaseClient {
             undefined,
             undefined,
             httpVer,
-            requestId
+            requestId,
         );
     }
 

@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
@@ -189,6 +189,8 @@ export abstract class ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
+        // @ts-ignore
+        let handleRedirectPromiseMeasurement:InProgressPerformanceEvent;
         // Block token acquisition before initialize has been called if native brokering is enabled
         BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
 
@@ -209,11 +211,13 @@ export abstract class ClientApplication {
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
+                    handleRedirectPromiseMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.HandleRedirectPromiseMeasurement, request.correlationId);
                     const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
                     const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;
+                    handleRedirectPromiseMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.HandleRedirectPromiseMeasurement, correlationId);
                     const redirectClient = this.createRedirectClient(correlationId);
                     redirectResponse = redirectClient.handleRedirectPromise(hash);
                 }
@@ -232,6 +236,10 @@ export abstract class ClientApplication {
                         }
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                    handleRedirectPromiseMeasurement?.endMeasurement({
+                        success: true,
+                        httpVer: result?.httpVer,
+                    });
 
                     return result;
                 }).catch((e) => {
@@ -242,7 +250,11 @@ export abstract class ClientApplication {
                         this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-
+                    handleRedirectPromiseMeasurement?.endMeasurement({
+                        errorCode: e instanceof AuthError && e.errorCode || undefined,
+                        subErrorCode: e instanceof AuthError && e.subError || undefined,
+                        success: false
+                    });
                     throw e;
                 });
                 this.redirectResponse.set(redirectResponseKey, response);
@@ -353,7 +365,7 @@ export abstract class ClientApplication {
                     isNativeBroker: true,
                     accessTokenSize: response.accessToken.length,
                     idTokenSize: response.idToken.length,
-                    httpVer: response.httpVer,
+                    httpVer: response?.httpVer,
                     requestId: response.requestId
                 });
                 atPopupMeasurement.flushMeasurement();
@@ -392,8 +404,8 @@ export abstract class ClientApplication {
                 success: true,
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
-                httpVer: result.httpVer,
-                requestId: result.requestId
+                httpVer: result?.httpVer,
+                requestId: result.requestId,
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -473,7 +485,7 @@ export abstract class ClientApplication {
                 isNativeBroker: response.fromNativeBroker,
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length,
-                httpVer: response.httpVer,
+                httpVer: response?.httpVer,
                 requestId: response.requestId
             });
             ssoSilentMeasurement.flushMeasurement();
@@ -525,7 +537,7 @@ export abstract class ClientApplication {
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
                                 isNativeBroker: result.fromNativeBroker,
-                                httpVer: result.httpVer,
+                                httpVer: result?.httpVer,
                                 requestId: result.requestId
                             });
                             atbcMeasurement.flushMeasurement();

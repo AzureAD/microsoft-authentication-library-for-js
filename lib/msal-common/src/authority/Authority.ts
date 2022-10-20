@@ -9,7 +9,7 @@ import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
-import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
+import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes , HeaderNames } from "../utils/Constants";
 import { EndpointMetadata, InstanceDiscoveryMetadata } from "./AuthorityMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
@@ -22,6 +22,8 @@ import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -261,14 +263,14 @@ export class Authority {
      * Perform endpoint discovery to discover aliases, preferred_cache, preferred_network
      * and the /authorize, /token and logout endpoints.
      */
-    public async resolveEndpointsAsync(): Promise<void> {
+    public async resolveEndpointsAsync(correlationId?:string, performanceClient?: IPerformanceClient): Promise<void> {
         let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
         if (!metadataEntity) {
             metadataEntity = new AuthorityMetadataEntity();
             metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         }
 
-        const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity);
+        const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity, correlationId,performanceClient );
         this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadataEntity.preferred_network);
         const endpointSource = await this.updateEndpointMetadata(metadataEntity);
 
@@ -364,6 +366,7 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
+       
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
@@ -375,6 +378,7 @@ export class Authority {
          */
 
         try {
+
             const response = await this.networkInterface.
                 sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint, options);
             return isOpenIdConfigResponse(response.body) ? response.body : null;
@@ -439,30 +443,52 @@ export class Authority {
      * @param cachedMetadata
      * @param newMetadata
      */
-    private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+    private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity, correlationId?:string, performanceClient?:IPerformanceClient): Promise<AuthorityMetadataSource> {
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
+        const updateCloudDiscoveryMetadataMeasurement = performanceClient?.startMeasurement(PerformanceEvents.UpdateCloudDiscoveryMetadataMeasurement, correlationId);
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
+            
+            updateCloudDiscoveryMetadataMeasurement?.endMeasurement({
+                success: true
+            });
+            
             return AuthorityMetadataSource.CONFIG;
         }
 
         // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
         if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
+            updateCloudDiscoveryMetadataMeasurement?.endMeasurement({
+                success: true
+            });
             return AuthorityMetadataSource.CACHE;
         }
 
         const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
 
-        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
+        metadata = await this.getCloudDiscoveryMetadataFromNetwork(correlationId, performanceClient);
+
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
+            // attach cached RT size to the current measurement
+            updateCloudDiscoveryMetadataMeasurement?.endMeasurement({
+                success: true
+            });
             return AuthorityMetadataSource.NETWORK;
         }
         if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
+            // attach cached RT size to the current measurement
+            updateCloudDiscoveryMetadataMeasurement?.endMeasurement({
+                success: true
+            });
             return AuthorityMetadataSource.HARDCODED_VALUES;
         } else {
+            // attach cached RT size to the current measurement
+            updateCloudDiscoveryMetadataMeasurement?.endMeasurement({
+                success: false
+            });
             // Metadata could not be obtained from config, cache or network
             throw ClientConfigurationError.createUntrustedAuthorityError();
         }
@@ -500,7 +526,8 @@ export class Authority {
      * 
      * @param hasHardcodedMetadata boolean
      */
-    private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
+    private async getCloudDiscoveryMetadataFromNetwork(correlationId?:string, performanceClient?:IPerformanceClient): Promise<CloudDiscoveryMetadata | null> {
+        const getCloudDiscoveryMetadataFromNetworkMeasurement = performanceClient?.startMeasurement(PerformanceEvents.GetCloudDiscoveryMetadataFromNetworkMeasurement, correlationId);
         const instanceDiscoveryEndpoint =
             `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
@@ -514,8 +541,9 @@ export class Authority {
          */
 
         let match = null;
+        let response= null;
         try {
-            const response =
+            response =
                 await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(
                     instanceDiscoveryEndpoint,
                     options
@@ -532,7 +560,15 @@ export class Authority {
                 metadata,
                 this.hostnameAndPort
             );
+
         } catch (e) {
+            getCloudDiscoveryMetadataFromNetworkMeasurement?.endMeasurement(
+                {
+                    success:false,
+                }
+              
+            );
+
             return null;
         }
 
@@ -542,6 +578,11 @@ export class Authority {
                 this.hostnameAndPort
             );
         }
+        getCloudDiscoveryMetadataFromNetworkMeasurement?.endMeasurement({
+            success: true,
+            httpVerCloudMetadata: response?.headers[HeaderNames.X_MS_HTTP_VERSION],
+               
+        });
         return match;
     }
 

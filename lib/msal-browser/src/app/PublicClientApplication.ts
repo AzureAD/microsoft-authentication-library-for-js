@@ -136,7 +136,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
-                        httpVer: result.httpVer,
+                        httpVer: result?.httpVer,
                         requestId: result.requestId,
                     });
                     atsMeasurement.flushMeasurement();
@@ -244,7 +244,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length,
                 isNativeBroker: response.fromNativeBroker,
-                httpVer: response.httpVer,
+                httpVer: response?.httpVer,
                 requestId: response.requestId
             });
             return response;
