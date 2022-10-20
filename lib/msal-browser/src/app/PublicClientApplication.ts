@@ -96,6 +96,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        atsMeasurement.addStaticFields({
+            cacheLookupPolicy: request.cacheLookupPolicy
+        });
         
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
@@ -129,11 +132,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.addStaticFields({
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length
+                    });
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
                         httpVer: result?.httpVer,
@@ -241,8 +246,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
-                accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
                 isNativeBroker: response.fromNativeBroker,
                 httpVer: response?.httpVer,
                 requestId: response.requestId

@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "Make popup poll interval configurable #5276",
+  "comment": "Add static fields to telemetry #5224",
   "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }

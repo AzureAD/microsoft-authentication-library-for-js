@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 03 Oct 2022 22:12:26 GMT and should not be manually modified.
+This log was last generated on Mon, 10 Oct 2022 22:27:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 7.6.0
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Minor changes
+
+- Include refresh token in ExternalTokenResponse #5233 (louisv@microsoft.com)
+
+### Patches
+
+- Fixed broken homeAccountId check in CacheManager #5246 (rginsburg@microsoft.com)
 
 ## 7.5.0
 

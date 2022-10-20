@@ -568,7 +568,7 @@ export class Authority {
                 }
               
             );
-
+            getCloudDiscoveryMetadataFromNetworkMeasurement?.flushMeasurement();
             return null;
         }
 
@@ -578,11 +578,15 @@ export class Authority {
                 this.hostnameAndPort
             );
         }
+
+        getCloudDiscoveryMetadataFromNetworkMeasurement?.addStaticFields({
+            httpVerCloudMetadata: response?.headers[HeaderNames.X_MS_HTTP_VERSION] || Constants.EMPTY_STRING
+        });
+
         getCloudDiscoveryMetadataFromNetworkMeasurement?.endMeasurement({
             success: true,
-            httpVerCloudMetadata: response?.headers[HeaderNames.X_MS_HTTP_VERSION],
-               
         });
+        getCloudDiscoveryMetadataFromNetworkMeasurement?.flushMeasurement();
         return match;
     }
 

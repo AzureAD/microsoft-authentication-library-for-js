@@ -40,6 +40,10 @@ export class RefreshTokenClient extends BaseClient {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
         const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        atsMeasurement?.addStaticFields({
+            refreshTokenSize: response.body.refresh_token?.length || 0
+        });
+
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
        
@@ -66,8 +70,7 @@ export class RefreshTokenClient extends BaseClient {
             requestId,
         ).then((result: AuthenticationResult) => {
             atsMeasurement?.endMeasurement({
-                success: true,
-                refreshTokenSize: response.body.refresh_token?.length || 0
+                success: true
             });
             return result;
         })
@@ -76,8 +79,7 @@ export class RefreshTokenClient extends BaseClient {
                 atsMeasurement?.endMeasurement({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
-                    success: false,
-                    refreshTokenSize: undefined
+                    success: false
                 });
                 throw error;
             });

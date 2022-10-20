@@ -363,10 +363,8 @@ export abstract class ClientApplication {
                 atPopupMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
+                    requestId: response.requestId,
                     httpVer: response?.httpVer,
-                    requestId: response.requestId
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -400,12 +398,14 @@ export abstract class ClientApplication {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
             }
 
+            atPopupMeasurement.addStaticFields({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length
+            });
             atPopupMeasurement.endMeasurement({
                 success: true,
-                accessTokenSize: result.accessToken.length,
-                idTokenSize: result.idToken.length,
-                httpVer: result?.httpVer,
                 requestId: result.requestId,
+                httpVer: result?.httpVer,
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -480,11 +480,13 @@ export abstract class ClientApplication {
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
+            ssoSilentMeasurement.addStaticFields({
+                accessTokenSize: response.accessToken.length,
+                idTokenSize: response.idToken.length
+            });
             ssoSilentMeasurement.endMeasurement({
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
-                accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
                 httpVer: response?.httpVer,
                 requestId: response.requestId
             });
@@ -532,10 +534,12 @@ export abstract class ClientApplication {
                         .then((result: AuthenticationResult) => {
                             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
+                            atbcMeasurement.addStaticFields({
+                                accessTokenSize: result.accessToken.length,
+                                idTokenSize: result.idToken.length
+                            });
                             atbcMeasurement.endMeasurement({
                                 success: true,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
                                 isNativeBroker: result.fromNativeBroker,
                                 httpVer: result?.httpVer,
                                 requestId: result.requestId
