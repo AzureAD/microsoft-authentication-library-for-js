@@ -65,7 +65,8 @@ export class SilentIframeClient extends StandardInteractionClient {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
                     fromCache: false,
-                    requestId: result.requestId
+                    requestId: result.requestId,
+                    httpVer: result?.httpVer
                 });
                 return result;
             });

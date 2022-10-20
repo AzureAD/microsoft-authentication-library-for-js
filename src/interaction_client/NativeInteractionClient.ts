@@ -80,7 +80,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 nativeATMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
-                    httpVer: result.httpVer,
+                    httpVer: result?.httpVer,
                     requestId: result.requestId
                 });
                 return result;
