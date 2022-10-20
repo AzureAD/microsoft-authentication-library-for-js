@@ -10,7 +10,6 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./PerformanceEvent";
 
 export abstract class PerformanceClient implements IPerformanceClient {
-    protected httpVer: string;
     protected authority: string;
     protected libraryName: string;
     protected libraryVersion: string;
@@ -56,7 +55,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
-        this.httpVer = "";
     }
 
     /**
@@ -107,7 +105,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             name: measureName,
             startTimeMs: Date.now(),
             correlationId: eventCorrelationId,
-            httpVer: this.httpVer,
         };
 
         // Store in progress events so they can be discarded if not ended properly
@@ -253,13 +250,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     this.logger.verbose("PerformanceClient: Multiple distinct top-level performance events found, using the first", correlationId);
                 }
                 const topLevelEvent = topLevelEvents[0];
-
                 this.logger.verbose(`PerformanceClient: Measurement found for ${measureName}`, correlationId);
 
                 // Build event object with top level and sub measurements
                 const eventToEmit = sortedCompletedEvents.reduce((previous, current) => {
                     if (current.name !== measureName) {
                         this.logger.trace(`PerformanceClient: Complete submeasurement found for ${current.name}`, correlationId);
+                      
                         // TODO: Emit additional properties for each subMeasurement
                         const subMeasurementName = `${current.name}DurationMs`;
                         /*
@@ -279,13 +276,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
                             previous.idTokenSize = current.idTokenSize;
                         }
 
-                        if(current.httpVer) {
-                            previous.httpVer = current.httpVer;
-                        }
-
                         if (current.refreshTokenSize) {
                             previous.refreshTokenSize = current.refreshTokenSize;
                         }
+
+                        if (current.httpVerCloudMetadata) {
+                            previous.httpVerCloudMetadata = current.httpVerCloudMetadata;
+                        }
+
                     }
                     return previous;
 

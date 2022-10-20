@@ -37,7 +37,6 @@ export class RefreshTokenClient extends BaseClient {
     }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
-        this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
         const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
@@ -64,7 +63,7 @@ export class RefreshTokenClient extends BaseClient {
             true,
             request.forceCache,
             httpVer,
-            requestId
+            requestId,
         ).then((result: AuthenticationResult) => {
             atsMeasurement?.endMeasurement({
                 success: true,

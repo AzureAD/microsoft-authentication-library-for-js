@@ -114,7 +114,7 @@ export class ResponseHandler {
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
-        httpVer ?: string,
+        httpVer?: string,
         serverRequestId?: string): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
@@ -181,7 +181,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code,httpVer,  serverRequestId);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, httpVer, serverRequestId);
     }
 
     /**

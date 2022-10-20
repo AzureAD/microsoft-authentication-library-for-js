@@ -125,6 +125,13 @@ export enum PerformanceEvents {
      * Time taken for acquiring cached refresh token 
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+
+    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+
+    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+
+    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
 }
 
 /**
@@ -267,6 +274,12 @@ export type PerformanceEvent = {
      * @type {string}
      */
     httpVer?: string,
+
+    /**
+     * Version of the http in authority metadata call
+     * @type {string}
+     */
+    httpVerCloudMetadata?: string, 
     /**
      * Size of the id token
      *
