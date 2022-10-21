@@ -63,6 +63,48 @@ async function createGithubMilestone(name, version) {
     }
 }
 
+async function closeOldMilestones(name, version) {
+    // List all open github milestones
+    const milestones = await octokit.issues.listMilestones({
+        ...repoMeta,
+        state: "open"
+    });
+
+    for (let i=0; i < milestones.data.length; i++) {
+        const milestone = milestones.data[i];
+
+        // Find all milestones matching this library
+        if (milestone.title.startsWith(name)) {
+            const [milestoneVersion] = milestone.title.split("@").slice(-1);
+
+            if (milestoneVersion === version) {
+                // Milestone associated with this release
+                try {
+                    await octokit.issues.updateMilestone({
+                        ...repoMeta,
+                        milestone_number: milestone.number,
+                        state: "closed"
+                    });
+                    console.log(`Milestone closed: ${name}@${version}`);
+                } catch (e) {
+                    console.log(`Failed to close: ${name}@${version}`);
+                }
+            } else if (semver.lt(milestoneVersion, version)) {
+                // Milestone associated with a release that was skipped (i.e. patch release that got superseded by minor bump)
+                try {
+                    await octokit.issues.deleteMilestone({
+                        ...repoMeta,
+                        milestone_number: milestone.number
+                    });
+                    console.log(`Milestone Deleted: ${name}@${milestoneVersion}`);
+                } catch (e) {
+                    console.log(`Failed to delete: ${name}@${milestoneVersion}`);
+                }
+            }
+        }
+    };
+}
+
 async function createReleaseForFolder(folderName) {
     const {
         name,
@@ -151,23 +193,8 @@ async function createReleaseForFolder(folderName) {
         const newRelease = await octokit.repos.createRelease(release);
         console.log(`Release created: ${tag_name}`);
 
-        // Create github milestones
-        const milestones = await octokit.issues.listMilestones({
-            ...repoMeta,
-            state: "open"
-        });
-
-        const milestone = milestones.data.find(milestone => milestone.title === `${name}@${version}`);
-        if (milestone) {
-            const closeExistingMilestone = await octokit.issues.updateMilestone({
-                ...repoMeta,
-                milestone_number: milestone.number,
-                state: "closed"
-            });
-            console.log(`Milestone closed: ${name}@${version}`)
-        } else {
-            console.log(`Milestone not found: ${name}@${version}`)
-        }
+        // Close old milestones
+        await closeOldMilestones(name, version);
 
         const currentVersion = new semver.SemVer(version);
 
