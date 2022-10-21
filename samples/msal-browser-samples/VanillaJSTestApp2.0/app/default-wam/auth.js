@@ -28,6 +28,7 @@ function handleResponse(resp) {
         accountId = resp.account.homeAccountId;
         myMSALObj.setActiveAccount(resp.account);
         showWelcomeMessage(resp.account);
+        updateResponseProperties(response);
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
@@ -47,11 +48,32 @@ function handleResponse(resp) {
 async function signIn(method) {
     signInType = isIE ? "redirect" : method;
     if (signInType === "popup") {
-        return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
+        return myMSALObj.loginPopup(loginRequest).then((response) => {
+            updateResponseProperties(response);
+            return handleResponse(response);
+        }).catch(function (error) {
             console.log(error);
         });
     } else if (signInType === "redirect") {
-        return myMSALObj.loginRedirect(loginRequest)
+        return myMSALObj.loginRedirect(loginRequest).then((response) => {
+            updateResponseProperties(response);
+        }).catch(function (error) {
+            console.log(error);
+        });;
+    } else if (signInType === "ssosilent") {
+        return myMSALObj.ssoSilent(loginRequest).then((response) => {
+            updateResponseProperties(response);
+            handleResponse(response);
+        }).catch(function (error) {
+            console.log(error);
+        });;
+    } else if(signInType === "acqTokenSilent") {
+        return myMSALObj.acquireTokenSilent(loginRequest).then((response) => {
+            updateResponseProperties(response);
+            handleResponse(response);
+        }).catch(function (error) {
+            console.log(error);
+        });;
     }
 }
 
