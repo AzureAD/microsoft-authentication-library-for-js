@@ -84,7 +84,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
-| `NetworkClient` | Custom HTTP implementation | INetworkModule | Coming Soon |
+| `NetworkClient` | Custom HTTP implementation | INetworkModule | [HttpClient.ts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/network/HttpClient.ts) |
 | `proxyUrl` | The URL of the proxy the app is running behind | string | Empty string `""` |
 
 #### Logger Config Options

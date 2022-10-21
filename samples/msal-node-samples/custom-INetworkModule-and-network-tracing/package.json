@@ -1,0 +1,21 @@
+{
+  "name": "sample",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/msal-common": "^7.6.0",
+    "@azure/msal-node": "^1.14.2",
+    "url": "^0.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.3",
+    "typescript": "^4.8.4"
+  }
+}
