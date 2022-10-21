@@ -56,4 +56,4 @@
             const app2_server = https.createServer(credentials, app2); 
             app2_server.listen(port2);
 
-4. To run the sample: `npm run -- -s <sample name> -h`
+4. To run the sample: `npm start -- -s <sample name> -h` inside samples\msal-browser-samples\VanillaJSTestApp2.0
