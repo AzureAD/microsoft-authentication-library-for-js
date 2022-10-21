@@ -2,7 +2,7 @@
 const msalConfig = {
     auth: {
         clientId: "3539640a-0533-4a26-ad22-ad58103f06ae",
-        authority: "https://login.windows-ppe.net/common"
+        authority: "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -46,7 +46,10 @@ const msalConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
+    extraQueryParameters: {
+        "webnativebridge": "true",
+    }
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.

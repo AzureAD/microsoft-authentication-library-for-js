@@ -6,6 +6,7 @@
     <title>Quickstart | MSAL.JS Vanilla JavaScript SPA</title>
     
     <script src="../../lib/msal-browser.js"></script>
+    <link rel="stylesheet" href="style.css">
     
     <!-- adding Bootstrap 4 for UI components  -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -21,14 +22,25 @@
           <div class="dropdown-menu">
             <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
             <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
+            <button class="dropdown-item" id="ssosilent" onclick="signIn(this.id)">Sign in using SSO Silent</button>
           </div>
       </div>
     </nav>
     <br>
     <h5 class="card-header text-center">Vanilla JavaScript SPA calling MS Graph API with MSAL.JS</h5>
     <br>
-    <div class="row" style="margin:auto" >
-    <div id="card-div" class="col-md-3" style="display:none">
+
+    <div class="row button_row">
+      <button class="btn btn-primary" id="popup" onclick="signIn(this.id)">Acquire Token Popup</button>
+      <button class="btn btn-primary" id="redirect" onclick="signIn(this.id)">Acquire Token Redirect</button>
+      <button class="btn btn-primary" id="ssosilent" onclick="signIn(this.id)">SSO Silent</button>
+      <button class="btn btn-primary" id="acqTokenSilent" onclick="signIn(this.id)">Acquire Token Silent</button>
+    </div>
+
+    <br>
+    <br>
+    <div class="row profile_section" >
+    <div id="card-div" class="col">
     <div class="card text-center">
       <div class="card-body">
         <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
@@ -36,20 +48,40 @@
         <br>
         <br>
         <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="readMail" onclick="readMail()">Read Mails</button>
       </div>
     </div>
     </div>
     <br>
     <br>
-      <div class="col-md-4">
-        <div class="list-group" id="list-tab" role="tablist">
-        </div>
-      </div>
-      <div class="col-md-5">
-        <div class="tab-content" id="nav-tabContent">
+    </div>
+
+    <div class="row response_row">
+      <div id="response-propertes" class="col">
+        <div class="card text-left">
+          <div class="card-body overflow-auto">
+            <h6>Response Properties</h6>
+            <button class = "btn btn-primary" id="clearResponse" onclick="clearResponse()">Clear Response</button>
+            <table class="table">
+              <tbody>
+                <tr>
+                  <td>fromNativeBroker</td>
+                  <td id="response-fromNativeBroker" style="word-wrap:break-word"></td>
+                </tr>
+                <tr>
+                  <td>account</td>
+                  <td id="response-account" style="word-wrap:break-word"></td>
+                </tr>
+                <tr>
+                  <td>idTokenClaims</td>
+                  <td id="response-idTokenClaims" style="word-wrap:break-word"></td>
+                </tr>
+                <tr>
+                  <td>scopes</td>
+                  <td id="response-scopes" style="word-wrap:break-word"></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>

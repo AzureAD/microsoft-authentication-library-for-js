@@ -72,3 +72,60 @@ function updateUI(data, endpoint) {
         }
     }
 }
+
+function updateResponseProperties(response) {
+    const fromNativeBroker = document.getElementById("response-fromNativeBroker");
+    fromNativeBroker.innerHTML = response.fromNativeBroker;
+
+    const account = document.getElementById("response-account");
+    account.innerHTML = "";
+    const accountTable = document.createElement("table");
+    accountTable.setAttribute("class", "table");
+    const accountTableBody = document.createElement("tbody");
+    accountTable.appendChild(accountTableBody);
+
+    for (const [key, value] of Object.entries(response.account)) {
+        if (key === "idTokenClaims") {
+            continue;
+        }
+        const accountTableRow = document.createElement("tr");
+        const accountTableParamName = document.createElement("td");
+        const accountTableParamVal = document.createElement("td");
+        accountTableParamName.innerHTML = key;
+        accountTableParamVal.innerHTML = value;
+        accountTableRow.appendChild(accountTableParamName);
+        accountTableRow.appendChild(accountTableParamVal);
+        accountTableBody.appendChild(accountTableRow);
+    }
+    account.appendChild(accountTable);
+
+    const idTokenClaims = document.getElementById("response-idTokenClaims");
+    const scopes = document.getElementById("response-scopes");
+
+    idTokenClaims.innerHTML = "";
+    const idTokenClaimsTable = document.createElement("table");
+    idTokenClaimsTable.setAttribute("class", "table");
+    const idTokenClaimsTableBody = document.createElement("tbody");
+    idTokenClaimsTable.appendChild(idTokenClaimsTableBody);
+
+    for (const [key, value] of Object.entries(response.idTokenClaims)) {
+        const idTokenClaimsTableRow = document.createElement("tr");
+        const idTokenClaimsTableParamName = document.createElement("td");
+        const idTokenClaimsTableParamVal = document.createElement("td");
+        idTokenClaimsTableParamName.innerHTML = key;
+        idTokenClaimsTableParamVal.innerHTML = value;
+        idTokenClaimsTableRow.appendChild(idTokenClaimsTableParamName);
+        idTokenClaimsTableRow.appendChild(idTokenClaimsTableParamVal);
+        idTokenClaimsTableBody.appendChild(idTokenClaimsTableRow);
+    }
+    idTokenClaims.appendChild(idTokenClaimsTable);
+    scopes.innerHTML = response.scopes.join(" ");
+}
+
+function clearResponse() {
+    const account = document.getElementById("response-account");
+    const fromNativeBroker = document.getElementById("response-fromNativeBroker");
+
+    account.innerHTML = "";
+    fromNativeBroker.innerHTML = "";
+}
