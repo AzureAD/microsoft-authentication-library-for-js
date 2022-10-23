@@ -2,7 +2,7 @@
 
 ## About this sample
 
-This sample demonstrates one way you can integrate the `@azure/msal-browser` package into your Vue 3 application using the [composition API](https://v3.vuejs.org/api/composition-api.html). It is not exhaustive and there may simpler or more complex solutions depending on your specific use case. 
+This sample demonstrates one way you can integrate the `@azure/msal-browser` package into your Vue 3 application using the [composition API](https://v3.vuejs.org/api/composition-api.html). It is not exhaustive and there may simpler or more complex solutions depending on your specific use case.
 
 ⚠️ This sample is currently for demonstration purposes only. Support will be limited.
 
@@ -48,6 +48,7 @@ This sample demonstrates how you can integrate `@azure/msal-browser` into your V
 You'll find the MSAL configuration and `PublicClientApplication` instantiation in `authConfig.ts`. It's very important that `PublicClientApplication` is initialized only once per pageload and as such should not be initialized inside any Vue components, but rather outside the context of Vue and passed in.
 
 The `clientId` is the most important, and only required parameter, as it maps to your app registration in the Azure Portal.
+The `authority` represents the Azure AD instance and tenant that MSAL.js will use the sign users in. This parameter controls the audience of your app.
 The `redirectUri` and `postLogoutRedirectUri` represent where AAD will redirect you back to after logging in and must be registered on your app registration as type "SPA". If you do not provide these, MSAL.js will use the current page by default.
 
 The `cacheLocation` configures where you want your tokens to be stored. SessionStorage is the default, if this option is not provided.
@@ -56,8 +57,9 @@ The `cacheLocation` configures where you want your tokens to be stored. SessionS
 const msalConfig = {
   auth: {
     clientId: 'ENTER_YOUR_CLIENT_ID_HERE',
-    redirectUri: 'http://localhost:3000', // Must be registered as a SPA redirectURI on your app registration
-    postLogoutRedirectUri: 'http://localhost:3000', // Must be registered as a SPA redirectURI on your app registration
+    authority: 'https://login.microsoftonline.com/ENTER_YOUR_TENANT_ID_HERE',
+    redirectUri: '/', // Must be registered as a SPA redirectURI on your app registration
+    postLogoutRedirectUri: '/' // Must be registered as a SPA redirectURI on your app registrationregistration
   },
   cache: {
     cacheLocation: 'localStorage' // Options are localStorage, sessionStorage, memoryStorage
