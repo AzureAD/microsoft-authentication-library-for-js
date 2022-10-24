@@ -3,7 +3,7 @@
 }
 
 .button_row {
-    display:flex; 
+    display: none; 
     justify-content:center; 
     align-items:center;
 }
@@ -16,6 +16,4 @@
 
 .response_row {
     margin:auto; 
-    width: 60%; 
-    float:right;
 }
