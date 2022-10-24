@@ -3,10 +3,10 @@ const welcomeDiv = document.getElementById("WelcomeMessage");
 const signInButton = document.getElementById("SignIn");
 const popupButton = document.getElementById("popup");
 const redirectButton = document.getElementById("redirect");
-const cardDiv = document.getElementById("card-div");
+const userprofileDiv = document.getElementById("userprofile");
 const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
-const profileDiv = document.getElementById("profile-div");
+const buttonRow = document.getElementsByClassName("button_row")[0];
 
 function enableSigninButton() {
     signInButton.disabled = false;
@@ -14,7 +14,7 @@ function enableSigninButton() {
 
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
-    cardDiv.style.display = 'initial';
+    buttonRow.style.display = "flex";
     welcomeDiv.innerHTML = `Welcome ${account.username}`;
     signInButton.setAttribute('class', "btn btn-success dropdown-toggle");
     signInButton.innerHTML = "Sign Out";
@@ -120,12 +120,4 @@ function updateResponseProperties(response) {
     }
     idTokenClaims.appendChild(idTokenClaimsTable);
     scopes.innerHTML = response.scopes.join(" ");
-}
-
-function clearResponse() {
-    const account = document.getElementById("response-account");
-    const fromNativeBroker = document.getElementById("response-fromNativeBroker");
-
-    account.innerHTML = "";
-    fromNativeBroker.innerHTML = "";
 }

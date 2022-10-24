@@ -22,7 +22,6 @@
           <div class="dropdown-menu">
             <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
             <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
-            <button class="dropdown-item" id="ssosilent" onclick="signIn(this.id)">Sign in using SSO Silent</button>
           </div>
       </div>
     </nav>
@@ -30,37 +29,26 @@
     <h5 class="card-header text-center">Vanilla JavaScript SPA calling MS Graph API with MSAL.JS</h5>
     <br>
 
-    <div class="row button_row">
-      <button class="btn btn-primary" id="popup" onclick="signIn(this.id)">Acquire Token Popup</button>
-      <button class="btn btn-primary" id="redirect" onclick="signIn(this.id)">Acquire Token Redirect</button>
-      <button class="btn btn-primary" id="ssosilent" onclick="signIn(this.id)">SSO Silent</button>
-      <button class="btn btn-primary" id="acqTokenSilent" onclick="signIn(this.id)">Acquire Token Silent</button>
-    </div>
-
-    <br>
-    <br>
-    <div class="row profile_section" >
-    <div id="card-div" class="col">
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
-        <div id="profile-div"></div>
+    <div class="userprofile text-center">
+      <div class="profile-section">
+        <h5 class="profile-title" id="WelcomeMessage">Please sign-in.</h5>
         <br>
-        <br>
-        <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
+        <div class="button_row">
+          <button class="btn btn-primary" id="popup" onclick="signIn(this.id)">Acquire Token Popup</button>
+          <button class="btn btn-primary" id="redirect" onclick="signIn(this.id)">Acquire Token Redirect</button>
+          <button class="btn btn-primary" id="ssosilent" onclick="signIn(this.id)">SSO Silent</button>
+          <button class="btn btn-primary" id="acqTokenSilent" onclick="signIn(this.id)">Acquire Token Silent</button>
+        </div>
       </div>
     </div>
-    </div>
     <br>
     <br>
-    </div>
 
     <div class="row response_row">
       <div id="response-propertes" class="col">
         <div class="card text-left">
           <div class="card-body overflow-auto">
             <h6>Response Properties</h6>
-            <button class = "btn btn-primary" id="clearResponse" onclick="clearResponse()">Clear Response</button>
             <table class="table">
               <tbody>
                 <tr>

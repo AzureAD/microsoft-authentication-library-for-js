@@ -28,7 +28,7 @@ function handleResponse(resp) {
         accountId = resp.account.homeAccountId;
         myMSALObj.setActiveAccount(resp.account);
         showWelcomeMessage(resp.account);
-        updateResponseProperties(response);
+        updateResponseProperties(resp);
     } else {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
@@ -56,7 +56,7 @@ async function signIn(method) {
         });
     } else if (signInType === "redirect") {
         return myMSALObj.loginRedirect(loginRequest).then((response) => {
-            updateResponseProperties(response);
+            return handleResponse(response);
         }).catch(function (error) {
             console.log(error);
         });;
