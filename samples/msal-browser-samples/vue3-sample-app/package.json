@@ -10,7 +10,7 @@
     "install:published": "npm install @azure/msal-browser@latest"
   },
   "dependencies": {
-    "@azure/msal-browser": "file:../../../lib/msal-browser",
+    "@azure/msal-browser": "^2.30.0",
     "element-plus": "^2.2.19",
     "vue": "^3.2.41",
     "vue-router": "^4.1.5"
