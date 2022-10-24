@@ -4,10 +4,13 @@
   "scripts": {
     "start": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "build:package": "cd ../../../lib/msal-browser && npm run build:all",
+    "install:local": "npm install ../../../lib/msal-browser",
+    "install:published": "npm install @azure/msal-browser@latest"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.26.0",
+    "@azure/msal-browser": "file:../../../lib/msal-browser",
     "element-plus": "^2.2.19",
     "vue": "^3.2.41",
     "vue-router": "^4.1.5"
