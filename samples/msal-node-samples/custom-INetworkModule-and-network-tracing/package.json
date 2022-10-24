@@ -1,10 +1,10 @@
 {
-  "name": "sample",
+  "name": "custom-inetworkmodule-and-network-tracing",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Custom INetworkModule Sample & Network Tracing via Fiddler Everywhere",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc",
+    "start": "npm run build && node dist/app.js"
   },
   "type": "module",
   "author": "",

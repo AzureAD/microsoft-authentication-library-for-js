@@ -1,6 +1,6 @@
 # MSAL Node Standalone Sample: Custom INetworkModule Implementation and Network Tracing Via "Fiddler Everywhere"
 
-This sample demonstrates how to implement a custom INetworkModule that makes it simple for developers to debug network errors. Additionally, instructions are provided on how to use [Fiddler Everywhere](https://www.telerik.com/fiddler/fiddler-everywhere) to perform a network trace of the application.
+This sample demonstrates how to implement a custom [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) that makes it simple for developers to debug network errors. Additionally, instructions are provided on how to use [Fiddler Everywhere](https://www.telerik.com/fiddler/fiddler-everywhere) to perform a network trace of the application.
 
 Fiddler Everywhere is not supported on all operating systems. [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) is a free Windows-only version of Fiddler Everywhere.
 
@@ -46,11 +46,11 @@ const config = {
 ## Implement your own custom INetworkModule
 
 There are two approaches to implementing a custom INetworkModule in this sample.
-1. The default msal-node (v18.11.3) INetworkModule has been copied to HttpClient.ts and can be imported to app.ts to be used as custom INetworkModule. You can edit HttpClient.ts to include console.log()'s to see how network traffic is processed.
+1. The default msal-node (as of v1.14.2) INetworkModule has been copied to HttpClient.ts and can be imported to app.ts to be used as custom INetworkModule. You can edit HttpClient.ts to include console.log()'s to see how network traffic is processed.
 2. You can implement your own custom INetworkModule inline. Stubs to mock the default implementation of INetworkModule have been provided.
 
 ## Use Fiddler Everywhere to perform a network trace
-Fiddler acts a proxy and monitors all traffic on your local network
+Fiddler acts as a proxy and monitors all traffic on your local network
 
 1. Download and install [Fiddler Everywhere](https://www.telerik.com/download/fiddler-everywhere)
 2. Uncomment the proxyUrl line - this tells the sample app to route all traffic through the proxy that Fiddler Everywhere operates on (the port can be configured in the settings of Fiddler Everywhere)
@@ -67,6 +67,11 @@ This will compile the TypeScript into JavaScript, and put the compiled files in 
 The sample can now be run by typing:
 ```console
     node dist/app.js
+```
+
+An npm script, which will run both of these commands, has been configured in package.json. To compile and start the sample, type:
+```console
+    npm run start
 ```
 
 After that, you should see the token returned from Azure AD in your terminal.
