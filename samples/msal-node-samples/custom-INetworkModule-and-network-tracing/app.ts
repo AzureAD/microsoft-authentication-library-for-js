@@ -15,9 +15,12 @@ const clientConfig: msal.Configuration = {
     system: {
         /**
          * Uncomment this to see this application's network trace inside of "Fiddler Everywhere" (https://www.telerik.com/download/fiddler-everywhere)
-         * 8866 is Fiddler's default port, and is configurable inside of Fiddler's settings
+         * 8866 is Fiddler Everywhere's default port
+         * 8888 is Fiddler Classic's default port
+         * These are both configurable inside of Fiddler's settings
          */
-        // proxyUrl: "http://localhost:8866",
+        // proxyUrl: "http://localhost:8866", // Fiddler Everywhere default port
+        // proxyUrl: "http://localhost:8888", // Fiddler Classic default port
 
         /**
          * Uncomment the HttpClient import statement to use this custom INetworkModule

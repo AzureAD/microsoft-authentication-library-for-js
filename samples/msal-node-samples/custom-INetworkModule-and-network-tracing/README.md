@@ -2,7 +2,7 @@
 
 This sample demonstrates how to implement a custom [INetworkModule](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.inetworkmodule.html) that makes it simple for developers to debug network errors. Additionally, instructions are provided on how to use [Fiddler Everywhere](https://www.telerik.com/fiddler/fiddler-everywhere) to perform a network trace of the application.
 
-Fiddler Everywhere is not supported on all operating systems. [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) is a free Windows-only version of Fiddler Everywhere.
+Fiddler Everywhere is not supported on all operating systems. [Fiddler Classic](https://www.telerik.com/fiddler/fiddler-classic) is a free Windows-only version of Fiddler Everywhere. AAD no longer supports TLS 1.0, which is the default in Fiddler Classic. It can be configured via navigating to Tools > Options > HTTPS, and then setting TLS to 1.2.
 
 ## Note
 This sample is written in TypeScript and was developed with Node version 16.14.0.
