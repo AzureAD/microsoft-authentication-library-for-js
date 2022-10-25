@@ -32,6 +32,8 @@ export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptio
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
+// Broker
+export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
@@ -60,7 +62,7 @@ export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestPar
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 export { IGuidGenerator } from "./crypto/IGuidGenerator";
 export { JoseHeader } from "./crypto/JoseHeader";
-// Request and Response
+// Request
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest";
@@ -71,6 +73,8 @@ export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
 export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
+export { NativeRequest } from "./request/NativeRequest";
+// Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
 export { AuthenticationResult } from "./response/AuthenticationResult";

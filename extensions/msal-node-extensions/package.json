@@ -52,6 +52,7 @@
   },
   "dependencies": {
     "@azure/msal-common": "^7.6.0",
+    "@azure/msal-node-runtime": "file:azure-msal-node-runtime-1.0.0-alpha.0.tgz",
     "keytar": "^7.8.0",
     "node-addon-api": "5.0.0"
   },

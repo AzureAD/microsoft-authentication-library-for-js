@@ -30,7 +30,8 @@
             "@azure/msal-common",
             "@azure/msal-node",
             "@azure/msal-react",
-            "@azure/msal-angular"
+            "@azure/msal-angular",
+            "@azure/msal-node-extensions"
       ],
       "stream": true
     }
