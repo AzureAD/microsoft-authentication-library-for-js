@@ -10,7 +10,7 @@ Please visit [https://cla.microsoft.com/](https://cla.microsoft.com/) and sign t
 
 Fork/Clone the project [on GitHub](https://github.com/AzureAD/microsoft-authentication-library-for-js) and check out your copy. Be aware that unless you have the correct permissions, you will not be able to create new branches on a cloned version of the repository. For all external contributions, please fork this repository.
 
-Example for JS:
+Example for JS:sezefzefzefzefzefzef
 
 ```
 $ git clone git@github.com:username/microsoft-authentication-library-for-js.git
