@@ -7,6 +7,7 @@ const userprofileDiv = document.getElementById("userprofile");
 const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const buttonRow = document.getElementsByClassName("button_row")[0];
+const responseRow = document.getElementsByClassName("response_row")[0];
 
 function enableSigninButton() {
     signInButton.disabled = false;
@@ -15,6 +16,7 @@ function enableSigninButton() {
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
     buttonRow.style.display = "flex";
+    responseRow.style.display = "flex";
     welcomeDiv.innerHTML = `Welcome ${account.username}`;
     signInButton.setAttribute('class', "btn btn-success dropdown-toggle");
     signInButton.innerHTML = "Sign Out";
