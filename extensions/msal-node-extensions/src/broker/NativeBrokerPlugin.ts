@@ -3,32 +3,37 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, NativeRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, NativeRequest } from "@azure/msal-common";
 import { Account, addon, AuthParameters, AuthResult } from "@azure/msal-node-runtime";
+import { version, name } from "../packageMetadata";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private clientId: string;
+    private logger: Logger;
 
-    constructor(clientId: string) { 
+    constructor(clientId: string, logger: Logger) { 
         this.clientId = clientId;
+        this.logger = logger.clone(name, version);
     }
 
     async getAccountById(accountId: string): Promise<AccountInfo> {
+        this.logger.trace("NativeBrokerPlugin - getAccountById called");
         throw new Error (`Could not get account for ${ accountId }`);
     }
 
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
+        this.logger.trace("NativeBrokerPlugin - acquireTokenSilent called", request.correlationId);
         throw new Error(`${request.correlationId} - This method is not implemented in the native broker plugin.`);
     }
 
     async acquireTokenInteractive(request: NativeRequest): Promise<AuthenticationResult> {
+        this.logger.trace("NativeBrokerPlugin - acquireTokenInteractive called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
             const resultCallback = (authResult) => {
                 try {
                     authResult.GetError();
                 } catch (e) {
-                    console.log(e);
                     reject(e);
                 }
                 const authenticationResult = this.getAuthenticationResult(request, authResult);
@@ -41,10 +46,12 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     }
 
     async acquireTokenByUsernamePassword(request: NativeRequest): Promise<AuthenticationResult> {
+        this.logger.trace("NativeBrokerPlugin - acquireTokenByUsernamePassword called", request.correlationId);
         throw new Error(`${request.correlationId} - This method is not implemented in the native broker plugin.`);
     }
 
     private generateRequestParameters(request: NativeRequest): AuthParameters {
+        this.logger.trace("NativeBrokerPlugin - generateRequestParameters called", request.correlationId);
         const authParams = new addon.AuthParameters(this.clientId, request.authority);
         authParams.SetRedirectUri(request.redirectUri);
         authParams.SetRequestedScopes(request.scopes.join(" "));
@@ -63,6 +70,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     }
 
     private getAuthenticationResult(request: NativeRequest, authResult: AuthResult): AuthenticationResult {
+        this.logger.trace("NativeBrokerPlugin - getAuthenticationResult called", request.correlationId);
         const accessToken = authResult.GetAccessToken();
         const rawIdToken = authResult.GetRawIdToken();
         const idToken = authResult.GetIdToken();
@@ -75,7 +83,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             const telemetryJSON = JSON.parse(telemetryData);
             fromCache = !!telemetryJSON["is_cache"];
         } catch (e) {
-            console.error("Error parsing telemetry data");
+            this.logger.error("NativeBrokerPlugin: getAuthenticationResult - Error parsing telemetry data. Could not determine if response came from cache.", request.correlationId);
         } 
         
         const isPop = authResult.IsPopAuthorization();
@@ -109,6 +117,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     }
 
     private generateAccountInfo(account: Account, idTokenClaims: IdTokenClaims): AccountInfo {
+        this.logger.trace("NativeBrokerPlugin - generateAccountInfo called");
+
         const accountInfo: AccountInfo = {
             homeAccountId: account.GetHomeAccountId(),
             environment: account.GetEnvironment(),
