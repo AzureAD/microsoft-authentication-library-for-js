@@ -4,7 +4,7 @@
  */
 
 import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, NativeRequest } from "@azure/msal-common";
-import { Account, addon, AuthParameters, AuthResult } from "@azure/msal-node-runtime";
+import { Account, addon, AuthParameters, AuthResult, ReadAccountResult } from "@azure/msal-node-runtime";
 import { version, name } from "../packageMetadata";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
@@ -16,38 +16,91 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         this.logger = logger.clone(name, version);
     }
 
-    async getAccountById(accountId: string): Promise<AccountInfo> {
-        this.logger.trace("NativeBrokerPlugin - getAccountById called");
-        throw new Error (`Could not get account for ${ accountId }`);
+    async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
+        this.logger.trace("NativeBrokerPlugin - getAccountById called", correlationId);
+        const account = await this.readAccountById(accountId, correlationId);
+        return this.generateAccountInfo(account, {});
     }
 
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenSilent called", request.correlationId);
-        throw new Error(`${request.correlationId} - This method is not implemented in the native broker plugin.`);
+        const authParams = this.generateRequestParameters(request);
+        let account: Account;
+        if (request.accountId) {
+            account = await this.readAccountById(request.accountId, request.correlationId);
+        }
+
+        return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
+            const resultCallback = (result: AuthResult) => {
+                try {
+                    result.GetError();
+                } catch (e) {
+                    reject(e);
+                }
+                const authenticationResult = this.getAuthenticationResult(request, result);
+                resolve(authenticationResult);
+            };
+            const callback = new addon.Callback(resultCallback);
+            const asyncHandle = new addon.AsyncHandle();
+            if (account) {
+                addon.AcquireTokenSilently(authParams, account, request.correlationId, callback, asyncHandle);
+            } else {
+                addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
+            }
+        });
     }
 
     async acquireTokenInteractive(request: NativeRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenInteractive called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
+        let account;
+        if (request.accountId) {
+            account = await this.readAccountById(request.accountId, request.correlationId);
+        }
+
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
-            const resultCallback = (authResult) => {
+            const resultCallback = (result: AuthResult) => {
                 try {
-                    authResult.GetError();
+                    result.GetError();
                 } catch (e) {
                     reject(e);
                 }
-                const authenticationResult = this.getAuthenticationResult(request, authResult);
+                const authenticationResult = this.getAuthenticationResult(request, result);
                 resolve(authenticationResult);
             };
             const callback = new addon.Callback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
-            addon.SignInInteractively(authParams, request.correlationId, "", callback, asyncHandle);
+            if (account) {
+                addon.AcquireTokenInteractively(authParams, account, request.correlationId, callback, asyncHandle);
+            } else {
+                addon.SignInInteractively(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+            }
         });
     }
 
     async acquireTokenByUsernamePassword(request: NativeRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenByUsernamePassword called", request.correlationId);
         throw new Error(`${request.correlationId} - This method is not implemented in the native broker plugin.`);
+    }
+
+    private async readAccountById(accountId: string, correlationId: string): Promise<Account> {
+        this.logger.trace("NativeBrokerPlugin - readAccountById called", correlationId);
+
+        return new Promise((resolve, reject) => {
+            const resultCallback = (result: ReadAccountResult) => {
+                try {
+                    result.GetError();
+                } catch (e) {
+                    reject(e);
+                }
+                const account = result.GetAccount();
+                resolve(account);
+            };
+
+            const callback = new addon.Callback(resultCallback);
+            const asyncHandle = new addon.AsyncHandle();
+            addon.ReadAccountById(accountId, correlationId, callback, asyncHandle);
+        });
     }
 
     private generateRequestParameters(request: NativeRequest): AuthParameters {
