@@ -1,0 +1,20 @@
+.btn {
+    margin-right: 1em;
+}
+
+.button_row {
+    display: none; 
+    justify-content:center; 
+    align-items:center;
+}
+
+.profile_section {
+    margin:auto; 
+    width:40%; 
+    float:left;
+}
+
+.row.response_row {
+    margin:auto; 
+    display:none;
+}
