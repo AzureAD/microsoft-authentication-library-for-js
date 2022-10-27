@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix cache issue in native redirect flows (#5338)",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
