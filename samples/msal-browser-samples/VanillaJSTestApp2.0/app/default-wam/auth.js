@@ -45,11 +45,9 @@ function handleResponse(resp) {
     }
 }
 
-async function signIn(method) {
-    signInType = isIE ? "redirect" : method;
+async function signIn(signInType) {
     if (signInType === "popup") {
         return myMSALObj.loginPopup(loginRequest).then((response) => {
-            updateResponseProperties(response);
             return handleResponse(response);
         }).catch(function (error) {
             console.log(error);
@@ -62,14 +60,6 @@ async function signIn(method) {
         });;
     } else if (signInType === "ssosilent") {
         return myMSALObj.ssoSilent(loginRequest).then((response) => {
-            updateResponseProperties(response);
-            handleResponse(response);
-        }).catch(function (error) {
-            console.log(error);
-        });;
-    } else if(signInType === "acqTokenSilent") {
-        return myMSALObj.acquireTokenSilent(loginRequest).then((response) => {
-            updateResponseProperties(response);
             handleResponse(response);
         }).catch(function (error) {
             console.log(error);
@@ -91,30 +81,27 @@ function signOut(interactionType) {
     }
 }
 
-async function getTokenPopup(request, account) {
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            console.log("acquiring token using popup");
-            return myMSALObj.acquireTokenPopup(request).catch(error => {
-                console.error(error);
-            });
-        } else {
+async function getToken(method) {
+    // Add here scopes for access token to be used at MS Graph API endpoints.
+    const request = {
+        scopes: ["User.Read"]
+    }
+    if(method === "popup") {
+        console.log("acquiring token using popup");
+        return myMSALObj.acquireTokenPopup(request).then((response) => {
+            handleResponse(response);
+        }).catch(error => {
             console.error(error);
-        }
-    });
-}
-
-// This function can be removed if you do not need to support IE
-async function getTokenRedirect(request, account) {
-    return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
-        console.log("silent token acquisition fails.");
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            // fallback to interaction when silent call fails
-            console.log("acquiring token using redirect");
-            myMSALObj.acquireTokenRedirect(request);
-        } else {
+        });
+    } else if(method == "redirect") {
+        console.log("acquiring token using redirect");
+        return myMSALObj.acquireTokenRedirect(request);
+    } else if(method == "silent") {
+        console.log("acquiring token silently");
+        return myMSALObj.acquireTokenSilent(request).then((response) => {
+            handleResponse(response);
+        }).catch(error => {
             console.error(error);
-        }
-    });
+        });
+    }
 }
