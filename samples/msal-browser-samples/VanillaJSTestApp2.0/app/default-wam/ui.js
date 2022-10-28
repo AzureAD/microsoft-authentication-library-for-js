@@ -123,3 +123,15 @@ function updateResponseProperties(response) {
     idTokenClaims.appendChild(idTokenClaimsTable);
     scopes.innerHTML = response.scopes.join(" ");
 }
+
+function clearResponse(){
+    const fromNativeBroker = document.getElementById("response-fromNativeBroker");
+    fromNativeBroker.innerHTML = "";
+    const account = document.getElementById("response-account");
+    account.innerHTML = "";
+    const idTokenClaims = document.getElementById("response-idTokenClaims");
+    idTokenClaims.innerHTML = "";
+    const scopes = document.getElementById("response-scopes");
+    scopes.innerHTML = "";
+    responseRow.style.display = "none";
+}
