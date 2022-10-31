@@ -39,7 +39,7 @@ cca.acquireTokenSilent(silentTokenRequest).then((response) => {
 In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you can:
 
 * Desktop apps, console apps (public clients):
-  * Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provides persistence solutions on Windows, Linux and Mac OS
+  * Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provides persistence and encryption at rest solutions on Windows, Linux and Mac OS
 * Web apps, web APIs, daemon apps (confidential client):
   * MSAL's in-memory token cache does not scale for production. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem *e.g.* a Redis-like memory cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
 
