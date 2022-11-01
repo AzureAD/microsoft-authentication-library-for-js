@@ -14,9 +14,10 @@ export class SilentRefreshClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const preInitializeBaseRequestTime = this.performanceClient.getCurrentTime();
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
-            ...await this.initializeBaseRequest(request)
+            ...await this.initializeBaseRequest(request, preInitializeBaseRequestTime)
         };
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, silentRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
@@ -62,7 +63,8 @@ export class SilentRefreshClient extends StandardInteractionClient {
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<RefreshTokenClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
+        const preClientConfigTime = this.performanceClient.getCurrentTime();
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions, preClientConfigTime);
         return new RefreshTokenClient(clientConfig, this.performanceClient);
     }
 }

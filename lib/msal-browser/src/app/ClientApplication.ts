@@ -632,10 +632,16 @@ export abstract class ClientApplication {
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenBySilentIframe(
-        request: CommonSilentFlowRequest
+        request: CommonSilentFlowRequest,
+        preQueueTime?: number
     ): Promise<AuthenticationResult> {
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, queueTime, request.correlationId);
+
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-        return silentIframeClient.acquireToken(request);
+
+        const preAcquireTokenTime = this.performanceClient.getCurrentTime();
+        return silentIframeClient.acquireToken(request, preAcquireTokenTime);
     }
 
     // #endregion

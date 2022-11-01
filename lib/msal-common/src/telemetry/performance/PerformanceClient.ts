@@ -5,7 +5,7 @@
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
-import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
+import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction, QueueMeasurement } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./PerformanceEvent";
 
@@ -34,6 +34,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected measurementsById: Map<string, IPerformanceMeasurement>;
 
+    protected queueMeasurements: Map<string, QueueMeasurement>;
+
+    // public queuedTime: number;
+    // public queuedCount: number;
+
     /**
      * Creates an instance of PerformanceClient, 
      * an abstract class containing core performance telemetry logic.
@@ -55,6 +60,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
         this.measurementsById = new Map();
+        this.queueMeasurements = new Map();
+        // this.queuedTime = 0;
+        // this.queuedCount = 0;
     }
 
     /**
@@ -74,6 +82,30 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {string}
      */
     abstract generateId(): string;
+
+    calculateQueuedTime(preQueueTime: number, currentTime: number): number {
+        this.logger.info(`tx-CPC-calculateQueuedTime`);
+        // More number calculations here?
+        if (Number.isInteger(preQueueTime) && preQueueTime < 1) {
+            this.logger.info(`tx-CPC-calculateQueuedTime - preQueueTime should be a positive integer and not ${preQueueTime}`);
+        }
+
+        return currentTime-preQueueTime;
+    }
+
+    addQueueMeasurement(name: PerformanceEvents, time: number, correlationId?: string, ): void {
+        this.logger.info(`tx-CPC-addQueueMeasurement`);
+        if (!correlationId) {
+            this.logger.info(`tx-CPC-addQueueMeasurement - correlationId not provided, cannot add to QueueMeasurements`);
+            return;
+        }
+        this.queueMeasurements.set(correlationId, {name, time} as QueueMeasurement);
+        this.logger.trace(`tx-CPC-addQueueMeasurement - name: ${name}, time: ${time}`);
+    }
+
+    // abstract calculateQueuedTime(additionalTime?: number, fncName?: string): void;
+    // abstract retrieveQueuedMeasurements(): QueuedMeasurement;
+    abstract getCurrentTime(): number;
 
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
@@ -237,6 +269,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                 completedEvents.push(event);
             });
+
+            this.logger.info(`tx-CPC-flushMeasurements - QueueMeasurements: ${JSON.stringify(this.queueMeasurements)}`);
 
             // Sort events by start time (earliest first)
             const sortedCompletedEvents = completedEvents.sort((eventA, eventB) => eventA.startTimeMs - eventB.startTimeMs);

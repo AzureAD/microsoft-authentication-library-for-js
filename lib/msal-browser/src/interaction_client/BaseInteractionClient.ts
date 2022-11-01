@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, IPerformanceClient } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -77,8 +77,11 @@ export abstract class BaseInteractionClient {
      * Initializer function for all request APIs
      * @param request
      */
-    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
+    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>, preQueueTime?: number): Promise<BaseAuthRequest> {
         this.logger.verbose("Initializing BaseAuthRequest");
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, queueTime, request.correlationId);
+
         const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];
@@ -108,7 +111,7 @@ export abstract class BaseInteractionClient {
 
         // Set requested claims hash if claims were requested
         if (request.claims && !StringUtils.isEmpty(request.claims)) {
-            validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
+            validatedRequest.requestedClaimsHash = await this.browserCrypto.hashString(request.claims); // TODO: add measurement here?
         }
 
         return validatedRequest;

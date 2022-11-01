@@ -119,7 +119,25 @@ export enum PerformanceEvents {
      * acquireToken API in BrokerClientApplication.
      * Used to acquire a token on behalf of the embedded application (PW-Broker).
      */
-    AcquireTokenByBroker = "acquireTokenByBroker"
+    AcquireTokenByBroker = "acquireTokenByBroker",
+
+    AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
+
+    InitializeBaseRequest = "initializeBaseRequest",
+    InitializeSilentRequest = "initializeSilentRequest",
+    InitializeAuthorizationCodeRequest = "initializeAuthorizationCodeRequest",
+
+    SilentIframeClientTokenHelper = "silentIframeClientTokenHelper",
+    SilentInitiateAuthRequest = "silentInitiateAuthRequest",
+    SilentMonitorIframeForHash = "silentMonitorIframeForHash",
+    SilentLoadFrame = "silentLoadFrame",
+
+    StandardCreateAuthCodeClient = "standardCreateAuthCodeClient",
+    StandardGetClientConfiguration = "standardGetClientConfiguration",
+    StandardInitializeAuthorizationRequest = "standardInitializeAuthorizationRequest",
+
+    UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
+
 }
 
 /**
@@ -298,5 +316,9 @@ export type PerformanceEvent = {
      *
      * @type {?(number | undefined)}
      */
-    cacheLookupPolicy?: number | undefined
+    cacheLookupPolicy?: number | undefined,
+
+    queuedTime?: number,
+
+    queuedCount?: number
 };

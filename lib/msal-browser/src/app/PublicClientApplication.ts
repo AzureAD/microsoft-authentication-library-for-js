@@ -94,6 +94,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        console.log("QUEUE");
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         
@@ -123,12 +124,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
 
+            const preQueueTime = this.performanceClient.getCurrentTime();
             const response = this.acquireTokenSilentAsync({
                 ...request,
                 correlationId
-            }, account)
+            }, account, preQueueTime)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    // const {queuedTime, queuedCount} = this.performanceClient.retrieveQueuedMeasurements();
+                    // this.logger.info(`testx-PCA-ATS - time: ${queuedTime} - count: ${queuedCount}`);
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
@@ -169,7 +173,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (AccountInfo:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
-    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<AuthenticationResult>{
+        this.logger.info("tx-ACQUIRE TOKEN SILENT, GOING TO CALCULATE QUEUE TIME")
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, queueTime, request.correlationId);
+
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
@@ -196,7 +204,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
-            const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
+
+            // TODO: Also don't need this then? Cf. below.
+            const preInitializeTime = this.performanceClient.getCurrentTime();
+            const silentRequest = await silentCacheClient.initializeSilentRequest(request, account, preInitializeTime);
             
             const requestWithCLP = {
                 ...request,
@@ -204,6 +215,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
             };
 
+            // TODO: do we need to calculate time before cache? No? Because we only want JS queue for network calls
             result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
                 if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
@@ -229,13 +241,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     }
                         
                     this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
-                    return this.acquireTokenBySilentIframe(silentRequest);
+                    const preAcquireTokenTime = this.performanceClient.getCurrentTime();
+                    return this.acquireTokenBySilentIframe(silentRequest, preAcquireTokenTime);
                 });
             });
         }
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
+            // const {queuedTime, queuedCount} = this.performanceClient.retrieveQueuedMeasurements();
+            // this.logger.info(`testx-PCA-ATSAsync - time: ${queuedTime} - count: ${queuedCount}`);
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,

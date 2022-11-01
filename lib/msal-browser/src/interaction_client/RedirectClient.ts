@@ -33,7 +33,8 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect);
+        const preInitializeRequestTime = this.performanceClient.getCurrentTime();
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect,  preInitializeRequestTime);
         this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
@@ -47,14 +48,16 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+            const preInitializeTime = this.performanceClient.getCurrentTime();
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest, preInitializeTime);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
+            const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions, preCreateAuthCodeClientTime);
             this.logger.verbose("Auth code client created");
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.browserCrypto, this.performanceClient);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl({
@@ -242,10 +245,11 @@ export class RedirectClient extends StandardInteractionClient {
             throw BrowserAuthError.createNoCachedAuthorityError();
         }
 
-        const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
+        const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
+        const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority, undefined, preCreateAuthCodeClientTime);
         this.logger.verbose("Auth code client created");
         ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, cachedRequest);
-        const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
+        const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto, this.performanceClient);
         return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
     }
 
@@ -270,7 +274,8 @@ export class RedirectClient extends StandardInteractionClient {
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
+            const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, undefined, preCreateAuthCodeClientTime);
             this.logger.verbose("Auth code client created");
 
             // Create logout string and navigate user window to logout.

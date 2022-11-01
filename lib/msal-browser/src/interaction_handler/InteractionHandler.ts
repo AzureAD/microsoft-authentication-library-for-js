@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError } from "@azure/msal-common";
+import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
@@ -20,12 +20,14 @@ export class InteractionHandler {
     protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: CommonAuthorizationCodeRequest;
     protected logger: Logger;
+    protected performanceClient: IPerformanceClient;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, performanceClient: IPerformanceClient) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
         this.authCodeRequest = authCodeRequest;
         this.logger = logger;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -88,7 +90,8 @@ export class InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
+            const preUpdateTokenEndpointTime = this.performanceClient.getCurrentTime();
+            await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule, preUpdateTokenEndpointTime);
         }
 
         // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
@@ -109,7 +112,8 @@ export class InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
+        // const preAcquireTokenTime = this.performanceClient.getCurrentTime();
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse); // TODO: measure here? AuthCodeClient in msal-common
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
@@ -120,9 +124,11 @@ export class InteractionHandler {
      * @param authority 
      * @param networkModule 
      */
-    protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
+    protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule, preQueueTime?: number): Promise<void> {
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInitializeAuthorizationRequest, queueTime, this.authCodeRequest.correlationId, );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options); //TODO: AuthorityFactory calculation here? msal-common
         this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 

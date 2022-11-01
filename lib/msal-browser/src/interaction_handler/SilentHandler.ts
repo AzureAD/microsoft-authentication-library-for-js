@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants, Logger } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants, Logger, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -13,8 +13,8 @@ import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, navigateFrameWait: number) {
-        super(authCodeModule, storageImpl, authCodeRequest, logger);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, navigateFrameWait: number, performanceClient: IPerformanceClient) {
+        super(authCodeModule, storageImpl, authCodeRequest, logger, performanceClient);
         this.navigateFrameWait = navigateFrameWait;
     }
 
@@ -23,14 +23,17 @@ export class SilentHandler extends InteractionHandler {
      * @param urlNavigate
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string, preQueueTime?: number): Promise<HTMLIFrameElement> {
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentInitiateAuthRequest, queueTime, this.authCodeRequest.correlationId);
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
-        return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
+        const preLoadFrameTime = this.performanceClient.getCurrentTime();
+        return this.navigateFrameWait ? await this.loadFrame(requestUrl, preLoadFrameTime) : this.loadFrameSync(requestUrl);
     }
 
     /**
@@ -38,7 +41,10 @@ export class SilentHandler extends InteractionHandler {
      * @param iframe
      * @param timeout
      */
-    monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
+    monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number, preQueueTime?: number): Promise<string> {
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentMonitorIframeForHash, queueTime, this.authCodeRequest.correlationId);
+
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
                 this.logger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`);
@@ -91,7 +97,10 @@ export class SilentHandler extends InteractionHandler {
      * Loads iframe with authorization endpoint URL
      * @ignore
      */
-    private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
+    private loadFrame(urlNavigate: string, preQueueTime?: number): Promise<HTMLIFrameElement> {
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentLoadFrame, queueTime, this.authCodeRequest.correlationId);
+
         /*
          * This trick overcomes iframe navigation in IE
          * IE does not load the page consistently in iframe
