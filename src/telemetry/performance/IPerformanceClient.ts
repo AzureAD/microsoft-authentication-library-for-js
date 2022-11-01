@@ -26,4 +26,13 @@ export interface IPerformanceClient {
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
     startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
+    calculateQueuedTime(preQueueTime?: number, currentTime?: number): number;
+    addQueueMeasurement(name: PerformanceEvents, time: number, correlationId?: string): void;
+    // retrieveQueuedMeasurements(): QueuedMeasurement;
+    getCurrentTime(): number;
+}
+
+export type QueueMeasurement = {
+    name: string,
+    time: number
 }
