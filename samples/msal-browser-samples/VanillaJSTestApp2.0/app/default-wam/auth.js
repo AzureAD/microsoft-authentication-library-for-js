@@ -52,7 +52,7 @@ async function signIn(method) {
             console.log(error);
         });
     } else if (signInType === "redirect") {
-        return myMSALObj.loginRedirect(loginRequest)
+        return myMSALObj.loginRedirect(loginRequest);
     }
 }
 
@@ -76,9 +76,6 @@ async function getToken(interactionType) {
         return myMSALObj.acquireTokenRedirect({
             ...loginRequest,
             account: myMSALObj.getActiveAccount()
-        }).catch(async (error) => {
-            console.log("Redirect token acquisition failed.");
-            console.log(error);
         });
     } else if (interactionType === "ssosilent") {
         return myMSALObj.ssoSilent(loginRequest).then((response) => {
