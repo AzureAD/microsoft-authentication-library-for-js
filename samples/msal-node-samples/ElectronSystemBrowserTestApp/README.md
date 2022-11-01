@@ -61,6 +61,15 @@ cd samples/msal-node-samples/standalone-samples/ElectronSystemBrowserTestApp
 1. In the **Redirect URIs** list, under **Suggested Redirect URIs for (mobile, desktop)** be sure to add `http://localhost` to the list of **Redirect URIs**. We will use the default `msal{Your_Application/Client_Id}://auth` **Redirect Uri** as our Custom URL Scheme, but more about that in the configure the application section.
 1. Select **Configure**.
 
+#### Configure Optional Claims
+
+1. Still on the same app registration, select the **Token configuration** blade to the left.
+1. Select **Add optional claim**:
+    1. Select **optional claim type**, then choose **ID**.
+    1. Select the optional claim **login_hint**.
+    > An opaque, reliable login hint claim. This claim is the best value to use for the login_hint OAuth parameter in all flows to get SSO.See $[optional claims](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims) for more details on this optional claim.
+    1. Select **Add** to save your changes.
+
 ### Configure the application
 
 1. Open the [.customConfig.js](./src/config/customConfig.json) file and provide the required configuration values.
