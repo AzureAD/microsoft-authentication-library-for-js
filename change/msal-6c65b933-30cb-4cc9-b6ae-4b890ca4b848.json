@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "fix logger undefined error",
+  "packageName": "msal",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "none"
+}
