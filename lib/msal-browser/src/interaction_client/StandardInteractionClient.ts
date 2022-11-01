@@ -152,9 +152,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 preventCorsPreflight: true
             },
             loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
-                logLevel: this.config.system.loggerOptions.logLevel,
+                loggerCallback: this.config.system?.loggerOptions?.loggerCallback,
+                piiLoggingEnabled: this.config.system?.loggerOptions?.piiLoggingEnabled,
+                logLevel: this.config.system?.loggerOptions?.logLevel,
                 correlationId: this.correlationId
             },
             cryptoInterface: this.browserCrypto,

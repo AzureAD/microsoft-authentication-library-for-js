@@ -65,7 +65,7 @@ export class TokenValidator {
         this.config = buildConfiguration(configuration);
 
         // Initialize logger
-        this.logger = new Logger(this.config.system.loggerOptions, name, version);
+        this.logger = new Logger(this.config.system?.loggerOptions, name, version);
 
         // Initialize crypto provider
         this.cryptoProvider = new CryptoProvider();

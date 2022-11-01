@@ -83,7 +83,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.cryptoProvider = new CryptoProvider();
-        this.logger = new Logger(this.config.system.loggerOptions, name, version);
+        this.logger = new Logger(this.config.system?.loggerOptions, name, version);
         this.storage = new NodeStorage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
             this.storage,
@@ -357,10 +357,10 @@ export abstract class ClientApplication {
                 proxyUrl: this.config.system.proxyUrl,
             },
             loggerOptions: {
-                logLevel: this.config.system.loggerOptions.logLevel,
-                loggerCallback: this.config.system.loggerOptions
+                logLevel: this.config.system?.loggerOptions.logLevel,
+                loggerCallback: this.config.system?.loggerOptions
                     .loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions
+                piiLoggingEnabled: this.config.system?.loggerOptions
                     .piiLoggingEnabled,
                 correlationId: requestCorrelationId
             },

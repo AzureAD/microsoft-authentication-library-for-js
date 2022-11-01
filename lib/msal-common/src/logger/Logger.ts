@@ -62,10 +62,16 @@ export class Logger {
         const defaultLoggerCallback = () => {
             return;
         };
-        this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
-        this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
-        this.level = typeof(loggerOptions.logLevel) === "number" ? loggerOptions.logLevel : LogLevel.Info;
-        this.correlationId = loggerOptions.correlationId || Constants.EMPTY_STRING;
+        const defaultLoggerOptions = {};
+        if(!loggerOptions)
+        {
+        // eslint-disable-next-line no-param-reassign
+            loggerOptions= defaultLoggerOptions;
+        }
+        this.localCallback = loggerOptions?.loggerCallback || defaultLoggerCallback;
+        this.piiLoggingEnabled = loggerOptions?.piiLoggingEnabled || false;
+        this.level = typeof(loggerOptions?.logLevel) === "number" ? loggerOptions?.logLevel : LogLevel.Info;
+        this.correlationId = loggerOptions?.correlationId || Constants.EMPTY_STRING;
 
         this.packageName = packageName || Constants.EMPTY_STRING;
         this.packageVersion = packageVersion || Constants.EMPTY_STRING;
