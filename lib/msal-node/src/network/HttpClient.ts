@@ -132,8 +132,10 @@ const networkRequestViaProxy = <T>(
 
                 // separate each line into it's own entry in an arry
                 const dataStringArray = dataString.split("\r\n");
-                // the first entry will contain the statusCode
+                // the first entry will contain the statusCode and statusMessage
                 const statusCode = parseInt(dataStringArray[0].split(" ")[1]);
+                // remove "HTTP/1.1" and the status code to get the status message
+                const statusMessage = dataStringArray[0].split(" ").slice(2).join(" ");
                 // the last entry will contain the body
                 const body = dataStringArray[dataStringArray.length - 1];
 
@@ -172,7 +174,7 @@ const networkRequestViaProxy = <T>(
                 const parsedHeaders = headers as Record<string, string>;
                 const networkResponse: NetworkResponse<T> = {
                     headers: parsedHeaders,
-                    body: parseBody(statusCode, parsedHeaders, body) as T,
+                    body: parseBody(statusCode, statusMessage, parsedHeaders, body) as T,
                     status: statusCode as number,
                 };
                 if ((statusCode < 200 || statusCode > 299) &&
@@ -243,6 +245,7 @@ const networkRequestViaHttps = <T>(
         request.on("response", (response) => {
             const headers = response.headers;
             const statusCode = response.statusCode as number;
+            const statusMessage = response.statusMessage;
 
             const data: Buffer[] = [];
             response.on("data", (chunk) => {
@@ -256,7 +259,7 @@ const networkRequestViaHttps = <T>(
                 const parsedHeaders = headers as Record<string, string>;
                 const networkResponse: NetworkResponse<T> = {
                     headers: parsedHeaders,
-                    body: parseBody(statusCode, parsedHeaders, body) as T,
+                    body: parseBody(statusCode, statusMessage, parsedHeaders, body) as T,
                     status: statusCode,
                 };
 
@@ -279,31 +282,40 @@ const networkRequestViaHttps = <T>(
 /**
  * Check if extra parsing is needed on the repsonse from the server
  * @param statusCode {number} the status code of the response from the server
+ * @param statusMessage {string | undefined} the status message of the response from the server
  * @param headers {Record<string, string>} the headers of the response from the server
  * @param body {string} the body from the response of the server
  * @returns {Object} JSON parsed body or error object
  */
-const parseBody = (statusCode: number, headers: Record<string, string>, body: string) => {
-    /**
-     * If the server encounters an error (500 <= statusCode <=599),
-     * the parsed body will be a string error message instead of the expected ServerAuthorizationTokenResponse.
-     * In this case, extra formatting will need to be performed on the error (500 <= statusCode <=599).
+const parseBody = (statusCode: number, statusMessage: string | undefined, headers: Record<string, string>, body: string) => {
+    /*
+     * Informational responses (100 – 199)
+     * Successful responses (200 – 299)
+     * Redirection messages (300 – 399)
+     * Client error responses (400 – 499)
+     * Server error responses (500 – 599)
      */
+    
     let parsedBody;
     try {
         parsedBody = JSON.parse(body);
-    } catch (e) {
-        let error;
-        if ((statusCode >= 500) && (statusCode <= 599)) {
-            // receiving "server_unavailable" should trigger the developer's retry policy (if implemented)
-            error = "server_unavailable";
+    } catch (error) {
+        let errorType;
+        let errorDescriptionHelper;
+        if ((statusCode >= 400) && (statusCode <= 499)) {
+            errorType = "client_error";
+            errorDescriptionHelper = "A client";
+        } else if ((statusCode >= 500) && (statusCode <= 599)) {
+            errorType = "server_error";
+            errorDescriptionHelper = "A server";
         } else {
-            error = "unknown_error";
+            errorType = "unknown_error";
+            errorDescriptionHelper = "An unknown";
         }
 
         parsedBody = {
-            error: error,
-            error_description: `A server error occured.\nHttp response: ${statusCode}\nHeaders: ${JSON.stringify(headers)}\nBody: ${JSON.stringify(body)}`
+            error: errorType,
+            error_description: `${errorDescriptionHelper} error occured.\nHttp status code: ${statusCode}\nHttp status message: ${statusMessage || "Unknown"}\nHeaders: ${JSON.stringify(headers)}`
         };
     }
 

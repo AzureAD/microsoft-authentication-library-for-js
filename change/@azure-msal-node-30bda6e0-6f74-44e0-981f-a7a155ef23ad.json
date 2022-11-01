@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fixed msal-node HttpClient server error bug",
+  "comment": "Fixed msal-node HttpClient server error bug #5342",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
