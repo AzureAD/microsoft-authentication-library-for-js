@@ -48,30 +48,50 @@ function handleResponse(resp) {
 async function signIn(method) {
     signInType = isIE ? "redirect" : method;
     if (signInType === "popup") {
-        return myMSALObj.loginPopup(loginRequest).then((response) => {
-            updateResponseProperties(response);
-            return handleResponse(response);
-        }).catch(function (error) {
+        return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
             console.log(error);
         });
     } else if (signInType === "redirect") {
-        return myMSALObj.loginRedirect(loginRequest).then((response) => {
-            return handleResponse(response);
-        }).catch(function (error) {
+        return myMSALObj.loginRedirect(loginRequest)
+    }
+}
+
+async function getToken(interactionType) {
+    
+    if (loginRequest.loginHint) {
+        myMSALObj.setActiveAccount(null);
+    }
+
+    if (interactionType === "popup") {
+        return await myMSALObj.acquireTokenPopup({
+            ...loginRequest,
+            account: myMSALObj.getActiveAccount()
+        }).then((response) => {
+            handleResponse(response);
+        }).catch(async (error) => {
+            console.log("Popup token acquisition failed.");
             console.log(error);
-        });;
-    } else if (signInType === "ssosilent") {
+        });
+    } else if (interactionType === "redirect") {
+        return myMSALObj.acquireTokenRedirect({
+            ...loginRequest,
+            account: myMSALObj.getActiveAccount()
+        }).catch(async (error) => {
+            console.log("Redirect token acquisition failed.");
+            console.log(error);
+        });
+    } else if (interactionType === "ssosilent") {
         return myMSALObj.ssoSilent(loginRequest).then((response) => {
-            updateResponseProperties(response);
             handleResponse(response);
         }).catch(function (error) {
+            console.log("SSOSilent token acquisition failed.");
             console.log(error);
-        });;
-    } else if(signInType === "acqTokenSilent") {
+        });
+    } else if(interactionType === "acqTokenSilent") {
         return myMSALObj.acquireTokenSilent(loginRequest).then((response) => {
-            updateResponseProperties(response);
             handleResponse(response);
         }).catch(function (error) {
+            console.log("Silent token acquisition failed.");
             console.log(error);
         });;
     }
