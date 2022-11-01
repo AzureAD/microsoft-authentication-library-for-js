@@ -125,8 +125,7 @@ export enum PerformanceEvents {
      * Time taken for acquiring cached refresh token 
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
-    
-    AcquireTokenByBroker = "acquireTokenByBroker",
+
     AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
 
     InitializeBaseRequest = "initializeBaseRequest",
