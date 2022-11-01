@@ -1,0 +1,10 @@
+{
+  "type": "patch",
+  "comment": {
+    "title": "",
+    "value": ""
+  },
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
