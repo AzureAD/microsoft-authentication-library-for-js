@@ -107,7 +107,7 @@ const networkRequestViaProxy = <T>(
             if (statusCode < 200 || statusCode > 299) {
                 request.destroy();
                 socket.destroy();
-                reject(new Error(` Error connecting to proxy: ${response.statusCode}, ${response?.statusMessage}`));
+                reject(new Error(`Error connecting to proxy. Status Code: ${response.statusCode}. Status Message: ${response?.statusMessage || "Unknown"}`));
             }
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
@@ -169,9 +169,10 @@ const networkRequestViaProxy = <T>(
                 });
                 const headers = Object.fromEntries(entries);
 
+                const parsedHeaders = headers as Record<string, string>;
                 const networkResponse: NetworkResponse<T> = {
-                    headers: headers as Record<string, string>,
-                    body: JSON.parse(body) as T,
+                    headers: parsedHeaders,
+                    body: parseBody(statusCode, parsedHeaders, body) as T,
                     status: statusCode as number,
                 };
                 if ((statusCode < 200 || statusCode > 299) &&
@@ -252,9 +253,10 @@ const networkRequestViaHttps = <T>(
                 // combine all received buffer streams into one buffer, and then into a string
                 const body = Buffer.concat([...data]).toString();
 
+                const parsedHeaders = headers as Record<string, string>;
                 const networkResponse: NetworkResponse<T> = {
-                    headers: headers as Record<string, string>,
-                    body: JSON.parse(body) as T,
+                    headers: parsedHeaders,
+                    body: parseBody(statusCode, parsedHeaders, body) as T,
                     status: statusCode,
                 };
 
@@ -274,3 +276,36 @@ const networkRequestViaHttps = <T>(
     });
 };
 
+/**
+ * Check if extra parsing is needed on the repsonse from the server
+ * @param statusCode {number} the status code of the response from the server
+ * @param headers {Record<string, string>} the headers of the response from the server
+ * @param body {string} the body from the response of the server
+ * @returns {Object} JSON parsed body or error object
+ */
+const parseBody = (statusCode: number, headers: Record<string, string>, body: string) => {
+    /**
+     * If the server encounters an error (500 <= statusCode <=599),
+     * the parsed body will be a string error message instead of the expected ServerAuthorizationTokenResponse.
+     * In this case, extra formatting will need to be performed on the error (500 <= statusCode <=599).
+     */
+    let parsedBody;
+    try {
+        parsedBody = JSON.parse(body);
+    } catch (e) {
+        let error;
+        if ((statusCode >= 500) && (statusCode <= 599)) {
+            // receiving "server_unavailable" should trigger the developer's retry policy (if implemented)
+            error = "server_unavailable";
+        } else {
+            error = "unknown_error";
+        }
+
+        parsedBody = {
+            error: error,
+            error_description: `A server error occured.\nHttp response: ${statusCode}\nHeaders: ${JSON.stringify(headers)}\nBody: ${JSON.stringify(body)}`
+        };
+    }
+
+    return parsedBody;
+};
