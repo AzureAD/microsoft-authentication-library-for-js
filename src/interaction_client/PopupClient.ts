@@ -106,15 +106,19 @@ export class PopupClient extends StandardInteractionClient {
     protected async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
-        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
+
+        const preInitializeRequestTime = this.performanceClient.getCurrentTime();
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup, preInitializeRequestTime);
         this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+            const preInitializeTime = this.performanceClient.getCurrentTime();
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest, preInitializeTime);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
+            const preInitializeClientTime = this.performanceClient.getCurrentTime();
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions, preInitializeClientTime);
             this.logger.verbose("Auth code client created");
 
             const isNativeBroker = NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, request.authenticationScheme);
@@ -131,7 +135,7 @@ export class PopupClient extends StandardInteractionClient {
             });
 
             // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
+            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.performanceClient);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
@@ -214,7 +218,8 @@ export class PopupClient extends StandardInteractionClient {
             await this.clearCacheOnLogout(validRequest.account);
 
             // Initialize the client
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
+            const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority, undefined, preCreateAuthCodeClientTime);
             this.logger.verbose("Auth code client created");
 
             // Create logout string and navigate user window to logout.

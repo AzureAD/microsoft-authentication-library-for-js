@@ -39,7 +39,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent);
+        const preInitializeRequestTime = this.performanceClient.getCurrentTime();
+        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent, preInitializeRequestTime);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
@@ -53,12 +54,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
-            const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority);
+            const preClientConfigTime = this.performanceClient.getCurrentTime();
+            const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority, undefined, preClientConfigTime);
             const authClient: HybridSpaAuthorizationCodeClient = new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
-            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
+            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait, this.performanceClient);
 
             // Handle auth code parameters from request
             return silentHandler.handleCodeResponseFromServer(

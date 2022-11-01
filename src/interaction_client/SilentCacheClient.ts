@@ -58,13 +58,19 @@ export class SilentCacheClient extends StandardInteractionClient {
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<SilentFlowClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
+        const preClientConfigTime = this.performanceClient.getCurrentTime();
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions, preClientConfigTime);
         return new SilentFlowClient(clientConfig, this.performanceClient);
     }
 
-    async initializeSilentRequest(request: SilentRequest, account: AccountInfo): Promise<CommonSilentFlowRequest> {
+    async initializeSilentRequest(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<CommonSilentFlowRequest> {
+        // const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        // this.performanceClient.addQueueMeasurement(request.correlationId, PerformanceEvents.InitializeSilentRequest, queueTime);
+
+        // const preInitializeTime = window.performance.now();
         return {
             ...request,
+            // ...await this.initializeBaseRequest(request, preInitializeTime),
             ...await this.initializeBaseRequest(request),
             account: account,
             forceRefresh: request.forceRefresh || false

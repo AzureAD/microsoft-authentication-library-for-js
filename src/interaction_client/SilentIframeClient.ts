@@ -31,8 +31,11 @@ export class SilentIframeClient extends StandardInteractionClient {
      * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none or prompt=no_session
      * @param request
      */
-    async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: SsoSilentRequest, preQueueTime?: number): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, queueTime, request.correlationId);
+
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -48,20 +51,23 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
+        const preInitializeTime = this.performanceClient.getCurrentTime();
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
             prompt: request.prompt || PromptValue.NONE
-        }, InteractionType.Silent);
+        }, InteractionType.Silent, preInitializeTime);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
         try {
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
+            const preInitializeClientTime = this.performanceClient.getCurrentTime();
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions, preInitializeClientTime);
             this.logger.verbose("Auth code client created");
 
-            return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
+            const preSilentTokenTime = this.performanceClient.getCurrentTime();
+            return await this.silentTokenHelper(authClient, silentRequest, preSilentTokenTime).then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
                     fromCache: false
@@ -97,20 +103,28 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    protected async silentTokenHelper(authClient: AuthorizationCodeClient, silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    protected async silentTokenHelper(authClient: AuthorizationCodeClient, silentRequest: AuthorizationUrlRequest, preQueueTime?: number): Promise<AuthenticationResult> {
+        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientTokenHelper, queueTime, silentRequest.correlationId);
+
+
         // Create auth code request and generate PKCE params
-        const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
+        const preInitializeTime = this.performanceClient.getCurrentTime();
+        const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest, preInitializeTime);
         // Create authorize request url
+        const preAuthCodeUrlTime = this.performanceClient.getCurrentTime();
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
-        });
+        }); //TODO: calculate here? AuthCodeClient is in msal-common
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait, this.performanceClient);
         // Get the frame handle for the silent request
-        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
+        const preInitiateRequestTime = this.performanceClient.getCurrentTime();
+        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, preInitiateRequestTime);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
+        const preMonitorIframeTime = this.performanceClient.getCurrentTime();
+        const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout, preMonitorIframeTime);
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Silent, authCodeRequest.correlationId);
