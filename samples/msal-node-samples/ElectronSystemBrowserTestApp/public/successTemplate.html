@@ -3,23 +3,28 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Electron system browser auth redirect page</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
         integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
-    <link rel="stylesheet" href="./CSS/styles.css">
-    <script type="module" src="./JS/handleRedirect.js"></script>
+    <style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+         padding: 10px;
+        font-size: 20px;
+     }
+    </style>
 </head>
-
 <body>
-    <div class='container'>`
+    <div class='container'>
         <h5>You are signed in now, press Continue to open your app</h5>
         <p>
             This page is for handling redirects only. Login through the electron application first to receive an authorization code.
         </p>
-        <button id='SignIn' type="button" class="btn btn-primary">Continue</button>
+         <a href="Enter_the_default_Redirect_Uri_Here" class="btn btn-primary">Click here to launch the app</a>
     </div>
 </body>
-
 </html>
