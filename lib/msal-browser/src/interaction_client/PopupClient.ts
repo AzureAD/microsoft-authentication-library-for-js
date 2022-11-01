@@ -295,7 +295,7 @@ export class PopupClient extends StandardInteractionClient {
              * Polling for popups needs to be tick-based,
              * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
              */
-            const maxTicks = this.config.system.windowHashTimeout / BrowserConstants.POLL_INTERVAL_MS;
+            const maxTicks = this.config.system.windowHashTimeout / this.config.system.pollIntervalMilliseconds;
             let ticks = 0;
 
             this.logger.verbose("PopupHandler.monitorPopupForHash - polling started");
@@ -353,7 +353,7 @@ export class PopupClient extends StandardInteractionClient {
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createMonitorPopupTimeoutError());
                 }
-            }, BrowserConstants.POLL_INTERVAL_MS);
+            }, this.config.system.pollIntervalMilliseconds);
         });
     }
 
@@ -395,7 +395,7 @@ export class PopupClient extends StandardInteractionClient {
                 clearInterval(intervalId);
                 this.cleanPopup(popupWindow);
                 resolve();
-            }, BrowserConstants.POLL_INTERVAL_MS);
+            }, this.config.system.pollIntervalMilliseconds);
         });
     }
 

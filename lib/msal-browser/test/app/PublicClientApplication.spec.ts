@@ -2637,6 +2637,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].accessTokenSize).toBe(3);
                 expect(events[0].idTokenSize).toBe(4);
                 expect(events[0].isNativeBroker).toBe(true);
+                expect(events[0].requestId).toBe(undefined);
 
                 pca.removePerformanceCallback(callbackId);
                 done();

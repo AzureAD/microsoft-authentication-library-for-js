@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { LibSecretPersistence } from "../../src";
+import { LibSecretPersistence } from "../../src/persistence/LibSecretPersistence";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 import { setPassword, getPassword, deletePassword } from "keytar";
 

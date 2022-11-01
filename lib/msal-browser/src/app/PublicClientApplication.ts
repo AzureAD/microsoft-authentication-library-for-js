@@ -97,6 +97,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         console.log("QUEUE");
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        atsMeasurement.addStaticFields({
+            cacheLookupPolicy: request.cacheLookupPolicy
+        });
         
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
@@ -131,15 +134,20 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             }, account, preQueueTime)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    
                     // const {queuedTime, queuedCount} = this.performanceClient.retrieveQueuedMeasurements();
                     // this.logger.info(`testx-PCA-ATS - time: ${queuedTime} - count: ${queuedCount}`);
+                    
+                    atsMeasurement.addStaticFields({
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length
+                    });
+
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
                         isNativeBroker: result.fromNativeBroker,
-                        cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -254,9 +262,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
-                accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
-                isNativeBroker: response.fromNativeBroker
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
             });
             return response;
         }).catch((tokenRenewalError: AuthError) => {

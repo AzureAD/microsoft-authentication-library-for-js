@@ -70,7 +70,8 @@ export class SilentIframeClient extends StandardInteractionClient {
             return await this.silentTokenHelper(authClient, silentRequest, preSilentTokenTime).then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
-                    fromCache: false
+                    fromCache: false,
+                    requestId: result.requestId
                 });
                 return result;
             });
@@ -118,7 +119,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
         }); //TODO: calculate here? AuthCodeClient is in msal-common
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait, this.performanceClient);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);
         // Get the frame handle for the silent request
         const preInitiateRequestTime = this.performanceClient.getCurrentTime();
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, preInitiateRequestTime);

@@ -72,7 +72,8 @@ export enum HeaderNames {
     RETRY_AFTER = "Retry-After",
     CCS_HEADER = "X-AnchorMailbox",
     WWWAuthenticate = "WWW-Authenticate",
-    AuthenticationInfo = "Authentication-Info"
+    AuthenticationInfo = "Authentication-Info",
+    X_MS_REQUEST_ID = "x-ms-request-id"
 }
 
 /**

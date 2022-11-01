@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "Added 'no_session' to prompt enum #5131",
+  "comment": "Add static fields to telemetry #5224",
   "packageName": "@azure/msal-browser",
-  "email": "rginsburg@microsoft.com",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }

@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.23",
+  "version": "1.0.0-alpha.25",
   "repository": {
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
@@ -8,6 +8,7 @@
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
+  "gypfile": true,
   "keywords": [
     "js",
     "ts",
@@ -25,8 +26,8 @@
     "node": ">=10"
   },
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
+    "start": "tsdx watch --tsconfig ./tsconfig.build.json",
+    "build": "node-gyp rebuild && tsdx build --tsconfig ./tsconfig.build.json",
     "build:common": "cd ../../lib/msal-common && npm run build",
     "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
@@ -50,14 +51,13 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "^7.4.1",
-    "bindings": "git+https://github.com/samuelkubai/node-bindings.git#v1.6.0",
+    "@azure/msal-common": "^7.6.0",
     "keytar": "^7.8.0",
-    "nan": "^2.13.2"
+    "node-addon-api": "5.0.0"
   },
   "devDependencies": {
+    "@types/node": "^18.8.3",
     "husky": "^4.2.5",
-    "node-gyp": "^9.0.0",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.3"
