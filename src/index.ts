@@ -35,6 +35,7 @@ export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
+export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -100,7 +101,7 @@ export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryReques
 
 // Performance Telemetry
 export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent, QueueMeasurement } from "./telemetry/performance/IPerformanceClient";
-export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./telemetry/performance/PerformanceEvent";
+export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";
