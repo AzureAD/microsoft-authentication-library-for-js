@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
@@ -208,12 +208,12 @@ export abstract class ClientApplication {
                 const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
-                    this.logger.trace("handleRedirectPromise - acquiring token from native platform");        
+                    this.logger.trace("handleRedirectPromise - acquiring token from native platform");     
                     const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
-                    const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;              
+                    const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;
                     const redirectClient = this.createRedirectClient(correlationId);
                     redirectResponse = redirectClient.handleRedirectPromise(hash);
                 }
@@ -347,11 +347,11 @@ export abstract class ClientApplication {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup).then((response) => {
                 this.browserStorage.setInteractionInProgress(false);
+                atPopupMeasurement.addStaticFields({httpVer: response?.httpVer});
                 atPopupMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
                     requestId: response.requestId,
-                    httpVer: response?.httpVer,
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -470,12 +470,12 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
             ssoSilentMeasurement.addStaticFields({
                 accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length
+                idTokenSize: response.idToken.length,
+                httpVer: response?.httpVer,
             });
             ssoSilentMeasurement.endMeasurement({
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
-                httpVer: response?.httpVer,
                 requestId: response.requestId
             });
             ssoSilentMeasurement.flushMeasurement();
@@ -524,12 +524,12 @@ export abstract class ClientApplication {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.addStaticFields({
                                 accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length
+                                idTokenSize: result.idToken.length,
+                                httpVer: result?.httpVer,
                             });
                             atbcMeasurement.endMeasurement({
                                 success: true,
                                 isNativeBroker: result.fromNativeBroker,
-                                httpVer: result?.httpVer,
                                 requestId: result.requestId
                             });
                             atbcMeasurement.flushMeasurement();

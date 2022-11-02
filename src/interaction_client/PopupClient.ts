@@ -22,7 +22,7 @@ import { InteractionHandler, InteractionParams } from "../interaction_handler/In
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
 
 export type PopupParams = InteractionParams & {
-    popup?: Window | null;
+    popup?: Window|null;
     popupName: string;
     popupWindowAttributes: PopupWindowAttributes
 };
@@ -103,7 +103,7 @@ export class PopupClient extends StandardInteractionClient {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    protected async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window | null): Promise<AuthenticationResult> {
+    protected async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
@@ -140,7 +140,7 @@ export class PopupClient extends StandardInteractionClient {
                 popupWindowAttributes
             };
             const popupWindow: Window = this.initiateAuthRequest(navigateUrl, popupParameters);
-            this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, { popupWindow }, null);
+            this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await this.monitorPopupForHash(popupWindow);
@@ -203,7 +203,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param mainWindowRedirectUri
      * @param popupWindowAttributes
      */
-    protected async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window | null, mainWindowRedirectUri?: string): Promise<void> {
+    protected async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
 
@@ -223,8 +223,8 @@ export class PopupClient extends StandardInteractionClient {
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
 
             // Open the popup window to requestUrl.
-            const popupWindow = this.openPopup(logoutUri, { popupName, popupWindowAttributes, popup });
-            this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, { popupWindow }, null);
+            const popupWindow = this.openPopup(logoutUri, {popupName, popupWindowAttributes, popup});
+            this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             await this.waitForLogoutPopup(popupWindow);
 
@@ -315,7 +315,7 @@ export class PopupClient extends StandardInteractionClient {
                      */
                     href = popupWindow.location.href;
                     hash = popupWindow.location.hash;
-                } catch (e) { }
+                } catch (e) {}
 
                 // Don't process blank pages or cross domain
                 if (StringUtils.isEmpty(href) || href === "about:blank") {
@@ -378,7 +378,7 @@ export class PopupClient extends StandardInteractionClient {
                      * since we need the interval to keep running while on STS UI.
                      */
                     href = popupWindow.location.href;
-                } catch (e) { }
+                } catch (e) {}
 
                 // Don't process blank pages or cross domain
                 if (StringUtils.isEmpty(href) || href === "about:blank") {
@@ -446,7 +446,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param popupWindowAttributes
      * @returns
      */
-    openSizedPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes): Window | null {
+    openSizedPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes): Window|null {
         /**
          * adding winLeft and winTop to account for dual monitor
          * using screenLeft and screenTop for IE8 and earlier

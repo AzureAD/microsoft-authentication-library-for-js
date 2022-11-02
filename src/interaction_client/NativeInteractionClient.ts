@@ -51,7 +51,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // initialize native request
         const nativeRequest = await this.initializeNativeRequest(request);
-        
         // check if the tokens can be retrieved from internal cache
         try {
             const result = await this.acquireTokensFromCache(this.accountId, nativeRequest);
