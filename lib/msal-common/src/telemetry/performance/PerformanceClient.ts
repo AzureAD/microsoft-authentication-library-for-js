@@ -195,7 +195,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     addStaticFields(fields: StaticFields, correlationId: string) : void{
         const existingStaticFields = this.staticFieldsByCorrelationId.get(correlationId);
-        console.log(existingStaticFields);
         if (existingStaticFields) {
             this.logger.trace("PerformanceClient: Updating static fields");
             this.staticFieldsByCorrelationId.set(correlationId, {...existingStaticFields, ...fields});
@@ -287,7 +286,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 const eventToEmit = sortedCompletedEvents.reduce((previous, current) => {
                     if (current.name !== measureName) {
                         this.logger.trace(`PerformanceClient: Complete submeasurement found for ${current.name}`, correlationId);
-                      
                         // TODO: Emit additional properties for each subMeasurement
                         const subMeasurementName = `${current.name}DurationMs`;
                         /*
@@ -300,10 +298,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
-
                     }
-                    return previous;
 
+                    return previous;
                 }, topLevelEvent);
 
                 const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
@@ -377,4 +374,5 @@ export abstract class PerformanceClient implements IPerformanceClient {
             callback.apply(null, [events]);
         });
     }
+
 }

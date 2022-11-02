@@ -134,14 +134,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.addStaticFields({
                         accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length
+                        idTokenSize: result.idToken.length,
+                        httpVer: result?.httpVer,
                     });
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
                         cacheLookupPolicy: request.cacheLookupPolicy,
-                        httpVer: result?.httpVer,
                         requestId: result.requestId,
                     });
                     atsMeasurement.flushMeasurement();
@@ -243,11 +243,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
+            astsAsyncMeasurement.addStaticFields({
+                httpVer: response?.httpVer,
+            });
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
-                httpVer: response?.httpVer,
                 requestId: response.requestId
             });
             return response;

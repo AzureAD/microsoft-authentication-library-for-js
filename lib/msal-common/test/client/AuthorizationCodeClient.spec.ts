@@ -1942,56 +1942,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(authenticationResult.requestId).toBeTruthy;
             expect(authenticationResult.requestId).toEqual(CORS_RESPONSE_HEADERS.xMsRequestId);
         });
-
-        it('includes the http version in the result when received in server response', async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
-
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
-            }
-
-            // Set up stubs
-            const idTokenClaims = {
-                "ver": "2.0",
-                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "exp": 1536361411,
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523"
-            };
-            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const client = new AuthorizationCodeClient(config);
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
-            };
-
-            const authenticationResult = await client.acquireToken(authCodeRequest, {
-                code: authCodeRequest.code,
-                nonce: idTokenClaims.nonce
-            });
-            if (!authenticationResult.expiresOn) {
-                throw TestError.createTestSetupError("mockedAccountInfo does not have a value");
-            }
-
-            expect(authenticationResult.requestId).toBeTruthy;
-            expect(authenticationResult.requestId).toEqual(CORS_RESPONSE_HEADERS.xMsRequestId);
-            expect(authenticationResult.httpVer).toBeTruthy;
-            expect(authenticationResult.httpVer).toEqual(CORS_RESPONSE_HEADERS.xMsHttpVer);
-        });
-
-
+        
         it('does not include the requestId in the result when none in server response', async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);

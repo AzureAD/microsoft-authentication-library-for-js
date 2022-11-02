@@ -131,7 +131,7 @@ export class PopupClient extends StandardInteractionClient {
             });
 
             // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.performanceClient);
+            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {

@@ -37,16 +37,17 @@ export class RefreshTokenClient extends BaseClient {
     }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
+        this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
         const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         atsMeasurement?.addStaticFields({
-            refreshTokenSize: response.body.refresh_token?.length || 0
+            refreshTokenSize: response.body.refresh_token?.length || 0,
+            httpVer: httpVer
         });
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-       
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -120,7 +121,7 @@ export class RefreshTokenClient extends BaseClient {
                 }
             }
         }
-        // fall back to application refresh token acquisition
+        // fall back to sapplication refresh token acquisition
         return this.acquireTokenWithCachedRefreshToken(request, false);
 
     }

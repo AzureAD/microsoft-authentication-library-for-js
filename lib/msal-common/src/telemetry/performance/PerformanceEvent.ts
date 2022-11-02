@@ -214,7 +214,7 @@ export type StaticFields = {
     matsSilentStatus?: number;
     matsHttpStatus?: number
     matsHttpEventCount?: number;
-    httpVerCloudMetadata?: string;
+    httpVer?: string;
 };
 
 /**
@@ -351,12 +351,5 @@ export type PerformanceEvent = StaticFields & {
      * 
      * @type {?string}
      */
-    requestId?: string,
-
-    /** 
-     * Version of the http 
-     *
-     * @type {string}
-     */
-    httpVer?: string,
+    requestId?: string
 };

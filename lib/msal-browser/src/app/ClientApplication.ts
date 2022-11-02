@@ -189,8 +189,6 @@ export abstract class ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.logger.verbose("handleRedirectPromise called");
-        // @ts-ignore
-        let handleRedirectPromiseMeasurement:InProgressPerformanceEvent;
         // Block token acquisition before initialize has been called if native brokering is enabled
         BrowserUtils.blockNativeBrokerCalledBeforeInitialized(this.config.system.allowNativeBroker, this.initialized);
 
@@ -210,14 +208,12 @@ export abstract class ClientApplication {
                 const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
-                    this.logger.trace("handleRedirectPromise - acquiring token from native platform");
-                    handleRedirectPromiseMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.HandleRedirectPromiseMeasurement, request.correlationId);
+                    this.logger.trace("handleRedirectPromise - acquiring token from native platform");        
                     const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
-                    const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;
-                    handleRedirectPromiseMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.HandleRedirectPromiseMeasurement, correlationId);
+                    const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || Constants.EMPTY_STRING;              
                     const redirectClient = this.createRedirectClient(correlationId);
                     redirectResponse = redirectClient.handleRedirectPromise(hash);
                 }
@@ -236,10 +232,6 @@ export abstract class ClientApplication {
                         }
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-                    handleRedirectPromiseMeasurement?.endMeasurement({
-                        success: true,
-                        httpVer: result?.httpVer,
-                    });
 
                     return result;
                 }).catch((e) => {
@@ -250,11 +242,6 @@ export abstract class ClientApplication {
                         this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-                    handleRedirectPromiseMeasurement?.endMeasurement({
-                        errorCode: e instanceof AuthError && e.errorCode || undefined,
-                        subErrorCode: e instanceof AuthError && e.subError || undefined,
-                        success: false
-                    });
                     throw e;
                 });
                 this.redirectResponse.set(redirectResponseKey, response);
@@ -400,12 +387,13 @@ export abstract class ClientApplication {
 
             atPopupMeasurement.addStaticFields({
                 accessTokenSize: result.accessToken.length,
-                idTokenSize: result.idToken.length
+                idTokenSize: result.idToken.length,
+                httpVer: result?.httpVer,
+                
             });
             atPopupMeasurement.endMeasurement({
                 success: true,
-                requestId: result.requestId,
-                httpVer: result?.httpVer,
+                requestId: result.requestId,  
             });
 
             atPopupMeasurement.flushMeasurement();

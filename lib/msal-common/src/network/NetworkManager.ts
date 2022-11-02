@@ -44,7 +44,7 @@ export class NetworkManager {
                 throw ClientAuthError.createNetworkError(tokenEndpoint, e);
             }
         }
-        
+
         ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
 
         return response;
