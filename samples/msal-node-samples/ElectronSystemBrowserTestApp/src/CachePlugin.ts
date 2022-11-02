@@ -26,7 +26,6 @@ export const cachePlugin = (CACHE_LOCATION: string): ICachePlugin => {
                     cacheContext.tokenCache.serialize(),
                     (err) => {
                         if (err) {
-                            console.log(err, " in else")
                             reject();
                         }
                     }
