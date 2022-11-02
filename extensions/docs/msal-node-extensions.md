@@ -11,17 +11,49 @@ Supported platforms are Windows, Mac and Linux:
 - Linux - LibSecret is used for storing to "Secret Service" through npm keytar.
 
 ## Code
-### Creating the persistence layer
-Creating the persistence will differ based on what platform you are targeting.
 
+### Creating the persistence layer
+
+API for creating the persistence layer will differ based on what platform you are targeting.
+
+Alternatively, you can use PersistenceCreator.createPersistence as it's a generic wrapper and selects the appropriate persistence based on the platform . 
+
+```js
+const { protectedResources, msalConfig, persistenceConfiguration } = require("./authConfig");
+const {
+  DataProtectionScope,
+  PersistenceCreator,
+  PersistenceCachePlugin,
+} = require("@azure/msal-node-extensions");
+
+let authProvider;
+authProvider = new AuthProvider(msalConfig);
+...
+
+PersistenceCreator
+        .createPersistence(persistenceConfiguration)
+        .then((persistence) => {
+            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+
+            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
+        });
+```
+
+Alternatively, you can use below platform-specific options:-
 #### Windows:
 ```js
 import { FilePersistenceWithDataProtection, DataProtectionScope } from "@azure/msal-node-extensions";
 
 const cachePath = "path/to/cache/file.json";
 const dataProtectionScope = DataProtectionScope.CurrentUser;
-const optinalEntropy = "";
-const windowsPersistence = FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy);
+const optionalEntropy = "";
+const windowsPersistence = FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy)
+        .then((persistence) => {
+            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+
+            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
+        });
+
 ```
 
 - cachePath is the path in the file system where the encrypted cache file will be stored.
@@ -37,7 +69,11 @@ import { KeychainPersistence } from "@azure/msal-node-extensions";
 const cachePath = "path/to/cache/file.json";
 const serviceName = "";
 const accountName = "";
-const macPersistence = KeychainPersistence.create(cachePath, serviceName, accountName);
+const macPersistence = KeychainPersistence.create(cachePath, serviceName, accountName).then((persistence) => {
+            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+
+            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
+        });
 ```
 
 - cachePath is **not** where the cache will be stored. Instead, the extensions update this file with dummy data to update the file's update time, to check if the contents on the keychain should be loaded or not. It is also used as the location for the lock file.
@@ -51,7 +87,11 @@ import { LibSecretPersistence } from "@azure/msal-node-extensions";
 const cachePath = "path/to/cache/file.json";
 const serviceName = "";
 const accountName = "";
-const linuxPersistence = LibSecretPersistence.create(cachePath, serviceName, accountName);
+const linuxPersistence = LibSecretPersistence.create(cachePath, serviceName, accountName).then((persistence) => {
+            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+
+            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
+        });
 
 ```
 
@@ -65,9 +105,16 @@ An unencrypted file persistence, which works across all platforms, is provided f
 ```js
 import { FilePersistence } from "@azure/msal-node-extensions";
 
-const cachePath = "path/to/cache/file.json";
-const filePersistence = FilePersistence.create(cachePath, serviceName, accountName);
+const filePath = "path/to/cache/file.json";
+const filePersistence = FilePersistence.create(filePath, loggerOptions).then((persistence) => {
+            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+
+            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
+        });
+
 ```
+
+Note:- If file or directory has not been created, it FilePersistence.create() will create file and any directories in the path recursively.
 
 ### Creating the cache plugin
 Create the PersistenceCachePlugin, by passing in the persistence object that was created in the previous step.
@@ -87,11 +134,21 @@ const lockOptions = {
     retryNumber: 100,
     retryDelay: 50
 }
-const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence, lockOptions); // or any of the other ones.
+
+  PersistenceCreator
+        .createPersistence(persistenceConfiguration)
+        .then((persistence) => {
+            const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence, lockOptions); // or any of the other ones
+            msalConfig.cache.cachePlugin = persistenceCachePlugin; //set cachePlugin in msalConfig
+
+            // Initialize the electron authenticator
+            authProvider = new AuthProvider(msalConfig);
+        });
+
 ```
 
 ### Setting the PersistenceCachePlugin on the MSAL Node PublicClientApplication configuration
-Once you have a PersistenceCachePlugin, that can be set on the MSAL Node PublicClientApplication, by setting it as part of the configuration.
+Once you have a PersistenceCachePlugin, that can be set on the MSAL Node PublicClientApplication, by setting it as part of the configuration .
 
 ```js
 import { PublicClientApplication } from "@azure/msal-node";
@@ -109,9 +166,61 @@ const publicClientConfig = {
 const pca = new PublicClientApplication(publicClientConfig);
 ```
 
+Example (for Electron node-js desktop app):-
+
+authConfig.js:-
+```js
+const AAD_ENDPOINT_HOST = "https://login.microsoftonline.com/"; // include the trailing slash
+const REDIRECT_URI = "ENTER_REDIRECT_URI";
+
+const cachePath = "path/to/cache/file.json";
+
+/*define persistence config based on the appropriate persistence you are using(e.g- FilePersistenceWithDataProtection, generic PersistenceCreateor, etc)*/
+
+//defining persistence config for PersistenceCreator
+const persistenceConfiguration = {
+    cachePath,
+    dataProtectionScope: DataProtectionScope.CurrentUser,
+    serviceName: "test-msal-electron-service",
+    accountName: "test-msal-electron-account",
+    usePlaintextFileOnLinux: false,
+}
+
+  const msalConfig = {
+    auth: {
+        clientId: "CLIENT_ID_HERE",
+        authority: `${AAD_ENDPOINT_HOST}TENANT_ID_HERE`,
+    },
+    cache: {
+        cachePlugin: null // set later in main.js as shown above 
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: LogLevel.Verbose,
+        },
+    },
+};
+...
+
+module.exports = {
+  msalConfig: msalConfig,
+  protectedResources: protectedResources,
+  REDIRECT_URI: REDIRECT_URI,
+  persistenceConfiguration
+};
+
+```
+
 Note that MSAL will not read and write to persistence by default. You will have to call PublicClientApplication.tokenCache.readFromPersistence() and PublicClientApplication.tokenCache.writeToPersistence() anytime you trigger and MSAL Node operation that alters the token cache.
 
+
 ### Note for Electron Developers:
+Electron sample  link will be added here soon for clarity. 
+
 If you are using this extension for Electron, you might face an error similar to this:
 ```
 Uncaught Exception:
