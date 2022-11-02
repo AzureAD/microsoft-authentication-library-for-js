@@ -1,35 +1,13 @@
 {
   "name": "@azure/msal-angular",
   "version": "2.4.5",
-  "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
-  },
+  "author": "Microsoft <nugetaad@microsoft.com> (https://www.microsoft.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "git+https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for Angular",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "build:all": "npm run build:common && npm run build:browser && npm run build",
-    "build:browser": "cd ../msal-browser && npm run build",
-    "build:common": "cd ../msal-common && npm run build",
-    "build:pack": "npm run build && cd dist && npm pack",
-    "deploy": "npm run build:all && npm publish ./dist",
-    "test": "ng test",
-    "test:coverage": "npm test",
-    "lint": "cd ../../ && npm run lint:angular",
-    "lint:fix": "npm run lint -- -- --fix",
-    "e2e": "ng e2e",
-    "prepack": "npm run build:all",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-angular",
-    "prepublishOnly": "echo Use npm run deploy && exit 1"
-  },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
@@ -49,7 +27,6 @@
     "@angular/platform-browser": "~11.2.12",
     "@angular/platform-browser-dynamic": "~11.2.12",
     "@angular/router": "~11.2.12",
-    "@azure/msal-browser": "^2.30.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -71,5 +48,12 @@
   "peerDependencies": {
     "@azure/msal-browser": "^2.30.0",
     "rxjs": "^6.0.0 || ^7.0.0"
+  },
+  "bugs": {
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
+  },
+  "homepage": "https://github.com/AzureAD/microsoft-authentication-library-for-js#readme",
+  "directories": {
+    "doc": "docs"
   }
 }

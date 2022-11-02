@@ -17,7 +17,7 @@
         "experimentalDecorators": true,
         "paths": {
             "@azure/*": [
-                "./lib/*/src"
+                "./lib/*/src",
             ]
         }
     }

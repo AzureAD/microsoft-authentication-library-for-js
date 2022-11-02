@@ -5,7 +5,11 @@
     "declaration": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "baseUrl": "../../",
+    "paths": {
+      "tslib" : ["./node_modules/tslib/tslib.d.ts"]
+    }
   },
   "compileOnSave": false,
   "buildOnSave": false

@@ -1,15 +1,11 @@
 {
   "name": "@azure/msal-react",
   "version": "1.4.9",
-  "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
-  },
+  "author": "Microsoft <nugetaad@microsoft.com> (https://www.microsoft.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "git+https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for React",
   "main": "dist/index.js",
@@ -61,5 +57,12 @@
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
   },
-  "dependencies": {}
+  "bugs": {
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
+  },
+  "homepage": "https://github.com/AzureAD/microsoft-authentication-library-for-js#readme",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  }
 }

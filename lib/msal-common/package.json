@@ -1,14 +1,10 @@
 {
   "name": "@azure/msal-common",
-  "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
-  },
+  "author": "Microsoft <nugetaad@microsoft.com> (https://www.microsoft.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "git+https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "version": "7.6.0",
   "description": "Microsoft Authentication Library for js",
@@ -29,26 +25,12 @@
     "node": ">=0.8.0"
   },
   "directories": {
+    "doc": "docs",
     "test": "test"
   },
   "files": [
     "dist"
   ],
-  "scripts": {
-    "clean": "shx rm -rf dist lib",
-    "clean:coverage": "rimraf ../../.nyc_output/*",
-    "lint": "cd ../../ && npm run lint:common",
-    "lint:fix": "npm run lint -- -- --fix",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-    "build:modules": "rollup -c",
-    "build:modules:watch": "rollup -cw",
-    "build": "npm run clean && npm run build:modules",
-    "build:all": "npm run build",
-    "prepack": "npm run build",
-    "metadata:check": "npx ts-node scripts/metadata.ts"
-  },
   "devDependencies": {
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
@@ -68,9 +50,13 @@
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
     "ts-jest": "^27.1.5",
-    "tslib": "^1.10.0",
+    "tslib": "^1.14.1",
     "tslint": "^5.20.0",
     "typescript": "^3.7.5",
     "yargs": "^17.5.1"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
+  },
+  "homepage": "https://github.com/AzureAD/microsoft-authentication-library-for-js#readme"
 }

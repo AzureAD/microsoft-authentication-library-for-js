@@ -1,14 +1,10 @@
 {
   "name": "@azure/msal-browser",
-  "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
-  },
+  "author": "Microsoft <nugetaad@microsoft.com> (https://www.microsoft.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "git+https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "version": "2.30.0",
   "description": "Microsoft Authentication Library for js",
@@ -34,6 +30,8 @@
     ]
   },
   "directories": {
+    "doc": "docs",
+    "lib": "lib",
     "test": "test"
   },
   "files": [
@@ -42,25 +40,6 @@
     "lib/msal-browser.js.map",
     "lib/msal-browser.min.js"
   ],
-  "scripts": {
-    "cdn": "npm run build:all && npm run cdn:upload && npm run cdn:sri",
-    "cdn:upload": "node ./cdn-upload.js",
-    "cdn:sri": "node ./cdn-sri.js",
-    "clean": "shx rm -rf dist lib",
-    "clean:coverage": "rimraf ../../.nyc_output/*",
-    "lint": "cd ../../ && npm run lint:browser",
-    "lint:fix": "npm run lint -- -- --fix",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
-    "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-    "build:all": "npm run build:common && npm run build",
-    "build:common": "cd ../msal-common && npm run build",
-    "build:modules": "rollup -c",
-    "build:modules:watch": "rollup -cw",
-    "build": "npm run clean && npm run build:modules",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser",
-    "prepack": "npm run build:all"
-  },
   "devDependencies": {
     "@azure/storage-blob": "^12.2.1",
     "@babel/core": "^7.7.2",
@@ -89,7 +68,8 @@
     "tslint": "^5.20.0",
     "typescript": "^3.8.3"
   },
-  "dependencies": {
-    "@azure/msal-common": "^7.6.0"
-  }
+  "bugs": {
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
+  },
+  "homepage": "https://github.com/AzureAD/microsoft-authentication-library-for-js#readme"
 }

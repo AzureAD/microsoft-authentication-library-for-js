@@ -1,15 +1,11 @@
 {
   "name": "@azure/msal-node",
   "version": "1.14.2",
-  "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
-  },
+  "author": "Microsoft <nugetaad@microsoft.com> (https://www.microsoft.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "git+https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "description": "Microsoft Authentication Library for Node",
   "keywords": [
@@ -64,5 +60,13 @@
   },
   "engines": {
     "node": "10 || 12 || 14 || 16 || 18"
+  },
+  "bugs": {
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
+  },
+  "homepage": "https://github.com/AzureAD/microsoft-authentication-library-for-js#readme",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
   }
 }

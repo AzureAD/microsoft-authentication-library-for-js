@@ -1,14 +1,10 @@
 {
   "name": "@azure/node-token-validation",
-  "author": {
-    "name": "Microsoft",
-    "email": "nugetaad@microsoft.com",
-    "url": "https://www.microsoft.com"
-  },
+  "author": "Microsoft <nugetaad@microsoft.com> (https://www.microsoft.com)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+    "url": "git+https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
   "version": "1.0.0-alpha.0",
   "description": "Token validation library written in Node.js",
@@ -26,6 +22,7 @@
     "node": "18"
   },
   "directories": {
+    "doc": "docs",
     "test": "test"
   },
   "beachball": {

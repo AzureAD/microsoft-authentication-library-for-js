@@ -1,3 +1,4 @@
+/*
 let exec = require("child_process").exec;
 
 if (parseInt(process.env.BEACHBALL)) {
@@ -27,3 +28,4 @@ if (parseInt(process.env.BEACHBALL)) {
         }
     });
 }
+*/
