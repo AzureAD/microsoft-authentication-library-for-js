@@ -10,7 +10,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 export class AuthorityFactory {
 
@@ -29,9 +28,7 @@ export class AuthorityFactory {
         networkClient: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        proxyUrl?: string,
-        correlationId?: string, 
-        performanceClient?: IPerformanceClient
+        proxyUrl?: string
     ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
@@ -43,7 +40,7 @@ export class AuthorityFactory {
         );
 
         try {
-            await acquireTokenAuthority.resolveEndpointsAsync(correlationId, performanceClient);
+            await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
