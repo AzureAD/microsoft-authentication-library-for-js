@@ -111,7 +111,7 @@ npm start
 
 To demonstrate best security practices, this Electron sample uses a custom URL scheme `msal{Your_Application/Client_Id}://auth` that will launch the app when the URL with that scheme is visited.
 
-Using the `acquireTokenInteractive` API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching the system browser using a loopback server to redirect to `successTemplate.html` with the authorization code in the browser. The browser will launch the application upon receiving the authorization code from the **AzureAD**.
+Using the [acquireTokenInteractive](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/0596334bde059484b6f37b1a2337af4e9655f9e9/lib/msal-node/src/client/PublicClientApplication.ts#L91) API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching and navigating the system browser to authorization code URL and listens for the authorization code response via loopback server. Once the code is received successfully, `acquireTokenInteractive` will load the assigned **successTemplate**.
 
 ```typescript
  async getTokenInteractive(
