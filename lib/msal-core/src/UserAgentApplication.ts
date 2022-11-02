@@ -202,7 +202,7 @@ export class UserAgentApplication {
         // Set the Configuration
         this.config = buildConfiguration(configuration);
 
-        this.logger = this.config.system?.logger;
+        this.logger = this.config.system.logger;
         this.clientId = this.config.auth.clientId;
         this.inCookie = this.config.cache.storeAuthStateInCookie;
 
