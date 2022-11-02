@@ -207,7 +207,7 @@ private static onOpenUrl(event: any): void {
 1. After running the sample, the desktop app window will appear automatically
 1. Select the **Sign In** button in the top right.
 ![Screenshot](./ReadmeFiles/Screenshot-Sign-in.png)
-1. The browser will open on port `http://localhost` click continue to finish the authentication process.
+1. The app will open a browser to Azure AD for the user to sign-in.
 ![Screenshot](./ReadmeFiles/Screenshot-browser.png)
 1. Select the **Profile** button on the navigation bar. This will make a call to the Microsoft Graph API.
 1. Select the **Mail** button on the navigation bar. This will make a call to the Microsoft Graph API.
