@@ -121,7 +121,7 @@ export class RefreshTokenClient extends BaseClient {
                 }
             }
         }
-        // fall back to sapplication refresh token acquisition
+        // fall back to application refresh token acquisition
         return this.acquireTokenWithCachedRefreshToken(request, false);
 
     }
