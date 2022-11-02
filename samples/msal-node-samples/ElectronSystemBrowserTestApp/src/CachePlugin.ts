@@ -14,7 +14,6 @@ export const cachePlugin = (CACHE_LOCATION: string): ICachePlugin => {
             if (fs.existsSync(CACHE_LOCATION)) {
                 fs.readFile(CACHE_LOCATION, "utf-8", (err, data) => {
                     if (err) {
-                        console.log(err, " in error")
                         reject();
                     } else {
                         cacheContext.tokenCache.deserialize(data);
