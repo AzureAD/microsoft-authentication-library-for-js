@@ -26,10 +26,12 @@ export class SilentRefreshClient extends StandardInteractionClient {
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
             .then((result: AuthenticationResult) => {
+                acquireTokenMeasurement.addStaticFields({
+                    httpVer: result?.httpVer,
+                });
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
                     fromCache: result.fromCache,
-                    httpVer: result?.httpVer,
                     requestId: result.requestId
                 });
 

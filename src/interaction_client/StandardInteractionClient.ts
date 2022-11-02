@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError, IPerformanceClient } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
@@ -20,7 +20,6 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
 export abstract class StandardInteractionClient extends BaseInteractionClient {
-
     /**
      * Generates an auth code request tied to the url request.
      * @param request
@@ -61,7 +60,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         if (logoutRequest) {
             // If logoutHint isn't set and an account was passed in, try to extract logoutHint from ID Token Claims
             if (!logoutRequest.logoutHint) {
-                if (logoutRequest.account) {
+                if(logoutRequest.account) {
                     const logoutHint = this.getLogoutHintFromIdTokenClaims(logoutRequest.account);
                     if (logoutHint) {
                         this.logger.verbose("Setting logoutHint to login_hint ID Token Claim value for the account provided");
@@ -217,7 +216,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority(userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
-        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, undefined, requestCorrelationId, this.performanceClient)
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, undefined)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({
                     success: true,
@@ -225,7 +224,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
                 return result;
             })
-            .catch((error: AuthError) => {
+            .catch((error:AuthError) => {
                 getAuthorityMeasurement.endMeasurement({
                     errorCode: error.errorCode,
                     subErrorCode: error.subError,
@@ -241,7 +240,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected async initializeAuthorizationRequest(request: RedirectRequest | PopupRequest | SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
+    protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("initializeAuthorizationRequest called", this.correlationId);
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
@@ -249,7 +248,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || Constants.EMPTY_STRING,
+            (request && request.state)|| Constants.EMPTY_STRING,
             browserState
         );
 
