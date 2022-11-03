@@ -116,7 +116,7 @@ export abstract class ClientApplication {
         this.initialized = false;
 
         // Initialize logger
-        this.logger = new Logger(this.config.system?.loggerOptions, name, version);
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
 
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
