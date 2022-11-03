@@ -21,11 +21,12 @@ rules.push({
 });
 
 module.exports = {
-  module: {
-    rules,
-  },
-  plugins: plugins,
-  resolve: {
-    extensions: ['.js', '.ts', '.jsx', '.tsx', '.css'],
-  },
+    module: {
+        rules,
+    },
+    plugins: plugins,
+    resolve: {
+        extensions: [".js", ".ts", ".jsx", ".tsx", ".css"],
+    },
+    devtool: "inline-source-map",
 };

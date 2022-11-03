@@ -14,11 +14,10 @@
         "lint": "eslint --ext .ts,.tsx ."
     },
     "keywords": [
-         "msal-node",
-          "electron",
-          "javascript"
+        "msal-node",
+        "electron",
+        "javascript"
     ],
-    "author": "salman90",
     "license": "MIT",
     "devDependencies": {
         "@electron-forge/cli": "^6.0.0-beta.70",
@@ -49,10 +48,9 @@
     },
     "dependencies": {
         "@azure/msal-node": "^1.14.2",
-        "@microsoft/microsoft-graph-client": "^3.0.2",
+        "axios": "^1.1.3",
         "bootstrap": "^5.2.2",
-        "electron-squirrel-startup": "^1.0.0",
-        "isomorphic-fetch": "^3.0.0"
+        "electron-squirrel-startup": "^1.0.0"
     },
     "config": {
         "forge": {
@@ -72,8 +70,7 @@
                 },
                 {
                     "name": "@electron-forge/maker-deb",
-                    "config": {
-                    }
+                    "config": {}
                 },
                 {
                     "name": "@electron-forge/maker-rpm",
@@ -89,7 +86,7 @@
                             "config": "./webpack.renderer.config.js",
                             "entryPoints": [
                                 {
-                                    "html": "./src/index.html", 
+                                    "html": "./src/index.html",
                                     "js": "./src/renderer.ts",
                                     "name": "main_window",
                                     "preload": {

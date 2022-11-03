@@ -6,7 +6,7 @@ import { app, BrowserWindow, ipcMain } from "electron";
 import { IpcMessages, GRAPH_CONFIG, APPLICATION_DIMENSIONS } from "./Constants";
 import * as authConfig from "./config/customConfig.json";
 import AuthProvider from "./AuthProvider";
-import { getGraphClient } from "./Graph";
+import { FetchManager } from "./FetchManager";
 import { AccountInfo } from "@azure/msal-node";
 import * as path from "path";
 
@@ -20,6 +20,7 @@ export default class Main {
     static application: Electron.App;
     static mainWindow: Electron.BrowserWindow;
     static authProvider: AuthProvider;
+    static fetchManager: FetchManager;
     static authConfig: any;
 
     static main(): void {
@@ -96,6 +97,7 @@ export default class Main {
         Main.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
         Main.mainWindow.on("closed", Main.onClose);
         Main.authProvider = new AuthProvider(Main.authConfig);
+        Main.fetchManager = new FetchManager();
         Main.registerSubscriptions();
         Main.attemptSSOSilent();
     }
@@ -116,7 +118,10 @@ export default class Main {
              * the user interface but is otherwise not trustworthy of directly handling
              * the Node API.
              */
-            webPreferences: { preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,  nodeIntegration: false, },
+            webPreferences: {
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+                nodeIntegration: false,
+            },
         });
     }
 
@@ -124,7 +129,7 @@ export default class Main {
         Main.mainWindow.webContents.send(message, payload);
     }
 
-
+    
     private static async attemptSSOSilent(): Promise<void> {
         const tokenRequest = {
             scopes: authConfig.resourceApi.scopes,
@@ -164,13 +169,14 @@ export default class Main {
             account: null as AccountInfo,
             scopes: ["User.Read"],
         };
-        const token = await Main.authProvider.getToken(tokenRequest);
+        const tokenResponse = await Main.authProvider.getToken(tokenRequest);
         const account = Main.authProvider.currentAccount();
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await getGraphClient(token?.accessToken)
-            .api(GRAPH_CONFIG.GRAPH_ME_ENDPT)
-            .get();
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(
+            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`,
+            tokenResponse.accessToken
+        );
         Main.publish(IpcMessages.SET_PROFILE, graphResponse);
     }
 
@@ -179,13 +185,14 @@ export default class Main {
             account: null as AccountInfo,
             scopes: ["Mail.Read"],
         };
-        const token = await Main.authProvider.getToken(tokenRequest);
+        const tokenResponse = await Main.authProvider.getToken(tokenRequest);
         const account = Main.authProvider.currentAccount();
         await Main.loadBaseUI();
         Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await getGraphClient(token?.accessToken)
-            .api(GRAPH_CONFIG.GRAPH_MAIL_ENDPT)
-            .get();
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(
+            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_MAIL_ENDPT}`,
+            tokenResponse.accessToken
+        );    
         Main.publish(IpcMessages.SET_MAIL, graphResponse);
     }
 

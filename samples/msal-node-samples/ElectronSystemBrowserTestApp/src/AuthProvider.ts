@@ -8,7 +8,7 @@ import {
     SilentFlowRequest,
 } from "@azure/msal-node";
 import { cachePlugin } from "./CachePlugin";
-import { promises } from "fs";
+import * as fs from "fs";
 
 export default class AuthProvider {
     private clientApplication: PublicClientApplication;
@@ -47,20 +47,6 @@ export default class AuthProvider {
     async logout(): Promise<void> {
         if (!this.account) return;
         try {
-            /**
-             * If you would like to end the session with AAD, use the logout endpoint. You'll need to enable
-             * the optional token claim 'login_hint' for this to work as expected. For more information, visit:
-             * https://learn.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
-             */
-            if (this.account?.idTokenClaims?.["login_hint"]) {
-                await shell.openExternal(
-                    `${
-                        this.authConfig.authOptions.authority
-                    }/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(
-                        this.account?.idTokenClaims?.login_hint
-                    )}`
-                );
-            }
             await this.clientApplication
                 .getTokenCache()
                 .removeAccount(this.account);
@@ -130,12 +116,12 @@ export default class AuthProvider {
             const interactiveRequest: InteractiveRequest = {
                 ...tokenRequest,
                 openBrowser,
-                successTemplate: (
-                    await promises.readFile("./public/successTemplate.html")
-                ).toString(),
-                errorTemplate: (
-                    await promises.readFile("./public/errorTemplate.html")
-                ).toString(),
+                successTemplate: fs
+                    .readFileSync("./public/successTemplate.html", "utf8")
+                    .toString(),
+                errorTemplate: fs
+                    .readFileSync("./public/errorTemplate.html", "utf8")
+                    .toString(),
             };
 
             const authResponse =
