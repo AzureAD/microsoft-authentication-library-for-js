@@ -249,7 +249,8 @@ Note that MSAL will not read and write to persistence by default. You will have 
 
 
 ### Note for Electron Developers:
-Electron sample  link will be added here soon for clarity. 
+Electron sample :
+This [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack) depicts how to integrate the msal-node-extensions library to your electron application that has been bundled by webpack.
 
 If you are using this extension for Electron, you might face an error similar to this:
 ```
