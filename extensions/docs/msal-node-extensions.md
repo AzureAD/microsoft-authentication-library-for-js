@@ -16,43 +16,58 @@ Supported platforms are Windows, Mac and Linux:
 
 API for creating the persistence layer will differ based on what platform you are targeting.
 
-Alternatively, you can use PersistenceCreator.createPersistence as it's a generic wrapper and selects the appropriate persistence based on the platform . 
+Alternatively, you can use the `createPersistence` API from [PersistenceCreator](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/msal-node-extensions/src/persistence/PersistenceCreator.ts) as it's a generic wrapper and selects the appropriate persistence method based on the platform/OS. 
 
 ```js
-const { protectedResources, msalConfig, persistenceConfiguration } = require("./authConfig");
+const { PublicClientApplication } = require("@azure/msal-node");
 const {
   DataProtectionScope,
   PersistenceCreator,
   PersistenceCachePlugin,
 } = require("@azure/msal-node-extensions");
 
-let authProvider;
-authProvider = new AuthProvider(msalConfig);
-...
-
-PersistenceCreator
-        .createPersistence(persistenceConfiguration)
-        .then((persistence) => {
-            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
-
-            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
-        });
+const persistence = await PersistenceCreator.createPersistence({
+                cachePath: "path/to/cache/file.json",
+                dataProtectionScope: DataProtectionScope.CurrentUser,
+                serviceName: "test-msal-electron-service",
+                accountName: "test-msal-electron-account",
+                usePlaintextFileOnLinux: false,
+          });
+// Pass the persistence to msal config's cachePlugin
+msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+// Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
+const pca = new PublicClientApplication({
+                auth: {
+                        clientId: "CLIENT_ID_HERE",
+                    },
+                cache: {
+                        cachePlugin: new PersistenceCachePlugin(persistence);
+                    },
+                });
 ```
 
-Alternatively, you can use below platform-specific options:-
+Alternatively, you can use below platform-specific options:
 #### Windows:
 ```js
-import { FilePersistenceWithDataProtection, DataProtectionScope } from "@azure/msal-node-extensions";
+
+const { FilePersistenceWithDataProtection, DataProtectionScope } = require("@azure/msal-node-extensions");
+const { PublicClientApplication } = require("@azure/msal-node");
 
 const cachePath = "path/to/cache/file.json";
 const dataProtectionScope = DataProtectionScope.CurrentUser;
-const optionalEntropy = "";
-const windowsPersistence = FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy)
-        .then((persistence) => {
-            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
-
-            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
-        });
+const optionalEntropy = ""; //specifies password or other additional entropy used to encrypt the data.
+const windowsPersistence = await FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy);
+// Pass the persistence to msal config's cachePlugin
+msalConfig.cache.cachePlugin = new PersistenceCachePlugin(windowsPersistence);
+// Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
+const pca = new PublicClientApplication({
+                auth: {
+                        clientId: "CLIENT_ID_HERE",
+                    },
+                cache: {
+                        cachePlugin: new PersistenceCachePlugin(windowsPersistence);
+                    },
+                });
 
 ```
 
@@ -64,16 +79,24 @@ The FilePersistenceWithDataProtection uses the Win32 CryptProtectData and CryptU
 
 #### Mac:
 ```js
-import { KeychainPersistence } from "@azure/msal-node-extensions";
+const { KeychainPersistence } = require("@azure/msal-node-extensions");
 
 const cachePath = "path/to/cache/file.json";
-const serviceName = "";
-const accountName = "";
-const macPersistence = KeychainPersistence.create(cachePath, serviceName, accountName).then((persistence) => {
-            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
+const serviceName = "test-msal-electron-service";
+const accountName = "test-msal-electron-account";
+const macPersistence = await KeychainPersistence.create(cachePath, serviceName, accountName);
+// Pass the persistence to msal config's cachePlugin
+msalConfig.cache.cachePlugin = new PersistenceCachePlugin(macPersistence);
+// Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
+const pca = new PublicClientApplication({
+                auth: {
+                        clientId: "CLIENT_ID_HERE",
+                    },
+                cache: {
+                        cachePlugin: new PersistenceCachePlugin(macPersistence);
+                    },
+                });
 
-            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
-        });
 ```
 
 - cachePath is **not** where the cache will be stored. Instead, the extensions update this file with dummy data to update the file's update time, to check if the contents on the keychain should be loaded or not. It is also used as the location for the lock file.
@@ -82,16 +105,23 @@ const macPersistence = KeychainPersistence.create(cachePath, serviceName, accoun
 
 #### Linux:
 ```js
-import { LibSecretPersistence } from "@azure/msal-node-extensions";
+const { LibSecretPersistence } = require("@azure/msal-node-extensions");
 
 const cachePath = "path/to/cache/file.json";
-const serviceName = "";
-const accountName = "";
-const linuxPersistence = LibSecretPersistence.create(cachePath, serviceName, accountName).then((persistence) => {
-            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
-
-            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
-        });
+const serviceName = "test-msal-electron-service";
+const accountName = "test-msal-electron-account";
+const linuxPersistence = await LibSecretPersistence.create(cachePath, serviceName, accountName);
+// Pass the persistence to msal config's cachePlugin
+msalConfig.cache.cachePlugin = new PersistenceCachePlugin(linuxPersistence);
+// Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
+const pca = new PublicClientApplication({
+                auth: {
+                        clientId: "CLIENT_ID_HERE",
+                    },
+                cache: {
+                        cachePlugin: new PersistenceCachePlugin(linuxPersistence);
+                    },
+                });
 
 ```
 
@@ -103,24 +133,24 @@ const linuxPersistence = LibSecretPersistence.create(cachePath, serviceName, acc
 An unencrypted file persistence, which works across all platforms, is provided for convenience, although not recommended.
 
 ```js
-import { FilePersistence } from "@azure/msal-node-extensions";
+const { FilePersistence } = require("@azure/msal-node-extensions");
 
 const filePath = "path/to/cache/file.json";
-const filePersistence = FilePersistence.create(filePath, loggerOptions).then((persistence) => {
-            msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
-
-            authProvider = new AuthProvider(msalConfig); //pass the msalConfig to AuthProvider constructor
-        });
+const filePersistence = await FilePersistence.create(filePath, loggerOptions);
+// Pass the persistence to msal config's cachePlugin
+msalConfig.cache.cachePlugin = new PersistenceCachePlugin(filePersistence);
+ // Initialize the electron authenticator
+authProvider = new AuthProvider(msalConfig); 
 
 ```
 
-Note:- If file or directory has not been created, it FilePersistence.create() will create file and any directories in the path recursively.
+> :https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/e7ea9fd970c035aaee9f8d3c3d3196334fd1c0de/extensions/msal-node-extensions/src/persistence/FilePersistence.ts#L18: If file or directory has not been created, `FilePersistence.create()` will create the file and any directories in the path recursively.
 
 ### Creating the cache plugin
 Create the PersistenceCachePlugin, by passing in the persistence object that was created in the previous step.
 
 ```js
-import { PersistenceCachePlugin } from "@azure/msal-node-extensions";
+const { PersistenceCachePlugin } = require("@azure/msal-node-extensions");
 
 const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence); // or any of the other ones.
 ```
@@ -128,27 +158,27 @@ const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence); /
 To support concurrent access my multiple processess, the extensions use a file based lock. You can configure the retry number and retry delay for lock acquisition through CrossPlatformLockOptions.
 
 ```js
-import { PersistenceCachePlugin } from "@azure/msal-node-extensions";
+const {
+  PersistenceCreator
+  PersistenceCachePlugin,
+} = require("@azure/msal-node-extensions");
 
 const lockOptions = {
     retryNumber: 100,
     retryDelay: 50
 }
 
-  PersistenceCreator
-        .createPersistence(persistenceConfiguration)
-        .then((persistence) => {
-            const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence, lockOptions); // or any of the other ones
-            msalConfig.cache.cachePlugin = persistenceCachePlugin; //set cachePlugin in msalConfig
-
-            // Initialize the electron authenticator
-            authProvider = new AuthProvider(msalConfig);
-        });
+const persistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
+const persistenceCachePlugin = new PersistenceCachePlugin(persistence, lockOptions); // or any of the other ones
+// Pass the persistence to msal config's cachePlugin
+msalConfig.cache.cachePlugin = persistenceCachePlugin;
+// Initialize the electron authenticator
+authProvider = new AuthProvider(msalConfig);
 
 ```
 
 ### Setting the PersistenceCachePlugin on the MSAL Node PublicClientApplication configuration
-Once you have a PersistenceCachePlugin, that can be set on the MSAL Node PublicClientApplication, by setting it as part of the configuration .
+Once you have a `PersistenceCachePlugin`, that can be set on the MSAL Node `PublicClientApplication`, by setting it as part of the [configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) object.
 
 ```js
 import { PublicClientApplication } from "@azure/msal-node";
