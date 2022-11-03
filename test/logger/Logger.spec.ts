@@ -190,7 +190,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
         it("Doesn't throw if loggerOptions explicitly set to undefined", () => {
             //@ts-ignore
-            loggerOptions=void 0 || undefined || null;
+            loggerOptions=void 0 || undefined;
             const logger = new Logger(loggerOptions);
             expect (logger).toBeTruthy();
             expect(logStore[LogLevel.Error]).toBe(undefined);
