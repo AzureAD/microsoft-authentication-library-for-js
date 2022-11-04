@@ -160,7 +160,7 @@ export default class Main {
                 Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
             }
         } catch (error) {
-            console.log(error, " error");
+            console.log(error);
         }
     }
 

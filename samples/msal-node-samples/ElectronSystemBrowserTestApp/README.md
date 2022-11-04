@@ -4,7 +4,7 @@ An Electron application built with TypeScript that uses the MSAL Node library to
 
 ## Should I use this sample
 
-Understanding the way MSAL Node is used in this sample will help you if you're interested in building an Electron.js application to authenticate and acquire tokens using the system browser. Native apps that use the browser for authorization are more secure and can take advantage of the user's authentication session in the browser to enable single sign-on.
+This sample demonstrates how to use **MSAL Node** to sign in a user and acquire an access token for a protected resource such as **Microsoft Graph** in an Electron desktop application using the system browser and [the authorization code grant with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow). Native apps that use the browser for authorization are more secure and can take advantage of the user's authentication session in the browser to enable single sign-on.
 
 ## How to run the samples
 
@@ -116,12 +116,12 @@ Using the [acquireTokenInteractive](https://github.com/AzureAD/microsoft-authent
             const interactiveRequest: InteractiveRequest = {
                 ...tokenRequest,
                 openBrowser,
-                successTemplate: (
-                    await promises.readFile("./public/successTemplate.html")
-                ).toString(),
-                errorTemplate: (
-                    await promises.readFile("./public/errorTemplate.html")
-                ).toString(),
+                successTemplate: fs
+                    .readFileSync("./public/successTemplate.html", "utf8")
+                    .toString(),
+                errorTemplate: fs
+                    .readFileSync("./public/errorTemplate.html", "utf8")
+                    .toString(),
             };
 
             const authResponse =

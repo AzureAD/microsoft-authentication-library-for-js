@@ -24,7 +24,7 @@ export class FetchManager {
                 Authorization: `Bearer ${accessToken}`,
             },
         };
-        console.log("Request made at: " + new Date().toString());
+        console.log(`Request made at: ${new Date().toString()}`);
         try {
             const response = await axios.get(endpoint, options);
             return (await response.data) as UserInfo | MailInfo;

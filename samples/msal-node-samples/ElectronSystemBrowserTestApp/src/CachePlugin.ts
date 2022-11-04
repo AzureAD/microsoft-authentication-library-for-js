@@ -25,9 +25,7 @@ export const cachePlugin = (CACHE_LOCATION: string): ICachePlugin => {
                     CACHE_LOCATION,
                     cacheContext.tokenCache.serialize(),
                     (err) => {
-                        if (err) {
-                            reject();
-                        }
+                        if (err) reject();
                     }
                 );
             }
@@ -40,9 +38,7 @@ export const cachePlugin = (CACHE_LOCATION: string): ICachePlugin => {
                 CACHE_LOCATION,
                 cacheContext.tokenCache.serialize(),
                 (err) => {
-                    if (err) {
-                        console.log(err);
-                    }
+                    if (err) console.log(err);
                 }
             );
         }
