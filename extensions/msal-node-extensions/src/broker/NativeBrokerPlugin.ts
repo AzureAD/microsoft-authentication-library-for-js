@@ -19,7 +19,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
         this.logger.trace("NativeBrokerPlugin - getAccountById called", correlationId);
         const account = await this.readAccountById(accountId, correlationId);
-        return this.generateAccountInfo(account, {});
+        return this.generateAccountInfo(account);
     }
 
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
@@ -112,6 +112,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         if (request.claims) {
             authParams.SetDecodedClaims(request.claims);
         }
+
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            if (!request.resourceRequestMethod || !request.resourceRequestUri || !request.shrNonce) {
+                throw new Error("Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce");
+            }
+            const resourceUrl = new URL(request.resourceRequestUri);
+            authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
+        }
         
         if (request.extraParameters) {
             Object.keys(request.extraParameters).forEach((key) => {
@@ -169,7 +177,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return result;
     }
 
-    private generateAccountInfo(account: Account, idTokenClaims: IdTokenClaims): AccountInfo {
+    private generateAccountInfo(account: Account, idTokenClaims?: IdTokenClaims): AccountInfo {
         this.logger.trace("NativeBrokerPlugin - generateAccountInfo called");
 
         const accountInfo: AccountInfo = {
