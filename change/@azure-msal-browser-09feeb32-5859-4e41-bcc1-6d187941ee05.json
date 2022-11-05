@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add MATS fields to telemetry #5308",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
