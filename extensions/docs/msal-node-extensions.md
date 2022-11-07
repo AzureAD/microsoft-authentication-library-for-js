@@ -57,8 +57,6 @@ const cachePath = "path/to/cache/file.json";
 const dataProtectionScope = DataProtectionScope.CurrentUser;
 const optionalEntropy = ""; //specifies password or other additional entropy used to encrypt the data.
 const windowsPersistence = await FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy);
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(windowsPersistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
