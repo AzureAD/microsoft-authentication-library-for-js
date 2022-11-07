@@ -8,7 +8,8 @@ import {
     NetworkRequestOptions,
     NetworkResponse
 } from "@azure/msal-common";
-import { HttpMethod, Constants } from "../utils/Constants";
+import { HttpMethod, Constants, HttpStatus, ProxyStatus } from "../utils/Constants";
+import { NetworkUtils } from "../utils/NetworkUtils";
 import http from "http";
 import https from "https";
 
@@ -103,11 +104,11 @@ const networkRequestViaProxy = <T>(
 
         // establish connection to the proxy
         request.on("connect", (response, socket) => {
-            const statusCode = response?.statusCode || 500;
-            if (statusCode < 200 || statusCode > 299) {
+            const proxyStatusCode = response?.statusCode || ProxyStatus.SERVER_ERROR;
+            if (proxyStatusCode < ProxyStatus.OK || proxyStatusCode > ProxyStatus.OK_UPPER_LIMIT) {
                 request.destroy();
                 socket.destroy();
-                reject(new Error(`Error connecting to proxy. Status Code: ${response.statusCode}. Status Message: ${response?.statusMessage || "Unknown"}`));
+                reject(new Error(`Error connecting to proxy. Http status code: ${response.statusCode}. Http status message: ${response?.statusMessage || "Unknown"}`));
             }
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
@@ -133,7 +134,7 @@ const networkRequestViaProxy = <T>(
                 // separate each line into it's own entry in an arry
                 const dataStringArray = dataString.split("\r\n");
                 // the first entry will contain the statusCode and statusMessage
-                const statusCode = parseInt(dataStringArray[0].split(" ")[1]);
+                const httpStatusCode = parseInt(dataStringArray[0].split(" ")[1]);
                 // remove "HTTP/1.1" and the status code to get the status message
                 const statusMessage = dataStringArray[0].split(" ").slice(2).join(" ");
                 // the last entry will contain the body
@@ -172,12 +173,13 @@ const networkRequestViaProxy = <T>(
                 const headers = Object.fromEntries(entries);
 
                 const parsedHeaders = headers as Record<string, string>;
-                const networkResponse: NetworkResponse<T> = {
-                    headers: parsedHeaders,
-                    body: parseBody(statusCode, statusMessage, parsedHeaders, body) as T,
-                    status: statusCode as number,
-                };
-                if ((statusCode < 200 || statusCode > 299) &&
+                const networkResponse = NetworkUtils.getNetworkResponse(
+                    parsedHeaders,
+                    parseBody(httpStatusCode, statusMessage, parsedHeaders, body) as T,
+                    httpStatusCode
+                );
+
+                if ((httpStatusCode < HttpStatus.OK || httpStatusCode > HttpStatus.OK_UPPER_LIMIT) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
@@ -257,13 +259,13 @@ const networkRequestViaHttps = <T>(
                 const body = Buffer.concat([...data]).toString();
 
                 const parsedHeaders = headers as Record<string, string>;
-                const networkResponse: NetworkResponse<T> = {
-                    headers: parsedHeaders,
-                    body: parseBody(statusCode, statusMessage, parsedHeaders, body) as T,
-                    status: statusCode,
-                };
+                const networkResponse = NetworkUtils.getNetworkResponse(
+                    parsedHeaders,
+                    parseBody(statusCode, statusMessage, parsedHeaders, body) as T,
+                    statusCode
+                );
 
-                if ((statusCode < 200 || statusCode > 299) &&
+                if ((statusCode < HttpStatus.OK || statusCode > HttpStatus.OK_UPPER_LIMIT) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
@@ -302,10 +304,10 @@ const parseBody = (statusCode: number, statusMessage: string | undefined, header
     } catch (error) {
         let errorType;
         let errorDescriptionHelper;
-        if ((statusCode >= 400) && (statusCode <= 499)) {
+        if ((statusCode >= HttpStatus.CLIENT_ERROR_LOWER_LIMIT) && (statusCode <= HttpStatus.CLIENT_ERROR_UPPER_LIMIT)) {
             errorType = "client_error";
             errorDescriptionHelper = "A client";
-        } else if ((statusCode >= 500) && (statusCode <= 599)) {
+        } else if ((statusCode >= HttpStatus.SERVER_ERROR_LOWER_LIMIT) && (statusCode <= HttpStatus.SERVER_ERROR_UPPER_LIMIT)) {
             errorType = "server_error";
             errorDescriptionHelper = "A server";
         } else {

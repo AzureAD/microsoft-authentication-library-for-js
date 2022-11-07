@@ -13,7 +13,18 @@ export enum HttpMethod {
 
 export enum HttpStatus {
     OK = 200,
-    REDIRECT = 302
+    OK_UPPER_LIMIT = 299,
+    REDIRECT = 302,
+    CLIENT_ERROR_LOWER_LIMIT = 400,
+    CLIENT_ERROR_UPPER_LIMIT = 499,
+    SERVER_ERROR_LOWER_LIMIT = 500,
+    SERVER_ERROR_UPPER_LIMIT = 599
+}
+
+export enum ProxyStatus {
+    OK = 200,
+    OK_UPPER_LIMIT = 299,
+    SERVER_ERROR = 500
 }
 
 /**
