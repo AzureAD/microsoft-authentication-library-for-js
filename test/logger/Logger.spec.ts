@@ -180,22 +180,10 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
-            expect(logStore[LogLevel.Verbose]).toBe(undefined);
-            expect(logStore[LogLevel.Trace]).toBe(undefined);
-        });
-
-        it("Doesn't throw if loggerOptions explicitly set to undefined", () => {
-            //@ts-ignore
-            loggerOptions=void 0 || undefined;
-            const logger = new Logger(loggerOptions);
-            expect (logger).toBeTruthy();
-            expect(logStore[LogLevel.Error]).toBe(undefined);
-            expect(logStore[LogLevel.Warning]).toBe(undefined);
-            expect(logStore[LogLevel.Info]).toBe(undefined);
             expect(logStore[LogLevel.Verbose]).toBe(undefined);
             expect(logStore[LogLevel.Trace]).toBe(undefined);
         });
