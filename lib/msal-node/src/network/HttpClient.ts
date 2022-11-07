@@ -105,7 +105,7 @@ const networkRequestViaProxy = <T>(
         // establish connection to the proxy
         request.on("connect", (response, socket) => {
             const proxyStatusCode = response?.statusCode || ProxyStatus.SERVER_ERROR;
-            if (proxyStatusCode < ProxyStatus.OK || proxyStatusCode > ProxyStatus.OK_UPPER_LIMIT) {
+            if ((proxyStatusCode < ProxyStatus.SUCCESS_RANGE_START) || (proxyStatusCode > ProxyStatus.SUCCESS_RANGE_END)) {
                 request.destroy();
                 socket.destroy();
                 reject(new Error(`Error connecting to proxy. Http status code: ${response.statusCode}. Http status message: ${response?.statusMessage || "Unknown"}`));
@@ -179,7 +179,7 @@ const networkRequestViaProxy = <T>(
                     httpStatusCode
                 );
 
-                if ((httpStatusCode < HttpStatus.OK || httpStatusCode > HttpStatus.OK_UPPER_LIMIT) &&
+                if (((httpStatusCode < HttpStatus.SUCCESS_RANGE_START) || (httpStatusCode > HttpStatus.SUCCESS_RANGE_END)) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
@@ -265,7 +265,7 @@ const networkRequestViaHttps = <T>(
                     statusCode
                 );
 
-                if ((statusCode < HttpStatus.OK || statusCode > HttpStatus.OK_UPPER_LIMIT) &&
+                if (((statusCode < HttpStatus.SUCCESS_RANGE_START) || (statusCode > HttpStatus.SUCCESS_RANGE_END)) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
@@ -304,10 +304,10 @@ const parseBody = (statusCode: number, statusMessage: string | undefined, header
     } catch (error) {
         let errorType;
         let errorDescriptionHelper;
-        if ((statusCode >= HttpStatus.CLIENT_ERROR_LOWER_LIMIT) && (statusCode <= HttpStatus.CLIENT_ERROR_UPPER_LIMIT)) {
+        if ((statusCode >= HttpStatus.CLIENT_ERROR_RANGE_START) && (statusCode <= HttpStatus.CLIENT_ERROR_RANGE_END)) {
             errorType = "client_error";
             errorDescriptionHelper = "A client";
-        } else if ((statusCode >= HttpStatus.SERVER_ERROR_LOWER_LIMIT) && (statusCode <= HttpStatus.SERVER_ERROR_UPPER_LIMIT)) {
+        } else if ((statusCode >= HttpStatus.SERVER_ERROR_RANGE_START) && (statusCode <= HttpStatus.SERVER_ERROR_RANGE_END)) {
             errorType = "server_error";
             errorDescriptionHelper = "A server";
         } else {
