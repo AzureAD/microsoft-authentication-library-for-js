@@ -262,7 +262,7 @@ describe("HttpClient", () => {
     });
 
     describe("Bad Status Code Error", () => {
-        const proxyError: Error = new Error("Error connecting to proxy. Status Code: 500. Status Message: Unknown");
+        const proxyError: Error = new Error("Error connecting to proxy. Http status code: 500. Http status message: Unknown");
 
         describe("Get Request", () => {
             describe("Via Https", () => {
