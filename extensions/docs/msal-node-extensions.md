@@ -33,8 +33,6 @@ const persistence = await PersistenceCreator.createPersistence({
                 accountName: "test-msal-electron-account",
                 usePlaintextFileOnLinux: false,
           });
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
@@ -57,8 +55,6 @@ const cachePath = "path/to/cache/file.json";
 const dataProtectionScope = DataProtectionScope.CurrentUser;
 const optionalEntropy = ""; //specifies password or other additional entropy used to encrypt the data.
 const windowsPersistence = await FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy);
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(windowsPersistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
@@ -85,8 +81,6 @@ const cachePath = "path/to/cache/file.json";
 const serviceName = "test-msal-electron-service";
 const accountName = "test-msal-electron-account";
 const macPersistence = await KeychainPersistence.create(cachePath, serviceName, accountName);
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(macPersistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
@@ -111,8 +105,6 @@ const cachePath = "path/to/cache/file.json";
 const serviceName = "test-msal-electron-service";
 const accountName = "test-msal-electron-account";
 const linuxPersistence = await LibSecretPersistence.create(cachePath, serviceName, accountName);
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(linuxPersistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
@@ -138,9 +130,14 @@ const { FilePersistence } = require("@azure/msal-node-extensions");
 const filePath = "path/to/cache/file.json";
 const filePersistence = await FilePersistence.create(filePath, loggerOptions);
 // Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(filePersistence);
- // Initialize the electron authenticator
-authProvider = new AuthProvider(msalConfig); 
+const pca = new PublicClientApplication({
+    auth: {
+            clientId: "CLIENT_ID_HERE",
+        },
+    cache: {
+            cachePlugin: new PersistenceCachePlugin(filePersistence);
+        },
+  });
 
 ```
 
@@ -170,10 +167,14 @@ const lockOptions = {
 
 const persistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
 const persistenceCachePlugin = new PersistenceCachePlugin(persistence, lockOptions); // or any of the other ones
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = persistenceCachePlugin;
-// Initialize the electron authenticator
-authProvider = new AuthProvider(msalConfig);
+const pca = new PublicClientApplication({
+    auth: {
+            clientId: "CLIENT_ID_HERE",
+        },
+    cache: {
+            cachePlugin: persistenceCachePlugin
+        },
+    });
 
 ```
 
