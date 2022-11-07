@@ -130,9 +130,14 @@ const { FilePersistence } = require("@azure/msal-node-extensions");
 const filePath = "path/to/cache/file.json";
 const filePersistence = await FilePersistence.create(filePath, loggerOptions);
 // Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(filePersistence);
- // Initialize the electron authenticator
-authProvider = new AuthProvider(msalConfig); 
+const pca = new PublicClientApplication({
+    auth: {
+            clientId: "CLIENT_ID_HERE",
+        },
+    cache: {
+            cachePlugin: new PersistenceCachePlugin(filePersistence);
+        },
+  });
 
 ```
 
