@@ -33,8 +33,6 @@ const persistence = await PersistenceCreator.createPersistence({
                 accountName: "test-msal-electron-account",
                 usePlaintextFileOnLinux: false,
           });
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(persistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
