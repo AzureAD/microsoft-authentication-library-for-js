@@ -81,8 +81,6 @@ const cachePath = "path/to/cache/file.json";
 const serviceName = "test-msal-electron-service";
 const accountName = "test-msal-electron-account";
 const macPersistence = await KeychainPersistence.create(cachePath, serviceName, accountName);
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = new PersistenceCachePlugin(macPersistence);
 // Use the persistence object to initialize an MSAL PublicClientApplication with cachePlugin
 const pca = new PublicClientApplication({
                 auth: {
