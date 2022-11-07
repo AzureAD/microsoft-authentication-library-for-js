@@ -104,8 +104,8 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 ### Advanced MSAL Angular v2 Samples
 * [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/3-Authorization-II/1-call-api)
 * [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/5-AccessControl/1-call-api-roles)
-* [Angular SPA calling Microsoft Graph via ASP.NET Core web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/7-AdvancedScenarios/1-call-api-obo)
-* [Multi-tenant tutorial using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-Multitenancy/1-call-api-mt)
+* [Angular SPA calling Microsoft Graph via ASP.NET Core web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-AdvancedScenarios/1-call-api-obo)
+* [Multi-tenant tutorial using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/6-AdvancedScenarios/2-call-api-mt)
 * [Deployment tutorial using Azure App Service and Azure Storage](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/4-Deployment)
 
 ## Build and running tests
