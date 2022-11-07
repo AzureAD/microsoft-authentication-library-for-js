@@ -167,10 +167,14 @@ const lockOptions = {
 
 const persistence = await PersistenceCreator.createPersistence(persistenceConfiguration);
 const persistenceCachePlugin = new PersistenceCachePlugin(persistence, lockOptions); // or any of the other ones
-// Pass the persistence to msal config's cachePlugin
-msalConfig.cache.cachePlugin = persistenceCachePlugin;
-// Initialize the electron authenticator
-authProvider = new AuthProvider(msalConfig);
+const pca = new PublicClientApplication({
+    auth: {
+            clientId: "CLIENT_ID_HERE",
+        },
+    cache: {
+            cachePlugin: persistenceCachePlugin
+        },
+    });
 
 ```
 
