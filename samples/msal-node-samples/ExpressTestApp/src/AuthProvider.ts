@@ -16,6 +16,7 @@ import {
 } from '@azure/msal-common';
 
 import {
+    IConfidentialClientApplication,
     ConfidentialClientApplication,
     Configuration,
     AccountInfo,
@@ -51,7 +52,6 @@ export class AuthProvider {
 
     appSettings: AppSettings;
     msalConfig: Configuration;
-    msalClient: ConfidentialClientApplication;
 
     private cryptoProvider: CryptoProvider;
 
@@ -62,7 +62,10 @@ export class AuthProvider {
 
         this.appSettings = appSettings;
         this.msalConfig = ConfigurationUtils.getMsalConfiguration(appSettings);
-        this.msalClient = new ConfidentialClientApplication(this.msalConfig);
+    }
+
+    private initializeMsalClient(): IConfidentialClientApplication {
+        return new ConfidentialClientApplication(this.msalConfig);
     }
 
     // ========== MIDDLEWARE ===========
@@ -109,8 +112,12 @@ export class AuthProvider {
             } as AccountInfo;
         }
 
+        if (!req.session["tokenCache"]) {
+            req.session.tokenCache = "";
+        }
+
         // random GUID for csrf check
-        req.session.nonce = this.cryptoProvider.createNewGuid();
+        req.session.csrfToken = this.cryptoProvider.createNewGuid();
 
         /**
          * The OAuth 2.0 state parameter can be used to encode information of the app's state before redirect.
@@ -122,7 +129,7 @@ export class AuthProvider {
             JSON.stringify({
                 stage: AppStages.SIGN_IN,
                 path: req.route.path,
-                nonce: req.session.nonce
+                csrfToken: req.session.csrfToken
             })
         );
 
@@ -170,69 +177,76 @@ export class AuthProvider {
      */
     handleRedirect = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
-        if (req.query.state) {
-            const state = JSON.parse(this.cryptoProvider.base64Decode(req.query.state as string));
-
-            // check if nonce matches
-            if (state.nonce === req.session.nonce) {
-
-                switch (state.stage) {
-
-                    case AppStages.SIGN_IN: {
-                        // token request should have auth code
-                        req.session.tokenRequest.code = req.query.code as string;
-
-                        try {
-
-                            // exchange auth code for tokens
-                            const tokenResponse = await this.msalClient.acquireTokenByCode(req.session.tokenRequest)
-                            console.log("\nResponse: \n:", tokenResponse);
-
-                            // assign session variables
-                            req.session.account = tokenResponse.account;
-                            req.session.isAuthenticated = true;
-
-                            return res.status(200).redirect(this.appSettings.settings.homePageRoute);
-
-                        } catch (error) {
-                            console.log(error);
-                            next(error);
-                        }
-                        break;
-                    }
-
-                    case AppStages.ACQUIRE_TOKEN: {
-                        // get the name of the resource associated with scope
-                        const resourceName = this.getResourceName(state.path);
-
-                        req.session.tokenRequest.code = req.query.code as string
-
-                        try {
-                            const tokenResponse = await this.msalClient.acquireTokenByCode(req.session.tokenRequest);
-                            console.log("\nResponse: \n:", tokenResponse);
-
-                            req.session[resourceName].accessToken = tokenResponse.accessToken;
-                            return res.status(200).redirect(state.path);
-
-                        } catch (error) {
-                            console.log(error);
-                            next(error);
-                        }
-                        break;
-                    }
-
-                    default:
-                        res.status(500).send(ErrorMessages.CANNOT_DETERMINE_APP_STAGE);
-                        break;
-                }
-            } else {
-                console.log(ErrorMessages.NONCE_MISMATCH)
-                res.status(401).send(ErrorMessages.NOT_PERMITTED);
-            }
-        } else {
+        if (!req.query.state) {
             console.log(ErrorMessages.STATE_NOT_FOUND)
-            res.status(401).send(ErrorMessages.NOT_PERMITTED);
+            return res.status(401).send(ErrorMessages.NOT_PERMITTED);
         }
+
+        const state = JSON.parse(this.cryptoProvider.base64Decode(req.query.state as string));
+
+        // check if csrfToken matches
+        if (state.csrfToken !== req.session.csrfToken) {
+            console.log(ErrorMessages.NONCE_MISMATCH)
+            return res.status(401).send(ErrorMessages.NOT_PERMITTED);
+        }
+
+        switch (state.stage) {
+
+            case AppStages.SIGN_IN:
+                // token request should have auth code
+                req.session.tokenRequest.code = req.query.code as string;
+
+                try {
+                    const msalClient = this.initializeMsalClient();
+
+                    // exchange auth code for tokens
+                    const tokenResponse = await msalClient.acquireTokenByCode(req.session.tokenRequest)
+                    console.log("\nResponse: \n:", tokenResponse);
+
+                    // assign session variables
+                    req.session.tokenCache = await msalClient.getTokenCache().serialize();
+                    req.session.account = tokenResponse.account;
+                    req.session.isAuthenticated = true;
+
+                    return res.status(200).redirect(this.appSettings.settings.homePageRoute);
+
+                } catch (error) {
+                    console.log(error);
+                    next(error);
+                }
+
+            break;
+
+
+            case AppStages.ACQUIRE_TOKEN:
+                // get the name of the resource associated with scope
+                const resourceName = this.getResourceName(state.path);
+
+                req.session.tokenRequest.code = req.query.code as string
+
+                try {
+                    const msalClient = this.initializeMsalClient();
+                    const tokenResponse = await msalClient.acquireTokenByCode(req.session.tokenRequest);
+                    console.log("\nResponse: \n:", tokenResponse);
+
+                    // assign session variables
+                    req.session.tokenCache = await msalClient.getTokenCache().serialize();
+                    req.session[resourceName].accessToken = tokenResponse.accessToken;
+                    return res.status(200).redirect(state.path);
+
+                } catch (error) {
+                    console.log(error);
+                    next(error);
+                }
+
+            break;
+
+
+            default:
+                res.status(500).send(ErrorMessages.CANNOT_DETERMINE_APP_STAGE);
+                break;
+        }
+
     };
 
     /**
@@ -256,9 +270,11 @@ export class AuthProvider {
         }
 
         try {
+            const msalClient = this.initializeMsalClient();
+            await msalClient.getTokenCache().deserialize(req.session.tokenCache);
 
-            const tokenCache = await this.msalClient.getTokenCache();
-            const account = await tokenCache.getAccountByHomeId(req.session.account.homeAccountId);
+            const account = await msalClient.getTokenCache()
+                .getAccountByHomeId(req.session.account.homeAccountId);
 
             const silentRequest = {
                 account: account,
@@ -266,8 +282,10 @@ export class AuthProvider {
             };
 
             // acquire token silently to be used in resource call
-            const tokenResponse = await this.msalClient.acquireTokenSilent(silentRequest)
+            const tokenResponse = await msalClient.acquireTokenSilent(silentRequest)
             console.log("\nSuccessful silent token acquisition:\n Response: \n:", tokenResponse);
+
+            req.session.tokenCache = await msalClient.getTokenCache().serialize();
 
             // In B2C scenarios, sometimes an access token is returned empty.
             // In that case, we will acquire token interactively instead.
@@ -282,12 +300,13 @@ export class AuthProvider {
         } catch (error) {
             // in case there are no cached tokens, initiate an interactive call
             if (error instanceof InteractionRequiredAuthError) {
+                console.log('silent token acquisition failed, acquiring token interactively');
 
                 const state = this.cryptoProvider.base64Encode(
                     JSON.stringify({
                         stage: AppStages.ACQUIRE_TOKEN,
                         path: req.route.path,
-                        nonce: req.session.nonce
+                        csrfToken: req.session.csrfToken
                     })
                 );
 
@@ -349,7 +368,8 @@ export class AuthProvider {
 
         // request an authorization code to exchange for tokens
         try {
-            const response = await this.msalClient.getAuthCodeUrl(req.session.authCodeRequest);
+            const msalClient = this.initializeMsalClient();
+            const response = await msalClient.getAuthCodeUrl(req.session.authCodeRequest);
             res.redirect(response);
         } catch (error) {
             console.log(JSON.stringify(error));
@@ -362,7 +382,9 @@ export class AuthProvider {
      * @param {string} path: route path
      */
     private getResourceName = (path: string): string => {
-        const index = Object.values(this.appSettings.resources).findIndex((resource: Resource) => resource.callingPageRoute === path);
+        const index = Object.values(this.appSettings.resources)
+            .findIndex((resource: Resource) => resource.callingPageRoute === path);
+
         const resourceName = Object.keys(this.appSettings.resources)[index];
         return resourceName;
     }

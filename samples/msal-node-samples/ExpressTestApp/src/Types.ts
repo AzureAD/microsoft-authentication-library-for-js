@@ -18,7 +18,8 @@ declare module "express-session" {
         authCodeRequest: AuthorizationUrlRequest;
         tokenRequest: AuthorizationCodeRequest;
         account: AccountInfo;
-        nonce: string;
+        csrfToken: string;
+        tokenCache: string
         isAuthenticated?: boolean;
         resources?: {
             [resource: string]: Resource;
