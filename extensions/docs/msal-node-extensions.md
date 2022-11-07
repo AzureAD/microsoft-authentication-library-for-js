@@ -146,7 +146,7 @@ authProvider = new AuthProvider(msalConfig);
 
 > :https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/e7ea9fd970c035aaee9f8d3c3d3196334fd1c0de/extensions/msal-node-extensions/src/persistence/FilePersistence.ts#L18: If file or directory has not been created, `FilePersistence.create()` will create the file and any directories in the path recursively.
 
-### Creating the cache plugin
+### Passing lock options to the Cache plugin for concurrency
 Create the PersistenceCachePlugin, by passing in the persistence object that was created in the previous step.
 
 ```js
@@ -155,11 +155,11 @@ const { PersistenceCachePlugin } = require("@azure/msal-node-extensions");
 const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence); // or any of the other ones.
 ```
 
-To support concurrent access my multiple processess, the extensions use a file based lock. You can configure the retry number and retry delay for lock acquisition through CrossPlatformLockOptions.
+To support concurrent access by multiple processess, the extensions use a file based lock. You can configure the retry number and retry delay for lock acquisition through CrossPlatformLockOptions.
 
 ```js
 const {
-  PersistenceCreator
+  PersistenceCreator,
   PersistenceCachePlugin,
 } = require("@azure/msal-node-extensions");
 
@@ -245,7 +245,7 @@ module.exports = {
 
 ```
 
-Note that MSAL will not read and write to persistence by default. You will have to call PublicClientApplication.tokenCache.readFromPersistence() and PublicClientApplication.tokenCache.writeToPersistence() anytime you trigger and MSAL Node operation that alters the token cache.
+
 
 
 ### Note for Electron Developers:
@@ -262,3 +262,8 @@ This error is probably due to Node.js version differences between the Electron p
 - Install ```electron-rebuild``` with the command ```npm i -D electron-rebuild``` if you don't already have it installed.
 - Remove ```packages-lock.json``` from your project if it exists
 - Run ```./node_modules/.bin/electron-rebuild```
+
+
+### Samples
+1) [Electron-webpack sample for persistence](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/electron-webpack)
+2) [Msal-node extensions sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/samples/msal-node-extensions)
