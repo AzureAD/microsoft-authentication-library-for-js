@@ -178,8 +178,8 @@ const pca = new PublicClientApplication({
 
 ```
 
-### Setting the PersistenceCachePlugin on the MSAL Node PublicClientApplication configuration
-Once you have a `PersistenceCachePlugin`, that can be set on the MSAL Node `PublicClientApplication`, by setting it as part of the [configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) object.
+### Setting the PersistenceCachePlugin on the MSAL Node PublicClientApplication configuration (with an example)
+To summarize, once you have a `PersistenceCachePlugin`, that can be set on the MSAL Node `PublicClientApplication`, by setting it as part of the [configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) object as shown below.
 
 ```js
 import { PublicClientApplication } from "@azure/msal-node";
