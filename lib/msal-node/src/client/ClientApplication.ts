@@ -32,7 +32,7 @@ import {
     StringUtils,
     ClientAuthError,
     Constants,
-} from "@azure/msal-common";
+    LogLevel } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { NodeStorage } from "../cache/NodeStorage";
@@ -83,7 +83,7 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.cryptoProvider = new CryptoProvider();
-        this.logger = new Logger(this.config.system?.loggerOptions, name, version);
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
         this.storage = new NodeStorage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
             this.storage,
@@ -357,11 +357,9 @@ export abstract class ClientApplication {
                 proxyUrl: this.config.system.proxyUrl,
             },
             loggerOptions: {
-                logLevel: this.config.system?.loggerOptions.logLevel,
-                loggerCallback: this.config.system?.loggerOptions
-                    .loggerCallback,
-                piiLoggingEnabled: this.config.system?.loggerOptions
-                    .piiLoggingEnabled,
+                logLevel: this.config.system.loggerOptions?.logLevel || LogLevel.Info,
+                loggerCallback: this.config.system.loggerOptions?.loggerCallback || (() => {}),
+                piiLoggingEnabled: this.config.system.loggerOptions?.piiLoggingEnabled || false,
                 correlationId: requestCorrelationId
             },
             cryptoInterface: this.cryptoProvider,
