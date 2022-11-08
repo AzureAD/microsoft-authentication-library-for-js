@@ -2,7 +2,8 @@
 *  Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license.
 *  See LICENSE in the source repository root for complete license information.
 */
-import express, { Request, Response } from 'express';
+import express from 'express';
+import { Request, Response } from 'express-serve-static-core';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
