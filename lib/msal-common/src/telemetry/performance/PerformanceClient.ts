@@ -40,10 +40,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected measurementsById: Map<string, IPerformanceMeasurement>;
 
-    protected queueMeasurements: Map<string, QueueMeasurement>;
-
-    // public queuedTime: number;
-    // public queuedCount: number;
+    protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
 
     /**
      * Creates an instance of PerformanceClient, 
@@ -68,8 +65,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.staticFieldsByCorrelationId = new Map();
         this.measurementsById = new Map();
         this.queueMeasurements = new Map();
-        // this.queuedTime = 0;
-        // this.queuedCount = 0;
     }
 
     /**
@@ -91,7 +86,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     abstract generateId(): string;
 
     calculateQueuedTime(preQueueTime: number, currentTime: number): number {
-        this.logger.info(`tx-CPC-calculateQueuedTime`);
         // More number calculations here?
         if (Number.isInteger(preQueueTime) && preQueueTime < 1) {
             this.logger.info(`tx-CPC-calculateQueuedTime - preQueueTime should be a positive integer and not ${preQueueTime}`);
@@ -101,17 +95,29 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     addQueueMeasurement(name: PerformanceEvents, time: number, correlationId?: string, ): void {
-        this.logger.info(`tx-CPC-addQueueMeasurement`);
         if (!correlationId) {
             this.logger.info(`tx-CPC-addQueueMeasurement - correlationId not provided, cannot add to QueueMeasurements`);
             return;
         }
-        this.queueMeasurements.set(correlationId, {name, time} as QueueMeasurement);
-        this.logger.trace(`tx-CPC-addQueueMeasurement - name: ${name}, time: ${time}`);
+        // this.queueMeasurements.set(correlationId, {name, time} as QueueMeasurement);
+        if (this.queueMeasurements.has(correlationId)) {
+            this.logger.info(`tx-CPC-addQueueMeasurement - correlationId ${correlationId} exists, adding measurement to array`);
+            const existingMeasurements = this.queueMeasurements.get(correlationId);
+            if (!existingMeasurements) {
+                this.logger.info(`tx-CPC-addQueueMeasurements - array for correlationId ${correlationId} is empty`);
+            } else {
+                this.queueMeasurements.set(correlationId, [...existingMeasurements, {name, time} as QueueMeasurement]);
+                // this.queueMeasurements[correlationId].push({name, time} as QueueMeasurement);
+            }
+        } else {
+            this.logger.info(`txt-CPC-addQueueMeasurement - correlationId ${correlationId} not in map, adding`);
+            const measurementArray = [];
+            measurementArray.push({name, time} as QueueMeasurement);
+            this.queueMeasurements.set(correlationId, measurementArray);
+        }
+        this.logger.trace(`tx-CPC-addQueueMeasurement - correlationId: ${correlationId}, name: ${name}, time: ${time} ms`);
     }
 
-    // abstract calculateQueuedTime(additionalTime?: number, fncName?: string): void;
-    // abstract retrieveQueuedMeasurements(): QueuedMeasurement;
     abstract getCurrentTime(): number;
 
     /**
@@ -277,6 +283,20 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
+
+        const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
+        if (!queueMeasurementForCorrelationId) {
+            this.logger.info(`tx-CPC-flushMeasurements - no measurements for correlationId, ERROR`);
+        }
+        this.logger.info(`tx-CPC-flushMeasurements - QUEUE MEASUREMENTS: ${JSON.stringify(queueMeasurementForCorrelationId)}`);
+        let totalTime = 0;
+        let totalCount = 0;
+        queueMeasurementForCorrelationId?.forEach((measurement) => {
+            totalTime += measurement.time;
+            totalCount++;
+        });
+        console.log(`tx-CPC-flushMeasurements - TOTAL TIME: ${totalTime} ms, TOTAL COUNT: ${totalCount} for correlationId ${correlationId}`);
+
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
         if (eventsForCorrelationId) {
             this.discardMeasurements(correlationId);
@@ -300,7 +320,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 completedEvents.push(event);
             });
 
-            this.logger.info(`tx-CPC-flushMeasurements - QueueMeasurements: ${JSON.stringify(this.queueMeasurements)}`);
 
             // Sort events by start time (earliest first)
             const sortedCompletedEvents = completedEvents.sort((eventA, eventB) => eventA.startTimeMs - eventB.startTimeMs);
@@ -343,7 +362,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
                 const finalEvent: PerformanceEvent = {
                     ...eventToEmit,
-                    ...staticFields
+                    ...staticFields,
+                    queuedTime: totalTime,
+                    queuedCount: totalCount
                 };
 
                 this.emitEvents([finalEvent], eventToEmit.correlationId);
