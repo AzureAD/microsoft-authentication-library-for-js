@@ -347,7 +347,6 @@ export abstract class ClientApplication {
         if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup).then((response) => {
                 this.browserStorage.setInteractionInProgress(false);
-                atPopupMeasurement.addStaticFields({httpVer: response?.httpVer});
                 atPopupMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
@@ -388,7 +387,6 @@ export abstract class ClientApplication {
             atPopupMeasurement.addStaticFields({
                 accessTokenSize: result.accessToken.length,
                 idTokenSize: result.idToken.length,
-                httpVer: result?.httpVer,
                 
             });
             atPopupMeasurement.endMeasurement({
@@ -471,7 +469,6 @@ export abstract class ClientApplication {
             ssoSilentMeasurement.addStaticFields({
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length,
-                httpVer: response?.httpVer,
             });
             ssoSilentMeasurement.endMeasurement({
                 success: true,
@@ -525,7 +522,6 @@ export abstract class ClientApplication {
                             atbcMeasurement.addStaticFields({
                                 accessTokenSize: result.accessToken.length,
                                 idTokenSize: result.idToken.length,
-                                httpVer: result?.httpVer,
                             });
                             atbcMeasurement.endMeasurement({
                                 success: true,

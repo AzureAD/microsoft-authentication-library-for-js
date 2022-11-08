@@ -62,9 +62,6 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger.verbose("Auth code client created");
 
             return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
-                acquireTokenMeasurement.addStaticFields({
-                    httpVer: result?.httpVer
-                });
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
                     fromCache: false,
