@@ -11,7 +11,7 @@ let accountPwd = "";
 
 // Set App Info
 const clientId = "e3b9ad76-9763-4827-b088-80c7a7888f79";
-const authority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/";
+const authority = "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/";
 const scopes = ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"];
 const idTokenCacheKey = "msal." + clientId + ".idtoken";
 const clientInfoCacheKey = "msal." + clientId + ".client.info";
@@ -150,14 +150,14 @@ describe("Browser tests", function () {
         await browser.close();
     });
 
-    describe("Test Login functions", async () => {  
+    describe("Test Login functions", async () => {
         beforeEach(async () => {
             SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             await page.goto("http://localhost:30662/");
         });
-    
+
         afterEach(async () => {
             await page.close();
         });
@@ -165,17 +165,17 @@ describe("Browser tests", function () {
         it("Performs loginRedirect", async () => {
             const testName = "redirectBaseCase";
             await loginRedirect(page, testName);
-            
+
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
 
             expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
         });
-        
+
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
             await loginPopup(page, testName);
-            
+
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
             expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
@@ -192,7 +192,7 @@ describe("Browser tests", function () {
             await page.goto("http://localhost:30662/");
             await loginPopup(page, testName);
         });
-    
+
         after(async () => {
             await page.close();
         });
@@ -212,7 +212,7 @@ describe("Browser tests", function () {
 
             const accessTokensFound = await validateAccessTokens(page, localStorage);
             expect(accessTokensFound).to.equal(2);
-        }); 
+        });
 
         it("Test acquireTokenPopup", async () => {
             await page.click("#getAccessTokenPopup");
@@ -225,7 +225,7 @@ describe("Browser tests", function () {
 
             const accessTokensFound = await validateAccessTokens(page, localStorage);
             expect(accessTokensFound).to.equal(2);
-        }); 
+        });
 
         it("Test acquireTokenSilent", async () => {
             await page.click("#getAccessTokenSilent");
@@ -235,9 +235,9 @@ describe("Browser tests", function () {
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
             expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
-            
+
             const accessTokensFound = await validateAccessTokens(page, localStorage);
             expect(accessTokensFound).to.equal(2);
-        }); 
+        });
     });
 });
