@@ -135,7 +135,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     atsMeasurement.addStaticFields({
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length,
-                        httpVer: result?.httpVer,
                     });
                     atsMeasurement.endMeasurement({
                         success: true,
@@ -243,9 +242,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            astsAsyncMeasurement.addStaticFields({
-                httpVer: response?.httpVer,
-            });
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,

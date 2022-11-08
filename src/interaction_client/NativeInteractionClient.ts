@@ -76,9 +76,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         return this.handleNativeResponse(validatedResponse, nativeRequest, reqTimestamp)
             .then((result: AuthenticationResult) => {
-                nativeATMeasurement.addStaticFields({
-                    httpVer: result?.httpVer,
-                });
+
                 nativeATMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
