@@ -1,8 +1,8 @@
 module.exports = {
     displayName: "Vanilla JS onPageLoad",
     globals: {
-        __PORT__: 30666,
-        __STARTCMD__: "npm start -- --port 30666 --sample onPageLoad",
+        __PORT__: 30663,
+        __STARTCMD__: "npm start -- --port 30663 --sample onPageLoad",
     },
     testMatch: [
         "<rootDir>/test/**/*.spec.ts",

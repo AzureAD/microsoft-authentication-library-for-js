@@ -4,12 +4,12 @@ import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestU
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { msalConfig as memStorageConfig, request as memStorageTokenRequest } from "../authConfig.json";
-import { getBrowser, getHomeUrl, clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "../../testUtils";
+import { msalConfig as memStorageConfig, request as memStorageTokenRequest } from "../authConfigs/memStorageAuthConfig.json";
+import { clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
+import {getBrowser, getHomeUrl} from "../../testUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-let sampleHomeUrl = "";
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/memStorage`;
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
@@ -23,8 +23,9 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
 describe("In Memory Storage Tests", function () {
     let username = "";
     let accountPwd = "";
-    let browser: puppeteer.Browser;
+    let sampleHomeUrl = "";
 
+    let browser: puppeteer.Browser;
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
@@ -40,7 +41,7 @@ describe("In Memory Storage Tests", function () {
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-        fs.writeFileSync("./app/customizable-e2e-mem-storage/testConfig.json", JSON.stringify({msalConfig: memStorageConfig, request: memStorageTokenRequest}));
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: memStorageConfig, request: memStorageTokenRequest}));
     });
 
     let context: puppeteer.BrowserContext;

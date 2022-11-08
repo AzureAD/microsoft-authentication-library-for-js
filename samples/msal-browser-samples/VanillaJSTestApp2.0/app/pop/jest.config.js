@@ -1,8 +1,8 @@
 module.exports = {
     displayName: "Vanilla JS pop",
     globals: {
-        __PORT__: 30667,
-        __STARTCMD__: "npm start -- --port 30667 --sample pop",
+        __PORT__: 30664,
+        __STARTCMD__: "npm start -- --port 30664 --sample pop",
     },
     testMatch: [
         "<rootDir>/test/**/*.spec.ts",
