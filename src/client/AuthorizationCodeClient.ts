@@ -75,9 +75,6 @@ export class AuthorizationCodeClient extends BaseClient {
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
         const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        console.log("All headers in ACC:", response.headers);
-        console.log("Using http ver in Auth code client");
-        console.log(httpVer);
         atsMeasurement?.addStaticFields({
             httpVer: httpVer
         });
