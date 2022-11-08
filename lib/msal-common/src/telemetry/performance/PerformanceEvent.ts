@@ -360,7 +360,7 @@ export type PerformanceEvent = StaticFields & {
      * 
      * @type {?string}
      */
-     requestId?: string
+    requestId?: string
 
     cacheLookupPolicy?: number | undefined,
 

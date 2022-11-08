@@ -94,7 +94,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        console.log("QUEUE");
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
         atsMeasurement.addStaticFields({
@@ -182,7 +181,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<AuthenticationResult>{
-        this.logger.info("tx-ACQUIRE TOKEN SILENT, GOING TO CALCULATE QUEUE TIME")
         const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, queueTime, request.correlationId);
 

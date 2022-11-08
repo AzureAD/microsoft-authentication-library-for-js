@@ -108,16 +108,17 @@ export class SilentIframeClient extends StandardInteractionClient {
         const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientTokenHelper, queueTime, silentRequest.correlationId);
 
-
         // Create auth code request and generate PKCE params
         const preInitializeTime = this.performanceClient.getCurrentTime();
         const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest, preInitializeTime);
         // Create authorize request url
-        const preAuthCodeUrlTime = this.performanceClient.getCurrentTime();
+        
+        // const preAuthCodeUrlTime = this.performanceClient.getCurrentTime();
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
-        }); //TODO: calculate here? AuthCodeClient is in msal-common
+        }); // TODO: calculate here? AuthCodeClient is in msal-common
+
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);
         // Get the frame handle for the silent request

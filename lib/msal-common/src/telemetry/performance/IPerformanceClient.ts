@@ -37,4 +37,4 @@ export interface IPerformanceClient {
 export type QueueMeasurement = {
     name: string,
     time: number
-}
+};
