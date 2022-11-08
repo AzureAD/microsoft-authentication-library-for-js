@@ -171,7 +171,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, httpVer, serverRequestId);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, undefined, serverRequestId);
                 }
             }
             await this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -181,7 +181,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, httpVer, serverRequestId);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId);
     }
 
     /**
@@ -322,7 +322,6 @@ export class ResponseHandler {
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
         code?: string,
-        httpVer?: string,
         requestId?: string
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
@@ -376,7 +375,6 @@ export class ResponseHandler {
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code,
             fromNativeBroker: false,
-            httpVer,
         };
     }
 }

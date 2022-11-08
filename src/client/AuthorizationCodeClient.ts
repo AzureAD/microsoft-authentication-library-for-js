@@ -62,6 +62,8 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+        // @ts-ignore
+        const atsMeasurement = this.performanceClient?.startMeasurement("AuthCodeClientAcquireToken", request.correlationId);
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -73,6 +75,12 @@ export class AuthorizationCodeClient extends BaseClient {
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
         const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        console.log("All headers in ACC:", response.headers);
+        console.log("Using http ver in Auth code client");
+        console.log(httpVer);
+        atsMeasurement?.addStaticFields({
+            httpVer: httpVer
+        });
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
@@ -85,7 +93,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body,
+        return  responseHandler.handleServerTokenResponse(response.body,
             this.authority,
             reqTimestamp,
             request,
@@ -95,7 +103,21 @@ export class AuthorizationCodeClient extends BaseClient {
             undefined,
             httpVer,
             requestId,
-        );
+        ).then((result: AuthenticationResult) => {
+            atsMeasurement?.endMeasurement({
+                success: true
+            });
+            return result;
+        })
+            .catch((error) => {
+                this.logger.verbose("Error in fetching token in ACC", request.correlationId);
+                atsMeasurement?.endMeasurement({
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
+                    success: false
+                });
+                throw error;
+            });
     }
 
     /**
