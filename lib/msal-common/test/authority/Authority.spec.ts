@@ -171,9 +171,17 @@ describe("Authority.ts Class Unit Tests", () => {
                 const baseAuthority = "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/";
                 jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(B2C_OPENID_CONFIG_RESPONSE.body);
 
-                authority = new Authority(`${baseAuthority}${signInPolicy}`, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(`${baseAuthority}${signInPolicy}`, networkInterface, mockStorage, {
+                    ...authorityOptions,
+                    knownAuthorities: ["msidlabb2c.b2clogin.com"],
+                });
+
                 await authority.resolveEndpointsAsync();
-                const secondAuthority = new Authority(`${baseAuthority}${resetPolicy}`, networkInterface, mockStorage, authorityOptions);
+                const secondAuthority = new Authority(`${baseAuthority}${resetPolicy}`, networkInterface, mockStorage, {
+                    ...authorityOptions,
+                    knownAuthorities: ["msidlabb2c.b2clogin.com"],
+                });
+
                 await secondAuthority.resolveEndpointsAsync();
 
                 expect(authority.authorizationEndpoint).toBe(B2C_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
