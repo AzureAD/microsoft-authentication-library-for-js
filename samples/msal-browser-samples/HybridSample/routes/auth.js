@@ -13,8 +13,11 @@ router.use('/lib', express.static(path.join(__dirname, '../node_modules/@azure/m
 router.get('/login', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/auth/server-redirect",
-        responseMode: "form_post"
+        redirectUri: "https://localhost:3000/auth/server-redirect",
+        responseMode: "form_post",
+        extraQueryParameters: {
+            "webnativebridge": "true"
+        }
     };
 
     // Set request state to use hybrid spa or implicit flow 
@@ -38,7 +41,7 @@ router.post('/server-redirect', (req, res) => {
     const tokenRequest = {
         code: req.body.code,
         scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/auth/server-redirect"
+        redirectUri: "https://localhost:3000/auth/server-redirect"
     };
 
     // Check if request is done via hybrid spa or implicit flow
@@ -48,7 +51,7 @@ router.post('/server-redirect', (req, res) => {
     // Parameters needed for hybrid spa test flight
     tokenRequest.tokenQueryParameters = {
         dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
-        hybridspa: "true"
+        hybridspa: "true",
     }
 
     // If using hybrid spa flow, enable feature flag to get additional auth code
