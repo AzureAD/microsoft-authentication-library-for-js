@@ -29,7 +29,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeAuthorizationCodeRequest, queueTime, request.correlationId);
 
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
-        const generatedPkceParams = await this.browserCrypto.generatePkceCodes(); //TODO: calculate this?
+        const generatedPkceParams = await this.browserCrypto.generatePkceCodes(); // TODO: calculate this?
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -230,6 +230,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
         // const preCreateDiscoveredInstanceTime = this.performanceClient.getCurrentTime();
+        
         // TODO: Need to measure here? AuthorityFactory is in common, can't use window.performance.now()
         return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions)
             .then((result: Authority) => {

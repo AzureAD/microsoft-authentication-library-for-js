@@ -58,11 +58,9 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
     }
 
     calculateQueuedTime(preQueueTime?: number): number {
-        this.logger.info(`tx-BPC-calculateQueuedTime`);
-        // this.logger.info(`testx-BPC-calculateQueuedTime - OQT: ${this.queuedTime} - OQC: ${this.queuedCount} - fxN: ${fncName} - addTime: ${additionalTime}`);
-
+       
         if (!preQueueTime) {
-            this.logger.info("No queue time provided, cannot calculate queue time");
+            this.logger.info("tx-BPC-calculateQueuedTime - No queue time provided, cannot calculate queue time");
             return 0;
         }
 
@@ -72,25 +70,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
 
         const currentTime = window.performance.now();
         return super.calculateQueuedTime(preQueueTime, currentTime);
-
-        // this.queuedTime += currentTime-additionalTime;
-        // this.queuedCount++;
-
-        // this.logger.info(`testx-BPC-calculateQueuedTime - NQT: ${this.queuedTime} - NQC: ${this.queuedCount} - fxN: ${fncName} - add: ${currentTime-additionalTime}`);
     }
-
-    // retrieveQueuedMeasurements(): QueuedMeasurement {
-    //     const finalTime = this.queuedTime;
-    //     const finalCount = this.queuedCount;
-
-    //     this.queuedTime = 0;
-    //     this.queuedCount = 0;
-
-    //     return {
-    //         queuedTime: finalTime,
-    //         queuedCount: finalCount
-    //     } as QueuedMeasurement;
-    // }
 
     getCurrentTime(): number {
         return window.performance.now();
