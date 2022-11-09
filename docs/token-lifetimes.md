@@ -6,15 +6,15 @@ While using MSAL.js, you should understand the implications of retrieving tokens
 
 ## Token Lifetimes and Expiration
 
-A more detailed explanation of token lifetimes can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-configurable-token-lifetimes). Some of the information is summarized below.
+A more detailed explanation of token lifetimes can be found [here](https://docs.microsoft.com/azure/active-directory/develop/active-directory-configurable-token-lifetimes). Some of the information is summarized below.
 
 ### ID tokens
 
-ID tokens are bound to a specific combination of account and client, and usually contain profile information about the user. Typically, a web application's user session lifetime will match that of the ID token session lifetime, which is by default 24 hours. You can read more about configuring token lifetimes [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-configurable-token-lifetimes).
+ID tokens are bound to a specific combination of account and client, and usually contain profile information about the user. Typically, a web application's user session lifetime will match that of the ID token session lifetime, which is by default 24 hours. You can read more about configuring token lifetimes [here](https://docs.microsoft.com/azure/active-directory/develop/active-directory-configurable-token-lifetimes).
 
 ### Access tokens
 
-Access tokens in the browser have a default recommended expiration of 1 hour. After this 1 hour, any bearer calls with the expired token will be rejected. This token can be refreshed silently using the refresh token retrieved with this token. You can read more about configuring token lifetimes [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-configurable-token-lifetimes).
+Access tokens in the browser have a default recommended expiration of 1 hour. After this 1 hour, any bearer calls with the expired token will be rejected. This token can be refreshed silently using the refresh token retrieved with this token. You can read more about configuring token lifetimes [here](https://docs.microsoft.com/azure/active-directory/develop/active-directory-configurable-token-lifetimes).
 
 ### Refresh tokens
 
@@ -34,9 +34,21 @@ The `PublicClientApplication` object exposes an API called `acquireTokenSilent` 
 
 See [here](./request-response-object.md#silentflowrequest) for more information on what configuration parameters you can set for the `acquireTokenSilent` method.
 
+### Cache Lookup Policy
+
+A Cache Lookup Policy can be optionally provided to the request. The Cache Lookup Policies are:
+
+- `CacheLookupPolicy.Default` - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found the refresh token will be used to acquire a new one. Finally, if the refresh token is expired, `acquireTokenSilent` will attempt to silently acquire a new access token, id token, and refresh token.
+- `CacheLookupPolicy.AccessToken` - `acquireTokenSilent` will only look for access tokens in the cache. It will not attempt to renew access or refresh tokens.
+- `CacheLookupPolicy.AccessTokenAndRefreshToken` - `acquireTokenSilent` will attempt to retrieve an access token from the cache. If the access token is expired or cannot be found, the refresh token will be used to acquire a new one. If the refresh token is expired, it will not be renewed and `acquireTokenSilent` will fail.
+- `CacheLookupPolicy.RefreshToken` - `acquireTokenSilent` will not attempt to retrieve access tokens from the cache and will instead attempt to exchange the cached refresh token for a new access token. If the refresh token is expired, it will not be renewed and `acquireTokenSilent` will fail.
+- `CacheLookupPolicy.RefreshTokenAndNetwork` - `acquireTokenSilent` will not look in the cache for the access token. It will go directly to network with the cached refresh token. If the refresh token is expired an attempt will be made to renew it. This is equivalent to setting `forceRefresh: true`.
+- `CacheLookupPolicy.Skip` - `acquireTokenSilent` will attempt to renew both access and refresh tokens. It will not look in the cache. This will always fail if 3rd party cookies are blocked by the browser.
+
 ### Code Snippets
 
-- Popup
+#### Popup
+
 ```javascript
 var username = "test@contoso.com";
 var currentAccount = msalInstance.getAccountByUsername(username);
@@ -44,6 +56,7 @@ var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: false
+    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
@@ -55,13 +68,17 @@ const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
         return await msalInstance.acquireTokenPopup(request).catch(error => {
-            handleError(error);
+            if (error instanceof InteractionRequiredAuthError) {
+                // fallback to interaction when silent call fails
+                return msalInstance.acquireTokenRedirect(request)
+            }
         });
     }
 });
 ```
 
-- Redirect
+#### Redirect
+
 ```javascript
 var username = "test@contoso.com";
 var currentAccount = msalInstance.getAccountByUsername(username);
@@ -69,6 +86,7 @@ var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: false
+    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
@@ -84,6 +102,6 @@ const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest).catch
 });
 ```
 
-# Next Steps
+## Next Steps
 
 Learn how to perform [log out](./logout.md).
