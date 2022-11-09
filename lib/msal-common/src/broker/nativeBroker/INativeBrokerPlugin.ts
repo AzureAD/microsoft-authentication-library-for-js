@@ -11,5 +11,4 @@ export interface INativeBrokerPlugin {
     getAccountById(accountId: string, correlationId: string): Promise<AccountInfo>;
     acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult>;
     acquireTokenInteractive(request: NativeRequest): Promise<AuthenticationResult>;
-    acquireTokenByUsernamePassword(request: NativeRequest): Promise<AuthenticationResult>;
 }

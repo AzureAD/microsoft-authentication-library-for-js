@@ -94,11 +94,6 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         });
     }
 
-    async acquireTokenByUsernamePassword(request: NativeRequest): Promise<AuthenticationResult> {
-        this.logger.trace("NativeBrokerPlugin - acquireTokenByUsernamePassword called", request.correlationId);
-        throw new Error(`${request.correlationId} - This method is not implemented in the native broker plugin.`);
-    }
-
     private async readAccountById(accountId: string, correlationId: string): Promise<Account> {
         this.logger.trace("NativeBrokerPlugin - readAccountById called", correlationId);
 
