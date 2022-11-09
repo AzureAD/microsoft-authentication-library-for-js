@@ -103,7 +103,7 @@ In case of concurrent interactive requests, only the first one will initiate an 
 
 ### Attempt silent request first, then interactive
 
-When requesting tokens, always use `acquireTokenSilent` first, falling back to interactive token acquisition if needed. Exception to this is when doing token acquisition outside of an app context that does not have access to interaction status or cannot ensure other components making interactive requests. For instance, if you are making use of `acquireTokenSilent` in a utility function,
+When requesting tokens, always use `acquireTokenSilent` first, falling back to interactive token acquisition if needed. Exception to this is when doing token acquisition outside of an app context that does not have access to interaction status or cannot ensure other components making interactive requests. For instance, if you are making use of `acquireTokenSilent` in a utility function in a React application outside of **MsalProvider context**, you shouldn't attempt to handle *InteractionRequiredAuthError* with an interactive request, but instead route that error to a component that can has access to MSAL context (see: [What can I do outside of msal-react context?](../../msal-react/FAQ.md#what-can-i-do-outside-of-azuremsal-react-context)).
 
 Multiple concurrent silent requests are permitted. If two or more of silent requests are made at the same time, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same requests parameters (e.g. scopes).
 
