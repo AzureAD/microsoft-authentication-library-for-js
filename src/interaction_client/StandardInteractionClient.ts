@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError, LoggerOptions , LogLevel} from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError} from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
@@ -140,7 +140,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called", this.correlationId);
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
-        const logger= this.config.system.loggerOptions || StandardInteractionClient.createDefaultLoggerOptions();
+        const logger= this.config.system.loggerOptions;
 
         return {
             authOptions: {
@@ -169,16 +169,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 os: Constants.EMPTY_STRING
             },
             telemetry: this.config.telemetry
-        };
-    }
-
-    private static createDefaultLoggerOptions(): LoggerOptions {
-        return {
-            loggerCallback: () => {
-                // allow users to not set loggerCallback
-            },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Info
         };
     }
     

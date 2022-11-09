@@ -270,6 +270,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const providedSystemOptions:any = {...userInputSystem};
+    if (!providedSystemOptions.loggerOptions) {
+        providedSystemOptions.loggerOptions = DEFAULT_LOGGER_OPTIONS;
+    }
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
             appName: Constants.EMPTY_STRING,
@@ -280,7 +285,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem },
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
     };
     return overlayedConfig;
