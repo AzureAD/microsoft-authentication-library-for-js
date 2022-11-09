@@ -158,10 +158,14 @@ export function buildAppConfiguration({
     telemetry
 }: Configuration): NodeConfiguration {
 
+    const providedSystemOptions = {...system};
+    if (!providedSystemOptions.loggerOptions) {
+        providedSystemOptions.loggerOptions = DEFAULT_LOGGER_OPTIONS;
+    }
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
     };
 }
