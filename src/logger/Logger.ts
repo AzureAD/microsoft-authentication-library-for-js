@@ -58,28 +58,17 @@ export class Logger {
     // Package version implementing this logger
     private packageVersion: string;
 
-    constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string) {
+    constructor(loggerOptions: Required<LoggerOptions>, packageName?: string, packageVersion?: string) {
         const defaultLoggerCallback = () => {
             return;
         };
-        const setLoggerOptions = loggerOptions || Logger.createDefaultLoggerOptions();
+        const setLoggerOptions = loggerOptions;
         this.localCallback = setLoggerOptions.loggerCallback || defaultLoggerCallback;
         this.piiLoggingEnabled = setLoggerOptions.piiLoggingEnabled || false;
         this.level = typeof(setLoggerOptions.logLevel) === "number" ? setLoggerOptions.logLevel : LogLevel.Info;
         this.correlationId = setLoggerOptions.correlationId || Constants.EMPTY_STRING;
-
         this.packageName = packageName || Constants.EMPTY_STRING;
         this.packageVersion = packageVersion || Constants.EMPTY_STRING;
-    }
-    
-    private static createDefaultLoggerOptions(): LoggerOptions {
-        return {
-            loggerCallback: () => {
-                // allow users to not set loggerCallback
-            },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Info
-        };
     }
 
     /**
