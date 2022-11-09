@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, NativeRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, NativeRequest, PromptValue } from "@azure/msal-common";
 import { Account, addon, AuthParameters, AuthResult, ReadAccountResult } from "@azure/msal-node-runtime";
 import { version, name } from "../packageMetadata";
 
@@ -70,10 +70,26 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             };
             const callback = new addon.Callback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
-            if (account) {
-                addon.AcquireTokenInteractively(authParams, account, request.correlationId, callback, asyncHandle);
-            } else {
-                addon.SignInInteractively(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+            switch (request.prompt) {
+                case PromptValue.LOGIN:
+                case PromptValue.SELECT_ACCOUNT:
+                case PromptValue.CREATE:
+                    addon.SignInInteractively(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+                    break;
+                case PromptValue.NONE:
+                    if (account) {
+                        addon.AcquireTokenSilently(authParams, account, request.correlationId, callback, asyncHandle);
+                    } else {
+                        addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
+                    }
+                    break;
+                default:
+                    if (account) {
+                        addon.AcquireTokenInteractively(authParams, account, request.correlationId, callback, asyncHandle);
+                    } else {
+                        addon.SignIn(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+                    }
+                    break;
             }
         });
     }
