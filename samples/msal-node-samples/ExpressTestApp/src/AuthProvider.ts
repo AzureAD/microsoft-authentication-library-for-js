@@ -12,7 +12,7 @@ import {
 import {
     InteractionRequiredAuthError,
     OIDC_DEFAULT_SCOPES,
-    PromptValue
+    ResponseMode
 } from '@azure/msal-common';
 
 import {
@@ -30,7 +30,6 @@ import { ConfigurationUtils } from './ConfigurationUtils';
 import {
     AppSettings,
     Resource,
-    AuthCodeParams
 } from './Types';
 
 import { AppStages, ErrorMessages } from './Constants';
@@ -83,15 +82,6 @@ export class AuthProvider {
          * We manipulate these two request objects below
          * to acquire a token with the appropriate claims
          */
-        if (!req.session["authCodeRequest"]) {
-            req.session.authCodeRequest = {
-                authority: "",
-                scopes: [],
-                state: {},
-                redirectUri: "",
-            } as AuthorizationUrlRequest;
-        }
-
         if (!req.session["tokenRequest"]) {
             req.session.tokenRequest = {
                 authority: "",
@@ -112,10 +102,6 @@ export class AuthProvider {
             } as AccountInfo;
         }
 
-        if (!req.session["tokenCache"]) {
-            req.session.tokenCache = "";
-        }
-
         // random GUID for csrf check
         req.session.csrfToken = this.cryptoProvider.createNewGuid();
 
@@ -133,16 +119,16 @@ export class AuthProvider {
             })
         );
 
-        const params: AuthCodeParams = {
+        const params: AuthorizationUrlRequest = {
             authority: this.msalConfig.auth.authority,
             scopes: OIDC_DEFAULT_SCOPES,
             state: state,
-            redirect: this.appSettings.settings.redirectUri,
-            prompt: PromptValue.SELECT_ACCOUNT,
+            redirectUri: this.appSettings.settings.redirectUri,
+            responseMode: ResponseMode.FORM_POST
         };
 
         // initiate the first leg of auth code grant to get token
-        this.getAuthCode(req, res, next, params);
+        this.redirectToAuthCodeUrl(req, res, next, params);
     };
 
     /**
@@ -176,13 +162,12 @@ export class AuthProvider {
      * @param {NextFunction} next: express next
      */
     handleRedirect = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
-
-        if (!req.query.state) {
+        if (!req.body.state) {
             console.log(ErrorMessages.STATE_NOT_FOUND)
             return res.status(401).send(ErrorMessages.NOT_PERMITTED);
         }
 
-        const state = JSON.parse(this.cryptoProvider.base64Decode(req.query.state as string));
+        const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state as string));
 
         // check if csrfToken matches
         if (state.csrfToken !== req.session.csrfToken) {
@@ -191,10 +176,9 @@ export class AuthProvider {
         }
 
         switch (state.stage) {
-
             case AppStages.SIGN_IN:
                 // token request should have auth code
-                req.session.tokenRequest.code = req.query.code as string;
+                req.session.tokenRequest.code = req.body.code as string;
 
                 try {
                     const msalClient = this.initializeMsalClient();
@@ -204,7 +188,7 @@ export class AuthProvider {
                     console.log("\nResponse: \n:", tokenResponse);
 
                     // assign session variables
-                    req.session.tokenCache = await msalClient.getTokenCache().serialize();
+                    req.session.tokenCache = msalClient.getTokenCache().serialize();
                     req.session.account = tokenResponse.account;
                     req.session.isAuthenticated = true;
 
@@ -215,14 +199,13 @@ export class AuthProvider {
                     next(error);
                 }
 
-            break;
-
+                break;
 
             case AppStages.ACQUIRE_TOKEN:
                 // get the name of the resource associated with scope
                 const resourceName = this.getResourceName(state.path);
 
-                req.session.tokenRequest.code = req.query.code as string
+                req.session.tokenRequest.code = req.body.code as string
 
                 try {
                     const msalClient = this.initializeMsalClient();
@@ -230,7 +213,7 @@ export class AuthProvider {
                     console.log("\nResponse: \n:", tokenResponse);
 
                     // assign session variables
-                    req.session.tokenCache = await msalClient.getTokenCache().serialize();
+                    req.session.tokenCache = msalClient.getTokenCache().serialize();
                     req.session[resourceName].accessToken = tokenResponse.accessToken;
                     return res.status(200).redirect(state.path);
 
@@ -239,12 +222,10 @@ export class AuthProvider {
                     next(error);
                 }
 
-            break;
-
+                break;
 
             default:
                 res.status(500).send(ErrorMessages.CANNOT_DETERMINE_APP_STAGE);
-                break;
         }
 
     };
@@ -271,7 +252,7 @@ export class AuthProvider {
 
         try {
             const msalClient = this.initializeMsalClient();
-            await msalClient.getTokenCache().deserialize(req.session.tokenCache);
+            msalClient.getTokenCache().deserialize(req.session.tokenCache);
 
             const account = await msalClient.getTokenCache()
                 .getAccountByHomeId(req.session.account.homeAccountId);
@@ -285,7 +266,8 @@ export class AuthProvider {
             const tokenResponse = await msalClient.acquireTokenSilent(silentRequest)
             console.log("\nSuccessful silent token acquisition:\n Response: \n:", tokenResponse);
 
-            req.session.tokenCache = await msalClient.getTokenCache().serialize();
+            // serialize the cache blob to session store
+            req.session.tokenCache = msalClient.getTokenCache().serialize();
 
             // In B2C scenarios, sometimes an access token is returned empty.
             // In that case, we will acquire token interactively instead.
@@ -300,7 +282,7 @@ export class AuthProvider {
         } catch (error) {
             // in case there are no cached tokens, initiate an interactive call
             if (error instanceof InteractionRequiredAuthError) {
-                console.log('silent token acquisition failed, acquiring token interactively');
+                console.log('Silent token acquisition failed, acquiring token interactively');
 
                 const state = this.cryptoProvider.base64Encode(
                     JSON.stringify({
@@ -310,16 +292,17 @@ export class AuthProvider {
                     })
                 );
 
-                const params: AuthCodeParams = {
+                const params: AuthorizationUrlRequest = {
                     authority: this.msalConfig.auth.authority,
                     scopes: scopes,
                     state: state,
-                    redirect: this.appSettings.settings.redirectUri,
+                    redirectUri: this.appSettings.settings.redirectUri,
+                    responseMode: ResponseMode.FORM_POST,
                     account: req.session.account,
                 };
 
                 // initiate the first leg of auth code grant to get token
-                this.getAuthCode(req, res, next, params);
+                this.redirectToAuthCodeUrl(req, res, next, params);
             } else {
                 next(error);
             }
@@ -352,27 +335,22 @@ export class AuthProvider {
      * @param {Request} req: express request object
      * @param {Response} res: express response object
      * @param {NextFunction} next: express next
-     * @param {AuthCodeParams} params: modify auth code url request
+     * @param {AuthorizationUrlRequest} params: modify auth code url request
      */
-    private getAuthCode = async (req: Request, res: Response, next: NextFunction, params: AuthCodeParams): Promise<void> => {
+    private redirectToAuthCodeUrl = async (req: Request, res: Response, next: NextFunction, params: AuthorizationUrlRequest): Promise<void> => {
 
-        // prepare the request
-        req.session.authCodeRequest.authority = params.authority;
-        req.session.authCodeRequest.scopes = params.scopes;
-        req.session.authCodeRequest.state = params.state;
-        req.session.authCodeRequest.redirectUri = params.redirect;
-
+        // prepare the token request
         req.session.tokenRequest.authority = params.authority;
-        req.session.tokenRequest.redirectUri = params.redirect;
         req.session.tokenRequest.scopes = params.scopes;
+        req.session.tokenRequest.redirectUri = params.redirectUri;
 
         // request an authorization code to exchange for tokens
         try {
             const msalClient = this.initializeMsalClient();
-            const response = await msalClient.getAuthCodeUrl(req.session.authCodeRequest);
+            const response = await msalClient.getAuthCodeUrl(params);
             res.redirect(response);
         } catch (error) {
-            console.log(JSON.stringify(error));
+            console.log(error);
             next(error);
         }
     }

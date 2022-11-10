@@ -2,9 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import {
-    TokenClaims
-} from "@azure/msal-common";
 
 import {
     AccountInfo,
@@ -26,15 +23,6 @@ declare module "express-session" {
         };
     }
 }
-
-export type AuthCodeParams = {
-    authority: string;
-    scopes: string[];
-    state: string;
-    redirect: string;
-    prompt?: string;
-    account?: AccountInfo;
-};
 
 export type Resource = {
     callingPageRoute: string,
@@ -62,8 +50,4 @@ export type AppSettings = {
     },
     policies: any,
     protected: any,
-}
-
-export type IdTokenClaims = TokenClaims & {
-    aud?: string,
 }
