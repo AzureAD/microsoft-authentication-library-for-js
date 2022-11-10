@@ -53,7 +53,9 @@ export default class Main {
 
     private static onWindowAllClosed(): void {
         // Windows and Linux will quit the application when all windows are closed. In macOS requires explicit quitting
-        if (process.platform !== "darwin") Main.application.quit();
+        if (process.platform !== "darwin") {
+            Main.application.quit();
+        } 
     }
 
     private static requestSingleInstance(): void {
@@ -87,7 +89,9 @@ export default class Main {
     private static handleWindowState(): void {
         // Someone tried to run a second instance, we should focus our window.
         if (Main.mainWindow) {
-            if (Main.mainWindow.isMinimized()) Main.mainWindow.restore();
+            if (Main.mainWindow.isMinimized()) {
+                Main.mainWindow.restore();
+            } 
             Main.mainWindow.focus();
         }
     }
@@ -140,8 +144,6 @@ export default class Main {
 
         if (account) {
             console.log("Successful silent account retrieval");
-            Main.mainWindow.minimize();
-            Main.mainWindow.focus();
             Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
         }
     }
@@ -155,8 +157,6 @@ export default class Main {
             const account = await Main.authProvider.login();
             if (account) {
                 await Main.loadBaseUI();
-                Main.mainWindow.minimize();
-                Main.mainWindow.focus();
                 Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
             }
         } catch (error) {

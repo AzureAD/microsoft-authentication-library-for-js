@@ -70,7 +70,7 @@ cd samples/msal-node-samples/standalone-samples/ElectronSystemBrowserTestApp
    1. Replace the string `Enter_the_Graph_Endpoint_Here`. with `https://graph.microsoft.com/v1.0`.
 
 1. To enable deep linking in the application, open the [successTemplate.html](./public/successTemplate.html) file and provide the required configuration value:
-   1. Fill in your application/client ID in the string `msal{Your_Application/Client_Id}://auth`. If you like, you can replace this value with any unique string.
+   1. Fill in your application/client ID in the string `msal{Your_Application/Client_Id}://auth`. We are using the ClientID to assign a unique protocol to the application as a deep link. If you like, you can replace this value with any unique string e.g. `your-unique-protocol-name://`. This is to ensure that this deep link only matches to your own application and does not coincide with other application deep links that might be registered on your system. For more information, please check the [Electron documentation on deep linking](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app).
 
 > :information_source: *note*: This is for multi-tenant applications located on the Global Azure cloud. For more information, see: [Use MSAL in a national cloud environment](https://docs.microsoft.com/azure/active-directory/develop/authentication-national-cloud)
 
@@ -102,7 +102,7 @@ npm start
 
 To demonstrate best security practices, this Electron sample uses a custom URL scheme `msal{Your_Application/Client_Id}://auth` that will launch the app when the URL with that scheme is visited.
 
-Using the [acquireTokenInteractive](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/0596334bde059484b6f37b1a2337af4e9655f9e9/lib/msal-node/src/client/PublicClientApplication.ts#L91) API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching and navigating the system browser to authorization code URL and listens for the authorization code response via loopback server. Once the code is received successfully, `acquireTokenInteractive` will load the assigned **successTemplate**.
+Using the [acquireTokenInteractive](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationcoderequest) API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching and navigating the system browser to authorization code URL and listens for the authorization code response via loopback server. Once the code is received successfully, `acquireTokenInteractive` will load the assigned **successTemplate**.
 
 ```typescript
  async getTokenInteractive(
