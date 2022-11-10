@@ -23,7 +23,7 @@ You must pass a request object to the `acquireToken*` APIs. This object allows y
 
 MSAL uses a [cache](./caching.md) to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
 
-It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs if you have already logged in. This allows you to prevent unnecessary user interactions. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you. You should use a `login*` or `acquireToken*` (interactive) API before this to establish a session with the server. You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md#token-renewal).
+After you've logged in with one of the `ssoSilent` or `login*` APIs the cache will contain a set of id, access and refresh tokens. Every time you need an access token you should call `acquireTokenSilent` and if this fails call an interactive API instead. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you using the cached refresh token. You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md#token-renewal).
 
 #### Popup
 
