@@ -21,7 +21,8 @@
         "demo",
         "typescript",
         "webpack",
-        "msal-node-extensions"
+        "msal-node-extensions",
+        "msal-node"
     ],
     "license": "MIT",
     "devDependencies": {
