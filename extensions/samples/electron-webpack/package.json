@@ -1,42 +1,60 @@
 {
-  "name": "electron-msal-node-extensions",
-  "version": "1.0.0",
-  "description": "An electron application implementing msal-node-extensions bundler with webpack",
-  "scripts": {
-    "build": "webpack",
-    "lint": "eslint -c .eslintrc --ext .ts ./src",
-    "start": "npm run build && electron ./dist/main.js",
-    "rebuild": "electron-rebuild"
-  },
-  "keywords": [
-    "Electron",
-    "quick",
-    "start",
-    "tutorial",
-    "demo",
-    "typescript",
-    "webpack",
-    "msal-node-extensions"
-  ],
-  "author": "Samuel Kubai<samuelkamau@microsoft.com>",
-  "license": "MIT",
-  "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.29.2",
-    "@typescript-eslint/parser": "^4.29.2",
-    "electron": "^13.1.7",
-    "electron-rebuild": "^3.2.0",
-    "eslint": "^7.32.0",
-    "node-loader": "^2.0.0",
-    "terser-webpack-plugin": "^5.2.3",
-    "ts-loader": "^9.2.3",
-    "typescript": "^4.3.5",
-    "webpack": "^5.44.0",
-    "webpack-cli": "^4.7.2"
-  },
-  "dependencies": {
-    "@azure/msal-node-extensions": "file:../../msal-node-extensions/",
-    "@microsoft/mgt-components": "^2.2.1",
-    "@microsoft/mgt-electron-provider": "^2.2.1",
-    "@microsoft/mgt-element": "^2.2.1"
-  }
+    "name": "electron-webpack",
+    "productName": "electron-webpack",
+    "version": "1.0.0",
+    "description": "An electron application implementing msal-node-extensions bundler with webpack",
+    "main": ".webpack/main",
+    "scripts": {
+        "start": "electron-forge start",
+        "package": "electron-forge package",
+        "make": "electron-forge make",
+        "publish": "electron-forge publish",
+        "lint": "eslint --ext .ts,.tsx .",
+        "build:package": "cd ../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+        "start:build": "npm run build:package && npm start"
+    },
+    "keywords": [
+        "Electron",
+        "quick",
+        "start",
+        "tutorial",
+        "demo",
+        "typescript",
+        "webpack",
+        "msal-node-extensions"
+    ],
+    "license": "MIT",
+    "devDependencies": {
+        "@electron-forge/cli": "^6.0.0",
+        "@electron-forge/maker-deb": "^6.0.0",
+        "@electron-forge/maker-rpm": "^6.0.0",
+        "@electron-forge/maker-squirrel": "^6.0.0",
+        "@electron-forge/maker-zip": "^6.0.0",
+        "@electron-forge/plugin-webpack": "^6.0.0",
+        "@popperjs/core": "^2.11.6",
+        "@typescript-eslint/eslint-plugin": "^5.42.1",
+        "@typescript-eslint/parser": "^5.42.1",
+        "@vercel/webpack-asset-relocator-loader": "^1.7.3",
+        "autoprefixer": "^10.4.13",
+        "css-loader": "^6.7.1",
+        "electron": "21.2.2",
+        "eslint": "^8.27.0",
+        "eslint-plugin-import": "^2.26.0",
+        "fork-ts-checker-webpack-plugin": "^7.2.13",
+        "node-loader": "^2.0.0",
+        "postcss": "^8.4.18",
+        "postcss-loader": "^4.2.0",
+        "sass": "^1.3.0",
+        "sass-loader": "^10.1.1",
+        "style-loader": "^3.3.1",
+        "ts-loader": "^9.4.1",
+        "ts-node": "^10.9.1",
+        "typescript": "~4.5.4"
+    },
+    "dependencies": {
+        "@azure/msal-node": "^1.14.3",
+        "@azure/msal-node-extensions": "file:../../msal-node-extensions",
+        "bootstrap": "^4.6.2",
+        "electron-squirrel-startup": "^1.0.0"
+    }
 }
