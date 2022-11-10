@@ -93,7 +93,7 @@ Instantiate one `PublicClientApplication` per application and use the same insta
 
 ### Always wait for promises to resolve
 
-All MSAL `acquireToken*` as well as `login*` APIs (which uses `acquireToken*` underneath) perform asynchronous operations and return promises. You should always wait for these promises to resolve, even if you do not need the promise payload.
+All MSAL `acquireToken*` as well as `login*` APIs perform asynchronous operations and return promises. You should always wait for these promises to resolve, even if you do not need the promise payload.
 
 ### Check for interaction status before interactive requests
 
