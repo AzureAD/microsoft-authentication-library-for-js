@@ -1062,6 +1062,16 @@ export class BrowserCacheManager extends CacheManager {
 
         return currentCacheKey;
     }
+
+    getRedirectRequestContext(): string | null {
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REDIRECT_CONTEXT}`;
+        return this.getTemporaryCache(key);
+    }
+     
+    setRedirectRequestContext(value: string): void {
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REDIRECT_CONTEXT}`;
+        this.setTemporaryCache(key, value, false);
+    }
 }
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger): BrowserCacheManager => {
