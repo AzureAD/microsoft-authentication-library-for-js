@@ -15,8 +15,7 @@ const cca = new msal.ConfidentialClientApplication({
             },
             piiLoggingEnabled: false,
             logLevel: msal.LogLevel.Verbose,
-        },
-        allowNativeBroker: true
+        }
     }
 });
 

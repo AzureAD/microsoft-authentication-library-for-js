@@ -16,13 +16,15 @@ router.get('/login', (req, res) => {
         redirectUri: "https://localhost:3000/auth/server-redirect",
         responseMode: "form_post",
         extraQueryParameters: {
-            "webnativebridge": "true"
+            "webnativebridge": "true",
+            "nativebroker": "1"
         }
     };
 
     // Set request state to use hybrid spa or implicit flow 
     if (req.query.hybrid) {
         authCodeUrlParameters.state = "hybrid=true";
+        console.log("AuthCodeURL Params", authCodeUrlParameters);
     } else if (req.query.implicit) {
         authCodeUrlParameters.state = "implicit=true"
     }
@@ -30,6 +32,7 @@ router.get('/login', (req, res) => {
     // Generate auth code url and redirect the user
     msalInstance.getAuthCodeUrl(authCodeUrlParameters)
         .then((response) => {
+            console.log("getAuthCodeURL RESPONSE");
             console.log(response);
             res.redirect(response);
         })
@@ -38,6 +41,9 @@ router.get('/login', (req, res) => {
 
 // Route to capture auth code that will be posted by AAD
 router.post('/server-redirect', (req, res) => {
+
+    console.log("Inside server redirect.");
+    console.log(req.body.code);
     const tokenRequest = {
         code: req.body.code,
         scopes: ["user.read"],
@@ -57,16 +63,17 @@ router.post('/server-redirect', (req, res) => {
     // If using hybrid spa flow, enable feature flag to get additional auth code
     if (useHybrid) {
         console.log('Hybrid enabled');
-        tokenRequest.enableSpaAuthorizationCode = true
-        // tokenRequest.tokenBodyParameters = {
-        //     return_spa_code: "1"
-        // }
+        tokenRequest.enableSpaAuthorizationCode = true;
+        tokenRequest.tokenBodyParameters = {
+            return_spa_code: "1",
+            "webnativebroker": "true"
+        }
     } else {
         console.log('Hybrid disabled');
     }
 
     const timeLabel = "Time for acquireTokenByCode";
-    console.time(timeLabel)
+    console.time(timeLabel);
 
     msalInstance.acquireTokenByCode(tokenRequest)
         .then((response) => {
