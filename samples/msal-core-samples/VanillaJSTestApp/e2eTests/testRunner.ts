@@ -3,7 +3,6 @@
 *  See LICENSE in the source repository root for complete license information.
 */
 import express from 'express';
-import { Request, Response } from 'express-serve-static-core';
 import morgan from 'morgan';
 import fs from 'fs';
 import path from 'path';
@@ -72,7 +71,7 @@ function runMochaTests(sampleIndex: number) {
     app.use(express.static(`${APP_DIR}/${sampleName}`));
 
     // Set up a route for index.html.
-    app.get('*', function (req: Request, res: Response) {
+    app.get('*', function (req: any, res: any) {
         res.sendFile(path.join(`${APP_DIR}/${sampleName}/index.html`));
     });
 
