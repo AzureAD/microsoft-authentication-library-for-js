@@ -10,8 +10,8 @@ import {
 } from "@azure/msal-common";
 
 /**
- * After "npx tsc" is executed via the "npm run start" script, Constants.ts and NetworkUtils.ts are compiled to .js and stored in the /dist folder
- * The app is run via "node dist/app.js", hence the .js import of the HttpClient
+ * After "npx tsc" is executed via the "npm run start" script, Constants.ts and NetworkUtils.ts are compiled to .js and stored in the /dist/utils folder
+ * The app is run via "node dist/app.js", hence the .js import of the Constants and NetworkUtils
  */
 import { HttpMethod, Constants, HttpStatus, ProxyStatus } from "./utils/Constants.js";
 import { NetworkUtils } from "./utils/NetworkUtils.js";
