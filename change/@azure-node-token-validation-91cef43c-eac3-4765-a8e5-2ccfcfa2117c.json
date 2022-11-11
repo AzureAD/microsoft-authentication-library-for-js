@@ -1,0 +1,7 @@
+{
+  "comment": "Added logging to Authority code",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "none"
+}

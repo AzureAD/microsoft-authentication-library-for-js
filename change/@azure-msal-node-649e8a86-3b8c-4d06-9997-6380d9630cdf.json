@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Added logging to Authority code",
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
