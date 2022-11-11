@@ -88,12 +88,6 @@ const authorityOptions: AuthorityOptions = {
     cloudDiscoveryMetadata: "",
     authorityMetadata: ""
 }
-const authority =  AuthorityFactory.createInstance(
-    Constants.DEFAULT_AUTHORITY,
-    networkInterface,
-    new MockStorageClass("client-id", mockCrypto),
-    authorityOptions
-);
 
 const loggerOptions = {
     loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
@@ -102,6 +96,15 @@ const loggerOptions = {
     piiLoggingEnabled: true,
     logLevel: LogLevel.Verbose
 };
+const logger = new Logger(loggerOptions);
+
+const authority =  AuthorityFactory.createInstance(
+    logger,
+    Constants.DEFAULT_AUTHORITY,
+    networkInterface,
+    new MockStorageClass("client-id", mockCrypto),
+    authorityOptions
+);
 
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
@@ -151,7 +154,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -190,7 +192,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -230,7 +231,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -255,6 +255,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     it("create an Account no preferred_username or emails claim", () => {
         const authority =  AuthorityFactory.createInstance(
+            logger,
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto),
@@ -275,7 +276,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -301,6 +301,7 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     it("creates a generic account", () => {
         const authority =  AuthorityFactory.createInstance(
+            logger,
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto),
@@ -372,7 +373,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-            const logger = new Logger(loggerOptions);
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
@@ -528,6 +529,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authorityMetadata: ""
         }
         const authority = AuthorityFactory.createInstance(
+            logger,
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto), 
@@ -575,6 +577,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authorityMetadata: ""
         }
         const authority = AuthorityFactory.createInstance(
+            logger,
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto), 
