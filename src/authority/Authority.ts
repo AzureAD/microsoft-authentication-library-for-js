@@ -443,34 +443,46 @@ export class Authority {
      * @param newMetadata
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
-        this.logger.verbose("\n\nabout to try and get metadata via this.getCloudDiscoveryMetadataFromConfig()\n\n");
+        this.logger.verbose("Attempting to get cloud discovery metadata in the config");
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
+            this.logger.verbose(`Found the following cloud discovery metata in the config: ${JSON.stringify(metadata)}`);
             metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
         }
+        this.logger.verbose("Did not find cloud discovery metadata in the config");
 
-        // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
+        // If the cached metadata came from config but that config was not passed to this instance, we must go to the network
+        this.logger.verbose("Attempting to get cloud discovery metadata in the cache");
         if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
+            this.logger.verbose(`Found the following metadata in the cache: ${JSON.stringify(metadata)}`);
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
+        this.logger.verbose("Did not find cloud discovery metadata in the cache");
 
-        const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
-
+        this.logger.verbose("Attempting to get cloud discovery metadata from the network");
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
+            this.logger.verbose(`Found the following cloud discovery metata from the network: ${JSON.stringify(metadata)}`);
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
+        this.logger.verbose("Did not find cloud discovery metadata from the network");
         
+        this.logger.verbose("Attempting to get cloud discovery metadata from hardcoded values");
+        const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
         if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
+            this.logger.verbose(`Found the following cloud discovery metata from hardcoded values: ${JSON.stringify(metadata)}`);
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
-        } else {
-            // Metadata could not be obtained from config, cache or network
-            throw ClientConfigurationError.createUntrustedAuthorityError();
         }
+        this.logger.verbose("Did not find cloud discovery metadata from hardcoded values");
+        
+        // Metadata could not be obtained from config, cache or network
+        this.logger.verbose("Metadata could not be obtained from config, cache, network or hardcoded value. Throwing Untrusted Authority Error.");
+        this.logger.verbose(`The AuthorityMetadataEntity passed into this function is: ${JSON.stringify(metadataEntity)}`);
+        throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
     /**
