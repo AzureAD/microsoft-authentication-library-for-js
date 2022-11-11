@@ -22,13 +22,13 @@ import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
+import { Logger } from "../logger/Logger";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
  */
 export class Authority {
-
     // Canonical authority url string
     private _canonicalAuthority: UrlString;
     // Canonicaly authority url components
@@ -47,13 +47,17 @@ export class Authority {
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
     // Proxy url string
     private proxyUrl: string;
+    // Logger object
+    public logger: Logger;
 
     constructor(
+        logger: Logger,
         authority: string,
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        proxyUrl?: string) {
+        proxyUrl?: string
+    ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
@@ -62,6 +66,7 @@ export class Authority {
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
         this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
+        this.logger = logger;
     }
 
     // See above for AuthorityType
