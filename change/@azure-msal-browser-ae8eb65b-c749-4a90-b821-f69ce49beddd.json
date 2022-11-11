@@ -2,6 +2,6 @@
   "type": "patch",
   "comment": "Added logging to Authority code",
   "packageName": "@azure/msal-browser",
-  "email": "rgins16@gmail.com",
+  "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
 }
