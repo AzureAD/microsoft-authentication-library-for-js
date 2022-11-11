@@ -10,6 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
+import { Logger } from "../logger/Logger";
 
 export class AuthorityFactory {
 
@@ -24,6 +25,7 @@ export class AuthorityFactory {
      * @param protocolMode
      */
     static async createDiscoveredInstance(
+        logger: Logger,
         authorityUri: string,
         networkClient: INetworkModule,
         cacheManager: ICacheManager,
@@ -32,6 +34,7 @@ export class AuthorityFactory {
     ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
+            logger,
             authorityUri,
             networkClient,
             cacheManager,
@@ -58,6 +61,7 @@ export class AuthorityFactory {
      * @param protocolMode
      */
     static createInstance(
+        logger: Logger,
         authorityUrl: string,
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
@@ -69,6 +73,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
+        return new Authority(logger, authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
     }
 }

@@ -37,7 +37,7 @@ export class OpenIdConfigProvider {
             authorityMetadata: Constants.EMPTY_STRING
         };
 
-        const authority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.networkInterface, this.storage, authorityOptions);
+        const authority = await AuthorityFactory.createDiscoveredInstance(this.logger, this.config.auth.authority, this.networkInterface, this.storage, authorityOptions);
 
         if (!authority.jwksUri) {
             throw ValidationConfigurationError.createInvalidMetadataError();

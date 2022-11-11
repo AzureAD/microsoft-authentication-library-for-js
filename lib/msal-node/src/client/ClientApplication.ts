@@ -456,7 +456,7 @@ export abstract class ClientApplication {
             skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
+        return await AuthorityFactory.createDiscoveredInstance(this.logger, authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
     }
 
     /**
