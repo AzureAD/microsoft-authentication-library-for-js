@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType } from "../../src";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, Logger, LogLevel } from "../../src";
 import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
@@ -205,7 +205,15 @@ export class ClientTestUtils {
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         };
-        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions);
+
+        const loggerOptions = {
+            loggerCallback: (): void => {},
+            piiLoggingEnabled: true,
+            logLevel: LogLevel.Verbose
+        };
+        const logger = new Logger(loggerOptions);
+
+        const authority  = AuthorityFactory.createInstance(logger, TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions);
 
         await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);

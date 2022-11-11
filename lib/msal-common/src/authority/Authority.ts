@@ -443,6 +443,7 @@ export class Authority {
      * @param newMetadata
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        this.logger.verbose("\n\nabout to try and get metadata via this.getCloudDiscoveryMetadataFromConfig()\n\n");
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, false);

@@ -2,8 +2,8 @@ import { PublicClientApplication } from './../../src/client/PublicClientApplicat
 import { Configuration, InteractiveRequest } from './../../src/index';
 import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
-    ClientConfiguration, AuthenticationResult,
-    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError
+    ClientConfiguration, AuthenticationResult, AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient,
+    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo
 } from '@azure/msal-common';
 import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
@@ -14,9 +14,7 @@ import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordReque
 import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import { mocked } from 'ts-jest/utils';
-import { AccountInfo } from '@azure/msal-common';
 import http from "http";
-
 
 import * as msalCommon from '@azure/msal-common';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
@@ -335,11 +333,12 @@ describe('PublicClientApplication', () => {
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
-        await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+        await authApp.acquireTokenByRefreshToken(request);        
+        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
+        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -363,10 +362,11 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
+        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -399,10 +399,11 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
+        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -436,10 +437,11 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
-        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
+        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,

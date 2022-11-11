@@ -7,7 +7,9 @@ import { InteractionHandler } from "../../src/interaction_handler/InteractionHan
 import {
     PkceCodes,
     NetworkRequestOptions,
+    Logger,
     LogLevel,
+    LoggerOptions,
     AccountInfo,
     AuthorityFactory,
     CommonAuthorizationCodeRequest,
@@ -15,7 +17,6 @@ import {
     AuthorizationCodeClient,
     AuthenticationScheme,
     ProtocolMode,
-    Logger,
     Authority,
     ClientConfiguration,
     AuthorizationCodePayload,
@@ -115,8 +116,8 @@ let authorityInstance: Authority;
 let authConfig: ClientConfiguration;
 
 describe("InteractionHandler.ts Unit Tests", () => {
-
     let authCodeModule: AuthorizationCodeClient;
+    let browserRequestLogger: Logger;
     let browserStorage: BrowserCacheManager;
     const cryptoOpts = new CryptoOps(testBrowserRequestLogger);
 
@@ -133,7 +134,12 @@ describe("InteractionHandler.ts Unit Tests", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         }
-        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
+        const loggerOptions: LoggerOptions = {
+            loggerCallback: (): void => {},
+            piiLoggingEnabled: true,
+        };
+        const logger: Logger = new Logger(loggerOptions);
+        authorityInstance = AuthorityFactory.createInstance(logger, configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
         authConfig = {
             authOptions: {
                 ...configObj.auth,
@@ -152,13 +158,10 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     return testNetworkResult;
                 }
             },
-            loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
-                piiLoggingEnabled: true
-            }
+            loggerOptions: loggerOptions
         };
         authCodeModule = new AuthorizationCodeClient(authConfig);
-        const logger = new Logger(authConfig.loggerOptions!);
+        browserRequestLogger = new Logger(authConfig.loggerOptions!);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOpts, logger);
     });
 
@@ -230,7 +233,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: ""
             }
-            const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
+            const authority = new Authority(browserRequestLogger, "https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
             sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
             sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
             const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
@@ -307,7 +310,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: ""
             }
-            const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
+            const authority = new Authority(browserRequestLogger, "https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
             sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
             sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
             const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
@@ -377,7 +380,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: ""
             }
-            const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
+            const authority = new Authority(browserRequestLogger, "https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
             sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
             sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
             const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
