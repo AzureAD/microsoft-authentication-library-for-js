@@ -100,7 +100,7 @@ npm start
 
 ### Custom URL Scheme
 
-To demonstrate best security practices, this Electron sample uses a custom URL scheme `msal{Your_Application/Client_Id}://auth` that will launch the app when the URL with that scheme is visited.
+This Electron sample uses a custom URL scheme `msal{Your_Application/Client_Id}://auth` that will launch the app when the URL with that scheme is visited.
 
 Using the [acquireTokenInteractive](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationcoderequest) API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching and navigating the system browser to authorization code URL and listens for the authorization code response via loopback server. Once the code is received successfully, `acquireTokenInteractive` will load the assigned **successTemplate**.
 
