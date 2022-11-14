@@ -18,7 +18,7 @@ HTTP:
  git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.git
 ```
 
-You can also download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code.
+You can also download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code (see: [Register the application](#register-the-application)).
 
 ### Pre-requisites
 

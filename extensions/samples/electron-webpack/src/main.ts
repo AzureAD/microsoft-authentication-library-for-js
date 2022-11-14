@@ -6,6 +6,7 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import AuthProvider from "./AuthProvider";
 import { authConfig } from "./authConfig";
+import { Configuration } from "@azure/msal-node"
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -14,7 +15,7 @@ export default class Main {
     static application: Electron.App;
     static mainWindow: Electron.BrowserWindow;
     static authProvider: AuthProvider;
-    static authConfig: any;
+    static authConfig: Configuration;
 
     static main(): void {
         Main.application = app;
@@ -48,7 +49,6 @@ export default class Main {
             height: 600,
             webPreferences: {
                 preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-                nodeIntegration: false,
             },
         });
     }

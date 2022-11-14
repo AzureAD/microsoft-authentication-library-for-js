@@ -10,6 +10,8 @@ import {
     SilentFlowRequest,
     AuthenticationResult,
     InteractiveRequest,
+    Configuration,
+    InteractionRequiredAuthError,
 } from "@azure/msal-node";
 import {
     DataProtectionScope,
@@ -22,13 +24,17 @@ import path from "path";
 export default class AuthProvider {
     private clientApplication: PublicClientApplication;
     private account: AccountInfo;
+    private interactiveRequest: InteractiveRequest;
+    private silentFlowRequest: SilentFlowRequest;
 
-    constructor() {}
+    constructor() {
+        this.account = null;
+        this.setRequestObjects();
+    }
 
-    static async build(authConfig: any): Promise<any> {
+    static async build(authConfig: Configuration): Promise<AuthProvider> {
         try {
             const authProvider = new AuthProvider();
-            authProvider.account = null;
             const cachePath = path.join(
                 Environment.getUserRootDirectory(),
                 "./cache.json"
@@ -53,7 +59,11 @@ export default class AuthProvider {
                 },
                 system: {
                     loggerOptions: {
-                        loggerCallback(loglevel, message, containsPii) {
+                        loggerCallback(
+                            loglevel: LogLevel,
+                            message: String,
+                            containsPii: Boolean
+                        ) {
                             console.log(message);
                         },
                         piiLoggingEnabled: false,
@@ -67,12 +77,28 @@ export default class AuthProvider {
         }
     }
 
-    async login(): Promise<AccountInfo> {
-        const tokenRequest: SilentFlowRequest = {
+    private async setRequestObjects(): Promise<void> {
+        const openBrowser = async (url: any) => {
+            await shell.openExternal(url);
+        };
+
+        this.silentFlowRequest = {
             scopes: [],
             account: null,
         };
-        const authResponse = await this.getToken(tokenRequest);
+
+        this.interactiveRequest = {
+            ...this.silentFlowRequest,
+            openBrowser,
+            successTemplate:
+                "<h1>Successfully signed in!</h1> <p>You can close this window now.</p>",
+            errorTemplate:
+                "<h1>Oops! Something went wrong</h1> <p>Check the console for more information.</p>",
+        };
+    }
+
+    async login(): Promise<AccountInfo> {
+        const authResponse = await this.getToken(this.silentFlowRequest);
         return this.handleResponse(authResponse);
     }
 
@@ -87,7 +113,7 @@ export default class AuthProvider {
                 return (authResponse = await this.getTokenSilent(tokenRequest));
             } else {
                 return (authResponse = await this.getTokenInteractive(
-                    tokenRequest
+                    this.interactiveRequest
                 ));
             }
         } catch (error) {
@@ -103,31 +129,24 @@ export default class AuthProvider {
                 tokenRequest
             );
         } catch (error) {
-            console.log(
-                "Silent token acquisition failed, acquiring token using pop up"
-            );
-            return await this.getTokenInteractive(tokenRequest);
+            if (error instanceof InteractionRequiredAuthError) {
+                console.log(
+                    "Silent token acquisition failed, acquiring token interactive"
+                );
+
+                return await this.getTokenInteractive(this.interactiveRequest);
+            } else {
+                throw error;
+            }
         }
     }
 
     async getTokenInteractive(
-        tokenRequest: SilentFlowRequest
+        tokenRequest: InteractiveRequest
     ): Promise<AuthenticationResult> {
         try {
-            const openBrowser = async (url: any) => {
-                await shell.openExternal(url);
-            };
-
-            const interactiveRequest: InteractiveRequest = {
-                ...tokenRequest,
-                openBrowser,
-                successTemplate:
-                    "<h1>Successfully signed in!</h1> <p>You can close this window now.</p>",
-                errorTemplate:
-                    "<h1>Oops! Something went wrong</h1> <p>Check the console for more information.</p>",
-            };
-            return this.clientApplication.acquireTokenInteractive(
-                interactiveRequest
+            return await this.clientApplication.acquireTokenInteractive(
+                tokenRequest
             );
         } catch (error) {
             throw error;
@@ -138,7 +157,7 @@ export default class AuthProvider {
         const cache = this.clientApplication.getTokenCache();
         const currentAccounts = await cache.getAllAccounts();
 
-        if (currentAccounts === null) {
+        if (!currentAccounts.length) {
             console.log("No accounts detected");
             return null;
         }
