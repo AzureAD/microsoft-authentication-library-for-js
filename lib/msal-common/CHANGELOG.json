@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 07 Nov 2022 22:46:55 GMT",
+      "tag": "@azure/msal-common_v8.0.0",
+      "version": "8.0.0",
+      "comments": {
+        "major": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "cf5c5886ccc94ab273b6fabe577ebbca9d4bdd38",
+            "comment": "Add static fields to telemetry #5224"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "049d82bda9e1fc90e7ba4bb0d5e175c15882beb1",
+            "comment": "Add MATS fields to telemetry #5308"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 10 Oct 2022 22:27:03 GMT",
       "tag": "@azure/msal-common_v7.6.0",
       "version": "7.6.0",
