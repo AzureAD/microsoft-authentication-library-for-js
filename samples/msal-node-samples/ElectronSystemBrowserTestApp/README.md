@@ -1,6 +1,6 @@
 # MSAL Node Electron Sample Using System browser and Custom URL Scheme
 
-An Electron application built with TypeScript that uses the MSAL Node library to acquire and store access tokens to authenticate with the Microsoft Graph API.
+An Electron application built with TypeScript that uses MSAL Node to acquire and store access tokens to authenticate with the Microsoft Graph API.
 
 ## Should I use this sample
 
