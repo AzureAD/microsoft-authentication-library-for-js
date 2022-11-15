@@ -5,8 +5,6 @@ import { contextBridge, ipcRenderer } from "electron";
 import { AccountInfo } from "@azure/msal-node";
 import { UIManager } from "./UIManager";
 
-
-
 contextBridge.exposeInMainWorld("api", {
     sendLoginMessage: () => {
         ipcRenderer.send("LOGIN");

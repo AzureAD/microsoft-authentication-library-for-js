@@ -71,8 +71,10 @@ export default class Main {
             if (account) {
                 await Main.loadBaseUI();
                 Main.publish("SHOW_WELCOME_MESSAGE", account);
-                Main.mainWindow.minimize();
-                Main.mainWindow.focus();
+                Main.mainWindow.setAlwaysOnTop(true);
+                Main.mainWindow.show();
+                Main.mainWindow.setAlwaysOnTop(false);
+
             }
         } catch (error) {
             console.log(error);
@@ -86,4 +88,3 @@ export default class Main {
 }
 
 Main.main();
-

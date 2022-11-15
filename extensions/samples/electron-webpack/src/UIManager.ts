@@ -15,7 +15,6 @@ export class UIManager {
     private signOutButton: HTMLElement;
     private cardDiv: HTMLElement;
    
-
     constructor() {
         this.welcomeDiv = document.getElementById("WelcomeMessage");
         this.signInButton = document.getElementById("SignIn");
