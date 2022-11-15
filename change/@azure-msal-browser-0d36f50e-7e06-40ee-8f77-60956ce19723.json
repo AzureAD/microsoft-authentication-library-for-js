@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Export popup attributes #5364",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

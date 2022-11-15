@@ -12,8 +12,19 @@ export enum HttpMethod {
 }
 
 export enum HttpStatus {
-    OK = 200,
-    REDIRECT = 302
+    SUCCESS_RANGE_START = 200,
+    SUCCESS_RANGE_END = 299,
+    REDIRECT = 302,
+    CLIENT_ERROR_RANGE_START = 400,
+    CLIENT_ERROR_RANGE_END = 499,
+    SERVER_ERROR_RANGE_START = 500,
+    SERVER_ERROR_RANGE_END = 599
+}
+
+export enum ProxyStatus {
+    SUCCESS_RANGE_START = 200,
+    SUCCESS_RANGE_END = 299,
+    SERVER_ERROR = 500
 }
 
 /**
