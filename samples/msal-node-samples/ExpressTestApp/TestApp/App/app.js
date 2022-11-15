@@ -19,7 +19,7 @@ const app = express();
  * Using express-session middleware. Be sure to familiarize yourself with available options
  * and set the desired options. Visit: https://www.npmjs.com/package/express-session
  */
- app.use(session({
+app.use(session({
     secret: 'ENTER_YOUR_SECRET_HERE',
     resave: false,
     saveUninitialized: false,
@@ -41,5 +41,16 @@ app.use(express.static(path.join(__dirname, './public')));
 const authProvider = new msalWrapper.AuthProvider(appSettings);
 
 app.use(router(authProvider));
+
+// error handler
+app.use(function (err, req, res, next) {
+    // set locals, only providing error in development
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+    // render the error page
+    res.status(err.status || 500);
+    res.render('error');
+});
 
 app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
