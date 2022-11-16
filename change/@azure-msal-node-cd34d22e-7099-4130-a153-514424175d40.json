@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Serialize/deserialize access token userAssertionHash property to fix cache persistence issue in OBO flow",
+  "packageName": "@azure/msal-node",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "patch"
+}
