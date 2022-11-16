@@ -13,6 +13,7 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
+import { ClientAuthErrorMessage } from "@azure/msal-common";
 
 describe("BrowserCacheManager tests", () => {
 
