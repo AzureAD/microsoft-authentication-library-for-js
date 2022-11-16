@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule } from "@azure/msal-common";
+import { INetworkModule, NetworkResponse } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient";
 
 export class NetworkUtils {
@@ -12,5 +12,13 @@ export class NetworkUtils {
      */
     static getNetworkClient(): INetworkModule {
         return new HttpClient();
+    }
+
+    static getNetworkResponse<T>(headers: Record<string, string>, body: T, statusCode: number): NetworkResponse<T> {
+        return {
+            headers: headers,
+            body: body,
+            status: statusCode,
+        };
     }
 }
