@@ -95,17 +95,18 @@ Instantiate one `PublicClientApplication` per application and use the same insta
 
 All MSAL `acquireToken*` as well as `login*` APIs perform asynchronous operations and return promises. You should always wait for these promises to resolve, even if you do not need the promise payload.
 
-### Check for interaction status before interactive requests
-
-You should always check for [InteractionStatus](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.interactionstatus.html) being equal to **None** before making an interactive request. `InteractionStatus` will be emitted through [MsalBroadcastService $inProgress observable](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#the-inprogress-observable) in MSAL Angular and [MsalProvider useMsal() hook](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsal-hook) in MSAL React.
-
-In case of concurrent interactive requests, only the first one will initiate an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error.
-
 ### Attempt silent request first, then interactive
 
-When requesting tokens, always use `acquireTokenSilent` first, falling back to interactive token acquisition if needed. Exception to this is when doing token acquisition outside of an app context that does not have access to interaction status or cannot ensure other components making interactive requests. For instance, if you are making use of `acquireTokenSilent` in a utility function in a React application outside of **MsalProvider context**, you shouldn't attempt to handle *InteractionRequiredAuthError* with an interactive request, but instead route that error to a component that can has access to MSAL context (see: [What can I do outside of msal-react context?](../../msal-react/FAQ.md#what-can-i-do-outside-of-azuremsal-react-context)).
+When requesting tokens, always use `acquireTokenSilent` first, falling back to interactive token acquisition if needed (e.g., when the `InteractionRequiredAuthError` is thrown).
 
-Multiple concurrent silent requests are permitted. If two or more of silent requests are made at the same time, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same requests parameters (e.g. scopes).
+Concurrent silent requests are permitted. If two or more silent requests are made at the same time, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same requests parameters (e.g. scopes).
+
+Concurrent interactive requests are **not** permitted. If two or more silent requests are made at the same time, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error.
+
+> :warning: In wrapper libraries, you should always check for [InteractionStatus](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.interactionstatus.html) being equal to **None** before making an interactive request. To learn more, please refer to:
+>
+> - [msal-angular interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
+>- [msal-react interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
 
 ### Make one token request per resource
 
@@ -116,5 +117,5 @@ You can only request access tokens for one resource at a time (see [resources an
 - [Token lifetimes, expiration and renewal](./token-lifetimes.md).
 - [Caching in MSAL](./caching.md)
 - [Handling errors](./errors.md)
-- [Throttling](../../msal-common/docs/Throttling.md)
 - [Working with B2C](./working-with-b2c.md)
+- [Throttling](../../msal-common/docs/Throttling.md)
