@@ -25,20 +25,20 @@ export class AuthorityFactory {
      * @param protocolMode
      */
     static async createDiscoveredInstance(
-        logger: Logger,
         authorityUri: string,
         networkClient: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
+        logger: Logger,
         proxyUrl?: string
     ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
-            logger,
             authorityUri,
             networkClient,
             cacheManager,
             authorityOptions,
+            logger,
             proxyUrl
         );
 
@@ -61,11 +61,11 @@ export class AuthorityFactory {
      * @param protocolMode
      */
     static createInstance(
-        logger: Logger,
         authorityUrl: string,
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
+        logger: Logger,
         proxyUrl?: string
     ): Authority {
         // Throw error if authority url is empty
@@ -73,6 +73,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(logger, authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl);
     }
 }

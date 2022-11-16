@@ -134,7 +134,7 @@ const loggerOptions = {
 }
 const logger = new Logger(loggerOptions);
 
-const testAuthority = new Authority(logger, "https://login.microsoftonline.com/common", networkInterface, testCacheManager, authorityOptions);
+const testAuthority = new Authority("https://login.microsoftonline.com/common", networkInterface, testCacheManager, authorityOptions, logger);
 
 describe("ResponseHandler.ts", () => {
     let preferredCacheStub: sinon.SinonStub;

@@ -51,11 +51,11 @@ export class Authority {
     private logger: Logger;
 
     constructor(
-        logger: Logger,
         authority: string,
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
+        logger: Logger,
         proxyUrl?: string
     ) {
         this.canonicalAuthority = authority;
@@ -444,16 +444,18 @@ export class Authority {
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         this.logger.verbose("Attempting to get cloud discovery metadata in the config");
+        this.logger.verbose(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
+        this.logger.verbose(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
+        this.logger.verbose(`Canonical Authority: ${metadataEntity.canonical_authority || Constants.NOT_APPLICABLE}`);
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
-            this.logger.verbose("Found cloud discovery metata in the config.");
+            this.logger.verbose("Found cloud discovery metadata in the config.");
             metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
         }
-        this.logger.verbose("Did not find cloud discovery metadata in the config");
 
         // If the cached metadata came from config but that config was not passed to this instance, we must go to the network
-        this.logger.verbose("Attempting to get cloud discovery metadata in the cache");
+        this.logger.verbose("Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the cache.");
         const metadataEntityExpired = metadataEntity.isExpired();
         if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntityExpired) {
             this.logger.verbose("Found metadata in the cache.");
@@ -462,28 +464,25 @@ export class Authority {
         } else if (metadataEntityExpired) {
             this.logger.verbose("The metadata entity is expired.");
         }
-        this.logger.verbose("Did not find cloud discovery metadata in the cache");
 
-        this.logger.verbose("Attempting to get cloud discovery metadata from the network");
+        this.logger.verbose("Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network.");
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
-            this.logger.verbose("Found cloud discovery metata from the network.");
+            this.logger.verbose("Found cloud discovery metadata from the network.");
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
-        this.logger.verbose("Did not find cloud discovery metadata from the network");
         
-        this.logger.verbose("Attempting to get cloud discovery metadata from hardcoded values");
+        this.logger.verbose("Did not find cloud discovery metadata from the network... Attempting to get cloud discovery metadata from hardcoded values.");
         const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
         if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
-            this.logger.verbose("Found cloud discovery metata from hardcoded values.");
+            this.logger.verbose("Found cloud discovery metadata from hardcoded values.");
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
         }
-        this.logger.verbose("Did not find cloud discovery metadata from hardcoded values");
         
         // Metadata could not be obtained from config, cache or network
-        this.logger.verbose("Metadata could not be obtained from config, cache, network or hardcoded value. Throwing Untrusted Authority Error.");
+        this.logger.verbose("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded value. Throwing Untrusted Authority Error.");
         throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
@@ -501,7 +500,7 @@ export class Authority {
                     parsedResponse.metadata,
                     this.hostnameAndPort
                 );
-                this.logger.verbose("Parsed the cloud discovery metadata");
+                this.logger.verbose("Parsed the cloud discovery metadata.");
                 if (metadata) {
                     this.logger.verbose("There is returnable metadata attached to the parsed cloud discovery metadata.");
                     return metadata;

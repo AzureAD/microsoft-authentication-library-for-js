@@ -334,11 +334,10 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);        
-        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
-        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -346,6 +345,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
@@ -362,11 +362,10 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
-        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -374,6 +373,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
@@ -399,11 +399,10 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
-        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -411,6 +410,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
@@ -437,11 +437,10 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
-        expect(authorityMock.mock.calls[0][0]).toBeInstanceOf(Logger);
-        expect(authorityMock.mock.calls[0][1]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][3]).toBeInstanceOf(NodeStorage);
-        expect(authorityMock.mock.calls[0][4]).toStrictEqual({
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
             azureRegionConfiguration: undefined,
@@ -449,6 +448,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });

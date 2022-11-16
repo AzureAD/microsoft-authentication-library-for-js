@@ -99,11 +99,11 @@ const loggerOptions = {
 const logger = new Logger(loggerOptions);
 
 const authority =  AuthorityFactory.createInstance(
-    logger,
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
     new MockStorageClass("client-id", mockCrypto),
-    authorityOptions
+    authorityOptions,
+    logger
 );
 
 describe("AccountEntity.ts Unit Tests", () => {
@@ -255,11 +255,11 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     it("create an Account no preferred_username or emails claim", () => {
         const authority =  AuthorityFactory.createInstance(
-            logger,
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto),
-            authorityOptions
+            authorityOptions,
+            logger
 		);
 
         // Set up stubs
@@ -301,7 +301,6 @@ describe("AccountEntity.ts Unit Tests", () => {
 
     it("creates a generic account", () => {
         const authority =  AuthorityFactory.createInstance(
-            logger,
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto),
@@ -310,7 +309,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: ""
-            }
+            },
+            logger
 		);
 
         // Set up stubs
@@ -529,11 +529,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authorityMetadata: ""
         }
         const authority = AuthorityFactory.createInstance(
-            logger,
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto), 
-            authorityOptions
+            authorityOptions,
+            logger
         );
 
         // Set up stubs
@@ -577,11 +577,11 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             authorityMetadata: ""
         }
         const authority = AuthorityFactory.createInstance(
-            logger,
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto), 
-            authorityOptions
+            authorityOptions,
+            logger
         );
 
         // Set up stubs

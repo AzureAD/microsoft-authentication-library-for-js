@@ -122,7 +122,7 @@ export class InteractionHandler {
      */
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(this.logger, cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options, this.logger);
         this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 
