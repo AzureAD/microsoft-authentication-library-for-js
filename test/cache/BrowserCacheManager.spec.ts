@@ -116,12 +116,12 @@ describe("BrowserCacheManager tests", () => {
         let msalCacheKey2: string;
         beforeEach(() => {
             browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            authority = new Authority(logger, TEST_CONFIG.validAuthority, StubbedNetworkModule, browserSessionStorage, {
+            authority = new Authority(TEST_CONFIG.validAuthority, StubbedNetworkModule, browserSessionStorage, {
                 protocolMode: ProtocolMode.AAD,
                 authorityMetadata: "",
                 cloudDiscoveryMetadata: "",
                 knownAuthorities: []
-            });
+            }, logger);
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);

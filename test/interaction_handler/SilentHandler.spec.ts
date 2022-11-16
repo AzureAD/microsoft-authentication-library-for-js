@@ -68,7 +68,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         const logger: Logger = new Logger(loggerOptions);
-        const authorityInstance = AuthorityFactory.createInstance(logger, configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions, logger);
         const authConfig: ClientConfiguration = {
             authOptions: {
                 ...configObj.auth,

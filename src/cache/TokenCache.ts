@@ -78,7 +78,7 @@ export class TokenCache implements ITokenCache {
                 authorityMetadata: this.config.auth.authorityMetadata,
                 skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
             };
-            authority = new Authority(this.logger, authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
+            authority = new Authority(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.logger);
 
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {

@@ -216,7 +216,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // fall back to the authority from config
         const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
-        return await AuthorityFactory.createDiscoveredInstance(this.logger, builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions)
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({
                     success: true
