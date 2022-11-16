@@ -1,7 +1,7 @@
 {
-  "type": "patch",
-  "comment": "Added logging to Authority code",
+  "type": "major",
+  "comment": "Added logging to Authority class",
   "packageName": "@azure/msal-browser",
   "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "major"
 }
