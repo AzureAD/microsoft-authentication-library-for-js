@@ -213,7 +213,7 @@ export class ClientTestUtils {
         };
         const logger = new Logger(loggerOptions);
 
-        const authority  = AuthorityFactory.createInstance(logger, TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions);
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions, logger);
 
         await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
