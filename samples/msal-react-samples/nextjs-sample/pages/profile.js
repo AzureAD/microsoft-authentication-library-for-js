@@ -2,10 +2,10 @@ import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
 import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../src/authConfig";
 import React, { useEffect, useState } from "react";
-import { ProfileData } from "../src/ProfileData";
-import { callMsGraph } from "../src/MsGraphApiCall";
-import Paper from "@material-ui/core/Paper";
-import { Typography } from "@material-ui/core";
+import { ProfileData } from "../src/ui-components/ProfileData";
+import { callMsGraph } from "../src/utils/MsGraphApiCall";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 
 const ProfileContent = () => {
     const { instance, inProgress } = useMsal();
@@ -53,5 +53,5 @@ export default function Profile() {
         >
             <ProfileContent />
         </MsalAuthenticationTemplate>
-      )
+    )
 };
