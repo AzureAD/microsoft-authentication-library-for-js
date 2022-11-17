@@ -112,7 +112,6 @@ Using the [acquireTokenInteractive](https://azuread.github.io/microsoft-authenti
             const openBrowser = async (url: any) => {
                 await shell.openExternal(url);
             };
-
             const interactiveRequest: InteractiveRequest = {
                 ...tokenRequest,
                 openBrowser,
