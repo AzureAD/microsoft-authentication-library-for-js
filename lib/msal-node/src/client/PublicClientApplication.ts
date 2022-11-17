@@ -98,7 +98,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const validRequest: AuthorizationUrlRequest = {
             ...remainingProperties,
-            scopes: request.scopes || [],
+            scopes: request.scopes || OIDC_DEFAULT_SCOPES,
             redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
             codeChallenge: challenge, 
@@ -120,10 +120,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const clientInfo = authCodeResponse.client_info;
         const tokenRequest: AuthorizationCodeRequest = {
             code: authCodeResponse.code,
-            scopes: OIDC_DEFAULT_SCOPES,
-            redirectUri: validRequest.redirectUri,
             codeVerifier: verifier,
-            clientInfo: clientInfo || CommonConstants.EMPTY_STRING
+            clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+            ...validRequest
         };
         return this.acquireTokenByCode(tokenRequest);
     }
