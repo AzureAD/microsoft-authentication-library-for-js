@@ -44,6 +44,7 @@
 /build/ @sameerag @tnorling @hectormmg @bmahall @peterzenz
 /release-scripts/ @sameerag @tnorling @hectormmg @bmahall @peterzenz
 /.github/ @sameerag @tnorling @hectormmg @bmahall @peterzenz
+/.pipelines/ @hectormmg @tnorling @bmahall @peterzenz
 
 # Filepaths to ignore
 /change/

@@ -23,13 +23,13 @@ const isFirefox = firefox > 0; // Only needed if you need to support the redirec
     },
     authorities: {
         signUpSignIn: {
-            authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy"
+            authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy"
         },
         editProfile: {
-            authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_ProfileEditPolicy"
+            authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_ProfileEditPolicy"
         }
     },
-    authorityDomain: "login.microsoftonline.com"
+    authorityDomain: "msidlabb2c.b2clogin.com"
 }
 
 // Config object to be passed to Msal on creation
@@ -48,22 +48,22 @@ export const msalConfig = {
     system: {
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {	
-                    return;	
+                if (containsPii) {
+                    return;
                 }
-                switch (level) {	
-                    case LogLevel.Error:	
-                        console.error(message);	
-                        return;	
-                    case LogLevel.Info:	
-                        console.info(message);	
-                        return;	
-                    case LogLevel.Verbose:	
-                        console.debug(message);	
-                        return;	
-                    case LogLevel.Warning:	
-                        console.warn(message);	
-                        return;	
+                switch (level) {
+                    case LogLevel.Error:
+                        console.error(message);
+                        return;
+                    case LogLevel.Info:
+                        console.info(message);
+                        return;
+                    case LogLevel.Verbose:
+                        console.debug(message);
+                        return;
+                    case LogLevel.Warning:
+                        console.warn(message);
+                        return;
                     default:
                         return;
                 }

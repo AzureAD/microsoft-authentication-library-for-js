@@ -4,8 +4,9 @@ import { LogLevel, PublicClientApplication } from '@azure/msal-browser';
 export const msalConfig = {
   auth: {
     clientId: 'ENTER_YOUR_CLIENT_ID_HERE',
-    redirectUri: 'http://localhost:3000', // Must be registered as a SPA redirectURI on your app registration
-    postLogoutRedirectUri: 'http://localhost:3000' // Must be registered as a SPA redirectURI on your app registration
+    authority: 'https://login.microsoftonline.com/ENTER_YOUR_TENANT_ID_HERE',
+    redirectUri: '/', // Must be registered as a SPA redirectURI on your app registration
+    postLogoutRedirectUri: '/' // Must be registered as a SPA redirectURI on your app registration
   },
   cache: {
     cacheLocation: 'localStorage'
@@ -13,22 +14,22 @@ export const msalConfig = {
   system: {
       loggerOptions: {
           loggerCallback: (level: LogLevel, message: string, containsPii: boolean) => {
-              if (containsPii) {	
-                  return;	
+              if (containsPii) {
+                  return;
               }
-              switch (level) {	
-                  case LogLevel.Error:	
-                      console.error(message);	
-                      return;	
-                  case LogLevel.Info:	
-                      console.info(message);	
-                      return;	
-                  case LogLevel.Verbose:	
-                      console.debug(message);	
-                      return;	
-                  case LogLevel.Warning:	
-                      console.warn(message);	
-                      return;	
+              switch (level) {
+                  case LogLevel.Error:
+                      console.error(message);
+                      return;
+                  case LogLevel.Info:
+                      console.info(message);
+                      return;
+                  case LogLevel.Verbose:
+                      console.debug(message);
+                      return;
+                  case LogLevel.Warning:
+                      console.warn(message);
+                      return;
                   default:
                       return;
               }
