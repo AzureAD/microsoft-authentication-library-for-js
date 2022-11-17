@@ -84,15 +84,16 @@ jobs:
           samples/.cache/puppeteer
         key: ${{ runner.os }}-node-test-tools-${{ matrix.node }}-${{ hashFiles('samples/package-lock.json') }}
 
+    # Puppeteer v19 drops support for Node 10 and 12
+    - name: Downgrade puppeteer for Node 10 and 12
+      if: matrix.node == '10' || matrix.node == '12'
+      working-directory: samples
+      run: npm install puppeteer@18
+
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples
       run: npm ci
-
-    # Puppeteer v19 drops support for Node 10 and 12
-    - name: Downgrade puppeteer for Node 10 and 12
-      if: matrix.node == '10' || matrix.node == '12'
-      run: npm install puppeteer@18
 
     - name: Restore node_modules for sample
       uses: actions/cache@v3
