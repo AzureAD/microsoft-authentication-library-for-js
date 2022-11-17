@@ -37,6 +37,14 @@ export function useMsalAuthentication(
     const account = useAccount(accountIdentifiers);
     const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
 
+    // Used to prevent state updates after unmount
+    const mounted = useRef(true);
+    useEffect(() => {
+        return () => {
+            mounted.current = false;
+        };
+    },[]);
+
     // Boolean used to check if interaction is in progress in acquireTokenSilent fallback. Use Ref instead of state to prevent acquireToken function from being regenerated on each change to interactionInProgress value
     const interactionInProgress = useRef(inProgress !== InteractionStatus.None);
     useEffect(() => {
@@ -124,10 +132,14 @@ export function useMsalAuthentication(
         };
 
         return getToken().then((response: AuthenticationResult|null) => {
-            setResponse([response, null]);
+            if (mounted.current) {
+                setResponse([response, null]);
+            }
             return response;
         }).catch((e: AuthError) => {
-            setResponse([null, e]);
+            if (mounted.current) {
+                setResponse([null, e]);
+            }
             throw e;
         });
     }, [instance, interactionType, authenticationRequest, logger, account, login]);
