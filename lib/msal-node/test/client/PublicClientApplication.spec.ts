@@ -2,8 +2,8 @@ import { PublicClientApplication } from './../../src/client/PublicClientApplicat
 import { Configuration, InteractiveRequest } from './../../src/index';
 import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
-    ClientConfiguration, AuthenticationResult,
-    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError
+    ClientConfiguration, AuthenticationResult, AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient,
+    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo
 } from '@azure/msal-common';
 import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
@@ -14,9 +14,7 @@ import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordReque
 import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import { mocked } from 'ts-jest/utils';
-import { AccountInfo } from '@azure/msal-common';
 import http from "http";
-
 
 import * as msalCommon from '@azure/msal-common';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
@@ -335,7 +333,7 @@ describe('PublicClientApplication', () => {
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
-        await authApp.acquireTokenByRefreshToken(request);
+        await authApp.acquireTokenByRefreshToken(request);        
         expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
         expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
@@ -347,6 +345,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
@@ -374,6 +373,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
@@ -410,6 +410,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
@@ -447,6 +448,7 @@ describe('PublicClientApplication', () => {
             authorityMetadata: "",
             skipAuthorityMetadataCache: false
         });
+        expect(authorityMock.mock.calls[0][4]).toBeInstanceOf(Logger);
         expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
