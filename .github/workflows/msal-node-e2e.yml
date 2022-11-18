@@ -164,7 +164,7 @@ jobs:
     # Puppeteer v19 drops support for Node 10 and 12
     - name: Downgrade puppeteer for Node 10 and 12
       working-directory: samples
-      run: npm install puppeteer@18
+      run: npm install puppeteer@18.0.5
 
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
