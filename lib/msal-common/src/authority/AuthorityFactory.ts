@@ -10,6 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
+import { Logger } from "../logger/Logger";
 
 export class AuthorityFactory {
 
@@ -28,6 +29,7 @@ export class AuthorityFactory {
         networkClient: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
+        logger: Logger,
         proxyUrl?: string
     ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
@@ -36,6 +38,7 @@ export class AuthorityFactory {
             networkClient,
             cacheManager,
             authorityOptions,
+            logger,
             proxyUrl
         );
 
@@ -62,6 +65,7 @@ export class AuthorityFactory {
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
+        logger: Logger,
         proxyUrl?: string
     ): Authority {
         // Throw error if authority url is empty
@@ -69,6 +73,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl);
     }
 }
