@@ -586,16 +586,6 @@ describe("MsalAuthenticationTemplate tests", () => {
                     callback(eventEnd);
                 });
 
-                const eventMessage: EventMessage = {
-                    eventType: EventType.ACQUIRE_TOKEN_START,
-                    interactionType: InteractionType.Redirect,
-                    payload: null,
-                    error: null,
-                    timestamp: 10000
-                };
-                eventCallbacks.forEach((callback) => {
-                    callback(eventMessage);
-                });
                 return Promise.resolve(null);
             });
             jest.spyOn(pca, "acquireTokenRedirect").mockImplementation(() => {
@@ -606,6 +596,20 @@ describe("MsalAuthenticationTemplate tests", () => {
                 expect(request.account).toBe(testAccount);
 
                 await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+
+                act(() => {
+                    const eventMessage: EventMessage = {
+                        eventType: EventType.ACQUIRE_TOKEN_START,
+                        interactionType: InteractionType.Redirect,
+                        payload: null,
+                        error: null,
+                        timestamp: 10000
+                    };
+                    eventCallbacks.forEach((callback) => {
+                        callback(eventMessage);
+                    });
+                });
+
                 return Promise.reject(new InteractionRequiredAuthError("interaction_required", "Interaction is required"));
             });
 
