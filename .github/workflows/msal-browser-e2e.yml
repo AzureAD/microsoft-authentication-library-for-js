@@ -55,7 +55,9 @@ jobs:
       uses: actions/cache@v3
       id: test-tools-cache
       with: 
-        path: samples/node_modules
+        path: |
+          samples/node_modules
+          samples/.cache/puppeteer
         key: ${{ runner.os }}-browser-test-tools-${{ hashFiles('samples/package-lock.json') }}
 
     - name: Install Test Tools
