@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, LoggerOptions, AuthenticationScheme, AuthorityOptions, ClientConfiguration } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -46,9 +46,10 @@ const networkInterface = {
 };
 
 describe("SilentHandler.ts Unit Tests", () => {
-    let browserStorage: BrowserCacheManager;
     let authCodeModule: AuthorizationCodeClient;
     let browserRequestLogger: Logger;
+    let browserStorage: BrowserCacheManager;
+    
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -62,7 +63,12 @@ describe("SilentHandler.ts Unit Tests", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         }
-        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
+        const loggerOptions: LoggerOptions = {
+            loggerCallback: (): void => {},
+            piiLoggingEnabled: true,
+        };
+        const logger: Logger = new Logger(loggerOptions);
+        const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions, logger);
         const authConfig: ClientConfiguration = {
             authOptions: {
                 ...configObj.auth,
@@ -109,14 +115,10 @@ describe("SilentHandler.ts Unit Tests", () => {
                     return testNetworkResult;
                 },
             },
-            loggerOptions: {
-                loggerCallback: (): void => {},
-                piiLoggingEnabled: true,
-            },
+            loggerOptions: loggerOptions,
         };
         authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!);
         authCodeModule = new AuthorizationCodeClient(authConfig);
-        const logger = new Logger(authConfig.loggerOptions!);
         const browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);

@@ -4,12 +4,12 @@
  */
 
 import sinon from "sinon";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload, AuthorityOptions, CcsCredential, CcsCredentialType } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, LoggerOptions, Authority, ClientConfiguration, AuthorizationCodePayload, AuthorityOptions, CcsCredential, CcsCredentialType } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -51,8 +51,9 @@ let authConfig: ClientConfiguration;
 
 describe("RedirectHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
-    let browserStorage: BrowserCacheManager;
     let browserRequestLogger: Logger;
+    let browserStorage: BrowserCacheManager;
+    
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -66,16 +67,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         }
-        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
-        const loggerConfig = {
-            loggerCallback: (
-                level: LogLevel,
-                message: string,
-                containsPii: boolean
-            ): void => {},
+        const loggerOptions: LoggerOptions = {
+            loggerCallback: (): void => {},
             piiLoggingEnabled: true,
         };
-        const logger = new Logger(loggerConfig);
+        const logger: Logger = new Logger(loggerOptions);
+        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions, logger);
         browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         authConfig = {
@@ -131,8 +128,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                     return testNetworkResult;
                 },
             },
-            loggerOptions: loggerConfig,
-        };        
+            loggerOptions: loggerOptions,
+        };
         authCodeModule = new AuthorizationCodeClient(authConfig);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });

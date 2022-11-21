@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Include original request params on /token request in acquireTokenInteractive #5403",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
