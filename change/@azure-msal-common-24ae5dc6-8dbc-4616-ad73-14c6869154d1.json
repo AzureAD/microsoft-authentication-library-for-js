@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update B2C authority format in tests #5375",
+  "packageName": "@azure/msal-common",
+  "email": "v-derisen@microsoft.com",
+  "dependentChangeType": "none"
+}
