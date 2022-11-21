@@ -1063,14 +1063,19 @@ export class BrowserCacheManager extends CacheManager {
         return currentCacheKey;
     }
 
+    /**
+     * Returns application id as redirect context during AcquireTokenRedirect flow.
+     */
     getRedirectRequestContext(): string | null {
-        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REDIRECT_CONTEXT}`;
-        return this.getTemporaryCache(key);
+        return this.getTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, true);
     }
      
+    /**
+     * Sets application id as the redirect context during AcquireTokenRedirect flow.
+     * @param value 
+     */
     setRedirectRequestContext(value: string): void {
-        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.REDIRECT_CONTEXT}`;
-        this.setTemporaryCache(key, value, false);
+        this.setTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, value, true);
     }
 }
 
