@@ -3,7 +3,7 @@
 	<p>Name: {{ state.data.displayName }}</p>
 	<p>Title: {{ state.data.jobTitle }}</p>
 	<p>Mail: {{ state.data.mail }}</p>
-	<p>Phone: {{ state.data.businessPhones[0] }}</p>
+	<p>Phone: {{ state.data.businessPhones ? state.data.businessPhones[0] : "" }}</p>
 	<p>Location: {{ state.data.officeLocation }}</p>
   </div>
 </template>
@@ -14,12 +14,13 @@ import { InteractionType } from "@azure/msal-browser";
 import { reactive, watch } from 'vue'
 import { loginRequest } from "../authConfig";
 import { callMsGraph } from "../utils/MsGraphApiCall";
+import UserInfo from "../utils/UserInfo";
 
 const { result, acquireToken } = useMsalAuthentication(InteractionType.Redirect, loginRequest);
 
 const state = reactive({
 	resolved: false,
-	data: {}
+	data: {} as UserInfo
 });
 
 async function getGraphData() {
