@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Merge branch 'dev' of https://github.com/AzureAD/microsoft-authentication-library-for-js into lalimas/browsercachingupdates",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
