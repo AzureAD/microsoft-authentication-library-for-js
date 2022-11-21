@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Merge branch 'dev' of https://github.com/AzureAD/microsoft-authentication-library-for-js into lalimas/browsercachingupdates",
+  "comment": "Added caching methods to set or get redirect context of application during redirect flow.",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"
