@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix circular dependency #5402",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
