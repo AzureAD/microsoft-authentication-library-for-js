@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix SSR hydration errors #5399",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
