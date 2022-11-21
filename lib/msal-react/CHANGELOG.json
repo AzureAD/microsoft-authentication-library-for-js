@@ -2,6 +2,35 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-react_v1.5.0",
+      "version": "1.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d",
+            "comment": "Fix SSR hydration errors #5399"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b3e5a8f3356896a65988b09f2f26452d37648095",
+            "comment": "Fix state update on unmounted component #5396"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.32.0",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Nov 2022 22:46:55 GMT",
       "tag": "@azure/msal-react_v1.4.10",
       "version": "1.4.10",
