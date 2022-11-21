@@ -99,14 +99,56 @@ All MSAL `acquireToken*` as well as `login*` APIs perform asynchronous operation
 
 When requesting tokens, always use `acquireTokenSilent` first, falling back to interactive token acquisition if needed (e.g., when the `InteractionRequiredAuthError` is thrown).
 
-Concurrent silent requests are permitted. If two or more silent requests are made at the same time, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same requests parameters (e.g. scopes).
+Concurrent silent requests are permitted. If two or more silent requests are made at the same time, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same request parameters (e.g. scopes).
 
 Concurrent interactive requests are **not** permitted. If two or more silent requests are made at the same time, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error.
 
-> :warning: In wrapper libraries, you should always check for [InteractionStatus](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.interactionstatus.html) being equal to **None** before making an interactive request. To learn more, please refer to:
+> **Avoiding *interaction_in_progress* errors**
+>
+> In most circumstances, you can avoid *interaction_in_progress* errors by refactoring your code to prevent interactive requests from being triggered concurrently. If you are working on an Angular or React application, MSAL Angular and MSAL React offers observables and hooks, respectively, that you can use for this. To learn more, please refer to:
 >
 > - [msal-angular interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
 >- [msal-react interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
+>
+> In general, your token acquisition method should check if any other interaction is in progress prior to invoking an interaction. If you are not using wrapper libraries, you can achieve this via a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md). See for instance: [custom MsalPlugin in a Vue.js application](../../../samples/msal-browser-samples/vue3-sample-app/src/plugins/msalPlugin.ts).
+>
+> The snippet below illustrates one possible approach to avoid *interaction_in_progress* errors:
+>
+> ```typescript
+> async function myAcquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+>    const msalInstance = getMsalInstance(); // get the msal application instance
+>
+>    const tokenRequest = {
+>        account: msalInstance.getActiveAccount() || null;
+>        ...request
+>    };
+>
+>    let tokenResponse;
+>
+>    try {
+>        // attempt silent acquisition first
+>        tokenResponse = await msalInstance.acquireTokenSilent(request);
+>    } catch (error) {
+>        if (error instanceof InteractionRequiredAuthError) {
+>            try {
+>                // myWaitFor is a method that polls the interaction status and resolves when "None"
+>                await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+>
+>                // wait is over
+>                tokenResponse = await msalInstance.acquireTokenPopup(request);
+>            } catch (err) {
+>                console.log(err);
+>                // handle other errors
+>            }
+>        }
+>
+>        console.log(error);
+>        // handle other errors
+>    }
+>
+>    return tokenResponse;
+> }
+> ```
 
 ### Make one token request per resource
 
