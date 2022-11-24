@@ -1,7 +1,0 @@
-{
-  "comment": "Added logging to Authority class",
-  "type": "none",
-  "packageName": "@azure/node-token-validation",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "none"
-}

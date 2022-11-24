@@ -15,6 +15,7 @@ export const mockAccessTokenEntity_1 = {
     cachedAt: "1000",
     expiresOn: "4600",
     extendedExpiresOn: "4600",
+    userAssertionHash: "mock_hash_string"
 };
 
 export const mockAccessTokenEntity_2 = {

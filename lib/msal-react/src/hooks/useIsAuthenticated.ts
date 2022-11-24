@@ -6,7 +6,7 @@
 import { useState, useEffect } from "react";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
-import { AccountInfo } from "@azure/msal-browser";
+import { AccountInfo, InteractionStatus } from "@azure/msal-browser";
 import { getAccountByIdentifiers } from "../utils/utilities";
 
 function isAuthenticated(allAccounts: AccountInfo[], matchAccount?: AccountIdentifiers): boolean {
@@ -22,9 +22,14 @@ function isAuthenticated(allAccounts: AccountInfo[], matchAccount?: AccountIdent
  * @param matchAccount 
  */
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
-    const { accounts: allAccounts } = useMsal();
+    const { accounts: allAccounts, inProgress } = useMsal();
 
-    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(() => isAuthenticated(allAccounts, matchAccount));
+    const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(() => {
+        if (inProgress === InteractionStatus.Startup) {
+            return false;
+        }
+        return isAuthenticated(allAccounts, matchAccount);
+    });
 
     useEffect(() => {
         setHasAuthenticated(isAuthenticated(allAccounts, matchAccount));

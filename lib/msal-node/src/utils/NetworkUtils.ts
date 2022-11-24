@@ -3,17 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, NetworkResponse } from "@azure/msal-common";
-import { HttpClient } from "../network/HttpClient";
+import { NetworkResponse } from "@azure/msal-common";
 
 export class NetworkUtils {
-    /**
-     * Returns best compatible network client object.
-     */
-    static getNetworkClient(): INetworkModule {
-        return new HttpClient();
-    }
-
     static getNetworkResponse<T>(headers: Record<string, string>, body: T, statusCode: number): NetworkResponse<T> {
         return {
             headers: headers,

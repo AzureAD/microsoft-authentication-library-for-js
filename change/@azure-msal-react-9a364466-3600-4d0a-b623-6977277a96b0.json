@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix state update on unmounted component #5396",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
