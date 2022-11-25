@@ -121,7 +121,7 @@ Session support in this sample is provided by the [express-session](https://www.
 
 ### Token caching
 
-MSAL Node has an in-memory cache for storing tokens by default. This sample does not persist cache on disk. For caching, please refer to the [RedisTestApp](../RedisTestApp/README.md), which demonstrates the *distributed token cache* pattern recommended for web apps. See also: [Caching](../../../lib/msal-node/docs/caching.md);
+MSAL Node has an in-memory cache for storing tokens by default. The demo app also features *cache-in-session* pattern where the user's token cache is serialized into and deserialized from the session variable (using **express-session**). This will not scale beyond a single app instance. For scaling, please refer to the [RedisTestApp](../RedisTestApp/README.md), which demonstrates the *distributed token cache* pattern recommended for web apps. See also: [Caching](../../../lib/msal-node/docs/caching.md);
 
 ## More information
 

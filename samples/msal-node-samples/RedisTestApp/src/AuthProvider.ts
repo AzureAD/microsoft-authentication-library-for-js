@@ -85,11 +85,9 @@ export class AuthProvider {
     signIn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
         /**
-         * Request Configuration
-         * We manipulate these two request objects below
+         * We manipulate the request objects below
          * to acquire a token with the appropriate claims
          */
-
         if (!req.session["tokenRequest"]) {
             req.session.tokenRequest = {
                 authority: "",
