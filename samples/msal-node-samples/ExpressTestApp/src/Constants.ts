@@ -36,7 +36,7 @@ export const ErrorMessages = {
     NOT_PERMITTED: "Not permitted",
     INVALID_TOKEN: "Invalid token",
     CANNOT_DETERMINE_APP_STAGE: "Cannot determine application stage",
-    NONCE_MISMATCH: "Nonce does not match",
+    CSRF_TOKEN_MISMATCH: "CSRF token does not match",
     INTERACTION_REQUIRED: "interaction_required",
     TOKEN_NOT_FOUND: "No token found",
     TOKEN_NOT_DECODED: "Token cannot be decoded",

@@ -2,9 +2,6 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import {
-    TokenClaims
-} from "@azure/msal-common";
 
 import {
     AccountInfo,
@@ -20,29 +17,20 @@ declare global {
         }
     }
 }
-
 // extending express Request object
 declare module "express-session" {
     interface SessionData {
         authCodeRequest: AuthorizationUrlRequest;
         tokenRequest: AuthorizationCodeRequest;
         account: AccountInfo;
-        nonce: string;
+        csrfToken: string;
+        tokenCache: string
         isAuthenticated?: boolean;
         resources?: {
             [resource: string]: Resource;
         };
     }
 }
-
-export type AuthCodeParams = {
-    authority: string;
-    scopes: string[];
-    state: string;
-    redirect: string;
-    prompt?: string;
-    account?: AccountInfo;
-};
 
 export type Resource = {
     callingPageRoute: string,
@@ -70,8 +58,4 @@ export type AppSettings = {
     },
     policies: any,
     protected: any,
-}
-
-export type IdTokenClaims = TokenClaims & {
-    aud?: string,
 }

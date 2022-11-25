@@ -9,14 +9,14 @@ function partitionManager(redisClient, sessionId) {
             const sessionData = await redisClient.get(`sess:${sessionId}`);
             const parsedSessionData = JSON.parse(sessionData); // parse the session data
 
-            return parsedSessionData.account.homeAccountId;
+            return parsedSessionData.account ? parsedSessionData.account.homeAccountId : "";
         },
         extractKey: async (accountEntity) => {
             if (accountEntity.hasOwnProperty("homeAccountId")) {
                 return accountEntity.homeAccountId; // the homeAccountId is the partition key
             } else {
                 throw new Error("homeAccountId is not defined");
-            } 
+            }
         }
     }
 }

@@ -7,29 +7,11 @@
  * Basic authentication stages used to determine
  * appropriate action after redirect occurs
  */
-export const AppStages = {
+ export const AppStages = {
     SIGN_IN: "sign_in",
     SIGN_OUT: "sign_out",
     ACQUIRE_TOKEN: "acquire_token",
 };
-
-/**
- * OpenID Connect scopes
- */
-export const OIDCScopes = {
-    OPENID: "openid",
-    PROFILE: "profile",
-    OFFLINE_ACCESS: "offline_access"
-}
-
-/**
- * String constants related to AAD Authority
- */
-export const AADAuthorityConstants = {
-    COMMON: "common",
-    ORGANIZATIONS: "organizations",  
-    CONSUMERS: "consumers"
-}
 
 /**
  * Global AAD cloud authority
@@ -54,7 +36,7 @@ export const ErrorMessages = {
     NOT_PERMITTED: "Not permitted",
     INVALID_TOKEN: "Invalid token",
     CANNOT_DETERMINE_APP_STAGE: "Cannot determine application stage",
-    NONCE_MISMATCH: "Nonce does not match",
+    CSRF_TOKEN_MISMATCH: "CSRF token does not match",
     INTERACTION_REQUIRED: "interaction_required",
     TOKEN_NOT_FOUND: "No token found",
     TOKEN_NOT_DECODED: "Token cannot be decoded",

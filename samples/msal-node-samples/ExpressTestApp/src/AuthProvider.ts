@@ -19,7 +19,6 @@ import {
     IConfidentialClientApplication,
     ConfidentialClientApplication,
     Configuration,
-    AccountInfo,
     CryptoProvider,
     AuthorizationUrlRequest,
     AuthorizationCodeRequest
@@ -91,17 +90,6 @@ export class AuthProvider {
             } as AuthorizationCodeRequest;
         }
 
-        // signed-in user's account
-        if (!req.session["account"]) {
-            req.session.account = {
-                homeAccountId: "",
-                environment: "",
-                tenantId: "",
-                username: "",
-                idTokenClaims: {},
-            } as AccountInfo;
-        }
-
         // random GUID for csrf check
         req.session.csrfToken = this.cryptoProvider.createNewGuid();
 
@@ -171,7 +159,7 @@ export class AuthProvider {
 
         // check if csrfToken matches
         if (state.csrfToken !== req.session.csrfToken) {
-            console.log(ErrorMessages.NONCE_MISMATCH)
+            console.log(ErrorMessages.CSRF_TOKEN_MISMATCH)
             return res.status(401).send(ErrorMessages.NOT_PERMITTED);
         }
 
@@ -182,8 +170,6 @@ export class AuthProvider {
 
                 try {
                     const msalClient = this.initializeMsalClient();
-
-                    // exchange auth code for tokens
                     const tokenResponse = await msalClient.acquireTokenByCode(req.session.tokenRequest)
                     console.log("\nResponse: \n:", tokenResponse);
 
@@ -204,6 +190,12 @@ export class AuthProvider {
             case AppStages.ACQUIRE_TOKEN:
                 // get the name of the resource associated with scope
                 const resourceName = this.getResourceName(state.path);
+
+                if (!req.session[resourceName]) {
+                    req.session[resourceName] = {
+                        accessToken: null,
+                    };
+                }
 
                 req.session.tokenRequest.code = req.body.code as string
 
@@ -255,7 +247,7 @@ export class AuthProvider {
             msalClient.getTokenCache().deserialize(req.session.tokenCache);
 
             const account = await msalClient.getTokenCache()
-                .getAccountByHomeId(req.session.account.homeAccountId);
+                .getAccountByHomeId(req.session.account?.homeAccountId);
 
             const silentRequest = {
                 account: account,
@@ -263,7 +255,7 @@ export class AuthProvider {
             };
 
             // acquire token silently to be used in resource call
-            const tokenResponse = await msalClient.acquireTokenSilent(silentRequest)
+            const tokenResponse = await msalClient.acquireTokenSilent(silentRequest);
             console.log("\nSuccessful silent token acquisition:\n Response: \n:", tokenResponse);
 
             // serialize the cache blob to session store
