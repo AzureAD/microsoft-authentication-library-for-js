@@ -85,6 +85,7 @@ export type SerializedAccessTokenEntity = {
     token_type?: string;
     requestedClaims?: string;
     requestedClaimsHash?: string;
+    userAssertionHash?: string;
 };
 
 /**

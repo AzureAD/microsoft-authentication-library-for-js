@@ -121,7 +121,7 @@ describe("BrowserCacheManager tests", () => {
                 authorityMetadata: "",
                 cloudDiscoveryMetadata: "",
                 knownAuthorities: []
-            });
+            }, logger);
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
