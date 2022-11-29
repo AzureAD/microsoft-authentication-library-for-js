@@ -24,3 +24,5 @@ export const APPLICATION_DIMENSIONS = {
     WIDTH: 1000,
     HEIGHT: 1000
 }
+
+export const CACHE_LOCATION = "./data/cache.json";
