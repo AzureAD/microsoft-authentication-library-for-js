@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 10 Oct 2022 22:27:02 GMT and should not be manually modified.
+This log was last generated on Mon, 21 Nov 2022 19:14:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Minor changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
+
+### Patches
+
+- Export popup attributes #5364 (hemoral@microsoft.com)
+
+## 2.31.0
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Minor changes
+
+- Add static fields to telemetry #5224 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v8.0.0
+
+### Patches
+
+- Add MATS fields to telemetry #5308 (thomas.norling@microsoft.com)
+- Fix double prompt in native broker redirect flow #5239 (thomas.norling@microsoft.com)
 
 ## 2.30.0
 

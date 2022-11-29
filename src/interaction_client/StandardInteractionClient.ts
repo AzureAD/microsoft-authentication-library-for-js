@@ -232,7 +232,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // const preCreateDiscoveredInstanceTime = this.performanceClient.getCurrentTime();
         
         // TODO: Need to measure here? AuthorityFactory is in common, can't use window.performance.now()
-        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions)
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({
                     success: true
