@@ -1,8 +1,28 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 10 Oct 2022 22:27:03 GMT and should not be manually modified.
+This log was last generated on Mon, 21 Nov 2022 19:14:45 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 9.0.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Major changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+
+## 8.0.0
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Major changes
+
+- Add static fields to telemetry #5224 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Add MATS fields to telemetry #5308 (thomas.norling@microsoft.com)
 
 ## 7.6.0
 

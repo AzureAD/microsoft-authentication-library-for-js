@@ -129,7 +129,7 @@ export class InteractionHandler {
         const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInitializeAuthorizationRequest, queueTime, this.authCodeRequest.correlationId, );
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options); // TODO: AuthorityFactory calculation here? msal-common
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options, this.logger); // TODO: AuthorityFactory calculation here? msal-common
         this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 
