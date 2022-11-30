@@ -482,7 +482,7 @@ export class Authority {
         }
         
         // Metadata could not be obtained from config, cache or network
-        this.logger.verbose("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded value. Throwing Untrusted Authority Error.");
+        this.logger.error("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error.");
         throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
