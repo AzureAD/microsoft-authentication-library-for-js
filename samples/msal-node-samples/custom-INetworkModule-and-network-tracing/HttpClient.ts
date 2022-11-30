@@ -9,15 +9,46 @@ import {
     NetworkResponse
 } from "@azure/msal-common";
 
-/**
- * After "npx tsc" is executed via the "npm run start" script, Constants.ts and NetworkUtils.ts are compiled to .js and stored in the /dist/utils folder
- * The app is run via "node dist/app.js", hence the .js import of the Constants and NetworkUtils
- */
-import { HttpMethod, Constants, HttpStatus, ProxyStatus } from "./utils/Constants.js";
-import { NetworkUtils } from "./utils/NetworkUtils.js";
-
 import http from "http";
 import https from "https";
+
+enum HttpMethod {
+    GET = "get",
+    POST = "post",
+}
+
+enum HttpStatus {
+    SUCCESS_RANGE_START = 200,
+    SUCCESS_RANGE_END = 299,
+    REDIRECT = 302,
+    CLIENT_ERROR_RANGE_START = 400,
+    CLIENT_ERROR_RANGE_END = 499,
+    SERVER_ERROR_RANGE_START = 500,
+    SERVER_ERROR_RANGE_END = 599
+}
+
+enum ProxyStatus {
+    SUCCESS_RANGE_START = 200,
+    SUCCESS_RANGE_END = 299,
+    SERVER_ERROR = 500
+}
+
+/**
+ * Constants
+ */
+const Constants = {
+    AUTHORIZATION_PENDING: "authorization_pending",
+};
+
+class NetworkUtils {
+    static getNetworkResponse<T>(headers: Record<string, string>, body: T, statusCode: number): NetworkResponse<T> {
+        return {
+            headers: headers,
+            body: body,
+            status: statusCode,
+        };
+    }
+}
 
 /**
  * This class implements the API for network requests.

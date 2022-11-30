@@ -13,8 +13,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/msal-common": "^8.0.0",
-    "@azure/msal-node": "^1.14.3",
+    "@azure/msal-common": "^9.0.0",
+    "@azure/msal-node": "^1.14.4",
     "url": "^0.11.0"
   },
   "devDependencies": {
