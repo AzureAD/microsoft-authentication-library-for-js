@@ -17,6 +17,7 @@ export const TEST_CONSTANTS = {
     REDIRECT_URI: "http://localhost:8080",
     CLIENT_SECRET: "MOCK_CLIENT_SECRET",
     DEFAULT_GRAPH_SCOPE: ["user.read"],
+    DEFAULT_OIDC_SCOPES: ["openid", "profile", "offline_access"],
     USERNAME: "mockuser",
     PASSWORD: "mockpassword",
     AUTHORIZATION_CODE:

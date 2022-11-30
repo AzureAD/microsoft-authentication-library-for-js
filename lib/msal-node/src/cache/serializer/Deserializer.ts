@@ -100,7 +100,8 @@ export class Deserializer {
                     keyId: serializedAT.key_id,
                     tokenType: serializedAT.token_type,
                     requestedClaims: serializedAT.requestedClaims,
-                    requestedClaimsHash: serializedAT.requestedClaimsHash
+                    requestedClaimsHash: serializedAT.requestedClaimsHash,
+                    userAssertionHash: serializedAT.userAssertionHash,
                 };
                 const accessToken: AccessTokenEntity = new AccessTokenEntity();
                 CacheManager.toObject(accessToken, mappedAT);
