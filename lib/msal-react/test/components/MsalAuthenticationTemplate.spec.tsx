@@ -868,4 +868,32 @@ describe("MsalAuthenticationTemplate tests", () => {
         expect(await screen.findByText("In Progress: login")).toBeInTheDocument();
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
+
+    test("Renders nothing when inProgress is Startup", async () => {
+        handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() =>{
+            return Promise.resolve(null);
+        });
+        const loginPopupSpy = jest.spyOn(pca, "loginPopup").mockImplementation(() => {
+            return Promise.reject(null);
+        })
+
+        const loadingMessage = ({inProgress}: IMsalContext) => {
+            return <p>In Progress: {inProgress}</p>;
+        };
+
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <MsalAuthenticationTemplate interactionType={InteractionType.Popup} loadingComponent={loadingMessage}>
+                    <span> A user is authenticated!</span>
+                </MsalAuthenticationTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(loginPopupSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(screen.queryByText("In Progress: login")).not.toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+    });
 });
