@@ -10,6 +10,7 @@
 1. [Is MSAL.js 2.x compatible with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
 1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
 1. [Can I provision a single-page application via command-line?](#can-i-provision-a-single-page-application-via-command-line)
+1. [Can I acquire tokens using popups on mobile browsers?](#can-i-acquire-tokens-using-popups-on-mobile-browsers)
 
 **[Authentication](#Authentication)**
 
@@ -127,6 +128,10 @@ Yes, MSAL.js 2.x can be used as a custom authentication provider for the [Micros
 ## Can I provision a single-page application via command-line?
 
 Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. For instance, the script below creates an Azure AD application with redirect URI of type **SPA** and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
+
+## Can I acquire tokens using popups on mobile browsers
+
+While MSAL's `loginPopup` and `acquireTokenPopup` APIs should work on mobile browsers that support popups, using popup APIs is discouraged on mobile scenarios, mainly because not all browsers support popups. We recommend using redirect APIs such as `loginRedirect` and `acquireTokenRedirect` when your application is running in a mobile browser.
 
 ```Powershell
 Import-Module Microsoft.Graph.Applications
