@@ -23,7 +23,7 @@ You must pass a request object to the `acquireToken*` APIs. This object allows y
 
 MSAL uses a [cache](./caching.md) to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
 
-After you've logged in with one of the `ssoSilent` or `login*` APIs the cache will contain a set of id, access and refresh tokens. Every time you need an access token you should call `acquireTokenSilent` and if this fails call an interactive API instead. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you using the cached refresh token. You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md#token-renewal).
+After you've logged in with one of the `ssoSilent` or `login*` APIs the cache will contain a set of ID, access and refresh tokens. Every time you need an access token you should call `acquireTokenSilent` and if this fails call an interactive API instead. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you using the cached refresh token. You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md#token-renewal).
 
 #### Popup
 
@@ -99,16 +99,16 @@ All MSAL `acquireToken*` as well as `login*` APIs perform asynchronous operation
 
 When requesting tokens, always use `acquireTokenSilent` first, falling back to interactive token acquisition if needed (e.g., when the `InteractionRequiredAuthError` is thrown).
 
-Concurrent silent requests are permitted. If two or more silent requests are made at the same time, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same request parameters (e.g. scopes).
+Concurrent silent requests are permitted. If two or more silent requests are made concurrently, only one would go to the network (if needed), but all would receive the response, as long as those requests are for the same request parameters (e.g. scopes).
 
-Concurrent interactive requests are **not** permitted. If two or more silent requests are made at the same time, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error.
+Concurrent interactive requests are **not** permitted. If two or more silent requests are made concurrently, only the first one will start an interaction, while the rest will fail with [interaction_in_progress](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md#interaction_in_progress) error.
 
 > **Avoiding *interaction_in_progress* errors**
 >
 > In most circumstances, you can avoid *interaction_in_progress* errors by refactoring your code to prevent interactive requests from being triggered concurrently. If you are working on an Angular or React application, MSAL Angular and MSAL React offers observables and hooks, respectively, that you can use for this. To learn more, please refer to:
 >
 > - [msal-angular interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
->- [msal-react interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
+> - [msal-react interaction_in_progress error](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
 >
 > In general, your token acquisition method should check if any other interaction is in progress prior to invoking an interaction. If you are not using wrapper libraries, you can achieve this via a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md). See for instance: [custom MsalPlugin in a Vue.js application](../../../samples/msal-browser-samples/vue3-sample-app/src/plugins/msalPlugin.ts).
 >
@@ -131,7 +131,11 @@ Concurrent interactive requests are **not** permitted. If two or more silent req
 >    } catch (error) {
 >        if (error instanceof InteractionRequiredAuthError) {
 >            try {
->                // myWaitFor is a method that polls the interaction status and resolves when "None"
+>                /**
+>                 * "myWaitFor" is an example method that waits for a condition to be true.
+>                 * In this case, it polls the interaction status via getInteractionStatus()
+>                 * and resolves when it's equal to "None".
+>                 */
 >                await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
 >
 >                // wait is over
