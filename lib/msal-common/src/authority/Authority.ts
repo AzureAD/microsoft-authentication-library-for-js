@@ -444,8 +444,8 @@ export class Authority {
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         this.logger.verbose("Attempting to get cloud discovery metadata in the config");
-        this.logger.verbosePii(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
-        this.logger.verbosePii(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
+        this.logger.verbose(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
+        this.logger.verbose(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
         this.logger.verbosePii(`Canonical Authority: ${metadataEntity.canonical_authority || Constants.NOT_APPLICABLE}`);
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
@@ -552,6 +552,7 @@ export class Authority {
                 : [];
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted
+                this.logger.verbose("The network request completed successfully, but no metadata was returned.");
                 return null;
             }
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
@@ -559,6 +560,7 @@ export class Authority {
                 this.hostnameAndPort
             );
         } catch (e) {
+            this.logger.verbose("There was a network error while attempting to get the cloud discovery metadata.");
             return null;
         }
 
