@@ -14,7 +14,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry
 } from "@azure/msal-common";
-import { NetworkUtils } from "../utils/NetworkUtils";
+import { HttpClient } from "../network/HttpClient";
 
 /**
  * - clientId               - Client id of the application.
@@ -122,7 +122,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
-    networkClient: NetworkUtils.getNetworkClient(),
+    networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
 };
 
