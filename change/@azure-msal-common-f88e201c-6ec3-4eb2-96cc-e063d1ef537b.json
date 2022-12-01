@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Added additional logging",
+  "comment": "Added additional Authority logging #5432",
   "packageName": "@azure/msal-common",
-  "email": "rgins16@gmail.com",
+  "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
 }
