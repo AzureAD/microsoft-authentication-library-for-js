@@ -36,6 +36,17 @@ describe('PublicClientApplication', () => {
         },
     };
 
+    let testAppConfig: Configuration = {
+        auth: {
+            clientId: TEST_CONSTANTS.CLIENT_ID,
+            authority: TEST_CONSTANTS.AUTHORITY,
+        },
+
+        system:{
+            loggerOptions: void 0,
+        }
+    };
+
     const expectedConfig: ClientConfiguration = {
         authOptions: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -469,6 +480,14 @@ describe('PublicClientApplication', () => {
         expect(authApp.getLogger()).toEqual(logger);
 
         authApp.getLogger().info("Message");
+    });
+
+    test("logger undefined", async () => {
+        const authApp = new PublicClientApplication(testAppConfig);
+
+       expect(authApp.getLogger()).toBeDefined();
+       expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
+        
     });
 
     test("should throw an error if state is not provided", async () => {
