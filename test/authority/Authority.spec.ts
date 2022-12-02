@@ -911,7 +911,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
-            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata", (done) => {
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from the network is 'invalid_instance'", (done) => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
@@ -922,7 +922,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return {
                         body: {
-                            error: "This endpoint does not exist"
+                            error: "invalid_instance"
                         }
                     };
                 };
