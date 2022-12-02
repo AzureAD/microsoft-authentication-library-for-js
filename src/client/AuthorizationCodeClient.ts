@@ -62,9 +62,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+        
         // @ts-ignore
         const atsMeasurement = this.performanceClient?.startMeasurement("AuthCodeClientAcquireToken", request.correlationId);
-        this.logger.info("in acquireToken call");
+        this.logger.info("in acquireToken call in auth-code client");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
@@ -78,6 +79,13 @@ export class AuthorizationCodeClient extends BaseClient {
         atsMeasurement?.addStaticFields({
             httpVer: httpVer
         });
+        // cache http version header
+        this.logger.verbose("Cache http version header for auth code ");
+        // CHECK IF cache manager is of type browser cache manager
+        if("setItem" in this.cacheManager){
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (this.cacheManager as any).setItem("httpVer", httpVer);
+        }
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,

@@ -87,6 +87,13 @@ export abstract class BaseClient {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
 
+        // check that cache manager is of type browser storage
+        if("getItem" in this.cacheManager)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            headers["x-ms-httpver"]= (this.cacheManager as any).getItem("httpVer");
+
+        this.logger.info("Caching http version:",headers["x-ms-httpver"]);
+
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
