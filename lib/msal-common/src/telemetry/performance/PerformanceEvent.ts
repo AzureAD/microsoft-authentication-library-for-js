@@ -132,6 +132,8 @@ export enum PerformanceEvents {
     HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
 
     UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+
+    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken"
 }
 
 /**

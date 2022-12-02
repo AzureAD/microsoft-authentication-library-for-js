@@ -45,6 +45,17 @@ export class RefreshTokenClient extends BaseClient {
             refreshTokenSize: response.body.refresh_token?.length || 0,
             httpVer: httpVer
         });
+        // cache http version header
+        this.logger.verbose("Cache the http version header for /token", request.correlationId);
+       
+        // CHECK IF cache manager is of type browser cache manager
+        if("setItem" in this.cacheManager){
+            if(httpVer)
+            {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (this.cacheManager as any).setItem("httpVer", httpVer);
+            }
+        }
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
