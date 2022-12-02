@@ -17,6 +17,7 @@ import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
 import { AuthorityOptions , AzureCloudInstance } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
+import { CloudInstanceDiscoveryErrorResponse, isCloudInstanceInvalid } from "./CloudInstanceDiscoveryErrorResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
@@ -543,17 +544,25 @@ export class Authority {
         let match = null;
         try {
             const response =
-                await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(
+                await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse | CloudInstanceDiscoveryErrorResponse>(
                     instanceDiscoveryEndpoint,
                     options
                 );
-            const metadata = isCloudInstanceDiscoveryResponse(response.body)
-                ? response.body.metadata
-                : [];
-            if (metadata.length === 0) {
-                // If no metadata is returned, authority is untrusted
-                return null;
+            
+            let typedResponseBody: CloudInstanceDiscoveryResponse | CloudInstanceDiscoveryErrorResponse;
+            let metadata: Array<CloudDiscoveryMetadata>;
+            if (isCloudInstanceDiscoveryResponse(response.body)) {
+                typedResponseBody = response.body as CloudInstanceDiscoveryResponse;
+                metadata = typedResponseBody.metadata;
+            } else {
+                typedResponseBody = response.body as CloudInstanceDiscoveryErrorResponse;
+                if (isCloudInstanceInvalid(typedResponseBody.error)) {
+                    return null;
+                }
+                
+                metadata = [];
             }
+
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
                 metadata,
                 this.hostnameAndPort
