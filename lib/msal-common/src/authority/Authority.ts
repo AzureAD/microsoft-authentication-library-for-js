@@ -444,8 +444,8 @@ export class Authority {
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         this.logger.verbose("Attempting to get cloud discovery metadata in the config");
-        this.logger.verbose(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
-        this.logger.verbose(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
+        this.logger.verbosePii(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
+        this.logger.verbosePii(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
         this.logger.verbosePii(`Canonical Authority: ${metadataEntity.canonical_authority || Constants.NOT_APPLICABLE}`);
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
@@ -553,11 +553,11 @@ export class Authority {
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted
                 this.logger.warning(`The cloud instance discovery network request's status code is: ${response.status}`);
-                this.logger.warning("metadata is an empty list.");
+                this.logger.warning("There weren't any cloud instances returned.");
                 
                 const tenantDiscoveryEnpoint = response.body.tenant_discovery_endpoint;
                 const tenantDiscoveryEnpointLoggerHelper = tenantDiscoveryEnpoint.length ? `: ${tenantDiscoveryEnpoint.length}` : " an empty string";
-                this.logger.warning(`tenant_discovery_endpoint is${tenantDiscoveryEnpointLoggerHelper}`);
+                this.logger.warningPii(`tenant_discovery_endpoint is${tenantDiscoveryEnpointLoggerHelper}`);
                 return null;
             }
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
@@ -565,12 +565,13 @@ export class Authority {
                 this.hostnameAndPort
             );
         } catch (e) {
-            this.logger.error(`There was a network error while attempting to get the cloud discovery metadata: ${e}`);
+            this.logger.error(`There was a network error while attempting to get the cloud discovery instance metadata: ${e}`);
             return null;
         }
 
         if (!match) {
             this.logger.warning("The cloud instance discovery network request completed successfully and metadata was returned, but the developer's authority was not found within the metadata.");
+            this.logger.verbose("Creating custom Authority for custom domain scenario");
             // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
             match = Authority.createCloudDiscoveryMetadataFromHost(
                 this.hostnameAndPort
