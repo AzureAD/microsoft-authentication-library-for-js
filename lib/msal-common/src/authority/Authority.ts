@@ -552,7 +552,10 @@ export class Authority {
                 : [];
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted
-                this.logger.verbose("The network request completed successfully, but no metadata was returned.");
+                this.logger.warning("The cloud instance discovery network request completed successfully, but metadata is an empty list.");
+                
+                const tenantDiscoveryEnpoint = response.body.tenant_discovery_endpoint;
+                this.logger.warning(`The tenant_discovery_endpoint is: ${tenantDiscoveryEnpoint.length ? tenantDiscoveryEnpoint : "Warning - tenant_discovery_endpoint is an empty string"}`);
                 return null;
             }
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
@@ -560,11 +563,12 @@ export class Authority {
                 this.hostnameAndPort
             );
         } catch (e) {
-            this.logger.verbose("There was a network error while attempting to get the cloud discovery metadata.");
+            this.logger.error(`There was a network error while attempting to get the cloud discovery metadata: ${e}`);
             return null;
         }
 
         if (!match) {
+            this.logger.warning("The cloud instance discovery network request completed successfully and metadata was returned, but the developer's authority was not found within the metadata.");
             // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
             match = Authority.createCloudDiscoveryMetadataFromHost(
                 this.hostnameAndPort
