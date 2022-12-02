@@ -552,10 +552,12 @@ export class Authority {
                 : [];
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted
-                this.logger.warning("The cloud instance discovery network request completed successfully, but metadata is an empty list.");
+                this.logger.warning(`The cloud instance discovery network request's status code is: ${response.status}`);
+                this.logger.warning("metadata is an empty list.");
                 
                 const tenantDiscoveryEnpoint = response.body.tenant_discovery_endpoint;
-                this.logger.warning(`The tenant_discovery_endpoint is: ${tenantDiscoveryEnpoint.length ? tenantDiscoveryEnpoint : "Warning - tenant_discovery_endpoint is an empty string"}`);
+                const tenantDiscoveryEnpointLoggerHelper = tenantDiscoveryEnpoint.length ? `: ${tenantDiscoveryEnpoint.length}` : " an empty string";
+                this.logger.warning(`tenant_discovery_endpoint is${tenantDiscoveryEnpointLoggerHelper}`);
                 return null;
             }
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
