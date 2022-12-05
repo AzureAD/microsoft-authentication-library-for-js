@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update minimatch to resolve dependabot warning #5453",
+  "packageName": "@azure/msal-angular",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
