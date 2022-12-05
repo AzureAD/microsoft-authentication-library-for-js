@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update loader-utils on msal-angular to solve critical Dependabot alert #5451",
+  "packageName": "@azure/msal-angular",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
