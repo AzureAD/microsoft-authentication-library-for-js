@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update engine.io to resolve dependabot alert #5454",
+  "packageName": "@azure/msal-angular",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
