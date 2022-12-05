@@ -38,7 +38,8 @@
             "cached_at": "1000",
             "home_account_id": "uid.utid",
             "extended_expires_on": "4600",
-            "expires_on": "4600"
+            "expires_on": "4600",
+            "userAssertionHash": "mock_hash_string"
         },
         "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5--": {
             "environment": "login.microsoftonline.com",
