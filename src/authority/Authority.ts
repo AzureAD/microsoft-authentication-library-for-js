@@ -469,7 +469,7 @@ export class Authority {
         this.logger.verbose("Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network.");
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
-            this.logger.verbose("Found cloud discovery metadata from the network.");
+            this.logger.verbose("cloud discovery metadata was successfully returned from getCloudDiscoveryMetadataFromNetwork()");
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
@@ -554,25 +554,39 @@ export class Authority {
             if (isCloudInstanceDiscoveryResponse(response.body)) {
                 typedResponseBody = response.body as CloudInstanceDiscoveryResponse;
                 metadata = typedResponseBody.metadata;
+
+                this.logger.verbosePii(`tenant_discovery_endpoint is: ${typedResponseBody.tenant_discovery_endpoint}`);
             } else {
+                this.logger.warning(`A CloudInstanceDiscoveryErrorResponse was returned. The cloud instance discovery network request's status code is: ${response.status}`);
+
                 typedResponseBody = response.body as CloudInstanceDiscoveryErrorResponse;
                 if (isCloudInstanceInvalid(typedResponseBody.error)) {
+                    this.logger.error("The CloudInstanceDiscoveryErrorResponse error is invalid_instance.");
                     return null;
                 }
+
+                this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error is ${typedResponseBody.error}`);
+                this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error description is ${typedResponseBody.error_description}`);
                 
+                this.logger.warning("Setting the value of the CloudInstanceDiscoveryMetadata (returned form the network) to []");
                 metadata = [];
             }
 
+            this.logger.verbose("Attempting to find a match between the developer's authority and the CloudInstanceDiscoveryMetadata returned from the network request.");
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
                 metadata,
                 this.hostnameAndPort
             );
         } catch (e) {
+            this.logger.error(`There was a network error while attempting to get the cloud discovery instance metadata: ${e}`);
             return null;
         }
 
+        // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
         if (!match) {
-            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
+            this.logger.warning("The developer's authority was not found within the CloudInstanceDiscoveryMetadata returned from the network request.");
+            this.logger.verbose("Creating custom Authority for custom domain scenario.");
+
             match = Authority.createCloudDiscoveryMetadataFromHost(
                 this.hostnameAndPort
             );
