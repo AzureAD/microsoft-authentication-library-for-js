@@ -911,7 +911,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
-            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from the network is 'invalid_instance'", (done) => {
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is 'invalid_instance'", (done) => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
@@ -934,6 +934,27 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(e.errorCode).toEqual(ClientConfigurationErrorMessage.untrustedAuthority.code);
                     done();
                 });
+            });
+
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is NOT 'invalid_instance'", async () => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                }
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        body: {
+                            error: "not_invalid_instance"
+                        }
+                    };
+                };
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
+
+                await authority.resolveEndpointsAsync();
+                // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
+                expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
             });
 
             it("getPreferredCache throws error if discovery is not complete", () => {
