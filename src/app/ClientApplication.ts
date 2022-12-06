@@ -208,7 +208,7 @@ export abstract class ClientApplication {
                 const request: NativeTokenRequest | null = this.browserStorage.getCachedNativeRequest();
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
-                    this.logger.trace("handleRedirectPromise - acquiring token from native platform");     
+                    this.logger.trace("handleRedirectPromise - acquiring token from native platform");
                     const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
@@ -242,6 +242,7 @@ export abstract class ClientApplication {
                         this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                    
                     throw e;
                 });
                 this.redirectResponse.set(redirectResponseKey, response);
@@ -350,7 +351,7 @@ export abstract class ClientApplication {
                 atPopupMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
-                    requestId: response.requestId,
+                    requestId: response.requestId
                 });
                 atPopupMeasurement.flushMeasurement();
                 return response;
@@ -386,12 +387,11 @@ export abstract class ClientApplication {
 
             atPopupMeasurement.addStaticFields({
                 accessTokenSize: result.accessToken.length,
-                idTokenSize: result.idToken.length,
-                
+                idTokenSize: result.idToken.length
             });
             atPopupMeasurement.endMeasurement({
                 success: true,
-                requestId: result.requestId,  
+                requestId: result.requestId
             });
 
             atPopupMeasurement.flushMeasurement();
@@ -468,7 +468,7 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
             ssoSilentMeasurement.addStaticFields({
                 accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
+                idTokenSize: response.idToken.length
             });
             ssoSilentMeasurement.endMeasurement({
                 success: true,
@@ -521,7 +521,7 @@ export abstract class ClientApplication {
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
                             atbcMeasurement.addStaticFields({
                                 accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
+                                idTokenSize: result.idToken.length
                             });
                             atbcMeasurement.endMeasurement({
                                 success: true,
