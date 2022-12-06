@@ -28,6 +28,7 @@ import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/Cl
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -36,8 +37,8 @@ export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
 
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration, performanceClient);
     }
 
     /**
@@ -75,18 +76,13 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-        const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
-        atsMeasurement?.addStaticFields({
-            httpVer: httpVer
-        });
-        // cache http version header
-        this.logger.verbose("Cache http version header for auth code ");
-        // CHECK IF cache manager is of type browser cache manager
-        if("setItem" in this.cacheManager){
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (this.cacheManager as any).setItem("httpVer", httpVer);
+        const httpVerAuthority = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        if(httpVerAuthority)
+        {
+            atsMeasurement?.addStaticFields({
+                httpVerAuthority
+            });
         }
-
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -106,7 +102,6 @@ export class AuthorizationCodeClient extends BaseClient {
             undefined,
             undefined,
             undefined,
-            httpVer,
             requestId,
         ).then((result: AuthenticationResult) => {
             atsMeasurement?.endMeasurement({

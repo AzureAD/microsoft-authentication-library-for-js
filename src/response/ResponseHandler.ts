@@ -114,7 +114,6 @@ export class ResponseHandler {
         userAssertionHash?: string,
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
-        httpVer?: string,
         serverRequestId?: string): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
