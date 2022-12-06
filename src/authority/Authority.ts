@@ -17,7 +17,7 @@ import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
 import { AuthorityOptions , AzureCloudInstance } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
-import { CloudInstanceDiscoveryErrorResponse, isCloudInstanceInvalid } from "./CloudInstanceDiscoveryErrorResponse";
+import { CloudInstanceDiscoveryErrorResponse, isCloudInstanceDiscoveryErrorResponse } from "./CloudInstanceDiscoveryErrorResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
@@ -556,11 +556,11 @@ export class Authority {
                 metadata = typedResponseBody.metadata;
 
                 this.logger.verbosePii(`tenant_discovery_endpoint is: ${typedResponseBody.tenant_discovery_endpoint}`);
-            } else {
+            } else if (isCloudInstanceDiscoveryErrorResponse(response.body)) {
                 this.logger.warning(`A CloudInstanceDiscoveryErrorResponse was returned. The cloud instance discovery network request's status code is: ${response.status}`);
 
                 typedResponseBody = response.body as CloudInstanceDiscoveryErrorResponse;
-                if (isCloudInstanceInvalid(typedResponseBody.error)) {
+                if (typedResponseBody.error === Constants.CLOUD_INSTANCE_DISCOVERY_INVALID_INSTANCE_ERROR) {
                     this.logger.error("The CloudInstanceDiscoveryErrorResponse error is invalid_instance.");
                     return null;
                 }
@@ -570,6 +570,9 @@ export class Authority {
                 
                 this.logger.warning("Setting the value of the CloudInstanceDiscoveryMetadata (returned form the network) to []");
                 metadata = [];
+            } else {
+                this.logger.error("AAD did not return a CloudInstanceDiscoveryResponse or CloudInstanceDiscoveryErrorResponse");
+                return null;
             }
 
             this.logger.verbose("Attempting to find a match between the developer's authority and the CloudInstanceDiscoveryMetadata returned from the network request.");

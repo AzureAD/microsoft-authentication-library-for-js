@@ -9,13 +9,16 @@
 export type CloudInstanceDiscoveryErrorResponse = {
     error: String;
     error_description: String;
-    error_codes: Array<Number>;
-    timestamp: String;
-    trace_id: String;
-    correlation_id: String;
-    error_uri: String;
+    error_codes?: Array<Number>;
+    timestamp?: String;
+    trace_id?: String;
+    correlation_id?: String;
+    error_uri?: String;
 };
 
-export function isCloudInstanceInvalid(error: String): boolean {
-    return error === "invalid_instance";
+export function isCloudInstanceDiscoveryErrorResponse(response: object): boolean {
+    return (
+        response.hasOwnProperty("error") &&
+        response.hasOwnProperty("error_description")
+    );
 }
