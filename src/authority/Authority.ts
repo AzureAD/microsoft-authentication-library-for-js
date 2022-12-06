@@ -24,6 +24,7 @@ import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { Logger } from "../logger/Logger";
+import { AuthError } from "../error/AuthError";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -580,8 +581,14 @@ export class Authority {
                 metadata,
                 this.hostnameAndPort
             );
-        } catch (e) {
-            this.logger.error(`There was a network error while attempting to get the cloud discovery instance metadata: ${e}`);
+        } catch (error) {
+            if (error instanceof AuthError) {
+                this.logger.error(`There was a network error while attempting to get the cloud discovery instance metadata.\nError: ${error.errorCode}\nError Description: ${error.errorMessage}`);
+            } else {
+                const typedError = error as Error;
+                this.logger.error(`A non-MSALJS error was thrown while attempting to get the cloud instance discovery metadata.\nError: ${typedError.name}\nError Description: ${typedError.message}`);
+            }
+            
             return null;
         }
 
