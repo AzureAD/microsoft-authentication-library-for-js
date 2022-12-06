@@ -1951,7 +1951,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
             }
-
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -1962,7 +1961,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523"
+                "nonce": "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
@@ -2035,7 +2034,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER
             };
-            const authenticationResult = await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce
             });
@@ -2089,14 +2088,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER
             };
-            const authenticationResult = await client.acquireToken(authCodeRequest, {
+            await client.acquireToken(authCodeRequest, {
                 code: authCodeRequest.code,
                 nonce: idTokenClaims.nonce
             });
 
             expect(performanceClient.addStaticFields).not.toHaveBeenCalled();
         });
-
+    });
+    
     describe("getLogoutUri()", () => {
 
         it("Returns a uri", async () => {
