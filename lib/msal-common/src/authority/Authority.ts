@@ -561,7 +561,7 @@ export class Authority {
                 this.logger.warning(`A CloudInstanceDiscoveryErrorResponse was returned. The cloud instance discovery network request's status code is: ${response.status}`);
 
                 typedResponseBody = response.body as CloudInstanceDiscoveryErrorResponse;
-                if (typedResponseBody.error === Constants.CLOUD_INSTANCE_DISCOVERY_INVALID_INSTANCE_ERROR) {
+                if (typedResponseBody.error === Constants.INVALID_INSTANCE) {
                     this.logger.error("The CloudInstanceDiscoveryErrorResponse error is invalid_instance.");
                     return null;
                 }
@@ -569,7 +569,7 @@ export class Authority {
                 this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error is ${typedResponseBody.error}`);
                 this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error description is ${typedResponseBody.error_description}`);
                 
-                this.logger.warning("Setting the value of the CloudInstanceDiscoveryMetadata (returned form the network) to []");
+                this.logger.warning("Setting the value of the CloudInstanceDiscoveryMetadata (returned from the network) to []");
                 metadata = [];
             } else {
                 this.logger.error("AAD did not return a CloudInstanceDiscoveryResponse or CloudInstanceDiscoveryErrorResponse");

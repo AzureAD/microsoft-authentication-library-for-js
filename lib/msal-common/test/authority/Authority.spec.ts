@@ -922,7 +922,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return {
                         body: {
-                            error: Constants.CLOUD_INSTANCE_DISCOVERY_INVALID_INSTANCE_ERROR
+                            error: Constants.INVALID_INSTANCE
                         }
                     };
                 };
