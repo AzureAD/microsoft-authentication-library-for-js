@@ -519,7 +519,7 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
+            await client.acquireToken(refreshTokenRequest);
 
             expect(performanceClient.addStaticFields).toBeCalledTimes(2);
             expect(performanceClient.addStaticFields).toBeCalledWith({ "httpVerToken": 'xMsHttpVer' });
@@ -551,8 +551,8 @@ describe("RefreshTokenClient unit tests", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
-            
+            await client.acquireToken(refreshTokenRequest);
+
             expect(performanceClient.addStaticFields).toBeCalledTimes(1);
             expect(performanceClient.addStaticFields).not.toBeCalledWith({
                 "httpVerToken": 'xMsHttpVer'
