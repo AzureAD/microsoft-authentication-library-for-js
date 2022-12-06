@@ -300,11 +300,11 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
 
 export const B2C_OPENID_CONFIG_RESPONSE = {
     body: {
-        "issuer": "https://login.microsoftonline.com/c8f83f7c-a28f-4e0d-a956-6e0d2df3826b/",
-        "authorization_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/authorize",
-        "token_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/token",
-        "end_session_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/logout",
-        "jwks_uri": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/discovery/keys",
+        "issuer": "https://msidlabb2c.b2clogin.com/c8f83f7c-a28f-4e0d-a956-6e0d2df3826b/",
+        "authorization_endpoint": "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/authorize",
+        "token_endpoint": "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/token",
+        "end_session_endpoint": "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/logout",
+        "jwks_uri": "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/discovery/keys",
         "response_modes_supported": [
             "query",
             "fragment",
