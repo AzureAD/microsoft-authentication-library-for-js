@@ -4,6 +4,7 @@
 **[Compatibility](#Compatibility)**
 
 1. [What browsers are supported by MSAL.js?](#what-browsers-are-supported-by-msaljs)
+1. [Does MSAL.js support mobile browsers?](#does-msal-support-mobile-browsers)
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
@@ -101,6 +102,15 @@ There are certain known issues and mitigations documented for the following brow
 
 - [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
 - [IE 11 and Edge Legacy](./docs/internet-explorer.md)
+
+## Does MSAL support mobile browsers?
+
+In general, MSAL.js does support mobile browsers. However, since MSAL.js isn't tested specifically against mobile browsers, support may be limited and some features and flows may not work.
+
+For example, while MSAL's `loginPopup` and `acquireTokenPopup` APIs may work on some mobile browsers, using popup APIs is discouraged on mobile devices as not all browsers will support this flow. We recommend using redirect APIs such as `loginRedirect` and `acquireTokenRedirect` when your application is running on a mobile device.
+
+For problems specific to mobile browsers not listed here, please open an issue with clear instructions to reproduce.
+
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
