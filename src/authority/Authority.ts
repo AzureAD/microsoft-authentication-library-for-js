@@ -22,13 +22,13 @@ import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
+import { Logger } from "../logger/Logger";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
  */
 export class Authority {
-
     // Canonical authority url string
     private _canonicalAuthority: UrlString;
     // Canonicaly authority url components
@@ -47,13 +47,17 @@ export class Authority {
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
     // Proxy url string
     private proxyUrl: string;
+    // Logger object
+    private logger: Logger;
 
     constructor(
         authority: string,
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        proxyUrl?: string) {
+        logger: Logger,
+        proxyUrl?: string
+    ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
@@ -62,6 +66,7 @@ export class Authority {
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
         this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
+        this.logger = logger;
     }
 
     // See above for AuthorityType
@@ -438,33 +443,47 @@ export class Authority {
      * @param newMetadata
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        this.logger.verbose("Attempting to get cloud discovery metadata in the config");
+        this.logger.verbosePii(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
+        this.logger.verbosePii(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
+        this.logger.verbosePii(`Canonical Authority: ${metadataEntity.canonical_authority || Constants.NOT_APPLICABLE}`);
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
         if (metadata) {
+            this.logger.verbose("Found cloud discovery metadata in the config.");
             metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
             return AuthorityMetadataSource.CONFIG;
         }
 
-        // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
-        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
+        // If the cached metadata came from config but that config was not passed to this instance, we must go to the network
+        this.logger.verbose("Did not find cloud discovery metadata in the config... Attempting to get cloud discovery metadata from the cache.");
+        const metadataEntityExpired = metadataEntity.isExpired();
+        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntityExpired) {
+            this.logger.verbose("Found metadata in the cache.");
             // No need to update
             return AuthorityMetadataSource.CACHE;
+        } else if (metadataEntityExpired) {
+            this.logger.verbose("The metadata entity is expired.");
         }
 
-        const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
-
+        this.logger.verbose("Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network.");
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
+            this.logger.verbose("Found cloud discovery metadata from the network.");
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
         
+        this.logger.verbose("Did not find cloud discovery metadata from the network... Attempting to get cloud discovery metadata from hardcoded values.");
+        const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
         if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
+            this.logger.verbose("Found cloud discovery metadata from hardcoded values.");
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
-        } else {
-            // Metadata could not be obtained from config, cache or network
-            throw ClientConfigurationError.createUntrustedAuthorityError();
         }
+        
+        // Metadata could not be obtained from the config, cache, network or hardcoded values
+        this.logger.error("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error.");
+        throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
     /**
@@ -473,21 +492,30 @@ export class Authority {
     private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
         // Check if network response was provided in config
         if (this.authorityOptions.cloudDiscoveryMetadata) {
+            this.logger.verbose("The cloud discovery metadata has been provided as a network response, in the config.");
             try {
+                this.logger.verbose("Attempting to parse the cloud discovery metadata.");
                 const parsedResponse = JSON.parse(this.authorityOptions.cloudDiscoveryMetadata) as CloudInstanceDiscoveryResponse;
                 const metadata = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
                     parsedResponse.metadata,
                     this.hostnameAndPort
                 );
+                this.logger.verbose("Parsed the cloud discovery metadata.");
                 if (metadata) {
+                    this.logger.verbose("There is returnable metadata attached to the parsed cloud discovery metadata.");
                     return metadata;
+                } else {
+                    this.logger.verbose("There is no metadata attached to the parsed cloud discovery metadata.");
                 }
             } catch (e) {
+                this.logger.verbose("Unable to parse the cloud discovery metadata. Throwing Invalid Cloud Discovery Metadata Error.");
                 throw ClientConfigurationError.createInvalidCloudDiscoveryMetadataError();
             }
         }
+
         // If cloudDiscoveryMetadata is empty or does not contain the host, check knownAuthorities
         if (this.isInKnownAuthorities()) {
+            this.logger.verbose("The host is included in knownAuthorities. Creating new cloud discovery metadata from the host.");
             return Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
         }
 
