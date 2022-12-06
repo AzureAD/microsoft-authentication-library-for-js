@@ -52,7 +52,7 @@ export const Constants = {
     TOKEN_RESPONSE_TYPE: "token",
     ID_TOKEN_RESPONSE_TYPE: "id_token",
     SHR_NONCE_VALIDITY: 240,
-    CLOUD_INSTANCE_DISCOVERY_INVALID_INSTANCE_ERROR: "invalid_instance",
+    INVALID_INSTANCE: "invalid_instance",
 };
 
 export const OIDC_DEFAULT_SCOPES = [
