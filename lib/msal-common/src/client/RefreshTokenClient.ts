@@ -40,21 +40,15 @@ export class RefreshTokenClient extends BaseClient {
         this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
-        const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         atsMeasurement?.addStaticFields({
             refreshTokenSize: response.body.refresh_token?.length || 0,
-            httpVer: httpVer
         });
-        // cache http version header
-        this.logger.verbose("Cache the http version header for /token", request.correlationId);
-       
-        // CHECK IF cache manager is of type browser cache manager
-        if("setItem" in this.cacheManager){
-            if(httpVer)
-            {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (this.cacheManager as any).setItem("httpVer", httpVer);
-            }
+        if(httpVerToken)
+        {
+            atsMeasurement?.addStaticFields({
+                httpVerToken,
+            });
         }
 
         // Retrieve requestId from response headers
@@ -78,7 +72,6 @@ export class RefreshTokenClient extends BaseClient {
             undefined,
             true,
             request.forceCache,
-            httpVer,
             requestId,
         ).then((result: AuthenticationResult) => {
             atsMeasurement?.endMeasurement({

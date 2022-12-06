@@ -41,21 +41,11 @@ export class UsernamePasswordClient extends BaseClient {
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
-        const httpVer = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         atsMeasurement?.addStaticFields({
-            httpVer: httpVer
+            httpVerToken
         });
-
-        this.logger.verbose("Cache the http version header for /token", request.correlationId);
-       
-        // CHECK IF cache manager is of type browser cache manager
-        if("setItem" in this.cacheManager){
-            if(httpVer)
-            {
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (this.cacheManager as any).setItem("httpVer", httpVer);
-            }
-        }
+    
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
