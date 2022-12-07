@@ -84,7 +84,8 @@ export class Serializer {
                 key_id: atEntity.keyId,
                 token_type: atEntity.tokenType,
                 requestedClaims: atEntity.requestedClaims,
-                requestedClaimsHash: atEntity.requestedClaimsHash
+                requestedClaimsHash: atEntity.requestedClaimsHash,
+                userAssertionHash: atEntity.userAssertionHash
             };
         });
 

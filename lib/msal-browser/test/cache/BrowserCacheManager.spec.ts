@@ -121,7 +121,7 @@ describe("BrowserCacheManager tests", () => {
                 authorityMetadata: "",
                 cloudDiscoveryMetadata: "",
                 knownAuthorities: []
-            });
+            }, logger);
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -619,6 +619,19 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getThrottlingCache(testKey)).toEqual(testVal);
                     expect(browserLocalStorage.getThrottlingCache(testKey)).toBeInstanceOf(ThrottlingEntity);
                 });
+            });
+
+            describe("RedirectRequestContext", () => {
+                it("Returns redirect request context as null if context not set in browser cache", () => {
+                    expect(browserSessionStorage.getRedirectRequestContext()).toEqual(null);
+                });
+    
+                it("Returns redirect request context if context set in browser cache", () => {
+                    const testVal = "testId";
+                    browserSessionStorage.setRedirectRequestContext(testVal);
+                    expect(browserSessionStorage.getRedirectRequestContext()).toEqual(testVal);
+                });
+    
             });
         });
     });
