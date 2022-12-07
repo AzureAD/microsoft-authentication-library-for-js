@@ -911,7 +911,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
-            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata", (done) => {
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is 'invalid_instance'", (done) => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
@@ -922,7 +922,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return {
                         body: {
-                            error: "This endpoint does not exist"
+                            error: Constants.INVALID_INSTANCE,
+                            error_description: "error_description"
                         }
                     };
                 };
@@ -934,6 +935,28 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(e.errorCode).toEqual(ClientConfigurationErrorMessage.untrustedAuthority.code);
                     done();
                 });
+            });
+
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is NOT 'invalid_instance'", async () => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                }
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        body: {
+                            error: "not_invalid_instance",
+                            error_description: "error_description"
+                        }
+                    };
+                };
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
+                
+                await authority.resolveEndpointsAsync();
+                expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
             });
 
             it("getPreferredCache throws error if discovery is not complete", () => {
