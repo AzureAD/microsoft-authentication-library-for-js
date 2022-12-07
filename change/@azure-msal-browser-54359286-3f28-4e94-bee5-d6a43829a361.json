@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Added caching methods to set or get redirect context of application during redirect flow. #5411",
-  "packageName": "@azure/msal-browser",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

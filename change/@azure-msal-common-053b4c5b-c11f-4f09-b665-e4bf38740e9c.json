@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixed Typo in Authority Logs #5430",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

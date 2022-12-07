@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -41,12 +41,12 @@
     "prepack": "npm run build:all"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.32.0",
+    "@azure/msal-browser": "^2.32.1",
     "react": "^16.8.0 || ^17 || ^18"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.32.0",
+    "@azure/msal-browser": "^2.32.1",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^13.4.0",
     "@types/jest": "^27.0.0",

@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update react dev dependency",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}
