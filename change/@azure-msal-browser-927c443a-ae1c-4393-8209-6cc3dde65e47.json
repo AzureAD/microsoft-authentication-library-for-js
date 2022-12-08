@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Added logging to Authority class",
-  "packageName": "@azure/msal-browser",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "minor"
-}

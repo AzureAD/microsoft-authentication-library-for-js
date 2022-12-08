@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 07 Nov 2022 22:46:55 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Dec 2022 16:53:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.14.5
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Serialize/deserialize access token userAssertionHash property to fix cache persistence issue in OBO flow #5398 (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
+
+## 1.14.4
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Patches
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Fixed msal-node HttpClient server error bug #5342 (rginsburg@microsoft.com)
+- Include original request params on /token request in acquireTokenInteractive #5403 (thomas.norling@microsoft.com)
+- Fix circular dependency #5402 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
 
 ## 1.14.3
 
