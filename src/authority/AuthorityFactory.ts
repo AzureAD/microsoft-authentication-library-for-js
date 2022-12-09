@@ -4,6 +4,7 @@
  */
 
 import { Authority } from "./Authority";
+import { CustomAgentOptions } from "../config/ClientConfiguration";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { INetworkModule } from "../network/INetworkModule";
 import { StringUtils } from "../utils/StringUtils";
@@ -30,7 +31,8 @@ export class AuthorityFactory {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string
+        proxyUrl?: string,
+        customAgentOptions?: CustomAgentOptions
     ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
@@ -39,7 +41,8 @@ export class AuthorityFactory {
             cacheManager,
             authorityOptions,
             logger,
-            proxyUrl
+            proxyUrl,
+            customAgentOptions
         );
 
         try {
@@ -66,13 +69,14 @@ export class AuthorityFactory {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string
+        proxyUrl?: string,
+        customAgentOptions?: CustomAgentOptions
     ): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl, customAgentOptions);
     }
 }
