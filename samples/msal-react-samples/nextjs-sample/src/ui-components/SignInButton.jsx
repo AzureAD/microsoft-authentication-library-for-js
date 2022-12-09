@@ -15,10 +15,10 @@ export const SignInButton = () => {
         setAnchorEl(null);
 
         if (loginType === "popup") {
-            instance.loginPopup(loginRequest).catch((e) =>{ console.error(`loginPopup failed: ${e}`)});
+            instance.loginPopup(loginRequest).catch((e) =>{ console.error(`loginPopup failed: ${e}`) });
         } else if (loginType === "redirect") {
-            instance.loginRedirect(loginRequest).catch((e) => { console.error(`loginRedirect failed: ${e}`) })});
-        }
+            instance.loginRedirect(loginRequest).catch((e) => { console.error(`loginRedirect failed: ${e}`) })
+        };
     }
 
     return (

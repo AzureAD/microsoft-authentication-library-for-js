@@ -17,9 +17,9 @@ export const SignOutButton = () => {
         setAnchorEl(null);
 
         if (logoutType === "popup") {
-            instance.logoutPopup();
+            instance.logoutPopup().catch((e) => { console.error(`logoutPopup failed: ${e}`) });
         } else if (logoutType === "redirect") {
-            instance.logoutRedirect();
+            instance.logoutRedirect().catch((e) => { console.error(`logoutRedirect failed: ${e}`) });
         }
     }
 
