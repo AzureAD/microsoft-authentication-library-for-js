@@ -17,12 +17,14 @@ import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
 import { AuthorityOptions , AzureCloudInstance } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
+import { CloudInstanceDiscoveryErrorResponse, isCloudInstanceDiscoveryErrorResponse } from "./CloudInstanceDiscoveryErrorResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { Logger } from "../logger/Logger";
+import { AuthError } from "../error/AuthError";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -468,7 +470,7 @@ export class Authority {
         this.logger.verbose("Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network.");
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
-            this.logger.verbose("Found cloud discovery metadata from the network.");
+            this.logger.verbose("cloud discovery metadata was successfully returned from getCloudDiscoveryMetadataFromNetwork()");
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
@@ -481,8 +483,8 @@ export class Authority {
             return AuthorityMetadataSource.HARDCODED_VALUES;
         }
         
-        // Metadata could not be obtained from config, cache or network
-        this.logger.verbose("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded value. Throwing Untrusted Authority Error.");
+        // Metadata could not be obtained from the config, cache, network or hardcoded values
+        this.logger.error("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error.");
         throw ClientConfigurationError.createUntrustedAuthorityError();
     }
 
@@ -543,27 +545,58 @@ export class Authority {
         let match = null;
         try {
             const response =
-                await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(
+                await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse | CloudInstanceDiscoveryErrorResponse>(
                     instanceDiscoveryEndpoint,
                     options
                 );
-            const metadata = isCloudInstanceDiscoveryResponse(response.body)
-                ? response.body.metadata
-                : [];
-            if (metadata.length === 0) {
-                // If no metadata is returned, authority is untrusted
+            
+            let typedResponseBody: CloudInstanceDiscoveryResponse | CloudInstanceDiscoveryErrorResponse;
+            let metadata: Array<CloudDiscoveryMetadata>;
+            if (isCloudInstanceDiscoveryResponse(response.body)) {
+                typedResponseBody = response.body as CloudInstanceDiscoveryResponse;
+                metadata = typedResponseBody.metadata;
+
+                this.logger.verbosePii(`tenant_discovery_endpoint is: ${typedResponseBody.tenant_discovery_endpoint}`);
+            } else if (isCloudInstanceDiscoveryErrorResponse(response.body)) {
+                this.logger.warning(`A CloudInstanceDiscoveryErrorResponse was returned. The cloud instance discovery network request's status code is: ${response.status}`);
+
+                typedResponseBody = response.body as CloudInstanceDiscoveryErrorResponse;
+                if (typedResponseBody.error === Constants.INVALID_INSTANCE) {
+                    this.logger.error("The CloudInstanceDiscoveryErrorResponse error is invalid_instance.");
+                    return null;
+                }
+
+                this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error is ${typedResponseBody.error}`);
+                this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error description is ${typedResponseBody.error_description}`);
+                
+                this.logger.warning("Setting the value of the CloudInstanceDiscoveryMetadata (returned from the network) to []");
+                metadata = [];
+            } else {
+                this.logger.error("AAD did not return a CloudInstanceDiscoveryResponse or CloudInstanceDiscoveryErrorResponse");
                 return null;
             }
+
+            this.logger.verbose("Attempting to find a match between the developer's authority and the CloudInstanceDiscoveryMetadata returned from the network request.");
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(
                 metadata,
                 this.hostnameAndPort
             );
-        } catch (e) {
+        } catch (error) {
+            if (error instanceof AuthError) {
+                this.logger.error(`There was a network error while attempting to get the cloud discovery instance metadata.\nError: ${error.errorCode}\nError Description: ${error.errorMessage}`);
+            } else {
+                const typedError = error as Error;
+                this.logger.error(`A non-MSALJS error was thrown while attempting to get the cloud instance discovery metadata.\nError: ${typedError.name}\nError Description: ${typedError.message}`);
+            }
+            
             return null;
         }
 
+        // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
         if (!match) {
-            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
+            this.logger.warning("The developer's authority was not found within the CloudInstanceDiscoveryMetadata returned from the network request.");
+            this.logger.verbose("Creating custom Authority for custom domain scenario.");
+
             match = Authority.createCloudDiscoveryMetadataFromHost(
                 this.hostnameAndPort
             );

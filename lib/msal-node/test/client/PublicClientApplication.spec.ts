@@ -238,7 +238,8 @@ describe('PublicClientApplication', () => {
             return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
         });
 
-        jest.spyOn(MockAuthorizationCodeClient.prototype, "acquireToken").mockImplementation(() => {
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "acquireToken").mockImplementation((tokenRequest) => {
+            expect(tokenRequest.scopes).toEqual([...TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE, ...TEST_CONSTANTS.DEFAULT_OIDC_SCOPES]);
             return Promise.resolve(mockAuthenticationResult);
         });
 
