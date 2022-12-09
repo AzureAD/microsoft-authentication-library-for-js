@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Added functionality to MSAL-Node's HttpClient that supports custom http(s) agents",
   "packageName": "@azure/msal-common",
-  "email": "rgins16@gmail.com",
+  "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
 }
