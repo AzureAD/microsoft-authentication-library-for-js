@@ -12,7 +12,8 @@ import {
     Constants,
     AzureCloudInstance,
     AzureCloudOptions,
-    ApplicationTelemetry
+    ApplicationTelemetry,
+    CustomAgentOptions
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient";
 
@@ -67,6 +68,7 @@ export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     proxyUrl?: string;
+    customAgentOptions?: CustomAgentOptions;
 };
 
 export type NodeTelemetryOptions = {
@@ -124,6 +126,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
+    customAgentOptions: {},
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {

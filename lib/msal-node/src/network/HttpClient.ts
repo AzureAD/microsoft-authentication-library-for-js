@@ -75,6 +75,12 @@ const networkRequestViaProxy = <T>(
         tunnelRequestOptions.timeout = timeout;
     }
 
+    if (options?.customAgentOptions && Object.keys(options.customAgentOptions).length) {
+        tunnelRequestOptions.agent = new http.Agent({
+            ...options.customAgentOptions,
+        } as http.AgentOptions);
+    }
+
     // compose a request string for the socket
     let postRequestStringContent: string = "";
     if (httpMethod === HttpMethod.POST) {
@@ -218,6 +224,12 @@ const networkRequestViaHttps = <T>(
 
     if (timeout) {
         customOptions.timeout = timeout;
+    }
+
+    if (options?.customAgentOptions && Object.keys(options.customAgentOptions).length) {
+        customOptions.agent = new https.Agent({
+            ...options.customAgentOptions,
+        } as https.AgentOptions);
     }
 
     if (isPostRequest) {
