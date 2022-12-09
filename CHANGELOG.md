@@ -1,8 +1,30 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 07 Nov 2022 22:46:55 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Dec 2022 16:53:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Added caching methods to set or get redirect context of application during redirect flow. #5411 (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
+
+## 2.32.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Minor changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
+
+### Patches
+
+- Export popup attributes #5364 (hemoral@microsoft.com)
 
 ## 2.31.0
 
