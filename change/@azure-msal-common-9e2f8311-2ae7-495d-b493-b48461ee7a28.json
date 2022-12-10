@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improvement to Cloud Instance Discovery #5448",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

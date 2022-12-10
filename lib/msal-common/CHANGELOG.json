@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-common_v9.0.1",
+      "version": "9.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9fa742d706917415aff7e6d823b9cf6bda1a7eea",
+            "comment": "Fixed Typo in Authority Logs #5430"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "790976971d16a6887ed515bb8fb81a28057bb0fc",
+            "comment": "Improvement to Cloud Instance Discovery #5448"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 21 Nov 2022 19:14:45 GMT",
       "tag": "@azure/msal-common_v9.0.0",
       "version": "9.0.0",

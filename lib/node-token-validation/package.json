@@ -73,7 +73,7 @@
     "typescript": "^4.4.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^9.0.0",
+    "@azure/msal-common": "^9.0.1",
     "axios": "^0.24.0",
     "jose": "^4.9.2"
   }
