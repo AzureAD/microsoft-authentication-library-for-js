@@ -398,20 +398,13 @@ export class PopupClient extends StandardInteractionClient {
 
     private trackPageVisibility():void {
         if(!this.openPopupMeasurement) return;
-
-        this.logger.info("tp: add static field");
-        /*
-         * this.openPopupMeasurement.addStaticField({
-         *  visChange:true
-         * });
-         */
+        this.logger.info("Perf: Visibility change detected");
         this.openPopupMeasurement.addStaticFields({
             visChange: true,
         });
         this.openPopupMeasurement.endMeasurement({
             success: true,
-        });
-        this.logger.info("tp: calling endMeas");                    
+        });                  
         document.removeEventListener("visibilitychange",this.trackPageVisibility);
     }
 
