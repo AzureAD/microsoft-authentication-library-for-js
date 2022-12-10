@@ -119,7 +119,7 @@ If you are using one of our wrapper libraries (React or Angular), please see the
 
 If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md).
 
-❌ The following example may throw this error because the `acquireTokenPopup` in the **catch** block does not check if there is another interaction taking place at the moment:
+❌ The following example will throw this error because the `acquireTokenPopup` in the **catch** block does not check if there is another interaction taking place at the moment:
 
 ```javascript
 async function myAcquireToken(request) {
@@ -134,11 +134,11 @@ async function myAcquireToken(request) {
 
     try {
         // attempt silent acquisition first
-        tokenResponse = await msalInstance.acquireTokenSilent(request);
+        tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
     } catch (error) {
         if (error instanceof InteractionRequiredAuthError) {
             try {
-                tokenResponse = await msalInstance.acquireTokenPopup(request);
+                tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
             } catch (err) {
                 console.log(err);
                 // handle other errors
@@ -151,6 +151,13 @@ async function myAcquireToken(request) {
 
     return tokenResponse;
 }
+
+const request = {
+    scopes: ["User.Read"]
+};
+
+myAcquireToken(request);
+myAcquireToken(request);
 ```
 
 ✔️ To resolve, you should wait for the interaction status to be `None` before calling any other interactive API:
@@ -168,18 +175,25 @@ async function myAcquireToken(request) {
 
     try {
         // attempt silent acquisition first
-        tokenResponse = await msalInstance.acquireTokenSilent(request);
+        tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
     } catch (error) {
         if (error instanceof InteractionRequiredAuthError) {
             try {
-                /**
-                 * "myWaitFor" method polls the interaction status via getInteractionStatus() from
-                 * the application state and resolves when it's equal to "None".
-                 */
-                await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+                // check for any interactions
+                if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
 
-                // wait is over
-                tokenResponse = await msalInstance.acquireTokenPopup(request);
+                    /**
+                     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
+                     * the application state and resolves when it's equal to "None".
+                     */
+                    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+
+                    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
+                    return (await myAcquireToken(tokenRequest));
+                } else {
+                    // no interaction, invoke popup flow
+                    tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
+                }
             } catch (err) {
                 console.log(err);
                 // handle other errors
@@ -192,6 +206,13 @@ async function myAcquireToken(request) {
 
     return tokenResponse;
 }
+
+const request = {
+    scopes: ["User.Read"]
+};
+
+myAcquireToken(request);
+myAcquireToken(request);
 ```
 
 #### Troubleshooting Steps
