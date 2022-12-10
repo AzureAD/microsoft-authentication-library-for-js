@@ -206,8 +206,9 @@ export type StaticFields = {
     matsSilentBiSubCode?: number;
     matsSilentMessage?: string;
     matsSilentStatus?: number;
-    matsHttpStatus?: number
+    matsHttpStatus?: number;
     matsHttpEventCount?: number;
+    visChange?: boolean;
 };
 
 /**
@@ -345,5 +346,4 @@ export type PerformanceEvent = StaticFields & {
      * @type {?string}
      */
     requestId?: string,
-    visChange?: boolean;
 };
