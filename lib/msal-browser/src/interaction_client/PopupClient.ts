@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, PerformanceEvents, StringUtils, IPerformanceClient, Logger, ICrypto } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, PerformanceEvents, StringUtils, IPerformanceClient, Logger, ICrypto, InProgressPerformanceEvent } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
@@ -30,12 +30,14 @@ export type PopupParams = InteractionParams & {
 export class PopupClient extends StandardInteractionClient {
     private currentWindow: Window | undefined;
     protected nativeStorage: BrowserCacheManager;
+    private openPopupMeasurement ?: InProgressPerformanceEvent = undefined;
 
     constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
         this.nativeStorage = nativeStorageImpl;
+        this.trackPageVisibility = this.trackPageVisibility.bind(this);
     }
 
     /**
@@ -139,7 +141,7 @@ export class PopupClient extends StandardInteractionClient {
                 popupName,
                 popupWindowAttributes
             };
-            const popupWindow: Window = this.initiateAuthRequest(navigateUrl, popupParameters);
+            const popupWindow: Window = this.initiateAuthRequest(navigateUrl, popupParameters, request);
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -266,12 +268,12 @@ export class PopupClient extends StandardInteractionClient {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
+    initiateAuthRequest(requestUrl: string, params: PopupParams, request?: PopupRequest): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             this.logger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
-            return this.openPopup(requestUrl, params);
+            return this.openPopup(requestUrl, params, request);
         } else {
             // Throw error if request URL is empty.
             this.logger.error("Navigate url is empty");
@@ -394,6 +396,25 @@ export class PopupClient extends StandardInteractionClient {
         });
     }
 
+    private trackPageVisibility():void {
+        if(!this.openPopupMeasurement) return;
+
+        this.logger.info("tp: add static field");
+        /*
+         * this.openPopupMeasurement.addStaticField({
+         *  visChange:true
+         * });
+         */
+        this.openPopupMeasurement.addStaticFields({
+            visChange: true,
+        });
+        this.openPopupMeasurement.endMeasurement({
+            success: true,
+        });
+        this.logger.info("tp: calling endMeas");                    
+        document.removeEventListener("visibilitychange",this.trackPageVisibility);
+    }
+
     /**
      * @hidden
      *
@@ -407,7 +428,7 @@ export class PopupClient extends StandardInteractionClient {
      * @ignore
      * @hidden
      */
-    openPopup(urlNavigate: string, popupParams: PopupParams): Window {
+    openPopup(urlNavigate: string, popupParams: PopupParams,request?:PopupRequest): Window {
         try {
             let popupWindow;
             // Popup window passed in, setting url to navigate to
@@ -430,6 +451,14 @@ export class PopupClient extends StandardInteractionClient {
             }
             this.currentWindow = popupWindow;
             window.addEventListener("beforeunload", this.unloadWindow);
+            if(request) {
+                // new submeas
+                this.openPopupMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.OpenPopup,request.correlationId);
+                this.openPopupMeasurement.addStaticFields({
+                    visChange: false
+                });
+                document.addEventListener("visibilitychange",this.trackPageVisibility);
+            }
 
             return popupWindow;
         } catch (e) {
@@ -511,6 +540,7 @@ export class PopupClient extends StandardInteractionClient {
         }
         // Remove window unload function
         window.removeEventListener("beforeunload", this.unloadWindow);
+        window.removeEventListener("visibilityChange", this.trackPageVisibility);
 
         // Interaction is completed - remove interaction status.
         this.browserStorage.setInteractionInProgress(false);

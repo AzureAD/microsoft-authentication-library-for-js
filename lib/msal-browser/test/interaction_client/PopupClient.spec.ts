@@ -6,7 +6,7 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
-import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError, Authority, CommonAuthorizationCodeRequest, AuthError } from "@azure/msal-common";
+import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError, Authority, CommonAuthorizationCodeRequest, AuthError, PerformanceEvents } from "@azure/msal-common";
 import { TemporaryCacheKeys, ApiId, BrowserConstants } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
@@ -1185,6 +1185,65 @@ describe("PopupClient", () => {
                 popupName: "name",
                 popupWindowAttributes: {}
             })).toThrow(BrowserAuthError);
+        });
+        
+        it("adds eventVis to submeasurement when visibility change detected", () => {
+            const assignSpy = sinon.spy();
+            const focusSpy = sinon.spy();
+
+            //@ts-ignore
+            jest.spyOn(document, 'addEventListener').mockImplementation( (eventType:string,callback:EventListener)=> { 
+                if(eventType == "visibilitychange")
+                //@ts-ignore
+                 callback(new Event("visibilityChange"))
+             });
+
+            const windowObject = {
+                location: {
+                    assign: assignSpy
+                },
+                focus: focusSpy,
+            };
+
+            const testRequest: CommonAuthorizationCodeRequest = {
+                redirectUri: "",
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}/`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+
+            //@ts-ignore
+            const popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
+
+            const popupWindow = popupClient.initiateAuthRequest("http://localhost/#/code=hello", {
+                // @ts-ignore
+                popup: windowObject,
+            },testRequest);
+
+            
+
+            expect(performanceClient.startMeasurement).toBeCalledWith(PerformanceEvents.OpenPopup, testRequest.correlationId);
+            expect(performanceClient.addStaticFields).toBeCalledWith({ visChange: true});
+
         });
     });
 });

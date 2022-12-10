@@ -125,6 +125,7 @@ export enum PerformanceEvents {
      * Time taken for acquiring cached refresh token 
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+    OpenPopup= "openPopup"
 }
 
 /**
@@ -343,5 +344,6 @@ export type PerformanceEvent = StaticFields & {
      * 
      * @type {?string}
      */
-    requestId?: string
+    requestId?: string,
+    visChange?: boolean;
 };
