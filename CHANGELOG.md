@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 21 Nov 2022 19:14:45 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Dec 2022 16:53:07 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 9.0.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Fixed Typo in Authority Logs #5430 (rginsburg@microsoft.com)
+- Improvement to Cloud Instance Discovery #5448 (rginsburg@microsoft.com)
 
 ## 9.0.0
 
