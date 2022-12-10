@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "popup-add listener",
+  "packageName": "@azure/msal-browser",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
