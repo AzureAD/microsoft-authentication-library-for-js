@@ -134,6 +134,7 @@ export enum PerformanceEvents {
     UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
 
     UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+    OpenPopup = "openPopup"
 
 }
 
@@ -219,6 +220,8 @@ export type StaticFields = {
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
+
+    visChange?: boolean;
 };
 
 /**
