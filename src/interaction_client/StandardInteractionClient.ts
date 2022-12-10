@@ -139,7 +139,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called", this.correlationId);
-        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions, this.correlationId);
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
 
         return {
             authOptions: {
