@@ -199,9 +199,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions, requestCorrelationId?: string): Promise<Authority> {
+    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
-        const getAuthorityMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, requestCorrelationId);
+        const getAuthorityMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
