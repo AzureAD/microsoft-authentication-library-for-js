@@ -1,7 +1,7 @@
 {
   "type": "minor",
-  "comment": "popup-add listener",
+  "comment": "popup-add listener #5476",
   "packageName": "@azure/msal-common",
   "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "minor"
 }
