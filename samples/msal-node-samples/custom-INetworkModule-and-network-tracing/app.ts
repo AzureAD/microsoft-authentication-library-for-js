@@ -4,7 +4,7 @@ import * as msal from "@azure/msal-node";
  * After "npx tsc" is executed via the "npm run start" script, app.ts and HttpClient.ts are compiled to .js and stored in the /dist folder
  * The app is run via "node dist/app.js", hence the .js import of the HttpClient
  */
-// import HttpClient from "./HttpClient.js";
+// import { HttpClient } from "./HttpClient.js";
 
 const clientConfig: msal.Configuration = {
     auth: {
@@ -58,8 +58,8 @@ const request: msal.ClientCredentialRequest = {
 (async () => {
     try {
         const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
-        const token = await confidentialClientApplication.acquireTokenByClientCredential(request);
-        console.log(token);
+        const response = await confidentialClientApplication.acquireTokenByClientCredential(request);
+        console.log(response);
     } catch (error) {
         console.log(error);
     }
