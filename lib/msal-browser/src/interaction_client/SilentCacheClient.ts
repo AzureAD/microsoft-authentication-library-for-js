@@ -64,14 +64,12 @@ export class SilentCacheClient extends StandardInteractionClient {
     }
 
     async initializeSilentRequest(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<CommonSilentFlowRequest> {
-        // const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        // this.performanceClient.addQueueMeasurement(request.correlationId, PerformanceEvents.InitializeSilentRequest, queueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeSilentRequest, request.correlationId, preQueueTime);
 
-        // const preInitializeTime = window.performance.now();
+        const preInitializeTime = this.performanceClient.getCurrentTime();
         return {
             ...request,
-            // ...await this.initializeBaseRequest(request, preInitializeTime),
-            ...await this.initializeBaseRequest(request),
+            ...await this.initializeBaseRequest(request, preInitializeTime),
             account: account,
             forceRefresh: request.forceRefresh || false
         };

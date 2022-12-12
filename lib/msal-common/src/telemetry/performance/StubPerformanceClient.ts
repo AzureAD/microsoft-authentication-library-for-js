@@ -32,10 +32,7 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
         return 0;
     }
 
-    // retrieveQueuedMeasurements(): QueuedMeasurement {
-    //     return {} as QueuedMeasurement
-    // }
-    addQueueMeasurement(name: PerformanceEvents, time: number, correlationId?: string): void {
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
         return;
     }
 

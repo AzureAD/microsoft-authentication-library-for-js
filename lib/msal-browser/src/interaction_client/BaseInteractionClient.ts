@@ -79,8 +79,7 @@ export abstract class BaseInteractionClient {
      */
     protected async initializeBaseRequest(request: Partial<BaseAuthRequest>, preQueueTime?: number): Promise<BaseAuthRequest> {
         this.logger.verbose("Initializing BaseAuthRequest");
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, queueTime, request.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId, preQueueTime);
 
         const authority = request.authority || this.config.auth.authority;
 

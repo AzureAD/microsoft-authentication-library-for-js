@@ -94,20 +94,24 @@ export abstract class PerformanceClient implements IPerformanceClient {
         return currentTime-preQueueTime;
     }
 
-    addQueueMeasurement(name: PerformanceEvents, time: number, correlationId?: string, ): void {
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
         if (!correlationId) {
-            this.logger.info(`tx-CPC-addQueueMeasurement - correlationId not provided, cannot add to QueueMeasurements`);
+            this.logger.info(`tx-CPC-addQueueMeasurement - correlationId not provided for ${name}, cannot add`);
             return;
         }
-        // this.queueMeasurements.set(correlationId, {name, time} as QueueMeasurement);
+
+        if (!time) {
+            this.logger.info(`tx-CPC-addQueueMeasurement - time provided for ${name} is ${time}, may be too small to add`);
+            // TODO: check if there is lower limit to rounding down to 0
+        }
+
+
         if (this.queueMeasurements.has(correlationId)) {
-            this.logger.info(`tx-CPC-addQueueMeasurement - correlationId ${correlationId} exists, adding measurement to array`);
             const existingMeasurements = this.queueMeasurements.get(correlationId);
             if (!existingMeasurements) {
                 this.logger.info(`tx-CPC-addQueueMeasurements - array for correlationId ${correlationId} is empty`);
             } else {
                 this.queueMeasurements.set(correlationId, [...existingMeasurements, {name, time} as QueueMeasurement]);
-                // this.queueMeasurements[correlationId].push({name, time} as QueueMeasurement);
             }
         } else {
             this.logger.info(`txt-CPC-addQueueMeasurement - correlationId ${correlationId} not in map, adding`);
@@ -115,7 +119,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             measurementArray.push({name, time} as QueueMeasurement);
             this.queueMeasurements.set(correlationId, measurementArray);
         }
-        this.logger.trace(`tx-CPC-addQueueMeasurement - correlationId: ${correlationId}, name: ${name}, time: ${time} ms`);
+        this.logger.info(`tx-CPC-addQueueMeasurement - correlationId: ${correlationId}, name: ${name}, time: ${time} ms`);
     }
 
     abstract getCurrentTime(): number;
