@@ -204,8 +204,24 @@ const request = {
     scopes: ["User.Read"]
 };
 
-myAcquireToken(request);
-myAcquireToken(request);
+myAcquireToken(request).catch((e) => {
+  /**
+                     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
+                     * the application state and resolves when it's equal to "None".
+                     */
+                    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+                    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
+                    return (await myAcquireToken(tokenRequest));
+});
+myAcquireToken(request).catch((e) => {
+  /**
+                     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
+                     * the application state and resolves when it's equal to "None".
+                     */
+                    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+                    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
+                    return (await myAcquireToken(tokenRequest));
+});
 ```
 
 #### Troubleshooting Steps
