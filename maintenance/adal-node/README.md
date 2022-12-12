@@ -27,9 +27,7 @@ ADAL for Node.js is in maintenance mode and no new features will be added to the
 The ADAL for node.js library makes it easy for node.js applications to authenticate to AAD in order to access AAD protected web resources.  It supports 3 authentication modes shown in the quickstart code below.
 
 ## Versions
-Current version - 0.2.2
-Minimum recommended version - 0.2.2
-You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-nodejs/blob/master/changelog.txt).
+You can find the changes for each version in the [change log](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/maintenance/adal-node/changelog.md).
 
 ## Samples and Documentation
 
