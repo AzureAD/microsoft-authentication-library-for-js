@@ -126,6 +126,8 @@ export enum PerformanceEvents {
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
+    RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
+
     AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
 
     InitializeBaseRequest = "initializeBaseRequest",
@@ -142,6 +144,8 @@ export enum PerformanceEvents {
     StandardInitializeAuthorizationRequest = "standardInitializeAuthorizationRequest",
 
     UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
+
+    GetAuthCodeUrl = "getAuthCodeUrl"
 }
 
 /**
