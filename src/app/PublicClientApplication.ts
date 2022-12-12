@@ -181,8 +181,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<AuthenticationResult>{
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, queueTime, request.correlationId);
+        debugger;
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId, preQueueTime);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);

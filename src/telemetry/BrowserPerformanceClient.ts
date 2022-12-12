@@ -57,22 +57,19 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         };
     }
 
-    calculateQueuedTime(preQueueTime?: number): number {
-       
-        if (!preQueueTime) {
-            this.logger.info("tx-BPC-calculateQueuedTime - No queue time provided, cannot calculate queue time");
-            return 0;
-        }
-
-        // if (Number.isInteger(additionalTime) && additionalTime < 1) {
-        //     this.logger.info(`testx-BPC-calculateQueuedTime - additional time should be a positive integer and not ${additionalTime}`);
-        // }
-
-        const currentTime = window.performance.now();
-        return super.calculateQueuedTime(preQueueTime, currentTime);
-    }
-
     getCurrentTime(): number {
         return window.performance.now();
+    }
+
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string|undefined, preQueueTime?: number|undefined): void {
+        if (!preQueueTime) {
+            this.logger.info(`tx-BPC-calculateQueuedTime - preQueueTime not provided for ${name}, cannot calculate`);
+            return;
+        }
+
+        const currentTime = window.performance.now();
+
+        const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
+        return super.addQueueMeasurement(name, correlationId, queueTime);
     }
 }

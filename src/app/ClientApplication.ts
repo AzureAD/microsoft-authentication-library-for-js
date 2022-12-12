@@ -643,8 +643,7 @@ export abstract class ClientApplication {
         request: CommonSilentFlowRequest,
         preQueueTime?: number
     ): Promise<AuthenticationResult> {
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, queueTime, request.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId,  preQueueTime);
 
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
 

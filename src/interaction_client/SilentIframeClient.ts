@@ -33,8 +33,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      */
     async acquireToken(request: SsoSilentRequest, preQueueTime?: number): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, queueTime, request.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId, preQueueTime);
 
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
@@ -105,19 +104,19 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param userRequestScopes
      */
     protected async silentTokenHelper(authClient: AuthorizationCodeClient, silentRequest: AuthorizationUrlRequest, preQueueTime?: number): Promise<AuthenticationResult> {
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientTokenHelper, queueTime, silentRequest.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientTokenHelper, silentRequest.correlationId, preQueueTime);
 
         // Create auth code request and generate PKCE params
         const preInitializeTime = this.performanceClient.getCurrentTime();
         const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest, preInitializeTime);
         // Create authorize request url
         
-        // const preAuthCodeUrlTime = this.performanceClient.getCurrentTime();
+        const preAuthCodeUrlTime = this.performanceClient.getCurrentTime(); // TODO: testing here
+        this.logger.info(`tx-SIC-silentTokenHelper - about to getAuthCodeUrl`);
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
-        }); // TODO: calculate here? AuthCodeClient is in msal-common
+        }, preAuthCodeUrlTime); // TODO: calculate here? AuthCodeClient is in msal-common
 
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);

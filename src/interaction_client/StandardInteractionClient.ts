@@ -25,8 +25,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      */
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest, preQueueTime?: number): Promise<CommonAuthorizationCodeRequest> {
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeAuthorizationCodeRequest, queueTime, request.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeAuthorizationCodeRequest, request.correlationId, preQueueTime);
 
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes(); // TODO: calculate this?
@@ -129,8 +128,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param authorityUrl
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<AuthorizationCodeClient> {
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardCreateAuthCodeClient, queueTime, this.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardCreateAuthCodeClient, this.correlationId, preQueueTime);
 
         // Create auth module.
         const preClientConfigTime = this.performanceClient.getCurrentTime();
@@ -145,8 +143,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestCorrelationId
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<ClientConfiguration> {
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardGetClientConfiguration, queueTime, this.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardGetClientConfiguration, this.correlationId, preQueueTime);
 
         this.logger.verbose("getClientConfiguration called", this.correlationId);
         const preDiscoveryTime = this.performanceClient.getCurrentTime();
@@ -212,8 +209,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardGetClientConfiguration, queueTime, this.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardGetClientConfiguration, this.correlationId, preQueueTime);
         const getAuthorityMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
@@ -258,8 +254,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      */
     protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType, preQueueTime?: number): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("initializeAuthorizationRequest called", this.correlationId);
-        const queueTime = this.performanceClient.calculateQueuedTime(preQueueTime);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInitializeAuthorizationRequest, queueTime, this.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInitializeAuthorizationRequest, this.correlationId, preQueueTime);
 
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
