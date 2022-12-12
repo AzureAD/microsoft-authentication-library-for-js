@@ -182,14 +182,7 @@ async function myAcquireToken(request) {
                 // check for any interactions
                 if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
 
-                    /**
-                     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
-                     * the application state and resolves when it's equal to "None".
-                     */
-                    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
-
-                    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
-                    return (await myAcquireToken(tokenRequest));
+                 throw new Error("interaction_in_progress");
                 } else {
                     // no interaction, invoke popup flow
                     tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
