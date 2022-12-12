@@ -1,92 +1,90 @@
-import { app, BrowserWindow } from "electron";
-import * as path from "path";
-import {
-  ElectronAuthenticator,
-  MsalElectronConfig,
- } from '@microsoft/mgt-electron-provider/dist/Authenticator';
- import { 
-  DataProtectionScope,
-  PersistenceCreator,
-  PersistenceCachePlugin,
-  IPersistence
-} from "@azure/msal-node-extensions";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-// You can use the helper functions provided through the Environment class to construct your cache path
-// The helper functions provide consistent implementations across Windows, Mac and Linux.
-const cachePath = "./cache.json";
+import { app, BrowserWindow, ipcMain } from "electron";
+import AuthProvider from "./AuthProvider";
+import { authConfig } from "./authConfig";
+import { Configuration } from "@azure/msal-node"
 
-const persistenceConfiguration = {
-  cachePath,
-  dataProtectionScope: DataProtectionScope.CurrentUser,
-  serviceName: "test-msal-electron-service",
-  accountName: "test-msal-electron-account",
-  usePlaintextFileOnLinux: false,
+declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
+declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+
+export default class Main {
+    static application: Electron.App;
+    static mainWindow: Electron.BrowserWindow;
+    static authProvider: AuthProvider;
+    static authConfig: Configuration;
+
+    static main(): void {
+        Main.application = app;
+        Main.application.on("window-all-closed", Main.onWindowAllClosed);
+        Main.application.on("ready", Main.onReady);
+        Main.authConfig = authConfig;
+    }
+
+    private static onWindowAllClosed(): void {
+        // Windows and Linux will quit the application when all windows are closed
+        if (process.platform !== "darwin") {
+            Main.application.quit();
+        }
+    }
+
+    private static async onReady(): Promise<void> {
+        try {
+            Main.createMainWindow();
+            Main.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+            Main.mainWindow.on("closed", Main.onClose);
+            Main.authProvider = await AuthProvider.build(Main.authConfig);
+            Main.registerSubscriptions();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    private static createMainWindow(): void {
+        this.mainWindow = new BrowserWindow({
+            width: 800,
+            height: 600,
+            webPreferences: {
+                preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            },
+        });
+    }
+
+    private static onClose(): void {
+        Main.mainWindow = null;
+    }
+
+    private static publish(message: string, payload: any): void {
+        Main.mainWindow.webContents.send(message, payload);
+    }
+
+    private static async loadBaseUI(): Promise<void> {
+        await Main.mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    }
+
+    private static async login(): Promise<void> {
+        try {
+            const account = await Main.authProvider.login();
+            if (account) {
+                await Main.loadBaseUI();
+                Main.publish("SHOW_WELCOME_MESSAGE", account);
+                Main.mainWindow.setAlwaysOnTop(true);
+                Main.mainWindow.show();
+                Main.mainWindow.setAlwaysOnTop(false);
+
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    // Router that maps callbacks/actions to specific messages received from the Renderer
+    private static registerSubscriptions(): void {
+        ipcMain.on("LOGIN", Main.login);
+    }
 }
 
-function createWindow() {
-  // Create the browser window.
-  const mainWindow = new BrowserWindow({
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    width: 800,
-  });
-
-  PersistenceCreator
-  .createPersistence(persistenceConfiguration)
-  .then(async (persistence: IPersistence) => {
-    // Initialize the electron authenticator
-    const config: MsalElectronConfig = {
-      clientId: '<CLIENT_ID>',
-      mainWindow: mainWindow, //BrowserWindow instance that requires auth
-      scopes: [
-        'user.read',
-        'people.read',
-        'user.readbasic.all',
-        'contacts.read',
-        'presence.read.all',
-        'presence.read',
-        'user.read.all',
-        'calendars.read',
-        'Sites.Read.All',
-        'Sites.ReadWrite.All',
-      ],
-      cachePlugin: new PersistenceCachePlugin(persistence),
-    };
-
-    ElectronAuthenticator.initialize(config);
-
-    // and load the index.html of the app.
-    mainWindow.loadFile(path.join(__dirname, "../index.html"));
-
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
-  });
-}
-
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-app.on("ready", () => {
-  createWindow();
-
-  app.on("activate", function () {
-    // On macOS it's common to re-create a window in the app when the
-    // dock icon is clicked and there are no other windows open.
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-  });
-});
-
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
-app.on("window-all-closed", () => {
-  if (process.platform !== "darwin") {
-    app.quit();
-  }
-});
-
-// In this file you can include the rest of your app"s specific main process
-// code. You can also put them in separate files and require them here.
+Main.main();
