@@ -150,7 +150,7 @@ async function myAcquireToken(request) {
     }
 
     return tokenResponse;
-}
+};
 
 const request = {
     scopes: ["User.Read"]
@@ -181,8 +181,8 @@ async function myAcquireToken(request) {
             try {
                 // check for any interactions
                 if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
-
-                 throw new Error("interaction_in_progress");
+                    // throw a new error to be handled in the caller below
+                    throw new Error("interaction_in_progress");
                 } else {
                     // no interaction, invoke popup flow
                     tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
@@ -198,30 +198,25 @@ async function myAcquireToken(request) {
     }
 
     return tokenResponse;
-}
+};
+
+async function myInteractionInProgressHandler() {
+    /**
+     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
+     * the application state and resolves when it's equal to "None".
+     */
+    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+
+    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
+    return (await myAcquireToken(tokenRequest));
+};
 
 const request = {
     scopes: ["User.Read"]
 };
 
-myAcquireToken(request).catch((e) => {
-  /**
-                     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
-                     * the application state and resolves when it's equal to "None".
-                     */
-                    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
-                    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
-                    return (await myAcquireToken(tokenRequest));
-});
-myAcquireToken(request).catch((e) => {
-  /**
-                     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
-                     * the application state and resolves when it's equal to "None".
-                     */
-                    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
-                    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
-                    return (await myAcquireToken(tokenRequest));
-});
+myAcquireToken(request).catch((e) => myInteractionInProgressHandler());
+myAcquireToken(request).catch((e) => myInteractionInProgressHandler());
 ```
 
 #### Troubleshooting Steps

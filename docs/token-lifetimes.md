@@ -56,7 +56,7 @@ var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: false
-    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
+    cacheLookupPolicy: CacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
@@ -86,7 +86,7 @@ var silentRequest = {
     scopes: ["Mail.Read"],
     account: currentAccount,
     forceRefresh: false
-    cacheLookupPolicy: CachePolicyLookup.Default // will default to CacheLookupPolicy.Default if omitted
+    cacheLookupPolicy: cacheLookupPolicy.Default // will default to CacheLookupPolicy.Default if omitted
 };
 
 var request = {
