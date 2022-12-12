@@ -1,3 +1,13 @@
+Version 0.2.4
+------------------
+Release Date: 8 December 2022
+* Dependency update for @xmldom/xmldom to 0.8.3
+
+Version 0.2.3
+------------------
+Release Date: 23 August 2021
+* Dependency update from xmldom to @xmldom/xmldom
+
 Version 0.2.2
 ------------------
 Release Date: 8 February 2020
