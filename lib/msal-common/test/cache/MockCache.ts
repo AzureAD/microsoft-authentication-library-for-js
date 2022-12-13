@@ -5,7 +5,7 @@
 
 import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
-import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
+import {TEST_TOKENS, TEST_CRYPTO_VALUES, TEST_DATA_CLIENT_INFO} from "../test_kit/StringConstants";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -32,10 +32,10 @@ export class MockCache {
     createAccountEntries(): void {
         const accountData = {
             "username": "John Doe",
-            "localAccountId": "object1234",
+            "localAccountId": `${TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID}`,
             "realm": "microsoft",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "authorityType": "MSSTS",
             "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         };
@@ -44,10 +44,10 @@ export class MockCache {
 
         const accountDataWithNativeAccountId = {
             "username": "John Doe",
-            "localAccountId": "object1234",
+            "localAccountId": `${TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID}`,
             "realm": "microsoft",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "authorityType": "MSSTS",
             "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
             "nativeAccountId": "mocked_native_account_id"
@@ -64,7 +64,7 @@ export class MockCache {
             "credentialType": "IdToken",
             "secret": TEST_TOKENS.IDTOKEN_V2,
             "clientId": "mock_client_id",
-            "homeAccountId": "uid.utid"
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`
         };
         const idToken = CacheManager.toObject(new IdTokenEntity(), idTokenData);
         this.cacheManager.setIdTokenCredential(idToken);
@@ -80,7 +80,7 @@ export class MockCache {
             "target": "scope1 scope2 scope3",
             "clientId": "mock_client_id",
             "cachedAt": "1000",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
             "tokenType": "Bearer"
@@ -96,7 +96,7 @@ export class MockCache {
             "target": "scope4 scope5",
             "clientId": "mock_client_id",
             "cachedAt": "1000",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
             "tokenType": "Bearer"
@@ -113,7 +113,7 @@ export class MockCache {
             "target": "scope4 scope5",
             "clientId": "mock_client_id",
             "cachedAt": "1000",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
             "tokenType": "Bearer",
@@ -133,7 +133,7 @@ export class MockCache {
             "target": "scope1 scope2 scope3",
             "clientId": "mock_client_id",
             "cachedAt": "1000",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
             "tokenType": "pop",
@@ -151,7 +151,7 @@ export class MockCache {
             "target": "scope1 scope2 scope3",
             "clientId": "mock_client_id",
             "cachedAt": "1000",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
             "tokenType": "ssh-cert",
@@ -169,7 +169,7 @@ export class MockCache {
             "target": "scope1 scope2 scope3",
             "clientId": "mock_client_id",
             "cachedAt": "1000",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
             "tokenType": "ssh-cert",
@@ -186,7 +186,7 @@ export class MockCache {
             "credentialType": "RefreshToken",
             "secret": "a refresh token",
             "clientId": "mock_client_id",
-            "homeAccountId": "uid.utid"
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`
         };
         const rt = CacheManager.toObject(new RefreshTokenEntity(), rtData);
         this.cacheManager.setRefreshTokenCredential(rt);
@@ -196,7 +196,7 @@ export class MockCache {
             "credentialType": "RefreshToken",
             "secret": "a refresh token",
             "clientId": "mock_client_id",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             "familyId": "1"
         };
         const rtFoci = CacheManager.toObject(new RefreshTokenEntity(), rtFociData);

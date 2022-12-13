@@ -77,10 +77,10 @@ describe("OnBehalfOf unit tests", () => {
 
         config.cryptoInterface!.base64Encode = (input: string): string => {
             switch (input) {
-                case "123-test-uid":
-                    return "MTIzLXRlc3QtdWlk";
-                case "456-test-utid":
-                    return "NDU2LXRlc3QtdXRpZA==";
+                case TEST_DATA_CLIENT_INFO.TEST_UID:
+                    return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                    return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                 default:

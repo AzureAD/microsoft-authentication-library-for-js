@@ -25,10 +25,10 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 },
                 base64Encode(input: string): string {
                     switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-uid":
-                            return "NDU2LXRlc3QtdWlk";
+                        case TEST_DATA_CLIENT_INFO.TEST_UID:
+                            return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                        case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                            return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                         case TEST_POP_VALUES.DECODED_REQ_CNF:
                             return TEST_POP_VALUES.ENCODED_REQ_CNF;
                         default:

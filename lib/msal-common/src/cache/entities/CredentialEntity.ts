@@ -114,9 +114,10 @@ export class CredentialEntity {
         for (const credType of Object.entries(CredentialType)) {
             const credKey = credType[0];
             const credVal = credType[1].toLowerCase();
+            // Credential key prefix should be declared as <home_account_id*>-<environment>-<credential_type>-
             // eslint-disable-next-line security/detect-non-literal-regexp
-            const re = new RegExp(`^${uuidRe}\\.${uuidRe}${separator}.+${separator}${credVal}${separator}`);
-            
+            const re = new RegExp(`^((${uuidRe}\\.${uuidRe}${separator})|${separator})(.+${separator})(${credVal}${separator})`);
+
             if (key.search(re) !== -1) {
                 return CredentialType[credKey];
             }

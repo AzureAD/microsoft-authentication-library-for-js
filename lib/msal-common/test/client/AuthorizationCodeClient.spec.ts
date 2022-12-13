@@ -452,7 +452,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`)).toBe(true);
             expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
         });
-        
+
 
         it("Ignores Account if prompt is select_account", async () => {
             // Override with alternate authority openid_config
@@ -604,10 +604,10 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
                     default:
@@ -618,8 +618,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
             expect(authCodePayload.code).toBe("thisIsATestCode");
             expect(authCodePayload.state).toBe(TEST_STATE_VALUES.ENCODED_LIB_STATE);
-        });          
-       
+        });
+
         it("throws server error when error is in hash", async () => {
             const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -698,7 +698,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -716,10 +716,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -789,7 +789,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -807,10 +807,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -878,7 +878,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -891,15 +891,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -953,7 +953,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -966,15 +966,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1028,7 +1028,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1041,15 +1041,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1104,7 +1104,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1117,15 +1117,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1208,7 +1208,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1221,15 +1221,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1323,7 +1323,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         testParam: "testValue"
                     }
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1350,7 +1350,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         extra_body_parameter: "true"
                     }
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1375,7 +1375,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     authenticationScheme: AuthenticationScheme.BEARER,
                     enableSpaAuthorizationCode: true
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1409,7 +1409,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         extra_body_parameter: "true"
                     }
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1427,7 +1427,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1440,15 +1440,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             })
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1538,7 +1538,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             config.cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1557,10 +1557,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1648,7 +1648,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             config.cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1667,10 +1667,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1747,7 +1747,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1765,10 +1765,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -1829,7 +1829,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1842,15 +1842,15 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_UID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                    case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                        return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                     default:
@@ -2012,12 +2012,12 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: 
+                postLogoutRedirectUri:
                 TEST_URIS.TEST_LOGOUT_URI,
                 idTokenHint: "id_token_hint",
-                state: "test_state" 
+                state: "test_state"
             });
-          
+
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
@@ -2042,7 +2042,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     testParam: "test_val"
                 }
             });
-          
+
             const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state&testParam=test_val`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });

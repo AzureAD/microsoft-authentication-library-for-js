@@ -26,8 +26,6 @@ const cryptoInterface: ICrypto = {
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
             case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
-            case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS
             default:
                 return input;
         }
@@ -155,14 +153,14 @@ describe("AccountEntity.ts Unit Tests", () => {
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             AuthorityType.Default,
             logger,
             cryptoInterface,
             idToken);
 
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             homeAccountId,
             idToken,
             authority
@@ -193,14 +191,14 @@ describe("AccountEntity.ts Unit Tests", () => {
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             AuthorityType.Default,
             logger,
             cryptoInterface,
             idToken);
 
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             homeAccountId,
             idToken,
             authority
@@ -232,14 +230,14 @@ describe("AccountEntity.ts Unit Tests", () => {
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             AuthorityType.Default,
             logger,
             cryptoInterface,
             idToken);
 
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             homeAccountId,
             idToken,
             authority
@@ -277,14 +275,14 @@ describe("AccountEntity.ts Unit Tests", () => {
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             AuthorityType.Default,
             logger,
             cryptoInterface,
             idToken);
 
         const acc = AccountEntity.createAccount(
-            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+            TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
             homeAccountId,
             idToken,
             authority
@@ -375,14 +373,14 @@ describe("AccountEntity.ts Unit Tests", () => {
 
 
             const homeAccountId = AccountEntity.generateHomeAccountId(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
                 idToken);
 
             acc = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 homeAccountId,
                 idToken,
                 authority
@@ -392,8 +390,8 @@ describe("AccountEntity.ts Unit Tests", () => {
         it("returns true if two account info objects have the same values", () => {
             const acc1: AccountInfo = acc.getAccountInfo();
             const acc2: AccountInfo = {...acc1};
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(true);            
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(true);
         });
 
         it("returns false if two account info objects represent the same user but have different iat claims", () => {
@@ -422,12 +420,12 @@ describe("AccountEntity.ts Unit Tests", () => {
             };
 
             // iat claims are different
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);    
-            
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);
+
             // iat claim is missing on 1 account
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false); 
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(true);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false);
         });
 
         it("returns false if two account info objects represent the same user but have different nonce claims", () => {
@@ -456,14 +454,14 @@ describe("AccountEntity.ts Unit Tests", () => {
             };
 
             // nonce claims are different
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);    
-            
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);
+
             // nonce claim is missing on 1 account
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false); 
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(true);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false);
         });
-    
+
         it("returns false if required AccountInfo parameters are not equal", () => {
             const acc1: AccountInfo = acc.getAccountInfo();
             const acc2: AccountInfo = {...acc1};
@@ -503,11 +501,11 @@ describe("AccountEntity.ts Unit Tests", () => {
 
             const acc3: AccountInfo = acc.getAccountInfo();
             const acc4 = null;
-            expect(AccountEntity.accountInfoIsEqual(acc3, acc4)).toBe(false); 
-            
+            expect(AccountEntity.accountInfoIsEqual(acc3, acc4)).toBe(false);
+
             const acc5 = null;
             const acc6 = null;
-            expect(AccountEntity.accountInfoIsEqual(acc5, acc6)).toBe(false); 
+            expect(AccountEntity.accountInfoIsEqual(acc5, acc6)).toBe(false);
         });
     });
 });
@@ -531,7 +529,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto), 
+            new MockStorageClass("client-id", mockCrypto),
             authorityOptions,
             logger
         );
@@ -579,7 +577,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto), 
+            new MockStorageClass("client-id", mockCrypto),
             authorityOptions,
             logger
         );

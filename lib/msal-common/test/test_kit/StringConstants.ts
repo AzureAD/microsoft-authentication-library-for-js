@@ -9,6 +9,11 @@ import { AuthenticationScheme, Constants, ONE_DAY_IN_MS } from "../../src/utils/
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
+
+const _TEST_UID = "00000000-0000-0000-66f3-3332eca7ea81";
+const _TEST_UTID = "3338040d-6c67-4c5b-b112-36a304b66dad";
+const _TEST_LOCAL_ACCOUNT_ID = "00000000-0000-0000-66f3-3332eca7ea81s";
+
 // Test Tokens
 export const TEST_TOKENS = {
     /*
@@ -64,19 +69,18 @@ export const TEST_TOKEN_LIFETIMES = {
 
 // Test CLIENT_INFO
 export const TEST_DATA_CLIENT_INFO = {
-    TEST_UID: "123-test-uid",
-    TEST_UTID: "456-test-utid",
-    TEST_DECODED_CLIENT_INFO: "{\"uid\":\"123-test-uid\",\"utid\":\"456-test-utid\"}",
-    TEST_INVALID_JSON_CLIENT_INFO: "{\"uid\":\"123-test-uid\"\"utid\":\"456-test-utid\"}",
-    TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
-    TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
-    TEST_ENCODED_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
-    TEST_DECODED_HOME_ACCOUNT_ID: "123-test-uid.456-test-utid",
-    TEST_LOCAL_ACCOUNT_ID: "00000000-0000-0000-66f3-3332eca7ea81s",
-    TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
-    TEST_CACHE_DECODED_CLIENT_INFO: "{\"uid\":\"uid\", \"utid\":\"utid\"}",
-    TEST_RAW_CLIENT_INFO_GUIDS: "eyJ1aWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtNjZmMy0zMzMyZWNhN2VhODEiLCJ1dGlkIjoiMzMzODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkIn0=",
-    TEST_CACHE_DECODED_CLIENT_INFO_GUIDS: "{\"uid\":\"00000000-0000-0000-66f3-3332eca7ea81\",\"utid\":\"3338040d-6c67-4c5b-b112-36a304b66dad\"}"
+    TEST_UID: _TEST_UID,
+    TEST_UTID: _TEST_UTID,
+    TEST_UID_ENCODED: Buffer.from(_TEST_UID, 'utf8').toString("base64"),
+    TEST_UTID_ENCODED: Buffer.from(_TEST_UTID, 'utf8').toString("base64"),
+    TEST_DECODED_CLIENT_INFO: `{\"uid\":\"${_TEST_UID}\",\"utid\":\"${_TEST_UTID}\"}`,
+    TEST_INVALID_JSON_CLIENT_INFO: `{\"uid\":\"${_TEST_UID}\"\"utid\":\"${_TEST_UTID}\"}`,
+    TEST_RAW_CLIENT_INFO: Buffer.from(`{\"uid\":\"${_TEST_UID}\",\"utid\":\"${_TEST_UTID}\"}`, 'utf8').toString("base64"),
+    TEST_ENCODED_HOME_ACCOUNT_ID: Buffer.from(`${_TEST_UID}.${_TEST_UTID}`).toString("base64"),
+    TEST_DECODED_HOME_ACCOUNT_ID: `${_TEST_UID}.${_TEST_UTID}`,
+    TEST_LOCAL_ACCOUNT_ID: _TEST_LOCAL_ACCOUNT_ID,
+    TEST_CACHE_RAW_CLIENT_INFO: Buffer.from(`{\"uid\":\"${_TEST_UID}\",\"utid\":\"${_TEST_UTID}\"}`, 'utf8').toString("base64"),
+    TEST_CACHE_DECODED_CLIENT_INFO: `{\"uid\":\"${_TEST_UID}\",\"utid\":\"${_TEST_UTID}\"}`,
 };
 
 // Test Hashes
@@ -550,15 +554,15 @@ export const CACHE_MOCKS = {
     MOCK_CLIENT_ID: "mock_client_id",
     MOCK_CLIENT_ID_1: "mock_client_id_1",
     MOCK_ACCOUNT_INFO: {
-        homeAccountId: "uid.utid",
-        localAccountId: "uid",
+        homeAccountId: `${_TEST_UID}.${_TEST_UTID}`,
+        localAccountId: `${_TEST_LOCAL_ACCOUNT_ID}`,
         environment: "login.microsoftonline.com",
         tenantId: "microsoft",
         username: "mocked_username"
     },
     MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID: {
-        homeAccountId: "uid.utid",
-        localAccountId: "uid",
+        homeAccountId: `${_TEST_UID}.${_TEST_UTID}`,
+        localAccountId: `${_TEST_LOCAL_ACCOUNT_ID}`,
         environment: "login.microsoftonline.com",
         tenantId: "microsoft",
         username: "mocked_username",

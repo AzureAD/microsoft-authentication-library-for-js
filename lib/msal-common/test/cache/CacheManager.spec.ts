@@ -16,7 +16,8 @@ import {
     CACHE_MOCKS,
     TEST_POP_VALUES,
     TEST_SSH_VALUES,
-    TEST_CRYPTO_VALUES
+    TEST_CRYPTO_VALUES,
+    TEST_DATA_CLIENT_INFO
 } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
@@ -32,6 +33,9 @@ import { CommonSilentFlowRequest } from "../../src";
 
 describe("CacheManager.ts test cases", () => {
     const mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockCrypto);
+    const homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
+    const localAccountId = `${TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID}`;
+    const clientInfo = `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`;
     let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         mockCache.initializeCache();
@@ -53,13 +57,13 @@ describe("CacheManager.ts test cases", () => {
 
     it("save account", async () => {
         const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
+        ac.homeAccountId = homeAccountId;
         ac.environment = "login.microsoftonline.com";
         ac.realm = "microsoft";
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
+        ac.clientInfo = `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`;
 
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
@@ -69,13 +73,13 @@ describe("CacheManager.ts test cases", () => {
         if (!mockCacheAccount) {
             throw TestError.createTestSetupError("mockCacheAccount does not have a value");
         }
-        expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
+        expect(mockCacheAccount.homeAccountId).toEqual(homeAccountId);
     });
 
     it("save accessToken", async () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
-            homeAccountId: "someUid.someUtid",
+            homeAccountId: homeAccountId,
             environment: "login.microsoftonline.com",
             credentialType: "AccessToken",
             clientId: "mock_client_id",
@@ -96,7 +100,7 @@ describe("CacheManager.ts test cases", () => {
         if (!mockCacheAT) {
             throw TestError.createTestSetupError("mockCacheAT does not have a value");
         }
-        expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
+        expect(mockCacheAT.homeAccountId).toEqual(homeAccountId);
         expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
         expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
     });
@@ -104,7 +108,7 @@ describe("CacheManager.ts test cases", () => {
     it("save accessToken with Auth Scheme (pop)", async () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
-            homeAccountId: "someUid.someUtid",
+            homeAccountId: homeAccountId,
             environment: "login.microsoftonline.com",
             credentialType: "AccessToken_With_AuthScheme",
             clientId: "mock_client_id",
@@ -126,7 +130,7 @@ describe("CacheManager.ts test cases", () => {
         if (!mockCacheAT) {
             throw TestError.createTestSetupError("mockCacheAT does not have a value");
         }
-        expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
+        expect(mockCacheAT.homeAccountId).toEqual(homeAccountId);
         expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
         expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
         expect(mockCacheAT.keyId).toBeDefined();
@@ -139,16 +143,16 @@ describe("CacheManager.ts test cases", () => {
         expect(accounts[0].idToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
         expect(accounts[0].idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
     });
-    
+
     it("getAccount (gets one AccountEntity object)", async () => {
         const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
+        ac.homeAccountId = homeAccountId;
         ac.environment = "login.microsoftonline.com";
         ac.realm = "microsoft";
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
+        ac.clientInfo = `${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`;
 
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
@@ -156,13 +160,13 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
         const cacheAccount = mockCache.cacheManager.getAccount(accountKey) as AccountEntity;
-        expect(cacheAccount.homeAccountId).toEqual("someUid.someUtid");
+        expect(cacheAccount.homeAccountId).toEqual(homeAccountId);
         expect(mockCache.cacheManager.getAccount("")).toBeNull();
     });
-    
+
     it("getAccessTokenCredential (Bearer)", async () => {
         const accessTokenEntity = new AccessTokenEntity();
-        accessTokenEntity.homeAccountId = "someUid.someUtid";
+        accessTokenEntity.homeAccountId = homeAccountId;
         accessTokenEntity.environment = "login.microsoftonline.com";
         accessTokenEntity.realm = "microsoft";
         accessTokenEntity.clientId = "mock_client_id";
@@ -175,13 +179,13 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
         const cachedAccessToken = mockCache.cacheManager.getAccessTokenCredential(credKey) as AccessTokenEntity;
-        expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
+        expect(cachedAccessToken.homeAccountId).toEqual(homeAccountId);
         expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
     });
 
     it("getAccessTokenCredential (POP)", async () => {
         const accessTokenEntity = new AccessTokenEntity();
-        accessTokenEntity.homeAccountId = "someUid.someUtid";
+        accessTokenEntity.homeAccountId = homeAccountId;
         accessTokenEntity.environment = "login.microsoftonline.com";
         accessTokenEntity.realm = "microsoft";
         accessTokenEntity.clientId = "mock_client_id";
@@ -194,7 +198,7 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
         const cachedAccessToken = mockCache.cacheManager.getAccessTokenCredential(credKey) as AccessTokenEntity;
-        expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
+        expect(cachedAccessToken.homeAccountId).toEqual(homeAccountId);
         expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
 
     });
@@ -203,7 +207,7 @@ describe("CacheManager.ts test cases", () => {
 
         it("homeAccountId filter", () => {
             // filter by homeAccountId
-            const successFilter: AccountFilter = { homeAccountId: "uid.utid" };
+            const successFilter: AccountFilter = { homeAccountId: homeAccountId };
             let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
             expect(Object.keys(accounts).length).toEqual(1);
 
@@ -251,7 +255,7 @@ describe("CacheManager.ts test cases", () => {
 
         it("homeAccountId filter", () => {
             // filter by homeAccountId
-            const successFilter: CredentialFilter = { homeAccountId: "uid.utid" };
+            const successFilter: CredentialFilter = { homeAccountId: homeAccountId };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).toEqual(1);
             expect(Object.keys(credentials.accessTokens).length).toEqual(5);
@@ -505,13 +509,13 @@ describe("CacheManager.ts test cases", () => {
 
     it("removeAllAccounts", async () => {
         const ac = new AccountEntity();
-        ac.homeAccountId = "someUid.someUtid";
+        ac.homeAccountId = homeAccountId;
         ac.environment = "login.microsoftonline.com";
         ac.realm = "microsoft";
         ac.localAccountId = "object1234";
         ac.username = "Jane Goodman";
         ac.authorityType = "MSSTS";
-        ac.clientInfo = "eyJ1aWQiOiJzb21lVWlkIiwgInV0aWQiOiJzb21lVXRpZCJ9";
+        ac.clientInfo = clientInfo;
 
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
@@ -524,15 +528,15 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("removeAccount", async () => {
-        expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).not.toBeNull();
-        await mockCache.cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
-        expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).toBeNull();
+        expect(mockCache.cacheManager.getAccount(`${homeAccountId}-login.microsoftonline.com-microsoft`)).not.toBeNull();
+        await mockCache.cacheManager.removeAccount(`${homeAccountId}-login.microsoftonline.com-microsoft`);
+        expect(mockCache.cacheManager.getAccount(`${homeAccountId}-login.microsoftonline.com-microsoft`)).toBeNull();
     });
 
     it("removeCredential", async () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
-            homeAccountId: "someUid.someUtid",
+            homeAccountId: homeAccountId,
             environment: "login.microsoftonline.com",
             credentialType: "AccessToken",
             clientId: "mock_client_id",
@@ -559,7 +563,7 @@ describe("CacheManager.ts test cases", () => {
             target: "scope1 scope2 scope3",
             clientId: "mock_client_id",
             cachedAt: "1000",
-            homeAccountId: "uid.utid",
+            homeAccountId: homeAccountId,
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
@@ -586,7 +590,7 @@ describe("CacheManager.ts test cases", () => {
             target: "scope1 scope2 scope3",
             clientId: "mock_client_id",
             cachedAt: "1000",
-            homeAccountId: "uid.utid",
+            homeAccountId: homeAccountId,
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             keyId: "some_key_id",
@@ -613,7 +617,7 @@ describe("CacheManager.ts test cases", () => {
             target: "scope1 scope2 scope3",
             clientId: "mock_client_id",
             cachedAt: "1000",
-            homeAccountId: "uid.utid",
+            homeAccountId: homeAccountId,
             extendedExpiresOn: "4600",
             expiresOn: "4600",
             keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
@@ -631,19 +635,19 @@ describe("CacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
+            homeAccountId, "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
+            homeAccountId, "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const accountData = {
             "username": "John Doe",
-            "localAccountId": "uid",
+            "localAccountId": localAccountId,
             "realm": "common",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": homeAccountId,
             "authorityType": "MSSTS",
-            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "clientInfo": clientInfo
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
 
@@ -652,8 +656,8 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "uid.utid",
-            localAccountId: "uid",
+            homeAccountId: homeAccountId,
+            localAccountId: localAccountId,
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -675,22 +679,22 @@ describe("CacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache only matches a Bearer Token when Authentication Scheme is set to Bearer", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
+            homeAccountId, "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedPopAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, TEST_TOKENS.ACCESS_TOKEN);
+            homeAccountId, "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedSshAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.SSH_CERTIFICATE, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.SSH, undefined, TEST_SSH_VALUES.SSH_KID);
+            homeAccountId, "login.microsoftonline.com", TEST_TOKENS.SSH_CERTIFICATE, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.SSH, undefined, TEST_SSH_VALUES.SSH_KID);
 
         const accountData = {
             "username": "John Doe",
-            "localAccountId": "uid",
+            "localAccountId": localAccountId,
             "realm": "common",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": homeAccountId,
             "authorityType": "MSSTS",
-            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "clientInfo": clientInfo
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
 
@@ -700,8 +704,8 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "uid.utid",
-            localAccountId: "uid",
+            homeAccountId: homeAccountId,
+            localAccountId: localAccountId,
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -721,7 +725,7 @@ describe("CacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache matches a Bearer Token when Authentication Scheme is set to bearer (lowercase from adfs)", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid",
+            homeAccountId,
             "login.microsoftonline.com",
             "access_token",
             CACHE_MOCKS.MOCK_CLIENT_ID,
@@ -738,12 +742,12 @@ describe("CacheManager.ts test cases", () => {
 
         const accountData = {
             "username": "John Doe",
-            "localAccountId": "uid",
+            "localAccountId": localAccountId,
             "realm": "common",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": homeAccountId,
             "authorityType": "MSSTS",
-            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "clientInfo": clientInfo
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
 
@@ -752,8 +756,8 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "uid.utid",
-            localAccountId: "uid",
+            homeAccountId: homeAccountId,
+            localAccountId: localAccountId,
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -772,22 +776,22 @@ describe("CacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache only matches a POP Token when Authentication Scheme is set to pop", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
+            homeAccountId, "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedPopAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, TEST_TOKENS.ACCESS_TOKEN);
+            homeAccountId, "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedSshAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.SSH_CERTIFICATE, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.SSH, undefined, TEST_SSH_VALUES.SSH_KID);
+            homeAccountId, "login.microsoftonline.com", TEST_TOKENS.SSH_CERTIFICATE, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.SSH, undefined, TEST_SSH_VALUES.SSH_KID);
 
         const accountData = {
             "username": "John Doe",
-            "localAccountId": "uid",
+            "localAccountId": localAccountId,
             "realm": "common",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": homeAccountId,
             "authorityType": "MSSTS",
-            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "clientInfo": clientInfo
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
 
@@ -797,8 +801,8 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "uid.utid",
-            localAccountId: "uid",
+            homeAccountId: homeAccountId,
+            localAccountId: localAccountId,
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -819,22 +823,22 @@ describe("CacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache only matches an SSH Certificate when Authentication Scheme is set to ssh-cert", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, undefined, undefined);
+            homeAccountId, "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, undefined, undefined);
 
         const mockedPopAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, undefined, TEST_POP_VALUES.KID);
+            homeAccountId, "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, undefined, TEST_POP_VALUES.KID);
 
         const mockedSshAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.SSH_CERTIFICATE, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.SSH, undefined, TEST_SSH_VALUES.SSH_KID);
+            homeAccountId, "login.microsoftonline.com", TEST_TOKENS.SSH_CERTIFICATE, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.SSH, undefined, TEST_SSH_VALUES.SSH_KID);
 
         const accountData = {
             "username": "John Doe",
-            "localAccountId": "uid",
+            "localAccountId": localAccountId,
             "realm": "common",
             "environment": "login.microsoftonline.com",
-            "homeAccountId": "uid.utid",
+            "homeAccountId": homeAccountId,
             "authorityType": "MSSTS",
-            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+            "clientInfo": clientInfo
         };
         const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
 
@@ -844,8 +848,8 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.setAccount(mockedAccount);
 
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "uid.utid",
-            localAccountId: "uid",
+            homeAccountId: homeAccountId,
+            localAccountId: localAccountId,
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -922,8 +926,8 @@ describe("CacheManager.ts test cases", () => {
             return authorityMetadata;
         });
         const mockedAccountInfo: AccountInfo = {
-            homeAccountId: "uid.utid",
-            localAccountId: "uid",
+            homeAccountId: homeAccountId,
+            localAccountId: `${TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID}`,
             environment: "login.windows.net",
             tenantId: "mocked_tid",
             username: "mocked_username"
@@ -933,7 +937,7 @@ describe("CacheManager.ts test cases", () => {
         if (!cachedToken) {
             throw TestError.createTestSetupError("refreshToken does not have a value");
         }
-        expect(cachedToken.homeAccountId).toBe("uid.utid");
+        expect(cachedToken.homeAccountId).toBe(homeAccountId);
         expect(cachedToken.environment).toBe("login.microsoftonline.com");
     });
 });

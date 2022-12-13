@@ -1,5 +1,5 @@
 import { AccessTokenEntity, Constants, CredentialEntity, CredentialType } from "../../../src";
-import { TEST_CONFIG } from "../../test_kit/StringConstants";
+import {TEST_CONFIG, TEST_DATA_CLIENT_INFO} from "../../test_kit/StringConstants";
 
 describe("CredentialEntity.ts Unit Tests", () => {
 
@@ -8,7 +8,7 @@ describe("CredentialEntity.ts Unit Tests", () => {
     it("Get credential type - access token", () => {
         const atEntity = new AccessTokenEntity();
         Object.assign(atEntity, {
-            homeAccountId: "7c03d382-b152-4b48-8db1-da9064c8705a.be7c410f-3854-4dca-beb7-c8db3d21ef75",
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
             environment: "login.microsoftonline.com",
             credentialType: "AccessToken",
             clientId: "mock_client_id",
@@ -26,13 +26,39 @@ describe("CredentialEntity.ts Unit Tests", () => {
         expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
     });
 
-    it("Get credential type - metadata key", () => {
+    it("Get credential type - missing homeAccountId - access token", () => {
+        const atEntity = new AccessTokenEntity();
+        Object.assign(atEntity, {
+            homeAccountId: Constants.EMPTY_STRING,
+            environment: "login.microsoftonline.com",
+            credentialType: "AccessToken",
+            clientId: "mock_client_id",
+            secret: "an access token sample",
+            realm: "microsoft",
+            target: "scope6 scope7",
+            cachedAt: "1000",
+            expiresOn: "4600",
+            extendedExpiresOn: "4600",
+            tokenType: "Bearer"
+        });
+
+        const atKey = atEntity.generateCredentialKey();
+
+        expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+    });
+
+    it("Get credential type - metadata key - empty result", () => {
         const key = `authority-metadata-${clientId}-login.microsoftonline.com`;
         expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
     });
 
-    it("Get credential type - partial match", () => {
-        const key = `123_test_uid.456_test_accesstoken_utid_login.microsoftonline.com-someothertoken-${clientId}---`;
+    it("Get credential type - partial workflow match - empty result", () => {
+        const key = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}_accessTokenWorkflow_login.microsoftonline.com-someothertoken-${clientId}---`;
         expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
-    });    
+    });
+
+    it("Get credential type - missing utid - empty result", () => {
+        const key = `${TEST_DATA_CLIENT_INFO.TEST_UID}_login.microsoftonline.com-accessToken-${clientId}---`;
+        expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
+    });
 });

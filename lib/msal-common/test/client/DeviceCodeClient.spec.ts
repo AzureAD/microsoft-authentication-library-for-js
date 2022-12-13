@@ -54,10 +54,10 @@ describe("DeviceCodeClient unit tests", () => {
             switch (input) {
                 case TEST_POP_VALUES.DECODED_REQ_CNF:
                     return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                case "123-test-uid":
-                    return "MTIzLXRlc3QtdWlk";
-                case "456-test-utid":
-                    return "NDU2LXRlc3QtdXRpZA==";
+                case TEST_DATA_CLIENT_INFO.TEST_UID:
+                    return TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED;
+                case TEST_DATA_CLIENT_INFO.TEST_UTID:
+                    return TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED;
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
                 default:
@@ -104,7 +104,7 @@ describe("DeviceCodeClient unit tests", () => {
                 headerNames.forEach((name) => {
                     expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(expect.arrayContaining([name.toLowerCase()]));
                 });
-    
+
                 done();
                 return AUTHENTICATION_RESULT;
             });
@@ -310,7 +310,7 @@ describe("DeviceCodeClient unit tests", () => {
                 correlationId: "test-correlationId",
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: () => {},
-                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint 
+                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint
             };
 
             const client = new DeviceCodeClient(config);
