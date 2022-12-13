@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "exporting CryptoOps class",
+  "comment": "exporting CryptoOps class #5482",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "none"
