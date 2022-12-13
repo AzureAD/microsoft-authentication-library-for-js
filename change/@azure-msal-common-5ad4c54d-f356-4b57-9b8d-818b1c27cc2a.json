@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Added logging to Authority class",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
