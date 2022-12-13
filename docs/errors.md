@@ -178,18 +178,13 @@ async function myAcquireToken(request) {
         tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
     } catch (error) {
         if (error instanceof InteractionRequiredAuthError) {
-            try {
-                // check for any interactions
-                if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
-                    // throw a new error to be handled in the caller below
-                    throw new Error("interaction_in_progress");
-                } else {
-                    // no interaction, invoke popup flow
-                    tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
-                }
-            } catch (err) {
-                console.log(err);
-                // handle other errors
+            // check for any interactions
+            if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
+                // throw a new error to be handled in the caller below
+                throw new Error("interaction_in_progress");
+            } else {
+                // no interaction, invoke popup flow
+                tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
             }
         }
 
