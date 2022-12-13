@@ -127,7 +127,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
-    customAgentOptions: {},
+    customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
