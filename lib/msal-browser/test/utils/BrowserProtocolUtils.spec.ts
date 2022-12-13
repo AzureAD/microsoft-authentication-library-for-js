@@ -4,7 +4,7 @@ import { InteractionType } from "../../src/utils/BrowserConstants";
 import { Logger, ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { TEST_HASHES } from "./StringConstants";
+import { TEST_DATA_CLIENT_INFO, TEST_HASHES } from "./StringConstants";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
@@ -21,7 +21,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore(); 
+        sinon.restore();
     });
 
     it(
@@ -30,7 +30,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             //@ts-ignore
             const requestState1 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, null);
             expect(requestState1).toBeNull();
-            
+
             const requestState2 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, "");
             expect(requestState2).toBeNull();
         }
@@ -53,7 +53,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
             const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
 
             expect(serverParams).toEqual({
-                "client_info": "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
+                "client_info": TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 "code": "thisIsATestCode",
                 "state": "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoicmVkaXJlY3QifX0=|userState"
             });
@@ -74,7 +74,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
             expect(serverParams).toEqual({
                 "access_token": "this.isan.accesstoken",
-                "client_info": "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
+                "client_info": TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
                 "expiresIn": "3599",
                 "id_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6IjFMVE16YWtpaGlSbGFfOHoyQkVKVlhlV01xbyJ9.eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc29mdG9ubGluZS5jb20vOTE4ODA0MGQtNmM2Ny00YzViLWIxMTItMzZhMzA0YjY2ZGFkL3YyLjAiLCJzdWIiOiJBQUFBQUFBQUFBQUFBQUFBQUFBQUFJa3pxRlZyU2FTYUZIeTc4MmJidGFRIiwiYXVkIjoiNmNiMDQwMTgtYTNmNS00NmE3LWI5OTUtOTQwYzc4ZjVhZWYzIiwiZXhwIjoxNTM2MzYxNDExLCJpYXQiOjE1MzYyNzQ3MTEsIm5iZiI6MTUzNjI3NDcxMSwibmFtZSI6IkFiZSBMaW5jb2xuIiwicHJlZmVycmVkX3VzZXJuYW1lIjoiQWJlTGlAbWljcm9zb2Z0LmNvbSIsIm9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC02NmYzLTMzMzJlY2E3ZWE4MSIsInRpZCI6IjMzMzgwNDBkLTZjNjctNGM1Yi1iMTEyLTM2YTMwNGI2NmRhZCIsIm5vbmNlIjoiMTIzNTIzIiwiYWlvIjoiRGYyVVZYTDFpeCFsTUNXTVNPSkJjRmF0emNHZnZGR2hqS3Y4cTVnMHg3MzJkUjVNQjVCaXN2R1FPN1lXQnlqZDhpUURMcSFlR2JJRGFreXA1bW5PcmNkcUhlWVNubHRlcFFtUnA2QUlaOGpZIn0=.1AFWW-Ck5nROwSlltm7GzZvDwUkqvhSQpm55TQsmVo9Y59cLhRXpvB8n-55HCr9Z6G_31_UbeUkoz612I2j_Sm9FFShSDDjoaLQr54CreGIJvjtmS3EkK9a7SJBbcpL1MpUtlfygow39tFjY7EVNW9plWUvRrTgVk7lYLprvfzw-CIqw3gHC-T7IK_m_xkr08INERBtaecwhTeN4chPC4W3jdmw_lIxzC48YoQ0dB1L9-ImX98Egypfrlbm0IBL5spFzL6JDZIRRJOu8vecJvj1mq-IUhGt0MacxX8jdxYLP-KUu2d9MbNKpCKJuZ7p8gwTL5B7NlUdh_dmSviPWrw",
                 "scope": "test",

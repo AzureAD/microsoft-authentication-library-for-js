@@ -2178,7 +2178,7 @@ describe("RedirectClient", () => {
             testAccount.username = testAccountInfo.username;
             testAccount.name = testAccountInfo.name;
             testAccount.authorityType = "MSSTS";
-            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,

@@ -69,7 +69,7 @@ describe("BaseInteractionClient", () => {
             testAccount1.username = testAccountInfo1.username;
             testAccount1.name = testAccountInfo1.name;
             testAccount1.authorityType = "MSSTS";
-            testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
 
             testAccountInfo2 = {
                 homeAccountId: "different-home-account-id",
@@ -87,7 +87,7 @@ describe("BaseInteractionClient", () => {
             testAccount2.username = testAccountInfo2.username;
             testAccount2.name = testAccountInfo2.name;
             testAccount2.authorityType = "MSSTS";
-            testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO;
 
 
             pca.setActiveAccount(testAccountInfo1);

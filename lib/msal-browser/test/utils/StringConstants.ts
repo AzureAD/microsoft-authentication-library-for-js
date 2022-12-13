@@ -9,6 +9,9 @@ import { version } from "../../src/packageMetadata";
 /**
  * This file contains the string constants used by the test classes.
  */
+const _TEST_UID = "00000000-0000-0000-66f3-3332eca7ea81";
+const _TEST_UTID = "3338040d-6c67-4c5b-b112-36a304b66dad";
+
 export const NUM_TESTS = 100;
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
 
@@ -96,16 +99,14 @@ export const TEST_TOKEN_LIFETIMES = {
 
 // Test CLIENT_INFO
 export const TEST_DATA_CLIENT_INFO = {
-    TEST_UID: "123-test-uid",
-    TEST_UID_ENCODED: "MTIzLXRlc3QtdWlk",
-    TEST_UTID: "456-test-utid",
-    TEST_UTID_ENCODED: "NDU2LXRlc3QtdXRpZA==",
-    TEST_UTID_URLENCODED: "NDU2LXRlc3QtdXRpZA",
-    TEST_DECODED_CLIENT_INFO: "{\"uid\":\"123-test-uid\",\"utid\":\"456-test-utid\"}",
-    TEST_INVALID_JSON_CLIENT_INFO: "{\"uid\":\"123-test-uid\"\"utid\":\"456-test-utid\"}",
-    TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
-    TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
-    TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
+    TEST_UID: _TEST_UID,
+    TEST_UID_ENCODED: Buffer.from(_TEST_UID, 'utf8').toString("base64"),
+    TEST_UTID: _TEST_UTID,
+    TEST_UTID_ENCODED: Buffer.from(_TEST_UTID, 'utf8').toString("base64"),
+    TEST_DECODED_CLIENT_INFO: `{\"uid\":\"${_TEST_UID}\",\"utid\":\"${_TEST_UTID}\"}`,
+    TEST_INVALID_JSON_CLIENT_INFO: `{\"uid\":\"${_TEST_UID}\"\"utid\":\"${_TEST_UTID}\"}`,
+    TEST_RAW_CLIENT_INFO: Buffer.from(`{\"uid\":\"${_TEST_UID}\",\"utid\":\"${_TEST_UTID}\"}`, 'utf8').toString("base64"),
+    TEST_HOME_ACCOUNT_ID: `${_TEST_UID}.${_TEST_UTID}`,
     TEST_LOCAL_ACCOUNT_ID: "00000000-0000-0000-66f3-3332eca7ea81s"
 };
 
