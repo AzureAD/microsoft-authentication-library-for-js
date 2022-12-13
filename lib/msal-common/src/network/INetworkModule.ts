@@ -5,7 +5,6 @@
 
 import { AuthError } from "../error/AuthError";
 import { NetworkResponse } from "./NetworkManager";
-import { CustomAgentOptions } from "../config/ClientConfiguration";
 
 /**
  * Options allowed by network request APIs.
@@ -14,7 +13,6 @@ export type NetworkRequestOptions = {
     headers?: Record<string, string>,
     body?: string;
     proxyUrl?: string;
-    customAgentOptions?: CustomAgentOptions;
 };
 
 /**

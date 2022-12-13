@@ -9,7 +9,6 @@ import { IMDSBadResponse } from "../response/IMDSBadResponse";
 import { Constants, RegionDiscoverySources, ResponseCodes } from "../utils/Constants";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
-import { CustomAgentOptions } from "../config/ClientConfiguration";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
@@ -30,7 +29,7 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata, proxyUrl: string, customAgentOptions: CustomAgentOptions): Promise<string | null> {
+    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata, proxyUrl: string): Promise<string | null> {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
@@ -39,9 +38,6 @@ export class RegionDiscovery {
             const options = RegionDiscovery.IMDS_OPTIONS;
             if (proxyUrl) {
                 options.proxyUrl = proxyUrl;
-            }
-            if (customAgentOptions) {
-                options.customAgentOptions = customAgentOptions;
             }
 
             try {

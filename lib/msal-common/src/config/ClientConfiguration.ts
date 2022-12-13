@@ -92,7 +92,6 @@ export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
     proxyUrl?: string;
-    customAgentOptions?: CustomAgentOptions;
 };
 
 /**
@@ -108,17 +107,6 @@ export type LoggerOptions = {
     piiLoggingEnabled?: boolean,
     logLevel?: LogLevel,
     correlationId?: string
-};
-
-// https://nodejs.org/docs/latest-v16.x/api/http.html#new-agentoptions
-export type CustomAgentOptions = {
-    keepAlive?: Boolean,
-    keepAliveMsecs?: Number,
-    maxSockets?: Number,
-    maxTotalSockets?: Number,
-    maxFreeSockets?: Number,
-    scheduling?: String,
-    timeout?: Number,
 };
 
 /**
@@ -159,8 +147,7 @@ export type ApplicationTelemetry = {
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
     preventCorsPreflight: false,
-    proxyUrl: Constants.EMPTY_STRING,
-    customAgentOptions: {}
+    proxyUrl: Constants.EMPTY_STRING
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {

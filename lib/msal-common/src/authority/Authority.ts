@@ -22,7 +22,7 @@ import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
-import { AzureCloudOptions, CustomAgentOptions } from "../config/ClientConfiguration";
+import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { Logger } from "../logger/Logger";
 import { AuthError } from "../error/AuthError";
 
@@ -51,8 +51,6 @@ export class Authority {
     private proxyUrl: string;
     // Logger object
     private logger: Logger;
-    // Custom Http Agent
-    private customAgentOptions: CustomAgentOptions;
 
     constructor(
         authority: string,
@@ -60,8 +58,7 @@ export class Authority {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string,
-        customAgentOptions?: CustomAgentOptions,
+        proxyUrl?: string
     ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
@@ -71,7 +68,6 @@ export class Authority {
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
         this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
-        this.customAgentOptions = customAgentOptions || {};
         this.logger = logger;
     }
 
@@ -377,9 +373,6 @@ export class Authority {
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
         }
-        if (Object.keys(this.customAgentOptions).length) {
-            options.customAgentOptions = this.customAgentOptions;
-        }
 
         /*
          * TODO: Add a timeout if the authority exists in our library's 
@@ -413,8 +406,7 @@ export class Authority {
         const autodetectedRegionName = await this.regionDiscovery.detectRegion(
             this.authorityOptions.azureRegionConfiguration?.environmentRegion,
             this.regionDiscoveryMetadata,
-            this.proxyUrl,
-            this.customAgentOptions
+            this.proxyUrl
         );
 
         const azureRegion = 
@@ -543,9 +535,6 @@ export class Authority {
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
-        }
-        if (Object.keys(this.customAgentOptions).length) {
-            options.customAgentOptions = this.customAgentOptions;
         }
 
         /*

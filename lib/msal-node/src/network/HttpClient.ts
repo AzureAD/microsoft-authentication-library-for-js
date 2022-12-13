@@ -3,11 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
-    INetworkModule,
-    NetworkRequestOptions,
-    NetworkResponse
-} from "@azure/msal-common";
+import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
 import { HttpMethod, Constants, HttpStatus, ProxyStatus } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 import http from "http";
@@ -17,6 +13,14 @@ import https from "https";
  * This class implements the API for network requests.
  */
 export class HttpClient implements INetworkModule {
+
+    private customAgentOptions: http.AgentOptions | https.AgentOptions;
+
+    constructor(
+        customAgentOptions?: http.AgentOptions | https.AgentOptions,
+    ) {
+        this.customAgentOptions = customAgentOptions || {};
+    }
 
     /**
      * Http Get request
@@ -28,9 +32,9 @@ export class HttpClient implements INetworkModule {
         options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
         if (options?.proxyUrl) {
-            return networkRequestViaProxy(url, HttpMethod.GET, options);
+            return networkRequestViaProxy(url, HttpMethod.GET, options, this.customAgentOptions as http.AgentOptions);
         } else {
-            return networkRequestViaHttps(url, HttpMethod.GET, options);
+            return networkRequestViaHttps(url, HttpMethod.GET, options, this.customAgentOptions as https.AgentOptions);
         }
     }
 
@@ -45,9 +49,9 @@ export class HttpClient implements INetworkModule {
         cancellationToken?: number,
     ): Promise<NetworkResponse<T>> {
         if (options?.proxyUrl) {
-            return networkRequestViaProxy(url, HttpMethod.POST, options, cancellationToken);
+            return networkRequestViaProxy(url, HttpMethod.POST, options, this.customAgentOptions as http.AgentOptions, cancellationToken);
         } else {
-            return networkRequestViaHttps(url, HttpMethod.POST, options, cancellationToken);
+            return networkRequestViaHttps(url, HttpMethod.POST, options, this.customAgentOptions as https.AgentOptions, cancellationToken);
         }
     }
 }
@@ -55,7 +59,8 @@ export class HttpClient implements INetworkModule {
 const networkRequestViaProxy = <T>(
     url: string,
     httpMethod: string,
-    options: NetworkRequestOptions,
+    options?: NetworkRequestOptions,
+    agentOptions?: http.AgentOptions,
     timeout?: number,
 ): Promise<NetworkResponse<T>> => {
     const headers = options?.headers || {} as Record<string, string>;
@@ -75,10 +80,8 @@ const networkRequestViaProxy = <T>(
         tunnelRequestOptions.timeout = timeout;
     }
 
-    if (options?.customAgentOptions && Object.keys(options.customAgentOptions).length) {
-        tunnelRequestOptions.agent = new http.Agent({
-            ...options.customAgentOptions,
-        } as http.AgentOptions);
+    if (agentOptions && Object.keys(agentOptions).length) {
+        tunnelRequestOptions.agent = new http.Agent(agentOptions);
     }
 
     // compose a request string for the socket
@@ -211,6 +214,7 @@ const networkRequestViaHttps = <T>(
     url: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
+    agentOptions?: https.AgentOptions,
     timeout?: number,
 ): Promise<NetworkResponse<T>> => {
     const isPostRequest = httpMethod === HttpMethod.POST;
@@ -226,10 +230,8 @@ const networkRequestViaHttps = <T>(
         customOptions.timeout = timeout;
     }
 
-    if (options?.customAgentOptions && Object.keys(options.customAgentOptions).length) {
-        customOptions.agent = new https.Agent({
-            ...options.customAgentOptions,
-        } as https.AgentOptions);
+    if (agentOptions && Object.keys(agentOptions).length) {
+        customOptions.agent = new https.Agent(agentOptions);
     }
 
     if (isPostRequest) {

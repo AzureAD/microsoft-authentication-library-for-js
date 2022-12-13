@@ -12,10 +12,11 @@ import {
     Constants,
     AzureCloudInstance,
     AzureCloudOptions,
-    ApplicationTelemetry,
-    CustomAgentOptions
+    ApplicationTelemetry
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient";
+import http from "http";
+import https from "https";
 
 /**
  * - clientId               - Client id of the application.
@@ -68,7 +69,7 @@ export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     proxyUrl?: string;
-    customAgentOptions?: CustomAgentOptions;
+    customAgentOptions?: http.AgentOptions | https.AgentOptions;
 };
 
 export type NodeTelemetryOptions = {
@@ -160,11 +161,15 @@ export function buildAppConfiguration({
     system,
     telemetry
 }: Configuration): NodeConfiguration {
+    const systemOptions: Required<NodeSystemOptions> = {
+        ...DEFAULT_SYSTEM_OPTIONS,
+        networkClient: system?.customAgentOptions ? new HttpClient(system.customAgentOptions as http.AgentOptions | https.AgentOptions) : new HttpClient(),
+    };
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
     };
 }
