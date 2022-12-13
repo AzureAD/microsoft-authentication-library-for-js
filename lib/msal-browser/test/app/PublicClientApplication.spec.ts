@@ -2941,7 +2941,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         // Account 2
         const testAccountInfo2: AccountInfo = {
-            homeAccountId: "different-home-account-id",
+            homeAccountId: "00000000-0000-0000-0000-000000000000.00000000-0000-0000-0000-000000000001",
             environment: "login.windows.net",
             tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
             username: "anotherExample@microsoft.com",
@@ -3178,7 +3178,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             describe("activeAccount tests with two accounts, both with same localId", () => {
                 // Account 1
                 const testAccountInfo1: AccountInfo = {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow1",
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + "-flow1",
                     environment: "login.windows.net",
                     tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
                     username: "example@microsoft.com",
@@ -3209,7 +3209,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 // Account 2
                 const testAccountInfo2: AccountInfo = {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + "-flow2",
                     environment: "login.windows.net",
                     tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
                     username: "example@microsoft.com",

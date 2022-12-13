@@ -1,11 +1,11 @@
-{   
+{
     "Unrecognized_Entity":{
         "ABC123": {
             "abc": "def"
         }
     },
     "Account": {
-        "uid.utid-login.microsoftonline.com-microsoft": {
+        "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad-login.microsoftonline.com-microsoft": {
             "unrecognized_entity": {
                 "abc123": "123"
             },
@@ -13,30 +13,30 @@
             "local_account_id": "object1234",
             "realm": "microsoft",
             "environment": "login.microsoftonline.com",
-            "home_account_id": "uid.utid",
+            "home_account_id": "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad",
             "authority_type": "MSSTS",
             "client_info": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
         }
     },
     "RefreshToken": {
-        "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id----": {
+        "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad-login.microsoftonline.com-refreshtoken-mock_client_id----": {
             "environment": "login.microsoftonline.com",
             "credential_type": "RefreshToken",
             "secret": "a refresh token",
             "client_id": "mock_client_id",
-            "home_account_id": "uid.utid"
+            "home_account_id": "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad"
         },
-        "uid.utid-login.microsoftonline.com-refreshtoken-1----": {
+        "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad-login.microsoftonline.com-refreshtoken-1----": {
             "environment": "login.microsoftonline.com",
             "credential_type": "RefreshToken",
             "secret": "a refresh token",
             "client_id": "mock_client_id",
-            "home_account_id": "uid.utid",
+            "home_account_id": "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad",
             "family_id": "1"
         }
     },
     "AccessToken": {
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--": {
+        "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
@@ -44,11 +44,11 @@
             "target": "scope1 scope2 scope3",
             "client_id": "mock_client_id",
             "cached_at": "1000",
-            "home_account_id": "uid.utid",
+            "home_account_id": "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad",
             "extended_expires_on": "4600",
             "expires_on": "4600"
         },
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5--": {
+        "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
@@ -56,19 +56,19 @@
             "target": "scope4 scope5",
             "client_id": "mock_client_id",
             "cached_at": "1000",
-            "home_account_id": "uid.utid",
+            "home_account_id": "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad",
             "extended_expires_on": "4600",
             "expires_on": "4600"
         }
     },
     "IdToken": {
-        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft---": {
+        "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad-login.microsoftonline.com-idtoken-mock_client_id-microsoft---": {
             "realm": "microsoft",
             "environment": "login.microsoftonline.com",
             "credential_type": "IdToken",
             "secret": "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
             "client_id": "mock_client_id",
-            "home_account_id": "uid.utid"
+            "home_account_id": "00000000-0000-0000-66f3-3332eca7ea81.3338040d-6c67-4c5b-b112-36a304b66dad"
         }
     },
     "AppMetadata": {
