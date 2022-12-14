@@ -74,6 +74,7 @@ export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
 export { NativeRequest } from "./request/NativeRequest";
+export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
