@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError} from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
@@ -140,6 +140,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called", this.correlationId);
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
+        const logger= this.config.system.loggerOptions;
 
         return {
             authOptions: {
@@ -152,9 +153,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 preventCorsPreflight: true
             },
             loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
-                logLevel: this.config.system.loggerOptions.logLevel,
+                loggerCallback: logger.loggerCallback,
+                piiLoggingEnabled: logger.piiLoggingEnabled,
+                logLevel: logger.logLevel,
                 correlationId: this.correlationId
             },
             cryptoInterface: this.browserCrypto,
@@ -170,7 +171,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             telemetry: this.config.telemetry
         };
     }
-
+    
     /**
      * @param hash
      * @param interactionType
