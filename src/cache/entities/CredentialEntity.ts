@@ -109,13 +109,12 @@ export class CredentialEntity {
      */
     static getCredentialType(key: string): string {
         const separator = Separators.CACHE_KEY_SEPARATOR;
+        // Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", etc.
         const domainRe = "(https?:\\/\\/)?([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,3}))(\\:[0-9]{4,5})?";
 
-        for (const credType of Object.entries(CredentialType)) {
-            const credKey = credType[0];
-            const credVal = credType[1].toLowerCase();
+        for (const credKey of Object.keys(CredentialType)) {
+            const credVal = CredentialType[credKey].toLowerCase();
             // Verify credential type is preceded by a valid host name (environment)
-            // eslint-disable-next-line security/detect-non-literal-regexp
             if (key.toLowerCase().search(`(?<=${separator}${domainRe})${separator}${credVal}${separator}`) !== -1) {
                 return CredentialType[credKey];
             }
