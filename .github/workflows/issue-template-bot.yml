@@ -4,8 +4,14 @@ on:
   issues:
     types: [opened, edited]
 
+permissions: {}
+
 jobs:
   run:
+    permissions:
+      contents: read #  to fetch code (actions/checkout)
+      issues: write #  to label, comment, close issues
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
