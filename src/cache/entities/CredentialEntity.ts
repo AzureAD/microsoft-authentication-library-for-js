@@ -108,17 +108,17 @@ export class CredentialEntity {
      * @param key
      */
     static getCredentialType(key: string): string {
-        // First keyword search will match all "AccessToken" and "AccessToken_With_AuthScheme" credentials
-        if (key.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) !== -1) {
-            // Perform second search to differentiate between "AccessToken" and "AccessToken_With_AuthScheme" credential types
-            if (key.indexOf(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) !== -1) {
-                return CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+        const separator = Separators.CACHE_KEY_SEPARATOR;
+        const domainRe = "(https?:\\/\\/)?([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,3}))(\\:[0-9]{4,5})?";
+
+        for (const credType of Object.entries(CredentialType)) {
+            const credKey = credType[0];
+            const credVal = credType[1].toLowerCase();
+            // Verify credential type is preceded by a valid host name (environment)
+            // eslint-disable-next-line security/detect-non-literal-regexp
+            if (key.toLowerCase().search(`(?<=${separator}${domainRe})${separator}${credVal}${separator}`) !== -1) {
+                return CredentialType[credKey];
             }
-            return CredentialType.ACCESS_TOKEN;
-        } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
-            return CredentialType.ID_TOKEN;
-        } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
-            return CredentialType.REFRESH_TOKEN;
         }
 
         return Constants.NOT_DEFINED;
