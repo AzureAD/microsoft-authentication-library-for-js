@@ -12,8 +12,10 @@ import {
     Constants,
     AzureCloudInstance,
     AzureCloudOptions,
-    ApplicationTelemetry
+    ApplicationTelemetry,
+    INativeBrokerPlugin
 } from "@azure/msal-common";
+import { DefaultNativeBrokerPlugin } from "../broker/DefaultNativeBrokerPlugin";
 import { HttpClient } from "../network/HttpClient";
 
 /**
@@ -57,6 +59,19 @@ export type CacheOptions = {
 };
 
 /**
+ * Use this to configure the below broker options:
+ * - allowNativeBroker - Set to true to allow MSAL to use the system's token broker for authentication.
+ * - nativeBrokerPlugin - Native broker implementation (should be imported from msal-node-extensions)
+ * 
+ * Note: These options are only available for PublicClientApplications using the Authorization Code Flow
+ * @public
+ */
+export type BrokerOptions = {
+    allowNativeBroker?: boolean;
+    nativeBrokerPlugin?: INativeBrokerPlugin;
+};
+
+/**
  * Type for configuring logger and http client options
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
@@ -77,12 +92,15 @@ export type NodeTelemetryOptions = {
  * Use the configuration object to configure MSAL and initialize the client application object
  *
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
+ * - broker: this is where you configure broker options
  * - cache: this is where you configure cache location
  * - system: this is where you can configure the network client, logger
+ * - telemetry: this is where you can configure telemetry options
  * @public
  */
 export type Configuration = {
     auth: NodeAuthOptions;
+    broker?: BrokerOptions;
     cache?: CacheOptions;
     system?: NodeSystemOptions;
     telemetry?: NodeTelemetryOptions;
@@ -110,6 +128,11 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     skipAuthorityMetadataCache: false,
 };
 
+const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
+    allowNativeBroker: false,
+    nativeBrokerPlugin: new DefaultNativeBrokerPlugin()
+};
+
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
@@ -135,6 +158,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
 
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
+    broker: Required<BrokerOptions>;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
     telemetry: Required<NodeTelemetryOptions>;
@@ -153,6 +177,7 @@ export type NodeConfiguration = {
  */
 export function buildAppConfiguration({
     auth,
+    broker,
     cache,
     system,
     telemetry
@@ -165,6 +190,7 @@ export function buildAppConfiguration({
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+        broker: { ...DEFAULT_BROKER_OPTIONS, ...broker},
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
