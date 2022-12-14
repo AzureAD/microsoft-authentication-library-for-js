@@ -39,6 +39,16 @@ const cacheConfig = {
     secureCookies: false
 };
 
+let testAppConfig = {
+    auth: {
+        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+    },
+
+    userInputSystem:{
+        loggerOptions: void 0,
+    }
+};
+
 
 jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
     return {
@@ -3430,6 +3440,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getLogger()).toEqual(logger);
 
             pca.getLogger().info("Message");
+        });
+
+        test("logger undefined", async () => {
+            const authApp = new PublicClientApplication(testAppConfig);
+    
+           expect(authApp.getLogger()).toBeDefined();
+           expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
+            
         });
     });
 

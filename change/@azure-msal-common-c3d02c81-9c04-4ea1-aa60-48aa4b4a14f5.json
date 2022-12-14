@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix logger explicitly set to undefined error #5355",
+  "packageName": "@azure/msal-common",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
