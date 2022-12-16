@@ -122,7 +122,7 @@ export enum PerformanceEvents {
     RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
 
     /**
-     * Time taken for acquiring cached refresh token 
+     * Time taken for acquiring cached refresh token
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
@@ -152,7 +152,7 @@ export enum PerformanceEventStatus {
 /**
  * Fields whose value will not change throughout a request
  */
-export type StaticFields = { 
+export type StaticFields = {
     /**
      * The Silent Token Cache Lookup Policy
      *
@@ -166,32 +166,32 @@ export type StaticFields = {
      * @type {number}
      */
     idTokenSize?: number,
- 
+
     /**
-     * 
+     *
      * Size of the access token
      *
      * @type {number}
      */
- 
+
     accessTokenSize?: number,
 
     /**
-     * 
+     *
      * Size of the refresh token
      *
      * @type {number}
      */
 
     refreshTokenSize?: number | undefined,
- 
+
     /**
      * Application name as specified by the app.
      *
      * @type {?string}
      */
     appName?: string,
- 
+
     /**
      * Application version as specified by the app.
      *
@@ -219,6 +219,7 @@ export type StaticFields = {
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
+    visChange?: boolean;
 };
 
 /**
@@ -352,7 +353,7 @@ export type PerformanceEvent = StaticFields & {
 
     /**
      * Request ID returned from the response
-     * 
+     *
      * @type {?string}
      */
     requestId?: string
