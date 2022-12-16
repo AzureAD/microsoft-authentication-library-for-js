@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType, ApiId, CacheLookupPolicy, BrowserConstants } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -25,6 +25,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
+    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
     /**
      * @constructor
@@ -51,6 +52,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         super(configuration);
 
         this.activeSilentTokenRequests = new Map();
+        this.trackPageVisibility = this.trackPageVisibility.bind(this);
     }
 
     /**
@@ -99,7 +101,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         atsMeasurement.addStaticFields({
             cacheLookupPolicy: request.cacheLookupPolicy
         });
-        
+
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
@@ -169,16 +171,32 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }
     }
 
+    private trackPageVisibility():void {
+        if(!this.astsAsyncMeasurement) return;
+        this.logger.info("Perf: Visibility change detected in ATS");
+        this.astsAsyncMeasurement.addStaticFields({
+            visChange: true,
+        });
+        this.astsAsyncMeasurement.endMeasurement({
+            success: true,
+        });
+        document.removeEventListener("visibilitychange",this.trackPageVisibility);
+    }
+
     /**
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
      * @param {@link (SilentRequest:type)}
      * @param {@link (AccountInfo:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         const atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-
+        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.astsAsyncMeasurement?.addStaticFields({
+            visChange:false
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibility);
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
@@ -190,7 +208,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.logger.verbose("acquireTokenSilent - native platform unavailable, falling back to web flow");
-                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
+                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
 
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
@@ -203,7 +221,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-            
+
             const requestWithCLP = {
                 ...request,
                 // set the request's CacheLookupPolicy to Default if it was not optionally passed in
@@ -233,7 +251,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     ) {
                         throw refreshTokenError;
                     }
-                        
+
                     this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
                     return this.acquireTokenBySilentIframe(silentRequest);
                 });
@@ -242,20 +260,22 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            atsAsyncMeasurement.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
+            document.removeEventListener("visibilitychange",this.trackPageVisibility);
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            atsAsyncMeasurement.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false
             });
+            document.removeEventListener("visibilitychange",this.trackPageVisibility);
             throw tokenRenewalError;
         });
     }
