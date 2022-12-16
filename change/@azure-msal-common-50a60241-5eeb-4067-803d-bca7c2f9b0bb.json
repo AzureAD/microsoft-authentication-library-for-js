@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "ATS- event vis change",
+  "packageName": "@azure/msal-common",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
