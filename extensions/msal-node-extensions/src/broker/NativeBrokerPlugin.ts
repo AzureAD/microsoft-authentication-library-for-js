@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
 import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, SignOutResult } from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
@@ -79,20 +79,27 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case PromptValue.LOGIN:
                 case PromptValue.SELECT_ACCOUNT:
                 case PromptValue.CREATE:
-                    addon.SignInInteractively(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+                    this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
+                    const loginHint = request.loginHint || Constants.EMPTY_STRING;
+                    addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle);
                     break;
                 case PromptValue.NONE:
                     if (account) {
+                        this.logger.info("Calling native interop AcquireTokenSilently API", request.correlationId);
                         addon.AcquireTokenSilently(authParams, account, request.correlationId, callback, asyncHandle);
                     } else {
+                        this.logger.info("Calling native interop SignInSilently API", request.correlationId);
                         addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
                     }
                     break;
                 default:
                     if (account) {
+                        this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
                         addon.AcquireTokenInteractively(authParams, account, request.correlationId, callback, asyncHandle);
                     } else {
-                        addon.SignIn(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+                        this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
+                        const loginHint = request.loginHint || Constants.EMPTY_STRING;
+                        addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle);
                     }
                     break;
             }
