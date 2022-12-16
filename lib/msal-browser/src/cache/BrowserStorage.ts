@@ -31,7 +31,13 @@ export class BrowserStorage implements IWindowStorage<string> {
     }
 
     setItem(key: string, value: string): void {
+        // add try catch here
         this.windowStorage.setItem(key, value);
+        /*
+         * add quota exceeded for local storage, session storage
+         * what checks for indexed db
+         * tests for local and session storage
+         */
     }
 
     removeItem(key: string): void {
