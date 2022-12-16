@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ApiId } from "../utils/Constants";
+import { ApiId, Constants } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
@@ -13,7 +13,8 @@ import {
     OIDC_DEFAULT_SCOPES,
     CodeChallengeMethodValues,
     Constants as CommonConstants,
-    ServerError
+    ServerError,
+    NativeRequest
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
@@ -24,6 +25,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { InteractiveRequest } from "../request/InteractiveRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { LoopbackClient } from "../network/LoopbackClient";
+import { SilentFlowRequest } from "../request/SilentFlowRequest";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -50,6 +52,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
+        this.config.broker.nativeBrokerPlugin.setLogger(this.config.system.loggerOptions);
     }
 
     /**
@@ -89,8 +92,28 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * Acquires a token by requesting an Authorization code then exchanging it for a token.
      */
     async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
-        const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
+        const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
+        this.logger.trace("acquireTokenInteractive called", correlationId);
         const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
+
+        if (this.config.broker.allowNativeBroker) {
+            const brokerRequest: NativeRequest = {
+                ...remainingProperties,
+                clientId: this.config.auth.clientId,
+                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                authority: request.authority || this.config.auth.authority,
+                correlationId: correlationId,
+                extraParameters: {
+                    ...remainingProperties.extraQueryParameters,
+                    ...remainingProperties.tokenQueryParameters
+                },
+                accountId: remainingProperties.account?.nativeAccountId
+            };
+            return this.config.broker.nativeBrokerPlugin.acquireTokenInteractive(brokerRequest);
+        }
+
+        const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
 
         const loopbackClient = new LoopbackClient();
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
@@ -98,6 +121,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const validRequest: AuthorizationUrlRequest = {
             ...remainingProperties,
+            correlationId: correlationId,
             scopes: request.scopes || OIDC_DEFAULT_SCOPES,
             redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
@@ -125,5 +149,27 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             ...validRequest
         };
         return this.acquireTokenByCode(tokenRequest);
+    }
+
+    async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
+        const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
+        this.logger.trace("acquireTokenSilent called", correlationId);
+
+        if (this.config.broker.allowNativeBroker) {
+            const brokerRequest: NativeRequest = {
+                ...request,
+                clientId: this.config.auth.clientId,
+                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                redirectUri: `${Constants.HTTP_PROTOCOL}${Constants.LOCALHOST}`,
+                authority: request.authority || this.config.auth.authority,
+                correlationId: correlationId,
+                extraParameters: request.tokenQueryParameters,
+                accountId: request.account.nativeAccountId,
+                forceRefresh: request.forceRefresh || false
+            };
+            return this.config.broker.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
+        }
+
+        return super.acquireTokenSilent(request);
     }
 }
