@@ -4,11 +4,13 @@
  */
 
 import { AccountInfo } from "../../account/AccountInfo";
+import { LoggerOptions } from "../../config/ClientConfiguration";
 import { NativeRequest } from "../../request/NativeRequest";
 import { NativeSignOutRequest } from "../../request/NativeSignOutRequest";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 export interface INativeBrokerPlugin {
+    setLogger(loggerOptions: LoggerOptions): void;
     getAccountById(accountId: string, correlationId: string): Promise<AccountInfo>;
     acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult>;
     acquireTokenInteractive(request: NativeRequest): Promise<AuthenticationResult>;
