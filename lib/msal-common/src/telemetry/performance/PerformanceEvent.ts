@@ -207,6 +207,7 @@ export type StaticFields = {
     matsSilentStatus?: number;
     matsHttpStatus?: number
     matsHttpEventCount?: number;
+    visChange?: boolean;
 };
 
 /**
