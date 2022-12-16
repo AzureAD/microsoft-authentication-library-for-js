@@ -4,6 +4,7 @@
  */
 
 export type NativeSignOutRequest = {
+    clientId: string;
     correlationId: string;
     accountId?: string;
 };

@@ -6,6 +6,7 @@
 import { StringDict } from "../utils/MsalTypes";
 
 export type NativeRequest = {
+    clientId: string;
     authority: string;
     correlationId: string;
     redirectUri: string;

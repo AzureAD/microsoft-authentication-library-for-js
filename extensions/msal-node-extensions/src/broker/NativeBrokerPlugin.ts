@@ -3,18 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
 import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, SignOutResult } from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
-    private clientId: string;
     private logger: Logger;
+    
+    constructor() {
+        const defaultLoggerOptions: LoggerOptions = {
+            loggerCallback: () => {},
+            piiLoggingEnabled: false
+        };
+        this.logger = new Logger(defaultLoggerOptions, name, version); // Default logger
+    }
 
-    constructor(clientId: string, logger: Logger) { 
-        this.clientId = clientId;
-        this.logger = logger.clone(name, version);
+    setLogger(loggerOptions: LoggerOptions): void {
+        this.logger = new Logger(loggerOptions, name, version);
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
@@ -109,7 +115,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
             const callback = new addon.SignOutResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
-            addon.SignOutSilently(this.clientId, request.correlationId, account, callback, asyncHandle);
+            addon.SignOutSilently(request.clientId, request.correlationId, account, callback, asyncHandle);
         });
     }
 
@@ -134,7 +140,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     private generateRequestParameters(request: NativeRequest): AuthParameters {
         this.logger.trace("NativeBrokerPlugin - generateRequestParameters called", request.correlationId);
-        const authParams = new addon.AuthParameters(this.clientId, request.authority);
+        const authParams = new addon.AuthParameters(request.clientId, request.authority);
         authParams.SetRedirectUri(request.redirectUri);
         authParams.SetRequestedScopes(request.scopes.join(" "));
 
