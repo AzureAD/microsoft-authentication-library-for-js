@@ -47,7 +47,7 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
+    getPublicKeyThumbprint(request: SignedHttpRequestParameters, preQueueTime?: number): Promise<string>;
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 
