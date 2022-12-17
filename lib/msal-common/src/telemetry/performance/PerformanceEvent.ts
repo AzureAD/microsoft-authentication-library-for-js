@@ -126,6 +126,8 @@ export enum PerformanceEvents {
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
+    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
+
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
     GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
