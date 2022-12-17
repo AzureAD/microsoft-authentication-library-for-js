@@ -158,6 +158,16 @@ export enum PerformanceEvents {
     PopTokenGenerateKid = "popTokenGenerateKid",
 
     HandleServerTokenResponse = "handleServerTokenResponse"
+
+    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+
+    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+
+    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+
+    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+
 }
 
 /**
@@ -240,6 +250,8 @@ export type StaticFields = {
     matsSilentStatus?: number;
     matsHttpStatus?: number
     matsHttpEventCount?: number;
+    httpVerToken?: string;
+    httpVerAuthority?: string;
 };
 
 /**
