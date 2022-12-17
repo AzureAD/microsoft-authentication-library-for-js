@@ -600,8 +600,10 @@ export abstract class ClientApplication {
     protected async acquireTokenFromCache(
         silentCacheClient: SilentCacheClient,
         commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
+        preQueueTime?: number
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId, preQueueTime);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -620,15 +622,19 @@ export abstract class ClientApplication {
      */
     protected async acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest
+        silentRequest: SilentRequest,
+        preQueueTime?: number
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId, preQueueTime);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
             case CacheLookupPolicy.RefreshToken:
             case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
-                return silentRefreshClient.acquireToken(commonRequest);
+
+                const preAcquireTokenTime = this.performanceClient.getCurrentTime();
+                return silentRefreshClient.acquireToken(commonRequest, preAcquireTokenTime);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
         }

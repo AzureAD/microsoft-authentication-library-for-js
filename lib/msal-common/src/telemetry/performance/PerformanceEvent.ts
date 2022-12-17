@@ -98,6 +98,8 @@ export enum PerformanceEvents {
      * Time spent creating default headers for requests to token endpoint
      */
     BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+
+    BaseClientCreateTokenRequestBody = "baseClientCreateTokenRequestBody",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
@@ -128,6 +130,7 @@ export enum PerformanceEvents {
 
     RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
 
+    AcquireTokenFromCache = "acquireTokenFromCache",
     AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
 
     InitializeBaseRequest = "initializeBaseRequest",
@@ -145,7 +148,16 @@ export enum PerformanceEvents {
 
     UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
 
-    GetAuthCodeUrl = "getAuthCodeUrl"
+    GetAuthCodeUrl = "getAuthCodeUrl",
+    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
+    AuthClientAcquireToken = "authClientAcquireToken",
+    AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
+    AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
+
+    PopTokenGenerateCnf = "popTokenGenerateCnf",
+    PopTokenGenerateKid = "popTokenGenerateKid",
+
+    HandleServerTokenResponse = "handleServerTokenResponse"
 }
 
 /**

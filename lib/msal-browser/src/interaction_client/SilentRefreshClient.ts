@@ -13,7 +13,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
      * Exchanges the refresh token for new tokens
      * @param request
      */
-    async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: CommonSilentFlowRequest, preQueueTime?: number): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, request.correlationId, preQueueTime);
+
         const preInitializeBaseRequestTime = this.performanceClient.getCurrentTime();
         const silentRequest: CommonSilentFlowRequest = {
             ...request,

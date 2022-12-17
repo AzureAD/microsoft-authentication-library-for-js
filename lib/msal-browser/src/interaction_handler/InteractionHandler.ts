@@ -60,7 +60,8 @@ export class InteractionHandler {
             }
         }
 
-        return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
+        const preHandleCodeResponseFromServerTime = this.performanceClient.getCurrentTime();
+        return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule, undefined, preHandleCodeResponseFromServerTime);
     }
 
     /**
@@ -71,8 +72,9 @@ export class InteractionHandler {
      * @param networkModule 
      * @returns 
      */
-    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true): Promise<AuthenticationResult> {
+    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true, preQueueTime?: number|undefined): Promise<AuthenticationResult> {
         this.logger.trace("InteractionHandler.handleCodeResponseFromServer called");
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromServer, this.authCodeRequest.correlationId, preQueueTime);
 
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
@@ -113,8 +115,8 @@ export class InteractionHandler {
 
         // Acquire token with retrieved code.
 
-        // const preAcquireTokenTime = this.performanceClient.getCurrentTime();
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse); // TODO: measure here? AuthCodeClient in msal-common
+        const preAcquireTokenTime = this.performanceClient.getCurrentTime();
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse, preAcquireTokenTime);
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
