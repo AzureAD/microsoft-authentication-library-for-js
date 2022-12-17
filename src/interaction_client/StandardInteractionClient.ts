@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions, PerformanceEvents, AuthError} from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
@@ -128,7 +128,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param authorityUrl
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<AuthorizationCodeClient> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardCreateAuthCodeClient, this.correlationId, preQueueTime);
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.StandardCreateAuthCodeClient, this.correlationId, preQueueTime);
 
         // Create auth module.
         const preClientConfigTime = this.performanceClient.getCurrentTime();
@@ -148,6 +148,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("getClientConfiguration called", this.correlationId);
         const preDiscoveryTime = this.performanceClient.getCurrentTime();
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions, preDiscoveryTime);
+        const logger= this.config.system.loggerOptions;
 
         return {
             authOptions: {
@@ -160,9 +161,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 preventCorsPreflight: true
             },
             loggerOptions: {
-                loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
-                logLevel: this.config.system.loggerOptions.logLevel,
+                loggerCallback: logger.loggerCallback,
+                piiLoggingEnabled: logger.piiLoggingEnabled,
+                logLevel: logger.logLevel,
                 correlationId: this.correlationId
             },
             cryptoInterface: this.browserCrypto,
@@ -178,7 +179,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             telemetry: this.config.telemetry
         };
     }
-
+    
     /**
      * @param hash
      * @param interactionType
@@ -210,7 +211,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardGetClientConfiguration, this.correlationId, preQueueTime);
-        const getAuthorityMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
+        const getAuthorityMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
@@ -223,7 +224,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const userAuthority = requestAuthority ? requestAuthority : this.config.auth.authority;
 
         // fall back to the authority from config
-        const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
+        const builtAuthority = Authority.generateAuthority(userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
         // const preCreateDiscoveredInstanceTime = this.performanceClient.getCurrentTime();
         
@@ -231,7 +232,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({
-                    success: true
+                    success: true,
                 });
 
                 return result;

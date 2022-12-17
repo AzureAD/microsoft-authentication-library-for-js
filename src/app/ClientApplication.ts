@@ -242,7 +242,7 @@ export abstract class ClientApplication {
                         this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-
+                    
                     throw e;
                 });
                 this.redirectResponse.set(redirectResponseKey, response);

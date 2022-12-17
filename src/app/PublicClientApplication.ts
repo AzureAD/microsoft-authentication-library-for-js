@@ -146,7 +146,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         success: true,
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
-                        requestId: result.requestId
+                        cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId,
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -205,7 +206,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
-            });     
+            });
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
 
