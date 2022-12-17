@@ -111,12 +111,11 @@ export class SilentIframeClient extends StandardInteractionClient {
         const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest, preInitializeTime);
         // Create authorize request url
         
-        const preAuthCodeUrlTime = this.performanceClient.getCurrentTime(); // TODO: testing here
-        this.logger.info(`tx-SIC-silentTokenHelper - about to getAuthCodeUrl`);
+        const preAuthCodeUrlTime = this.performanceClient.getCurrentTime(); 
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
-        }, preAuthCodeUrlTime); // TODO: calculate here? AuthCodeClient is in msal-common
+        }, preAuthCodeUrlTime);
 
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);

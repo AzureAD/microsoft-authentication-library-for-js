@@ -181,7 +181,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<AuthenticationResult>{
-        debugger;
+        // debugger;
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId, preQueueTime);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
@@ -221,8 +221,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
             };
 
-            // TODO: do we need to calculate time before cache? No? Because we only want JS queue for network calls
-            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
+            // TODO: do we need to calculate time before cache? No? Because we only want JS queue for network calls. Or Yes - because we still go into this function in order to get into catch block
+            const preAcquireTokenFromCacheTime = this.performanceClient.getCurrentTime();
+            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP, preAcquireTokenFromCacheTime).catch((cacheError: AuthError) => {
                 if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
                 }
@@ -231,7 +232,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 BrowserUtils.blockReloadInHiddenIframes();
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
 
-                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
+                const preAcquireTokenByRefreshTokenTime = this.performanceClient.getCurrentTime();
+                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP, preAcquireTokenByRefreshTokenTime).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);

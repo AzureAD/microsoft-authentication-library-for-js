@@ -91,7 +91,9 @@ export class CryptoOps implements ICrypto {
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
-    async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
+    async getPublicKeyThumbprint(request: SignedHttpRequestParameters, preQueueTime?: number): Promise<string> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId, preQueueTime);
+
         const publicKeyThumbMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.CryptoOptsGetPublicKeyThumbprint, request.correlationId);
 
         // Generate Keypair

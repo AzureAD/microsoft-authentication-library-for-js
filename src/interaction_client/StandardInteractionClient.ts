@@ -133,7 +133,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // Create auth module.
         const preClientConfigTime = this.performanceClient.getCurrentTime();
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureCloudOptions, preClientConfigTime);
-        return new AuthorizationCodeClient(clientConfig);
+        return new AuthorizationCodeClient(clientConfig, this.performanceClient);
     }
 
     /**
