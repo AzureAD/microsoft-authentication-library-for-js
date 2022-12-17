@@ -125,6 +125,9 @@ export enum PerformanceEvents {
      * Time taken for acquiring cached refresh token 
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+
+    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
+    
 }
 
 /**

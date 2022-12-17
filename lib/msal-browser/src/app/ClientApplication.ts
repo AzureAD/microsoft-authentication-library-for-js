@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
@@ -83,6 +83,8 @@ export abstract class ClientApplication {
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
 
+    private ssoSilentMeasurement?: InProgressPerformanceEvent = undefined;
+    private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent = undefined;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -155,6 +157,7 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+        this.trackPageVisibilityWithMeas = this.trackPageVisibilityWithMeas.bind(this);
     }
 
     /**
@@ -242,7 +245,7 @@ export abstract class ClientApplication {
                         this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-
+                    
                     throw e;
                 });
                 this.redirectResponse.set(redirectResponseKey, response);
@@ -415,6 +418,31 @@ export abstract class ClientApplication {
         });
     }
 
+    private trackPageVisibilityWithMeas():void {
+        if(!this.ssoSilentMeasurement && !this.acquireTokenByCodeAsyncMeasurement) return;
+        this.logger.info("Perf: Event- visibility change detected" );
+        if(this.ssoSilentMeasurement)
+        {
+            this.logger.info("Vis change detected in ",this.ssoSilentMeasurement.event.name);
+            this.ssoSilentMeasurement.addStaticFields({
+                visChange: true,
+            });
+            this.ssoSilentMeasurement.endMeasurement({
+                success: true,
+            });
+        }
+        else{
+            this.logger.info("Vis change detected in ",this.acquireTokenByCodeAsyncMeasurement?.event.name);
+            this.acquireTokenByCodeAsyncMeasurement?.addStaticFields({
+                visChange: true,
+            });
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                success: true,
+            });
+
+        }             
+        document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+    }
     // #endregion
 
     // #region Silent Flow
@@ -443,7 +471,11 @@ export abstract class ClientApplication {
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        const ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement?.addStaticFields({
+            visChange:false
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
@@ -466,25 +498,27 @@ export abstract class ClientApplication {
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
-            ssoSilentMeasurement.addStaticFields({
+            this.ssoSilentMeasurement?.addStaticFields({
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length
             });
-            ssoSilentMeasurement.endMeasurement({
+            this.ssoSilentMeasurement?.endMeasurement({
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            ssoSilentMeasurement.flushMeasurement();
+            this.ssoSilentMeasurement?.flushMeasurement();
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
-            ssoSilentMeasurement.endMeasurement({
+            this.ssoSilentMeasurement?.endMeasurement({
                 errorCode: e.errorCode,
                 subErrorCode: e.subError,
                 success: false
             });
-            ssoSilentMeasurement.flushMeasurement();
+            this.ssoSilentMeasurement?.flushMeasurement();
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
             throw e;
         });
     }
@@ -585,8 +619,30 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement?.addStaticFields({
+            visChange:false
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
-        const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+        const silentTokenResult = await silentAuthCodeClient.acquireToken(request).then((response) => {
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                success: true,
+                fromCache: response.fromCache,
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
+            });
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+            return response;
+        }).catch((tokenRenewalError: AuthError) => {
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                errorCode: tokenRenewalError.errorCode,
+                subErrorCode: tokenRenewalError.subError,
+                success: false
+            });
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+            throw tokenRenewalError;
+        });
         return silentTokenResult;
     }
 
