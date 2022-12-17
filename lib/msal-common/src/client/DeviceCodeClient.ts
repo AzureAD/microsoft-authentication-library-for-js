@@ -247,7 +247,6 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addLibraryInfo(this.config.libraryInfo);
         requestParameters.addApplicationTelemetry(this.config.telemetry.application);
         requestParameters.addThrottling();
-        
         if (this.serverTelemetryManager) {
             requestParameters.addServerTelemetry(this.serverTelemetryManager);
         }
