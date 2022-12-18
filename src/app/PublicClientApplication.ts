@@ -134,9 +134,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     
-                    // const {queuedTime, queuedCount} = this.performanceClient.retrieveQueuedMeasurements();
-                    // this.logger.info(`testx-PCA-ATS - time: ${queuedTime} - count: ${queuedCount}`);
-                    
                     atsMeasurement.addStaticFields({
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length
@@ -256,8 +253,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            // const {queuedTime, queuedCount} = this.performanceClient.retrieveQueuedMeasurements();
-            // this.logger.info(`testx-PCA-ATSAsync - time: ${queuedTime} - count: ${queuedCount}`);
             astsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
