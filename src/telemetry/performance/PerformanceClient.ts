@@ -85,27 +85,64 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     abstract generateId(): string;
 
-    calculateQueuedTime(preQueueTime: number, currentTime: number): number {
+    /**
+     * Returns current time in milliseconds. 
+     * 
+     * @returns {number}
+     */
+    abstract getCurrentTime(): number;
+
+    /**
+     * Calculates the difference between current time and time when function was queued.
+     * Note: It is possible to have 0 as the queue time if the current time and the queued time was the same.
+     * 
+     * @param {number} preQueueTime 
+     * @param {number} currentTime 
+     * @returns {number}
+     */
+    calculateQueuedTime(preQueueTime: number, currentTime: number): number {        
         // More number calculations here?
         if (Number.isInteger(preQueueTime) && preQueueTime < 1) {
             this.logger.info(`tx-CPC-calculateQueuedTime - preQueueTime should be a positive integer and not ${preQueueTime}`);
+            return 0;
+        }
+
+        if (Number.isInteger(currentTime) && currentTime < 1) {
+            this.logger.info(`tx-CPC-calculateQueuedTime - currentTime should be a positive integer and not ${currentTime}`);
+            return 0;
+        }
+
+        if (currentTime < preQueueTime) {
+            this.logger.info(`tx-CPC-calculateQueuedTime - currentTime is less than preQueueTime, check how time is being retrieved`);
+            return 0;
         }
 
         return currentTime-preQueueTime;
     }
 
+    /**
+     * Adds queue measurement time to QueueMeasurements array for given correlation ID.
+     * 
+     * @param {PerformanceEvents} name 
+     * @param {?string} correlationId 
+     * @param {?number} time 
+     * @returns 
+     */
     addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
         if (!correlationId) {
             this.logger.info(`tx-CPC-addQueueMeasurement - correlationId not provided for ${name}, cannot add`);
             return;
         }
 
-        if (!time) {
+        if (time === 0) {
             this.logger.info(`tx-CPC-addQueueMeasurement - time provided for ${name} is ${time}, may be too small to add`);
             // TODO: check if there is lower limit to rounding down to 0
+        } else if (!time) {
+            this.logger.info(`tx-CPC-addQueueMeasurement - no time provided`);
+            return;
         }
 
-
+        // Adds to existing correlation Id if present in queueMeasurements
         if (this.queueMeasurements.has(correlationId)) {
             const existingMeasurements = this.queueMeasurements.get(correlationId);
             if (!existingMeasurements) {
@@ -114,6 +151,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 this.queueMeasurements.set(correlationId, [...existingMeasurements, {name, time} as QueueMeasurement]);
             }
         } else {
+            // Sets new correlation Id if not present in queueMeasurements
             this.logger.info(`txt-CPC-addQueueMeasurement - correlationId ${correlationId} not in map, adding`);
             const measurementArray = [];
             measurementArray.push({name, time} as QueueMeasurement);
@@ -121,8 +159,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
         this.logger.info(`tx-CPC-addQueueMeasurement - correlationId: ${correlationId}, name: ${name}, time: ${time} ms`);
     }
-
-    abstract getCurrentTime(): number;
 
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
@@ -286,6 +322,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
     flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
 
+        /**
+         * Adds all queue time and count measurements for given correlation ID.
+         */
         const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
             this.logger.info(`tx-CPC-flushMeasurements - no measurements for correlationId, ERROR`);
