@@ -157,7 +157,7 @@ export enum PerformanceEvents {
     PopTokenGenerateCnf = "popTokenGenerateCnf",
     PopTokenGenerateKid = "popTokenGenerateKid",
 
-    HandleServerTokenResponse = "handleServerTokenResponse"
+    HandleServerTokenResponse = "handleServerTokenResponse",
 
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
     GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
