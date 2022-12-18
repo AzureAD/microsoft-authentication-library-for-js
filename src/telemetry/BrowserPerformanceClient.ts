@@ -57,11 +57,24 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         };
     }
 
+    /**
+     * Gets current time in milliseconds.
+     * 
+     * @returns {number}
+     */
     getCurrentTime(): number {
         return window.performance.now();
     }
 
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string|undefined, preQueueTime?: number|undefined): void {
+    /**
+     * Calculates and adds queue time measurement for given performance event.
+     * 
+     * @param {PerformanceEvents} name 
+     * @param {?string} correlationId 
+     * @param {?number} preQueueTime 
+     * @returns 
+     */
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, preQueueTime?: number): void {
         if (!preQueueTime) {
             this.logger.info(`tx-BPC-calculateQueuedTime - preQueueTime not provided for ${name}, cannot calculate`);
             return;
@@ -70,6 +83,11 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         const currentTime = window.performance.now();
 
         const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
+
+        if (!queueTime) {
+            this.logger.trace(`tx- name: ${name}, currentTime: ${currentTime}, preQueueTime: ${preQueueTime}`);
+        }
+
         return super.addQueueMeasurement(name, correlationId, queueTime);
     }
 }
