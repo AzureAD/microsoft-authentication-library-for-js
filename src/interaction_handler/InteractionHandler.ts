@@ -128,7 +128,7 @@ export class InteractionHandler {
      * @param networkModule 
      */
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule, preQueueTime?: number): Promise<void> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInitializeAuthorizationRequest, this.authCodeRequest.correlationId, preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.UpdateTokenEndpointAuthority, this.authCodeRequest.correlationId, preQueueTime);
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
         const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options, this.logger); // TODO: AuthorityFactory calculation here? msal-common
         this.authModule.updateAuthority(cloudInstanceAuthority);
