@@ -28,7 +28,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeAuthorizationCodeRequest, request.correlationId, preQueueTime);
 
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
-        const generatedPkceParams = await this.browserCrypto.generatePkceCodes(); // TODO: calculate this?
+        const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -228,7 +228,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
         // const preCreateDiscoveredInstanceTime = this.performanceClient.getCurrentTime();
         
-        // TODO: Need to measure here? AuthorityFactory is in common, can't use window.performance.now()
+        // TODO: Need to measure here? Relation to correlationId?
         return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({

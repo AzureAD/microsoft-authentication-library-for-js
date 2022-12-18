@@ -100,7 +100,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(request: CommonSilentFlowRequest, preQueueTime?: number): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request.correlationId, preQueueTime); // TODO: check if all these if/elses are needed
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request.correlationId, preQueueTime);
 
         // Cannot renew token if no request object is given.
         if (!request) {

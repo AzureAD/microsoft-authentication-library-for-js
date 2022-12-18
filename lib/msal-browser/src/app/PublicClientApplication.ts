@@ -212,7 +212,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
 
-            // TODO: Also don't need this then? Cf. below.
             const preInitializeTime = this.performanceClient.getCurrentTime();
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account, preInitializeTime);
             
@@ -222,7 +221,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
             };
 
-            // TODO: do we need to calculate time before cache? No? Because we only want JS queue for network calls. Or Yes - because we still go into this function in order to get into catch block
             const preAcquireTokenFromCacheTime = this.performanceClient.getCurrentTime();
             result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP, preAcquireTokenFromCacheTime).catch((cacheError: AuthError) => {
                 if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
