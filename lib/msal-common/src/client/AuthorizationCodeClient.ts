@@ -54,7 +54,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: CommonAuthorizationUrlRequest, preQueueTime?: number): Promise<string> {
         if (!this.performanceClient) {
-            this.logger.info('tx-ACC-getAuthCodeUrl - No performance client, unable to add queue measurement');
+            this.logger.info("tx-ACC-getAuthCodeUrl - No performance client, unable to add queue measurement");
         } 
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.GetAuthCodeUrl, request.correlationId, preQueueTime);
         const queryString = await this.createAuthCodeUrlQueryString(request);
