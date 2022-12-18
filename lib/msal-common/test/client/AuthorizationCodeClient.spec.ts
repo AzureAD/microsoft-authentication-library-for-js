@@ -2018,7 +2018,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
                 startPerformanceMeasuremeant: jest.fn(),
-                generateId: jest.fn()
+                generateId: jest.fn(),
+                getCurrentTime: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn()
             }
             performanceClient.startMeasurement.mockImplementation(() => {
                 return performanceClient;
@@ -2072,7 +2075,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
                 startPerformanceMeasuremeant: jest.fn(),
-                generateId: jest.fn()
+                generateId: jest.fn(),
+                getCurrentTime: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn()
             }
             performanceClient.startMeasurement.mockImplementation(() => {
                 return performanceClient;
