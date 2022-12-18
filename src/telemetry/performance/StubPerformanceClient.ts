@@ -28,10 +28,12 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
         return new StubPerformanceMeasurement();
     }
 
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     calculateQueuedTime(preQueueTime: number, currentTime: number): number {
         return 0;
     }
 
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
         return;
     }

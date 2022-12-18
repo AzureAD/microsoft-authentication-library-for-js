@@ -113,7 +113,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
 
         if (currentTime < preQueueTime) {
-            this.logger.info(`tx-CPC-calculateQueuedTime - currentTime is less than preQueueTime, check how time is being retrieved`);
+            this.logger.info("tx-CPC-calculateQueuedTime - currentTime is less than preQueueTime, check how time is being retrieved");
             return 0;
         }
 
@@ -138,7 +138,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.info(`tx-CPC-addQueueMeasurement - time provided for ${name} is ${time}, may be too small to add`);
             // TODO: check if there is lower limit to rounding down to 0
         } else if (!time) {
-            this.logger.info(`tx-CPC-addQueueMeasurement - no time provided`);
+            this.logger.info("tx-CPC-addQueueMeasurement - no time provided");
             return;
         }
 
@@ -327,7 +327,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
          */
         const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
-            this.logger.info(`tx-CPC-flushMeasurements - no measurements for correlationId, ERROR`);
+            this.logger.info("tx-CPC-flushMeasurements - no measurements for correlationId, ERROR");
         }
         this.logger.info(`tx-CPC-flushMeasurements - QUEUE MEASUREMENTS: ${JSON.stringify(queueMeasurementForCorrelationId)}`);
         let totalTime = 0;
@@ -336,7 +336,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalTime += measurement.time;
             totalCount++;
         });
-        console.log(`tx-CPC-flushMeasurements - TOTAL TIME: ${totalTime} ms, TOTAL COUNT: ${totalCount} for correlationId ${correlationId}`);
+        this.logger.info(`tx-CPC-flushMeasurements - TOTAL TIME: ${totalTime} ms, TOTAL COUNT: ${totalCount} for correlationId ${correlationId}`);
 
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
         if (eventsForCorrelationId) {
@@ -360,7 +360,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                 completedEvents.push(event);
             });
-
 
             // Sort events by start time (earliest first)
             const sortedCompletedEvents = completedEvents.sort((eventA, eventB) => eventA.startTimeMs - eventB.startTimeMs);
