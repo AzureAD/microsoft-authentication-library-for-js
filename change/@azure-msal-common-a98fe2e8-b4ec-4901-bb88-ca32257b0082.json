@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "JS Queue Measurements POC #5352",
+  "packageName": "@azure/msal-common",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
