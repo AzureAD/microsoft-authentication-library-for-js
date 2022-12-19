@@ -99,7 +99,6 @@ export enum PerformanceEvents {
      */
     BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
 
-    BaseClientCreateTokenRequestBody = "baseClientCreateTokenRequestBody",
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */
@@ -128,35 +127,87 @@ export enum PerformanceEvents {
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
+    /**
+     * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
+     */
     RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
 
+    /**
+     * Helper function to create token request body in RefreshTokenClient (msal-common).
+     */
+    RefreshTokenClientCreateTokenRequestBody = "refreshTokenClientCreateTokenRequestBody",
+
+    /**
+     * acquireTokenFromCache (msal-browser).
+     * Internal API for acquiring token from cache
+     */
     AcquireTokenFromCache = "acquireTokenFromCache",
+
+    /**
+     * acquireTokenBySilentIframe (msal-browser).
+     * Internal API for acquiring token by silent Iframe
+     */
     AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
 
+    /**
+     * Internal API for initializing base request in BaseInteractionClient (msal-browser)
+     */
     InitializeBaseRequest = "initializeBaseRequest",
+
+    /**
+     * Internal API for initializing silent request in SilentCacheClient (msal-browser)
+     */
     InitializeSilentRequest = "initializeSilentRequest",
-    InitializeAuthorizationCodeRequest = "initializeAuthorizationCodeRequest",
 
+    /**
+     * Helper function in SilentIframeClient class (msal-browser).
+     */
     SilentIframeClientTokenHelper = "silentIframeClientTokenHelper",
-    SilentInitiateAuthRequest = "silentInitiateAuthRequest",
-    SilentMonitorIframeForHash = "silentMonitorIframeForHash",
-    SilentLoadFrame = "silentLoadFrame",
 
-    StandardCreateAuthCodeClient = "standardCreateAuthCodeClient",
-    StandardGetClientConfiguration = "standardGetClientConfiguration",
-    StandardInitializeAuthorizationRequest = "standardInitializeAuthorizationRequest",
+    /**
+     * SilentHandler
+     */
+    SilentHandlerInitiateAuthRequest = "silentHandlerInitiateAuthRequest",
+    SilentHandlerMonitorIframeForHash = "silentHandlerMonitorIframeForHash",
+    SilentHandlerLoadFrame = "silentHandlerLoadFrame",
 
+    /**
+     * Helper functions in StandardInteractionClient class (msal-browser)
+     */
+    StandardInteractionClientCreateAuthCodeClient = "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration = "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest = "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest = "standardInteractionClientInitializeAuthorizationCodeRequest",
+
+    /**
+     * getAuthCodeUrl API (msal-browser and msal-node).
+     */
+    GetAuthCodeUrl = "getAuthCodeUrl",
+
+    /**
+     * Functions from InteractionHandler (msal-browser)
+     */
+    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
+    HandleCodeResponseFromHash = "handleCodeResponseFromHash",
     UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
 
-    GetAuthCodeUrl = "getAuthCodeUrl",
-    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
+    /**
+     * APIs in Authorization Code Client (msal-common)
+     */
     AuthClientAcquireToken = "authClientAcquireToken",
     AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
     AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
-
+    AuthClientCreateQueryString = "authClientCreateQueryString",
+    
+    /**
+     * Generate functions in PopTokenGenerator (msal-common)
+     */
     PopTokenGenerateCnf = "popTokenGenerateCnf",
     PopTokenGenerateKid = "popTokenGenerateKid",
 
+    /**
+     * handleServerTokenResponse API in ResponseHandler (msal-common)
+     */
     HandleServerTokenResponse = "handleServerTokenResponse",
 
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
@@ -390,9 +441,24 @@ export type PerformanceEvent = StaticFields & {
      */
     requestId?: string
 
+    /**
+     * Cache lookup policy
+     * 
+     * @type {?number}
+     */
     cacheLookupPolicy?: number | undefined,
 
+    /**
+     * Amount of time spent in the JS queue in milliseconds.
+     * 
+     * @type {?number}
+     */
     queuedTime?: number,
 
+    /**
+     * Amount of times queued in the JS event queue.
+     * 
+     * @type {?number}
+     */
     queuedCount?: number
 };

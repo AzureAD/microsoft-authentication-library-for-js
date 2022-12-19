@@ -100,7 +100,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(request: CommonSilentFlowRequest, preQueueTime?: number): Promise<AuthenticationResult> {
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request.correlationId, preQueueTime);
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request?.correlationId, preQueueTime);
 
         // Cannot renew token if no request object is given.
         if (!request) {
@@ -237,7 +237,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest, preQueueTime?: number): Promise<string> {
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.BaseClientCreateTokenRequestBody, request.correlationId, preQueueTime);
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody, request.correlationId, preQueueTime);
 
         const correlationId = request.correlationId;
         const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); // TODO: should this be headers or body?
