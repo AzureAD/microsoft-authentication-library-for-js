@@ -33,7 +33,17 @@ export interface IPerformanceClient {
     getCurrentTime(): number;
 }
 
+/**
+ * Queue measurement type
+ */
 export type QueueMeasurement = {
-    name: string,
+    /**
+     * Name of performance event
+     */
+    name: PerformanceEvents,
+
+    /**
+     * Time spent in JS queue
+     */
     time: number
 };
