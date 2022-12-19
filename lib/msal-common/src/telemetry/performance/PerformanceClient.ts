@@ -328,7 +328,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
          */
         const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
-            this.logger.info(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
+            this.logger.trace(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
         }
         let totalTime = 0;
         let totalCount = 0;
