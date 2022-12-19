@@ -32,8 +32,8 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: SsoSilentRequest, preQueueTime?: number): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByIframe called");
         this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId, preQueueTime);
+        this.logger.verbose("acquireTokenByIframe called");
 
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
@@ -146,6 +146,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Handle response from hash string
-        return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
+        const preHandleCodeResponseFromHashTime = this.performanceClient.getCurrentTime();
+        return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, preHandleCodeResponseFromHashTime);
     }
 }

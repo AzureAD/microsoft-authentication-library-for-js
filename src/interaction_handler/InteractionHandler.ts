@@ -34,7 +34,8 @@ export class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, preQueueTime?: number): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromHash, this.authCodeRequest.correlationId, preQueueTime);
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
@@ -73,8 +74,8 @@ export class InteractionHandler {
      * @returns 
      */
     async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true, preQueueTime?: number|undefined): Promise<AuthenticationResult> {
-        this.logger.trace("InteractionHandler.handleCodeResponseFromServer called");
         this.performanceClient.addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromServer, this.authCodeRequest.correlationId, preQueueTime);
+        this.logger.trace("InteractionHandler.handleCodeResponseFromServer called");
 
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
