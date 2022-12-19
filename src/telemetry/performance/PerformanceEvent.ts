@@ -453,7 +453,7 @@ export type PerformanceEvent = StaticFields & {
      * 
      * @type {?number}
      */
-    queuedTime?: number,
+    queuedTimeMs?: number,
 
     /**
      * Amount of times queued in the JS event queue.
