@@ -76,17 +76,12 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      */
     addQueueMeasurement(name: PerformanceEvents, correlationId?: string, preQueueTime?: number): void {
         if (!preQueueTime) {
-            this.logger.info(`tx-BPC-calculateQueuedTime - preQueueTime not provided for ${name}, cannot calculate`);
+            this.logger.trace(`BrowserPerformanceClient:addQueueMeasurement - preQueueTime not provided for ${name}, cannot calculate queue time`);
             return;
         }
 
         const currentTime = window.performance.now();
-
         const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
-
-        if (!queueTime) {
-            this.logger.trace(`tx- name: ${name}, currentTime: ${currentTime}, preQueueTime: ${preQueueTime}`);
-        }
 
         return super.addQueueMeasurement(name, correlationId, queueTime);
     }
