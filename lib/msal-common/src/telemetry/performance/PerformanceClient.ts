@@ -401,7 +401,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 const finalEvent: PerformanceEvent = {
                     ...eventToEmit,
                     ...staticFields,
-                    queuedTime: totalTime,
+                    queuedTimeMs: totalTime,
                     queuedCount: totalCount
                 };
 
