@@ -1,9 +1,9 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from "react-router-dom";
-import { ThemeProvider } from '@mui/material/styles';
+import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "./styles/theme";
-import App from './App';
+import App from "./App";
 
 // MSAL imports
 import { PublicClientApplication, EventType, EventMessage, AuthenticationResult } from "@azure/msal-browser";
@@ -25,11 +25,15 @@ msalInstance.addEventCallback((event: EventMessage) => {
     }
 });
 
-ReactDOM.render(
-    <Router>
-        <ThemeProvider theme={theme}>
-            <App pca={msalInstance} />
-        </ThemeProvider>
-    </Router>,
-    document.getElementById('root')
+const root = ReactDOM.createRoot(
+  document.getElementById('root') as HTMLElement
+);
+root.render(
+    <React.StrictMode>
+        <Router>
+            <ThemeProvider theme={theme}>
+                <App pca={msalInstance} />
+            </ThemeProvider>
+        </Router>
+    </React.StrictMode>
 );
