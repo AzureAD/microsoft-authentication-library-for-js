@@ -40,13 +40,19 @@ export class RefreshTokenClient extends BaseClient {
         this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
+        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         atsMeasurement?.addStaticFields({
-            refreshTokenSize: response.body.refresh_token?.length || 0
+            refreshTokenSize: response.body.refresh_token?.length || 0,
         });
+        if(httpVerToken)
+        {
+            atsMeasurement?.addStaticFields({
+                httpVerToken,
+            });
+        }
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -55,7 +61,6 @@ export class RefreshTokenClient extends BaseClient {
             this.config.serializableCache,
             this.config.persistencePlugin
         );
-
         responseHandler.validateTokenResponse(response.body);
 
         return responseHandler.handleServerTokenResponse(
@@ -67,7 +72,7 @@ export class RefreshTokenClient extends BaseClient {
             undefined,
             true,
             request.forceCache,
-            requestId
+            requestId,
         ).then((result: AuthenticationResult) => {
             atsMeasurement?.endMeasurement({
                 success: true

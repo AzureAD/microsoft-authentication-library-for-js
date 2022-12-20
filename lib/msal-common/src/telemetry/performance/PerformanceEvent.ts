@@ -125,6 +125,16 @@ export enum PerformanceEvents {
      * Time taken for acquiring cached refresh token 
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+
+    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+
+    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+
+    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+
+    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+
 }
 
 /**
@@ -207,6 +217,8 @@ export type StaticFields = {
     matsSilentStatus?: number;
     matsHttpStatus?: number
     matsHttpEventCount?: number;
+    httpVerToken?: string;
+    httpVerAuthority?: string;
 };
 
 /**
