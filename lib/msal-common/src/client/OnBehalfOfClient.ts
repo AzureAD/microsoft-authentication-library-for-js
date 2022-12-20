@@ -13,6 +13,7 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
+import { StringUtils } from "../utils/StringUtils";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
@@ -267,6 +268,10 @@ export class OnBehalfOfClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+       
         return parameterBuilder.createQueryString();
     }
 }
