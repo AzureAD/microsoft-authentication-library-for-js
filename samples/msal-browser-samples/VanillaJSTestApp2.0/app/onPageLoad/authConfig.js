@@ -3,7 +3,7 @@ const msalConfig = {
     auth: {
         clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
         authority: "https://login.windows-ppe.net/common/",
-        redirectUri: "http://localhost:30662"
+        redirectUri: `http://localhost:30666`
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -12,22 +12,22 @@ const msalConfig = {
     system: {
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {	
-                    return;	
-                }	
-                switch (level) {	
-                    case msal.LogLevel.Error:	
-                        console.error(message);	
-                        return;	
-                    case msal.LogLevel.Info:	
-                        console.info(message);	
-                        return;	
-                    case msal.LogLevel.Verbose:	
-                        console.debug(message);	
-                        return;	
-                    case msal.LogLevel.Warning:	
-                        console.warn(message);	
-                        return;	
+                if (containsPii) {
+                    return;
+                }
+                switch (level) {
+                    case msal.LogLevel.Error:
+                        console.error(message);
+                        return;
+                    case msal.LogLevel.Info:
+                        console.info(message);
+                        return;
+                    case msal.LogLevel.Verbose:
+                        console.debug(message);
+                        return;
+                    case msal.LogLevel.Warning:
+                        console.warn(message);
+                        return;
                 }
             }
         }

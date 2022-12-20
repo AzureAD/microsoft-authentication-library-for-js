@@ -1,43 +1,36 @@
-import "mocha";
 import puppeteer from "puppeteer";
-import { expect } from "chai";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/localStorageAuthConfig.json";
-import { clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
+import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfig.json";
+import { getBrowser, getHomeUrl, clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "../../testUtils";
 import fs from "fs";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/localStorageTests`;
-const SAMPLE_HOME_URL = "http://localhost:30662/";
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+let sampleHomeUrl = "";
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
-    expect(tokenStore.idTokens).to.be.length(1);
-    expect(tokenStore.accessTokens).to.be.length(1);
-    expect(tokenStore.refreshTokens).to.be.length(1);
-    expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
-    expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).to.be.true;
+    expect(tokenStore.idTokens).toHaveLength(1);
+    expect(tokenStore.accessTokens).toHaveLength(1);
+    expect(tokenStore.refreshTokens).toHaveLength(1);
+    expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
+    expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy();
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).to.be.eq(4);
+    expect(Object.keys(storage).length).toEqual(4);
 }
 
 describe("LocalStorage Tests", function () {
-    this.timeout(0);
-    this.retries(1);
-
     let username = "";
     let accountPwd = "";
 
     let browser: puppeteer.Browser;
-    before(async () => {
+    beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-        browser = await puppeteer.launch({
-            headless: true,
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
-        });
+        browser = await getBrowser();
+        sampleHomeUrl = getHomeUrl();
 
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,
@@ -49,14 +42,14 @@ describe("LocalStorage Tests", function () {
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: aadTokenRequest}));
+        fs.writeFileSync("./app/customizable-e2e-local-storage/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: aadTokenRequest}));
     });
 
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
 
-    after(async () => {
+    afterAll(async () => {
         await context.close();
         await browser.close();
     });
@@ -67,9 +60,9 @@ describe("LocalStorage Tests", function () {
             page = await context.newPage();
             page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
             BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
-            await page.goto(SAMPLE_HOME_URL);
+            await page.goto(sampleHomeUrl);
         });
-    
+
         afterEach(async () => {
             await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
             await page.close();
@@ -92,19 +85,19 @@ describe("LocalStorage Tests", function () {
             await clickLoginRedirect(screenshot, page);
             await page.waitForNavigation({ waitUntil: "networkidle0"});
             // Navigate back to home page
-            await page.goto(SAMPLE_HOME_URL);
+            await page.goto(sampleHomeUrl);
             // Wait for processing
             await storagePoller(async () => {
                 // Temporary Cache always uses sessionStorage
                 const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
                 const sessionStorage = await sessionBrowserStorage.getWindowStorage();
                 const localStorage = await BrowserCache.getWindowStorage();
-                expect(Object.keys(localStorage).length).to.be.eq(0);
-                expect(Object.keys(sessionStorage).length).to.be.eq(0);
+                expect(Object.keys(localStorage).length).toEqual(0);
+                expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS);
 
         });
-        
+
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
@@ -131,8 +124,8 @@ describe("LocalStorage Tests", function () {
                 const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
                 const sessionStorage = await sessionBrowserStorage.getWindowStorage();
                 const localStorage = await BrowserCache.getWindowStorage();
-                expect(Object.keys(localStorage).length).to.be.eq(1); // Telemetry
-                expect(Object.keys(sessionStorage).length).to.be.eq(0);
+                expect(Object.keys(localStorage).length).toEqual(1); // Telemetry
+                expect(Object.keys(sessionStorage).length).toEqual(0);
             }, ONE_SECOND_IN_MS)
         });
     });

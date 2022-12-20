@@ -1,5 +1,22 @@
-import { Screenshot, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
-import { Page } from "puppeteer";
+import * as puppeteer from "puppeteer";
+import { Screenshot, enterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Page} from "puppeteer";
+
+/**
+ * Returns an instance of {@link puppeteer.Browser}.
+ */
+export async function getBrowser(): Promise<puppeteer.Browser> {
+    // @ts-ignore
+    return global.__BROWSER__;
+}
+
+/**
+ * Returns a host url.
+ */
+export function getHomeUrl(): string {
+    // @ts-ignore
+    return `http://localhost:${global.__PORT__}/`;
+}
 
 export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#MSIDLAB4_AzureAD");
