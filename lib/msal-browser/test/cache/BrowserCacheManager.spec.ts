@@ -27,7 +27,7 @@ describe("BrowserCacheManager tests", () => {
             secureCookies: false
         };
         logger = new Logger({
-            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => { },
             piiLoggingEnabled: true
         });
         browserCrypto = new CryptoOps(logger);
@@ -326,7 +326,7 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAccessTokenCredential(testAccessToken.generateCredentialKey())).toEqual(testAccessToken);
                     expect(browserLocalStorage.getAccessTokenCredential(testAccessToken.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
                 });
-                
+
                 it(
                     "getAccessTokenCredential returns Bearer access token when authentication scheme is set to Bearer and both a Bearer and pop token are in the cache",
                     () => {
@@ -505,7 +505,7 @@ describe("BrowserCacheManager tests", () => {
                 });
             });
 
-            describe("AuthorityMetadata", () =>{
+            describe("AuthorityMetadata", () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
                 const testObj: AuthorityMetadataEntity = new AuthorityMetadataEntity();
                 testObj.aliases = [Constants.DEFAULT_AUTHORITY_HOST];
@@ -565,7 +565,7 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAuthorityMetadataKeys()).toEqual(expect.arrayContaining([key]));
                     expect(browserSessionStorage.getAuthorityMetadataKeys()).toEqual(expect.arrayContaining([key]));
 
-                    await  browserSessionStorage.clear();
+                    await browserSessionStorage.clear();
                     await browserLocalStorage.clear();
                     expect(browserSessionStorage.getAuthorityMetadata(key)).toBeNull();
                     expect(browserLocalStorage.getAuthorityMetadata(key)).toBeNull();
@@ -625,13 +625,13 @@ describe("BrowserCacheManager tests", () => {
                 it("Returns redirect request context as null if context not set in browser cache", () => {
                     expect(browserSessionStorage.getRedirectRequestContext()).toEqual(null);
                 });
-    
+
                 it("Returns redirect request context if context set in browser cache", () => {
                     const testVal = "testId";
                     browserSessionStorage.setRedirectRequestContext(testVal);
                     expect(browserSessionStorage.getRedirectRequestContext()).toEqual(testVal);
                 });
-    
+
             });
         });
     });
@@ -861,7 +861,7 @@ describe("BrowserCacheManager tests", () => {
             expect(document.cookie).not.toHaveLength(0);
             browserSessionStorage.clearMsalCookies();
             expect(document.cookie).toHaveLength(0);
-            
+
             const testCookieKey = "cookie"
             const testCookie = `${testCookieKey}=thisIsACookie`;
             const testCookieWithPath = "cookie=thisIsACookie;path=/;";
@@ -1061,7 +1061,7 @@ describe("BrowserCacheManager tests", () => {
             const browserState: BrowserStateObject = {
                 interactionType: InteractionType.Redirect
             };
-            
+
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const state = ProtocolUtils.setRequestState(
                 browserCrypto,
@@ -1084,7 +1084,7 @@ describe("BrowserCacheManager tests", () => {
                 ...cacheConfig,
                 storeAuthStateInCookie: true
             }, browserCrypto, logger);
-            
+
             browserStorage.setInteractionInProgress(true);
             browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             expect(browserStorage.getInteractionInProgress()).toBeFalsy();
@@ -1097,7 +1097,7 @@ describe("BrowserCacheManager tests", () => {
                 secureCookies: false
             };
             logger = new Logger({
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => { },
                 piiLoggingEnabled: true
             });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -1157,8 +1157,8 @@ describe("BrowserCacheManager tests", () => {
 
             it("Matches accounts by username", () => {
                 expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {username: account1.username};
-                const account2Filter = {username: account2.username};
+                const account1Filter = { username: account1.username };
+                const account2Filter = { username: account2.username };
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
@@ -1167,8 +1167,8 @@ describe("BrowserCacheManager tests", () => {
 
             it("Matches accounts by homeAccountId", () => {
                 expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {homeAccountId: account1.homeAccountId};
-                const account2Filter = {homeAccountId: account2.homeAccountId};
+                const account1Filter = { homeAccountId: account1.homeAccountId };
+                const account2Filter = { homeAccountId: account2.homeAccountId };
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
@@ -1177,8 +1177,8 @@ describe("BrowserCacheManager tests", () => {
 
             it("Matches accounts by localAccountId", () => {
                 expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {localAccountId: account1.localAccountId};
-                const account2Filter = {localAccountId: account2.localAccountId};
+                const account1Filter = { localAccountId: account1.localAccountId };
+                const account2Filter = { localAccountId: account2.localAccountId };
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
@@ -1187,8 +1187,8 @@ describe("BrowserCacheManager tests", () => {
 
             it("Matches accounts by tenantId", () => {
                 expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {tenantId: account1.tenantId};
-                const account2Filter = {tenantId: account2.tenantId};
+                const account1Filter = { tenantId: account1.tenantId };
+                const account2Filter = { tenantId: account2.tenantId };
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
@@ -1197,8 +1197,8 @@ describe("BrowserCacheManager tests", () => {
 
             it("Matches accounts by environment", () => {
                 expect(browserStorage.getAllAccounts()).toHaveLength(2);
-                const account1Filter = {environment: account1.environment};
-                const account2Filter = {environment: account2.environment};
+                const account1Filter = { environment: account1.environment };
+                const account2Filter = { environment: account2.environment };
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
                 expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
                 expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
@@ -1223,7 +1223,7 @@ describe("BrowserCacheManager tests", () => {
                 secureCookies: false
             };
             logger = new Logger({
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => { },
                 piiLoggingEnabled: true
             });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -1285,6 +1285,7 @@ describe("BrowserCacheManager tests", () => {
 
             afterEach(() => {
                 browserStorage.clear();
+
             });
 
             it("Matches account by loginHint", () => {

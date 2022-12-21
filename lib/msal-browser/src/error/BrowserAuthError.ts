@@ -184,6 +184,14 @@ export const BrowserAuthErrorMessage = {
     nativePromptNotSupported: {
         code: "native_prompt_not_supported",
         desc: "The provided prompt is not supported by the native platform. This request should be routed to the web based flow."
+    },
+    chromiumStorageException: {
+        code: 22,
+        desc: "Storage quota exceeded"
+    },
+    firefoxStorageException:{
+        code: 1014,
+        desc:"Storage quota exceeded"
     }
 };
 
