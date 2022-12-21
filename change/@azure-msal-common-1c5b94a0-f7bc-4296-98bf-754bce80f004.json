@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Fixed Typo in Authority Logs #5430",
+  "comment": "Fix cache credential look-up (#5484)",
   "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
+  "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
 }
