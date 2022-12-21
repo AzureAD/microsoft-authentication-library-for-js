@@ -29,11 +29,9 @@ const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
 root.render(
-    <React.StrictMode>
-        <Router>
-            <ThemeProvider theme={theme}>
-                <App pca={msalInstance} />
-            </ThemeProvider>
-        </Router>
-    </React.StrictMode>
+    <Router>
+        <ThemeProvider theme={theme}>
+            <App pca={msalInstance} />
+        </ThemeProvider>
+    </Router>
 );
