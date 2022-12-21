@@ -128,11 +128,13 @@ describe("BrowserCacheManager tests", () => {
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
             msalCacheKey2 = browserSessionStorage.generateCacheKey("cacheKey2");
+          //  window.localStorage.__proto__.setItem.mockReset();
         });
-
         afterEach(async () => {
             await browserSessionStorage.clear();
             await browserLocalStorage.clear();
+          //  window.localStorage.__proto__.setItem.mockReset();
+           
         });
 
         it("setTemporaryCache", () => {
@@ -159,6 +161,18 @@ describe("BrowserCacheManager tests", () => {
             window.localStorage.setItem(msalCacheKey2, cacheVal);
             expect(browserSessionStorage.getItem(msalCacheKey)).toBe(cacheVal);
             expect(browserLocalStorage.getItem(msalCacheKey2)).toBe(cacheVal);
+        });
+        
+        it("setItem handles error", () => {
+            const spy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() =>{
+                throw {
+                code:22,
+                }
+            });
+            const loggerSpy = jest.spyOn(logger, "error");
+            const QUOTA_EXCEEDED_ERROR_MESSAGE = "Could not access browser storage. This may be caused by exceeding the quota.";
+            browserSessionStorage.setItem(msalCacheKey, cacheVal);
+            expect(loggerSpy).toBeCalledWith(QUOTA_EXCEEDED_ERROR_MESSAGE);
         });
 
         it("removeItem()", () => {
