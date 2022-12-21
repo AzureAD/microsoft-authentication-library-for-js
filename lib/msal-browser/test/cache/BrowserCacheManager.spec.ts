@@ -128,13 +128,11 @@ describe("BrowserCacheManager tests", () => {
             cacheVal = "cacheVal";
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
             msalCacheKey2 = browserSessionStorage.generateCacheKey("cacheKey2");
-          //  window.localStorage.__proto__.setItem.mockReset();
         });
         afterEach(async () => {
             await browserSessionStorage.clear();
             await browserLocalStorage.clear();
-          //  window.localStorage.__proto__.setItem.mockReset();
-           
+             
         });
 
         it("setTemporaryCache", () => {
@@ -162,7 +160,7 @@ describe("BrowserCacheManager tests", () => {
             expect(browserSessionStorage.getItem(msalCacheKey)).toBe(cacheVal);
             expect(browserLocalStorage.getItem(msalCacheKey2)).toBe(cacheVal);
         });
-        
+
         it("setItem handles error", () => {
             const spy = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() =>{
                 throw {
