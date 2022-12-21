@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "handle storage error",
+  "comment": "handle storage error #5497",
   "packageName": "@azure/msal-browser",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
