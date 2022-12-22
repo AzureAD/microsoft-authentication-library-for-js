@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Upgrade jsonwebtoken to v9",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
