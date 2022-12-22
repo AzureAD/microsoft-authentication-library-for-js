@@ -1,6 +1,4 @@
-import "mocha";
 import puppeteer from "puppeteer";
-import { expect } from "chai";
 import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
@@ -32,11 +30,8 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
 }
 
 describe("Browser tests", function () {
-    this.timeout(8000);
-    this.retries(1);
-
     let browser: puppeteer.Browser;
-    before(async () => {
+    beforeAll(async () => {
         setupScreenshotDir();
         browser = await puppeteer.launch({
             headless: true,
@@ -57,7 +52,7 @@ describe("Browser tests", function () {
         await page.close();
     });
 
-    after(async () => {
+    afterAll(async () => {
         await context.close();
         await browser.close();
     });
