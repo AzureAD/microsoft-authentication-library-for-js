@@ -2,9 +2,9 @@
 //import "react-app-polyfill/ie11";
 //import "core-js/stable"; 
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom/client';
 import { BrowserRouter as Router } from "react-router-dom";
-import { ThemeProvider } from '@material-ui/core/styles';
+import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "./styles/theme";
 import App from './App';
 
@@ -30,13 +30,13 @@ msalInstance.addEventCallback((event) => {
   }
 });
 
-ReactDOM.render(
-    <React.StrictMode>
-        <Router>
-            <ThemeProvider theme={theme}>
-                <App pca={msalInstance} />
-            </ThemeProvider>
-        </Router>
-    </React.StrictMode>,
-    document.getElementById('root')
+const container = document.getElementById("root");
+const root = ReactDOM.createRoot(container);
+
+root.render(
+    <Router>
+      <ThemeProvider theme={theme}>
+          <App pca={msalInstance} />
+      </ThemeProvider>
+    </Router>
 );
