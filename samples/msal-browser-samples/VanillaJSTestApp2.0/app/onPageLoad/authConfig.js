@@ -3,7 +3,7 @@ const msalConfig = {
     auth: {
         clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
         authority: "https://login.windows-ppe.net/common/",
-        redirectUri: `http://localhost:30666`
+        redirectUri: `http://localhost:30663`
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
