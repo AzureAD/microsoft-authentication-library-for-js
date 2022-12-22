@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@azure/msal-common": "^9.0.1",
-    "jsonwebtoken": "9.0.0",
+    "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },
   "engines": {
