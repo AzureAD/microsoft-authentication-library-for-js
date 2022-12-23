@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "add tests for obo and clientConfig",
+  "packageName": "@azure/msal-node",
+  "email": "v-ssalem@microsoft.com",
+  "dependentChangeType": "patch"
+}
