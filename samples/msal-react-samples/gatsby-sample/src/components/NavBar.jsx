@@ -1,20 +1,18 @@
 import React from "react";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
 import { Link } from "gatsby-material-ui-components";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 import WelcomeName from "./WelcomeName";
 import SignInSignOutButton from "./SignInSignOutButton";
-import useStyles from "../styles/useStyles";
 
 const NavBar = () => {
-    const classes = useStyles();
 
     return (
-        <div className={classes.root}>
+        <div sx={{ flexGrow: 1 }}>
             <AppBar position="static">
             <Toolbar>
-                <Typography className={classes.title}>
+                <Typography sx={{ flexGrow: 1 }}>
                     <Link to="/" color="inherit" variant="h6">MS Identity Platform</Link>
                 </Typography>
                 <WelcomeName />
