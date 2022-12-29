@@ -1,6 +1,6 @@
 {
-  "type": "none",
-  "comment": "exporting CryptoOps class",
+  "type": "patch",
+  "comment": "Export CryptoOps for internal use #5482",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "none"
