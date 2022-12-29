@@ -28,6 +28,7 @@ import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/Cl
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -36,8 +37,8 @@ export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
 
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration, performanceClient);
     }
 
     /**
@@ -62,7 +63,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
-        this.logger.info("in acquireToken call");
+        
+        // @ts-ignore
+        const atsMeasurement = this.performanceClient?.startMeasurement("AuthCodeClientAcquireToken", request.correlationId);
+        this.logger.info("in acquireToken call in auth-code client");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
@@ -72,7 +76,13 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Retrieve requestId from response headers
         const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
-
+        const httpVerAuthority = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        if(httpVerAuthority)
+        {
+            atsMeasurement?.addStaticFields({
+                httpVerAuthority
+            });
+        }
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -84,17 +94,30 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(
-            response.body, 
-            this.authority, 
-            reqTimestamp, 
-            request, 
+        return  responseHandler.handleServerTokenResponse(response.body,
+            this.authority,
+            reqTimestamp,
+            request,
             authCodePayload,
             undefined,
             undefined,
             undefined,
-            requestId
-        );
+            requestId,
+        ).then((result: AuthenticationResult) => {
+            atsMeasurement?.endMeasurement({
+                success: true
+            });
+            return result;
+        })
+            .catch((error) => {
+                this.logger.verbose("Error in fetching token in ACC", request.correlationId);
+                atsMeasurement?.endMeasurement({
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
+                    success: false
+                });
+                throw error;
+            });
     }
 
     /**
@@ -253,7 +276,7 @@ export class AuthorizationCodeClient extends BaseClient {
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
-            if(request.sshJwk) {
+            if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 throw ClientConfigurationError.createMissingSshJwkError();
@@ -465,7 +488,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
 
-        if(request.state) {
+        if (request.state) {
             parameterBuilder.addState(request.state);
         }
 

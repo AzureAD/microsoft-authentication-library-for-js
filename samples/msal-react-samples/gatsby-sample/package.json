@@ -12,17 +12,19 @@
     "test": "jest",
     "clean": "gatsby clean",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^16 react-dom@^16"
+    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
   },
   "dependencies": {
     "@azure/msal-browser": "^2.14.2",
     "@azure/msal-react": "^1.0.0",
-    "@material-ui/core": "^4.11.2",
-    "@material-ui/icons": "^4.11.2",
-    "gatsby": "^3.4.1",
-    "gatsby-material-ui-components": "^2.0.1",
-    "react": "^16.14.0",
-    "react-dom": "^16.14.0"
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.11.0",
+    "@mui/material": "^5.11.1",
+    "gatsby": "^4.0.0",
+    "gatsby-material-ui-components": "^5.3.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "jest": "^27.0.4"

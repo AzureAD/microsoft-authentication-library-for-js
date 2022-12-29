@@ -31,8 +31,7 @@ import {
     AuthorizationCodePayload,
     StringUtils,
     ClientAuthError,
-    Constants,
-} from "@azure/msal-common";
+    Constants, } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { NodeStorage } from "../cache/NodeStorage";
@@ -357,11 +356,9 @@ export abstract class ClientApplication {
                 proxyUrl: this.config.system.proxyUrl,
             },
             loggerOptions: {
-                logLevel: this.config.system.loggerOptions.logLevel,
-                loggerCallback: this.config.system.loggerOptions
-                    .loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions
-                    .piiLoggingEnabled,
+                logLevel: this.config.system.loggerOptions.logLevel ,
+                loggerCallback: this.config.system.loggerOptions.loggerCallback ,
+                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled ,
                 correlationId: requestCorrelationId
             },
             cryptoInterface: this.cryptoProvider,
