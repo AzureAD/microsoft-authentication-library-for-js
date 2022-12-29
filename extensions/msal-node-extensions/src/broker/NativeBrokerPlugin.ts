@@ -4,7 +4,7 @@
  */
 
 import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
-import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel } from "@azure/msal-node-runtime";
+import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel as MsalRuntimeLogLevel} from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
@@ -21,24 +21,24 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     setLogger(loggerOptions: LoggerOptions): void {
         this.logger = new Logger(loggerOptions, name, version);
-        const logCallback = (message: string, logLevel: LogLevel) => {
+        const logCallback = (message: string, logLevel: MsalRuntimeLogLevel) => {
             switch(logLevel) {
-                case LogLevel.Trace:
+                case MsalRuntimeLogLevel.Trace:
                     this.logger.trace(message);
                     break;
-                case LogLevel.Debug: 
+                case MsalRuntimeLogLevel.Debug: 
                     this.logger.trace(message);
                     break;
-                case LogLevel.Info:
+                case MsalRuntimeLogLevel.Info:
                     this.logger.info(message);
                     break;
-                case LogLevel.Warning:
+                case MsalRuntimeLogLevel.Warning:
                     this.logger.warning(message);
                     break;
-                case LogLevel.Error:
+                case MsalRuntimeLogLevel.Error:
                     this.logger.error(message);
                     break;
-                case LogLevel.Fatal:
+                case MsalRuntimeLogLevel.Fatal:
                     this.logger.error(message);
                     break;
                 default:
