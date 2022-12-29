@@ -4,7 +4,7 @@
  */
 
 import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
-import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, SignOutResult } from "@azure/msal-node-runtime";
+import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult } from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
@@ -27,6 +27,28 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         this.logger.trace("NativeBrokerPlugin - getAccountById called", correlationId);
         const account = await this.readAccountById(accountId, correlationId);
         return this.generateAccountInfo(account);
+    }
+
+    async getAllAccounts(clientId:string, correlationId: string): Promise<AccountInfo[]> {
+        this.logger.trace("NativeBrokerPlugin - getAllAccounts called", correlationId);
+        return new Promise((resolve, reject) => {
+            const resultCallback = (result: DiscoverAccountsResult | MsalRuntimeError) => {
+                if (this.isError(result)) {
+                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
+                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                }
+                const { accounts } = result as DiscoverAccountsResult;
+                const accountInfoResult = [];
+                accounts.forEach((account: Account) => {
+                    accountInfoResult.push(this.generateAccountInfo(account));
+                });
+                resolve(accountInfoResult);
+            };
+
+            const callback = new addon.ReadAccountCallback(resultCallback);
+            const asyncHandle = new addon.AsyncHandle();
+            addon.DiscoverAccounts(clientId, correlationId, callback, asyncHandle);
+        });
     }
 
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
