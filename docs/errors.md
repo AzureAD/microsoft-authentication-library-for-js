@@ -114,8 +114,105 @@ msalInstance.handleRedirectPromise()
 
 If you are using one of our wrapper libraries (React or Angular), please see the error docs in those specific libraries for additional reasons you may be receiving this error:
 
-- [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md)
-- [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md)
+- [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md#interaction_in_progress)
+- [msal-angular errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md#interaction_in_progress)
+
+If you are not using any of the wrapper libraries but concerned that your application might trigger concurrent interactive requests, you should check if any other interaction is in progress prior to invoking an interaction in your token acquisition method. You can achieve this by implementing a global application state or a broadcast service etc. that emits the current MSAL interaction status via [MSAL Events API](./events.md).
+
+❌ The following example will throw this error because the `acquireTokenPopup` in the **catch** block does not check if there is another interaction taking place at the moment:
+
+```javascript
+async function myAcquireToken(request) {
+    const msalInstance = getMsalInstance(); // get the msal application instance
+
+    const tokenRequest = {
+        account: msalInstance.getActiveAccount() || null;
+        ...request
+    };
+
+    let tokenResponse;
+
+    try {
+        // attempt silent acquisition first
+        tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
+    } catch (error) {
+        if (error instanceof InteractionRequiredAuthError) {
+            try {
+                tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
+            } catch (err) {
+                console.log(err);
+                // handle other errors
+            }
+        }
+
+        console.log(error);
+        // handle other errors
+    }
+
+    return tokenResponse;
+};
+
+const request = {
+    scopes: ["User.Read"]
+};
+
+myAcquireToken(request);
+myAcquireToken(request);
+```
+
+✔️ To resolve, you should wait for the interaction status to be `None` before calling any other interactive API:
+
+```javascript
+async function myAcquireToken(request) {
+    const msalInstance = getMsalInstance(); // get the msal application instance
+
+    const tokenRequest = {
+        account: msalInstance.getActiveAccount() || null;
+        ...request
+    };
+
+    let tokenResponse;
+
+    try {
+        // attempt silent acquisition first
+        tokenResponse = await msalInstance.acquireTokenSilent(tokenRequest);
+    } catch (error) {
+        if (error instanceof InteractionRequiredAuthError) {
+            // check for any interactions
+            if (myGlobalState.getInteractionStatus() !== InteractionStatus.None) {
+                // throw a new error to be handled in the caller below
+                throw new Error("interaction_in_progress");
+            } else {
+                // no interaction, invoke popup flow
+                tokenResponse = await msalInstance.acquireTokenPopup(tokenRequest);
+            }
+        }
+
+        console.log(error);
+        // handle other errors
+    }
+
+    return tokenResponse;
+};
+
+async function myInteractionInProgressHandler() {
+    /**
+     * "myWaitFor" method polls the interaction status via getInteractionStatus() from
+     * the application state and resolves when it's equal to "None".
+     */
+    await myWaitFor(() => myGlobalState.getInteractionStatus() === InteractionStatus.None);
+
+    // wait is over, call myAcquireToken again to re-try acquireTokenSilent
+    return (await myAcquireToken(tokenRequest));
+};
+
+const request = {
+    scopes: ["User.Read"]
+};
+
+myAcquireToken(request).catch((e) => myInteractionInProgressHandler());
+myAcquireToken(request).catch((e) => myInteractionInProgressHandler());
+```
 
 #### Troubleshooting Steps
 
@@ -198,7 +295,7 @@ One of the most common reasons this error can be thrown is that your application
 
 ##### X-Frame-Options Deny
 
-You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction. 
+You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction.
 
 ✔️ The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening. If interaction is required consider using an interactive API instead. If an error is being displayed, address the error.
 
@@ -211,7 +308,7 @@ Some B2C flows are expected to throw this error due to their need for user inter
 
 ##### Network Latency
 
-Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency. 
+Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency.
 
 ✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeHashTimeout`, `windowHashTimeout` or `loadFrameTimeout` configuration parameters.
 
@@ -313,7 +410,7 @@ Errors not thrown by msal, such as server errors
 
 ### Access to fetch at [url] has been blocked by CORS policy
 
-This error occurs with MSAL.js v2.x and is due to improper configuration during **App Registration** on **Azure Portal**. In particular, you should ensure your `redirectUri` is registered as type: `Single-page application` under the **Authentication** blade in your App Registration. If done successfully, you will see a green checkmark that says: 
+This error occurs with MSAL.js v2.x and is due to improper configuration during **App Registration** on **Azure Portal**. In particular, you should ensure your `redirectUri` is registered as type: `Single-page application` under the **Authentication** blade in your App Registration. If done successfully, you will see a green checkmark that says:
 
 > Your Redirect URI is eligible for the Authorization Code Flow with PKCE.
 
