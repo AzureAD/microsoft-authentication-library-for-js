@@ -4,7 +4,7 @@
  */
 
 import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
-import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult } from "@azure/msal-node-runtime";
+import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel } from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
@@ -21,6 +21,32 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     setLogger(loggerOptions: LoggerOptions): void {
         this.logger = new Logger(loggerOptions, name, version);
+        const logCallback = (message: string, logLevel: LogLevel) => {
+            switch(logLevel) {
+                case LogLevel.Trace:
+                    this.logger.trace(message);
+                    break;
+                case LogLevel.Debug: 
+                    this.logger.trace(message);
+                    break;
+                case LogLevel.Info:
+                    this.logger.info(message);
+                    break;
+                case LogLevel.Warning:
+                    this.logger.warning(message);
+                    break;
+                case LogLevel.Error:
+                    this.logger.error(message);
+                    break;
+                case LogLevel.Fatal:
+                    this.logger.error(message);
+                    break;
+                default:
+                    this.logger.info(message);
+                    break; 
+            }
+        };
+        addon.RegisterLogger(logCallback);
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
