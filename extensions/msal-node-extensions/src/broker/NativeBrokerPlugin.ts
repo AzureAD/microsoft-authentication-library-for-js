@@ -46,7 +46,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     break; 
             }
         };
-        addon.RegisterLogger(logCallback);
+        addon.RegisterLoggingCallback(logCallback);
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
@@ -71,7 +71,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 resolve(accountInfoResult);
             };
 
-            const callback = new addon.ReadAccountCallback(resultCallback);
+            const callback = new addon.DiscoverAccountsResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
             addon.DiscoverAccounts(clientId, correlationId, callback, asyncHandle);
         });
@@ -187,7 +187,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 resolve(account);
             };
 
-            const callback = new addon.ReadAccountCallback(resultCallback);
+            const callback = new addon.ReadAccountResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
             addon.ReadAccountById(accountId, correlationId, callback, asyncHandle);
         });
