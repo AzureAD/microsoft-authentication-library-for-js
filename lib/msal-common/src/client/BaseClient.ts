@@ -86,7 +86,6 @@ export abstract class BaseClient {
     protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {   
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
-
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:

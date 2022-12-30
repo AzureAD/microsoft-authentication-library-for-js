@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError } from "@azure/msal-common";
+import { AuthorizationCodePayload, StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
@@ -78,7 +78,7 @@ export class InteractionHandler {
         if (!requestState) {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
-        
+
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
@@ -95,7 +95,7 @@ export class InteractionHandler {
         if (validateNonce) {
             authCodeResponse.nonce = cachedNonce || undefined;
         }
-        
+
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available

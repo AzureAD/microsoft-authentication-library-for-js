@@ -2,7 +2,7 @@ import React from "react";
 import { AuthenticatedTemplate, UnauthenticatedTemplate } from "@azure/msal-react";
 import Layout from "../components/Layout";
 import { Button } from "gatsby-material-ui-components";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 
 export default function Home() {
   return (
