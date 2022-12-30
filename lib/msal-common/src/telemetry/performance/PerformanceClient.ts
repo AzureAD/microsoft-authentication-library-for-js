@@ -136,7 +136,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     // Cache event so that submeasurements can be added downstream
                     this.cacheEventByCorrelationId(completedEvent);
                 }
-
                 return completedEvent;
             },
             flushMeasurement: () => {
@@ -171,7 +170,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             // null indicates no measurement was taken (e.g. needed performance APIs not present)
             if (durationMs !== null) {
                 this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
-
                 const completedEvent: PerformanceEvent = {
                     // Allow duration to be overwritten when event ends (e.g. testing), but not status
                     durationMs: Math.round(durationMs),
@@ -282,7 +280,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     this.logger.verbose("PerformanceClient: Multiple distinct top-level performance events found, using the first", correlationId);
                 }
                 const topLevelEvent = topLevelEvents[0];
-
                 this.logger.verbose(`PerformanceClient: Measurement found for ${measureName}`, correlationId);
 
                 // Build event object with top level and sub measurements

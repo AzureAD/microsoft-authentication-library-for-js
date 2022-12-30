@@ -492,6 +492,73 @@ describe("RefreshTokenClient unit tests", () => {
             expect(authResult.requestId).toBeFalsy;
             expect(authResult.requestId).toEqual("");
         });
+
+        it('includes the http version in Refresh token client(AT) measurement when received in server response', async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new RefreshTokenClient(config, performanceClient);
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            await client.acquireToken(refreshTokenRequest);
+
+            expect(performanceClient.addStaticFields).toBeCalledTimes(2);
+            expect(performanceClient.addStaticFields).toBeCalledWith({ "httpVerToken": 'xMsHttpVer' });
+        });
+
+        it('does not add http version to the measurement when not received in server response', async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new RefreshTokenClient(config, performanceClient);
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            await client.acquireToken(refreshTokenRequest);
+
+            expect(performanceClient.addStaticFields).toBeCalledTimes(1);
+            expect(performanceClient.addStaticFields).not.toBeCalledWith({
+                "httpVerToken": 'xMsHttpVer'
+            })
+        });
+
     });
 
     describe("acquireToken APIs with FOCI enabled", () => {

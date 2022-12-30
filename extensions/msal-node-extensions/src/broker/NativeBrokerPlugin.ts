@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthenticationScheme, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
-import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, SignOutResult } from "@azure/msal-node-runtime";
+import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
+import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel as MsalRuntimeLogLevel} from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
@@ -21,12 +21,60 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     setLogger(loggerOptions: LoggerOptions): void {
         this.logger = new Logger(loggerOptions, name, version);
+        const logCallback = (message: string, logLevel: MsalRuntimeLogLevel) => {
+            switch(logLevel) {
+                case MsalRuntimeLogLevel.Trace:
+                    this.logger.trace(message);
+                    break;
+                case MsalRuntimeLogLevel.Debug: 
+                    this.logger.trace(message);
+                    break;
+                case MsalRuntimeLogLevel.Info:
+                    this.logger.info(message);
+                    break;
+                case MsalRuntimeLogLevel.Warning:
+                    this.logger.warning(message);
+                    break;
+                case MsalRuntimeLogLevel.Error:
+                    this.logger.error(message);
+                    break;
+                case MsalRuntimeLogLevel.Fatal:
+                    this.logger.error(message);
+                    break;
+                default:
+                    this.logger.info(message);
+                    break; 
+            }
+        };
+        addon.RegisterLoggingCallback(logCallback);
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
         this.logger.trace("NativeBrokerPlugin - getAccountById called", correlationId);
         const account = await this.readAccountById(accountId, correlationId);
         return this.generateAccountInfo(account);
+    }
+
+    async getAllAccounts(clientId:string, correlationId: string): Promise<AccountInfo[]> {
+        this.logger.trace("NativeBrokerPlugin - getAllAccounts called", correlationId);
+        return new Promise((resolve, reject) => {
+            const resultCallback = (result: DiscoverAccountsResult | MsalRuntimeError) => {
+                if (this.isError(result)) {
+                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
+                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                }
+                const { accounts } = result as DiscoverAccountsResult;
+                const accountInfoResult = [];
+                accounts.forEach((account: Account) => {
+                    accountInfoResult.push(this.generateAccountInfo(account));
+                });
+                resolve(accountInfoResult);
+            };
+
+            const callback = new addon.DiscoverAccountsResultCallback(resultCallback);
+            const asyncHandle = new addon.AsyncHandle();
+            addon.DiscoverAccounts(clientId, correlationId, callback, asyncHandle);
+        });
     }
 
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
@@ -79,20 +127,27 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case PromptValue.LOGIN:
                 case PromptValue.SELECT_ACCOUNT:
                 case PromptValue.CREATE:
-                    addon.SignInInteractively(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+                    this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
+                    const loginHint = request.loginHint || Constants.EMPTY_STRING;
+                    addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle);
                     break;
                 case PromptValue.NONE:
                     if (account) {
+                        this.logger.info("Calling native interop AcquireTokenSilently API", request.correlationId);
                         addon.AcquireTokenSilently(authParams, account, request.correlationId, callback, asyncHandle);
                     } else {
+                        this.logger.info("Calling native interop SignInSilently API", request.correlationId);
                         addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
                     }
                     break;
                 default:
                     if (account) {
+                        this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
                         addon.AcquireTokenInteractively(authParams, account, request.correlationId, callback, asyncHandle);
                     } else {
-                        addon.SignIn(authParams, request.correlationId, request.loginHint, callback, asyncHandle);
+                        this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
+                        const loginHint = request.loginHint || Constants.EMPTY_STRING;
+                        addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle);
                     }
                     break;
             }
@@ -132,7 +187,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 resolve(account);
             };
 
-            const callback = new addon.ReadAccountCallback(resultCallback);
+            const callback = new addon.ReadAccountResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
             addon.ReadAccountById(accountId, correlationId, callback, asyncHandle);
         });
