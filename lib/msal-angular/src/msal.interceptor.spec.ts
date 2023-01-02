@@ -104,7 +104,7 @@ describe('MsalInterceptor', () => {
     initializeMsal();
   });
 
-  it("throws error if incorrect interaction type set in interceptor configuration", () => {
+  it("throws error if incorrect interaction type set in interceptor configuration", fakeAsync(() => {
     testInteractionType = InteractionType.Silent;
     initializeMsal();
 
@@ -120,7 +120,7 @@ describe('MsalInterceptor', () => {
     expect(response.errorCode).toBe("invalid_interaction_type");
     expect(response.errorMessage).toBe("Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
     testInteractionType = InteractionType.Popup;
-});
+  }));
 
   it("does not attach authorization header for unprotected resource", () => {
     httpClient.get("http://localhost/api").subscribe(response => expect(response).toBeTruthy());
