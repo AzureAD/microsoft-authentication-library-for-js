@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { Location } from "@angular/common";
@@ -139,7 +139,7 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("attaches authorization header with access token for protected resource with exact match", done => {
+  it("attaches authorization header with access token for protected resource with exact match", fakeAsync( ()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -152,15 +152,13 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    tick();
+    const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+    httpMock.verify();
+  }));
 
   it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token", done => {
     const spy1 = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
