@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Replace setTimeout with fakeAsync and tick",
+  "comment": "Replace setTimeout with fakeAsync in specs for msal.interceptor",
   "packageName": "@azure/msal-angular",
   "email": "88324093+bjorn-einar-bjartnes-4ss@users.noreply.github.com",
   "dependentChangeType": "patch"
