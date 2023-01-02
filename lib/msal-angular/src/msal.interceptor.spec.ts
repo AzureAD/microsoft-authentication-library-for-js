@@ -6,7 +6,6 @@ import { RouterTestingModule } from "@angular/router/testing";
 import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, ProtectedResourceScopes } from './public-api';
 
-let interceptor: MsalInterceptor;
 let httpMock: HttpTestingController;
 let httpClient: HttpClient;
 let testInteractionType: InteractionType;
@@ -93,7 +92,7 @@ function initializeMsal() {
     ],
   });
 
-  interceptor = TestBed.inject(MsalInterceptor);
+  TestBed.inject(MsalInterceptor);
   httpMock = TestBed.inject(HttpTestingController);
   httpClient = TestBed.inject(HttpClient);
 }
@@ -105,38 +104,40 @@ describe('MsalInterceptor', () => {
     initializeMsal();
   });
 
-  it("throws error if incorrect interaction type set in interceptor configuration", (done) => {
+  it("throws error if incorrect interaction type set in interceptor configuration", () => {
     testInteractionType = InteractionType.Silent;
     initializeMsal();
 
+    let response;
+
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe({
       error: (error) => {
-        expect(error.errorCode).toBe("invalid_interaction_type");
-        expect(error.errorMessage).toBe("Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
-        testInteractionType = InteractionType.Popup;
-        done();
+        response = error;
       }
     });
-  });
 
-  it("does not attach authorization header for unprotected resource", (done) => {
+    tick();
+    expect(response.errorCode).toBe("invalid_interaction_type");
+    expect(response.errorMessage).toBe("Invalid interaction type provided to MSAL Interceptor. InteractionType.Popup, InteractionType.Redirect must be provided in the msalInterceptorConfiguration");
+    testInteractionType = InteractionType.Popup;
+});
+
+  it("does not attach authorization header for unprotected resource", () => {
     httpClient.get("http://localhost/api").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost/api");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
-  it("does not attach authorization header for own domain", (done) => {
+  it("does not attach authorization header for own domain", () => {
     httpClient.get("http://localhost:9876").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:9876");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
   it("attaches authorization header with access token for protected resource with exact match", fakeAsync( ()=> {
@@ -303,24 +304,22 @@ describe('MsalInterceptor', () => {
     httpMock.verify();
   }));
 
-  it("does not attach authorization header when scopes set to null, and resource is before any base url or wildcards", done => {
+  it("does not attach authorization header when scopes set to null, and resource is before any base url or wildcards", () => {
     httpClient.get("http://localhost:3000/unprotect").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:3000/unprotect");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
-  it("does not attach authorization header when scopes set to null on specific http method, and resource is before any base url or wildcards", done => {
+  it("does not attach authorization header when scopes set to null on specific http method, and resource is before any base url or wildcards", () => {
     httpClient.post("http://localhost:3000/unprotect/post", {}).subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:3000/unprotect/post");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
   it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", fakeAsync(()=> {
@@ -566,14 +565,13 @@ describe('MsalInterceptor', () => {
     httpMock.verify();
   }));
 
-  it("does not attach authorization header when request HTTP method is not in protectedResourceMap", done => {
+  it("does not attach authorization header when request HTTP method is not in protectedResourceMap", () => {
     httpClient.get("http://applicationC.com").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://applicationC.com");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
   it("attaches authorization header with access token for endpoint with scopes in string array and with HTTP methods specified", fakeAsync(() => {
@@ -598,14 +596,13 @@ describe('MsalInterceptor', () => {
     httpMock.verify();
   }));
 
-  it("does not attach authorization header if request HTTP method with scope is not in protectedResourceMap", done => {
+  it("does not attach authorization header if request HTTP method with scope is not in protectedResourceMap", () => {
     httpClient.get("http://applicationC.com").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://applicationC.com");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
   it("attaches authorization header with access token for endpoint with HTTP methods specified, regardless of casing of HTTP method", fakeAsync(() => {
@@ -630,14 +627,13 @@ describe('MsalInterceptor', () => {
     httpMock.verify();
   }));
 
-  it("does not attach authorization header if relative endpoints match but absolute url does not match", done => {
+  it("does not attach authorization header if relative endpoints match but absolute url does not match", () => {
     httpClient.get("http://applicationZ.com/noSlash").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://applicationZ.com/noSlash");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
-    done();
   });
 
   it("attaches authorization header with access token for correct endpoint even though an earlier endpoint in the protectedResourceMap has a matching relative endpoint", fakeAsync(() => {
