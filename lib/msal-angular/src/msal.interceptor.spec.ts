@@ -160,7 +160,7 @@ describe('MsalInterceptor', () => {
     httpMock.verify();
   }));
 
-  it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token", done => {
+  it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token", fakeAsync( ()=> {
     const spy1 = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -182,18 +182,17 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
-      expect(spy2).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+    expect(spy2).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for protected resource with wildcard", done => {
+  it("attaches authorization header with access token for protected resource with wildcard", fakeAsync( ()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -206,17 +205,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://myapplication.com/user/1").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://myapplication.com/user/1");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customscope.read"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("https://myapplication.com/user/1");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customscope.read"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token to url for protected resource with wildcard, url has multiple slashes", done => {
+  it("attaches authorization header with access token to url for protected resource with wildcard, url has multiple slashes", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -229,17 +227,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://myapplication.com/user/1/2/3").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://myapplication.com/user/1/2/3");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customscope.read"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+      
+    tick();
+    const request = httpMock.expectOne("https://myapplication.com/user/1/2/3");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customscope.read"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for protected resource with multiple wildcards", done => {
+  it("attaches authorization header with access token for protected resource with multiple wildcards", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -252,17 +249,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://mail.myapplication.com/me").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://mail.myapplication.com/me");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["mail.read"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("https://mail.myapplication.com/me");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["mail.read"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for base url as protected resource", done => {
+  it("attaches authorization header with access token for base url as protected resource", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -275,18 +271,17 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://localhost:3000/base").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://localhost:3000/base");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["base.scope"]});
+    
+    tick();
+    const request = httpMock.expectOne("http://localhost:3000/base");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["base.scope"]});
 
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for multiple matching entries in protected resource, scopes are for first matching entry", done => {
+  it("attaches authorization header with access token for multiple matching entries in protected resource, scopes are for first matching entry", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -299,15 +294,14 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://api.test.com").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://api.test.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["default.scope1"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("https://api.test.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["default.scope1"]});
+    httpMock.verify();
+  }));
 
   it("does not attach authorization header when scopes set to null, and resource is before any base url or wildcards", done => {
     httpClient.get("http://localhost:3000/unprotect").subscribe(response => expect(response).toBeTruthy());
@@ -329,7 +323,7 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", done => {
+  it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", fakeAsync(()=> {
     const sampleError = new AuthError("123", "message");
     const sampleAccessToken = {
       accessToken: "123abc"
@@ -351,18 +345,17 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer 123abc");
-      expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
-      expect(spy2).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer 123abc");
+    expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+    expect(spy2).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+    httpMock.verify();
+  }));
 
-  it("does not attach authorization header if acquireTokenSilent fails in interceptor and interaction type is Redirect", done => {
+  it("does not attach authorization header if acquireTokenSilent fails in interceptor and interaction type is Redirect", fakeAsync( ()=> {
     testInteractionType = InteractionType.Redirect;
     initializeMsal();
     const sampleError = new AuthError("123", "message");
@@ -383,16 +376,15 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
-      expect(request).toBeUndefined();
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
+    expect(request).toBeUndefined();
+    httpMock.verify();
+  }));
 
 
-  it("keeps original authority, https://login.microsoftonline.com/common", done => {
+  it("keeps original authority, https://login.microsoftonline.com/common", fakeAsync(() => {
     const originalAuthority = 'https://login.microsoftonline.com/common';
 
     testInterceptorConfig.authRequest = {
@@ -408,18 +400,16 @@ describe('MsalInterceptor', () => {
     }));
 
     httpClient.get("https://api.test.com").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://api.test.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/common");
-      expect(spy).toHaveBeenCalledWith({authority: originalAuthority, account: sampleAccountInfo, scopes: ["default.scope1"]});
-      httpMock.verify();
-      done();
-    }, 200);
+      
+    tick();
+    const request = httpMock.expectOne("https://api.test.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/common");
+    expect(spy).toHaveBeenCalledWith({authority: originalAuthority, account: sampleAccountInfo, scopes: ["default.scope1"]});
+    httpMock.verify();
+  }));
 
-  });
-
-  it("calls dynamic authority with account, authority override", done => {
+  it("calls dynamic authority with account, authority override", fakeAsync(()=> {
     testInterceptorConfig.authRequest = (msalService, httpReq, authRequest) => {
       return {
         ...authRequest,
@@ -436,17 +426,16 @@ describe('MsalInterceptor', () => {
     }));
 
     httpClient.get("https://api.test.com").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://api.test.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/test-tenant");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, authority: "https://login.microsoftonline.com/test-tenant", scopes: ["default.scope1"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("https://api.test.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/test-tenant");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, authority: "https://login.microsoftonline.com/test-tenant", scopes: ["default.scope1"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for protected resource with queries", done => {
+  it("attaches authorization header with access token for protected resource with queries", fakeAsync(() => {
     spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
@@ -458,17 +447,16 @@ describe('MsalInterceptor', () => {
     ));
 
     httpClient.get("http://localhost:9876/tenant?abc").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://localhost:9876/tenant?abc");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["query.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+      
+    tick();
+    const request = httpMock.expectOne("http://localhost:9876/tenant?abc");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["query.scope"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for protected resource with trailing slash", done => {
+  it("attaches authorization header with access token for protected resource with trailing slash", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -481,17 +469,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://applicationA/slash").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://applicationA/slash");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customA.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("http://applicationA/slash");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customA.scope"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for endpoint with trailing slash", done => {
+  it("attaches authorization header with access token for endpoint with trailing slash", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -504,17 +491,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://applicationB/noSlash/").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://applicationB/noSlash/");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customB.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("http://applicationB/noSlash/");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customB.scope"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for relative endpoint", done => {
+  it("attaches authorization header with access token for relative endpoint", fakeAsync(() => {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -527,17 +513,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://site.com/relative/me").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://site.com/relative/me");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["relative.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+      
+    tick();
+    const request = httpMock.expectOne("http://site.com/relative/me");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["relative.scope"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for relative endpoint which includes query", done => {
+  it("attaches authorization header with access token for relative endpoint which includes query", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -550,17 +535,16 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("/tenant?abc").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("/tenant?abc");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["query.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick(); 
+    const request = httpMock.expectOne("/tenant?abc");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["query.scope"]});
+    httpMock.verify();
+  }));
 
-  it("attaches authorization header with access token for endpoint with HTTP methods specified", done => {
+  it("attaches authorization header with access token for endpoint with HTTP methods specified", fakeAsync(()=> {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -573,15 +557,14 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.post("http://applicationC.com", {}).subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://applicationC.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["write.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+      
+    tick();
+    const request = httpMock.expectOne("http://applicationC.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["write.scope"]});
+    httpMock.verify();
+  }));
 
   it("does not attach authorization header when request HTTP method is not in protectedResourceMap", done => {
     httpClient.get("http://applicationC.com").subscribe(response => expect(response).toBeTruthy());
@@ -593,7 +576,7 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("attaches authorization header with access token for endpoint with scopes in string array and with HTTP methods specified", done => {
+  it("attaches authorization header with access token for endpoint with scopes in string array and with HTTP methods specified", fakeAsync(() => {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -606,15 +589,14 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://applicationD.com").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://applicationD.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["all.scope", "read.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+      
+    tick();
+    const request = httpMock.expectOne("http://applicationD.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["all.scope", "read.scope"]});
+    httpMock.verify();
+  }));
 
   it("does not attach authorization header if request HTTP method with scope is not in protectedResourceMap", done => {
     httpClient.get("http://applicationC.com").subscribe(response => expect(response).toBeTruthy());
@@ -626,7 +608,7 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("attaches authorization header with access token for endpoint with HTTP methods specified, regardless of casing of HTTP method", done => {
+  it("attaches authorization header with access token for endpoint with HTTP methods specified, regardless of casing of HTTP method", fakeAsync(() => {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -639,15 +621,14 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.post("http://applicationD.com", {}).subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://applicationD.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["all.scope", "info.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
+    
+    tick();
+    const request = httpMock.expectOne("http://applicationD.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["all.scope", "info.scope"]});
+    httpMock.verify();
+  }));
 
   it("does not attach authorization header if relative endpoints match but absolute url does not match", done => {
     httpClient.get("http://applicationZ.com/noSlash").subscribe(response => expect(response).toBeTruthy());
@@ -659,7 +640,7 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("attaches authorization header with access token for correct endpoint even though an earlier endpoint in the protectedResourceMap has a matching relative endpoint", done => {
+  it("attaches authorization header with access token for correct endpoint even though an earlier endpoint in the protectedResourceMap has a matching relative endpoint", fakeAsync(() => {
     const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -672,14 +653,12 @@ describe('MsalInterceptor', () => {
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.post("http://applicationF.com/profile/", {}).subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("http://applicationF.com/profile/");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customF.scope"]});
-      httpMock.verify();
-      done();
-    }, 200);
-  });
-
+      
+    tick();
+    const request = httpMock.expectOne("http://applicationF.com/profile/");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+    expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customF.scope"]});
+    httpMock.verify();
+  }));
 });
