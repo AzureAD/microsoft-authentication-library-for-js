@@ -1,6 +1,6 @@
 import { Switch, Route, useHistory } from "react-router-dom";
 // Material-UI imports
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 
 // MSAL imports
 import { MsalProvider } from "@azure/msal-react";
