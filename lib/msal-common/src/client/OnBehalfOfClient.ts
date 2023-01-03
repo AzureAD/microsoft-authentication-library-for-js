@@ -268,7 +268,7 @@ export class OnBehalfOfClient extends BaseClient {
             parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
         }
 
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (request.claims || (this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0)) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
        
