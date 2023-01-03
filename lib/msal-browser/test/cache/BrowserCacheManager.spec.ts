@@ -14,6 +14,8 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { ClientAuthErrorMessage } from "@azure/msal-common";
+import { EventHandler } from '../../src/internals';
+import { EventType } from "../../src/event/EventType";
 
 describe("BrowserCacheManager tests", () => {
 
@@ -114,8 +116,13 @@ describe("BrowserCacheManager tests", () => {
         let cacheVal: string;
         let msalCacheKey: string;
         let msalCacheKey2: string;
+        let eventHandler: EventHandler;
         beforeEach(() => {
-            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+            //@ts-ignore
+            eventHandler = {
+                emitEvent:jest.fn()
+            } as EventHandler;
+            browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger, eventHandler);
             authority = new Authority(TEST_CONFIG.validAuthority, StubbedNetworkModule, browserSessionStorage, {
                 protocolMode: ProtocolMode.AAD,
                 authorityMetadata: "",
@@ -170,6 +177,7 @@ describe("BrowserCacheManager tests", () => {
             const loggerSpy = jest.spyOn(logger, "error");
             const QUOTA_EXCEEDED_ERROR_MESSAGE = "Could not access browser storage. This may be caused by exceeding the quota.";
             browserSessionStorage.setItem(msalCacheKey, cacheVal);
+            expect(eventHandler.emitEvent).toBeCalledWith(EventType.STORAGE_FAILURE);
             expect(loggerSpy).toBeCalledWith(QUOTA_EXCEEDED_ERROR_MESSAGE);
         });
 

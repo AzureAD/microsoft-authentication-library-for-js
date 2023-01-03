@@ -6,18 +6,14 @@
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { IWindowStorage } from "./IWindowStorage";
-import { BrowserAuthErrorMessage } from "../error/BrowserAuthError";
-import { Logger } from "@azure/msal-common";
 
 export class BrowserStorage implements IWindowStorage<string> {
 
     private windowStorage: Storage;
-    private logger:Logger;
 
-    constructor(cacheLocation: string, logger:Logger) {
+    constructor(cacheLocation: string) {
         this.validateWindowStorage(cacheLocation);
         this.windowStorage = window[cacheLocation];
-        this.logger= logger;
     }
 
     private validateWindowStorage(cacheLocation: string): void {
@@ -35,17 +31,7 @@ export class BrowserStorage implements IWindowStorage<string> {
     }
 
     setItem(key: string, value: string): void {
-        try{
-            this.windowStorage.setItem(key, value);
-        }
-        catch(e){
-            if(e.code === BrowserAuthErrorMessage.chromiumStorageException.code || e.code === BrowserAuthErrorMessage.firefoxStorageException.code)
-            {
-                this.logger.error("Could not access browser storage. This may be caused by exceeding the quota.");
-            } else {
-                throw e;
-            }
-        }
+        this.windowStorage.setItem(key, value);
     }
 
     removeItem(key: string): void {

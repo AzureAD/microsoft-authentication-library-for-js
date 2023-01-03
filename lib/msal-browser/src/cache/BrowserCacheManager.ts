@@ -5,13 +5,15 @@
 
 import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError , BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
+import { EventHandler } from "../event/EventHandler";
+import { EventType } from "../event/EventType";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -30,15 +32,16 @@ export class BrowserCacheManager extends CacheManager {
     protected temporaryCacheStorage: IWindowStorage<string>;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     protected logger: Logger;
-
+    protected eventHandler?:EventHandler;
     // Cookie life calculation (hours * minutes * seconds * ms)
     protected readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
-    constructor(clientId: string, cacheConfig: Required<CacheOptions>, cryptoImpl: ICrypto, logger: Logger) {
+    constructor(clientId: string, cacheConfig: Required<CacheOptions>, cryptoImpl: ICrypto, logger: Logger, eventHandler?: EventHandler) {
         super(clientId, cryptoImpl);
 
         this.cacheConfig = cacheConfig;
         this.logger = logger;
+        this.eventHandler = eventHandler;
         this.internalStorage = new MemoryStorage();
         this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
         this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
@@ -57,7 +60,7 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.SessionStorage:
                 try {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    return new BrowserStorage(cacheLocation, this.logger);
+                    return new BrowserStorage(cacheLocation);
                 } catch (e) {
                     this.logger.verbose(e);
                     break;
@@ -80,7 +83,7 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.SessionStorage:
                 try {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    return new BrowserStorage(BrowserCacheLocation.SessionStorage, this.logger);
+                    return new BrowserStorage(BrowserCacheLocation.SessionStorage);
                 } catch (e) {
                     this.logger.verbose(e);
                     return this.internalStorage;
@@ -157,7 +160,30 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setItem(key: string, value: string): void {
-        this.browserStorage.setItem(key, value);
+        try{
+            this.browserStorage.setItem(key, value);
+        }
+        catch(e){
+            // check for quota exceeding error 
+            if(e.code === BrowserAuthErrorMessage.chromiumStorageException.code || e.code === BrowserAuthErrorMessage.firefoxStorageException.code || e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED")
+            {
+                this.logger.error("Could not access browser storage. This may be caused by exceeding the quota.");
+                /*
+                 *  Attempt cleanup, for now using clear() which removes ALL the cache entries created by MSAL. 
+                 *  TODO: Add clearing of certain key entries based on filtering and retry logic. 
+                 */
+                this.clear();
+                /*
+                 * signal to the user that they should consider further cleanup on their own. 
+                 * User can listen for this event to call again the acquireTokenSilent() or other relevent
+                 * API to retry the flow.
+                 */
+                this.eventHandler?.emitEvent(EventType.STORAGE_FAILURE);
+                this.logger.verbose("Issue with browser storage quota, try cleanup to free up space. ");
+            } else {
+                throw e;
+            }
+        }
     }
 
     /**

@@ -142,7 +142,7 @@ export abstract class ClientApplication {
 
         // Initialize the browser storage class.
         this.browserStorage = this.isBrowserEnvironment ?
-            new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) :
+            new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger, this.eventHandler) :
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
 
         // initialize in memory storage for native flows
@@ -151,7 +151,7 @@ export abstract class ClientApplication {
             storeAuthStateInCookie: false,
             secureCookies: false
         };
-        this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger);
+        this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger, this.eventHandler);
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
