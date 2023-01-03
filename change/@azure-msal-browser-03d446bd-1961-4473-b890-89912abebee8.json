@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "minor",
   "comment": "handle storage error #5497",
   "packageName": "@azure/msal-browser",
   "email": "bmahal@microsoft.com",
