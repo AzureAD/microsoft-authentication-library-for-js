@@ -128,6 +128,15 @@ export enum PerformanceEvents {
 
     AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
     
+    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+
+    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+
+    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+
+    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+
 }
 
 /**
@@ -211,6 +220,8 @@ export type StaticFields = {
     matsHttpStatus?: number
     matsHttpEventCount?: number;
     visChange?: boolean;
+    httpVerToken?: string;
+    httpVerAuthority?: string;
 };
 
 /**
