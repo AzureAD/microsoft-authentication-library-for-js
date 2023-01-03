@@ -2836,7 +2836,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenSilent(silentRequest);
         });
 
-        it("Adds visChange in perf event data when SilentIframeClient.acquireToken is called", (done) => {
+        it("emits expect performance event when successful in case of network request", (done) => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
