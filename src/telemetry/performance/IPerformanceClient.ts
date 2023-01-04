@@ -28,9 +28,8 @@ export interface IPerformanceClient {
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
     startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
-    calculateQueuedTime(preQueueTime?: number, currentTime?: number): number;
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void;
-    getCurrentTime(): number;
+    calculateQueuedTime(preQueueTime: number, currentTime: number): number;
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number|null): void;
 }
 
 /**

@@ -167,6 +167,10 @@ export abstract class CacheManager implements ICacheManager {
      */
     abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
 
+    abstract getPreQueueTime(key: string): number | null;
+
+    abstract setPreQueueTime(key: string): void;
+
     /**
      * Returns all accounts in cache
      */
@@ -1103,6 +1107,14 @@ export class DefaultStorageClass extends CacheManager {
     }
     updateCredentialCacheKey(): string {
         const notImplErr = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setPreQueueTime(): void {
+        const notImplErr = "Storage interface - setPreQueueTime() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getPreQueueTime(): number|null {
+        const notImplErr = "Storage interface - prePreQueueTime() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 }
