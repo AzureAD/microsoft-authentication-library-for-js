@@ -58,18 +58,19 @@ export class SilentCacheClient extends StandardInteractionClient {
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<SilentFlowClient> {
         // Create auth module.
-        const preClientConfigTime = this.performanceClient.getCurrentTime();
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions, preClientConfigTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
         return new SilentFlowClient(clientConfig, this.performanceClient);
     }
 
-    async initializeSilentRequest(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<CommonSilentFlowRequest> {
+    async initializeSilentRequest(request: SilentRequest, account: AccountInfo): Promise<CommonSilentFlowRequest> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.InitializeSilentRequest);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeSilentRequest, request.correlationId, preQueueTime);
 
-        const preInitializeTime = this.performanceClient.getCurrentTime();
+        this.browserStorage.setPreQueueTime(PerformanceEvents.InitializeBaseRequest);
         return {
             ...request,
-            ...await this.initializeBaseRequest(request, preInitializeTime),
+            ...await this.initializeBaseRequest(request),
             account: account,
             forceRefresh: request.forceRefresh || false
         };

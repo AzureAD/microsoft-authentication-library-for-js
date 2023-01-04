@@ -126,11 +126,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
 
-            const preQueueTime = this.performanceClient.getCurrentTime();
+            this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync);
             const response = this.acquireTokenSilentAsync({
                 ...request,
                 correlationId
-            }, account, preQueueTime)
+            }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     
@@ -178,7 +178,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (AccountInfo:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
-    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo, preQueueTime?: number): Promise<AuthenticationResult>{
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId, preQueueTime);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
@@ -208,8 +209,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
 
-            const preInitializeTime = this.performanceClient.getCurrentTime();
-            const silentRequest = await silentCacheClient.initializeSilentRequest(request, account, preInitializeTime);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.InitializeSilentRequest);
+            const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
             
             const requestWithCLP = {
                 ...request,
@@ -217,8 +218,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
             };
 
-            const preAcquireTokenFromCacheTime = this.performanceClient.getCurrentTime();
-            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP, preAcquireTokenFromCacheTime).catch((cacheError: AuthError) => {
+            this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache);
+            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
                 if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
                 }
@@ -227,8 +228,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 BrowserUtils.blockReloadInHiddenIframes();
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
 
-                const preAcquireTokenByRefreshTokenTime = this.performanceClient.getCurrentTime();
-                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP, preAcquireTokenByRefreshTokenTime).catch((refreshTokenError: AuthError) => {
+                this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken);
+                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
@@ -244,8 +245,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     }
                         
                     this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
-                    const preAcquireTokenTime = this.performanceClient.getCurrentTime();
-                    return this.acquireTokenBySilentIframe(silentRequest, preAcquireTokenTime);
+                    this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe);
+                    return this.acquireTokenBySilentIframe(silentRequest);
                 });
             });
         }

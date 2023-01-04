@@ -627,6 +627,20 @@ export class BrowserCacheManager extends CacheManager {
         ];
     }
 
+    getPreQueueTime(key: string): number | null {
+        const value = this.internalStorage.getItem(key);
+        if (!value) {
+            this.logger.trace(`BrowserCacheManager.getPreQueueTime: called, no cache hit for ${key}`);
+            return null;
+        }
+        return +value;
+    }
+
+    setPreQueueTime(key: string): void {
+        this.logger.trace("BrowserCacheManager.setPreQueueTime called");
+        this.internalStorage.setItem(key, JSON.stringify(window.performance.now()));
+    }
+
     /**
      * Clears all cache entries created by MSAL.
      */
