@@ -92,13 +92,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     abstract generateId(): string;
 
     /**
-     * Returns current time in milliseconds. 
-     * 
-     * @returns {number}
-     */
-    abstract getCurrentTime(): number;
-
-    /**
      * Calculates the difference between current time and time when function was queued.
      * Note: It is possible to have 0 as the queue time if the current time and the queued time was the same.
      * 
@@ -134,7 +127,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {?number} time 
      * @returns 
      */
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number|null): void {
         if (!correlationId) {
             this.logger.trace(`PerformanceClient: correlationId not provided for ${name}, cannot add queue measurement`);
             return;

@@ -600,9 +600,9 @@ export abstract class ClientApplication {
     protected async acquireTokenFromCache(
         silentCacheClient: SilentCacheClient,
         commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest,
-        preQueueTime?: number
+        silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.AcquireTokenFromCache);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId, preQueueTime);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
@@ -622,9 +622,9 @@ export abstract class ClientApplication {
      */
     protected async acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest,
-        silentRequest: SilentRequest,
-        preQueueTime?: number
+        silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId, preQueueTime);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
@@ -633,8 +633,8 @@ export abstract class ClientApplication {
             case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
 
-                const preAcquireTokenTime = this.performanceClient.getCurrentTime();
-                return silentRefreshClient.acquireToken(commonRequest, preAcquireTokenTime);
+                this.browserStorage.setPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken);
+                return silentRefreshClient.acquireToken(commonRequest);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
         }
@@ -646,15 +646,15 @@ export abstract class ClientApplication {
      * @returns A promise that, when resolved, returns the access token
      */
     protected async acquireTokenBySilentIframe(
-        request: CommonSilentFlowRequest,
-        preQueueTime?: number
+        request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId,  preQueueTime);
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId, preQueueTime);
 
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
 
-        const preAcquireTokenTime = this.performanceClient.getCurrentTime();
-        return silentIframeClient.acquireToken(request, preAcquireTokenTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.SilentIframeClientAcquireToken);
+        return silentIframeClient.acquireToken(request);
     }
 
     // #endregion

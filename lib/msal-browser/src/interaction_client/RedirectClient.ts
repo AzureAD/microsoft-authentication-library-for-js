@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, ThrottlingUtils, ICrypto, Logger, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, ThrottlingUtils, ICrypto, Logger, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -33,8 +33,8 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const preInitializeRequestTime = this.performanceClient.getCurrentTime();
-        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect,  preInitializeRequestTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest);
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect);
         this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
@@ -48,12 +48,12 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             // Create auth code request and generate PKCE params
-            const preInitializeTime = this.performanceClient.getCurrentTime();
-            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest, preInitializeTime);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions, preCreateAuthCodeClientTime);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
             // Create redirect interaction handler.
@@ -244,9 +244,8 @@ export class RedirectClient extends StandardInteractionClient {
         if (!currentAuthority) {
             throw BrowserAuthError.createNoCachedAuthorityError();
         }
-
-        const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
-        const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority, undefined, preCreateAuthCodeClientTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient);
+        const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
         ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, cachedRequest);
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto, this.performanceClient);
@@ -274,8 +273,8 @@ export class RedirectClient extends StandardInteractionClient {
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
-            const preCreateAuthCodeClientTime = this.performanceClient.getCurrentTime();
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, undefined, preCreateAuthCodeClientTime);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
             this.logger.verbose("Auth code client created");
 
             // Create logout string and navigate user window to logout.

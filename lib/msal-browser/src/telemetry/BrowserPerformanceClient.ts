@@ -58,15 +58,6 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
     }
 
     /**
-     * Gets current time in milliseconds.
-     * 
-     * @returns {number}
-     */
-    getCurrentTime(): number {
-        return window.performance.now();
-    }
-
-    /**
      * Calculates and adds queue time measurement for given performance event.
      * 
      * @param {PerformanceEvents} name 
@@ -74,7 +65,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @param {?number} preQueueTime 
      * @returns 
      */
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, preQueueTime?: number): void {
+    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, preQueueTime?: number | null): void {
         if (!preQueueTime) {
             this.logger.trace(`BrowserPerformanceClient:addQueueMeasurement - preQueueTime not provided for ${name}, cannot calculate queue time`);
             return;

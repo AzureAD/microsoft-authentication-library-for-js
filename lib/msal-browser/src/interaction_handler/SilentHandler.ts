@@ -25,7 +25,8 @@ export class SilentHandler extends InteractionHandler {
      * @param urlNavigate
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string, preQueueTime?: number): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerInitiateAuthRequest);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId, preQueueTime);
 
         if (StringUtils.isEmpty(requestUrl)) {
@@ -34,8 +35,8 @@ export class SilentHandler extends InteractionHandler {
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
-        const preLoadFrameTime = this.performanceClient.getCurrentTime();
-        return this.navigateFrameWait ? await this.loadFrame(requestUrl, preLoadFrameTime) : this.loadFrameSync(requestUrl);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame);
+        return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
     }
 
     /**
@@ -43,7 +44,8 @@ export class SilentHandler extends InteractionHandler {
      * @param iframe
      * @param timeout
      */
-    monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number, preQueueTime?: number): Promise<string> {
+    monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerMonitorIframeForHash);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId, preQueueTime);
 
         return new Promise((resolve, reject) => {
@@ -98,7 +100,8 @@ export class SilentHandler extends InteractionHandler {
      * Loads iframe with authorization endpoint URL
      * @ignore
      */
-    private loadFrame(urlNavigate: string, preQueueTime?: number): Promise<HTMLIFrameElement> {
+    private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId, preQueueTime);
 
         /*

@@ -8,6 +8,7 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import { CacheManager } from "../cache/CacheManager";
 
 /**
  * See eSTS docs for more info.
@@ -35,9 +36,10 @@ enum KeyLocation {
 export class PopTokenGenerator {
 
     private cryptoUtils: ICrypto;
+    private cacheManager?: CacheManager;
     private performanceClient?: IPerformanceClient;
 
-    constructor(cryptoUtils: ICrypto, performanceClient?: IPerformanceClient) {
+    constructor(cryptoUtils: ICrypto, cacheManager?: CacheManager, performanceClient?: IPerformanceClient) {
         this.cryptoUtils = cryptoUtils;
         this.performanceClient = performanceClient;
     }
@@ -48,11 +50,12 @@ export class PopTokenGenerator {
      * @param request
      * @returns
      */
-    async generateCnf(request: SignedHttpRequestParameters, preQueueTime?: number): Promise<ReqCnfData> {
+    async generateCnf(request: SignedHttpRequestParameters): Promise<ReqCnfData> {
+        const preQueueTime = this.cacheManager?.getPreQueueTime(PerformanceEvents.PopTokenGenerateCnf);
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.PopTokenGenerateCnf, request.correlationId, preQueueTime);
 
-        const preGenerateKidTime = this.performanceClient?.getCurrentTime();
-        const reqCnf = await this.generateKid(request, preGenerateKidTime);
+        this.cacheManager?.setPreQueueTime(PerformanceEvents.PopTokenGenerateKid);
+        const reqCnf = await this.generateKid(request);
         const reqCnfString: string = this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
 
         return {
@@ -67,11 +70,11 @@ export class PopTokenGenerator {
      * @param request
      * @returns
      */
-    async generateKid(request: SignedHttpRequestParameters, preQueueTime?: number): Promise<ReqCnf> {
+    async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
+        const preQueueTime = this.cacheManager?.getPreQueueTime(PerformanceEvents.PopTokenGenerateKid);
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.PopTokenGenerateKid, request.correlationId, preQueueTime);
 
-        const preGetPublicKeyThumbprintTime = this.performanceClient?.getCurrentTime();
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request, preGetPublicKeyThumbprintTime);
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
         return {
             kid: kidThumbprint,

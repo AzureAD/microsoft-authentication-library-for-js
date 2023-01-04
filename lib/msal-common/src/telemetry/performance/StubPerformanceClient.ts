@@ -37,8 +37,4 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
     addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
         return;
     }
-
-    getCurrentTime(): number {
-        return 0;
-    }
 }

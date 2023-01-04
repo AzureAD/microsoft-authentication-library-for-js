@@ -24,7 +24,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * Generates an auth code request tied to the url request.
      * @param request
      */
-    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest, preQueueTime?: number): Promise<CommonAuthorizationCodeRequest> {
+    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<CommonAuthorizationCodeRequest> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, request.correlationId, preQueueTime);
 
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
@@ -127,12 +128,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<AuthorizationCodeClient> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, this.correlationId, preQueueTime);
 
         // Create auth module.
-        const preClientConfigTime = this.performanceClient.getCurrentTime();
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureCloudOptions, preClientConfigTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureCloudOptions);
         return new AuthorizationCodeClient(clientConfig, this.performanceClient);
     }
 
@@ -142,12 +144,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInteractionClientGetClientConfiguration, this.correlationId, preQueueTime);
 
         this.logger.verbose("getClientConfiguration called", this.correlationId);
-        const preDiscoveryTime = this.performanceClient.getCurrentTime();
-        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions, preDiscoveryTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority);
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
         const logger= this.config.system.loggerOptions;
 
         return {
@@ -208,7 +211,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions, preQueueTime?: number): Promise<Authority> {
+    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId, preQueueTime);
         this.logger.verbose("getDiscoveredAuthority called", this.correlationId);
         const getAuthorityMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.StandardInteractionClientGetDiscoveredAuthority, this.correlationId);
@@ -252,7 +256,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType, preQueueTime?: number): Promise<AuthorizationUrlRequest> {
+    protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest);
         this.performanceClient.addQueueMeasurement(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, this.correlationId, preQueueTime);
         this.logger.verbose("initializeAuthorizationRequest called", this.correlationId);
 
@@ -266,9 +271,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             browserState
         );
 
-        const preInitializeTime = this.performanceClient.getCurrentTime();
+        this.browserStorage.setPreQueueTime(PerformanceEvents.InitializeBaseRequest);
         const validatedRequest: AuthorizationUrlRequest = {
-            ...await this.initializeBaseRequest(request, preInitializeTime),
+            ...await this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),

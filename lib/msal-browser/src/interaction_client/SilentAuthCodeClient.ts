@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -39,8 +39,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const preInitializeRequestTime = this.performanceClient.getCurrentTime();
-        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent, preInitializeRequestTime);
+        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest);
+        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
@@ -54,8 +54,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
-            const preClientConfigTime = this.performanceClient.getCurrentTime();
-            const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority, undefined, preClientConfigTime);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration);
+            const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority);
             const authClient: HybridSpaAuthorizationCodeClient = new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
 
