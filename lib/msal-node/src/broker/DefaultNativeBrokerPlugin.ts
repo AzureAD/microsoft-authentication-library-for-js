@@ -29,4 +29,7 @@ export class DefaultNativeBrokerPlugin implements INativeBrokerPlugin {
         throw new Error("Method not implemented.");
     }
 
+    getAllAccounts(): Promise<AccountInfo[]> {
+        throw new Error("Method not implemented.");
+    }
 }
