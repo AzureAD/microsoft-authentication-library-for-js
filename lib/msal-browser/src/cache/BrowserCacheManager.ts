@@ -1064,6 +1064,21 @@ export class BrowserCacheManager extends CacheManager {
 
         return currentCacheKey;
     }
+
+    /**
+     * Returns application id as redirect context during AcquireTokenRedirect flow.
+     */
+    getRedirectRequestContext(): string | null {
+        return this.getTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, true);
+    }
+     
+    /**
+     * Sets application id as the redirect context during AcquireTokenRedirect flow.
+     * @param value 
+     */
+    setRedirectRequestContext(value: string): void {
+        this.setTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, value, true);
+    }
 }
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger): BrowserCacheManager => {

@@ -50,7 +50,7 @@ if (sampleName && isSample) {
     app.use(express.static('app/' + sampleName));
 } else {
     if (sampleName && !isSample) {
-        console.warn("WARNING: Sample not found.\n");
+        console.warn(`WARNING: Sample ${sampleName} not found.\n`);
     }
     console.log("Running default sample.\n");
     app.use(express.static('app/default'));

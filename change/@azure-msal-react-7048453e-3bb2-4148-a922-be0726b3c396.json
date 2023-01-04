@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Address dependabot alerts",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
