@@ -5,8 +5,10 @@
   "dependencies": {
     "@azure/msal-browser": "file:../../../lib/msal-browser",
     "@azure/msal-react": "file:../../../lib/msal-react",
-    "@material-ui/core": "^4.11.2",
-    "@material-ui/icons": "^4.11.2",
+    "@emotion/react": "^11.10.5",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.10.16",
+    "@mui/material": "^5.10.17",
     "core-js": "^3.8.3",
     "react": "file:../../../lib/msal-react/node_modules/react",
     "react-app-polyfill": "^2.0.0",
