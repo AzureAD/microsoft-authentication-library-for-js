@@ -12,7 +12,7 @@ import { ErrorComponent } from "../ui-components/ErrorComponent";
 import { callMsGraph } from "../utils/MsGraphApiCall";
 
 // Material-ui imports
-import Paper from "@material-ui/core/Paper";
+import Paper from "@mui/material/Paper";
 
 const ProfileContent = () => {
     const { instance, inProgress } = useMsal();
