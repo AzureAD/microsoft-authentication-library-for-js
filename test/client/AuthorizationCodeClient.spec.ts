@@ -1988,6 +1988,114 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(authenticationResult.requestId).toBeFalsy;
             expect(authenticationResult.requestId).toEqual("");
         });
+
+        it('includes the http version in Authorization code client measurement(AT) when received in server response', async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new AuthorizationCodeClient(config, performanceClient);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+            await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce
+            });
+
+            expect(performanceClient.addStaticFields).toBeCalledWith({ "httpVerAuthority": 'xMsHttpVer' });
+        });
+
+        it('does not add http version to the measurement when not received in server response', async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new AuthorizationCodeClient(config, performanceClient);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+            await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce
+            });
+
+            expect(performanceClient.addStaticFields).not.toHaveBeenCalled();
+        });
     });
 
     describe("getLogoutUri()", () => {
