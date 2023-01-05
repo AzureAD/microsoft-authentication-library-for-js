@@ -173,9 +173,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     private trackPageVisibility():void {
         if(!this.astsAsyncMeasurement) return;
-        this.logger.info("Perf: Visibility change detected in ATS");
+        this.logger.info("Perf: Visibility change detected");
         this.astsAsyncMeasurement.addStaticFields({
-            visChange: true,
+            visibilityChange: true,
         });
         this.astsAsyncMeasurement.endMeasurement({
             success: true,
@@ -193,7 +193,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
         this.astsAsyncMeasurement?.addStaticFields({
-            visChange:false
+            visibilityChange:false
         });
         document.addEventListener("visibilitychange",this.trackPageVisibility);
         let result: Promise<AuthenticationResult>;

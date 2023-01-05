@@ -1629,14 +1629,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].requestId).toBe(undefined);
-                expect(events[0].visChange).toBe(false);
+                expect(events[0].visibilityChange).toBe(false);
                 pca.removePerformanceCallback(callbackId);
                 done();
         }));
             pca.ssoSilent({scopes: ["openid"]});
     });
 
-    it("sets visChange in perf event to true when visibility changes ", (done) => {
+    it("sets visibilityChange in perf event to true when visibility changes ", (done) => {
         const testAccount: AccountInfo = {
             homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1667,7 +1667,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(events[0].accessTokenSize).toBe(16);
             expect(events[0].idTokenSize).toBe(12);
             expect(events[0].requestId).toBe(undefined);
-            expect(events[0].visChange).toBe(true);
+            expect(events[0].visibilityChange).toBe(true);
             pca.removePerformanceCallback(callbackId);
             done();
     }));
@@ -2002,7 +2002,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(events[0].accessTokenSize).toBe(16);
             expect(events[0].idTokenSize).toBe(12);
             expect(events[0].requestId).toBe(undefined);
-            expect(events[0].visChange).toBe(false);
+            expect(events[0].visibilityChange).toBe(false);
             pca.removePerformanceCallback(callbackId);
             done();
             }));
@@ -2012,7 +2012,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
-        it("sets visChange in perf event to true when visibility changes",  (done) => {
+        it("sets visibilityChange in perf event to true when visibility changes",  (done) => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2042,7 +2042,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(events[0].accessTokenSize).toBe(16);
             expect(events[0].idTokenSize).toBe(12);
             expect(events[0].requestId).toBe(undefined);
-            expect(events[0].visChange).toBe(true);
+            expect(events[0].visibilityChange).toBe(true);
             pca.removePerformanceCallback(callbackId);
             done();
             }));
@@ -2931,7 +2931,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
-                expect(events[0].visChange).toBe(false);
+                expect(events[0].visibilityChange).toBe(false);
 
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -2939,7 +2939,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
         });
 
-        it("sets visChange in perf event to true when visibility changes", (done) => {
+        it("sets visibilityChange in perf event to true when visibility changes", (done) => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2974,7 +2974,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
-                expect(events[0].visChange).toBe(true);
+                expect(events[0].visibilityChange).toBe(true);
 
                 pca.removePerformanceCallback(callbackId);
                 done();
