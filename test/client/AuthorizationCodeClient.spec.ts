@@ -192,7 +192,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
             const testAccount = TEST_ACCOUNT_INFO;
             // @ts-ignore
-            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails">> = {
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid" | "upn" | "cloud_instance_host_name" | "cnf" | "emails">> = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -324,7 +324,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
             const testAccount = TEST_ACCOUNT_INFO;
             // @ts-ignore
-            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails">> = {
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid" | "upn" | "cloud_instance_host_name" | "cnf" | "emails">> = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -363,7 +363,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount = TEST_ACCOUNT_INFO;
-            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"iat"|"x5c_ca"|"ts"|"at"|"u"|"p"|"m"|"login_hint"|"aud"|"nbf"|"roles"|"amr"|"idp"|"auth_time">> = {
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid" | "upn" | "cloud_instance_host_name" | "cnf" | "emails" | "iat" | "x5c_ca" | "ts" | "at" | "u" | "p" | "m" | "login_hint" | "aud" | "nbf" | "roles" | "amr" | "idp" | "auth_time">> = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -402,7 +402,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount = TEST_ACCOUNT_INFO;
-            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"sid"|"iat"|"x5c_ca"|"ts"|"at"|"u"|"p"|"m"|"login_hint"|"aud"|"nbf"|"roles"|"amr"|"idp"|"auth_time">> = {
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid" | "upn" | "cloud_instance_host_name" | "cnf" | "emails" | "sid" | "iat" | "x5c_ca" | "ts" | "at" | "u" | "p" | "m" | "login_hint" | "aud" | "nbf" | "roles" | "amr" | "idp" | "auth_time">> = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -452,7 +452,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl.includes(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`)).toBe(true);
             expect(loginUrl.includes(`${SSOTypes.SID}=`)).toBe(false);
         });
-        
+
 
         it("Ignores Account if prompt is select_account", async () => {
             // Override with alternate authority openid_config
@@ -618,8 +618,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
             expect(authCodePayload.code).toBe("thisIsATestCode");
             expect(authCodePayload.state).toBe(TEST_STATE_VALUES.ENCODED_LIB_STATE);
-        });          
-       
+        });
+
         it("throws server error when error is in hash", async () => {
             const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -698,7 +698,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -789,7 +789,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -878,7 +878,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -891,7 +891,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -953,7 +953,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -966,7 +966,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1028,7 +1028,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1041,7 +1041,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1104,7 +1104,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1117,7 +1117,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1208,7 +1208,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1221,7 +1221,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1323,7 +1323,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         testParam: "testValue"
                     }
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1350,7 +1350,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         extra_body_parameter: "true"
                     }
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1375,7 +1375,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     authenticationScheme: AuthenticationScheme.BEARER,
                     enableSpaAuthorizationCode: true
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1409,7 +1409,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         extra_body_parameter: "true"
                     }
                 };
-    
+
                 return client.acquireToken(authCodeRequest);
             });
         });
@@ -1427,7 +1427,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1440,7 +1440,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             })
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1538,7 +1538,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             config.cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1648,7 +1648,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             config.cryptoInterface.base64Decode = (input: string): string => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1747,7 +1747,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1829,7 +1829,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            
+
             sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -1842,7 +1842,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                         return input;
                 }
             });
-            
+
             sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
@@ -1942,7 +1942,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(authenticationResult.requestId).toBeTruthy;
             expect(authenticationResult.requestId).toEqual(CORS_RESPONSE_HEADERS.xMsRequestId);
         });
-
+        
         it('does not include the requestId in the result when none in server response', async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
@@ -1951,7 +1951,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
             }
-
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -1962,7 +1961,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523"
+                "nonce": "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
@@ -2098,6 +2097,115 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
     });
 
+        it('includes the http version in Authorization code client measurement(AT) when received in server response', async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new AuthorizationCodeClient(config, performanceClient);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+            await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce
+            });
+
+            expect(performanceClient.addStaticFields).toBeCalledWith({ "httpVerAuthority": 'xMsHttpVer' });
+        });
+
+        it('does not add http version to the measurement when not received in server response', async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const performanceClient = {
+                startMeasurement: jest.fn(),
+                endMeasurement: jest.fn(),
+                addStaticFields: jest.fn(),
+                flushMeasurements: jest.fn(),
+                discardMeasurements: jest.fn(),
+                removePerformanceCallback: jest.fn(),
+                addPerformanceCallback: jest.fn(),
+                emitEvents: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
+                generateId: jest.fn()
+            }
+            performanceClient.startMeasurement.mockImplementation(() => {
+                return performanceClient;
+            });
+            const client = new AuthorizationCodeClient(config, performanceClient);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+            await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce
+            });
+
+            expect(performanceClient.addStaticFields).not.toHaveBeenCalled();
+        });
+    });
+    
     describe("getLogoutUri()", () => {
 
         it("Returns a uri", async () => {
@@ -2105,7 +2213,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const logoutUri = client.getLogoutUri({account: null, correlationId: RANDOM_TEST_GUID});
+            const logoutUri = client.getLogoutUri({ account: null, correlationId: RANDOM_TEST_GUID });
 
             expect(logoutUri).toBe(
                 `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
@@ -2120,12 +2228,11 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: 
-                TEST_URIS.TEST_LOGOUT_URI,
+                postLogoutRedirectUri:TEST_URIS.TEST_LOGOUT_URI,
                 idTokenHint: "id_token_hint",
-                state: "test_state" 
+                state: "test_state"
             });
-          
+
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
@@ -2150,7 +2257,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     testParam: "test_val"
                 }
             });
-          
+
             const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state&testParam=test_val`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
