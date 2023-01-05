@@ -157,7 +157,7 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
-        this.trackPageVisibilityWithMeas = this.trackPageVisibilityWithMeas.bind(this);
+        this.trackPageVisibilityWithMeasurement = this.trackPageVisibilityWithMeasurement.bind(this);
     }
 
     /**
@@ -418,30 +418,30 @@ export abstract class ClientApplication {
         });
     }
 
-    private trackPageVisibilityWithMeas():void {
+    private trackPageVisibilityWithMeasurement():void {
         if(!this.ssoSilentMeasurement && !this.acquireTokenByCodeAsyncMeasurement) return;
         this.logger.info("Perf: Event- visibility change detected" );
         if(this.ssoSilentMeasurement)
         {
-            this.logger.info("Vis change detected in ",this.ssoSilentMeasurement.event.name);
+            this.logger.info("Perf: Visibility change detected in ",this.ssoSilentMeasurement.event.name);
             this.ssoSilentMeasurement.addStaticFields({
-                visChange: true,
+                visibilityChange: true,
             });
             this.ssoSilentMeasurement.endMeasurement({
                 success: true,
             });
         }
         else{
-            this.logger.info("Vis change detected in ",this.acquireTokenByCodeAsyncMeasurement?.event.name);
+            this.logger.info("Perf: Visibility change detected in ",this.acquireTokenByCodeAsyncMeasurement?.event.name);
             this.acquireTokenByCodeAsyncMeasurement?.addStaticFields({
-                visChange: true,
+                visibilityChange: true,
             });
             this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
                 success: true,
             });
 
         }             
-        document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+        document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
     }
     // #endregion
 
@@ -473,9 +473,9 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
         this.ssoSilentMeasurement?.addStaticFields({
-            visChange:false
+            visibilityChange:false
         });
-        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
@@ -508,7 +508,7 @@ export abstract class ClientApplication {
                 requestId: response.requestId
             });
             this.ssoSilentMeasurement?.flushMeasurement();
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
@@ -518,7 +518,7 @@ export abstract class ClientApplication {
                 success: false
             });
             this.ssoSilentMeasurement?.flushMeasurement();
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             throw e;
         });
     }
@@ -621,9 +621,9 @@ export abstract class ClientApplication {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
         this.acquireTokenByCodeAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
         this.acquireTokenByCodeAsyncMeasurement?.addStaticFields({
-            visChange:false
+            visibilityChange:false
         });
-        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request).then((response) => {
             this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
@@ -632,7 +632,7 @@ export abstract class ClientApplication {
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
@@ -640,7 +640,7 @@ export abstract class ClientApplication {
                 subErrorCode: tokenRenewalError.subError,
                 success: false
             });
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeas);
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             throw tokenRenewalError;
         });
         return silentTokenResult;
