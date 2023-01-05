@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "fix typos ",
+  "comment": "fix typos #5531",
   "packageName": "@azure/msal-browser",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
