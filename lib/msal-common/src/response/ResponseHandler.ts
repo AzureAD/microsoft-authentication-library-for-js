@@ -373,7 +373,7 @@ export class ResponseHandler {
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code,
-            fromNativeBroker: false
+            fromNativeBroker: false,
         };
     }
 }
