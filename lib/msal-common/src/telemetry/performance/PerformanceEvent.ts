@@ -219,9 +219,9 @@ export type StaticFields = {
     matsSilentStatus?: number;
     matsHttpStatus?: number
     matsHttpEventCount?: number;
+    visibilityChange?: boolean;
     httpVerToken?: string;
     httpVerAuthority?: string;
-    visChange?: boolean;
 };
 
 /**
