@@ -14,7 +14,8 @@ import {
     CodeChallengeMethodValues,
     Constants as CommonConstants,
     ServerError,
-    NativeRequest
+    NativeRequest,
+    AccountInfo
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
@@ -151,6 +152,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         return this.acquireTokenByCode(tokenRequest);
     }
 
+    /**
+     * Returns a token retrieved either from the cache or by exchanging the refresh token for a fresh access token. If brokering is enabled the token request will be serviced by the broker.
+     * @param request 
+     * @returns 
+     */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
         const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenSilent called", correlationId);
@@ -171,5 +177,18 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }
 
         return super.acquireTokenSilent(request);
+    }
+
+    /**
+     * Returns all cached accounts for this application. If brokering is enabled this request will be serviced by the broker.
+     * @returns 
+     */
+    async getAllAccounts(): Promise<AccountInfo[]> {
+        if (this.config.broker.allowNativeBroker) {
+            const correlationId = this.cryptoProvider.createNewGuid();
+            return this.config.broker.nativeBrokerPlugin.getAllAccounts(this.config.auth.clientId, correlationId);
+        }
+
+        return Promise.resolve(this.getTokenCache().getAllAccounts());
     }
 }
