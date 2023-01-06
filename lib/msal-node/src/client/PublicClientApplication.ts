@@ -189,6 +189,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return this.config.broker.nativeBrokerPlugin.getAllAccounts(this.config.auth.clientId, correlationId);
         }
 
-        return Promise.resolve(this.getTokenCache().getAllAccounts());
+        return this.getTokenCache().getAllAccounts();
     }
 }

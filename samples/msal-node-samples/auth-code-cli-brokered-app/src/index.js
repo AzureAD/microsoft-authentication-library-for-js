@@ -26,7 +26,7 @@ const loginRequest = {
 const pca = new PublicClientApplication(authConfig);
 
 const acquireToken = async () => {
-    const accounts = await pca.getTokenCache().getAllAccounts();
+    const accounts = await pca.getAllAccounts();
     if (accounts.length == 1) {
         const silentRequest = {
             account: accounts[0],
