@@ -46,7 +46,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     break; 
             }
         };
-        addon.RegisterLoggingCallback(logCallback);
+        addon.RegisterLogger(logCallback);
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
