@@ -7,6 +7,7 @@ import {
     InteractiveRequest,
     SilentFlowRequest,
 } from "@azure/msal-node";
+import { NativeBrokerPlugin } from "@azure/msal-node-extensions";
 import { cachePlugin } from "./CachePlugin";
 import * as fs from "fs";
 
@@ -28,10 +29,14 @@ export default class AuthProvider {
                     loggerCallback(loglevel, message, containsPii) {
                         console.log(message);
                     },
-                    piiLoggingEnabled: false,
+                    piiLoggingEnabled: true,
                     logLevel: LogLevel.Info,
                 },
             },
+            broker: {
+                allowNativeBroker: true,
+                nativeBrokerPlugin: new NativeBrokerPlugin()
+            }
         });
     }
 
@@ -150,8 +155,7 @@ export default class AuthProvider {
     }
 
     private async getAccount(): Promise<AccountInfo> {
-        const cache = this.clientApplication.getTokenCache();
-        const currentAccounts = await cache.getAllAccounts();
+        const currentAccounts = await this.clientApplication.getAllAccounts();
 
         if (currentAccounts === null) {
             console.log("No accounts detected");

@@ -9,7 +9,7 @@ module.exports = {
         rules: require("./webpack.rules"),
     },
     resolve: {
-        extensions: [".js", ".ts", ".jsx", ".tsx", ".css", ".json"],
+        extensions: [".js", ".ts", ".jsx", ".tsx", ".css", ".json", ".node"],
     },
     externals: {
         "node-fetch": "commonjs2 node-fetch",
