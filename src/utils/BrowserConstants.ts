@@ -94,7 +94,8 @@ export enum TemporaryCacheKeys {
  */
 export enum InMemoryCacheKeys {
     WRAPPER_SKU = "wrapper.sku",
-    WRAPPER_VER = "wrapper.version"
+    WRAPPER_VER = "wrapper.version",
+    TELEMETRY_QUEUE_TIME = "telemetry.queue.time"
 }
 
 /**
