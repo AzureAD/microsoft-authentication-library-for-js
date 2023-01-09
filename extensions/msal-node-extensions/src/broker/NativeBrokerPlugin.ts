@@ -21,32 +21,60 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
     setLogger(loggerOptions: LoggerOptions): void {
         this.logger = new Logger(loggerOptions, name, version);
-        const logCallback = (message: string, logLevel: MsalRuntimeLogLevel) => {
+        const logCallback = (message: string, logLevel: MsalRuntimeLogLevel, containsPii: boolean) => {
             switch(logLevel) {
                 case MsalRuntimeLogLevel.Trace:
-                    this.logger.trace(message);
+                    if (containsPii) {
+                        this.logger.tracePii(message);
+                    } else {
+                        this.logger.trace(message);
+                    }
                     break;
                 case MsalRuntimeLogLevel.Debug: 
-                    this.logger.trace(message);
+                    if (containsPii) {
+                        this.logger.tracePii(message);
+                    } else {
+                        this.logger.trace(message);
+                    }
                     break;
                 case MsalRuntimeLogLevel.Info:
-                    this.logger.info(message);
+                    if (containsPii) {
+                        this.logger.infoPii(message);
+                    } else {
+                        this.logger.info(message);
+                    }
                     break;
                 case MsalRuntimeLogLevel.Warning:
-                    this.logger.warning(message);
+                    if (containsPii) {
+                        this.logger.warningPii(message);
+                    } else {
+                        this.logger.warning(message);
+                    }
                     break;
                 case MsalRuntimeLogLevel.Error:
-                    this.logger.error(message);
+                    if (containsPii) {
+                        this.logger.errorPii(message);
+                    } else {
+                        this.logger.error(message);
+                    }
                     break;
                 case MsalRuntimeLogLevel.Fatal:
-                    this.logger.error(message);
+                    if (containsPii) {
+                        this.logger.errorPii(message);
+                    } else {
+                        this.logger.error(message);
+                    }
                     break;
                 default:
-                    this.logger.info(message);
+                    if (containsPii) {
+                        this.logger.infoPii(message);
+                    } else {
+                        this.logger.info(message);
+                    }
                     break; 
             }
         };
-        addon.RegisterLogger(logCallback);
+        addon.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
