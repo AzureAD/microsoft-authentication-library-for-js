@@ -61,13 +61,13 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
         return this.guidGenerator.generateGuid();
     }
 
-    startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
+    startPerformanceMeasurement(measureName: string, correlationId?: string): IPerformanceMeasurement {
         return new MockPerformanceMeasurement();
     }
 }
 
 class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
-    startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
+    startPerformanceMeasurement(measureName: string, correlationId?: string): IPerformanceMeasurement {
         return new UnsupportedBrowserPerformanceMeasurement();
     }
 }
