@@ -119,8 +119,8 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string): Promise<AuthenticationResult> {
-        const preQueueTime = this.cacheStorage.getPreQueueTime(PerformanceEvents.HandleServerTokenResponse);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.HandleServerTokenResponse, serverTokenResponse.correlation_id, preQueueTime);
+        const preQueueTime = this.cacheStorage.getPreQueueTime(PerformanceEvents.HandleServerTokenResponse, serverTokenResponse.correlation_id);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;

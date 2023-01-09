@@ -41,6 +41,7 @@ export class PopTokenGenerator {
 
     constructor(cryptoUtils: ICrypto, cacheManager?: CacheManager, performanceClient?: IPerformanceClient) {
         this.cryptoUtils = cryptoUtils;
+        this.cacheManager = cacheManager;
         this.performanceClient = performanceClient;
     }
 
@@ -51,10 +52,10 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateCnf(request: SignedHttpRequestParameters): Promise<ReqCnfData> {
-        const preQueueTime = this.cacheManager?.getPreQueueTime(PerformanceEvents.PopTokenGenerateCnf);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.PopTokenGenerateCnf, request.correlationId, preQueueTime);
+        const preQueueTime = this.cacheManager?.getPreQueueTime(PerformanceEvents.PopTokenGenerateCnf, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
-        this.cacheManager?.setPreQueueTime(PerformanceEvents.PopTokenGenerateKid);
+        this.cacheManager?.setPreQueueTime(PerformanceEvents.PopTokenGenerateKid, request.correlationId);
         const reqCnf = await this.generateKid(request);
         const reqCnfString: string = this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
 
@@ -71,8 +72,8 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        const preQueueTime = this.cacheManager?.getPreQueueTime(PerformanceEvents.PopTokenGenerateKid);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.PopTokenGenerateKid, request.correlationId, preQueueTime);
+        const preQueueTime = this.cacheManager?.getPreQueueTime(PerformanceEvents.PopTokenGenerateKid, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
