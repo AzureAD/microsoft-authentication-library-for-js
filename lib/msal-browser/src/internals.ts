@@ -30,3 +30,6 @@ export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
 
 // Crypto
 export { CryptoOps } from "./crypto/CryptoOps"; 
+
+// Browser Errors
+export { NativeAuthError } from "./error/NativeAuthError";
