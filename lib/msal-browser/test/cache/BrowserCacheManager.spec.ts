@@ -7,13 +7,12 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, ClientAuthError, AuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, ClientAuthError, AuthError, ClientAuthErrorMessage, QueueMeasurement, PerformanceEvents } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
-import { ClientAuthErrorMessage } from "@azure/msal-common";
 
 describe("BrowserCacheManager tests", () => {
 
@@ -571,6 +570,56 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAuthorityMetadata(key)).toBeNull();
                     expect(browserLocalStorage.getAuthorityMetadataKeys().length).toBe(0);
                     expect(browserSessionStorage.getAuthorityMetadataKeys().length).toBe(0);
+                });
+            });
+
+            describe("Telemetry queue time", () => {
+                const testEventName = PerformanceEvents.AcquireTokenSilent;
+                const testCorrelationId = RANDOM_TEST_GUID;
+
+                it("getPreQueueTime() returns null if key is not in cache", () => {
+                    expect(browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId)).toBeNull();
+                    expect(browserLocalStorage.getPreQueueTime(testEventName, testCorrelationId)).toBeNull();
+                });
+
+                it("getPreQueueTime() returns null if no correlationId provided", () => {
+                    expect(browserSessionStorage.getPreQueueTime(testEventName)).toBeNull();
+                    expect(browserLocalStorage.getPreQueueTime(testEventName)).toBeNull();
+                });
+
+                it("setPreQueueTime() and getPreQueueTime() sets and returns queue time in-memory", () => {
+                    browserSessionStorage.setPreQueueTime(testEventName, testCorrelationId);
+                    browserLocalStorage.setPreQueueTime(testEventName, testCorrelationId);
+
+                    const sessionQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
+                    expect(sessionQueueObject).toBeTruthy();
+                    expect(sessionQueueObject?.eventName).toBe(testEventName);
+                    expect(sessionQueueObject?.correlationId).toBe(testCorrelationId);
+                    expect(sessionQueueObject?.preQueueTime).toBeGreaterThan(0);
+
+                    const localQueueObject = browserLocalStorage.getPreQueueTime(testEventName, testCorrelationId);
+                    expect(localQueueObject).toBeTruthy();
+                    expect(localQueueObject?.eventName).toBe(testEventName);
+                    expect(localQueueObject?.correlationId).toBe(testCorrelationId);
+                    expect(localQueueObject?.preQueueTime).toBeGreaterThan(0);
+                });
+
+                it("getPreQueueTime() removes queue time from in-memory storage after returning", () => {
+                    browserSessionStorage.setPreQueueTime(testEventName, testCorrelationId);
+                    browserLocalStorage.setPreQueueTime(testEventName, testCorrelationId);
+
+                    const sessionQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
+                    expect(sessionQueueObject).toBeTruthy();
+
+                    const clearedSessionQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
+                    expect(clearedSessionQueueObject).toBeNull();
+
+                    const localQueueObject = browserLocalStorage.getPreQueueTime(testEventName, testCorrelationId);
+                    expect(localQueueObject).toBeTruthy();
+
+                    const clearedLocalQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
+                    expect(clearedLocalQueueObject).toBeNull();
+
                 });
             });
 

@@ -1,4 +1,4 @@
-import { ApplicationTelemetry, Logger, PerformanceClient, PerformanceEvents } from "@azure/msal-common";
+import { ApplicationTelemetry, Logger, PerformanceClient, PerformanceEvents, QueueMeasurement } from "@azure/msal-common";
 import { name, version } from "../../src/packageMetadata";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
@@ -72,8 +72,12 @@ describe("BrowserPerformanceClient.ts", () => {
             const spy = jest.spyOn(PerformanceClient.prototype, "addQueueMeasurement");
 
             const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+            const preQueueObject = {
+                eventName: PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            } as QueueMeasurement;
 
-            browserPerfClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            browserPerfClient.addQueueMeasurement(preQueueObject);
 
             expect(spy).toHaveBeenCalledTimes(0);
         });
@@ -83,8 +87,13 @@ describe("BrowserPerformanceClient.ts", () => {
             const addQueueSpy = jest.spyOn(PerformanceClient.prototype, "addQueueMeasurement");
 
             const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+            const preQueueObject = {
+                eventName: PerformanceEvents.AcquireTokenSilent,
+                correlationId,
+                preQueueTime: 12345
+            } as QueueMeasurement;
 
-            browserPerfClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId, 12345);
+            browserPerfClient.addQueueMeasurement(preQueueObject);
 
             expect(calculateTimeSpy).toHaveBeenCalledTimes(1);
             expect(addQueueSpy).toHaveBeenCalledTimes(1);

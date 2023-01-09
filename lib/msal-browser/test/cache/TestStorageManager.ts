@@ -15,7 +15,9 @@ import {
     CredentialEntity,
     CredentialType,
     AuthorityMetadataEntity,
-    ValidCredentialType
+    ValidCredentialType,
+    PerformanceEvents,
+    QueueMeasurement
 } from "@azure/msal-common";
 
 export class TestStorageManager extends CacheManager {
@@ -93,6 +95,16 @@ export class TestStorageManager extends CacheManager {
     
     setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
         this.store[key] = value;
+    }
+
+    // Queue Time Cache
+    getPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): QueueMeasurement | null {
+        const key = `${correlationId}-${eventName}`;
+        return this.store[key] as QueueMeasurement;
+    }
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+        const key = `${correlationId}-${eventName}`;
+        this.store[key] = {eventName, correlationId} as QueueMeasurement;
     }
 
     getAuthorityMetadataKeys(): Array<string> {
