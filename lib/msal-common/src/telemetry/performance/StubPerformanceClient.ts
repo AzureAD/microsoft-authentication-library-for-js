@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { IPerformanceClient } from "./IPerformanceClient";
+import { IPerformanceClient, QueueMeasurement } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceClient } from "./PerformanceClient";
-import { PerformanceEvents } from "./PerformanceEvent";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     /* eslint-disable-next-line @typescript-eslint/no-empty-function */
@@ -34,7 +33,7 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
     }
 
     /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number): void {
+    addQueueMeasurement(queueMeasurement: QueueMeasurement): void {
         return;
     }
 }

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent, ApplicationTelemetry } from "@azure/msal-common";
+import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent, ApplicationTelemetry, QueueMeasurement } from "@azure/msal-common";
 import { CryptoOptions } from "../config/Configuration";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
@@ -65,15 +65,15 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @param {?number} preQueueTime 
      * @returns 
      */
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, preQueueTime?: number | null): void {
-        if (!preQueueTime) {
-            this.logger.trace(`BrowserPerformanceClient:addQueueMeasurement - preQueueTime not provided for ${name}, cannot calculate queue time`);
+    addQueueMeasurement(preQueueObject?: QueueMeasurement): void {
+        if (!preQueueObject || !preQueueObject.preQueueTime) {
+            this.logger.trace("BrowserPerformanceClient:addQueueMeasurement - preQueueTime not provided, cannot calculate queue time");
             return;
         }
 
         const currentTime = window.performance.now();
-        const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
+        const queueTime = super.calculateQueuedTime(preQueueObject.preQueueTime, currentTime);
 
-        return super.addQueueMeasurement(name, correlationId, queueTime);
+        return super.addQueueMeasurement({...preQueueObject, queueTime});
     }
 }

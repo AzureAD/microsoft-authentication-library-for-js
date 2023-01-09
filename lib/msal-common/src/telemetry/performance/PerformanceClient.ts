@@ -127,30 +127,35 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {?number} time 
      * @returns 
      */
-    addQueueMeasurement(name: PerformanceEvents, correlationId?: string, time?: number|null): void {
-        if (!correlationId) {
-            this.logger.trace(`PerformanceClient: correlationId not provided for ${name}, cannot add queue measurement`);
+    addQueueMeasurement(queueMeasurement?: QueueMeasurement | null): void {
+        if (!queueMeasurement) {
+            this.logger.trace("PerformanceClient.addQueueMeasurement: no queueMeasurement provided");
             return;
         }
 
-        if (time === 0) {
+        if (!queueMeasurement.correlationId) {
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: correlationId not provided for ${queueMeasurement.eventName}, cannot add queue measurement`);
+            return;
+        }
+
+        if (queueMeasurement.queueTime === 0) {
             // Possible for there to be no queue time after calculation
-            this.logger.trace(`PerformanceClient: queue time provided for ${name} is ${time}`);
-        } else if (!time) {
-            this.logger.trace(`PerformanceClient: no queue time provided for ${name}`);
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: queue time provided for ${queueMeasurement.eventName} is ${queueMeasurement.queueTime}`);
+        } else if (!queueMeasurement.queueTime) {
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: no queue time provided for ${queueMeasurement.eventName}`);
             return;
         }
 
         // Adds to existing correlation Id if present in queueMeasurements
-        const existingMeasurements = this.queueMeasurements.get(correlationId);
+        const existingMeasurements = this.queueMeasurements.get(queueMeasurement.correlationId);
         if (existingMeasurements) {
-            this.queueMeasurements.set(correlationId, [...existingMeasurements, {name, time} as QueueMeasurement]);
+            this.queueMeasurements.set(queueMeasurement.correlationId, [...existingMeasurements, queueMeasurement]);
         } else {
             // Sets new correlation Id if not present in queueMeasurements
-            this.logger.trace(`PerformanceClient: adding correlationId ${correlationId} to queue measurements`);
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: adding correlationId ${queueMeasurement.correlationId} to queue measurements`);
             const measurementArray = [];
-            measurementArray.push({name, time} as QueueMeasurement);
-            this.queueMeasurements.set(correlationId, measurementArray);
+            measurementArray.push(queueMeasurement);
+            this.queueMeasurements.set(queueMeasurement.correlationId, measurementArray);
         }
     }
 
@@ -326,8 +331,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         let totalTime = 0;
         let totalCount = 0;
         queueMeasurementForCorrelationId?.forEach((measurement) => {
-            totalTime += measurement.time;
-            totalCount++;
+            if (typeof measurement.queueTime === "number") {
+                totalTime += measurement.queueTime;
+                totalCount++;
+            }
         });
 
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
