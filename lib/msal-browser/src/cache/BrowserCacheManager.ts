@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError, PerformanceEvents, QueueMeasurement } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -627,18 +627,49 @@ export class BrowserCacheManager extends CacheManager {
         ];
     }
 
-    getPreQueueTime(key: string): number | null {
+    /**
+     * Generates telemetry cache key and sets current time in memory
+     * @param eventName 
+     * @param correlationId 
+     * @returns 
+     */
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void {
+        this.logger.trace("BrowserCacheManager.setPreQueueTime called");
+        if (!correlationId){
+            this.logger.trace(`BrowserCacheManager.setPreQueueTime: missing correlationId for ${eventName}, unable to set telemetry queue time`);
+            return;
+        }
+
+        const key = this.generateTelemetryCacheKey(InMemoryCacheKeys.TELEMETRY_QUEUE_TIME, correlationId, eventName);
+        this.internalStorage.setItem(key, JSON.stringify(window.performance.now()));
+    }
+
+    /**
+     * Gets telemetry time in memory and returns queue measurement object
+     * @param eventName 
+     * @param correlationId 
+     * @returns 
+     */
+    getPreQueueTime(eventName: PerformanceEvents, correlationId?: string): QueueMeasurement | null {
+        if (!correlationId){
+            this.logger.trace(`BrowserCacheManager.getPreQueueTime: missing correlationId for ${eventName}, unable to retrieve telemetry queue time`);
+            return null;
+        }
+
+        const key = this.generateTelemetryCacheKey(InMemoryCacheKeys.TELEMETRY_QUEUE_TIME, correlationId, eventName);
         const value = this.internalStorage.getItem(key);
+
         if (!value) {
             this.logger.trace(`BrowserCacheManager.getPreQueueTime: called, no cache hit for ${key}`);
             return null;
         }
-        return +value;
-    }
+        this.internalStorage.removeItem(key);
 
-    setPreQueueTime(key: string): void {
-        this.logger.trace("BrowserCacheManager.setPreQueueTime called");
-        this.internalStorage.setItem(key, JSON.stringify(window.performance.now()));
+        return {
+            eventName,
+            correlationId,
+            preQueueTime: +value
+        } as QueueMeasurement;
     }
 
     /**
