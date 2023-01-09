@@ -26,8 +26,8 @@ export class SilentHandler extends InteractionHandler {
      * @param userRequestScopes
      */
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerInitiateAuthRequest);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId, preQueueTime);
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId);
+        this.performanceClient.addQueueMeasurement(preQueueTime);
 
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
@@ -35,8 +35,11 @@ export class SilentHandler extends InteractionHandler {
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
-        this.browserStorage.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame);
-        return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
+        if (this.navigateFrameWait) {
+            this.browserStorage.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+            return await this.loadFrame(requestUrl);
+        }
+        return this.loadFrameSync(requestUrl);
     }
 
     /**
@@ -45,8 +48,8 @@ export class SilentHandler extends InteractionHandler {
      * @param timeout
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerMonitorIframeForHash);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId, preQueueTime);
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId);
+        this.performanceClient.addQueueMeasurement(preQueueTime);
 
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
@@ -101,8 +104,8 @@ export class SilentHandler extends InteractionHandler {
      * @ignore
      */
     private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId, preQueueTime);
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+        this.performanceClient.addQueueMeasurement(preQueueTime);
 
         /*
          * This trick overcomes iframe navigation in IE

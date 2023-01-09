@@ -36,13 +36,13 @@ export class RefreshTokenClient extends BaseClient {
 
     }
     public async acquireToken(request: CommonRefreshTokenRequest): Promise<AuthenticationResult> {
-        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireToken);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId, preQueueTime);
+        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
         this.logger.verbose("RefreshTokenClientAcquireToken called", request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
-        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientExecuteTokenRequest);
+        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
         const response = await this.executeTokenRequest(request, this.authority);
         const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         atsMeasurement?.addStaticFields({
@@ -67,7 +67,7 @@ export class RefreshTokenClient extends BaseClient {
         );
         responseHandler.validateTokenResponse(response.body);
 
-        this.cacheManager.setPreQueueTime(PerformanceEvents.HandleServerTokenResponse);
+        this.cacheManager.setPreQueueTime(PerformanceEvents.HandleServerTokenResponse, request.correlationId);
         return responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
@@ -100,13 +100,13 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     public async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request?.correlationId, preQueueTime);
-
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
+
+        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
@@ -119,7 +119,7 @@ export class RefreshTokenClient extends BaseClient {
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
         if (isFOCI) {
             try {
-                this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken);
+                this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
                 return this.acquireTokenWithCachedRefreshToken(request, true);
             } catch (e) {
                 const noFamilyRTInCache = e instanceof InteractionRequiredAuthError && e.errorCode === InteractionRequiredAuthErrorMessage.noTokensFoundError.code;
@@ -127,7 +127,7 @@ export class RefreshTokenClient extends BaseClient {
 
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
                 if (noFamilyRTInCache || clientMismatchErrorWithFamilyRT) {
-                    this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken);
+                    this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
                     return this.acquireTokenWithCachedRefreshToken(request, false);
                     // throw in all other cases
                 } else {
@@ -136,7 +136,7 @@ export class RefreshTokenClient extends BaseClient {
             }
         }
         // fall back to application refresh token acquisition
-        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken);
+        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
         return this.acquireTokenWithCachedRefreshToken(request, false);
 
     }
@@ -146,8 +146,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
-        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId, preQueueTime);
+        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
         // fetches family RT or application RT based on FOCI value
 
@@ -174,7 +174,7 @@ export class RefreshTokenClient extends BaseClient {
             }
         };
 
-        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireToken);
+        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireToken, request.correlationId);
         return this.acquireToken(refreshTokenRequest);
     }
 
@@ -185,11 +185,11 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientExecuteTokenRequest);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId, preQueueTime);
+        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
         const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
         
-        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody);
+        this.cacheManager.setPreQueueTime(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody, request.correlationId);
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -240,8 +240,8 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
-        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody);
-        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody, request.correlationId, preQueueTime);
+        const preQueueTime = this.cacheManager.getPreQueueTime(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody, request.correlationId);
+        this.performanceClient?.addQueueMeasurement(preQueueTime);
 
         const correlationId = request.correlationId;
         const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); // TODO: should this be headers or body?
@@ -279,7 +279,7 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils, this.cacheManager, this.performanceClient);
-            this.cacheManager.setPreQueueTime(PerformanceEvents.PopTokenGenerateCnf);
+            this.cacheManager.setPreQueueTime(PerformanceEvents.PopTokenGenerateCnf, request.correlationId);
             const reqCnfData = await popTokenGenerator.generateCnf(request);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
