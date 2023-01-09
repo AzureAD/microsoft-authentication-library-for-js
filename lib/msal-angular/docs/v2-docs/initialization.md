@@ -157,7 +157,7 @@ Please note that the `MsalInterceptor` is provided for your convenience and may 
 
 ## Subscribe to events
 
-MSAL provides an event system, which emits events related to auth and MSAL, an can be subscribed to as below. To use events, the `MsalBroadcastService` should be added to your constructor in your component/service. 
+MSAL provides an event system, which emits events related to auth and MSAL, and can be subscribed to as below. To use events, the `MsalBroadcastService` should be added to your constructor in your component/service. 
 
 ### 1. How to subscribe to events
 

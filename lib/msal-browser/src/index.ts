@@ -17,7 +17,7 @@ export { internals };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "./config/Configuration";
-export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
+export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId, CacheLookupPolicy } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors
@@ -46,6 +46,8 @@ export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMes
 export { EventType } from "./event/EventType";
 
 export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
+
+export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
 
 // Common Object Formats
 export {

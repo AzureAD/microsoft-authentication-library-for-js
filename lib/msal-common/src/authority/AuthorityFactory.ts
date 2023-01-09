@@ -10,6 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
+import { Logger } from "../logger/Logger";
 
 export class AuthorityFactory {
 
@@ -23,9 +24,23 @@ export class AuthorityFactory {
      * @param networkClient
      * @param protocolMode
      */
-    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string): Promise<Authority> {
+    static async createDiscoveredInstance(
+        authorityUri: string,
+        networkClient: INetworkModule,
+        cacheManager: ICacheManager,
+        authorityOptions: AuthorityOptions,
+        logger: Logger,
+        proxyUrl?: string
+    ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
-        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, proxyUrl);
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
+            authorityUri,
+            networkClient,
+            cacheManager,
+            authorityOptions,
+            logger,
+            proxyUrl
+        );
 
         try {
             await acquireTokenAuthority.resolveEndpointsAsync();
@@ -45,12 +60,19 @@ export class AuthorityFactory {
      * @param networkInterface
      * @param protocolMode
      */
-    static createInstance(authorityUrl: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string): Authority {
+    static createInstance(
+        authorityUrl: string,
+        networkInterface: INetworkModule,
+        cacheManager: ICacheManager,
+        authorityOptions: AuthorityOptions,
+        logger: Logger,
+        proxyUrl?: string
+    ): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl);
     }
 }

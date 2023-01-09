@@ -25,6 +25,7 @@ export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
+export { ClientInfo, buildClientInfo, buildClientInfoFromHomeAccountId } from "./account/ClientInfo";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptions";
@@ -34,6 +35,7 @@ export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
+export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
 export { AccountEntity } from "./cache/entities/AccountEntity";
@@ -88,7 +90,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
@@ -99,7 +101,7 @@ export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryReques
 
 // Performance Telemetry
 export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent } from "./telemetry/performance/IPerformanceClient";
-export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus } from "./telemetry/performance/PerformanceEvent";
+export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";

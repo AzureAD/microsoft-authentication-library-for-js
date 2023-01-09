@@ -8,12 +8,22 @@ import {
     DeviceCodeClient,
     AuthenticationResult,
     CommonDeviceCodeRequest,
-    AuthError
+    AuthError,
+    ResponseMode,
+    OIDC_DEFAULT_SCOPES,
+    CodeChallengeMethodValues,
+    Constants as CommonConstants,
+    ServerError
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { InteractiveRequest } from "../request/InteractiveRequest";
+import { NodeAuthError } from "../error/NodeAuthError";
+import { LoopbackClient } from "../network/LoopbackClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -73,5 +83,47 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
+    }
+
+    /**
+     * Acquires a token by requesting an Authorization code then exchanging it for a token.
+     */
+    async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
+        const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
+        const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
+
+        const loopbackClient = new LoopbackClient();
+        const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
+        const redirectUri = loopbackClient.getRedirectUri();
+
+        const validRequest: AuthorizationUrlRequest = {
+            ...remainingProperties,
+            scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+            redirectUri: redirectUri,
+            responseMode: ResponseMode.QUERY,
+            codeChallenge: challenge, 
+            codeChallengeMethod: CodeChallengeMethodValues.S256
+        };
+
+        const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+        await openBrowser(authCodeUrl);
+        const authCodeResponse = await authCodeListener.finally(() => {
+            loopbackClient.closeServer();
+        });
+
+        if (authCodeResponse.error) {
+            throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
+        } else if (!authCodeResponse.code) {
+            throw NodeAuthError.createNoAuthCodeInResponseError();
+        }
+
+        const clientInfo = authCodeResponse.client_info;
+        const tokenRequest: AuthorizationCodeRequest = {
+            code: authCodeResponse.code,
+            codeVerifier: verifier,
+            clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+            ...validRequest
+        };
+        return this.acquireTokenByCode(tokenRequest);
     }
 }

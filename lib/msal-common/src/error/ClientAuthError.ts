@@ -65,6 +65,16 @@ export const ClientAuthErrorMessage = {
         code: "nonce_not_found",
         desc: "nonce not found"
     },
+    authTimeNotFoundError: {
+        code: "auth_time_not_found",
+        desc: "Max Age was requested and the ID token is missing the auth_time variable." +
+            " auth_time is an optional claim and is not enabled by default - it must be enabled." +
+            " See https://aka.ms/msaljs/optional-claims for more information."
+    },
+    maxAgeTranspiredError: {
+        code: "max_age_transpired",
+        desc: "Max Age is set to 0, or too much time has elapsed since the last end-user authentication."
+    },
     noTokensFoundError: {
         code: "no_tokens_found",
         desc: "No tokens were found for the given scopes, and no authorization code was passed to acquireToken. You must retrieve an authorization code before making a call to acquireToken()."
@@ -239,7 +249,7 @@ export class ClientAuthError extends AuthError {
      * Creates an error thrown when the id token string is null or empty.
      * @param invalidRawTokenString
      */
-    static createTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
+    static createTokenNullOrEmptyError(invalidRawTokenString: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nullOrEmptyToken.code,
             `${ClientAuthErrorMessage.nullOrEmptyToken.desc} Raw Token Value: ${invalidRawTokenString}`);
     }
@@ -309,6 +319,23 @@ export class ClientAuthError extends AuthError {
     static createNonceMismatchError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceMismatchError.code,
             ClientAuthErrorMessage.nonceMismatchError.desc);
+    }
+
+    /**
+     * Creates an error thrown when max_age was provided in the request, but auth_time is not in the token claims
+     * @param missingNonce
+     */
+    static createAuthTimeNotFoundError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.authTimeNotFoundError.code,
+            ClientAuthErrorMessage.authTimeNotFoundError.desc);
+    }
+
+    /**
+     * Creates an error thrown when too much time has elapsed since the last end-user authentication
+     */
+    static createMaxAgeTranspiredError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.maxAgeTranspiredError.code,
+            ClientAuthErrorMessage.maxAgeTranspiredError.desc);
     }
 
     /**

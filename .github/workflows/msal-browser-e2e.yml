@@ -52,10 +52,12 @@ jobs:
       run: npm ci
 
     - name: Restore node_modules for test tools
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: test-tools-cache
       with: 
-        path: samples/node_modules
+        path: |
+          samples/node_modules
+          samples/.cache/puppeteer
         key: ${{ runner.os }}-browser-test-tools-${{ hashFiles('samples/package-lock.json') }}
 
     - name: Install Test Tools
@@ -64,7 +66,7 @@ jobs:
       run: npm ci
 
     - name: Restore node_modules for sample
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       id: sample-cache
       with: 
         path: samples/msal-browser-samples/VanillaJSTestApp2.0/node_modules

@@ -1,8 +1,94 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 Aug 2022 22:22:35 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jan 2023 22:44:58 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 9.0.2
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- Fix cache credential look-up (#5484) (kshabelko@microsoft.com)
+- fix logger explicitly set to undefined error #5355 (bmahal@microsoft.com)
+- http version telemetry data #5211 (bmahal@microsoft.com)
+- fix typos #5531 (bmahal@microsoft.com)
+
+## 9.0.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Fixed Typo in Authority Logs #5430 (rginsburg@microsoft.com)
+- Improvement to Cloud Instance Discovery #5448 (rginsburg@microsoft.com)
+
+## 9.0.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Major changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+
+## 8.0.0
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Major changes
+
+- Add static fields to telemetry #5224 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Add MATS fields to telemetry #5308 (thomas.norling@microsoft.com)
+
+## 7.6.0
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Minor changes
+
+- Include refresh token in ExternalTokenResponse #5233 (louisv@microsoft.com)
+
+### Patches
+
+- Fixed broken homeAccountId check in CacheManager #5246 (rginsburg@microsoft.com)
+
+## 7.5.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
+- Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+
+### Patches
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
+
+## 7.4.1
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Exporting constants #5189 (lalimasharda@microsoft.com)
+
+## 7.4.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Exposed raw id token on account info objects #5036 (rginsburg@microsoft.com)
+- Export ClientInfo APIs #6886 (lalimasharda@microsoft.com)
+- Add query string parsing helpers #5062 (thomas.norling@microsoft.com)
 
 ## 7.3.0
 

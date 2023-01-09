@@ -5,7 +5,7 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ApplicationTelemetry } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserCacheLocation } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, BrowserConstants } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
 
@@ -136,6 +136,29 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the timeout for waiting for the native broker handshake to resolve
      */
     nativeBrokerHandshakeTimeout?: number;
+    /**
+     * Options related to browser crypto APIs
+     */
+    cryptoOptions?: CryptoOptions;
+    /**
+     * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
+     */
+    pollIntervalMilliseconds?: number;
+};
+
+export type CryptoOptions = {
+    
+    /**
+     * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
+     * @type {?boolean}
+     */
+    useMsrCrypto?: boolean;
+     
+    /**
+     * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
+     * @type {?Uint8Array}
+     */
+    entropy?: Uint8Array;
 };
 
 /**
@@ -219,7 +242,9 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        loggerCallback: (): void => {},
+        loggerCallback: (): void => {
+            // allow users to not set logger call back 
+        },
         logLevel: LogLevel.Info,
         piiLoggingEnabled: false
     };
@@ -239,7 +264,17 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         asyncPopups: false,
         allowRedirectInIframe: false,
         allowNativeBroker: false,
-        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS
+        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+        pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
+        cryptoOptions: {
+            useMsrCrypto: false,
+            entropy: undefined
+        }
+    };
+
+    const providedSystemOptions:BrowserSystemOptions = {
+        ...userInputSystem,
+        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
@@ -252,7 +287,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem },
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
     };
     return overlayedConfig;

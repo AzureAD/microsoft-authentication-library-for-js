@@ -8,11 +8,44 @@
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
 
-trigger: none # https://aka.ms/obpipelines/triggers
+trigger:
+  - release
 
 parameters: # parameters are shown up in ADO UI in a build queue time
 - name: 'debug'
   displayName: 'Enable debug output'
+  type: boolean
+  default: false
+- name: 'testMode'
+  displayName: 'Run in test mode'
+  type: boolean
+  default: false
+- name: 'overrideMsalCore'
+  displayName: 'Publish MSAL Core'
+  type: boolean
+  default: false
+- name: 'overrideMsalCommon'
+  displayName: 'Publish MSAL Common'
+  type: boolean
+  default: false
+- name: 'overrideMsalBrowser'
+  displayName: 'Publish MSAL Browser'
+  type: boolean
+  default: false
+- name: 'overrideMsalNode'
+  displayName: 'Publish MSAL Node'
+  type: boolean
+  default: false
+- name: 'overrideMsalReact'
+  displayName: 'Publish MSAL React'
+  type: boolean
+  default: false
+- name: 'overrideMsalAngular'
+  displayName: 'Publish MSAL Angular'
+  type: boolean
+  default: false
+- name: 'overrideMsalNodeExtensions'
+  displayName: 'Publish MSAL Node Extensions'
   type: boolean
   default: false
 
@@ -67,7 +100,7 @@ extends:
             inputs:
               scriptPath: "release-scripts/prepublish.sh"
             name: filter
-    # PUBLISH v1
+    # PUBLISH MSAL Core
     - stage: publish
       dependsOn: pre_release
       displayName: 'Publish Packages'
@@ -86,8 +119,10 @@ extends:
             jobName: 'publish_msal_core'
             path: 'lib'
             libName: 'msal-core'
-            cdn: true
+            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalCore'
+            publishOverride: ${{ parameters.overrideMsalCore }}
+            testMode: ${{ parameters.testMode }}
       # Release MSAL Common
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -96,15 +131,19 @@ extends:
             libName: 'msal-common'
             cdn: false
             publishFlagName: 'MsalCommon'
+            publishOverride: ${{ parameters.overrideMsalCommon }}
+            testMode: ${{ parameters.testMode }}
       # Release MSAL Browser
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
             jobName: 'publish_msal_browser'
             path: 'lib'
             libName: 'msal-browser'
-            cdn: true
+            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalBrowser'
             dependsOn: 'publish_msal_common'
+            publishOverride: ${{ parameters.overrideMsalBrowser }}
+            testMode: ${{ parameters.testMode }}
       # Release MSAL React
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -114,6 +153,7 @@ extends:
             cdn: false
             publishFlagName: 'MsalReact'
             dependsOn: 'publish_msal_browser'
+            publishOverride: ${{ parameters.overrideMsalReact }}
       # Release MSAL Angular
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
@@ -123,21 +163,30 @@ extends:
             cdn: false
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
+            publishOverride: ${{ parameters.overrideMsalAngular }}
+            testMode: ${{ parameters.testMode }}
       # Release MSAL Node
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
-            jobName: 'release_msal_node'
+            jobName: 'publish_msal_node'
             path: 'lib'
             libName: 'msal-node'
             cdn: false
             publishFlagName: 'MsalNode'
             dependsOn: 'publish_msal_common'
+            publishOverride: ${{ parameters.overrideMsalNode }}
+            testMode: ${{ parameters.testMode }}
         # Release MSAL Node Extensions
         - template: .pipelines/custom-templates/publish-template.yml@self
           parameters:
-            jobName: 'release_msal_node_extensions'
+            jobName: 'publish_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
             cdn: false
             publishFlagName: 'MsalNodeExtensions'
             dependsOn: 'publish_msal_common'
+            publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
+            testMode: ${{ parameters.testMode }}
+
+ 
+

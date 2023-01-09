@@ -1,5 +1,5 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
 
 import { MatButtonModule } from '@angular/material/button';
@@ -74,7 +74,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   ],
   imports: [
     BrowserModule,
-    BrowserAnimationsModule,
+    NoopAnimationsModule, // Animations cause delay which interfere with E2E tests
     AppRoutingModule,
     MatButtonModule,
     MatToolbarModule,

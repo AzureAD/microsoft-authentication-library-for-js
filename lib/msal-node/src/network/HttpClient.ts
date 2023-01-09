@@ -6,9 +6,10 @@
 import {
     INetworkModule,
     NetworkRequestOptions,
-    NetworkResponse,
+    NetworkResponse
 } from "@azure/msal-common";
-import { HttpMethod, Constants } from "../utils/Constants";
+import { HttpMethod, Constants, HttpStatus, ProxyStatus } from "../utils/Constants";
+import { NetworkUtils } from "../utils/NetworkUtils";
 import http from "http";
 import https from "https";
 
@@ -103,13 +104,12 @@ const networkRequestViaProxy = <T>(
 
         // establish connection to the proxy
         request.on("connect", (response, socket) => {
-            const statusCode = response?.statusCode || 500;
-            if (statusCode < 200 || statusCode > 299) {
+            const proxyStatusCode = response?.statusCode || ProxyStatus.SERVER_ERROR;
+            if ((proxyStatusCode < ProxyStatus.SUCCESS_RANGE_START) || (proxyStatusCode > ProxyStatus.SUCCESS_RANGE_END)) {
                 request.destroy();
                 socket.destroy();
-                reject(new Error(`HTTP status code ${statusCode}`));
+                reject(new Error(`Error connecting to proxy. Http status code: ${response.statusCode}. Http status message: ${response?.statusMessage || "Unknown"}`));
             }
-
             if (tunnelRequestOptions.timeout) {
                 socket.setTimeout(tunnelRequestOptions.timeout);
                 socket.on("timeout", () => {
@@ -133,8 +133,10 @@ const networkRequestViaProxy = <T>(
 
                 // separate each line into it's own entry in an arry
                 const dataStringArray = dataString.split("\r\n");
-                // the first entry will contain the statusCode
-                const statusCode = parseInt(dataStringArray[0].split(" ")[1]);
+                // the first entry will contain the statusCode and statusMessage
+                const httpStatusCode = parseInt(dataStringArray[0].split(" ")[1]);
+                // remove "HTTP/1.1" and the status code to get the status message
+                const statusMessage = dataStringArray[0].split(" ").slice(2).join(" ");
                 // the last entry will contain the body
                 const body = dataStringArray[dataStringArray.length - 1];
 
@@ -170,20 +172,18 @@ const networkRequestViaProxy = <T>(
                 });
                 const headers = Object.fromEntries(entries);
 
-                const networkResponse: NetworkResponse<T> = {
-                    headers: headers as Record<string, string>,
-                    body: JSON.parse(body) as T,
-                    status: statusCode as number,
-                };
+                const parsedHeaders = headers as Record<string, string>;
+                const networkResponse = NetworkUtils.getNetworkResponse(
+                    parsedHeaders,
+                    parseBody(httpStatusCode, statusMessage, parsedHeaders, body) as T,
+                    httpStatusCode
+                );
 
-                if ((statusCode < 200 || statusCode > 299) &&
+                if (((httpStatusCode < HttpStatus.SUCCESS_RANGE_START) || (httpStatusCode > HttpStatus.SUCCESS_RANGE_END)) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    socket.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
                 }
-
                 resolve(networkResponse);
             });
 
@@ -247,6 +247,7 @@ const networkRequestViaHttps = <T>(
         request.on("response", (response) => {
             const headers = response.headers;
             const statusCode = response.statusCode as number;
+            const statusMessage = response.statusMessage;
 
             const data: Buffer[] = [];
             response.on("data", (chunk) => {
@@ -257,19 +258,18 @@ const networkRequestViaHttps = <T>(
                 // combine all received buffer streams into one buffer, and then into a string
                 const body = Buffer.concat([...data]).toString();
 
-                const networkResponse: NetworkResponse<T> = {
-                    headers: headers as Record<string, string>,
-                    body: JSON.parse(body) as T,
-                    status: statusCode,
-                };
+                const parsedHeaders = headers as Record<string, string>;
+                const networkResponse = NetworkUtils.getNetworkResponse(
+                    parsedHeaders,
+                    parseBody(statusCode, statusMessage, parsedHeaders, body) as T,
+                    statusCode
+                );
 
-                if ((statusCode < 200 || statusCode > 299) &&
+                if (((statusCode < HttpStatus.SUCCESS_RANGE_START) || (statusCode > HttpStatus.SUCCESS_RANGE_END)) &&
                     // do not destroy the request for the device code flow
                     networkResponse.body["error"] !== Constants.AUTHORIZATION_PENDING) {
                     request.destroy();
-                    reject(new Error(`HTTP status code ${statusCode}`));
                 }
-
                 resolve(networkResponse);
             });
         });
@@ -279,4 +279,47 @@ const networkRequestViaHttps = <T>(
             reject(new Error(chunk.toString()));
         });
     });
+};
+
+/**
+ * Check if extra parsing is needed on the repsonse from the server
+ * @param statusCode {number} the status code of the response from the server
+ * @param statusMessage {string | undefined} the status message of the response from the server
+ * @param headers {Record<string, string>} the headers of the response from the server
+ * @param body {string} the body from the response of the server
+ * @returns {Object} JSON parsed body or error object
+ */
+const parseBody = (statusCode: number, statusMessage: string | undefined, headers: Record<string, string>, body: string) => {
+    /*
+     * Informational responses (100 – 199)
+     * Successful responses (200 – 299)
+     * Redirection messages (300 – 399)
+     * Client error responses (400 – 499)
+     * Server error responses (500 – 599)
+     */
+    
+    let parsedBody;
+    try {
+        parsedBody = JSON.parse(body);
+    } catch (error) {
+        let errorType;
+        let errorDescriptionHelper;
+        if ((statusCode >= HttpStatus.CLIENT_ERROR_RANGE_START) && (statusCode <= HttpStatus.CLIENT_ERROR_RANGE_END)) {
+            errorType = "client_error";
+            errorDescriptionHelper = "A client";
+        } else if ((statusCode >= HttpStatus.SERVER_ERROR_RANGE_START) && (statusCode <= HttpStatus.SERVER_ERROR_RANGE_END)) {
+            errorType = "server_error";
+            errorDescriptionHelper = "A server";
+        } else {
+            errorType = "unknown_error";
+            errorDescriptionHelper = "An unknown";
+        }
+
+        parsedBody = {
+            error: errorType,
+            error_description: `${errorDescriptionHelper} error occured.\nHttp status code: ${statusCode}\nHttp status message: ${statusMessage || "Unknown"}\nHeaders: ${JSON.stringify(headers)}`
+        };
+    }
+
+    return parsedBody;
 };

@@ -2,6 +2,214 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "@azure/msal-node_v1.14.6",
+      "version": "1.14.6",
+      "comments": {
+        "patch": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "00d3fd949453e3f9dc3316cc0e913a84b9c2cfa2",
+            "comment": "fix logger undefined error #5355"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Upgrade jsonwebtoken to v9"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v9.0.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-node_v1.14.5",
+      "version": "1.14.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "125c3e55e87feef31573a0d1567549cfc423ee59",
+            "comment": "Serialize/deserialize access token userAssertionHash property to fix cache persistence issue in OBO flow #5398"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v9.0.1",
+            "commit": "48cb414b1a722dacf5439a1df6bad070cff62aa4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-node_v1.14.4",
+      "version": "1.14.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "3abd22bdd6a3360822f442c5f9408c7d8e47fdde",
+            "comment": "Added logging to Authority class"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "5ad8f76c774a4d6a4c41380fc1a896c7910a3e62",
+            "comment": "Fixed msal-node HttpClient server error bug #5342"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "27f9a85b7eab5c1a5ec32189b683176b04af3563",
+            "comment": "Include original request params on /token request in acquireTokenInteractive #5403"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a3960d55600382f2ed035de48563d1cb380e3dfb",
+            "comment": "Fix circular dependency #5402"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v9.0.0",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Nov 2022 22:46:55 GMT",
+      "tag": "@azure/msal-node_v1.14.3",
+      "version": "1.14.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v8.0.0",
+            "commit": "ae6f326996be7eec25faa19d3f714b860a424878"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 10 Oct 2022 22:27:03 GMT",
+      "tag": "@azure/msal-node_v1.14.2",
+      "version": "1.14.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.6.0",
+            "commit": "1bb8ed44ca44617636fb62199deb005d69341fb7"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 03 Oct 2022 22:12:27 GMT",
+      "tag": "@azure/msal-node_v1.14.1",
+      "version": "1.14.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0602df6432278a8b033711db8c3d38aaecb4e7fc",
+            "comment": "sanitize client credentials request against oidc scopes #4999"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "0e9e52d3ca225bbe3cb6d3a1b7f1cd9e6a0969ff",
+            "comment": "This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.5.0",
+            "commit": "22b4edc74bd5a561ded056cf6451a8371598c76c"
+          }
+        ],
+        "none": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "64e4116894106694d3f904e5eff885f958fd82ea",
+            "comment": "Update package-lock.json for published releases #5213"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b9fc7ab24a1051081fb0f064881e4e80dafa6b14",
+            "comment": "Fixed broken test in PublicClientApplication #5219"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 12 Sep 2022 18:19:32 GMT",
+      "tag": "@azure/msal-node_v1.14.0",
+      "version": "1.14.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "ffde7158aba741b804d5558fc162c1f1c45c28cd",
+            "comment": "Post Release September 2022 #5186"
+          }
+        ],
+        "minor": [
+          {
+            "author": "marionminayo@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "fda3675d1a6100e8479a62ead6a980e10e2ebdb5",
+            "comment": "Add support for the state parameter #4723"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.4.1",
+            "commit": "cf19d12246949f9cb99f4853953cbefb7d27009e"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Fri, 02 Sep 2022 18:06:53 GMT",
+      "tag": "@azure/msal-node_v1.13.0",
+      "version": "1.13.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6",
+            "comment": "Add acquireTokenInteractive API #5062"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v7.4.0",
+            "commit": "75e3189e8cf3d46497a7587d7f221057a5f0ede6"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Aug 2022 22:22:36 GMT",
       "tag": "@azure/msal-node_v1.12.1",
       "version": "1.12.1",

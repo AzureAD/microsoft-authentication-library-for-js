@@ -182,6 +182,7 @@ export abstract class CacheManager implements ICacheManager {
                 const accountInfo = accountEntity.getAccountInfo();
                 const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
                 if (idToken && !accountInfo.idTokenClaims) {
+                    accountInfo.idToken = idToken.secret;
                     accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
                 }
 
@@ -389,7 +390,11 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
+            /*
+             * homeAccountId can undefined, and we want to filter out cached items that have a homeAccountId of ""
+             * because we don't want a client_credential request to return a cached token that has a homeAccountId
+             */
+            if ((typeof homeAccountId === "string") && !this.matchHomeAccountId(entity, homeAccountId)) {
                 return;
             }
 
@@ -840,7 +845,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param homeAccountId
      */
     private matchHomeAccountId(entity: AccountEntity | CredentialEntity, homeAccountId: string): boolean {
-        return !!(entity.homeAccountId && homeAccountId === entity.homeAccountId);
+        return !!((typeof entity.homeAccountId === "string") && (homeAccountId === entity.homeAccountId));
     }
 
     /**

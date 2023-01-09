@@ -1,8 +1,83 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jan 2023 22:44:58 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.14.6
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- fix logger undefined error #5355 (bmahal@microsoft.com)
+- Upgrade jsonwebtoken to v9 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.2
+
+## 1.14.5
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Serialize/deserialize access token userAssertionHash property to fix cache persistence issue in OBO flow #5398 (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
+
+## 1.14.4
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Patches
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Fixed msal-node HttpClient server error bug #5342 (rginsburg@microsoft.com)
+- Include original request params on /token request in acquireTokenInteractive #5403 (thomas.norling@microsoft.com)
+- Fix circular dependency #5402 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
+
+## 1.14.3
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v8.0.0
+
+## 1.14.2
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.6.0
+
+## 1.14.1
+
+Mon, 03 Oct 2022 22:12:27 GMT
+
+### Patches
+
+- sanitize client credentials request against oidc scopes #4999 (v-derisen@microsoft.com)
+- This PR modifies HttpClient to return apprpropriate underlying error that is handled upstream.  #5175 (bmahal@microsoft.com)
+- Bump @azure/msal-common to v7.5.0
+
+## 1.14.0
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Minor changes
+
+- Add support for the state parameter #4723 (marionminayo@microsoft.com)
+- Bump @azure/msal-common to v7.4.1
+
+## 1.13.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Add acquireTokenInteractive API #5062 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v7.4.0
 
 ## 1.12.1
 

@@ -88,12 +88,6 @@ const authorityOptions: AuthorityOptions = {
     cloudDiscoveryMetadata: "",
     authorityMetadata: ""
 }
-const authority =  AuthorityFactory.createInstance(
-    Constants.DEFAULT_AUTHORITY,
-    networkInterface,
-    new MockStorageClass("client-id", mockCrypto),
-    authorityOptions
-);
 
 const loggerOptions = {
     loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
@@ -102,6 +96,15 @@ const loggerOptions = {
     piiLoggingEnabled: true,
     logLevel: LogLevel.Verbose
 };
+const logger = new Logger(loggerOptions);
+
+const authority =  AuthorityFactory.createInstance(
+    Constants.DEFAULT_AUTHORITY,
+    networkInterface,
+    new MockStorageClass("client-id", mockCrypto),
+    authorityOptions,
+    logger
+);
 
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
@@ -151,7 +154,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -190,7 +192,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -230,7 +231,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -258,7 +258,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto),
-            authorityOptions
+            authorityOptions,
+            logger
 		);
 
         // Set up stubs
@@ -275,7 +276,6 @@ describe("AccountEntity.ts Unit Tests", () => {
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
 		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
@@ -309,7 +309,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: ""
-            }
+            },
+            logger
 		);
 
         // Set up stubs
@@ -372,7 +373,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-            const logger = new Logger(loggerOptions);
+
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
@@ -404,16 +405,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 100,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
+                    ...acc1.idTokenClaims,
+                    iat: 100,
                 }
             };
             const acc3: AccountInfo = {
@@ -423,15 +416,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "123523",
+                    ...acc1.idTokenClaims,
+                    iat: undefined,
                 }
             };
 
@@ -453,16 +439,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 1536361411,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                    "nonce": "56789",
+                    ...acc1.idTokenClaims,
+                    nonce: "56789",
                 }
             };
             const acc3: AccountInfo = {
@@ -472,15 +450,8 @@ describe("AccountEntity.ts Unit Tests", () => {
                 environment: acc1.environment,
                 tenantId: acc1.tenantId,
                 idTokenClaims: {
-                    "ver": "2.0",
-                    "iat": 1536361411,
-                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                    "exp": 1536361411,
-                    "name": "Abe Lincoln",
-                    "preferred_username": "AbeLi@microsoft.com",
-                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad"
+                    ...acc1.idTokenClaims,
+                    nonce: undefined,
                 }
             };
 
@@ -561,7 +532,8 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto), 
-            authorityOptions
+            authorityOptions,
+            logger
         );
 
         // Set up stubs
@@ -608,7 +580,8 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             "https://myadfs.com/adfs",
             networkInterface,
             new MockStorageClass("client-id", mockCrypto), 
-            authorityOptions
+            authorityOptions,
+            logger
         );
 
         // Set up stubs

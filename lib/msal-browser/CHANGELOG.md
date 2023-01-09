@@ -1,8 +1,101 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 01 Aug 2022 22:22:35 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jan 2023 22:44:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.32.2
+
+Mon, 09 Jan 2023 22:44:57 GMT
+
+### Patches
+
+- Export CryptoOps and NativeAuthError for internal use #5482 (lalimasharda@microsoft.com)
+- added http version changes #5211 (bmahal@microsoft.com)
+- fix typos #5531 (bmahal@microsoft.com)
+- fix logger explicitly set to undefined error #5355  (bmahal@microsoft.com)
+- Log number of accounts in trace mode. #5529 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v9.0.2
+
+## 2.32.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Added caching methods to set or get redirect context of application during redirect flow. #5411 (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
+
+## 2.32.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Minor changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
+
+### Patches
+
+- Export popup attributes #5364 (hemoral@microsoft.com)
+
+## 2.31.0
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Minor changes
+
+- Add static fields to telemetry #5224 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v8.0.0
+
+### Patches
+
+- Add MATS fields to telemetry #5308 (thomas.norling@microsoft.com)
+- Fix double prompt in native broker redirect flow #5239 (thomas.norling@microsoft.com)
+
+## 2.30.0
+
+Mon, 10 Oct 2022 22:27:02 GMT
+
+### Minor changes
+
+- Extend msal-browser TokenCache to load refresh tokens #5233 (louisv@microsoft.com)
+- Make popup poll interval configurable #5276 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v7.6.0
+
+## 2.29.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Add support for MSR Crypto #3826 (janutter@microsoft.com)
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v7.5.0
+
+### Patches
+
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
+
+## 2.28.3
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Fix keystore clearing on Firefox #5112 (hemoral@microsoft.com)
+- Restore error codes for acquireTokenSilent telemetry #5190 (janutter@microsoft.com)
+- Bump @azure/msal-common to v7.4.1
+
+## 2.28.2
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Patches
+
+- Bump @azure/msal-common to v7.4.0
 
 ## 2.28.1
 

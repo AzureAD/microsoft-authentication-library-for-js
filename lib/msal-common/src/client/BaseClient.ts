@@ -83,10 +83,9 @@ export abstract class BaseClient {
     /**
      * Creates default headers for requests to token endpoint
      */
-    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {        
+    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {   
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
-
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
@@ -101,7 +100,7 @@ export abstract class BaseClient {
                     headers[HeaderNames.CCS_HEADER] = `UPN: ${ccsCred.credential}`;
                     break;
             }
-        }        
+        }   
         return headers;
     }
 

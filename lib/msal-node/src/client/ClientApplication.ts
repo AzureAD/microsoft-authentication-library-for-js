@@ -30,8 +30,8 @@ import {
     AzureCloudOptions,
     AuthorizationCodePayload,
     StringUtils,
-    Constants,
-} from "@azure/msal-common";
+    ClientAuthError,
+    Constants, } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { NodeStorage } from "../cache/NodeStorage";
@@ -44,6 +44,7 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { NodeAuthError } from "../error/NodeAuthError";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -51,7 +52,7 @@ import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
  */
 export abstract class ClientApplication {
 
-    private readonly cryptoProvider: CryptoProvider;
+    protected readonly cryptoProvider: CryptoProvider;
     private tokenCache: TokenCache;
 
     /**
@@ -130,13 +131,20 @@ export abstract class ClientApplication {
      * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
      * AuthorizationCodeRequest are the same.
      */
-    async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByCode called", request.correlationId);
+    async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+        this.logger.info("acquireTokenByCode called");
+        if (request.state && authCodePayLoad){
+            this.logger.info("acquireTokenByCode - validating state");
+            this.validateState(request.state, authCodePayLoad.state || "");
+            // eslint-disable-next-line no-param-reassign
+            authCodePayLoad= {...authCodePayLoad, state: ""};
+        }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ... await this.initializeBaseRequest(request),
             authenticationScheme: AuthenticationScheme.BEARER
         };
+
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId);
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
@@ -282,6 +290,25 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Validates OIDC state by comparing the user cached state with the state received from the server.
+     * 
+     * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
+     * CSRF attacks.
+     * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
+     * @param state
+     * @param cachedState
+     */
+    protected validateState(state: string, cachedState: string): void {
+        if(!state) {
+            throw NodeAuthError.createStateNotFoundError();
+        }
+
+        if(state !== cachedState) {
+            throw ClientAuthError.createStateMismatchError();
+        }
+    }
+
+    /**
      * Returns the logger instance
      */
     getLogger(): Logger {
@@ -329,11 +356,9 @@ export abstract class ClientApplication {
                 proxyUrl: this.config.system.proxyUrl,
             },
             loggerOptions: {
-                logLevel: this.config.system.loggerOptions.logLevel,
-                loggerCallback: this.config.system.loggerOptions
-                    .loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions
-                    .piiLoggingEnabled,
+                logLevel: this.config.system.loggerOptions.logLevel ,
+                loggerCallback: this.config.system.loggerOptions.loggerCallback ,
+                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled ,
                 correlationId: requestCorrelationId
             },
             cryptoInterface: this.cryptoProvider,
@@ -428,7 +453,7 @@ export abstract class ClientApplication {
             skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
+        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.logger, this.config.system.proxyUrl);
     }
 
     /**
