@@ -183,7 +183,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.performanceClient.addQueueMeasurement(preQueueTime);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        const atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
@@ -253,7 +253,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            astsAsyncMeasurement.endMeasurement({
+            atsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
@@ -262,7 +262,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            astsAsyncMeasurement.endMeasurement({
+            atsAsyncMeasurement.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false
