@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, Logger, LogLevel } from "../../src";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, Logger, LogLevel, PerformanceEvents, QueueMeasurement } from "../../src";
 import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
@@ -95,6 +95,16 @@ export class MockStorageClass extends CacheManager {
     }
     setThrottlingCache(key: string, value: ThrottlingEntity): void {
         this.store[key] = value;
+    }
+
+    // Queue Time Cache
+    getPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): QueueMeasurement | null {
+        const key = `${correlationId}-${eventName}`;
+        return this.store[key] as QueueMeasurement;
+    }
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+        const key = `${correlationId}-${eventName}`;
+        this.store[key] = {eventName, correlationId} as QueueMeasurement;
     }
 
     removeItem(key: string): boolean {
