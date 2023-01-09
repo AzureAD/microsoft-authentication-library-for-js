@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMsal, useAccount } from "@azure/msal-react";
-import Typography from "@material-ui/core/Typography";
+import Typography from "@mui/material/Typography";
 
 const WelcomeName = () => {
     const { accounts } = useMsal();

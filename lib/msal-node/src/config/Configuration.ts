@@ -114,7 +114,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
-        // allow users to not set logger call back
+        // allow users to not set logger call back 
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
@@ -158,10 +158,15 @@ export function buildAppConfiguration({
     telemetry
 }: Configuration): NodeConfiguration {
 
+    const providedSystemOptions = {
+        ...system,
+        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS
+    };
+
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
+        system: { ...DEFAULT_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
     };
 }

@@ -140,7 +140,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         success: true,
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
-                        requestId: result.requestId
+                        cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId,
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -176,7 +177,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        const atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
@@ -196,7 +197,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
-            });     
+            });
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
 
@@ -241,7 +242,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            astsAsyncMeasurement.endMeasurement({
+            atsAsyncMeasurement.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
@@ -250,7 +251,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            astsAsyncMeasurement.endMeasurement({
+            atsAsyncMeasurement.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false

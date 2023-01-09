@@ -2,6 +2,51 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 09 Jan 2023 22:44:57 GMT",
+      "tag": "@azure/msal-browser_v2.32.2",
+      "version": "2.32.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0caefaa1ada3372f33fc0c07584f922855ceb1fb",
+            "comment": "Export CryptoOps and NativeAuthError for internal use #5482"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d768052d5de051f93068d7327b8d90bfebb8a91",
+            "comment": "added http version changes #5211"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0db3780cd80f1b3853f8c993e50cf91a84cbf345",
+            "comment": "fix typos #5531"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00d3fd949453e3f9dc3316cc0e913a84b9c2cfa2",
+            "comment": "fix logger explicitly set to undefined error #5355 "
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0d1a3cd2bdd67ae4e361fc1504dfeb010bf2b98b",
+            "comment": "Log number of accounts in trace mode. #5529"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v9.0.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Dec 2022 16:53:07 GMT",
       "tag": "@azure/msal-browser_v2.32.1",
       "version": "2.32.1",
