@@ -81,7 +81,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} correlationId
      * @returns {IPerformanceMeasurement}
      */
-    abstract startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
+    abstract startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
 
     /**
      * Generates and returns a unique id, typically a guid.
@@ -174,7 +174,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
 
         this.logger.trace(`PerformanceClient: Performance measurement started for ${measureName}`, eventCorrelationId);
-        const performanceMeasurement = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
+        const performanceMeasurement = this.startPerformanceMeasurement(measureName, eventCorrelationId);
         performanceMeasurement.startMeasurement();
 
         const inProgressEvent: PerformanceEvent = {
