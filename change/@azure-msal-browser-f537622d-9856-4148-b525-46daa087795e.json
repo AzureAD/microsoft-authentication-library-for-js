@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Log number of accounts in trace mode. #5529",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

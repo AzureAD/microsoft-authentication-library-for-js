@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix typos #5531",
-  "packageName": "@azure/msal-common",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}
