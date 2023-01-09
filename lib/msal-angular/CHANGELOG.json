@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 09 Jan 2023 22:44:57 GMT",
+      "tag": "@azure/msal-angular_v2.5.2",
+      "version": "2.5.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Address dependabot alerts"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.32.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Dec 2022 16:53:07 GMT",
       "tag": "@azure/msal-angular_v2.5.1",
       "version": "2.5.1",

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix logger undefined error #5355",
-  "packageName": "@azure/msal-node",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -2,6 +2,35 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "@azure/msal-react_v1.5.2",
+      "version": "1.5.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Address dependabot alerts"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "e1daf5781025aaa31f0985293c33a78d3aac486b",
+            "comment": "Update react dev dependency"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.32.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Dec 2022 16:53:07 GMT",
       "tag": "@azure/msal-react_v1.5.1",
       "version": "1.5.1",
