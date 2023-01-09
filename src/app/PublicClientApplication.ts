@@ -126,7 +126,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
 
-            this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
             const response = this.acquireTokenSilentAsync({
                 ...request,
                 correlationId
@@ -179,8 +179,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync);
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId, preQueueTime);
+        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.performanceClient.addQueueMeasurement(preQueueTime);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
@@ -209,7 +209,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
 
-            this.browserStorage.setPreQueueTime(PerformanceEvents.InitializeSilentRequest);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.InitializeSilentRequest, request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
             
             const requestWithCLP = {
@@ -218,7 +218,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
             };
 
-            this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache);
+            this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache, silentRequest.correlationId);
             result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
                 if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
@@ -228,7 +228,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 BrowserUtils.blockReloadInHiddenIframes();
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
 
-                this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken);
+                this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken, silentRequest.correlationId);
                 return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
@@ -245,7 +245,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     }
                         
                     this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
-                    this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe);
+                    this.browserStorage.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe, silentRequest.correlationId);
                     return this.acquireTokenBySilentIframe(silentRequest);
                 });
             });
