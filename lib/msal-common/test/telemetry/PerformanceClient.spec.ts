@@ -64,10 +64,6 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
     startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
         return new MockPerformanceMeasurement();
     }
-
-    getCurrentTime(): number {
-        return 1000000000;
-    }
 }
 
 class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
