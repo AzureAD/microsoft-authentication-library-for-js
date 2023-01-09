@@ -403,19 +403,19 @@ export class BrowserCacheManager extends CacheManager {
     getActiveAccount(): AccountInfo | null {
         const activeAccountKeyFilters = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS);
         const activeAccountValueFilters = this.getItem(activeAccountKeyFilters);
-        if (!activeAccountValueFilters) { 
+        if (!activeAccountValueFilters) {
             // if new active account cache type isn't found, it's an old version, so look for that instead
-            this.logger.trace("No active account filters cache schema found, looking for legacy schema");
+            this.logger.trace("BrowserCacheManager.getActiveAccount: No active account filters cache schema found, looking for legacy schema");
             const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
             const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
             if(!activeAccountValueLocal) {
-                this.logger.trace("No active account found");
+                this.logger.trace("BrowserCacheManager.getActiveAccount: No active account found");
                 return null;
             }
             const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
             if(activeAccount) {
-                this.logger.trace("Legacy active account cache schema found");
-                this.logger.trace("Adding active account filters cache schema");
+                this.logger.trace("BrowserCacheManager.getActiveAccount: Legacy active account cache schema found");
+                this.logger.trace("BrowserCacheManager.getActiveAccount: Adding active account filters cache schema");
                 this.setActiveAccount(activeAccount);
                 return activeAccount;
             }
@@ -423,13 +423,13 @@ export class BrowserCacheManager extends CacheManager {
         }
         const activeAccountValueObj = this.validateAndParseJson(activeAccountValueFilters) as AccountInfo;
         if(activeAccountValueObj) {
-            this.logger.trace("Active account filters schema found");
+            this.logger.trace("BrowserCacheManager.getActiveAccount: Active account filters schema found");
             return this.getAccountInfoByFilter({
                 homeAccountId: activeAccountValueObj.homeAccountId,
                 localAccountId: activeAccountValueObj.localAccountId
             })[0] || null;
         }
-        this.logger.trace("No active account found");
+        this.logger.trace("BrowserCacheManager.getActiveAccount: No active account found");
         return null;
     }
 
@@ -461,6 +461,8 @@ export class BrowserCacheManager extends CacheManager {
      */
     getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims"|"name">>): AccountInfo[] {
         const allAccounts = this.getAllAccounts();
+        this.logger.trace(`BrowserCacheManager.getAccountInfoByFilter: total ${allAccounts.length} accounts found`);
+
         return allAccounts.filter((accountObj) => {
             if (accountFilter.username && accountFilter.username.toLowerCase() !== accountObj.username.toLowerCase()) {
                 return false;
@@ -1114,10 +1116,10 @@ export class BrowserCacheManager extends CacheManager {
     getRedirectRequestContext(): string | null {
         return this.getTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, true);
     }
-     
+
     /**
      * Sets application id as the redirect context during AcquireTokenRedirect flow.
-     * @param value 
+     * @param value
      */
     setRedirectRequestContext(value: string): void {
         this.setTemporaryCache(TemporaryCacheKeys.REDIRECT_CONTEXT, value, true);

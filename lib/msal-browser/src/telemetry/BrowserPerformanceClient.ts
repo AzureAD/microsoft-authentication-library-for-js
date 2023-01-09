@@ -19,7 +19,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
     }
     
-    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
+    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement {
         return new BrowserPerformanceMeasurement(measureName, correlationId);
     }
 
