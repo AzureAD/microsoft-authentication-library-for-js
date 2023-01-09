@@ -134,7 +134,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             emitEvents: jest.fn(),
             startPerformanceMeasuremeant: jest.fn(),
             generateId: jest.fn(),
-            getCurrentTime: jest.fn(),
             calculateQueuedTime: jest.fn(),
             addQueueMeasurement: jest.fn()
         };
