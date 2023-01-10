@@ -132,7 +132,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             removePerformanceCallback: jest.fn(),
             addPerformanceCallback: jest.fn(),
             emitEvents: jest.fn(),
-            startPerformanceMeasuremeant: jest.fn(),
+            startPerformanceMeasurement: jest.fn(),
             generateId: jest.fn(),
             calculateQueuedTime: jest.fn(),
             addQueueMeasurement: jest.fn()
