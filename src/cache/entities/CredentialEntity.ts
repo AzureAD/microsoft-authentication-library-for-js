@@ -115,7 +115,7 @@ export class CredentialEntity {
         for (const credKey of Object.keys(CredentialType)) {
             const credVal = CredentialType[credKey].toLowerCase();
             // Verify credential type is preceded by a valid host name (environment)
-            if (key.toLowerCase().search(`(?<=${separator}${domainRe})${separator}${credVal}${separator}`) !== -1) {
+            if (key.toLowerCase().search(`${separator}${domainRe}${separator}${credVal}${separator}`) !== -1) {
                 return CredentialType[credKey];
             }
         }
