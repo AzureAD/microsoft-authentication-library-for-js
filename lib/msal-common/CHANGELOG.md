@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 07 Dec 2022 16:53:07 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jan 2023 22:44:58 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 9.0.2
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- Fix cache credential look-up (#5484) (kshabelko@microsoft.com)
+- fix logger explicitly set to undefined error #5355 (bmahal@microsoft.com)
+- http version telemetry data #5211 (bmahal@microsoft.com)
+- fix typos #5531 (bmahal@microsoft.com)
 
 ## 9.0.1
 
