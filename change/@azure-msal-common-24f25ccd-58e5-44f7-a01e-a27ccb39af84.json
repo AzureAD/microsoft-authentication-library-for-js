@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Adding page visibility change event for silent calls like AcquireTokenSilent #5555",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
