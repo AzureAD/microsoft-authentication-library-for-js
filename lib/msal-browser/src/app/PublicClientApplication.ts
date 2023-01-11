@@ -25,7 +25,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
-    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
+    private atsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
     /**
      * @constructor
@@ -52,6 +52,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         super(configuration);
 
         this.activeSilentTokenRequests = new Map();
+        // Register listener functions
         this.trackPageVisibility = this.trackPageVisibility.bind(this);
     }
 
@@ -172,15 +173,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     private trackPageVisibility():void {
-        if(!this.astsAsyncMeasurement) return;
+        if (!this.atsAsyncMeasurement) {
+            return;
+        }
         this.logger.info("Perf: Visibility change detected");
-        this.astsAsyncMeasurement.addStaticFields({
+        this.atsAsyncMeasurement.addStaticFields({
             visibilityChange: true,
         });
-        this.astsAsyncMeasurement.endMeasurement({
+        this.atsAsyncMeasurement.endMeasurement({
             success: true,
         });
-        document.removeEventListener("visibilitychange",this.trackPageVisibility);
     }
 
     /**
@@ -191,9 +193,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        const atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        this.astsAsyncMeasurement?.addStaticFields({
+        this.atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.atsAsyncMeasurement?.addStaticFields({
             visibilityChange:false
         });
         document.addEventListener("visibilitychange",this.trackPageVisibility);
@@ -243,10 +244,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
                     if ((!isServerError ||
-                        !isInvalidGrantError ||
-                        isInteractionRequiredError ||
-                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
+                            !isInvalidGrantError ||
+                            isInteractionRequiredError ||
+                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
                         && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
                     ) {
                         throw refreshTokenError;
@@ -260,23 +261,23 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            this.astsAsyncMeasurement?.endMeasurement({
+            this.atsAsyncMeasurement?.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            document.removeEventListener("visibilitychange",this.trackPageVisibility);
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            this.astsAsyncMeasurement?.endMeasurement({
+            this.atsAsyncMeasurement?.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false
             });
-            document.removeEventListener("visibilitychange",this.trackPageVisibility);
             throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibility);
         });
     }
 }

@@ -83,8 +83,8 @@ export abstract class ClientApplication {
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
 
-    private ssoSilentMeasurement?: InProgressPerformanceEvent = undefined;
-    private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent = undefined;
+    private ssoSilentMeasurement?: InProgressPerformanceEvent;
+    private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -157,6 +157,7 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+        // Register listener functions
         this.trackPageVisibilityWithMeasurement = this.trackPageVisibilityWithMeasurement.bind(this);
     }
 
@@ -245,7 +246,7 @@ export abstract class ClientApplication {
                         this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-                    
+
                     throw e;
                 });
                 this.redirectResponse.set(redirectResponseKey, response);
@@ -419,29 +420,18 @@ export abstract class ClientApplication {
     }
 
     private trackPageVisibilityWithMeasurement():void {
-        if(!this.ssoSilentMeasurement && !this.acquireTokenByCodeAsyncMeasurement) return;
-        this.logger.info("Perf: Event- visibility change detected" );
-        if(this.ssoSilentMeasurement)
-        {
-            this.logger.info("Perf: Visibility change detected in ",this.ssoSilentMeasurement.event.name);
-            this.ssoSilentMeasurement.addStaticFields({
-                visibilityChange: true,
-            });
-            this.ssoSilentMeasurement.endMeasurement({
-                success: true,
-            });
+        const measurement = this.ssoSilentMeasurement || this.acquireTokenByCodeAsyncMeasurement;
+        if(!measurement) {
+            return;
         }
-        else{
-            this.logger.info("Perf: Visibility change detected in ",this.acquireTokenByCodeAsyncMeasurement?.event.name);
-            this.acquireTokenByCodeAsyncMeasurement?.addStaticFields({
-                visibilityChange: true,
-            });
-            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
-                success: true,
-            });
 
-        }             
-        document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+        this.logger.info("Perf: Visibility change detected in ", measurement.event.name);
+        measurement.addStaticFields({
+            visibilityChange: true,
+        });
+        measurement.endMeasurement({
+            success: true,
+        });
     }
     // #endregion
 
@@ -508,7 +498,6 @@ export abstract class ClientApplication {
                 requestId: response.requestId
             });
             this.ssoSilentMeasurement?.flushMeasurement();
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
@@ -518,9 +507,11 @@ export abstract class ClientApplication {
                 success: false
             });
             this.ssoSilentMeasurement?.flushMeasurement();
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             throw e;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         });
+
     }
 
     /**
@@ -632,7 +623,6 @@ export abstract class ClientApplication {
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
@@ -640,8 +630,9 @@ export abstract class ClientApplication {
                 subErrorCode: tokenRenewalError.subError,
                 success: false
             });
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
             throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         });
         return silentTokenResult;
     }

@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Adding page visibility change event for silent calls like AcquireTokenSilent #5488",
   "packageName": "@azure/msal-browser",
-  "email": "bmahal@microsoft.com",
+  "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
 }
