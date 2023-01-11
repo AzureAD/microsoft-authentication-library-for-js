@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "msal_v1.4.17",
+      "version": "1.4.17",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "msal",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Address dependabot alerts"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Aug 2022 22:22:36 GMT",
       "tag": "msal_v1.4.17",
       "version": "1.4.17",
