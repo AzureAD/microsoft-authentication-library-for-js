@@ -1,6 +1,6 @@
 import { Switch, Route, useHistory } from "react-router-dom";
 // Material-UI imports
-import Grid from "@material-ui/core/Grid";
+import Grid from "@mui/material/Grid";
 
 // MSAL imports
 import { MsalProvider } from "@azure/msal-react";
@@ -13,7 +13,7 @@ import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 
 type AppProps = {
-    pca: IPublicClientApplication
+    pca: IPublicClientApplication;
 };
 
 function App({ pca }: AppProps) {
@@ -21,18 +21,18 @@ function App({ pca }: AppProps) {
     const history = useHistory();
     const navigationClient = new CustomNavigationClient(history);
     pca.setNavigationClient(navigationClient);
-  
+
     return (
-      <MsalProvider instance={pca}>
-        <PageLayout>
-          <Grid container justifyContent="center">
-            <Pages />
-          </Grid>
-        </PageLayout>
-      </MsalProvider>
+        <MsalProvider instance={pca}>
+            <PageLayout>
+                <Grid container justifyContent="center">
+                    <Pages />
+                </Grid>
+            </PageLayout>
+        </MsalProvider>
     );
 }
-  
+
 function Pages() {
     return (
         <Switch>
@@ -43,7 +43,7 @@ function Pages() {
                 <Home />
             </Route>
         </Switch>
-    )
+    );
 }
 
 export default App;
