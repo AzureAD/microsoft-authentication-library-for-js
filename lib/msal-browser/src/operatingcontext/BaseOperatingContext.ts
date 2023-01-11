@@ -4,7 +4,8 @@
  */
 
 import { Logger } from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
+import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import { version, name } from "../packageMetadata";
 
 /**
  * Base class for operating context
@@ -17,10 +18,12 @@ export abstract class BaseOperatingContext {
 
     protected logger:Logger;
     protected config:BrowserConfiguration;
+    protected available:boolean;
 
     constructor(logger:Logger, config:BrowserConfiguration){
-        this.logger = logger;
         this.config = config;
+        this.logger = logger;
+        this.available = false;
     }
 
     /**
@@ -52,6 +55,10 @@ export abstract class BaseOperatingContext {
      */
     getLogger():Logger {
         return this.logger;
+    }
+
+    getAvailable():boolean {
+        return this.available;
     }
 
 }

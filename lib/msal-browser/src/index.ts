@@ -20,6 +20,11 @@ export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, 
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId, CacheLookupPolicy } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
+/*
+ * export { IController} from "./controllers/IController";
+ * export { StandardController } from "./controllers/StandardController";
+ */
+
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
 export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";

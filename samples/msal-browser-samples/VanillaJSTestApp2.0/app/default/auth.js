@@ -10,15 +10,17 @@ const isEdge = msedge > 0;
 
 let signInType;
 let accountId = "";
+let myMSALObj;
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-const myMSALObj = new msal.PublicClientApplication(msalConfig);
-
-// Redirect: once login is successful and redirects with tokens, call Graph API
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
-});
+msal.PublicClientApplication.createPublicClientApplication(msalConfig).then((pca) => {
+    myMSALObj = pca;
+    // Redirect: once login is successful and redirects with tokens, call Graph API
+    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+        console.error(err);
+    });
+})
 
 function handleResponse(resp) {
     if (resp !== null) {
