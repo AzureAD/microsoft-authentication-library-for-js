@@ -14,24 +14,6 @@ export const AppStages = {
 };
 
 /**
- * OpenID Connect scopes
- */
-export const OIDCScopes = {
-    OPENID: "openid",
-    PROFILE: "profile",
-    OFFLINE_ACCESS: "offline_access"
-}
-
-/**
- * String constants related to AAD Authority
- */
-export const AADAuthorityConstants = {
-    COMMON: "common",
-    ORGANIZATIONS: "organizations",  
-    CONSUMERS: "consumers"
-}
-
-/**
  * Global AAD cloud authority
  */
 export const AuthorityStrings = {
@@ -52,7 +34,6 @@ export const ErrorCodes = {
  */
 export const ErrorMessages = {
     NOT_PERMITTED: "Not permitted",
-    INVALID_TOKEN: "Invalid token",
     CANNOT_DETERMINE_APP_STAGE: "Cannot determine application stage",
     NONCE_MISMATCH: "Nonce does not match",
     INTERACTION_REQUIRED: "interaction_required",
