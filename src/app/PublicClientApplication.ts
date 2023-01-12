@@ -177,11 +177,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return;
         }
         this.logger.info("Perf: Visibility change detected");
-        this.atsAsyncMeasurement.addStaticFields({
-            visibilityChange: true,
-        });
-        this.atsAsyncMeasurement.endMeasurement({
-            success: true,
+        this.atsAsyncMeasurement.increment({
+            visibilityChangeCount: 1,
         });
     }
 
@@ -194,8 +191,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         this.atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        this.atsAsyncMeasurement?.addStaticFields({
-            visibilityChange:false
+        this.atsAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
         });
         document.addEventListener("visibilitychange",this.trackPageVisibility);
         let result: Promise<AuthenticationResult>;

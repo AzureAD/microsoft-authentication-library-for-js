@@ -426,11 +426,8 @@ export abstract class ClientApplication {
         }
 
         this.logger.info("Perf: Visibility change detected in ", measurement.event.name);
-        measurement.addStaticFields({
-            visibilityChange: true,
-        });
-        measurement.endMeasurement({
-            success: true,
+        measurement.increment({
+            visibilityChangeCount: 1,
         });
     }
     // #endregion
@@ -462,8 +459,8 @@ export abstract class ClientApplication {
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
-        this.ssoSilentMeasurement?.addStaticFields({
-            visibilityChange:false
+        this.ssoSilentMeasurement?.increment({
+            visibilityChangeCount: 0
         });
         document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         this.logger.verbose("ssoSilent called", correlationId);
@@ -611,8 +608,8 @@ export abstract class ClientApplication {
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
         this.acquireTokenByCodeAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
-        this.acquireTokenByCodeAsyncMeasurement?.addStaticFields({
-            visibilityChange:false
+        this.acquireTokenByCodeAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
         });
         document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
