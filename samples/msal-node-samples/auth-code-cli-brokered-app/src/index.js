@@ -33,8 +33,7 @@ const acquireToken = async () => {
             scopes: ["User.Read"]
         }
 
-        return pca.acquireTokenSilent(silentRequest).then((response) => {
-        }).catch(e => {
+        return pca.acquireTokenSilent(silentRequest).catch(e => {
             if (e instanceof InteractionRequiredAuthError) {
                 return pca.acquireTokenInteractive(loginRequest)
             }
