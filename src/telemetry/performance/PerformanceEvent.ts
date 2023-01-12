@@ -219,9 +219,15 @@ export type StaticFields = {
     matsSilentStatus?: number;
     matsHttpStatus?: number
     matsHttpEventCount?: number;
-    visibilityChange?: boolean;
     httpVerToken?: string;
     httpVerAuthority?: string;
+};
+
+/**
+ * Fields whose value may change throughout a request
+ */
+export type Counters = {
+    visibilityChangeCount?: number;
 };
 
 /**
@@ -230,7 +236,7 @@ export type StaticFields = {
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = StaticFields & {
+export type PerformanceEvent = StaticFields & Counters & {
     /**
      * Unique id for the event
      *
