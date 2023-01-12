@@ -163,9 +163,8 @@ export function buildAppConfiguration({
 }: Configuration): NodeConfiguration {
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        ...system,
-        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         networkClient: system?.customAgentOptions ? new HttpClient(system.customAgentOptions as http.AgentOptions | https.AgentOptions) : new HttpClient(),
+        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
 
     return {
