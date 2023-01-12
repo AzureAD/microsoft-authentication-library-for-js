@@ -142,7 +142,6 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     async acquireTokenInteractive(request: NativeRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenInteractive called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
-        let account;
         let readAccountResult;
         if (request.accountId) {
             readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
