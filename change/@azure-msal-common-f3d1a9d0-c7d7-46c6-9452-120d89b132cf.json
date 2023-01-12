@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Added missing fields to InteractionRequiredAuthError",
+  "packageName": "@azure/msal-common",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
