@@ -82,7 +82,7 @@ On confidential client applications that handle users (web apps that sign in use
 
 MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.distributedcacheplugin.html) class for confidential clients, which implements the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html). An instance of `DistributedCachePlugin` requires:
 
-* a client interface, which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
+* a **client interface**, which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
 * a partition manager, for reading from and writing to cache with respect to a given **partition key**.
 
 Please refer to the [RedisTestApp](../../../samples/msal-node-samples/RedisTestApp/README.md) for an implementation.
