@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "../utils/Constants";
 import { AuthError } from "./AuthError";
 
 /**
@@ -40,10 +41,17 @@ export const InteractionRequiredAuthErrorMessage = {
  * Error thrown when user interaction is required.
  */
 export class InteractionRequiredAuthError extends AuthError {
+    timestamp: string;
+    traceId: string;
+    claims: string;
 
-    constructor(errorCode?: string, errorMessage?: string, subError?: string) {
+    constructor(errorCode?: string, errorMessage?: string, subError?: string, timestamp?: string, traceId?: string, correlationId?: string, claims?: string) {
         super(errorCode, errorMessage, subError);
         this.name = "InteractionRequiredAuthError";
+        this.timestamp = timestamp || Constants.NOT_APPLICABLE;
+        this.traceId = traceId || Constants.NOT_APPLICABLE;
+        this.correlationId = correlationId || Constants.NOT_APPLICABLE;
+        this.claims = claims || Constants.NOT_APPLICABLE;
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }
