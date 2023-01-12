@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Added missing fields to InteractionRequiredAuthError",
+  "comment": "Added missing fields to InteractionRequiredAuthError #5566",
   "packageName": "@azure/msal-common",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
