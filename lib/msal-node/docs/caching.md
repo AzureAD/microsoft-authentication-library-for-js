@@ -47,6 +47,8 @@ In production, you would most likely want to serialize and persist the token cac
 
 If you choose not to persist the cache, the `TokenCache` interface is still available to access the tokens cached in memory. The lifetime of in-memory cache is the same as MSAL instance. If the MSAL instance restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all real life applications both for security and desired cache longevity.
 
+> :warning: Please note that the default in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
+
 ## Persistence
 
 MSAL Node fires events when the cache is accessed, apps can choose whether to serialize or deserialize the cache. This often constitutes two actions:
