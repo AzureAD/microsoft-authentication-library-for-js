@@ -15,8 +15,8 @@ import {
     ApplicationTelemetry
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient";
-import http from "http";
-import https from "https";
+import { AgentOptions as httpAgentOptions } from "http";
+import { AgentOptions as httpsAgentOptions } from "https";
 
 /**
  * - clientId               - Client id of the application.
@@ -69,7 +69,7 @@ export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     proxyUrl?: string;
-    customAgentOptions?: http.AgentOptions | https.AgentOptions;
+    customAgentOptions?: httpAgentOptions | httpsAgentOptions;
 };
 
 export type NodeTelemetryOptions = {
@@ -127,7 +127,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
-    customAgentOptions: {} as http.AgentOptions | https.AgentOptions,
+    customAgentOptions: {} as httpAgentOptions | httpsAgentOptions,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -163,7 +163,7 @@ export function buildAppConfiguration({
 }: Configuration): NodeConfiguration {
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        networkClient: system?.customAgentOptions ? new HttpClient(system.customAgentOptions as http.AgentOptions | https.AgentOptions) : new HttpClient(),
+        networkClient: system?.customAgentOptions ? new HttpClient(system.customAgentOptions as httpAgentOptions | httpsAgentOptions) : new HttpClient(),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
 
