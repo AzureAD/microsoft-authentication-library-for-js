@@ -37,6 +37,8 @@ const acquireToken = async () => {
             if (e instanceof InteractionRequiredAuthError) {
                 return pca.acquireTokenInteractive(loginRequest)
             }
+
+            throw e;
         });
     } else if (accounts.length > 1) {
         accounts.forEach(account => {
