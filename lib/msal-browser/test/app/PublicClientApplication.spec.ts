@@ -1653,7 +1653,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].accessTokenSize).toBe(16);
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].requestId).toBe(undefined);
-                expect(events[0].visibilityChange).toBe(false);
+                expect(events[0].visibilityChangeCount).toBe(0);
                 pca.removePerformanceCallback(callbackId);
                 done();
         }));
@@ -1684,14 +1684,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         };
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
         const silentClientSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
-        
+
         const callbackId = pca.addPerformanceCallback((events => {
             expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
             expect(events[0].success).toBe(true);
             expect(events[0].accessTokenSize).toBe(16);
             expect(events[0].idTokenSize).toBe(12);
             expect(events[0].requestId).toBe(undefined);
-            expect(events[0].visibilityChange).toBe(true);
+            expect(events[0].visibilityChangeCount).toBe(1);
             pca.removePerformanceCallback(callbackId);
             done();
     }));
@@ -2026,7 +2026,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(events[0].accessTokenSize).toBe(16);
             expect(events[0].idTokenSize).toBe(12);
             expect(events[0].requestId).toBe(undefined);
-            expect(events[0].visibilityChange).toBe(false);
+            expect(events[0].visibilityChangeCount).toBe(0);
             pca.removePerformanceCallback(callbackId);
             done();
             }));
@@ -2066,19 +2066,28 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(events[0].accessTokenSize).toBe(16);
             expect(events[0].idTokenSize).toBe(12);
             expect(events[0].requestId).toBe(undefined);
-            expect(events[0].visibilityChange).toBe(true);
+            expect(events[0].visibilityChangeCount).toBe(3);
             pca.removePerformanceCallback(callbackId);
             done();
             }));
-            const event = document.createEvent("HTMLEvents");
-            event.initEvent("visibilitychange", true, true);
+
+            const events: Event[] = [];
+            for (let n = 1; n <= 3; n++) {
+                const event = document.createEvent("HTMLEvents");
+                event.initEvent("visibilitychange", true, false);
+                events.push(event);
+            }
+
             pca.acquireTokenByCode({
                 code: "auth-code",
                 correlationId: testTokenResponse.correlationId
             });
-            document.dispatchEvent(event);
+
+            for (const event of events) {
+                document.dispatchEvent(event);
+            }
         });
-        
+
         it("emits expect performance event when there is an error", (done) => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -2955,7 +2964,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
-                expect(events[0].visibilityChange).toBe(false);
+                expect(events[0].visibilityChangeCount).toBe(0);
 
                 pca.removePerformanceCallback(callbackId);
                 done();
@@ -2998,7 +3007,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events[0].idTokenSize).toBe(12);
                 expect(events[0].isNativeBroker).toBe(undefined);
                 expect(events[0].requestId).toBe(undefined);
-                expect(events[0].visibilityChange).toBe(true);
+                expect(events[0].visibilityChangeCount).toBe(1);
 
                 pca.removePerformanceCallback(callbackId);
                 done();
