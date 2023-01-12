@@ -73,7 +73,15 @@ export class ResponseHandler {
         // Check for error
         if (serverResponseHash.error || serverResponseHash.error_description || serverResponseHash.suberror) {
             if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror)) {
-                throw new InteractionRequiredAuthError(serverResponseHash.error || Constants.EMPTY_STRING, serverResponseHash.error_description, serverResponseHash.suberror);
+                throw new InteractionRequiredAuthError(
+                    serverResponseHash.error || Constants.EMPTY_STRING,
+                    serverResponseHash.error_description,
+                    serverResponseHash.suberror,
+                    serverResponseHash.timestamp || Constants.NOT_APPLICABLE,
+                    serverResponseHash.trace_id || Constants.NOT_APPLICABLE,
+                    serverResponseHash.correlation_id || Constants.NOT_APPLICABLE,
+                    serverResponseHash.claims || Constants.NOT_APPLICABLE,
+                );
             }
 
             throw new ServerError(serverResponseHash.error || Constants.EMPTY_STRING, serverResponseHash.error_description, serverResponseHash.suberror);
@@ -92,7 +100,15 @@ export class ResponseHandler {
         // Check for error
         if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
             if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
-                throw new InteractionRequiredAuthError(serverResponse.error, serverResponse.error_description, serverResponse.suberror);
+                throw new InteractionRequiredAuthError(
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror,
+                    serverResponse.timestamp || Constants.NOT_APPLICABLE,
+                    serverResponse.trace_id || Constants.NOT_APPLICABLE,
+                    serverResponse.correlation_id || Constants.NOT_APPLICABLE,
+                    serverResponse.claims || Constants.NOT_APPLICABLE,
+                );
             }
 
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
