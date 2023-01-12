@@ -117,7 +117,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
-        // allow users to not set logger call back
+        // allow users to not set logger call back 
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
@@ -163,6 +163,8 @@ export function buildAppConfiguration({
 }: Configuration): NodeConfiguration {
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
+        ...system,
+        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
         networkClient: system?.customAgentOptions ? new HttpClient(system.customAgentOptions as http.AgentOptions | https.AgentOptions) : new HttpClient(),
     };
 

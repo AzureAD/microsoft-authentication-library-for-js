@@ -12,7 +12,7 @@ import { Authority } from "../authority/Authority";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType } from "../utils/Constants";
+import { GrantType, HeaderNames } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { TimeUtils } from "../utils/TimeUtils";
@@ -34,11 +34,18 @@ export class UsernamePasswordClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("in acquireToken call");
+        // @ts-ignore
+        const atsMeasurement = this.performanceClient?.startMeasurement("UsernamePasswordClientAcquireToken", request.correlationId);
+        this.logger.info("in acquireToken call in username-password client");
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
+        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        atsMeasurement?.addStaticFields({
+            httpVerToken
+        });
+    
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
