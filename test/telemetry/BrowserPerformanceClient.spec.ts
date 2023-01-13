@@ -66,38 +66,4 @@ describe("BrowserPerformanceClient.ts", () => {
             spy.mockClear();
         });
     });
-
-    describe("addQueueMeasurement", () => {
-        it("returns if no preQueueTime", () => {
-            const spy = jest.spyOn(PerformanceClient.prototype, "addQueueMeasurement");
-
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
-            const preQueueObject = {
-                eventName: PerformanceEvents.AcquireTokenSilent,
-                correlationId
-            } as QueueMeasurement;
-
-            browserPerfClient.addQueueMeasurement(preQueueObject);
-
-            expect(spy).toHaveBeenCalledTimes(0);
-        });
-
-        it("calls calculateQueuedTime and addQueueMeasuremnets", () => {
-            const calculateTimeSpy = jest.spyOn(PerformanceClient.prototype, "calculateQueuedTime");
-            const addQueueSpy = jest.spyOn(PerformanceClient.prototype, "addQueueMeasurement");
-
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
-            const preQueueObject = {
-                eventName: PerformanceEvents.AcquireTokenSilent,
-                correlationId,
-                preQueueTime: 12345
-            } as QueueMeasurement;
-
-            browserPerfClient.addQueueMeasurement(preQueueObject);
-
-            expect(calculateTimeSpy).toHaveBeenCalledTimes(1);
-            expect(addQueueSpy).toHaveBeenCalledTimes(1);
-        });
-
-    });
 });

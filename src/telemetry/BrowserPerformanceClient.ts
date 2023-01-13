@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent, ApplicationTelemetry, QueueMeasurement } from "@azure/msal-common";
+import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent, ApplicationTelemetry } from "@azure/msal-common";
 import { CryptoOptions } from "../config/Configuration";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
 import { GuidGenerator } from "../crypto/GuidGenerator";
@@ -57,6 +57,24 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         };
     }
 
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void {
+        if (!correlationId) {
+            this.logger.trace(`BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to set telemetry queue time`);
+            return;
+        }
+
+        const preQueueTimesByEvents = this.preQueueTimeByCorrelationId.get(correlationId);
+
+        if (preQueueTimesByEvents){
+            preQueueTimesByEvents.set(eventName, window.performance.now());
+            this.preQueueTimeByCorrelationId.set(correlationId, preQueueTimesByEvents);
+        } else {
+            const preQueueTimes = new Map();
+            preQueueTimes.set(eventName, window.performance.now());
+            this.preQueueTimeByCorrelationId.set(correlationId, preQueueTimes);
+        }
+    }
+
     /**
      * Calculates and adds queue time measurement for given performance event.
      * 
@@ -65,15 +83,20 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @param {?number} preQueueTime 
      * @returns 
      */
-    addQueueMeasurement(preQueueObject?: QueueMeasurement): void {
-        if (!preQueueObject || !preQueueObject.preQueueTime) {
-            this.logger.trace("BrowserPerformanceClient:addQueueMeasurement - preQueueTime not provided, cannot calculate queue time");
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string): void {
+        if (!correlationId) {
+            this.logger.trace(`BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to add queue measurement`);
             return;
         }
 
+        const preQueueTime = super.getPreQueueTime(eventName, correlationId);
+        if (!preQueueTime) {
+            return;
+        }
+        
         const currentTime = window.performance.now();
-        const queueTime = super.calculateQueuedTime(preQueueObject.preQueueTime, currentTime);
+        const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
 
-        return super.addQueueMeasurement({...preQueueObject, queueTime});
+        return super.addQueueMeasurement(eventName, correlationId, queueTime);
     }
 }

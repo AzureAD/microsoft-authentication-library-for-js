@@ -97,16 +97,6 @@ export class TestStorageManager extends CacheManager {
         this.store[key] = value;
     }
 
-    // Queue Time Cache
-    getPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): QueueMeasurement | null {
-        const key = `${correlationId}-${eventName}`;
-        return this.store[key] as QueueMeasurement;
-    }
-    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
-        const key = `${correlationId}-${eventName}`;
-        this.store[key] = {eventName, correlationId} as QueueMeasurement;
-    }
-
     getAuthorityMetadataKeys(): Array<string> {
         const allKeys = this.getKeys();
         return allKeys.filter((key: string) => {

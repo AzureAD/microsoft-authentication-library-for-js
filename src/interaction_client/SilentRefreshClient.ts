@@ -14,10 +14,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken, request.correlationId);
-        this.performanceClient.addQueueMeasurement(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentRefreshClientAcquireToken, request.correlationId);
 
-        this.browserStorage.setPreQueueTime(PerformanceEvents.InitializeBaseRequest, request.correlationId);
+        this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...await this.initializeBaseRequest(request)
@@ -28,7 +27,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
         const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
         this.logger.verbose("Refresh token client created");
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-        this.browserStorage.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request.correlationId);
+        this.performanceClient.setPreQueueTime(PerformanceEvents.RefreshTokenClientAcquireTokenByRefreshToken, request.correlationId);
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest)
             .then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
@@ -68,7 +67,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<RefreshTokenClient> {
         // Create auth module.
-        this.browserStorage.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, this.correlationId);
+        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, this.correlationId);
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
         return new RefreshTokenClient(clientConfig, this.performanceClient);
     }
