@@ -84,6 +84,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @returns 
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string): void {
+        this.logger.info(`tx-addQueue: ${eventName}`);
         if (!correlationId) {
             this.logger.trace(`BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to add queue measurement`);
             return;
