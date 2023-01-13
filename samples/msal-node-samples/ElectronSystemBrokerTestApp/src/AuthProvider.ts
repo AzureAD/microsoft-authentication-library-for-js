@@ -30,7 +30,7 @@ export default class AuthProvider {
                         console.log(message);
                     },
                     piiLoggingEnabled: true,
-                    logLevel: LogLevel.Info,
+                    logLevel: LogLevel.Trace,
                 },
             },
             broker: {
@@ -128,8 +128,10 @@ export default class AuthProvider {
                     .toString(),
                 errorTemplate: fs
                     .readFileSync("./public/errorTemplate.html", "utf8")
-                    .toString(),
+                    .toString()
             };
+            // @ts-ignore
+            console.log(tokenRequest.windowHandle);
 
             const authResponse =
                 await this.clientApplication.acquireTokenInteractive(

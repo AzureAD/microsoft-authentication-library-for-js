@@ -180,6 +180,24 @@ export default class Main {
         Main.publish(IpcMessages.SET_PROFILE, graphResponse);
     }
 
+    private static async getProfileInteractive(): Promise<void> {
+        const tokenRequest = {
+            account: null as AccountInfo,
+            scopes: ["User.Read"],
+            prompt: "login",
+            windowHandle: Main.mainWindow.getNativeWindowHandle()
+        };
+        const tokenResponse = await Main.authProvider.getTokenInteractive(tokenRequest);
+        const account = Main.authProvider.currentAccount();
+        await Main.loadBaseUI();
+        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
+        const graphResponse = await Main.fetchManager.callEndpointWithToken(
+            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`,
+            tokenResponse.accessToken
+        );
+        Main.publish(IpcMessages.SET_PROFILE, graphResponse);
+    }
+
     private static async getMail(): Promise<void> {
         const tokenRequest = {
             account: null as AccountInfo,
@@ -205,7 +223,7 @@ export default class Main {
     // Router that maps callbacks/actions to specific messages received from the Renderer
     private static registerSubscriptions(): void {
         ipcMain.on(IpcMessages.LOGIN, Main.login);
-        ipcMain.on(IpcMessages.GET_PROFILE, Main.getProfile);
+        ipcMain.on(IpcMessages.GET_PROFILE, Main.getProfileInteractive);
         ipcMain.on(IpcMessages.GET_MAIL, Main.getMail);
         ipcMain.on(IpcMessages.LOGOUT, Main.logout);
     }
