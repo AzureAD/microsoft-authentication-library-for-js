@@ -573,56 +573,6 @@ describe("BrowserCacheManager tests", () => {
                 });
             });
 
-            describe("Telemetry queue time", () => {
-                const testEventName = PerformanceEvents.AcquireTokenSilent;
-                const testCorrelationId = RANDOM_TEST_GUID;
-
-                it("getPreQueueTime() returns null if key is not in cache", () => {
-                    expect(browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId)).toBeNull();
-                    expect(browserLocalStorage.getPreQueueTime(testEventName, testCorrelationId)).toBeNull();
-                });
-
-                it("getPreQueueTime() returns null if no correlationId provided", () => {
-                    expect(browserSessionStorage.getPreQueueTime(testEventName)).toBeNull();
-                    expect(browserLocalStorage.getPreQueueTime(testEventName)).toBeNull();
-                });
-
-                it("setPreQueueTime() and getPreQueueTime() sets and returns queue time in-memory", () => {
-                    browserSessionStorage.setPreQueueTime(testEventName, testCorrelationId);
-                    browserLocalStorage.setPreQueueTime(testEventName, testCorrelationId);
-
-                    const sessionQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
-                    expect(sessionQueueObject).toBeTruthy();
-                    expect(sessionQueueObject?.eventName).toBe(testEventName);
-                    expect(sessionQueueObject?.correlationId).toBe(testCorrelationId);
-                    expect(sessionQueueObject?.preQueueTime).toBeGreaterThan(0);
-
-                    const localQueueObject = browserLocalStorage.getPreQueueTime(testEventName, testCorrelationId);
-                    expect(localQueueObject).toBeTruthy();
-                    expect(localQueueObject?.eventName).toBe(testEventName);
-                    expect(localQueueObject?.correlationId).toBe(testCorrelationId);
-                    expect(localQueueObject?.preQueueTime).toBeGreaterThan(0);
-                });
-
-                it("getPreQueueTime() removes queue time from in-memory storage after returning", () => {
-                    browserSessionStorage.setPreQueueTime(testEventName, testCorrelationId);
-                    browserLocalStorage.setPreQueueTime(testEventName, testCorrelationId);
-
-                    const sessionQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
-                    expect(sessionQueueObject).toBeTruthy();
-
-                    const clearedSessionQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
-                    expect(clearedSessionQueueObject).toBeNull();
-
-                    const localQueueObject = browserLocalStorage.getPreQueueTime(testEventName, testCorrelationId);
-                    expect(localQueueObject).toBeTruthy();
-
-                    const clearedLocalQueueObject = browserSessionStorage.getPreQueueTime(testEventName, testCorrelationId);
-                    expect(clearedLocalQueueObject).toBeNull();
-
-                });
-            });
-
             describe("ThrottlingCache", () => {
                 it("getThrottlingCache returns null if key not in cache", () => {
                     const key = "not-in-cache";

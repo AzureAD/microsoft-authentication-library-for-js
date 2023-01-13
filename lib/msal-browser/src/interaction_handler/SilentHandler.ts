@@ -26,8 +26,7 @@ export class SilentHandler extends InteractionHandler {
      * @param userRequestScopes
      */
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId);
-        this.performanceClient.addQueueMeasurement(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId);
 
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
@@ -36,7 +35,7 @@ export class SilentHandler extends InteractionHandler {
         }
 
         if (this.navigateFrameWait) {
-            this.browserStorage.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+            this.performanceClient.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
             return await this.loadFrame(requestUrl);
         }
         return this.loadFrameSync(requestUrl);
@@ -48,8 +47,7 @@ export class SilentHandler extends InteractionHandler {
      * @param timeout
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId);
-        this.performanceClient.addQueueMeasurement(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId);
 
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
@@ -104,8 +102,7 @@ export class SilentHandler extends InteractionHandler {
      * @ignore
      */
     private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
-        const preQueueTime = this.browserStorage.getPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
-        this.performanceClient.addQueueMeasurement(preQueueTime);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
 
         /*
          * This trick overcomes iframe navigation in IE

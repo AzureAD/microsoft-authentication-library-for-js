@@ -20,7 +20,6 @@ import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
-import { PerformanceEvents } from "../../telemetry/performance/PerformanceEvent";
 
 export interface ICacheManager {
 
@@ -126,14 +125,6 @@ export interface ICacheManager {
      * @param authority 
      */
     generateAuthorityMetadataCacheKey(authority: string): string;
-
-    /**
-     * Given a telemetry category generates the cache key for telemetry
-     * @param telemetryCategory 
-     * @param correlationId 
-     * @param eventName 
-     */
-    generateTelemetryCacheKey(telemetryCategory: string, correlationId: string, eventName: PerformanceEvents): string;
 
     /**
      * fetch throttling entity from the platform cache

@@ -29,7 +29,8 @@ export interface IPerformanceClient {
     startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
-    addQueueMeasurement(queueMeasurement?: QueueMeasurement | null): void;
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void;
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
 }
 
 /**
@@ -42,17 +43,7 @@ export type QueueMeasurement = {
     eventName: PerformanceEvents,
 
     /**
-     * CorrelationId
-     */
-    correlationId: string,
-
-    /**
-     * Time before performance event queued
-     */
-    preQueueTime?: number,
-
-    /**
      * Time spent in JS queue
      */
-    queueTime?: number
+    queueTime: number
 };

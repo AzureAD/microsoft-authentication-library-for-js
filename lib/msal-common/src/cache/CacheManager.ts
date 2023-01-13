@@ -23,8 +23,6 @@ import { AuthToken } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
 import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
-import { QueueMeasurement } from "../telemetry/performance/IPerformanceClient";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -168,20 +166,6 @@ export abstract class CacheManager implements ICacheManager {
      * Function which updates an outdated credential cache key
      */
     abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
-
-    /**
-     * Function to set pre-queue time in cache.
-     * @param eventName 
-     * @param correlationId 
-     */
-    abstract getPreQueueTime(eventName: PerformanceEvents, correlationId?: string): QueueMeasurement | null;
-
-    /**
-     * Function to retrieve pre-queue time from cache.
-     * @param eventName 
-     * @param correlationId 
-     */
-    abstract setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
 
     /**
      * Returns all accounts in cache
@@ -998,17 +982,6 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
-     * Returns cache key used for telemetry
-     * @param telemetryCategory 
-     * @param correlationId 
-     * @param eventName 
-     * @returns 
-     */
-    generateTelemetryCacheKey(telemetryCategory: string, correlationId: string, eventName: PerformanceEvents): string {
-        return `${telemetryCategory}-${correlationId}-${eventName}`;
-    }
-
-    /**
      * Returns the specific credential (IdToken/AccessToken/RefreshToken) from the cache
      * @param key
      * @param credType
@@ -1130,14 +1103,6 @@ export class DefaultStorageClass extends CacheManager {
     }
     updateCredentialCacheKey(): string {
         const notImplErr = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    }
-    setPreQueueTime(): void {
-        const notImplErr = "Storage interface - setPreQueueTime() has not been implemented for the cacheStorage interface.";
-        throw AuthError.createUnexpectedError(notImplErr);
-    }
-    getPreQueueTime(): QueueMeasurement | null {
-        const notImplErr = "Storage interface - prePreQueueTime() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 }

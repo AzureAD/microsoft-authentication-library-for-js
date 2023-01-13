@@ -145,7 +145,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             startPerformanceMeasurement: jest.fn(),
             generateId: jest.fn(),
             calculateQueuedTime: jest.fn(),
-            addQueueMeasurement: jest.fn()
+            addQueueMeasurement: jest.fn(),
+            setPreQueueTime: jest.fn()
         };
     });
 
