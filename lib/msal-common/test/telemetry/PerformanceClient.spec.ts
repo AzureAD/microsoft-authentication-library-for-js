@@ -24,10 +24,10 @@ const logger = new Logger({
 
 class MockPerformanceMeasurement implements IPerformanceMeasurement {
     startMeasurement(): void {
-        
+
     }
     endMeasurement(): void {
-        
+
     }
     flushMeasurement(): number | null {
         return samplePerfDuration;
@@ -125,6 +125,55 @@ describe("PerformanceClient.spec.ts", () => {
 
         topLevelEvent.flushMeasurement();
     });
+
+    it("adds static fields", done => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const correlationId = "test-correlation-id";
+        const authority = "test-authority";
+        const extensionId = "test-extension-id";
+
+        mockPerfClient.addPerformanceCallback((events => {
+            expect(events.length).toBe(1);
+
+            expect(events[0].correlationId).toBe(correlationId);
+            expect(events[0].httpVerAuthority).toBe(authority);
+            expect(events[0].extensionId).toBe(extensionId);
+            done();
+        }));
+
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)
+        topLevelEvent.endMeasurement({
+            success: true
+        });
+        topLevelEvent.addStaticFields({ httpVerAuthority: authority, extensionId : extensionId });
+
+        topLevelEvent.flushMeasurement();
+    });
+
+    it("increments counters", done => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const correlationId = "test-correlation-id";
+
+        mockPerfClient.addPerformanceCallback((events => {
+            expect(events.length).toBe(1);
+
+            expect(events[0].correlationId).toBe(correlationId);
+            expect(events[0].visibilityChangeCount).toBe(8);
+            done();
+        }));
+
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)
+        topLevelEvent.endMeasurement({
+            success: true
+        });
+        topLevelEvent.increment({ visibilityChangeCount: 5 });
+        topLevelEvent.increment({ visibilityChangeCount: 3 });
+
+        topLevelEvent.flushMeasurement();
+    });
+
     it("gracefully handles a submeasurement not being ended before top level measurement", done => {
         const mockPerfClient = new MockPerformanceClient();
 
@@ -202,12 +251,12 @@ describe("PerformanceClient.spec.ts", () => {
         const result = measure.endMeasurement({
             success: true
         });
-        
+
         mockPerfClient.flushMeasurements(PerformanceEvents.AcquireTokenSilent, correlationId);
 
         expect(result).toBe(null);
     });
-    
+
     it("gracefully handles two requests with teh same correlation id", done => {
         const mockPerfClient = new MockPerformanceClient();
 

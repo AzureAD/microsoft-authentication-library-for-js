@@ -1942,7 +1942,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(authenticationResult.requestId).toBeTruthy;
             expect(authenticationResult.requestId).toEqual(CORS_RESPONSE_HEADERS.xMsRequestId);
         });
-        
+
         it('does not include the requestId in the result when none in server response', async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
@@ -2012,13 +2012,14 @@ describe("AuthorizationCodeClient unit tests", () => {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
+                incrementCounters: jest.fn(),
                 flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
                 startPerformanceMeasurement: jest.fn(),
-                generateId: jest.fn()
+                generateId: jest.fn(),
             }
             performanceClient.startMeasurement.mockImplementation(() => {
                 return performanceClient;
@@ -2066,6 +2067,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
+                incrementCounters: jest.fn(),
                 flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
@@ -2096,7 +2098,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(performanceClient.addStaticFields).not.toHaveBeenCalled();
         });
     });
-    
+
     describe("getLogoutUri()", () => {
 
         it("Returns a uri", async () => {
