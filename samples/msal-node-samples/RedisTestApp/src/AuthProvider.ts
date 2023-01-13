@@ -29,6 +29,7 @@ import {
 } from '@azure/msal-node';
 
 import { ConfigurationUtils } from './ConfigurationUtils';
+import { TokenValidator } from './TokenValidator';
 
 import {
     AppSettings,
@@ -58,6 +59,7 @@ export class AuthProvider {
     appSettings: AppSettings;
     cacheClient: ICacheClient;
 
+    private tokenValidator: TokenValidator;
     private cryptoProvider: CryptoProvider;
 
     constructor(appSettings: AppSettings, cacheClient: ICacheClient = null) {
@@ -66,6 +68,7 @@ export class AuthProvider {
         this.cacheClient = cacheClient;
         this.appSettings = appSettings;
         this.cryptoProvider = new CryptoProvider();
+        this.tokenValidator = new TokenValidator(this.appSettings, this.cryptoProvider);
     }
 
     // ========== Getters and Initializors ===============
@@ -202,10 +205,30 @@ export class AuthProvider {
                             const tokenResponse = await msalClient.acquireTokenByCode(req.session.tokenRequest)
                             console.log("\nResponse: \n:", tokenResponse);
 
-                            req.session.account = tokenResponse.account;
-                            req.session.isAuthenticated = true;
+                            try {
+                                /**
+                                 * Confidential web applications like ASP.NET Core must validate ID tokens sent to them by
+                                 * using the user's browser in the hybrid flow, before allowing access to a user's data or
+                                 * establishing a session. If this does not apply, the application won't benefit from validating
+                                 * the token. For more information, visit: https://learn.microsoft.com/azure/active-directory/develop/access-tokens#validate-tokens
+                                 */
+                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken);
 
-                            return res.status(200).redirect(this.appSettings.settings.homePageRoute);
+                                if (isIdTokenValid) {
+
+                                    // assign session variables
+                                    req.session.account = tokenResponse.account;
+                                    req.session.isAuthenticated = true;
+
+                                    return res.status(200).redirect(this.appSettings.settings.homePageRoute);
+                                } else {
+                                    console.log(ErrorMessages.INVALID_TOKEN);
+                                    return res.status(401).send(ErrorMessages.NOT_PERMITTED);
+                                }
+                            } catch (error) {
+                                console.log(error);
+                                next(error);
+                            }
                         } catch (error) {
                             console.log(error);
                             next(error);
