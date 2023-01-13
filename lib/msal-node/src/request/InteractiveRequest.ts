@@ -10,4 +10,5 @@ export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority"|"corr
     scopes?: Array<string>;
     successTemplate?: string;
     errorTemplate?: string;
+    windowHandle?: Buffer; // Relevant only to brokered requests
 };

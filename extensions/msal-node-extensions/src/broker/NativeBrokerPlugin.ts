@@ -139,7 +139,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         });
     }
 
-    async acquireTokenInteractive(request: NativeRequest): Promise<AuthenticationResult> {
+    async acquireTokenInteractive(request: NativeRequest, windowHandle?: Buffer): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenInteractive called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
         let readAccountResult;
@@ -165,7 +165,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case PromptValue.CREATE:
                     this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
                     const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                    addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle);
+                    addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
                     break;
                 case PromptValue.NONE:
                     if (readAccountResult) {
@@ -179,11 +179,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 default:
                     if (readAccountResult) {
                         this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
-                        addon.AcquireTokenInteractively(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
+                        addon.AcquireTokenInteractively(authParams, readAccountResult, request.correlationId, callback, asyncHandle, windowHandle);
                     } else {
-                        this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
+                        this.logger.info("Calling native interop SignIn API", request.correlationId);
                         const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                        addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle);
+                        addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
                     }
                     break;
             }

@@ -95,7 +95,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
         const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenInteractive called", correlationId);
-        const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
+        const { openBrowser, successTemplate, errorTemplate, windowHandle, ...remainingProperties } = request;
 
         if (this.config.broker.allowNativeBroker) {
             const brokerRequest: NativeRequest = {
@@ -111,7 +111,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 },
                 accountId: remainingProperties.account?.nativeAccountId
             };
-            return this.config.broker.nativeBrokerPlugin.acquireTokenInteractive(brokerRequest);
+            return this.config.broker.nativeBrokerPlugin.acquireTokenInteractive(brokerRequest, windowHandle);
         }
 
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
