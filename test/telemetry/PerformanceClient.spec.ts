@@ -64,6 +64,10 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
     startPerformanceMeasurement(measureName: string, correlationId?: string): IPerformanceMeasurement {
         return new MockPerformanceMeasurement();
     }
+
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+        return;
+    }
 }
 
 class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
