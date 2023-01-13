@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "ExtraTokenParameters are now sent to the /token endpoint when using acquireTokenByClientCredential",
+  "packageName": "@azure/msal-node",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
