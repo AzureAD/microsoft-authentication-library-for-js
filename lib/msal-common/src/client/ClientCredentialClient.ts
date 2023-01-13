@@ -141,6 +141,8 @@ export class ClientCredentialClient extends BaseClient {
             };
         } else {
             const requestBody = this.createTokenRequestBody(request);
+            const queryParameters = this.createTokenQueryParameters(request);
+            const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
             const headers: Record<string, string> = this.createTokenRequestHeaders();
             const thumbprint: RequestThumbprint = {
                 clientId: this.config.authOptions.clientId,
@@ -155,7 +157,7 @@ export class ClientCredentialClient extends BaseClient {
             };
     
             reqTimestamp = TimeUtils.nowSeconds();
-            const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+            const response = await this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
             serverTokenResponse = response.body;
         }
 
@@ -219,6 +221,20 @@ export class ClientCredentialClient extends BaseClient {
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        return parameterBuilder.createQueryString();
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request
+     */
+    private createTokenQueryParameters(request: CommonClientCredentialRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
         }
 
         return parameterBuilder.createQueryString();
