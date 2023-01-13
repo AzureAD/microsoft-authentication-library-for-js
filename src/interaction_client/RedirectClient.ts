@@ -273,7 +273,7 @@ export class RedirectClient extends StandardInteractionClient {
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
-            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, logoutRequest.correlationId);
+            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, validLogoutRequest.correlationId);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
             this.logger.verbose("Auth code client created");
 
