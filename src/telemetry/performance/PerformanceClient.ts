@@ -356,6 +356,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 this.logger.trace(`PerformanceClient.flushMeasurements: unable to add queue time and count for ${measurement.eventName}`);
             }
         });
+        this.logger.info(`tx-CPC-flush: queuedMeasurementsForCorr: ${JSON.stringify(queueMeasurementForCorrelationId)}`);
+        this.logger.info(`tx-CPC-flush: queuedCount: ${totalCount} - queuedTimeMs: ${totalTime}`);
+        this.queueMeasurements.forEach((value, key) => {
+            this.logger.info(`tx-CPC-flush: correlationId: ${key}`);
+        });
 
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
         if (eventsForCorrelationId) {
