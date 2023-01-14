@@ -210,6 +210,24 @@ export enum PerformanceEvents {
      */
     HandleServerTokenResponse = "handleServerTokenResponse",
 
+    /**
+     * Authority functions
+     */
+    AuthorityFactoryCreateDiscoveredInstance = "authorityFactoryCreateDiscoveredInstance",
+    AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork = "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata = "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork = "authorityGetEndpointMetadataFromNetwork",
+    AuthorityUpdateEndpointMetadata = "authorityUpdateEndpointMetadata",
+    AuthorityUpdateMetadataWithRegionalInformation = "authorityUpdateMetadataWithRegionalInformation",
+
+    /**
+     * Region Discovery functions
+     */
+    RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
+    RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
+    RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
+
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
     GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
