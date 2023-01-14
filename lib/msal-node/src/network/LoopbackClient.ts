@@ -3,19 +3,71 @@
  * Licensed under the MIT License.
  */
 
-import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
+import { Constants as CommonConstants, Logger, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
 
 export class LoopbackClient {
+    private port: number;
     private server: Server;
+
+    private constructor(port: number = 0) {
+        this.port = port;
+    }
+
+    /**
+     * Initializes a loopback server with an available port
+     * @param preferredPort
+     * @param logger
+     * @returns
+     */
+    static async initialize(preferredPort: number | undefined, logger: Logger): Promise<LoopbackClient> {
+        logger.info(`LoopbackClient initialized called with
+            ${preferredPort && preferredPort !== 0 ? "preferred port " + preferredPort : "any available port"}
+        `);
+
+        const loopbackClient = new LoopbackClient();
+
+        if (preferredPort === 0 || preferredPort === undefined) {
+            return loopbackClient;
+        }
+
+        logger.verbose(`Checking if port ${preferredPort} is available...`);
+        const isPortFree = await loopbackClient.isPortFree(preferredPort);
+
+        if (!isPortFree) {
+            logger.verbose(`Port ${preferredPort} is not available, falling back to any available port`);
+            loopbackClient.port = 0;
+            return loopbackClient;
+        }
+
+        return loopbackClient;
+    }
+
+    /**
+     * Attempts to create a server and listen on a given port
+     * @param port
+     * @returns
+     */
+    isPortFree(port: number): Promise<boolean> {
+        return new Promise(resolve => {
+            const server = createServer()
+                .listen(port, () => {
+                    server.close();
+                    resolve(true);
+                })
+                .on("error", () => {
+                    resolve(false);
+                });
+        });
+    }
 
     /**
      * Spins up a loopback server which returns the server response when the localhost redirectUri is hit
-     * @param successTemplate 
-     * @param errorTemplate 
-     * @returns 
+     * @param successTemplate
+     * @param errorTemplate
+     * @returns
      */
     async listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse> {
         if (!!this.server) {
@@ -33,7 +85,7 @@ export class LoopbackClient {
                     res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
                     return;
                 }
-    
+
                 const authCodeResponse = UrlString.getDeserializedQueryString(url);
                 if (authCodeResponse.code) {
                     const redirectUri = await this.getRedirectUri();
@@ -42,7 +94,7 @@ export class LoopbackClient {
                 }
                 resolve(authCodeResponse);
             });
-            this.server.listen(0); // Listen on any available port
+            this.server.listen(this.port); // Listen on preferred port
         });
 
         // Wait for server to be listening
@@ -52,7 +104,7 @@ export class LoopbackClient {
                 if ((LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS / LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS) < ticks) {
                     throw NodeAuthError.createLoopbackServerTimeoutError();
                 }
-                
+
                 if (this.server.listening) {
                     clearInterval(id);
                     resolve();
@@ -66,18 +118,18 @@ export class LoopbackClient {
 
     /**
      * Get the port that the loopback server is running on
-     * @returns 
+     * @returns
      */
     getRedirectUri(): string {
         if (!this.server) {
             throw NodeAuthError.createNoLoopbackServerExistsError();
         }
-                
+
         const address = this.server.address();
         if (!address || typeof address === "string" || !address.port) {
             this.closeServer();
             throw NodeAuthError.createInvalidLoopbackAddressTypeError();
-        } 
+        }
 
         const port = address && address.port;
 

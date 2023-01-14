@@ -40,7 +40,7 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.AUTHORITY,
         },
 
-        system:{
+        system: {
             loggerOptions: void 0,
         }
     };
@@ -197,7 +197,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('acquireTokenSilent', async () => {  
+    test('acquireTokenSilent', async () => {
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
@@ -226,11 +226,11 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test("acquireTokenInteractive", async () => {
+    test("acquireTokenInteractive - no preferred port", async () => {
         const authApp = new PublicClientApplication(appConfig);
 
         let redirectUri: string;
-        
+
         const openBrowser = (url: string) => {
             expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
             http.get(`${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`);
@@ -258,6 +258,58 @@ describe('PublicClientApplication', () => {
         expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
         expect(response.accessToken).toEqual(mockAuthenticationResult.accessToken);
         expect(response.account).toEqual(mockAuthenticationResult.account);
+    });
+
+    test("acquireTokenInteractive - given unavailable port", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+
+        let redirectUri: string;
+
+        const openBrowser = (url: string) => {
+            expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+            http.get(`${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`);
+            return Promise.resolve();
+        }
+
+        const mockServer = http.createServer().listen(6000);
+
+        const isFree = await new Promise(resolve => {
+            const server = http.createServer()
+                .listen(6000, () => {
+                    server.close();
+                    resolve(true);
+                })
+                .on("error", () => {
+                    resolve(false);
+                });
+        });
+
+        expect(isFree).toBe(false);
+
+        const request: InteractiveRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            openBrowser: openBrowser,
+            preferredPort: 6000
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+        jest.spyOn(msalCommon, 'AuthorizationCodeClient').mockImplementation((config) => new MockAuthorizationCodeClient(config));
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "getAuthCodeUrl").mockImplementation((req) => {
+            redirectUri = req.redirectUri;
+            return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+        });
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "acquireToken").mockImplementation((tokenRequest) => {
+            expect(tokenRequest.scopes).toEqual([...TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE, ...TEST_CONSTANTS.DEFAULT_OIDC_SCOPES]);
+            return Promise.resolve(mockAuthenticationResult);
+        });
+
+        const response = await authApp.acquireTokenInteractive(request);
+        expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
+        expect(response.accessToken).toEqual(mockAuthenticationResult.accessToken);
+        expect(response.account).toEqual(mockAuthenticationResult.account);
+        mockServer.close();
     });
 
     test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
@@ -345,7 +397,7 @@ describe('PublicClientApplication', () => {
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
-        await authApp.acquireTokenByRefreshToken(request);        
+        await authApp.acquireTokenByRefreshToken(request);
         expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
         expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
@@ -488,9 +540,9 @@ describe('PublicClientApplication', () => {
     test("logger undefined", async () => {
         const authApp = new PublicClientApplication(testAppConfig);
 
-       expect(authApp.getLogger()).toBeDefined();
-       expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
-        
+        expect(authApp.getLogger()).toBeDefined();
+        expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
+
     });
 
     test("should throw an error if state is not provided", async () => {
@@ -530,7 +582,7 @@ describe('PublicClientApplication', () => {
 
         try {
             await authApp.acquireTokenByCode(request, authCodePayLoad);
-        } catch (e) {   
+        } catch (e) {
             expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
             expect(mockInfo).toHaveBeenCalledWith(
                 "acquireTokenByCode - validating state"

@@ -10,4 +10,5 @@ export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority"|"corr
     scopes?: Array<string>;
     successTemplate?: string;
     errorTemplate?: string;
+    preferredPort?: number;
 };

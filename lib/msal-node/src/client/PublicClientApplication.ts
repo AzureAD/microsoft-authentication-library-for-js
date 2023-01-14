@@ -90,9 +90,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
-        const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
+        const { openBrowser, successTemplate, errorTemplate, preferredPort, ...remainingProperties } = request;
 
-        const loopbackClient = new LoopbackClient();
+        const loopbackClient = await LoopbackClient.initialize(preferredPort, this.logger);
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
         const redirectUri = loopbackClient.getRedirectUri();
 
@@ -101,7 +101,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             scopes: request.scopes || OIDC_DEFAULT_SCOPES,
             redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
-            codeChallenge: challenge, 
+            codeChallenge: challenge,
             codeChallengeMethod: CodeChallengeMethodValues.S256
         };
 
