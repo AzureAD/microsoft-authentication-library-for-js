@@ -7,7 +7,7 @@ import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
 import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction, QueueMeasurement } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
-import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./PerformanceEvent";
+import { Counters, PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./PerformanceEvent";
 
 export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
@@ -33,6 +33,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected staticFieldsByCorrelationId: Map<string, StaticFields>;
 
     /**
+     * Counters to be emitted which are scoped to the top level request and whose value may change in sub-measurements
+     */
+    protected countersByCorrelationId: Map<string, Counters>;
+
+    /**
      * Underlying performance measurements for each operation
      *
      * @protected
@@ -51,7 +56,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
 
     /**
-     * Creates an instance of PerformanceClient, 
+     * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
      *
      * @constructor
@@ -74,6 +79,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.measurementsById = new Map();
         this.queueMeasurements = new Map();
         this.preQueueTimeByCorrelationId = new Map();
+        this.countersByCorrelationId = new Map();
     }
 
     /**
@@ -241,6 +247,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
             addStaticFields: (fields: StaticFields) => {
                 return this.addStaticFields(fields, inProgressEvent.correlationId);
             },
+            increment: (counters: Counters) => {
+                return this.increment(counters, inProgressEvent.correlationId);
+            },
             measurement: performanceMeasurement,
             event: inProgressEvent
         };
@@ -284,8 +293,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Saves extra information to be emitted when the measurements are flushed
-     * @param fields 
-     * @param correlationId 
+     * @param fields
+     * @param correlationId
      */
     addStaticFields(fields: StaticFields, correlationId: string) : void{
         const existingStaticFields = this.staticFieldsByCorrelationId.get(correlationId);
@@ -295,6 +304,28 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.logger.trace("PerformanceClient: Adding static fields");
             this.staticFieldsByCorrelationId.set(correlationId, fields);
+        }
+    }
+
+    /**
+     * Increment counters to be emitted when the measurements are flushed
+     * @param counters {Counters}
+     * @param correlationId {string} correlation identifier
+     */
+    increment(counters: Counters, correlationId: string): void {
+        const existing: Counters | undefined = this.countersByCorrelationId.get(correlationId);
+        if (!existing) {
+            this.logger.trace("PerformanceClient: Setting counters");
+            this.countersByCorrelationId.set(correlationId, { ...counters });
+            return;
+        }
+
+        this.logger.trace("PerformanceClient: Updating counters");
+        for (const counter in counters) {
+            if (!existing.hasOwnProperty(counter)) {
+                existing[counter] = 0;
+            }
+            existing[counter] += counters[counter];
         }
     }
 
@@ -363,8 +394,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
 
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
+        const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
+        const counters = this.countersByCorrelationId.get(correlationId);
+
         if (eventsForCorrelationId) {
-            this.discardMeasurements(correlationId);
+            this.discardCache(correlationId);
 
             /*
              * Manually end incomplete submeasurements to ensure there arent orphaned/never ending events.
@@ -422,10 +456,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     return previous;
                 }, topLevelEvent);
 
-                const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
                 const finalEvent: PerformanceEvent = {
                     ...eventToEmit,
                     ...staticFields,
+                    ...counters,
                     queuedTimeMs: totalTime,
                     queuedCount: totalCount
                 };
@@ -447,6 +481,21 @@ export abstract class PerformanceClient implements IPerformanceClient {
     discardMeasurements(correlationId: string): void {
         this.logger.trace("PerformanceClient: Performance measurements discarded", correlationId);
         this.eventsByCorrelationId.delete(correlationId);
+    }
+
+    /**
+     * Removes cache for a given correlation id.
+     *
+     * @param {string} correlation identifier
+     */
+    private discardCache(correlationId: string): void {
+        this.discardMeasurements(correlationId);
+
+        this.logger.trace("PerformanceClient: Static fields discarded", correlationId);
+        this.staticFieldsByCorrelationId.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: Counters discarded", correlationId);
+        this.countersByCorrelationId.delete(correlationId);
     }
 
     /**
