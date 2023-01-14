@@ -40,6 +40,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     protected measurementsById: Map<string, IPerformanceMeasurement>;
 
+    /**
+     * Map of pre-queue times by correlation Id
+     * 
+     * @protected
+     * @type {Map<string, Map<string, number>>}
+     */
     protected preQueueTimeByCorrelationId: Map<string, Map<string, number>>;
 
     /**
@@ -94,8 +100,23 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     abstract generateId(): string;
 
+    /**
+     * Sets pre-queue time by correlation Id
+     * 
+     * @abstract
+     * @param {PerformanceEvents} eventName 
+     * @param {string} correlationId 
+     * @returns
+     */
     abstract setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
 
+    /**
+     * Gets map of pre-queue times by correlation Id
+     * 
+     * @param {PerformanceEvents} eventName 
+     * @param {string} correlationId 
+     * @returns {number}
+     */
     getPreQueueTime(eventName: PerformanceEvents, correlationId: string): number | void {
         const preQueueTimesByEvents = this.preQueueTimeByCorrelationId.get(correlationId);
 
@@ -339,13 +360,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
 
         /**
-         * Adds all queue time and count measurements for given correlation ID.
+         * Adds all queue time and count measurements for given correlation ID
+         * then deletes queue times for given correlation ID from queueMeasurements map.
          */
 
         const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
             this.logger.trace(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
         }
+
         let totalTime = 0;
         let totalCount = 0;
         queueMeasurementForCorrelationId?.forEach((measurement) => {
@@ -353,14 +376,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 totalTime += measurement.queueTime;
                 totalCount++;
             } else {
-                this.logger.trace(`PerformanceClient.flushMeasurements: unable to add queue time and count for ${measurement.eventName}`);
+                this.logger.trace(`PerformanceClient: unable to add queue time and count for ${measurement.eventName}`);
             }
         });
-        this.logger.info(`tx-CPC-flush: queuedMeasurementsForCorr: ${JSON.stringify(queueMeasurementForCorrelationId)}`);
-        this.logger.info(`tx-CPC-flush: queuedCount: ${totalCount} - queuedTimeMs: ${totalTime}`);
-        this.queueMeasurements.forEach((value, key) => {
-            this.logger.info(`tx-CPC-flush: correlationId: ${key}`);
-        });
+
+        this.queueMeasurements.delete(correlationId);
 
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
         if (eventsForCorrelationId) {
