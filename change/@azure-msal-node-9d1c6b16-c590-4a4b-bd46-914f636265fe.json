@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Allow setting a preferred port in acquireTokenInteractive",
+  "comment": "Allow setting a preferred port in acquireTokenInteractive #5575",
   "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
+  "email": "v-derisen@microsoft.com",
   "dependentChangeType": "patch"
 }
