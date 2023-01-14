@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "JS Queue Measurements POC #5352",
+  "comment": "Add JS Queue Measurements to acquireTokenSilent #5352",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
