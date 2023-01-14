@@ -102,7 +102,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
-        this.logger.verbose("tx-ATS");
 
         const account = request.account || this.getActiveAccount();
         if (!account) {
