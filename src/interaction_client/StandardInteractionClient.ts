@@ -227,8 +227,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const builtAuthority = Authority.generateAuthority(userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority", this.correlationId);
         
-        // TODO: Need to measure here? Relation to correlationId?
-        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger)
+        this.performanceClient.setPreQueueTime(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, this.correlationId);
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger, undefined, this.performanceClient, this.correlationId)
             .then((result: Authority) => {
                 getAuthorityMeasurement.endMeasurement({
                     success: true,
