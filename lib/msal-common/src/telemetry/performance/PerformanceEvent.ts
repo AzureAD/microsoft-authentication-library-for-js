@@ -123,7 +123,7 @@ export enum PerformanceEvents {
     RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
 
     /**
-     * Time taken for acquiring cached refresh token 
+     * Time taken for acquiring cached refresh token
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
@@ -227,6 +227,8 @@ export enum PerformanceEvents {
     RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
     RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
     RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
+    
+    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
 
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
     GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
@@ -254,7 +256,7 @@ export enum PerformanceEventStatus {
 /**
  * Fields whose value will not change throughout a request
  */
-export type StaticFields = { 
+export type StaticFields = {
     /**
      * The Silent Token Cache Lookup Policy
      *
@@ -268,32 +270,32 @@ export type StaticFields = {
      * @type {number}
      */
     idTokenSize?: number,
- 
+
     /**
-     * 
+     *
      * Size of the access token
      *
      * @type {number}
      */
- 
+
     accessTokenSize?: number,
 
     /**
-     * 
+     *
      * Size of the refresh token
      *
      * @type {number}
      */
 
     refreshTokenSize?: number | undefined,
- 
+
     /**
      * Application name as specified by the app.
      *
      * @type {?string}
      */
     appName?: string,
- 
+
     /**
      * Application version as specified by the app.
      *
@@ -324,12 +326,19 @@ export type StaticFields = {
 };
 
 /**
+ * Fields whose value may change throughout a request
+ */
+export type Counters = {
+    visibilityChangeCount?: number;
+};
+
+/**
  * Performance measurement taken by the library, including metadata about the request and application.
  *
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = StaticFields & {
+export type PerformanceEvent = StaticFields & Counters & {
     /**
      * Unique id for the event
      *
@@ -454,7 +463,7 @@ export type PerformanceEvent = StaticFields & {
 
     /**
      * Request ID returned from the response
-     * 
+     *
      * @type {?string}
      */
     requestId?: string
