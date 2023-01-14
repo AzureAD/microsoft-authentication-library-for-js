@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { Constants as CommonConstants, Logger, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
+import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
+import { ILoopbackClient } from "./ILoopbackClient";
 
-export class LoopbackClient {
-    private port: number;
+export class LoopbackClient implements ILoopbackClient {
+    port: number = 0;
     private server: Server;
 
     private constructor(port: number = 0) {
@@ -22,45 +23,19 @@ export class LoopbackClient {
      * @param logger
      * @returns
      */
-    static async initialize(preferredPort: number | undefined, logger: Logger): Promise<LoopbackClient> {
-        logger.info(`LoopbackClient initialized called with
-            ${preferredPort && preferredPort !== 0 ? "preferred port " + preferredPort : "any available port"}
-        `);
-
+    static async initialize(preferredPort: number | undefined): Promise<LoopbackClient> {
         const loopbackClient = new LoopbackClient();
 
         if (preferredPort === 0 || preferredPort === undefined) {
             return loopbackClient;
         }
+        const isPortAvailable = await loopbackClient.isPortAvailable(preferredPort);
 
-        logger.verbose(`Checking if port ${preferredPort} is available...`);
-        const isPortFree = await loopbackClient.isPortFree(preferredPort);
-
-        if (!isPortFree) {
-            logger.verbose(`Port ${preferredPort} is not available, falling back to any available port`);
-            loopbackClient.port = 0;
-            return loopbackClient;
+        if (isPortAvailable) {
+            loopbackClient.port = preferredPort;
         }
 
         return loopbackClient;
-    }
-
-    /**
-     * Attempts to create a server and listen on a given port
-     * @param port
-     * @returns
-     */
-    isPortFree(port: number): Promise<boolean> {
-        return new Promise(resolve => {
-            const server = createServer()
-                .listen(port, () => {
-                    server.close();
-                    resolve(true);
-                })
-                .on("error", () => {
-                    resolve(false);
-                });
-        });
     }
 
     /**
@@ -143,5 +118,23 @@ export class LoopbackClient {
         if (!!this.server) {
             this.server.close();
         }
+    }
+
+    /**
+     * Attempts to create a server and listen on a given port
+     * @param port
+     * @returns
+     */
+    isPortAvailable(port: number): Promise<boolean> {
+        return new Promise(resolve => {
+            const server = createServer()
+                .listen(port, () => {
+                    server.close();
+                    resolve(true);
+                })
+                .on("error", () => {
+                    resolve(false);
+                });
+        });
     }
 }
