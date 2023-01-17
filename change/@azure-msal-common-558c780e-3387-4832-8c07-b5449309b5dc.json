@@ -2,6 +2,6 @@
   "type": "patch",
   "comment": "Add broker timeouts #5580",
   "packageName": "@azure/msal-common",
-  "email": "sh.konst89@gmail.com",
+  "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"
 }
