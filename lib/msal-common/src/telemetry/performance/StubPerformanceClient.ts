@@ -23,7 +23,7 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
         return "callback-id";
     }
     
-    startPerformanceMeasurement(): IPerformanceMeasurement {
+    startPerformanceMeasuremeant(): IPerformanceMeasurement {
         return new StubPerformanceMeasurement();
     }
 }

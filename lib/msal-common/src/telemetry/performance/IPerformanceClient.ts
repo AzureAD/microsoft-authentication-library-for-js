@@ -27,6 +27,6 @@ export interface IPerformanceClient {
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
-    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
+    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
 }
