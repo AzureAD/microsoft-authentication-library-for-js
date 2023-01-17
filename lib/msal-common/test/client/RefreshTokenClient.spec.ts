@@ -505,7 +505,7 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
                 generateId: jest.fn()
             }
             performanceClient.startMeasurement.mockImplementation(() => {
@@ -538,7 +538,7 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasurement: jest.fn(),
+                startPerformanceMeasuremeant: jest.fn(),
                 generateId: jest.fn()
             }
             performanceClient.startMeasurement.mockImplementation(() => {
