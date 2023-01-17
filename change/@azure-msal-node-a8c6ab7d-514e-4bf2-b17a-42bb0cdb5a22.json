@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Allow adding custom loopback client in acquireTokenInteractive #5578",
   "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
+  "email": "v-derisen@microsoft.com",
   "dependentChangeType": "patch"
 }
