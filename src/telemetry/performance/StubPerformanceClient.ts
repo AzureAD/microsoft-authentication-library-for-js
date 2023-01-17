@@ -26,4 +26,8 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
     startPerformanceMeasuremeant(): IPerformanceMeasurement {
         return new StubPerformanceMeasurement();
     }
+
+    startPerformanceMeasurement(): IPerformanceMeasurement {
+        return new StubPerformanceMeasurement();
+    }
 }
