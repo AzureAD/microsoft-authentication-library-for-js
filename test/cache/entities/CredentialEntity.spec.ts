@@ -91,7 +91,7 @@ describe("CredentialEntity.ts Unit Tests", () => {
             expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
         });
 
-        it("Host name with multiple TLDs - Is access token", () => {
+        it("Host name with multiple top level domains - Is access token", () => {
             const atEntity = new AccessTokenEntity();
             Object.assign(atEntity, {
                 homeAccountId,
@@ -112,7 +112,7 @@ describe("CredentialEntity.ts Unit Tests", () => {
             expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
         });
 
-        it("Host name with a single long TLD - Is access token", () => {
+        it("Host name with a single long top level domain - Is access token", () => {
             const atEntity = new AccessTokenEntity();
             Object.assign(atEntity, {
                 homeAccountId,
@@ -133,7 +133,7 @@ describe("CredentialEntity.ts Unit Tests", () => {
             expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
         });
 
-        it("Host name with multiple long TLDs - Is access token", () => {
+        it("Host name with multiple long top level domains - Is access token", () => {
             const atEntity = new AccessTokenEntity();
             Object.assign(atEntity, {
                 homeAccountId,
