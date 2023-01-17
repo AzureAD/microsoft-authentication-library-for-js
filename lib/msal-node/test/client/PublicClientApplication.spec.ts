@@ -1,9 +1,9 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration, InteractiveRequest } from './../../src/index';
-import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS } from '../utils/TestConstants';
+import { Configuration, ILoopbackClient, InteractiveRequest } from './../../src/index';
+import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS, TEST_DATA_CLIENT_INFO } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult, AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient,
-    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo
+    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo, ServerAuthorizationCodeResponse
 } from '@azure/msal-common';
 import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
@@ -260,7 +260,63 @@ describe('PublicClientApplication', () => {
         expect(response.account).toEqual(mockAuthenticationResult.account);
     });
 
-    test("acquireTokenInteractive - given unavailable port", async () => {
+    test("acquireTokenInteractive - with custom loopback client", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+
+        const openBrowser = (url: string) => {
+            expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+            return Promise.resolve();
+        };
+
+        const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+            state: "123"
+        };
+
+        const mockListenForAuthCode = jest.fn(() => {
+            return new Promise<ServerAuthorizationCodeResponse>((resolve) => {
+                resolve(testServerCodeResponse);
+            });
+        });
+        const mockGetRedirectUri = jest.fn(() => TEST_CONSTANTS.REDIRECT_URI);
+        const mockCloseServer = jest.fn(() => {});
+
+        const customLoopbackClient: ILoopbackClient = {
+            listenForAuthCode: mockListenForAuthCode,
+            getRedirectUri: mockGetRedirectUri,
+            closeServer: mockCloseServer
+        };
+
+        const request: InteractiveRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            openBrowser: openBrowser,
+            customLoopbackClient: customLoopbackClient,
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+        jest.spyOn(msalCommon, 'AuthorizationCodeClient').mockImplementation((config) => new MockAuthorizationCodeClient(config));
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "getAuthCodeUrl").mockImplementation((req) => {
+            expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
+            return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+        });
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "acquireToken").mockImplementation((tokenRequest) => {
+            expect(tokenRequest.scopes).toEqual([...TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE, ...TEST_CONSTANTS.DEFAULT_OIDC_SCOPES]);
+            return Promise.resolve(mockAuthenticationResult);
+        });
+
+        const response = await authApp.acquireTokenInteractive(request);
+        expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
+        expect(response.accessToken).toEqual(mockAuthenticationResult.accessToken);
+        expect(response.account).toEqual(mockAuthenticationResult.account);
+        expect(mockListenForAuthCode).toHaveBeenCalledTimes(1);
+        expect(mockGetRedirectUri).toHaveBeenCalledTimes(1);
+        expect(mockCloseServer).toHaveBeenCalledTimes(1);
+    });
+
+    test("acquireTokenInteractive - with unavailable preferred port", async () => {
         const authApp = new PublicClientApplication(appConfig);
 
         let redirectUri: string;
@@ -540,8 +596,8 @@ describe('PublicClientApplication', () => {
     test("logger undefined", async () => {
         const authApp = new PublicClientApplication(testAppConfig);
 
-        expect(authApp.getLogger()).toBeDefined();
-        expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
+       expect(authApp.getLogger()).toBeDefined();
+       expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
 
     });
 

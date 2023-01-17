@@ -7,8 +7,9 @@ import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlStrin
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
+import { ILoopbackClient } from "./ILoopbackClient";
 
-export class LoopbackClient {
+export class LoopbackClient implements ILoopbackClient {
     port: number = 0; // default port, which will be set to a random available port
     private server: Server;
 
