@@ -221,6 +221,12 @@ export type StaticFields = {
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
+
+    // Broker timeouts
+    brokerInteractionTimeout?: number;
+    brokerMessageTimeout?: number;
+    brokerHandshakeTimeout?: number;
+    brokerIframeTimeout?: number;
 };
 
 /**
