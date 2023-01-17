@@ -71,22 +71,36 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     /**
-     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
-     *
-     * @abstract
-     * @param {string} measureName
-     * @param {string} correlationId
-     * @returns {IPerformanceMeasurement}
-     */
-    abstract startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
-
-    /**
      * Generates and returns a unique id, typically a guid.
      *
      * @abstract
      * @returns {string}
      */
     abstract generateId(): string;
+
+    /**
+     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
+     * Note: this function can be changed to abstract at the next major version bump.
+     *
+     * @param {string} measureName
+     * @param {string} correlationId
+     * @returns {IPerformanceMeasurement}
+     */
+    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement {
+        return {} as IPerformanceMeasurement;
+    };
+
+    /**
+     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
+     * Note: this incorrectly-named function will be removed at the next major version bump.
+     *
+     * @param {string} measureName
+     * @param {string} correlationId
+     * @returns {IPerformanceMeasurement}
+     */
+    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
+        return {} as IPerformanceMeasurement;
+    };
 
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
