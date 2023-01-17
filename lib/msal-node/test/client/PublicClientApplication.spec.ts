@@ -263,11 +263,8 @@ describe('PublicClientApplication', () => {
     test("acquireTokenInteractive - with custom loopback client", async () => {
         const authApp = new PublicClientApplication(appConfig);
 
-        let redirectUri: string;
-
         const openBrowser = (url: string) => {
             expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
-            http.get(`${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`);
             return Promise.resolve();
         };
 
@@ -301,7 +298,7 @@ describe('PublicClientApplication', () => {
         jest.spyOn(msalCommon, 'AuthorizationCodeClient').mockImplementation((config) => new MockAuthorizationCodeClient(config));
 
         jest.spyOn(MockAuthorizationCodeClient.prototype, "getAuthCodeUrl").mockImplementation((req) => {
-            redirectUri = req.redirectUri;
+            expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
             return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
         });
 
