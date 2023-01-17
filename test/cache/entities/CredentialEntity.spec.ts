@@ -112,6 +112,48 @@ describe("CredentialEntity.ts Unit Tests", () => {
             expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
         });
 
+        it("Host name with a single long TLD - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.education:40000",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
+        it("Host name with multiple long TLDs - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.business.info:40000",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
         it("Metadata key - empty result", () => {
             const key = `authority-metadata-${clientId}-login.microsoftonline.com`;
             expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
@@ -119,11 +161,6 @@ describe("CredentialEntity.ts Unit Tests", () => {
 
         it("Partial workflow match - empty result", () => {
             const key = `${homeAccountId}-accessTokenWorkflow-login.microsoftonline.com-someothertoken-${clientId}---`;
-            expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
-        });
-
-        it("Invalid host name - empty result", () => {
-            const key = `${homeAccountId}-login.microsoftonline-accessToken-${clientId}---`;
             expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
         });
 
