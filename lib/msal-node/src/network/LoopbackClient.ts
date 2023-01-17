@@ -7,10 +7,9 @@ import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlStrin
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
-import { ILoopbackClient } from "./ILoopbackClient";
 
-export class LoopbackClient implements ILoopbackClient {
-    port: number = 0;
+export class LoopbackClient {
+    port: number = 0; // default port, which will be set to a random available port
     private server: Server;
 
     private constructor(port: number = 0) {
@@ -69,7 +68,7 @@ export class LoopbackClient implements ILoopbackClient {
                 }
                 resolve(authCodeResponse);
             });
-            this.server.listen(this.port); // Listen on preferred port
+            this.server.listen(this.port);
         });
 
         // Wait for server to be listening

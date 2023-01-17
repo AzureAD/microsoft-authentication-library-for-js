@@ -24,7 +24,6 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { InteractiveRequest } from "../request/InteractiveRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { LoopbackClient } from "../network/LoopbackClient";
-import { ILoopbackClient } from "../network/ILoopbackClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -91,17 +90,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
-        const { openBrowser, successTemplate, errorTemplate, preferredPort, customLoopbackClient, ...remainingProperties } = request;
+        const { openBrowser, successTemplate, errorTemplate, preferredPort, ...remainingProperties } = request;
 
-        let loopbackClient: ILoopbackClient;
-
-        if (customLoopbackClient) {
-            this.logger.verbose("acquireTokenInteractive - custom loopback client set");
-            loopbackClient = customLoopbackClient;
-        } else {
-            this.logger.verbose(`acquireTokenInteractive - preferred port set to ${preferredPort}, attempting to listen`);
-            loopbackClient = await LoopbackClient.initialize(preferredPort);
-        }
+        this.logger.verbose(`acquireTokenInteractive - preferred port set to ${preferredPort}, attempting to listen`);
+        const loopbackClient = await LoopbackClient.initialize(preferredPort);
 
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
         const redirectUri = loopbackClient.getRedirectUri();
