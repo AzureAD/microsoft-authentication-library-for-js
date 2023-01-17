@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { ILoopbackClient } from "../network/ILoopbackClient";
 import { AuthorizationUrlRequest } from "./AuthorizationUrlRequest";
 
 export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority"|"correlationId"|"claims"|"azureCloudOptions"|"account"|"extraQueryParameters"|"tokenQueryParameters"|"extraScopesToConsent"|"loginHint"|"prompt"> & {
@@ -10,4 +11,5 @@ export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority"|"corr
     scopes?: Array<string>;
     successTemplate?: string;
     errorTemplate?: string;
+    customLoopbackClient?: ILoopbackClient
 };
