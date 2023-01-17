@@ -222,7 +222,7 @@ export type StaticFields = {
     httpVerToken?: string;
     httpVerAuthority?: string;
 
-    // Broker timeouts
+    // Broker timeouts used by 1p browser lib
     brokerInteractionTimeout?: number;
     brokerMessageTimeout?: number;
     brokerHandshakeTimeout?: number;
