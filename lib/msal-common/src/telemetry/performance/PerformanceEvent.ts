@@ -223,10 +223,10 @@ export type StaticFields = {
     httpVerAuthority?: string;
 
     // Broker timeouts used by 1p browser lib
-    brokerInteractionTimeout?: number;
-    brokerMessageTimeout?: number;
-    brokerHandshakeTimeout?: number;
-    brokerIframeTimeout?: number;
+    brokerInteractionTimeoutMs?: number;
+    brokerMessageTimeoutMs?: number;
+    brokerHandshakeTimeoutMs?: number;
+    brokerIframeTimeoutMs?: number;
 };
 
 /**
