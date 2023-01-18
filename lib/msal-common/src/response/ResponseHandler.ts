@@ -77,10 +77,10 @@ export class ResponseHandler {
                     serverResponseHash.error || Constants.EMPTY_STRING,
                     serverResponseHash.error_description,
                     serverResponseHash.suberror,
-                    serverResponseHash.timestamp || Constants.NOT_APPLICABLE,
-                    serverResponseHash.trace_id || Constants.NOT_APPLICABLE,
-                    serverResponseHash.correlation_id || Constants.NOT_APPLICABLE,
-                    serverResponseHash.claims || Constants.NOT_APPLICABLE,
+                    serverResponseHash.timestamp || Constants.EMPTY_STRING,
+                    serverResponseHash.trace_id || Constants.EMPTY_STRING,
+                    serverResponseHash.correlation_id || Constants.EMPTY_STRING,
+                    serverResponseHash.claims || Constants.EMPTY_STRING,
                 );
             }
 
@@ -104,10 +104,10 @@ export class ResponseHandler {
                     serverResponse.error,
                     serverResponse.error_description,
                     serverResponse.suberror,
-                    serverResponse.timestamp || Constants.NOT_APPLICABLE,
-                    serverResponse.trace_id || Constants.NOT_APPLICABLE,
-                    serverResponse.correlation_id || Constants.NOT_APPLICABLE,
-                    serverResponse.claims || Constants.NOT_APPLICABLE,
+                    serverResponse.timestamp || Constants.EMPTY_STRING,
+                    serverResponse.trace_id || Constants.EMPTY_STRING,
+                    serverResponse.correlation_id || Constants.EMPTY_STRING,
+                    serverResponse.claims || Constants.EMPTY_STRING,
                 );
             }
 
