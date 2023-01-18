@@ -118,9 +118,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.info(`PerformanceClient: No correlation id provided for ${measureName}, generating`, eventCorrelationId);
         }
 
+        // Duplicate code to address spelling error will be removed at the next major version bump.
         this.logger.trace(`PerformanceClient: Performance measurement started for ${measureName}`, eventCorrelationId);
-        const performanceMeasurement = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
-        performanceMeasurement.startMeasurement();
+        let validMeasurement: IPerformanceMeasurement;
+        const performanceMeasuremeant = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
+        if (performanceMeasuremeant.startMeasurement) {
+            performanceMeasuremeant.startMeasurement();
+            validMeasurement = performanceMeasuremeant;
+        } else {
+            const performanceMeasurement = this.startPerformanceMeasurement(measureName, eventCorrelationId);
+            performanceMeasurement.startMeasurement();
+            validMeasurement = performanceMeasurement;
+        }
 
         const inProgressEvent: PerformanceEvent = {
             eventId: this.generateId(),
@@ -142,7 +151,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             appVersion: this.applicationTelemetry?.appVersion,
         };
         this.addStaticFields(staticFields, eventCorrelationId);
-        this.cacheMeasurement(inProgressEvent, performanceMeasurement);
+        this.cacheMeasurement(inProgressEvent, validMeasurement);
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
@@ -172,7 +181,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             increment: (counters: Counters) => {
                 return this.increment(counters, inProgressEvent.correlationId);
             },
-            measurement: performanceMeasurement,
+            measurement: validMeasurement,
             event: inProgressEvent
         };
 
