@@ -15,7 +15,8 @@ import {
     Constants as CommonConstants,
     ServerError,
     NativeRequest,
-    AccountInfo
+    AccountInfo,
+    INativeBrokerPlugin
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
@@ -34,6 +35,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
  * @public
  */
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
+    private nativeBrokerPlugin?: INativeBrokerPlugin;
     /**
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal.
@@ -53,7 +55,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        this.config.broker.nativeBrokerPlugin.setLogger(this.config.system.loggerOptions);
+        if (this.config.broker.allowNativeBroker) {
+            if (this.config.broker.nativeBrokerPlugin.isBrokerAvailable) {
+                this.nativeBrokerPlugin = this.config.broker.nativeBrokerPlugin;
+                this.nativeBrokerPlugin.setLogger(this.config.system.loggerOptions);
+            } else {
+                this.logger.warning("Usage of the NativeBroker is allowed but the broker is unavailable.");
+            }
+        }
     }
 
     /**
@@ -97,7 +106,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.logger.trace("acquireTokenInteractive called", correlationId);
         const { openBrowser, successTemplate, errorTemplate, windowHandle, ...remainingProperties } = request;
 
-        if (this.config.broker.allowNativeBroker) {
+        if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
                 ...remainingProperties,
                 clientId: this.config.auth.clientId,
@@ -111,7 +120,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 },
                 accountId: remainingProperties.account?.nativeAccountId
             };
-            return this.config.broker.nativeBrokerPlugin.acquireTokenInteractive(brokerRequest, windowHandle);
+            return this.nativeBrokerPlugin.acquireTokenInteractive(brokerRequest, windowHandle);
         }
 
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
@@ -161,7 +170,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenSilent called", correlationId);
 
-        if (this.config.broker.allowNativeBroker) {
+        if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
                 ...request,
                 clientId: this.config.auth.clientId,
@@ -173,7 +182,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 accountId: request.account.nativeAccountId,
                 forceRefresh: request.forceRefresh || false
             };
-            return this.config.broker.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
+            return this.nativeBrokerPlugin.acquireTokenSilent(brokerRequest);
         }
 
         return super.acquireTokenSilent(request);
