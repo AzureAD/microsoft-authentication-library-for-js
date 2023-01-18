@@ -10,6 +10,7 @@ import { version, name } from "../packageMetadata";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private logger: Logger;
+    isBrokerAvailable: boolean;
     
     constructor() {
         const defaultLoggerOptions: LoggerOptions = {
@@ -17,6 +18,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             piiLoggingEnabled: false
         };
         this.logger = new Logger(defaultLoggerOptions, name, version); // Default logger
+        this.isBrokerAvailable = addon.StartupError ? false : true;
     }
 
     setLogger(loggerOptions: LoggerOptions): void {
@@ -74,7 +76,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     break; 
             }
         };
-        addon.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
+        const initError = addon.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
+        if (initError && this.isError(initError)) {
+            throw this.createError(initError);
+        }
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
@@ -82,8 +87,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         const readAccountResult = await this.readAccountById(accountId, correlationId);
         const accountInfoResult = addon.GetAccountInfo(readAccountResult);
         if (this.isError(accountInfoResult)) {
-            const { errorCode, errorStatus, errorContext, errorTag } = accountInfoResult as MsalRuntimeError;
-            throw new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
+            throw this.createError(accountInfoResult as MsalRuntimeError);
         }
         return this.generateAccountInfo(accountInfoResult as Account);
     }
@@ -93,8 +97,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return new Promise((resolve, reject) => {
             const resultCallback = (result: DiscoverAccountsResult | MsalRuntimeError) => {
                 if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                    reject(this.createError(result as MsalRuntimeError));
                     return;
                 }
                 const { accounts } = result as DiscoverAccountsResult;
@@ -107,7 +110,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
             const callback = new addon.DiscoverAccountsResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
-            addon.DiscoverAccounts(clientId, correlationId, callback, asyncHandle);
+            const initError = addon.DiscoverAccounts(clientId, correlationId, callback, asyncHandle);
+            if (initError && this.isError(initError)) {
+                reject(this.createError(initError));
+            }
         });
     }
 
@@ -122,8 +128,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
             const resultCallback = (result: AuthResult | MsalRuntimeError) => {
                 if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                    reject(this.createError(result as MsalRuntimeError));
                     return;
                 }
                 const authenticationResult = this.getAuthenticationResult(request, result as AuthResult);
@@ -132,9 +137,15 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             const callback = new addon.AuthResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
             if (readAccountResult) {
-                addon.AcquireTokenSilently(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
+                const initError = addon.AcquireTokenSilently(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
+                if (initError && this.isError(initError)) {
+                    reject(this.createError(initError));
+                }
             } else {
-                addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
+                const initError = addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
+                if (initError && this.isError(initError)) {
+                    reject(this.createError(initError));
+                }
             }
         });
     }
@@ -150,8 +161,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
             const resultCallback = (result: AuthResult | MsalRuntimeError) => {
                 if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                    reject(this.createError(result as MsalRuntimeError));
                     return;
                 }
                 const authenticationResult = this.getAuthenticationResult(request, result as AuthResult);
@@ -159,33 +169,38 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             };
             const callback = new addon.AuthResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
+            let initError;
             switch (request.prompt) {
                 case PromptValue.LOGIN:
                 case PromptValue.SELECT_ACCOUNT:
                 case PromptValue.CREATE:
                     this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
                     const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                    addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
+                    initError = addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
                     break;
                 case PromptValue.NONE:
                     if (readAccountResult) {
                         this.logger.info("Calling native interop AcquireTokenSilently API", request.correlationId);
-                        addon.AcquireTokenSilently(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
+                        initError = addon.AcquireTokenSilently(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
                     } else {
                         this.logger.info("Calling native interop SignInSilently API", request.correlationId);
-                        addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
+                        initError = addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
                     }
                     break;
                 default:
                     if (readAccountResult) {
                         this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
-                        addon.AcquireTokenInteractively(authParams, readAccountResult, request.correlationId, callback, asyncHandle, windowHandle);
+                        initError = addon.AcquireTokenInteractively(authParams, readAccountResult, request.correlationId, callback, asyncHandle, windowHandle);
                     } else {
                         this.logger.info("Calling native interop SignIn API", request.correlationId);
                         const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                        addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
+                        initError = addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
                     }
                     break;
+            }
+
+            if (initError && this.isError(initError)) {
+                reject(this.createError(initError));
             }
         });
     }
@@ -198,8 +213,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return new Promise((resolve, reject) => {
             const resultCallback = (result: SignOutResult | MsalRuntimeError) => {
                 if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                    reject(result as MsalRuntimeError);
                     return;
                 }
                 resolve();
@@ -207,7 +221,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
             const callback = new addon.SignOutResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
-            addon.SignOutSilently(request.clientId, request.correlationId, readAccountResult, callback, asyncHandle);
+            const initError = addon.SignOutSilently(request.clientId, request.correlationId, readAccountResult, callback, asyncHandle);
+            if (initError && this.isError(initError)) {
+                reject(this.createError(initError));
+            }
         });
     }
 
@@ -217,8 +234,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return new Promise((resolve, reject) => {
             const resultCallback = (result: ReadAccountResult | MsalRuntimeError) => {
                 if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
+                    reject(result as MsalRuntimeError);
                     return;
                 }
                 resolve(result as ReadAccountResult);
@@ -226,18 +242,35 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
 
             const callback = new addon.ReadAccountResultCallback(resultCallback);
             const asyncHandle = new addon.AsyncHandle();
-            addon.ReadAccountById(accountId, correlationId, callback, asyncHandle);
+            const initError = addon.ReadAccountById(accountId, correlationId, callback, asyncHandle);
+            if (initError && this.isError(initError)) {
+                reject(this.createError(initError));
+            }
         });
     }
 
     private generateRequestParameters(request: NativeRequest): AuthParameters {
         this.logger.trace("NativeBrokerPlugin - generateRequestParameters called", request.correlationId);
-        const authParams = new addon.AuthParameters(request.clientId, request.authority);
-        authParams.SetRedirectUri(request.redirectUri);
-        authParams.SetRequestedScopes(request.scopes.join(" "));
+        const authParams = new addon.AuthParameters();
+        let errorResponse;
+        errorResponse = authParams.CreateAuthParameters(request.clientId, request.authority);
+        if (errorResponse && this.isError(errorResponse)) {
+            throw this.createError(errorResponse);
+        }
+        errorResponse = authParams.SetRedirectUri(request.redirectUri);
+        if (errorResponse && this.isError(errorResponse)) {
+            throw this.createError(errorResponse);
+        }
+        errorResponse = authParams.SetRequestedScopes(request.scopes.join(" "));
+        if (errorResponse && this.isError(errorResponse)) {
+            throw this.createError(errorResponse);
+        }
 
         if (request.claims) {
-            authParams.SetDecodedClaims(request.claims);
+            errorResponse = authParams.SetDecodedClaims(request.claims);
+            if (errorResponse && this.isError(errorResponse)) {
+                throw this.createError(errorResponse);
+            }
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
@@ -245,12 +278,18 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 throw new Error("Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce");
             }
             const resourceUrl = new URL(request.resourceRequestUri);
-            authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
+            errorResponse = authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
+            if (errorResponse && this.isError(errorResponse)) {
+                throw this.createError(errorResponse);
+            }
         }
         
         if (request.extraParameters) {
             Object.keys(request.extraParameters).forEach((key) => {
-                authParams.SetAdditionalParameter(key, request.extraParameters[key]);
+                errorResponse = authParams.SetAdditionalParameter(key, request.extraParameters[key]);
+                if (errorResponse && this.isError(errorResponse)) {
+                    throw this.createError(errorResponse);
+                }
             });
         }
 
@@ -316,5 +355,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                result.hasOwnProperty("errorStatus") ||
                result.hasOwnProperty("errorContext") ||
                result.hasOwnProperty("errorTag");
+    }
+
+    private createError(error: MsalRuntimeError): NativeAuthError {
+        const { errorCode, errorStatus, errorContext, errorTag } = error;
+        return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
     }
 }
