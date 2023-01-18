@@ -86,9 +86,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} correlationId
      * @returns {IPerformanceMeasurement}
      */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement {
         return {} as IPerformanceMeasurement;
-    };
+    }
 
     /**
      * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
@@ -98,9 +99,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {string} correlationId
      * @returns {IPerformanceMeasurement}
      */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
     startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
         return {} as IPerformanceMeasurement;
-    };
+    }
 
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
