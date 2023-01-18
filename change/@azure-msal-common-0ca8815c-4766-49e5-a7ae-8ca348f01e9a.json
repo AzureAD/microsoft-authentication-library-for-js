@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "add claims to request body in OBO class #5493",
-  "packageName": "@azure/msal-common",
-  "email": "v-ssalem@microsoft.com",
-  "dependentChangeType": "patch"
-}
