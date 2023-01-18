@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 09 Jan 2023 22:44:58 GMT and should not be manually modified.
+This log was last generated on Wed, 18 Jan 2023 00:33:04 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 9.1.0
+
+Wed, 18 Jan 2023 00:33:04 GMT
+
+### Minor changes
+
+- Adding page visibility change event for silent calls like AcquireTokenSilent #5555 (kshabelko@microsoft.com)
+
+### Patches
+
+- Add startPerformanceMeasurement to IPerformanceClient #5583 (joarroyo@microsoft.com)
+- Revert typo changes #5582 (joarroyo@microsoft.com)
+- Match long domain names #5581 (kshabelko@microsoft.com)
+- - Remove `lookBehind` regex as not compatible with Safari browser. #5551 (kshabelko@microsoft.com)
+- add claims to request body in OBO class #5493 (v-ssalem@microsoft.com)
 
 ## 9.0.2
 
