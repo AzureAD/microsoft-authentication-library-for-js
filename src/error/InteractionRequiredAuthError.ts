@@ -41,19 +41,30 @@ export const InteractionRequiredAuthErrorMessage = {
  * Error thrown when user interaction is required.
  */
 export class InteractionRequiredAuthError extends AuthError {
+    /**
+     * The time the error occured at
+     */
     timestamp: string;
+
+    /**
+     * TraceId associated with the error
+     */
     traceId: string;
+
+    /**
+     * Claims associated with the error that can be used to get a token
+     */
     claims: string;
 
     constructor(errorCode?: string, errorMessage?: string, subError?: string, timestamp?: string, traceId?: string, correlationId?: string, claims?: string) {
         super(errorCode, errorMessage, subError);
-        this.name = "InteractionRequiredAuthError";
-        this.timestamp = timestamp || Constants.NOT_APPLICABLE;
-        this.traceId = traceId || Constants.NOT_APPLICABLE;
-        this.correlationId = correlationId || Constants.NOT_APPLICABLE;
-        this.claims = claims || Constants.NOT_APPLICABLE;
-
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
+        
+        this.timestamp = timestamp || Constants.EMPTY_STRING;
+        this.traceId = traceId || Constants.EMPTY_STRING;
+        this.correlationId = correlationId || Constants.EMPTY_STRING;
+        this.claims = claims || Constants.EMPTY_STRING;
+        this.name = "InteractionRequiredAuthError";
     }
 
     /**
