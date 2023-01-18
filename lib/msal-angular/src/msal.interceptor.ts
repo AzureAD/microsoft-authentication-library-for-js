@@ -11,12 +11,13 @@ import {
 } from "@angular/common/http";
 import { Location, DOCUMENT } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
-import { switchMap, catchError } from "rxjs/operators";
+import { switchMap, catchError, take, filter } from "rxjs/operators";
 import { MsalService } from "./msal.service";
-import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionStatus, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes, MatchingResources } from "./msal.interceptor.config";
+import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -26,6 +27,7 @@ export class MsalInterceptor implements HttpInterceptor {
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
         private authService: MsalService,
         private location: Location,
+        private msalBroadcastService: MsalBroadcastService,
         // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
         @Inject(DOCUMENT) document?: any
     ) {
@@ -65,26 +67,33 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
 
         // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
-        return this.authService.acquireTokenSilent({...authRequest, scopes, account })
+        return this.msalBroadcastService.inProgress$
             .pipe(
-                catchError(() => {
-                    this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
-                    return this.acquireTokenInteractively(authRequest, scopes);
-                }),
-                switchMap((result: AuthenticationResult)  => {
-                    if (!result.accessToken) {
-                        this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
-                        return this.acquireTokenInteractively(authRequest, scopes);
-                    }
-                    return of(result);
-                }),
-                switchMap((result: AuthenticationResult) => {
-                    this.authService.getLogger().verbose("Interceptor - setting authorization headers");
-                    const headers = req.headers
-                        .set("Authorization", `Bearer ${result.accessToken}`);
+                filter((status: InteractionStatus) => status === InteractionStatus.None),
+                take(1),
+                switchMap(() => {
+                    return this.authService.acquireTokenSilent({...authRequest, scopes, account })
+                        .pipe(
+                            catchError(() => {
+                                this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
+                                return this.acquireTokenInteractively(authRequest, scopes);
+                            }),
+                            switchMap((result: AuthenticationResult)  => {
+                                if (!result.accessToken) {
+                                    this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
+                                    return this.acquireTokenInteractively(authRequest, scopes);
+                                }
+                                return of(result);
+                            }),
+                            switchMap((result: AuthenticationResult) => {
+                                this.authService.getLogger().verbose("Interceptor - setting authorization headers");
+                                const headers = req.headers
+                                    .set("Authorization", `Bearer ${result.accessToken}`);
 
-                    const requestClone = req.clone({headers});
-                    return next.handle(requestClone);
+                                const requestClone = req.clone({headers});
+                                return next.handle(requestClone);
+                            })
+                        );
                 })
             );
     }
@@ -136,8 +145,8 @@ export class MsalInterceptor implements HttpInterceptor {
     /**
      * Finds resource endpoints that match request endpoint
      * @param protectedResourcesEndpoints
-     * @param endpoint 
-     * @returns 
+     * @param endpoint
+     * @returns
      */
     private matchResourcesToEndpoint(protectedResourcesEndpoints: string[], endpoint: string): MatchingResources {
         const matchingResources: MatchingResources = {absoluteResources: [], relativeResources: []};
@@ -148,7 +157,7 @@ export class MsalInterceptor implements HttpInterceptor {
             if (StringUtils.matchPattern(normalizedKey, endpoint)){
                 matchingResources.absoluteResources.push(key);
             }
-            
+
             // Get url components for relative urls
             const absoluteKey = this.getAbsoluteUrl(key);
             const keyComponents = new UrlString(absoluteKey).getUrlComponents();
@@ -169,8 +178,8 @@ export class MsalInterceptor implements HttpInterceptor {
 
     /**
      * Transforms relative urls to absolute urls
-     * @param url 
-     * @returns 
+     * @param url
+     * @returns
      */
     private getAbsoluteUrl(url: string): string {
         const link = this._document.createElement("a");
@@ -183,7 +192,7 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param protectedResourceMap Protected resource map
      * @param endpointArray Array of resources that match request endpoint
      * @param httpMethod Http method of the request
-     * @returns 
+     * @returns
      */
     private matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
         const allMatchedScopes = [];
@@ -209,7 +218,7 @@ export class MsalInterceptor implements HttpInterceptor {
                     const normalizedResourceMethod = entry.httpMethod.toLowerCase();
                     // Method in protectedResourceMap matches request http method
                     if (normalizedResourceMethod === normalizedRequestMethod) {
-                        // Validate if scopes comes null to unprotect the resource in a certain http method 
+                        // Validate if scopes comes null to unprotect the resource in a certain http method
                         if (entry.scopes === null) {
                             allMatchedScopes.push(null);
                         } else {
