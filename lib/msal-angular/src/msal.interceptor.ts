@@ -66,34 +66,60 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);
         this.authService.getLogger().infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
 
-        // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
-        return this.msalBroadcastService.inProgress$
+        return this.acquireToken(authRequest, scopes, account)
             .pipe(
-                filter((status: InteractionStatus) => status === InteractionStatus.None),
-                take(1),
-                switchMap(() => {
-                    return this.authService.acquireTokenSilent({...authRequest, scopes, account })
+                switchMap((result: AuthenticationResult) => {
+                    this.authService.getLogger().verbose("Interceptor - setting authorization headers");
+                    const headers = req.headers
+                        .set("Authorization", `Bearer ${result.accessToken}`);
+
+                    const requestClone = req.clone({headers});
+                    return next.handle(requestClone);
+                })
+            );
+    }
+
+    /**
+     * Try to acquire token silently. Invoke interaction if acquireTokenSilent rejected with error or resolved with null access token
+     * @param authRequest Request
+     * @param scopes Array of scopes for the request
+     * @param account Account
+     * @returns Authentication result
+     */
+    private acquireToken(authRequest: MsalInterceptorAuthRequest, scopes: string[], account: AccountInfo): Observable<AuthenticationResult> {
+        // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
+        return this.authService.acquireTokenSilent({...authRequest, scopes, account })
+            .pipe(
+                catchError(() => {
+                    this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
+                    return this.msalBroadcastService.inProgress$
                         .pipe(
-                            catchError(() => {
-                                this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
-                                return this.acquireTokenInteractively(authRequest, scopes);
-                            }),
-                            switchMap((result: AuthenticationResult)  => {
-                                if (!result.accessToken) {
-                                    this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
+                            take(1),
+                            switchMap((status: InteractionStatus) => {
+                                if (status === InteractionStatus.None) {
                                     return this.acquireTokenInteractively(authRequest, scopes);
                                 }
-                                return of(result);
-                            }),
-                            switchMap((result: AuthenticationResult) => {
-                                this.authService.getLogger().verbose("Interceptor - setting authorization headers");
-                                const headers = req.headers
-                                    .set("Authorization", `Bearer ${result.accessToken}`);
 
-                                const requestClone = req.clone({headers});
-                                return next.handle(requestClone);
+                                return this.msalBroadcastService.inProgress$
+                                    .pipe(
+                                        filter((status: InteractionStatus) => status === InteractionStatus.None),
+                                        take(1),
+                                        switchMap(() => this.acquireToken(authRequest, scopes, account))
+                                    );
                             })
                         );
+                }),
+                switchMap((result: AuthenticationResult)  => {
+                    if (!result.accessToken) {
+                        this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
+                        return this.msalBroadcastService.inProgress$
+                            .pipe(
+                                filter((status: InteractionStatus) => status === InteractionStatus.None),
+                                take(1),
+                                switchMap(() => this.acquireTokenInteractively(authRequest, scopes))
+                            );
+                    }
+                    return of(result);
                 })
             );
     }
