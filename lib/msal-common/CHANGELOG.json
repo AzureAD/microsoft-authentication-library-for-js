@@ -2,6 +2,27 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 19 Jan 2023 23:50:24 GMT",
+      "tag": "@azure/msal-common_v9.1.1",
+      "version": "9.1.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8e36aa8a2d086ee1156281b4e098af8a43e1c274",
+            "comment": "Update startMeasurement in PerformanceClient #5589"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "dd993f4346dd23f87a0d1a94af5389d392a4db7c",
+            "comment": "Add broker timeouts #5580"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 18 Jan 2023 00:33:04 GMT",
       "tag": "@azure/msal-common_v9.1.0",
       "version": "9.1.0",
