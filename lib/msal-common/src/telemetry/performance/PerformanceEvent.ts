@@ -224,9 +224,13 @@ export type StaticFields = {
 
     // Broker timeouts used by 1p browser lib
     brokerInteractionTimeoutMs?: number;
+    brokerInteractionTimedOut?: boolean;
     brokerMessageTimeoutMs?: number;
+    brokerMessageTimedOut?: boolean;
     brokerHandshakeTimeoutMs?: number;
+    brokerHandshakeTimedOut?: boolean;
     brokerIframeTimeoutMs?: number;
+    brokerIframeTimedOut?: boolean;
 };
 
 /**
