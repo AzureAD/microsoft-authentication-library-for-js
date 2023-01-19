@@ -28,9 +28,9 @@ import { NavigationClient } from "@azure/msal-browser";
  * If you would like to overwrite both you can implement INavigationClient directly instead
  */
 class CustomNavigationClient extends NavigationClient{
-    constructor(history) {
+    constructor(navigate) {
         super();
-        this.history = history // Passed in from useHistory hook provided by react-router-dom;
+        this.navigate = navigate // Passed in from useNavigate hook provided by react-router-dom;
     }
     
     // This function will be called anytime msal needs to navigate from one page in your application to another
@@ -38,9 +38,9 @@ class CustomNavigationClient extends NavigationClient{
         // url will be absolute, you will need to parse out the relative path to provide to the history API
         const relativePath = url.replace(window.location.origin, '');
         if (options.noHistory) {
-            this.history.replace(relativePath);
+            this.navigate(relativePath, {replace: true});
         } else {
-            this.history.push(relativePath);
+            this.navigate(relativePath);
         }
 
         return false;
@@ -52,7 +52,7 @@ class CustomNavigationClient extends NavigationClient{
 
 ```javascript
 import { MsalProvider } from "@azure/msal-react";
-import { Router, Switch, Route, useHistory } from "react-router-dom";
+import { BrowserRouter as Router , Routes, Route, useNavigate } from "react-router-dom";
 
 function App({ msalInstance }) {
     // It's important that the Router component is above the Example component because you'll need to use the useHistory hook before rendering MsalProvider
@@ -64,20 +64,16 @@ function App({ msalInstance }) {
 };
 
 function Example({ msalInstance }) {
-    const history = useHistory();
-    const navigationClient = new CustomNavigationClient(history);
+    const navigate = useNavigate();
+    const navigationClient = new CustomNavigationClient(navigate);
     msalInstance.setNavigationClient(navigationClient);
 
     return (
         <MsalProvider instance={msalInstance}>
-            <Switch>
-                <Route path="/protected">
-                    <ProtectedRoute />
-                </Route>
-                <Route path="/">
-                    <Home />
-                </Route>
-            </Switch>
+            <Routes>
+                <Route path="/protected" element={<ProtectedRoute />} />
+                <Route path="/" element={<Home />} />
+            </Routes>
         </MsalProvider>
     )
 }

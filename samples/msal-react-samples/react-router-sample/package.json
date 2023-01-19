@@ -13,7 +13,7 @@
     "react": "file:../../../lib/msal-react/node_modules/react",
     "react-app-polyfill": "^2.0.0",
     "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.7.0",
     "react-scripts": "^5.0.1"
   },
   "scripts": {
