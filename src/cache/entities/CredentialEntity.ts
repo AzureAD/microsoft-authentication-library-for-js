@@ -110,7 +110,7 @@ export class CredentialEntity {
     static getCredentialType(key: string): string {
         const separator = Separators.CACHE_KEY_SEPARATOR;
         // Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", etc.
-        const domainRe = "(https?:\\/\\/)?([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,3}))(\\:[0-9]{4,5})?";
+        const domainRe = "(https?:\\/\\/)?([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63}))(\\:[0-9]{4,5})?";
 
         for (const credKey of Object.keys(CredentialType)) {
             const credVal = CredentialType[credKey].toLowerCase();
