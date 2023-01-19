@@ -170,20 +170,10 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid
-        };
-
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
         const requestBody = await this.createTokenRequestBody(request);
-        const queryParameters = this.createTokenQueryParameters(request);
+        
         let ccsCredential: CcsCredential | undefined = undefined;
         if (request.clientInfo) {
             try {
@@ -197,23 +187,20 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
         const headers: Record<string, string> = this.createTokenRequestHeaders(ccsCredential || request.ccsCredential);
-        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: authority.canonicalAuthority,
+            scopes: request.scopes,
+            claims: request.claims,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
+        };
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
-    }
-
-    /**
-     * Creates query string for the /token request
-     * @param request
-     */
-    private createTokenQueryParameters(request: CommonAuthorizationCodeRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
-
-        if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
-        }
-
-        return parameterBuilder.createQueryString();
     }
 
     /**

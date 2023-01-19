@@ -170,9 +170,9 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
         const requestBody = await this.createTokenRequestBody(request);
-        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
@@ -186,7 +186,8 @@ export class RefreshTokenClient extends BaseClient {
             sshKid: request.sshKid
         };
 
-        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
+
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
             .then((result) => {
                 acquireTokenMeasurement?.endMeasurement({
@@ -200,20 +201,6 @@ export class RefreshTokenClient extends BaseClient {
                 });
                 throw error;
             });
-    }
-
-    /**
-     * Creates query string for the /token request
-     * @param request
-     */
-    private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
-
-        if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
-        }
-
-        return parameterBuilder.createQueryString();
     }
 
     /**

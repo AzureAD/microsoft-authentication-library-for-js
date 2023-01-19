@@ -7,6 +7,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues} from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
+import { omitBy, isEmpty } from "lodash";
 
 /**
  * Validates server consumable params from the "request" objects
@@ -76,7 +77,7 @@ export class RequestValidator {
     }
 
     /**
-     * Removes unnecessary or duplicate query parameters from extraQueryParameters
+     * Removes unnecessary, duplicate, and empty string query parameters from extraQueryParameters
      * @param request
      */
     static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>) : StringDict {
@@ -90,7 +91,8 @@ export class RequestValidator {
                 delete eQParams[key];
             }
         });
-
-        return eQParams;
+        
+        // utilize lodash to remove empty string parameters
+        return omitBy(eQParams, isEmpty);
     }
 }

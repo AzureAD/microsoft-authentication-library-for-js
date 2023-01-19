@@ -6,7 +6,6 @@
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AzureRegion } from "../authority/AzureRegion";
 import { ClientAssertion } from "../account/ClientCredentials";
-import { StringDict } from "../utils/MsalTypes";
 
 /**
  * CommonClientCredentialRequest
@@ -15,10 +14,10 @@ import { StringDict } from "../utils/MsalTypes";
  * - correlationId                      - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - skipCache                          - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  * - preferredAzureRegionOptions        - Options of the user's preferred azure region
+ * - tokenQueryParameters               - String to string map of custom query parameters added to the /token call
  */
 export type CommonClientCredentialRequest = BaseAuthRequest & {
     skipCache?: boolean;
     azureRegion?: AzureRegion;
     clientAssertion?: ClientAssertion;
-    tokenQueryParameters?: StringDict;
 };

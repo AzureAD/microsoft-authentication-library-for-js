@@ -84,24 +84,30 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Adds tokenQueryParameters to the /token request", (done) => {
-        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url: string) => {
-            console.log(url);
-            expect(url.includes("/token?testParam=testValue")).toBe(true);
-            done();
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+            try {
+                expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                done();
+            } catch (error) {
+                done(error);
+            }
         });
 
-        const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             tokenQueryParameters: {
-                testParam: "testValue"
+                testParam1: "testValue1",
+                testParam2: "",
+                testParam3: "testValue3",
             },
         };
 
+        const client = new ClientCredentialClient(config);
         client.acquireToken(clientCredentialRequest).catch((error) => {
-            // Catch errors thrown after the function call this test is testing    
+            // Catch errors thrown after the function call this test is testing
         });
     });
 

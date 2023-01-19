@@ -20,6 +20,7 @@ import { RequestThumbprint } from "../network/RequestThumbprint";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { IAppTokenProvider } from "../config/AppTokenProvider";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 client credential grant
@@ -140,9 +141,9 @@ export class ClientCredentialClient extends BaseClient {
                 token_type : AuthenticationScheme.BEARER
             };
         } else {
+            const queryParametersString = this.createTokenQueryParameters(request);
+            const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
             const requestBody = this.createTokenRequestBody(request);
-            const queryParameters = this.createTokenQueryParameters(request);
-            const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
             const headers: Record<string, string> = this.createTokenRequestHeaders();
             const thumbprint: RequestThumbprint = {
                 clientId: this.config.authOptions.clientId,
@@ -221,20 +222,6 @@ export class ClientCredentialClient extends BaseClient {
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
-        }
-
-        return parameterBuilder.createQueryString();
-    }
-
-    /**
-     * Creates query string for the /token request
-     * @param request
-     */
-    private createTokenQueryParameters(request: CommonClientCredentialRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
-
-        if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
         }
 
         return parameterBuilder.createQueryString();
