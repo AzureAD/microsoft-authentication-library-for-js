@@ -2,6 +2,53 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 18 Jan 2023 00:33:04 GMT",
+      "tag": "@azure/msal-common_v9.1.0",
+      "version": "9.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c94aa6387105571b45a70f58e1852ca053ebae23",
+            "comment": "Add startPerformanceMeasurement to IPerformanceClient #5583"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0c107eaadf7fe5c22367d3f22265d355acc0ac96",
+            "comment": "Revert typo changes #5582"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c06a509e469a69982b23bcdd38e09b0cf8d556c7",
+            "comment": "Match long domain names #5581"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2ef49eb21f87df98c861d1ce46ddd2a218afc87e",
+            "comment": "- Remove `lookBehind` regex as not compatible with Safari browser. #5551"
+          },
+          {
+            "author": "v-ssalem@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "376e3c0b3562896940d365c9b8e803f6ce5604d9",
+            "comment": "add claims to request body in OBO class #5493"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c37a5debbcac889ed509880d476e3721d3aff2bc",
+            "comment": "Adding page visibility change event for silent calls like AcquireTokenSilent #5555"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 09 Jan 2023 22:44:58 GMT",
       "tag": "@azure/msal-common_v9.0.2",
       "version": "9.0.2",
