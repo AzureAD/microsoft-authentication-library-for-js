@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 18 Jan 2023 00:33:04 GMT and should not be manually modified.
+This log was last generated on Thu, 19 Jan 2023 23:50:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 9.1.1
+
+Thu, 19 Jan 2023 23:50:24 GMT
+
+### Patches
+
+- Update startMeasurement in PerformanceClient #5589 (joarroyo@microsoft.com)
+- Add broker timeouts #5580 (kshabelko@microsoft.com)
 
 ## 9.1.0
 
