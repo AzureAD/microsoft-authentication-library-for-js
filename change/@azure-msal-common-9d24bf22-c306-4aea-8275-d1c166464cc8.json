@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor",
+  "packageName": "@azure/msal-common",
+  "email": "rgins16@gmail.com",
+  "dependentChangeType": "patch"
+}
