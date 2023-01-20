@@ -25,7 +25,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
-    private atsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
+    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
     /**
      * @constructor
@@ -176,11 +176,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     private trackPageVisibility():void {
-        if (!this.atsAsyncMeasurement) {
+        if (!this.astsAsyncMeasurement) {
             return;
         }
         this.logger.info("Perf: Visibility change detected");
-        this.atsAsyncMeasurement.increment({
+        this.astsAsyncMeasurement.increment({
             visibilityChangeCount: 1,
         });
     }
@@ -195,8 +195,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        this.atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        this.atsAsyncMeasurement?.increment({
+        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.astsAsyncMeasurement?.increment({
             visibilityChangeCount: 0
         });
         document.addEventListener("visibilitychange",this.trackPageVisibility);
@@ -268,7 +268,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            this.atsAsyncMeasurement?.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
@@ -277,7 +277,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            this.atsAsyncMeasurement?.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false
