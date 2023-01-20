@@ -24,7 +24,7 @@ import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider } from "../../src";
+import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider, InteractionRequiredAuthError } from "../../src";
 
 describe("ClientCredentialClient unit tests", () => {
     let config: ClientConfiguration;
@@ -47,7 +47,7 @@ describe("ClientCredentialClient unit tests", () => {
             expect(client instanceof BaseClient).toBe(true);
         });
     });
-
+    
     it("acquires a token", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
@@ -109,6 +109,44 @@ describe("ClientCredentialClient unit tests", () => {
         client.acquireToken(clientCredentialRequest).catch((error) => {
             // Catch errors thrown after the function call this test is testing
         });
+    });
+    
+    it("acquireToken's interactionRequiredAuthError error contains claims", async () => {
+        const errorResponse = {
+            error: "interaction_required",
+            error_description: "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
+            error_codes: [50079],
+            timestamp: "2017-05-01 22:43:20Z",
+            trace_id: "b72a68c3-0926-4b8e-bc35-3150069c2800",
+            correlation_id: "73d656cf-54b1-4eb2-b429-26d8165a52d7",
+            claims: "{\"access_token\":{\"polids\":{\"essential\":true,\"values\":[\"9ab03e19-ed42-4168-b6b7-7001fb3e933a\"]}}}",
+        };
+
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves({
+            headers: [],
+            body: errorResponse,
+            status: 400,
+        });
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const interactionRequiredAuthError = new InteractionRequiredAuthError(
+            "interaction_required",
+            "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
+            "",
+            "2017-05-01 22:43:20Z",
+            "b72a68c3-0926-4b8e-bc35-3150069c2800",
+            "73d656cf-54b1-4eb2-b429-26d8165a52d7",
+            "{\"access_token\":{\"polids\":{\"essential\":true,\"values\":[\"9ab03e19-ed42-4168-b6b7-7001fb3e933a\"]}}}"
+        );
+        await expect(client.acquireToken(clientCredentialRequest)).rejects.toEqual(interactionRequiredAuthError);
     });
 
     // regression test for https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5134
