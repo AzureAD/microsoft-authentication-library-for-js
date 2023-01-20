@@ -1,6 +1,6 @@
 {
-  "type": "major",
-  "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor #5599",
+  "type": "minor",
+  "comment": "Add support for custom http(s) agents #5472",
   "packageName": "@azure/msal-node",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
