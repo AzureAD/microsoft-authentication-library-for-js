@@ -29,8 +29,7 @@ export class AuthorityFactory {
         networkClient: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        logger: Logger,
-        proxyUrl?: string
+        logger: Logger
     ): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
@@ -38,8 +37,7 @@ export class AuthorityFactory {
             networkClient,
             cacheManager,
             authorityOptions,
-            logger,
-            proxyUrl
+            logger
         );
 
         try {
@@ -65,14 +63,13 @@ export class AuthorityFactory {
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        logger: Logger,
-        proxyUrl?: string
+        logger: Logger
     ): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger);
     }
 }

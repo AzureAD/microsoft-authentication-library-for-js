@@ -47,8 +47,6 @@ export class Authority {
     private regionDiscovery: RegionDiscovery;
     // Region discovery metadata
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
-    // Proxy url string
-    private proxyUrl: string;
     // Logger object
     private logger: Logger;
 
@@ -58,7 +56,6 @@ export class Authority {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string
     ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
@@ -67,7 +64,6 @@ export class Authority {
         this.authorityOptions = authorityOptions;
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
-        this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
         this.logger = logger;
     }
 
@@ -370,10 +366,7 @@ export class Authority {
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
         const options: ImdsOptions = {};
-        if (this.proxyUrl) {
-            options.proxyUrl = this.proxyUrl;
-        }
-
+        
         /*
          * TODO: Add a timeout if the authority exists in our library's 
          * hardcoded list of metadata
@@ -405,8 +398,7 @@ export class Authority {
     private async updateMetadataWithRegionalInformation(metadata: OpenIdConfigResponse): Promise<OpenIdConfigResponse> {
         const autodetectedRegionName = await this.regionDiscovery.detectRegion(
             this.authorityOptions.azureRegionConfiguration?.environmentRegion,
-            this.regionDiscoveryMetadata,
-            this.proxyUrl
+            this.regionDiscoveryMetadata
         );
 
         const azureRegion = 
@@ -533,9 +525,6 @@ export class Authority {
         const instanceDiscoveryEndpoint =
             `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
-        if (this.proxyUrl) {
-            options.proxyUrl = this.proxyUrl;
-        }
 
         /*
          * TODO: Add a timeout if the authority exists in our library's

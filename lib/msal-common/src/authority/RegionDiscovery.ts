@@ -29,16 +29,13 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata, proxyUrl: string): Promise<string | null> {
+    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata): Promise<string | null> {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
         // Check if a region was detected from the environment, if not, attempt to get the region from IMDS 
         if (!autodetectedRegionName) {
             const options = RegionDiscovery.IMDS_OPTIONS;
-            if (proxyUrl) {
-                options.proxyUrl = proxyUrl;
-            }
 
             try {
                 const localIMDSVersionResponse = await this.getRegionFromIMDS(Constants.IMDS_VERSION, options);
