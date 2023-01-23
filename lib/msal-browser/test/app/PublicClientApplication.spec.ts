@@ -1622,6 +1622,122 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy.calledOnce).toBe(true);
         });
+
+        it("emits expect performance event when successful ", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentClientSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+                expect(events[0].success).toBe(true);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+                pca.removePerformanceCallback(callbackId);
+                done();
+        }));
+            pca.ssoSilent({scopes: ["openid"]});
+    });
+
+    it("sets visibilityChange in perf event to true when visibility changes ", (done) => {
+        const testAccount: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+            environment: "login.windows.net",
+            tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            username: "AbeLi@microsoft.com"
+        };
+        const testTokenResponse: AuthenticationResult = {
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: testAccount.localAccountId,
+            tenantId: testAccount.tenantId,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            idToken: "test-idToken",
+            idTokenClaims: {},
+            accessToken: "test-accessToken",
+            fromCache: false,
+            correlationId: RANDOM_TEST_GUID,
+            expiresOn: new Date(Date.now() + 3600000),
+            account: testAccount,
+            tokenType: AuthenticationScheme.BEARER
+        };
+        sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+        const silentClientSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+        const callbackId = pca.addPerformanceCallback((events => {
+            expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+            expect(events[0].success).toBe(true);
+            expect(events[0].accessTokenSize).toBe(16);
+            expect(events[0].idTokenSize).toBe(12);
+            expect(events[0].requestId).toBe(undefined);
+            expect(events[0].visibilityChangeCount).toBe(1);
+            pca.removePerformanceCallback(callbackId);
+            done();
+    }));
+        const event = document.createEvent("HTMLEvents");
+        event.initEvent("visibilitychange", true, true);
+        pca.ssoSilent({scopes: ["openid"]});
+        document.dispatchEvent(event);
+});
+
+    it("emits expect performance event when there is an error", (done) => {
+        const testAccount: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+            environment: "login.windows.net",
+            tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            username: "AbeLi@microsoft.com"
+        };
+        const testTokenResponse: AuthenticationResult = {
+            authority: TEST_CONFIG.validAuthority,
+            uniqueId: testAccount.localAccountId,
+            tenantId: testAccount.tenantId,
+            scopes: TEST_CONFIG.DEFAULT_SCOPES,
+            idToken: "test-idToken",
+            idTokenClaims: {},
+            accessToken: "test-accessToken",
+            fromCache: false,
+            correlationId: RANDOM_TEST_GUID,
+            expiresOn: new Date(Date.now() + 3600000),
+            account: testAccount,
+            tokenType: AuthenticationScheme.BEARER
+        };
+        sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+        const silentClientSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").rejects({
+            errorCode: "abc",
+            subError: "defg"
+        });
+        const callbackId = pca.addPerformanceCallback((events => {
+            expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+            expect(events[0].success).toBe(false);
+            expect(events[0].errorCode).toBe("abc");
+            expect(events[0].subErrorCode).toBe("defg");
+            pca.removePerformanceCallback(callbackId);
+            done();
+        }));
+        pca.ssoSilent({scopes: ["openid"]}).catch(() => {})
+    });
     });
 
     describe("acquireTokenByCode", () => {
@@ -1879,7 +1995,140 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("throws an error if falsey code is provided", () => {
             expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(BrowserAuthError.createAuthCodeOrNativeAccountIdRequiredError())
         });
+
+        it("emits expect performance event when successful",  (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+            const callbackId = pca.addPerformanceCallback((events => {
+            expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+            expect(events[0].success).toBe(true);
+            expect(events[0].accessTokenSize).toBe(16);
+            expect(events[0].idTokenSize).toBe(12);
+            expect(events[0].requestId).toBe(undefined);
+            expect(events[0].visibilityChangeCount).toBe(0);
+            pca.removePerformanceCallback(callbackId);
+            done();
+            }));
+            pca.acquireTokenByCode({
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
+            });
+        });
+
+        it("sets visibilityChange in perf event to true when visibility changes",  (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+            const callbackId = pca.addPerformanceCallback((events => {
+            expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+            expect(events[0].success).toBe(true);
+            expect(events[0].accessTokenSize).toBe(16);
+            expect(events[0].idTokenSize).toBe(12);
+            expect(events[0].requestId).toBe(undefined);
+            expect(events[0].visibilityChangeCount).toBe(3);
+            pca.removePerformanceCallback(callbackId);
+            done();
+            }));
+
+            const events: Event[] = [];
+            for (let n = 1; n <= 3; n++) {
+                const event = document.createEvent("HTMLEvents");
+                event.initEvent("visibilitychange", true, false);
+                events.push(event);
+            }
+
+            pca.acquireTokenByCode({
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
+            });
+
+            for (const event of events) {
+                document.dispatchEvent(event);
+            }
+        });
+
+        it("emits expect performance event when there is an error", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").rejects({
+                errorCode: "abc",
+                subError: "defg"
+            });
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+                expect(events[0].success).toBe(false);
+                expect(events[0].errorCode).toBe("abc");
+                expect(events[0].subErrorCode).toBe("defg");
+                pca.removePerformanceCallback(callbackId);
+                done();
+            }));
+            pca.acquireTokenByCode({
+                code: "auth-code",
+                correlationId: testTokenResponse.correlationId
+            }).catch(() => {});
     });
+});
 
     describe("acquireTokenSilent", () => {
         it("throws No Account error if no account is provided", async () => {
@@ -2678,6 +2927,95 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }));
 
             pca.acquireTokenSilent(silentRequest);
+        });
+
+        it("emits expect performance event when successful in case of network request", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+                expect(events[0].success).toBe(true);
+                expect(events[0].fromCache).toBe(false);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(0);
+
+                pca.removePerformanceCallback(callbackId);
+                done();
+            }));
+            pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
+        });
+
+        it("sets visibilityChange in perf event to true when visibility changes", (done) => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events[0].correlationId).toBe(RANDOM_TEST_GUID)
+                expect(events[0].success).toBe(true);
+                expect(events[0].fromCache).toBe(false);
+                expect(events[0].accessTokenSize).toBe(16);
+                expect(events[0].idTokenSize).toBe(12);
+                expect(events[0].isNativeBroker).toBe(undefined);
+                expect(events[0].requestId).toBe(undefined);
+                expect(events[0].visibilityChangeCount).toBe(1);
+
+                pca.removePerformanceCallback(callbackId);
+                done();
+            }));
+            const event = document.createEvent("HTMLEvents");
+            event.initEvent("visibilitychange", true, true);
+            pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
+            document.dispatchEvent(event);
         });
 
         it("emits expect performance event when there is an error", (done) => {

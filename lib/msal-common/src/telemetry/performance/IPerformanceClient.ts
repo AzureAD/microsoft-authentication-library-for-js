@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { PerformanceEvent, PerformanceEvents, StaticFields } from "./PerformanceEvent";
+import { Counters, PerformanceEvent, PerformanceEvents, StaticFields } from "./PerformanceEvent";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
@@ -13,6 +13,7 @@ export type InProgressPerformanceEvent = {
     flushMeasurement: () => void,
     discardMeasurement: () => void,
     addStaticFields: (staticFields: StaticFields) => void,
+    increment: (counters: Counters) => void,
     event: PerformanceEvent,
     measurement: IPerformanceMeasurement
 };
@@ -26,6 +27,7 @@ export interface IPerformanceClient {
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
+    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
 }
