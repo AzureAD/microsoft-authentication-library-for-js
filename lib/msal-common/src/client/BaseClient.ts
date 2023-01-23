@@ -20,7 +20,7 @@ import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { CommonAuthorizationUrlRequest, CommonClientCredentialRequest, CommonDeviceCodeRequest, CommonOnBehalfOfRequest, CommonRefreshTokenRequest, CommonSilentFlowRequest, CommonUsernamePasswordRequest, CommonAuthorizationCodeRequest } from "..";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -143,11 +143,7 @@ export abstract class BaseClient {
      * Creates query string for the /token request
      * @param request
      */
-    createTokenQueryParameters(request:
-    CommonAuthorizationCodeRequest | CommonAuthorizationUrlRequest |
-    CommonClientCredentialRequest | CommonDeviceCodeRequest |
-    CommonOnBehalfOfRequest | CommonRefreshTokenRequest |
-    CommonSilentFlowRequest | CommonUsernamePasswordRequest): string {
+    createTokenQueryParameters(request: BaseAuthRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.tokenQueryParameters) {
