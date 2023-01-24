@@ -97,6 +97,15 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             clientAssertion
         };
 
+        /*
+         * valid request should not have "common" or "organization" in lieu of the tenant_id in the authority in the auth configuration
+         * example authority: "https://login.microsoftonline.com/TenantId",
+         */
+        const tenantId = validRequest.authority.split("/")[3];
+        if ((tenantId === "common") || (tenantId === "organization")) {
+            throw ClientAuthError.createMissingTenantIdError();
+        }
+
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
             environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE]

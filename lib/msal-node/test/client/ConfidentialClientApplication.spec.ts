@@ -3,7 +3,7 @@ import { ClientConfiguration, AuthorizationCodeClient, RefreshTokenClient, Authe
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { Configuration } from "../../src/config/Configuration";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
-import { UsernamePasswordRequest } from '../../src';
+import { ClientAuthError, UsernamePasswordRequest } from '../../src';
 import { mocked } from 'ts-jest/utils';
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock } from './test-fixtures';
@@ -192,6 +192,39 @@ describe('ConfidentialClientApplication', () => {
         expect(UsernamePasswordClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
+    });
+
+    test('acquireTokenByClientCredential throws missingTenantIdError if \"common\" or "\"organization\" were provided as the tenant id', async () => {
+        const testProvider: msalCommon.IAppTokenProvider = () => {
+            return new Promise<msalCommon.AppTokenProviderResult>(
+                (resolve) => resolve({
+                    accessToken: "accessToken",
+                    expiresInSeconds: 3601,
+                    refreshInSeconds: 1801,
+                }))};      
+
+        const configWithExtensibility: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,                                
+                clientAssertion: "testAssertion"
+            },
+        }                  
+
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: false
+        };
+
+        setupAuthorityFactory_createDiscoveredInstance_mock();
+        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
+
+        jest.spyOn(msalCommon, 'ClientCredentialClient').mockImplementation((conf) => new MockClientCredentialClient(conf));
+        
+        const authApp = new ConfidentialClientApplication(configWithExtensibility);
+        authApp.SetAppTokenProvider(testProvider);
+        
+        await expect(authApp.acquireTokenByClientCredential(request)).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
     });
 
     test('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
