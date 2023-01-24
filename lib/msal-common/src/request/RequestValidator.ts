@@ -91,8 +91,9 @@ export class RequestValidator {
                 delete eQParams[key];
             }
         });
-        
-        // utilize lodash to remove empty string parameters
-        return omitBy(eQParams, isEmpty);
+
+        // remove empty string parameters
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(queryParams).filter(([key, value]) => value !== ""));
     }
 }
