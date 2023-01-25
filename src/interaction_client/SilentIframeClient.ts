@@ -34,7 +34,6 @@ export class SilentIframeClient extends StandardInteractionClient {
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         this.logger.verbose("acquireTokenByIframe called");
-
         const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -110,7 +109,6 @@ export class SilentIframeClient extends StandardInteractionClient {
         this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, silentRequest.correlationId);
         const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
         // Create authorize request url
-        
         this.performanceClient.setPreQueueTime(PerformanceEvents.GetAuthCodeUrl, silentRequest.correlationId);
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,

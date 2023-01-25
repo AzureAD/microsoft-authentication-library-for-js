@@ -57,6 +57,12 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         };
     }
 
+    /**
+     * Adds pre-queue time to preQueueTimeByCorrelationId map.
+     * @param {PerformanceEvents} eventName 
+     * @param {?string} correlationId 
+     * @returns 
+     */
     setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void {
         if (!correlationId) {
             this.logger.trace(`BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to set telemetry queue time`);

@@ -15,9 +15,7 @@ import {
     CredentialEntity,
     CredentialType,
     AuthorityMetadataEntity,
-    ValidCredentialType,
-    PerformanceEvents,
-    QueueMeasurement
+    ValidCredentialType
 } from "@azure/msal-common";
 
 export class TestStorageManager extends CacheManager {
