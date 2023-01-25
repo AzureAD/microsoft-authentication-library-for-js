@@ -202,7 +202,7 @@ export class RefreshTokenClient extends BaseClient {
         };
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint) // TODO: not doing executePostRequest because no correlationId available?
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
             .then((result) => {
                 acquireTokenMeasurement?.endMeasurement({
                     success: true
@@ -239,7 +239,7 @@ export class RefreshTokenClient extends BaseClient {
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody, request.correlationId);
 
         const correlationId = request.correlationId;
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId); // TODO: should this be headers or body?
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.BaseClientCreateTokenRequestHeaders, correlationId);
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
