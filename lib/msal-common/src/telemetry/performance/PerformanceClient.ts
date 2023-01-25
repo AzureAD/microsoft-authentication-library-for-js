@@ -162,13 +162,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {number}
      */
     calculateQueuedTime(preQueueTime: number, currentTime: number): number {        
-        // More number calculations here?
-        if (Number.isInteger(preQueueTime) && preQueueTime < 1) {
+        if (preQueueTime < 1) {
             this.logger.trace(`PerformanceClient: preQueueTime should be a positive integer and not ${preQueueTime}`);
             return 0;
         }
 
-        if (Number.isInteger(currentTime) && currentTime < 1) {
+        if (currentTime < 1) {
             this.logger.trace(`PerformanceClient: currentTime should be a positive integer and not ${currentTime}`);
             return 0;
         }
