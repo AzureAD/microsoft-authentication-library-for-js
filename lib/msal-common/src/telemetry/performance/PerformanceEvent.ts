@@ -98,7 +98,6 @@ export enum PerformanceEvents {
      * Time spent creating default headers for requests to token endpoint
      */
     BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
-
     /**
      * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
      */

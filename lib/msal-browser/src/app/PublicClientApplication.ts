@@ -136,12 +136,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
-                    
                     atsMeasurement.addStaticFields({
                         accessTokenSize: result.accessToken.length,
                         idTokenSize: result.idToken.length
                     });
-
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,

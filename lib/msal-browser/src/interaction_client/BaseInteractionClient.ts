@@ -80,7 +80,6 @@ export abstract class BaseInteractionClient {
     protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         this.logger.verbose("Initializing BaseAuthRequest");
-
         const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];

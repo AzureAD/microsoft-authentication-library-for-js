@@ -115,7 +115,6 @@ export class InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-
         this.performanceClient.setPreQueueTime(PerformanceEvents.AuthClientAcquireToken, this.authCodeRequest.correlationId);
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
         this.browserStorage.cleanRequestByState(state);

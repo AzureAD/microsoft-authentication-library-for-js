@@ -28,8 +28,8 @@ import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/Cl
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
-import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Oauth2.0 Authorization Code client
