@@ -189,7 +189,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns 
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void {
-
         if (!correlationId) {
             this.logger.trace(`PerformanceClient.addQueueMeasurement: correlationId not provided for ${eventName}, cannot add queue measurement`);
             return;
@@ -424,15 +423,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.trace(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
         }
 
-        let totalTime = 0;
-        let totalCount = 0;
+        let totalQueueTime = 0;
+        let totalQueueCount = 0;
         queueMeasurementForCorrelationId?.forEach((measurement) => {
-            if (typeof measurement.queueTime === "number") {
-                totalTime += measurement.queueTime;
-                totalCount++;
-            } else {
-                this.logger.trace(`PerformanceClient: unable to add queue time and count for ${measurement.eventName}`);
-            }
+            totalQueueTime += measurement.queueTime;
+            totalQueueCount++;
         });
 
         this.queueMeasurements.delete(correlationId);
@@ -504,8 +499,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     ...eventToEmit,
                     ...staticFields,
                     ...counters,
-                    queuedTimeMs: totalTime,
-                    queuedCount: totalCount
+                    queuedTimeMs: totalQueueTime,
+                    queuedCount: totalQueueCount
                 };
 
                 this.emitEvents([finalEvent], eventToEmit.correlationId);
