@@ -30,6 +30,12 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
     private getPageVisibility(): string | null {
         return document.visibilityState?.toString() || null;
     }
+
+    supportsBrowserPerformanceNow(): boolean {
+        return typeof window !== "undefined" &&
+            typeof window.performance !== "undefined" &&
+            typeof window.performance.now === "function";
+    }
     
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
@@ -64,7 +70,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @returns 
      */
     setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void {
-        if (!BrowserPerformanceMeasurement.supportsBrowserPerformanceNow()) {
+        if (!this.supportsBrowserPerformanceNow()) {
             this.logger.trace(`BrowserPerformanceClient: window performance API not available, unable to set telemetry queue time for ${eventName}`);
             return;
         }
@@ -95,7 +101,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @returns 
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string): void {
-        if (!BrowserPerformanceMeasurement.supportsBrowserPerformanceNow()) {
+        if (!this.supportsBrowserPerformanceNow()) {
             this.logger.trace(`BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`);
             return;
         }

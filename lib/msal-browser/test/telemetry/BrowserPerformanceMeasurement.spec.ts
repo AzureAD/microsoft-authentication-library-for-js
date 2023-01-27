@@ -96,13 +96,6 @@ describe("BrowserPerformanceMeasurement.ts", () => {
         expect(BrowserPerformanceMeasurement.supportsBrowserPerformance()).toBe(false);
     });
 
-    it("supportsBrowserPerformanceNow returns false if window.performance not present", () => {
-        // @ts-ignore
-        jest.spyOn(window, "performance", "get").mockReturnValue(undefined);
-
-        expect(BrowserPerformanceMeasurement.supportsBrowserPerformanceNow()).toBe(false);
-    });
-
     describe("measurement APIs dont throw if performance APIs throw", () => {
         describe("startMeasurement", () => {
             it("mark", () => {

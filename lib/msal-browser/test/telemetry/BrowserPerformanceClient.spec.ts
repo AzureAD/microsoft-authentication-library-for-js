@@ -66,4 +66,13 @@ describe("BrowserPerformanceClient.ts", () => {
             spy.mockClear();
         });
     });
+
+    it("supportsBrowserPerformanceNow returns false if window.performance not present", () => {
+        const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+
+        // @ts-ignore
+        jest.spyOn(window, "performance", "get").mockReturnValue(undefined);
+
+        expect(browserPerfClient.supportsBrowserPerformanceNow()).toBe(false);
+    });
 });
