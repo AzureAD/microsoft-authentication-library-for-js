@@ -451,6 +451,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
+                        completedEvent.isIncomplete = true;
                         completedEvents.push(completedEvent);
                     }
                 }
@@ -487,6 +488,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
                          */
                         if (!previous[subMeasurementName]) {
                             previous[subMeasurementName] = current.durationMs;
+                            if (current.isIncomplete) {
+                                previous[`${current.name}Incomplete`] = true;
+                            }
                         } else {
                             this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
                         }
