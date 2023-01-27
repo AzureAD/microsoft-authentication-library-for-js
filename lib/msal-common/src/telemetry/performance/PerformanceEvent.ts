@@ -197,7 +197,7 @@ export enum PerformanceEvents {
     AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
     AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
     AuthClientCreateQueryString = "authClientCreateQueryString",
-    
+
     /**
      * Generate functions in PopTokenGenerator (msal-common)
      */
@@ -226,7 +226,7 @@ export enum PerformanceEvents {
     RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
     RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
     RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
-    
+
     AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
 
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
@@ -475,21 +475,21 @@ export type PerformanceEvent = StaticFields & Counters & {
 
     /**
      * Cache lookup policy
-     * 
+     *
      * @type {?number}
      */
     cacheLookupPolicy?: number | undefined,
 
     /**
      * Amount of time spent in the JS queue in milliseconds.
-     * 
+     *
      * @type {?number}
      */
     queuedTimeMs?: number,
 
     /**
      * Amount of times queued in the JS event queue.
-     * 
+     *
      * @type {?number}
      */
     queuedCount?: number
