@@ -207,12 +207,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Adds to existing correlation Id if present in queueMeasurements
         const existingMeasurements = this.queueMeasurements.get(correlationId);
         if (existingMeasurements) {
-            this.queueMeasurements.set(correlationId, [...existingMeasurements, queueMeasurement]);
+            this.queueMeasurements.set(correlationId, existingMeasurements.push(queueMeasurement));
         } else {
             // Sets new correlation Id if not present in queueMeasurements
             this.logger.trace(`PerformanceClient.addQueueMeasurement: adding correlationId ${correlationId} to queue measurements`);
-            const measurementArray = [];
-            measurementArray.push(queueMeasurement);
+            const measurementArray = [queueMeasurement];
             this.queueMeasurements.set(correlationId, measurementArray);
         }
     }

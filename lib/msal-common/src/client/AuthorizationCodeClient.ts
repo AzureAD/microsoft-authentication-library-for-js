@@ -67,7 +67,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
-        if (!request || StringUtils.isEmpty(request.code)) {
+        if (!request || !request.code) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
