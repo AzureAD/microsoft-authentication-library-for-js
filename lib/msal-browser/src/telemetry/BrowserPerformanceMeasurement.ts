@@ -28,6 +28,12 @@ export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
             typeof window.performance.getEntriesByName === "function";
     }
 
+    static supportsBrowserPerformanceNow(): boolean {
+        return typeof window !== "undefined" &&
+            typeof window.performance !== "undefined" &&
+            typeof window.performance.now === "function";
+    }
+
     startMeasurement(): void {
         if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
             try {
