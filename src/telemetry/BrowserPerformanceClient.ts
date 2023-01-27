@@ -64,6 +64,11 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @returns 
      */
     setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void {
+        if (!BrowserPerformanceMeasurement.supportsBrowserPerformanceNow()) {
+            this.logger.trace(`BrowserPerformanceClient: window performance API not available, unable to set telemetry queue time for ${eventName}`);
+            return;
+        }
+
         if (!correlationId) {
             this.logger.trace(`BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to set telemetry queue time`);
             return;
@@ -90,6 +95,11 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      * @returns 
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string): void {
+        if (!BrowserPerformanceMeasurement.supportsBrowserPerformanceNow()) {
+            this.logger.trace(`BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`);
+            return;
+        }
+
         if (!correlationId) {
             this.logger.trace(`BrowserPerformanceClient: correlationId for ${eventName} not provided, unable to add queue measurement`);
             return;
