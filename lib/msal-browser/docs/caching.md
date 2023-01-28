@@ -23,13 +23,15 @@ const pca = new PublicClientApplication({
 
 By default, MSAL stores the various authentication artifacts it obtains from the IdP in browser storage using the [Web Storage API](https://developer.mozilla.org/docs/Web/API/Web_Storage_API) supported by all modern browsers. Accordingly, MSAL offers two methods of persistent storage: `sessionStorage` (default) and `localStorage`. In addition, MSAL provides `memoryStorage` option which allows you to opt-out of storing the cache in browser storage.
 
-| Cache Location   | Cleared on              | Shared between windows/tabs | Redirect flow supported |
-|------------------|-------------------------|-----------------------------|-------------------------|
-| `sessionStorage` | window/tab close        | No                          | Yes                     |
-| `localStorage`   | user logout             | Yes                         | Yes                     |
-| `memoryStorage`  | page refresh/navigation | No                          | No                      |
+> :bulb: 
 
-> :bulb: While the authentication state may be lost in session and memory storage due to window/tab close or page refresh/navigation, respectively, users will still have an active session with the IdP as long as the session cookie is not expired and might be able to re-authenticate without any prompts.
+| Cache Location   | Cleared on              | Shared between windows/tabs | Redirect flow supported | CA Presistent Browser Session Control supported |
+|------------------|-------------------------|-----------------------------|-------------------------|-------------------------------------------------|
+| `sessionStorage` | window/tab close        | No                          | Yes                     | Yes                                             |
+| `localStorage`   | user logout             | Yes                         | Yes                     | No                                              |
+| `memoryStorage`  | page refresh/navigation | No                          | No                      | No                                              |
+
+> :bulb: While the authentication state may be lost in session and memory storage due to window/tab close or page refresh/navigation, respectively, users will still have an active session with the IdP as long as the session cookie is not expired and might be able to re-authenticate without any prompts. Additionally - Azure Active Directory Conditional Access (AAD CA) supports the ability for AAD Premium customers to define Browser Session controls at the authentication layer based on that session cookie. To ensure your app supports this feature, ensure you use `sessionStorage` so that AAD can evaluate if re-prompting the user is required based on IT security policies defined AAD CA policy. For more information, see [Persistent Browser Session in AAD CA controls documention](https://learn.microsoft.com/azure/active-directory/conditional-access/howto-conditional-access-session-lifetime#persistence-of-browsing-sessions).
 
 The choice between different storage locations reflects a trade-off between better user experience vs. increased security. As the table above indicates, local storage results in the best user experience possible, while memory storage provides the best security since no sensitive information will be stored in browser storage. See the section on [security](#security) and [cached artifacts](#cached-artifacts) below for more.
 
