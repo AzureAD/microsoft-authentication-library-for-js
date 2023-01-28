@@ -1,7 +1,7 @@
 {
-  "type": "minor",
+  "type": "major",
   "comment": "Allow Native Broker by default #5616",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "major"
 }
