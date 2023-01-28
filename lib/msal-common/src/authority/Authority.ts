@@ -25,6 +25,8 @@ import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 import { Logger } from "../logger/Logger";
 import { AuthError } from "../error/AuthError";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -51,6 +53,10 @@ export class Authority {
     private proxyUrl: string;
     // Logger object
     private logger: Logger;
+    // Performance client
+    protected performanceClient: IPerformanceClient | undefined;
+    // Correlation Id
+    protected correlationId: string | undefined;
 
     constructor(
         authority: string,
@@ -58,17 +64,21 @@ export class Authority {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string
+        proxyUrl?: string,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
-        this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
         this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
         this.logger = logger;
+        this.performanceClient = performanceClient;
+        this.correlationId = correlationId;
+        this.regionDiscovery = new RegionDiscovery(networkInterface, this.performanceClient, this.correlationId);
     }
 
     // See above for AuthorityType
@@ -269,14 +279,18 @@ export class Authority {
      * and the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityResolveEndpointsAsync, this.correlationId);
+
         let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
         if (!metadataEntity) {
             metadataEntity = new AuthorityMetadataEntity();
             metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         }
 
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata, this.correlationId);
         const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity);
         this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadataEntity.preferred_network);
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateEndpointMetadata, this.correlationId);
         const endpointSource = await this.updateEndpointMetadata(metadataEntity);
 
         if (cloudDiscoverySource !== AuthorityMetadataSource.CACHE && endpointSource !== AuthorityMetadataSource.CACHE) {
@@ -295,6 +309,8 @@ export class Authority {
      * @param metadataEntity
      */
     private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityUpdateEndpointMetadata, this.correlationId);
+
         let metadata = this.getEndpointMetadataFromConfig();
         if (metadata) {
             metadataEntity.updateEndpointMetadata(metadata, false);
@@ -307,10 +323,12 @@ export class Authority {
         }
 
         let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation, this.correlationId);
                 metadata = await this.updateMetadataWithRegionalInformation(metadata);
             }
 
@@ -321,6 +339,7 @@ export class Authority {
         if (harcodedMetadata && !this.authorityOptions.skipAuthorityMetadataCache) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation, this.correlationId);
                 harcodedMetadata = await this.updateMetadataWithRegionalInformation(
                     harcodedMetadata
                 );
@@ -369,6 +388,8 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
+
         const options: ImdsOptions = {};
         if (this.proxyUrl) {
             options.proxyUrl = this.proxyUrl;
@@ -403,6 +424,9 @@ export class Authority {
      * Update the retrieved metadata with regional information.
      */
     private async updateMetadataWithRegionalInformation(metadata: OpenIdConfigResponse): Promise<OpenIdConfigResponse> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation, this.correlationId);
+
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.RegionDiscoveryDetectRegion, this.correlationId);
         const autodetectedRegionName = await this.regionDiscovery.detectRegion(
             this.authorityOptions.azureRegionConfiguration?.environmentRegion,
             this.regionDiscoveryMetadata,
@@ -445,6 +469,7 @@ export class Authority {
      * @param newMetadata
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata, this.correlationId);
         this.logger.verbose("Attempting to get cloud discovery metadata in the config");
         this.logger.verbosePii(`Known Authorities: ${this.authorityOptions.knownAuthorities || Constants.NOT_APPLICABLE}`);
         this.logger.verbosePii(`Authority Metadata: ${this.authorityOptions.authorityMetadata || Constants.NOT_APPLICABLE}`);
@@ -468,6 +493,7 @@ export class Authority {
         }
 
         this.logger.verbose("Did not find cloud discovery metadata in the cache... Attempting to get cloud discovery metadata from the network.");
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork, this.correlationId);
         metadata = await this.getCloudDiscoveryMetadataFromNetwork();
         if (metadata) {
             this.logger.verbose("cloud discovery metadata was successfully returned from getCloudDiscoveryMetadataFromNetwork()");
@@ -530,6 +556,7 @@ export class Authority {
      * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityGetCloudDiscoveryMetadataFromNetwork, this.correlationId);
         const instanceDiscoveryEndpoint =
             `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};

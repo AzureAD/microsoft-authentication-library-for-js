@@ -6,7 +6,7 @@
 import { ApplicationTelemetry, IGuidGenerator, IPerformanceMeasurement, Logger, PerformanceEvents } from "../../src";
 import { IPerformanceClient } from "../../src/telemetry/performance/IPerformanceClient";
 import { PerformanceClient } from "../../src/telemetry/performance/PerformanceClient";
-import { randomUUID } from 'crypto';
+import crypto from 'crypto';
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -42,7 +42,7 @@ class UnsupportedBrowserPerformanceMeasurement extends MockPerformanceMeasuremen
 
 class MockGuidGenerator implements IGuidGenerator {
     generateGuid(): string {
-        return randomUUID();
+        return crypto['randomUUID']();
     }
     isGuid(guid: string): boolean {
         return true;
@@ -67,6 +67,10 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
 
     startPerformanceMeasurement(measureName: string, correlationId?: string): IPerformanceMeasurement {
         return new MockPerformanceMeasurement();
+    }
+
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+        return;
     }
 }
 
@@ -293,4 +297,31 @@ describe("PerformanceClient.spec.ts", () => {
         topLevelEvent2.flushMeasurement();
         topLevelEvent1.flushMeasurement();
     });
+
+    describe('calculateQueuedTime', () => {
+        it('returns the queuedTime calculation', () => {
+            const mockPerfClient = new MockPerformanceClient();
+            const result = mockPerfClient.calculateQueuedTime(1, 2);
+            expect(result).toBe(1);
+        });
+
+        it('returns 0 if preQueueTime is not positive integer', () => {
+            const mockPerfClient = new MockPerformanceClient();
+            const result = mockPerfClient.calculateQueuedTime(-1, 1);
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 if currentTime is not positive integer', () => {
+            const mockPerfClient = new MockPerformanceClient();
+            const result = mockPerfClient.calculateQueuedTime(1, -1);
+            expect(result).toBe(0);
+        });
+
+        it('returns 0 if preQueueTime is greater than currentTime', () => {
+            const mockPerfClient = new MockPerformanceClient();
+            const result = mockPerfClient.calculateQueuedTime(2, 1);
+            expect(result).toBe(0);
+        });
+    });
+
 });
