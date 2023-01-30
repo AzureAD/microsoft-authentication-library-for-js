@@ -335,6 +335,7 @@ export type StaticFields = {
  */
 export type Counters = {
     visibilityChangeCount?: number;
+    incompleteSubsCount?: number;
 };
 
 /**

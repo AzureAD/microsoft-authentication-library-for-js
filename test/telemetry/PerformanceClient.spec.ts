@@ -197,9 +197,8 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toEqual(1);
             const event = events[0];
             expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
-            expect(event["acquireTokenSilentAsyncIncomplete"]).toBeUndefined();
             expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
-            expect(event["silentIframeClientAcquireTokenIncomplete"]).toBeUndefined();
+            expect(event.incompleteSubsCount).toEqual(0);
             done();
         }));
 
@@ -232,11 +231,9 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toEqual(1);
             const event = events[0];
             expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
-            expect(event["acquireTokenSilentAsyncIncomplete"]).toBeTruthy();
             expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
-            expect(event["silentIframeClientAcquireTokenIncomplete"]).toBeUndefined();
             expect(event["silentCacheClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
-            expect(event["silentCacheClientAcquireTokenIncomplete"]).toBeTruthy();
+            expect(event.incompleteSubsCount).toEqual(2);
 
             // Ensure endMeasurement was called for the incomplete event
             expect(endMeasurementSpy.mock.calls[2][0].name).toBe(PerformanceEvents.AcquireTokenSilentAsync);
@@ -271,7 +268,7 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events.length).toBe(1);
             const event = events[0];
             expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
-            expect(event["acquireTokenSilentAsyncIncomplete"]).toBeUndefined();
+            expect(event.incompleteSubsCount).toEqual(0);
             done();
         }));
 
