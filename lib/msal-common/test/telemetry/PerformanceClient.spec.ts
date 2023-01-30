@@ -9,10 +9,10 @@ import {
     IPerformanceMeasurement,
     Logger,
     PerformanceEvents,
-    PerformanceEventStatus
+    PerformanceEventStatus,
+    IPerformanceClient,
+    PerformanceClient
 } from "../../src";
-import {IPerformanceClient} from "../../src/telemetry/performance/IPerformanceClient";
-import {PerformanceClient} from "../../src/telemetry/performance/PerformanceClient";
 import crypto from 'crypto';
 
 const sampleClientId = "test-client-id";
