@@ -4,7 +4,7 @@
  */
 
 import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
-import { createServer, IncomingMessage, Server, ServerResponse } from "http";
+import http, { IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
 
@@ -23,7 +23,7 @@ export class LoopbackClient {
         }
 
         const authCodeListener = new Promise<ServerAuthorizationCodeResponse>((resolve, reject) => {
-            this.server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
+            this.server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
                 const url = req.url;
                 if (!url) {
                     res.end(errorTemplate || "Error occurred loading redirectUrl");
