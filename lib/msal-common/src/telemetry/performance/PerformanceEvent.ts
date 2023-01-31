@@ -322,12 +322,6 @@ export type StaticFields = {
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
-
-    // Broker timeouts used by 1p browser lib
-    brokerInteractionTimeoutMs?: number;
-    brokerMessageTimeoutMs?: number;
-    brokerHandshakeTimeoutMs?: number;
-    brokerIframeTimeoutMs?: number;
 };
 
 /**
@@ -495,3 +489,15 @@ export type PerformanceEvent = StaticFields & Counters & {
      */
     queuedCount?: number
 };
+
+export const IntFields: ReadonlySet<string> = new Set([
+    "accessTokenSize",
+    "durationMs",
+    "idTokenSize",
+    "matsSilentStatus",
+    "matsHttpStatus",
+    "refreshTokenSize",
+    "queuedTimeMs",
+    "startTimeMs",
+    "status",
+]);
