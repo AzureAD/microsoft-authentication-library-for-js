@@ -3,9 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { ApplicationTelemetry, IGuidGenerator, IPerformanceMeasurement, Logger, PerformanceEvents } from "../../src";
-import { IPerformanceClient } from "../../src/telemetry/performance/IPerformanceClient";
-import { PerformanceClient } from "../../src/telemetry/performance/PerformanceClient";
+import {
+    ApplicationTelemetry,
+    IGuidGenerator,
+    IPerformanceMeasurement,
+    Logger,
+    PerformanceEvents,
+    PerformanceEventStatus,
+    IPerformanceClient,
+    PerformanceClient
+} from "../../src";
 import crypto from 'crypto';
 
 const sampleClientId = "test-client-id";
@@ -182,7 +189,38 @@ describe("PerformanceClient.spec.ts", () => {
         topLevelEvent.flushMeasurement();
     });
 
-    it("gracefully handles a submeasurement not being ended before top level measurement", done => {
+    it("captures submeasurements", done => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "test-correlation-id";
+
+        mockPerfClient.addPerformanceCallback((events =>{
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
+            expect(event.incompleteSubsCount).toEqual(0);
+            done();
+        }));
+
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+
+        // Start and complete submeasurements
+        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)
+            .endMeasurement({ status: PerformanceEventStatus.Completed });
+        mockPerfClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, correlationId)
+            .endMeasurement({ status: PerformanceEventStatus.Completed });
+
+        // End top level event without ending submeasurement
+        topLevelEvent.endMeasurement({
+            success: true
+        });
+
+        // Emit events for this operation
+        topLevelEvent.flushMeasurement();
+    });
+
+    it("gracefully handles submeasurements not being ended before top level measurement", done => {
         const mockPerfClient = new MockPerformanceClient();
 
         const endMeasurementSpy = jest.spyOn(mockPerfClient, "endMeasurement");
@@ -190,10 +228,16 @@ describe("PerformanceClient.spec.ts", () => {
         const correlationId = "test-correlation-id";
 
         mockPerfClient.addPerformanceCallback((events =>{
-            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(50);
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
+            expect(event["silentCacheClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
+            expect(event.incompleteSubsCount).toEqual(2);
 
             // Ensure endMeasurement was called for the incomplete event
-            expect(endMeasurementSpy.mock.calls[1][0].name).toBe(PerformanceEvents.AcquireTokenSilentAsync);
+            expect(endMeasurementSpy.mock.calls[2][0].name).toBe(PerformanceEvents.AcquireTokenSilentAsync);
+            expect(endMeasurementSpy.mock.calls[3][0].name).toBe(PerformanceEvents.SilentCacheClientAcquireToken);
             done();
         }));
 
@@ -202,6 +246,9 @@ describe("PerformanceClient.spec.ts", () => {
 
         // Start submeasurement but dont end it
         mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
+        mockPerfClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, correlationId)
+            .endMeasurement({ status: PerformanceEventStatus.Completed });
+        mockPerfClient.startMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, correlationId);
 
         // End top level event without ending submeasurement
         topLevelEvent.endMeasurement({
@@ -219,8 +266,9 @@ describe("PerformanceClient.spec.ts", () => {
 
         mockPerfClient.addPerformanceCallback((events =>{
             expect(events.length).toBe(1);
-
-            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            const event = events[0];
+            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            expect(event.incompleteSubsCount).toEqual(0);
             done();
         }));
 

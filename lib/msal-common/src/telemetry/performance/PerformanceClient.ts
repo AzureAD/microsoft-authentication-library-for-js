@@ -47,7 +47,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Map of pre-queue times by correlation Id
-     * 
+     *
      * @protected
      * @type {Map<string, Map<string, number>>}
      */
@@ -55,7 +55,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Map of queue measurements by correlation Id
-     * 
+     *
      * @protected
      * @type {Map<string, Array<QueueMeasurement>>}
      */
@@ -124,19 +124,19 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Sets pre-queue time by correlation Id
-     * 
+     *
      * @abstract
-     * @param {PerformanceEvents} eventName 
-     * @param {string} correlationId 
+     * @param {PerformanceEvents} eventName
+     * @param {string} correlationId
      * @returns
      */
     abstract setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
 
     /**
      * Gets map of pre-queue times by correlation Id
-     * 
-     * @param {PerformanceEvents} eventName 
-     * @param {string} correlationId 
+     *
+     * @param {PerformanceEvents} eventName
+     * @param {string} correlationId
      * @returns {number}
      */
     getPreQueueTime(eventName: PerformanceEvents, correlationId: string): number | void {
@@ -156,12 +156,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Calculates the difference between current time and time when function was queued.
      * Note: It is possible to have 0 as the queue time if the current time and the queued time was the same.
-     * 
-     * @param {number} preQueueTime 
-     * @param {number} currentTime 
+     *
+     * @param {number} preQueueTime
+     * @param {number} currentTime
      * @returns {number}
      */
-    calculateQueuedTime(preQueueTime: number, currentTime: number): number {        
+    calculateQueuedTime(preQueueTime: number, currentTime: number): number {
         if (preQueueTime < 1) {
             this.logger.trace(`PerformanceClient: preQueueTime should be a positive integer and not ${preQueueTime}`);
             return 0;
@@ -182,11 +182,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Adds queue measurement time to QueueMeasurements array for given correlation ID.
-     * 
-     * @param {PerformanceEvents} name 
-     * @param {?string} correlationId 
-     * @param {?number} time 
-     * @returns 
+     *
+     * @param {PerformanceEvents} name
+     * @param {?string} correlationId
+     * @param {?number} time
+     * @returns
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void {
         if (!correlationId) {
@@ -445,9 +445,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
              * IE only supports Map.forEach.
              */
             const completedEvents: PerformanceEvent[] = [];
+            let incompleteSubsCount: number = 0;
+
             eventsForCorrelationId.forEach(event => {
                 if (event.name !== measureName && event.status !== PerformanceEventStatus.Completed) {
                     this.logger.trace(`PerformanceClient: Incomplete submeasurement ${event.name} found for ${measureName}`, correlationId);
+                    incompleteSubsCount++;
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
@@ -500,7 +503,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     ...staticFields,
                     ...counters,
                     queuedTimeMs: totalQueueTime,
-                    queuedCount: totalQueueCount
+                    queuedCount: totalQueueCount,
+                    incompleteSubsCount
                 };
 
                 this.emitEvents([finalEvent], eventToEmit.correlationId);
