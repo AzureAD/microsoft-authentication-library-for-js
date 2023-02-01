@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update ProtectedResourceScopes type to allow unprotected resource for concrete request type (#5563)",
+  "packageName": "@azure/msal-angular",
+  "email": "milos.buda@hotmail.com",
+  "dependentChangeType": "patch"
+}

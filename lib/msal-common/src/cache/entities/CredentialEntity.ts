@@ -42,6 +42,34 @@ export class CredentialEntity {
     keyId?: string;
     requestedClaimsHash?: string;
 
+    // Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", https://localhost:5000, etc.
+    private static credentialDomainRegex = "(https?:\\/\\/)?((([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63})))|(localhost))(\\:[0-9]{4,5})?";
+    // Maps {CredentialType} to the corresponding regular expression.
+    private static credentialRegexMap: Map<CredentialType, RegExp>;
+
+    /**
+     * Initializes a map with credential {CredentialType} regular expressions.
+     */
+    static _initRegex(): void {
+        const separator = Separators.CACHE_KEY_SEPARATOR;
+        CredentialEntity.credentialRegexMap = new Map<CredentialType, RegExp>();
+        for (const credKey of Object.keys(CredentialType)) {
+            const credVal = CredentialType[credKey].toLowerCase();
+
+            try {
+                // Verify credential type is preceded by a valid host name (environment) using lookbehind
+                CredentialEntity.credentialRegexMap.set(
+                    CredentialType[credKey],
+                    new RegExp(`(?<=${separator}${CredentialEntity.credentialDomainRegex})${separator}${credVal}${separator}`));
+            } catch (err) {
+                // Lookbehind is not supported (Safari or older versions of IE) - removing it
+                CredentialEntity.credentialRegexMap.set(
+                    CredentialType[credKey],
+                    new RegExp(`${separator}${CredentialEntity.credentialDomainRegex}${separator}${credVal}${separator}`));
+            }
+        }
+    }
+
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
      */
@@ -108,14 +136,8 @@ export class CredentialEntity {
      * @param key
      */
     static getCredentialType(key: string): string {
-        const separator = Separators.CACHE_KEY_SEPARATOR;
-        // Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", etc.
-        const domainRe = "(https?:\\/\\/)?([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63}))(\\:[0-9]{4,5})?";
-
         for (const credKey of Object.keys(CredentialType)) {
-            const credVal = CredentialType[credKey].toLowerCase();
-            // Verify credential type is preceded by a valid host name (environment)
-            if (key.toLowerCase().search(`${separator}${domainRe}${separator}${credVal}${separator}`) !== -1) {
+            if (this.credentialRegexMap.get(CredentialType[credKey])?.test(key.toLowerCase())) {
                 return CredentialType[credKey];
             }
         }
@@ -213,3 +235,5 @@ export class CredentialEntity {
         return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
     }
 }
+
+CredentialEntity._initRegex();

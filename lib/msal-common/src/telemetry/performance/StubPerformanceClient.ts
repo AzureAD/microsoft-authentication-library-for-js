@@ -6,6 +6,7 @@
 import { IPerformanceClient } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import { PerformanceClient } from "./PerformanceClient";
+import { PerformanceEvents } from "./PerformanceEvent";
 
 export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     /* eslint-disable-next-line @typescript-eslint/no-empty-function */
@@ -30,4 +31,20 @@ export class StubPerformanceClient extends PerformanceClient implements IPerform
     startPerformanceMeasurement(): IPerformanceMeasurement {
         return new StubPerformanceMeasurement();
     }
+
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    calculateQueuedTime(preQueueTime: number, currentTime: number): number {
+        return 0;
+    }
+
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId: string, queueTime: number): void {
+        return;
+    }
+
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+        return;
+    }
+
 }

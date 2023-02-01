@@ -62,7 +62,3 @@ export type AppSettings = {
     policies: any,
     protected: any,
 }
-
-export type IdTokenClaims = TokenClaims & {
-    aud?: string,
-}
