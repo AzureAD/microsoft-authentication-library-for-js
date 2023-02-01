@@ -141,6 +141,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Get integral fields.
+     * Override to change the set.
      */
     getIntFields(): ReadonlySet<string> {
         return IntFields;
