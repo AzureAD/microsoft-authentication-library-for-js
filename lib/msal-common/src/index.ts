@@ -100,7 +100,7 @@ export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManage
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
 
 // Performance Telemetry
-export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent } from "./telemetry/performance/IPerformanceClient";
+export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent, QueueMeasurement } from "./telemetry/performance/IPerformanceClient";
 export { PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
