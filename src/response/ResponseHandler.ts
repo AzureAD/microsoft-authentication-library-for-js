@@ -32,6 +32,8 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Class that handles response parsing.
@@ -44,14 +46,16 @@ export class ResponseHandler {
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
+    private performanceClient?: IPerformanceClient;
 
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, performanceClient?: IPerformanceClient) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -131,6 +135,7 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string): Promise<AuthenticationResult> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.HandleServerTokenResponse, serverTokenResponse.correlation_id);
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
