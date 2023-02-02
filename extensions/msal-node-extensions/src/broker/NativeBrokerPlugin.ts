@@ -78,8 +78,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         };
         try {
             msalNodeRuntime.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
-        } catch (e) {            
-            throw this.wrapError(e);
+        } catch (e) {
+            const wrappedError = this.wrapError(e);
+            if (wrappedError) {
+                throw wrappedError;
+            }
         }
     }
 
@@ -96,9 +99,13 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    reject(this.wrapError(e));
-                    return;
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
+
                 const accountInfoResult = [];
                 result.accounts.forEach((account: Account) => {
                     accountInfoResult.push(this.generateAccountInfo(account));
@@ -109,7 +116,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             try {
                 msalNodeRuntime.DiscoverAccountsAsync(clientId, correlationId, resultCallback);
             } catch (e) {
-                reject(this.wrapError(e));
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -128,8 +138,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    reject(this.wrapError(e));
-                    return;
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
                 const authenticationResult = this.getAuthenticationResult(request, result);
                 resolve(authenticationResult);
@@ -142,7 +155,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     msalNodeRuntime.SignInSilentlyAsync(authParams, request.correlationId, resultCallback);
                 }
             } catch (e) {
-                reject(this.wrapError(e));
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -161,8 +177,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    reject(this.wrapError(e));
-                    return;
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
                 const authenticationResult = this.getAuthenticationResult(request, result);
                 resolve(authenticationResult);
@@ -198,7 +217,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                         break;
                 }
             } catch (e) {
-                reject(this.wrapError(e));
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -214,8 +236,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    reject(this.wrapError(e));
-                    return;
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
                 resolve();
             };
@@ -223,7 +248,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             try {
                 msalNodeRuntime.SignOutSilentlyAsync(request.clientId, request.correlationId, account, resultCallback);
             } catch (e) {
-                reject(this.wrapError(e));
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -236,8 +264,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 try {
                     result.CheckError();
                 } catch (e) {
-                    reject(this.wrapError(e));
-                    return;
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
                 resolve(result);
             };
@@ -245,7 +276,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             try {
                 msalNodeRuntime.ReadAccountByIdAsync(accountId, correlationId, resultCallback);
             } catch (e) {
-                reject(this.wrapError(e));
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -253,45 +287,34 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private generateRequestParameters(request: NativeRequest): AuthParameters {
         this.logger.trace("NativeBrokerPlugin - generateRequestParameters called", request.correlationId);
         const authParams = new msalNodeRuntime.AuthParameters();
-        let errorResponse;
-        errorResponse = authParams.CreateAuthParameters(request.clientId, request.authority);
-        if (errorResponse && this.isMsalRuntimeError(errorResponse)) {
-            throw this.wrapError(errorResponse);
-        }
-        errorResponse = authParams.SetRedirectUri(request.redirectUri);
-        if (errorResponse && this.isMsalRuntimeError(errorResponse)) {
-            throw this.wrapError(errorResponse);
-        }
-        errorResponse = authParams.SetRequestedScopes(request.scopes.join(" "));
-        if (errorResponse && this.isMsalRuntimeError(errorResponse)) {
-            throw this.wrapError(errorResponse);
-        }
 
-        if (request.claims) {
-            errorResponse = authParams.SetDecodedClaims(request.claims);
-            if (errorResponse && this.isMsalRuntimeError(errorResponse)) {
-                throw this.wrapError(errorResponse);
+        try{
+            authParams.CreateAuthParameters(request.clientId, request.authority);
+            authParams.SetRedirectUri(request.redirectUri);
+            authParams.SetRequestedScopes(request.scopes.join(" "));
+            
+            if (request.claims) {
+                authParams.SetDecodedClaims(request.claims);
             }
-        }
-
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
-            if (!request.resourceRequestMethod || !request.resourceRequestUri || !request.shrNonce) {
-                throw new Error("Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce");
-            }
-            const resourceUrl = new URL(request.resourceRequestUri);
-            errorResponse = authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
-            if (errorResponse && this.isMsalRuntimeError(errorResponse)) {
-                throw this.wrapError(errorResponse);
-            }
-        }
-        
-        if (request.extraParameters) {
-            Object.keys(request.extraParameters).forEach((key) => {
-                errorResponse = authParams.SetAdditionalParameter(key, request.extraParameters[key]);
-                if (errorResponse && this.isMsalRuntimeError(errorResponse)) {
-                    throw this.wrapError(errorResponse);
+    
+            if (request.authenticationScheme === AuthenticationScheme.POP) {
+                if (!request.resourceRequestMethod || !request.resourceRequestUri || !request.shrNonce) {
+                    throw new Error("Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce");
                 }
-            });
+                const resourceUrl = new URL(request.resourceRequestUri);
+                authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
+            }
+            
+            if (request.extraParameters) {
+                Object.keys(request.extraParameters).forEach((key) => {
+                    authParams.SetAdditionalParameter(key, request.extraParameters[key]);
+                });
+            }
+        } catch (e) {
+            const wrappedError = this.wrapError(e);
+            if (wrappedError) {
+                throw wrappedError;
+            }
         }
 
         return authParams;
@@ -358,9 +381,12 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                result.hasOwnProperty("errorTag");
     }
 
-    private wrapError(error: Object): NativeAuthError | Object {
+    private wrapError(error: Object): NativeAuthError | Object | null {
         if (this.isMsalRuntimeError(error)) {
             const { errorCode, errorStatus, errorContext, errorTag } = error as MsalRuntimeError;
+            if (errorStatus === ErrorStatus.UserSwitched) {
+                return null;
+            }
             return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
         }
 
