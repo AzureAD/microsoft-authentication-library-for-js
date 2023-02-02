@@ -35,6 +35,7 @@ jobs:
         node: [ 14, 16, 18 ]
         sample:
           - 'auth-code'
+          - 'client-credentials'
           - 'device-code'
           - 'silent-flow'
           - 'b2c-user-flows'
