@@ -7,7 +7,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PromptValue, CodeChallengeMethodValues} from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
-import { omitBy, isEmpty } from "lodash";
 
 /**
  * Validates server consumable params from the "request" objects
