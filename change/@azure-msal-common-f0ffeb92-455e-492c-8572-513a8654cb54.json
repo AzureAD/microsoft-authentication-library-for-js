@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Match long domain names #5581",
+  "type": "minor",
+  "comment": "Truncate integral telemetry fields #5627",
   "packageName": "@azure/msal-common",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

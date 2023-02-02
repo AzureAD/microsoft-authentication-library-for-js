@@ -91,7 +91,6 @@ export type AuthOptions = {
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
-    proxyUrl?: string;
 };
 
 /**
@@ -146,8 +145,7 @@ export type ApplicationTelemetry = {
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false,
-    proxyUrl: Constants.EMPTY_STRING
+    preventCorsPreflight: false
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
