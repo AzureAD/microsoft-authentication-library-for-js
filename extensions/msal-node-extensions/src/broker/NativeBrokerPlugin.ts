@@ -175,7 +175,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     case PromptValue.CREATE:
                         this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
                         const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                        msalNodeRuntime.SignInInteractivelyAsync(windowHandle, authParams, request.correlationId, loginHint, resultCallback);
+                        msalNodeRuntime.SignInInteractivelyAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, loginHint, resultCallback);
                         break;
                     case PromptValue.NONE:
                         if (account) {
@@ -189,11 +189,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     default:
                         if (account) {
                             this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
-                            msalNodeRuntime.AcquireTokenInteractivelyAsync(windowHandle, authParams, request.correlationId, account, resultCallback);
+                            msalNodeRuntime.AcquireTokenInteractivelyAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, account, resultCallback);
                         } else {
                             this.logger.info("Calling native interop SignIn API", request.correlationId);
                             const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                            msalNodeRuntime.SignInAsync(windowHandle, authParams, request.correlationId, loginHint, resultCallback);
+                            msalNodeRuntime.SignInAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, loginHint, resultCallback);
                         }
                         break;
                 }
