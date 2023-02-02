@@ -117,7 +117,7 @@ export abstract class BaseClient {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
             tokenEndpoint,
-            { body: queryString, headers: headers, proxyUrl: this.config.systemOptions.proxyUrl }
+            { body: queryString, headers: headers }
         );
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
