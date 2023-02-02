@@ -19,7 +19,8 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - timeout                    - Timeout period in seconds which the user explicitly configures for the polling of the device code endpoint. At the end of this period; assuming the device code has not expired yet; the device code polling is stopped and the request cancelled. The device code expiration window will always take precedence over this set period.
  * - extraQueryParameters       - String to string map of custom query parameters added to the query string
  */
-export type CommonDeviceCodeRequest = Partial<Omit<BaseAuthRequest, "tokenQueryParameters">> & {
+// export type CommonDeviceCodeRequest = BaseAuthRequest &  {
+export type CommonDeviceCodeRequest = Omit<BaseAuthRequest, "tokenQueryParameters"> & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
     timeout?: number;
