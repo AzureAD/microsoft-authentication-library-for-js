@@ -36,30 +36,18 @@ cca.acquireTokenSilent(silentTokenRequest).then((response) => {
 });
 ```
 
-In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you have several alternatives:
+In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you can:
 
-* Desktop apps, headless apps (public client):
-  * If you don't want persistence, you don't need to do anything else. MSAL's in-memory cache will suffice.
-  * If you do want persistence, use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provide persistence solutions on Windows, Linux and Mac OS
+* Desktop apps, console apps (public clients):
+  * Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provides persistence and encryption at rest solutions on Windows, Linux and Mac OS
 * Web apps, web APIs, daemon apps (confidential client):
   * MSAL's in-memory token cache does not scale for production. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem *e.g.* a Redis-like memory cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
 
-## Token cache schema
-
-MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cache is not partitioned and not encrypted: all authentication artifacts by all users are located in a single cache blob, grouped by the type of the authentication artifact (see also: [cache.json](../cache.json)).
-
-```json
-{
-    "Account": {},
-    "IdToken": {},
-    "AccessToken": {},
-    "RefreshToken": {},
-    "AppMetadata": {}
-}
-```
-
 ## Cache in memory
-If a user chooses not to persist cache, the `TokenCache` interface is still available to access the tokens cached in memory. The life time of in memory cache is the same as MSAL instance. If the MSAL instance  restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all real life applications both for security and desired cache longevity.
+
+If you choose not to persist the cache, the `TokenCache` interface is still available to access the tokens cached in memory. The lifetime of in-memory cache is the same as MSAL instance. If the MSAL instance restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all real life applications both for security and desired cache longevity.
+
+> :warning: Please note that the default in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
 
 ## Persistence
 
@@ -92,37 +80,44 @@ On confidential client applications that handle users (web apps that sign in use
 * For multi-tenant daemon apps using client credentials grant: **tenantId** (or rather, `<clientId>.<tenantId>`)
 * For web APIs calling other web APIs using OBO: hash of the incoming access token from the user (i.e. the token which will subsequently be exchanged for an OBO token)
 
-For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is used for partitioning:
+MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.distributedcacheplugin.html) class for confidential clients, which implements the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html). An instance of `DistributedCachePlugin` requires:
 
-```typescript
-class DistributedCachePlugin implements ICachePlugin {
+* a **client interface**, which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
+* a **partition manager**, for reading from and writing to cache with respect to a given **partition key**.
 
-    // singleton
-    private static instance: CachePlugin;
+Please refer to the [RedisTestApp](../../../samples/msal-node-samples/RedisTestApp/README.md) for a sample implementation.
 
-    private persistenceManager: any; // your implementation of a persistence client
-    private partitionKey: string;
-
-    private constructor(persistenceManager?: any, partitionKey?: string) {}
-
-    static getInstance(persistenceManager?: any, partitionKey?: string): CachePlugin {}
-
-    async beforeCacheAccess(cacheContext): Promise<void> {
-        // given a partition key, get the relevant cache portion from the persistence store
-        // deserialize and load the cache into msal's memory
-    }
-    async afterCacheAccess(cacheContext): Promise<void> {
-        // if in-memory cache has changed
-            // serialize and persist the cache using the same partition key
-    }
-}
-```
-
-It is also a good idea to obtain performance metrics for persistent cache operations, such as **cache hit ratios** from your persistence store. This would give you a reliable picture of how your app scales over time.
+> :bulb: We recommend you to obtain performance metrics for cache operations, such as **cache retrieval duration** and **cache hit ratios** in your applications. This would give you a reliable picture of how your app scales over time. For instance, to measure how much time MSAL spends in `acquireToken*` calls, you can use Node's [performance measurement API](https://nodejs.org/api/perf_hooks.html)s along with the `fromCache` property in [AuthenticationResult](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult) class:
+>
+> ```javascript
+>    const { PerformanceObserver, performance } = require('node:perf_hooks');
+>
+>    const perfObserver = new PerformanceObserver((items) => {
+>        items.getEntries().forEach((entry) => {
+>            console.log(entry);
+>        })
+>    });
+>
+>    perfObserver.observe({ entryTypes: ["measure"], buffer: true });
+>
+>    // ...
+>
+>    performance.mark("acquireTokenSilent-start");
+>    const tokenResponse = await msalInstance.acquireTokenSilent({
+>        account: account,
+>        scopes: ["User.Read"],
+>    });
+>    performance.mark("acquireTokenSilent-end");
+>
+>    const measurementName = tokenResponse.fromCache ? "acquireTokenSilent-fromCache" : "acquireTokenSilent-fromNetwork";
+>    performance.measure(measurementName, "acquireTokenSilent-start", "acquireTokenSilent-end");
+> ```
+>
+> You should collect these along with the performance metrics generated by your storage solution (e.g. Redis) used for persistence.
 
 ## More information
 
 * [(Sample) Public client app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
-* [(Sample) Confidential client Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
+* [(Sample) Confidential client Express MVC web app with distributed token cache](../../../samples/msal-node-samples/RedisTestApp/README.md)
 * [(Docs) Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
 * [(Docs) App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)

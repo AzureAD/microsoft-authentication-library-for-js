@@ -1,5 +1,4 @@
 {
-  "lerna": "3.16.4",
   "command": {
     "run": {
       "scope": [

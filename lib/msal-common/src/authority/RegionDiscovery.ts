@@ -9,10 +9,16 @@ import { IMDSBadResponse } from "../response/IMDSBadResponse";
 import { Constants, RegionDiscoverySources, ResponseCodes } from "../utils/Constants";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
+    // Performance client
+    protected performanceClient: IPerformanceClient | undefined;
+    // CorrelationId
+    protected correlationId: string | undefined;
     // Options for the IMDS endpoint request
     protected static IMDS_OPTIONS: ImdsOptions = {
         headers: {
@@ -20,8 +26,10 @@ export class RegionDiscovery {
         },
     };
 
-    constructor(networkInterface: INetworkModule) {
+    constructor(networkInterface: INetworkModule, performanceClient?: IPerformanceClient, correlationId?: string) {
         this.networkInterface = networkInterface;
+        this.performanceClient = performanceClient;
+        this.correlationId = correlationId;
     }
 
     /**
@@ -30,6 +38,8 @@ export class RegionDiscovery {
      * @returns Promise<string | null>
      */
     public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata, proxyUrl: string): Promise<string | null> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RegionDiscoveryDetectRegion, this.correlationId);
+        
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
@@ -41,6 +51,7 @@ export class RegionDiscovery {
             }
 
             try {
+                this.performanceClient?.setPreQueueTime(PerformanceEvents.RegionDiscoveryGetRegionFromIMDS, this.correlationId);
                 const localIMDSVersionResponse = await this.getRegionFromIMDS(Constants.IMDS_VERSION, options);
                 if (localIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
                     autodetectedRegionName = localIMDSVersionResponse.body;
@@ -49,12 +60,14 @@ export class RegionDiscovery {
                 
                 // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry. 
                 if (localIMDSVersionResponse.status === ResponseCodes.httpBadRequest) {
+                    this.performanceClient?.setPreQueueTime(PerformanceEvents.RegionDiscoveryGetCurrentVersion, this.correlationId);
                     const currentIMDSVersion = await this.getCurrentVersion(options);
                     if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
+                    this.performanceClient?.setPreQueueTime(PerformanceEvents.RegionDiscoveryGetRegionFromIMDS, this.correlationId);
                     const currentIMDSVersionResponse = await this.getRegionFromIMDS(currentIMDSVersion, options);
                     if (currentIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
                         autodetectedRegionName = currentIMDSVersionResponse.body;
@@ -84,6 +97,7 @@ export class RegionDiscovery {
      * @returns Promise<NetworkResponse<string>>
      */
     private async getRegionFromIMDS(version: string, options: ImdsOptions): Promise<NetworkResponse<string>> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RegionDiscoveryGetRegionFromIMDS, this.correlationId);
         return this.networkInterface.sendGetRequestAsync<string>(`${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, options, Constants.IMDS_TIMEOUT);
     }
 
@@ -93,6 +107,7 @@ export class RegionDiscovery {
      * @returns Promise<string | null>
      */
     private async getCurrentVersion(options: ImdsOptions): Promise<string | null> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.RegionDiscoveryGetCurrentVersion, this.correlationId);
         try {
             const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, options);
 
