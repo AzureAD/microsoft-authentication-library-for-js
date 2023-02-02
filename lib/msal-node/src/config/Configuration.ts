@@ -17,6 +17,8 @@ import {
 } from "@azure/msal-common";
 import { DefaultNativeBrokerPlugin } from "../broker/DefaultNativeBrokerPlugin";
 import { HttpClient } from "../network/HttpClient";
+import { AgentOptions as httpAgentOptions } from "http";
+import { AgentOptions as httpsAgentOptions } from "https";
 
 /**
  * - clientId               - Client id of the application.
@@ -82,6 +84,7 @@ export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
     proxyUrl?: string;
+    customAgentOptions?: httpAgentOptions | httpsAgentOptions;
 };
 
 export type NodeTelemetryOptions = {
@@ -147,6 +150,7 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: new HttpClient(),
     proxyUrl: Constants.EMPTY_STRING,
+    customAgentOptions: {} as httpAgentOptions | httpsAgentOptions,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
@@ -182,17 +186,17 @@ export function buildAppConfiguration({
     system,
     telemetry
 }: Configuration): NodeConfiguration {
-
-    const providedSystemOptions = {
-        ...system,
-        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS
+    const systemOptions: Required<NodeSystemOptions> = {
+        ...DEFAULT_SYSTEM_OPTIONS,
+        networkClient: new HttpClient(system?.proxyUrl, (system?.customAgentOptions as httpAgentOptions | httpsAgentOptions)),
+        loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         broker: { ...DEFAULT_BROKER_OPTIONS, ...broker},
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
-        system: { ...DEFAULT_SYSTEM_OPTIONS, ...providedSystemOptions },
+        system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
     };
 }

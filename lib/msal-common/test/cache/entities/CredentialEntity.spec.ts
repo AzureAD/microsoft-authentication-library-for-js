@@ -91,11 +91,74 @@ describe("CredentialEntity.ts Unit Tests", () => {
             expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
         });
 
-        it("Host name with multiple TLDs - Is access token", () => {
+        it("Host name with multiple top level domains - Is access token", () => {
             const atEntity = new AccessTokenEntity();
             Object.assign(atEntity, {
                 homeAccountId,
                 environment: "login.microsoftonline.us.com:40000",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
+        it("Host name with a single long top level domain - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.education:40000",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
+        it("Host name with multiple long top level domains - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.business.info:40000",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
+        it("Localhost - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "https://localhost:5000",
                 credentialType: "AccessToken",
                 clientId: "mock_client_id",
                 secret: "an access token sample",
@@ -119,11 +182,6 @@ describe("CredentialEntity.ts Unit Tests", () => {
 
         it("Partial workflow match - empty result", () => {
             const key = `${homeAccountId}-accessTokenWorkflow-login.microsoftonline.com-someothertoken-${clientId}---`;
-            expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
-        });
-
-        it("Invalid host name - empty result", () => {
-            const key = `${homeAccountId}-login.microsoftonline-accessToken-${clientId}---`;
             expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);
         });
 

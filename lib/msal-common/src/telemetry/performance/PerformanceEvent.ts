@@ -122,9 +122,112 @@ export enum PerformanceEvents {
     RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
 
     /**
-     * Time taken for acquiring cached refresh token 
+     * Time taken for acquiring cached refresh token
      */
     RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
+
+    /**
+     * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
+     */
+    RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
+
+    /**
+     * Helper function to create token request body in RefreshTokenClient (msal-common).
+     */
+    RefreshTokenClientCreateTokenRequestBody = "refreshTokenClientCreateTokenRequestBody",
+
+    /**
+     * acquireTokenFromCache (msal-browser).
+     * Internal API for acquiring token from cache
+     */
+    AcquireTokenFromCache = "acquireTokenFromCache",
+
+    /**
+     * acquireTokenBySilentIframe (msal-browser).
+     * Internal API for acquiring token by silent Iframe
+     */
+    AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
+
+    /**
+     * Internal API for initializing base request in BaseInteractionClient (msal-browser)
+     */
+    InitializeBaseRequest = "initializeBaseRequest",
+
+    /**
+     * Internal API for initializing silent request in SilentCacheClient (msal-browser)
+     */
+    InitializeSilentRequest = "initializeSilentRequest",
+
+    /**
+     * Helper function in SilentIframeClient class (msal-browser).
+     */
+    SilentIframeClientTokenHelper = "silentIframeClientTokenHelper",
+
+    /**
+     * SilentHandler
+     */
+    SilentHandlerInitiateAuthRequest = "silentHandlerInitiateAuthRequest",
+    SilentHandlerMonitorIframeForHash = "silentHandlerMonitorIframeForHash",
+    SilentHandlerLoadFrame = "silentHandlerLoadFrame",
+
+    /**
+     * Helper functions in StandardInteractionClient class (msal-browser)
+     */
+    StandardInteractionClientCreateAuthCodeClient = "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration = "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest = "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest = "standardInteractionClientInitializeAuthorizationCodeRequest",
+
+    /**
+     * getAuthCodeUrl API (msal-browser and msal-node).
+     */
+    GetAuthCodeUrl = "getAuthCodeUrl",
+
+    /**
+     * Functions from InteractionHandler (msal-browser)
+     */
+    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
+    HandleCodeResponseFromHash = "handleCodeResponseFromHash",
+    UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
+
+    /**
+     * APIs in Authorization Code Client (msal-common)
+     */
+    AuthClientAcquireToken = "authClientAcquireToken",
+    AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
+    AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
+    AuthClientCreateQueryString = "authClientCreateQueryString",
+
+    /**
+     * Generate functions in PopTokenGenerator (msal-common)
+     */
+    PopTokenGenerateCnf = "popTokenGenerateCnf",
+    PopTokenGenerateKid = "popTokenGenerateKid",
+
+    /**
+     * handleServerTokenResponse API in ResponseHandler (msal-common)
+     */
+    HandleServerTokenResponse = "handleServerTokenResponse",
+
+    /**
+     * Authority functions
+     */
+    AuthorityFactoryCreateDiscoveredInstance = "authorityFactoryCreateDiscoveredInstance",
+    AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork = "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata = "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork = "authorityGetEndpointMetadataFromNetwork",
+    AuthorityUpdateEndpointMetadata = "authorityUpdateEndpointMetadata",
+    AuthorityUpdateMetadataWithRegionalInformation = "authorityUpdateMetadataWithRegionalInformation",
+
+    /**
+     * Region Discovery functions
+     */
+    RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
+    RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
+    RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
+
+    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
 
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
     GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
@@ -152,7 +255,7 @@ export enum PerformanceEventStatus {
 /**
  * Fields whose value will not change throughout a request
  */
-export type StaticFields = { 
+export type StaticFields = {
     /**
      * The Silent Token Cache Lookup Policy
      *
@@ -166,32 +269,32 @@ export type StaticFields = {
      * @type {number}
      */
     idTokenSize?: number,
- 
+
     /**
-     * 
+     *
      * Size of the access token
      *
      * @type {number}
      */
- 
+
     accessTokenSize?: number,
 
     /**
-     * 
+     *
      * Size of the refresh token
      *
      * @type {number}
      */
 
     refreshTokenSize?: number | undefined,
- 
+
     /**
      * Application name as specified by the app.
      *
      * @type {?string}
      */
     appName?: string,
- 
+
     /**
      * Application version as specified by the app.
      *
@@ -222,12 +325,20 @@ export type StaticFields = {
 };
 
 /**
+ * Fields whose value may change throughout a request
+ */
+export type Counters = {
+    visibilityChangeCount?: number;
+    incompleteSubsCount?: number;
+};
+
+/**
  * Performance measurement taken by the library, including metadata about the request and application.
  *
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = StaticFields & {
+export type PerformanceEvent = StaticFields & Counters & {
     /**
      * Unique id for the event
      *
@@ -352,8 +463,41 @@ export type PerformanceEvent = StaticFields & {
 
     /**
      * Request ID returned from the response
-     * 
+     *
      * @type {?string}
      */
     requestId?: string
+
+    /**
+     * Cache lookup policy
+     *
+     * @type {?number}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Amount of time spent in the JS queue in milliseconds.
+     *
+     * @type {?number}
+     */
+    queuedTimeMs?: number,
+
+    /**
+     * Amount of times queued in the JS event queue.
+     *
+     * @type {?number}
+     */
+    queuedCount?: number
 };
+
+export const IntFields: ReadonlySet<string> = new Set([
+    "accessTokenSize",
+    "durationMs",
+    "idTokenSize",
+    "matsSilentStatus",
+    "matsHttpStatus",
+    "refreshTokenSize",
+    "queuedTimeMs",
+    "startTimeMs",
+    "status",
+]);

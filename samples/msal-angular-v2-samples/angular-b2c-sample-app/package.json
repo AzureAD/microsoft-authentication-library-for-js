@@ -8,7 +8,7 @@
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "jest",
-    "install:local": "npm install @azure/msal-angular@latest @azure/msal-browser@latest",
+    "install:local": "npm install ../../../lib/msal-angular/dist ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-angular@latest @azure/msal-browser@latest"
   },
   "private": true,

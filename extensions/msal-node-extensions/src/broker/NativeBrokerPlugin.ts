@@ -4,12 +4,13 @@
  */
 
 import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
-import { Account, addon, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel as MsalRuntimeLogLevel} from "@azure/msal-node-runtime";
+import { msalNodeRuntime, Account, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel as MsalRuntimeLogLevel} from "@azure/msal-node-runtime";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
 export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private logger: Logger;
+    isBrokerAvailable: boolean;
     
     constructor() {
         const defaultLoggerOptions: LoggerOptions = {
@@ -17,6 +18,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             piiLoggingEnabled: false
         };
         this.logger = new Logger(defaultLoggerOptions, name, version); // Default logger
+        this.isBrokerAvailable = msalNodeRuntime.StartupError ? false : true;
     }
 
     setLogger(loggerOptions: LoggerOptions): void {
@@ -74,67 +76,89 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     break; 
             }
         };
-        addon.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
+        try {
+            msalNodeRuntime.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
+        } catch (e) {
+            const wrappedError = this.wrapError(e);
+            if (wrappedError) {
+                throw wrappedError;
+            }
+        }
     }
 
     async getAccountById(accountId: string, correlationId: string): Promise<AccountInfo> {
         this.logger.trace("NativeBrokerPlugin - getAccountById called", correlationId);
         const readAccountResult = await this.readAccountById(accountId, correlationId);
-        const accountInfoResult = addon.GetAccountInfo(readAccountResult);
-        if (this.isError(accountInfoResult)) {
-            const { errorCode, errorStatus, errorContext, errorTag } = accountInfoResult as MsalRuntimeError;
-            throw new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
-        }
-        return this.generateAccountInfo(accountInfoResult as Account);
+        return this.generateAccountInfo(readAccountResult.account);
     }
 
     async getAllAccounts(clientId:string, correlationId: string): Promise<AccountInfo[]> {
         this.logger.trace("NativeBrokerPlugin - getAllAccounts called", correlationId);
         return new Promise((resolve, reject) => {
-            const resultCallback = (result: DiscoverAccountsResult | MsalRuntimeError) => {
-                if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
-                    return;
+            const resultCallback = (result: DiscoverAccountsResult) => {
+                try {
+                    result.CheckError();
+                } catch (e) {
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
-                const { accounts } = result as DiscoverAccountsResult;
+
                 const accountInfoResult = [];
-                accounts.forEach((account: Account) => {
+                result.accounts.forEach((account: Account) => {
                     accountInfoResult.push(this.generateAccountInfo(account));
                 });
                 resolve(accountInfoResult);
             };
 
-            const callback = new addon.DiscoverAccountsResultCallback(resultCallback);
-            const asyncHandle = new addon.AsyncHandle();
-            addon.DiscoverAccounts(clientId, correlationId, callback, asyncHandle);
+            try {
+                msalNodeRuntime.DiscoverAccountsAsync(clientId, correlationId, resultCallback);
+            } catch (e) {
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
+            }
         });
     }
 
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenSilent called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
-        let readAccountResult;
+        let account: Account;
         if (request.accountId) {
-            readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
+            const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
+            account = readAccountResult.account;
         }
 
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
-            const resultCallback = (result: AuthResult | MsalRuntimeError) => {
-                if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
-                    return;
+            const resultCallback = (result: AuthResult) => {
+                try {
+                    result.CheckError();
+                } catch (e) {
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
-                const authenticationResult = this.getAuthenticationResult(request, result as AuthResult);
+                const authenticationResult = this.getAuthenticationResult(request, result);
                 resolve(authenticationResult);
             };
-            const callback = new addon.AuthResultCallback(resultCallback);
-            const asyncHandle = new addon.AsyncHandle();
-            if (readAccountResult) {
-                addon.AcquireTokenSilently(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
-            } else {
-                addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
+
+            try {
+                if (account) {
+                    msalNodeRuntime.AcquireTokenSilentlyAsync(authParams, request.correlationId, account, resultCallback);
+                } else {
+                    msalNodeRuntime.SignInSilentlyAsync(authParams, request.correlationId, resultCallback);
+                }
+            } catch (e) {
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -142,50 +166,61 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     async acquireTokenInteractive(request: NativeRequest, windowHandle?: Buffer): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenInteractive called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
-        let readAccountResult;
+        let account: Account;
         if (request.accountId) {
-            readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
+            const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
+            account = readAccountResult.account;
         }
 
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
-            const resultCallback = (result: AuthResult | MsalRuntimeError) => {
-                if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
-                    return;
+            const resultCallback = (result: AuthResult) => {
+                try {
+                    result.CheckError();
+                } catch (e) {
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
-                const authenticationResult = this.getAuthenticationResult(request, result as AuthResult);
+                const authenticationResult = this.getAuthenticationResult(request, result);
                 resolve(authenticationResult);
             };
-            const callback = new addon.AuthResultCallback(resultCallback);
-            const asyncHandle = new addon.AsyncHandle();
-            switch (request.prompt) {
-                case PromptValue.LOGIN:
-                case PromptValue.SELECT_ACCOUNT:
-                case PromptValue.CREATE:
-                    this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
-                    const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                    addon.SignInInteractively(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
-                    break;
-                case PromptValue.NONE:
-                    if (readAccountResult) {
-                        this.logger.info("Calling native interop AcquireTokenSilently API", request.correlationId);
-                        addon.AcquireTokenSilently(authParams, readAccountResult, request.correlationId, callback, asyncHandle);
-                    } else {
-                        this.logger.info("Calling native interop SignInSilently API", request.correlationId);
-                        addon.SignInSilently(authParams, request.correlationId, callback, asyncHandle);
-                    }
-                    break;
-                default:
-                    if (readAccountResult) {
-                        this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
-                        addon.AcquireTokenInteractively(authParams, readAccountResult, request.correlationId, callback, asyncHandle, windowHandle);
-                    } else {
-                        this.logger.info("Calling native interop SignIn API", request.correlationId);
+
+            try {
+                switch (request.prompt) {
+                    case PromptValue.LOGIN:
+                    case PromptValue.SELECT_ACCOUNT:
+                    case PromptValue.CREATE:
+                        this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
                         const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                        addon.SignIn(authParams, request.correlationId, loginHint, callback, asyncHandle, windowHandle);
-                    }
-                    break;
+                        msalNodeRuntime.SignInInteractivelyAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, loginHint, resultCallback);
+                        break;
+                    case PromptValue.NONE:
+                        if (account) {
+                            this.logger.info("Calling native interop AcquireTokenSilently API", request.correlationId);
+                            msalNodeRuntime.AcquireTokenSilentlyAsync(authParams, request.correlationId, account, resultCallback);
+                        } else {
+                            this.logger.info("Calling native interop SignInSilently API", request.correlationId);
+                            msalNodeRuntime.SignInSilentlyAsync(authParams, request.correlationId, resultCallback);
+                        }
+                        break;
+                    default:
+                        if (account) {
+                            this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
+                            msalNodeRuntime.AcquireTokenInteractivelyAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, account, resultCallback);
+                        } else {
+                            this.logger.info("Calling native interop SignIn API", request.correlationId);
+                            const loginHint = request.loginHint || Constants.EMPTY_STRING;
+                            msalNodeRuntime.SignInAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, loginHint, resultCallback);
+                        }
+                        break;
+                }
+            } catch (e) {
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
             }
         });
     }
@@ -194,20 +229,30 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         this.logger.trace("NativeBrokerPlugin - signOut called", request.correlationId);
 
         const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
+        const account = readAccountResult.account;
 
         return new Promise((resolve, reject) => {
-            const resultCallback = (result: SignOutResult | MsalRuntimeError) => {
-                if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
-                    return;
+            const resultCallback = (result: SignOutResult) => {
+                try {
+                    result.CheckError();
+                } catch (e) {
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
                 resolve();
             };
 
-            const callback = new addon.SignOutResultCallback(resultCallback);
-            const asyncHandle = new addon.AsyncHandle();
-            addon.SignOutSilently(request.clientId, request.correlationId, readAccountResult, callback, asyncHandle);
+            try {
+                msalNodeRuntime.SignOutSilentlyAsync(request.clientId, request.correlationId, account, resultCallback);
+            } catch (e) {
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
+            }
         });
     }
 
@@ -215,43 +260,61 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         this.logger.trace("NativeBrokerPlugin - readAccountById called", correlationId);
 
         return new Promise((resolve, reject) => {
-            const resultCallback = (result: ReadAccountResult | MsalRuntimeError) => {
-                if (this.isError(result)) {
-                    const { errorCode, errorStatus, errorContext, errorTag } = result as MsalRuntimeError;
-                    reject(new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag));
-                    return;
+            const resultCallback = (result: ReadAccountResult) => {
+                try {
+                    result.CheckError();
+                } catch (e) {
+                    const wrappedError = this.wrapError(e);
+                    if (wrappedError) {
+                        reject(wrappedError);
+                        return;
+                    }
                 }
-                resolve(result as ReadAccountResult);
+                resolve(result);
             };
 
-            const callback = new addon.ReadAccountResultCallback(resultCallback);
-            const asyncHandle = new addon.AsyncHandle();
-            addon.ReadAccountById(accountId, correlationId, callback, asyncHandle);
+            try {
+                msalNodeRuntime.ReadAccountByIdAsync(accountId, correlationId, resultCallback);
+            } catch (e) {
+                const wrappedError = this.wrapError(e);
+                if (wrappedError) {
+                    reject(wrappedError);
+                }
+            }
         });
     }
 
     private generateRequestParameters(request: NativeRequest): AuthParameters {
         this.logger.trace("NativeBrokerPlugin - generateRequestParameters called", request.correlationId);
-        const authParams = new addon.AuthParameters(request.clientId, request.authority);
-        authParams.SetRedirectUri(request.redirectUri);
-        authParams.SetRequestedScopes(request.scopes.join(" "));
+        const authParams = new msalNodeRuntime.AuthParameters();
 
-        if (request.claims) {
-            authParams.SetDecodedClaims(request.claims);
-        }
-
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
-            if (!request.resourceRequestMethod || !request.resourceRequestUri || !request.shrNonce) {
-                throw new Error("Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce");
+        try{
+            authParams.CreateAuthParameters(request.clientId, request.authority);
+            authParams.SetRedirectUri(request.redirectUri);
+            authParams.SetRequestedScopes(request.scopes.join(" "));
+            
+            if (request.claims) {
+                authParams.SetDecodedClaims(request.claims);
             }
-            const resourceUrl = new URL(request.resourceRequestUri);
-            authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
-        }
-        
-        if (request.extraParameters) {
-            Object.keys(request.extraParameters).forEach((key) => {
-                authParams.SetAdditionalParameter(key, request.extraParameters[key]);
-            });
+    
+            if (request.authenticationScheme === AuthenticationScheme.POP) {
+                if (!request.resourceRequestMethod || !request.resourceRequestUri || !request.shrNonce) {
+                    throw new Error("Authentication Scheme set to POP but one or more of the following parameters are missing: resourceRequestMethod, resourceRequestUri, shrNonce");
+                }
+                const resourceUrl = new URL(request.resourceRequestUri);
+                authParams.SetPopParams(request.resourceRequestMethod, resourceUrl.host, resourceUrl.pathname, request.shrNonce);
+            }
+            
+            if (request.extraParameters) {
+                Object.keys(request.extraParameters).forEach((key) => {
+                    authParams.SetAdditionalParameter(key, request.extraParameters[key]);
+                });
+            }
+        } catch (e) {
+            const wrappedError = this.wrapError(e);
+            if (wrappedError) {
+                throw wrappedError;
+            }
         }
 
         return authParams;
@@ -311,10 +374,22 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         return accountInfo;
     }
 
-    private isError(result: Object): boolean {
+    private isMsalRuntimeError(result: Object): boolean {
         return result.hasOwnProperty("errorCode") ||
                result.hasOwnProperty("errorStatus") ||
                result.hasOwnProperty("errorContext") ||
                result.hasOwnProperty("errorTag");
+    }
+
+    private wrapError(error: Object): NativeAuthError | Object | null {
+        if (this.isMsalRuntimeError(error)) {
+            const { errorCode, errorStatus, errorContext, errorTag } = error as MsalRuntimeError;
+            if (errorStatus === ErrorStatus.UserSwitched) {
+                return null;
+            }
+            return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
+        }
+
+        return error;
     }
 }

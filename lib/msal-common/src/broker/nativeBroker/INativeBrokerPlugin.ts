@@ -10,6 +10,7 @@ import { NativeSignOutRequest } from "../../request/NativeSignOutRequest";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 
 export interface INativeBrokerPlugin {
+    isBrokerAvailable: boolean;
     setLogger(loggerOptions: LoggerOptions): void;
     getAccountById(accountId: string, correlationId: string): Promise<AccountInfo>;
     getAllAccounts(clientId: string, correlationId: string): Promise<AccountInfo[]>;

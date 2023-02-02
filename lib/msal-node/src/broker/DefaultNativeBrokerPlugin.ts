@@ -9,6 +9,8 @@ import { AccountInfo, AuthenticationResult, INativeBrokerPlugin } from "@azure/m
  * This is a stub implementation of the native broker plugin which only serves to act as a default value but the methods defined here should never be invoked.
  */
 export class DefaultNativeBrokerPlugin implements INativeBrokerPlugin {
+    isBrokerAvailable = false;
+    
     setLogger(): void {
         // Do nothing
     }
