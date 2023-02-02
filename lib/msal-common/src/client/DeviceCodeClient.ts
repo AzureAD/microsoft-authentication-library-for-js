@@ -133,6 +133,10 @@ export class DeviceCodeClient extends BaseClient {
         parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
