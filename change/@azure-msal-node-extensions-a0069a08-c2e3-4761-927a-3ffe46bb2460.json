@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Address dependabot alerts",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix cache credential look-up (#5484)",
+  "comment": "Optimize credential regular expressions #5621",
   "packageName": "@azure/msal-common",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

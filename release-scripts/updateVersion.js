@@ -36,7 +36,7 @@ function updatePackageMetadata(libPath) {
         failures += 1;
         console.error(`Failed to update version for ${packageJson.name}`);
     }
-}
+};
 
 libFolders.forEach((lib) => {
     const packagePath = path.resolve(LIB_DIR, lib);

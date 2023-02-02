@@ -86,7 +86,7 @@ describe("RefreshTokenClient unit tests", () => {
 
     let stubPerformanceClient: StubPerformanceClient;
     beforeEach(async () => {
-        
+
         stubPerformanceClient = new StubPerformanceClient(TEST_CONFIG.MSAL_CLIENT_ID,TEST_CONFIG.validAuthority, logger, name, version, applicationTelemetry);
     });
 
@@ -142,26 +142,26 @@ describe("RefreshTokenClient unit tests", () => {
             };
 
             client.acquireToken(refreshTokenRequest).catch(e => {
-                // Catch errors thrown after the function call this test is testing    
+                // Catch errors thrown after the function call this test is testing
             });
         });
 
         it("Checks whether performance telemetry startMeasurement method is called", async () => {
             const spy = jest.spyOn(stubPerformanceClient, 'startMeasurement');
-            
+
             const client = new RefreshTokenClient(config,stubPerformanceClient);
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-            
+
             await client.acquireToken(refreshTokenRequest);
             expect(spy).toHaveBeenCalled();
         });
 
         it("Checks whether performance telemetry addStaticFields method is called", async () => {
             const spy = jest.spyOn(stubPerformanceClient, 'addStaticFields');
-            
+
             const client = new RefreshTokenClient(config,stubPerformanceClient);
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-            
+
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
                 expect(spy).toHaveBeenCalled();
@@ -179,10 +179,10 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Checks whether performance telemetry addStaticFields method is called- no rt", async () => {
             const spy = jest.spyOn(stubPerformanceClient, 'addStaticFields');
-            
+
             const client = new RefreshTokenClient(config,stubPerformanceClient);
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_NO_REFRESH_TOKEN);
-            
+
             let refreshTokenSize;
             await client.acquireToken(refreshTokenRequest).then(() => {
                 expect(spy).toHaveBeenCalled();
@@ -239,7 +239,7 @@ describe("RefreshTokenClient unit tests", () => {
                 headerNames.forEach((name) => {
                     expect(CORS_SIMPLE_REQUEST_HEADERS.includes(name.toLowerCase())).toBe(true);
                 });
-    
+
                 done();
                 return AUTHENTICATION_RESULT;
             });
@@ -414,7 +414,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(result.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(result.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
-        
+
         it("does not add claims if empty object is provided", async () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
@@ -499,13 +499,18 @@ describe("RefreshTokenClient unit tests", () => {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
+                incrementCounters: jest.fn(),
                 flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
                 startPerformanceMeasuremeant: jest.fn(),
-                generateId: jest.fn()
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn(),
+                setPreQueueTime: jest.fn()
             }
             performanceClient.startMeasurement.mockImplementation(() => {
                 return performanceClient;
@@ -531,13 +536,18 @@ describe("RefreshTokenClient unit tests", () => {
                 startMeasurement: jest.fn(),
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
+                incrementCounters: jest.fn(),
                 flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
                 startPerformanceMeasuremeant: jest.fn(),
-                generateId: jest.fn()
+                startPerformanceMeasurement: jest.fn(),
+                generateId: jest.fn(),
+                calculateQueuedTime: jest.fn(),
+                addQueueMeasurement: jest.fn(),
+                setPreQueueTime: jest.fn()
             }
             performanceClient.startMeasurement.mockImplementation(() => {
                 return performanceClient;

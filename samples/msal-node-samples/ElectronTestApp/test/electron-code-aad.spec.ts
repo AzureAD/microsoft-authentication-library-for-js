@@ -1,7 +1,6 @@
 import * as path from 'path';
 
-import { ElectronApplication, Page, _electron as electron } from "playwright";
-import { test, expect, } from "@playwright/test";
+import { ElectronApplication, Page, _electron as electron, test, expect } from "@playwright/test";
 
 import { setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
