@@ -30,6 +30,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/B2C-Local.json");
 
+
 describe("B2C User Flow Tests", () => {
     jest.retryTimes(1);
     jest.setTimeout(45000);
