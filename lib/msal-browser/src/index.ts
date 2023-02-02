@@ -49,6 +49,10 @@ export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttp
 
 export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
 
+// Telemetry
+export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
+export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
@@ -87,8 +91,8 @@ export {
     AzureCloudOptions,
     AuthenticationHeaderParser,
     OIDC_DEFAULT_SCOPES,
-    PerformanceCallbackFunction, 
-    PerformanceEvent, 
+    PerformanceCallbackFunction,
+    PerformanceEvent,
     PerformanceEvents
 } from "@azure/msal-common";
 
