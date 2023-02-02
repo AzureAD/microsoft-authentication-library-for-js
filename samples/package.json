@@ -4,7 +4,8 @@
     "license": "MIT",
     "private": true,
     "scripts": {
-        "test": "jest",
+        "test": "bash run_tests.sh",
+        "test:local": "jest",
         "test:agc": "jest --testMatch [ '**/test/**/*agc*.spec.ts' ]"
     },
     "dependencies": {
