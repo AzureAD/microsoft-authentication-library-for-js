@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows. They're also explicitly excluded from Public Client flows that don't use them. #5573",
+  "comment": "Removed tokenQueryParameters from Public Client flows because they don't use the /token endpoint. #5573",
   "packageName": "@azure/msal-browser",
   "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"

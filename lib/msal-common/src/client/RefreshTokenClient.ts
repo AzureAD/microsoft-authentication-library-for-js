@@ -183,6 +183,7 @@ export class RefreshTokenClient extends BaseClient {
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
+        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
         this.performanceClient?.setPreQueueTime(PerformanceEvents.RefreshTokenClientCreateTokenRequestBody, request.correlationId);
         
         const queryParametersString = this.createTokenQueryParameters(request);
@@ -201,8 +202,6 @@ export class RefreshTokenClient extends BaseClient {
             shrClaims: request.shrClaims,
             sshKid: request.sshKid
         };
-
-        const acquireTokenMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientExecuteTokenRequest, request.correlationId);
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint)
             .then((result) => {
