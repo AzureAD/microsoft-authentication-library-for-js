@@ -95,7 +95,7 @@ describe("DeviceCodeClient unit tests", () => {
     });
 
     describe("Acquire a token", () => {
-        it.skip("Does not add headers that do not qualify for a simple request", (done) => {
+        it("Does not add headers that do not qualify for a simple request", (done) => {
             jest.setTimeout(6000);
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
@@ -120,7 +120,7 @@ describe("DeviceCodeClient unit tests", () => {
             client.acquireToken(request);
         });
 
-        it.skip("Acquires a token successfully", async () => {
+        it("Acquires a token successfully", async () => {
             jest.setTimeout(6000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
@@ -162,7 +162,7 @@ describe("DeviceCodeClient unit tests", () => {
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds extraQueryParameters to request", (done) => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").callsFake((url: string) => {
                 try {
                     expect(url.includes("/devicecode?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
@@ -187,7 +187,7 @@ describe("DeviceCodeClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "test-correlationId",
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                tokenQueryParameters: {
+                extraQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
                     testParam3: "testValue3",
@@ -201,7 +201,7 @@ describe("DeviceCodeClient unit tests", () => {
             });
         });
 
-        it.skip("Adds claims to request", async () => {
+        it("Adds claims to request", async () => {
             jest.setTimeout(6000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
@@ -243,7 +243,7 @@ describe("DeviceCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
-        it.skip("Does not add claims to request if empty object passed", async () => {
+        it("Does not add claims to request if empty object passed", async () => {
             jest.setTimeout(6000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
@@ -285,7 +285,7 @@ describe("DeviceCodeClient unit tests", () => {
             expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
-        it.skip("Acquires a token successfully after authorization_pending error", async () => {
+        it("Acquires a token successfully after authorization_pending error", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             const tokenRequestStub = sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint");
 
@@ -306,7 +306,7 @@ describe("DeviceCodeClient unit tests", () => {
 
     describe("Device code exceptions", () => {
 
-        it.skip("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
+        it("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
@@ -322,7 +322,7 @@ describe("DeviceCodeClient unit tests", () => {
             await expect(client.acquireToken(request)).rejects.toMatchObject(ClientAuthError.createDeviceCodeCancelledError());
         }, 6000);
 
-        it.skip("Throw device code expired exception if device code is expired", async () => {
+        it("Throw device code expired exception if device code is expired", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHORIZATION_PENDING_RESPONSE);
 
@@ -337,7 +337,7 @@ describe("DeviceCodeClient unit tests", () => {
             await expect(client.acquireToken(request)).rejects.toMatchObject(ClientAuthError.createDeviceCodeExpiredError());
         }, 6000);
 
-        it.skip("Throw device code expired exception if the timeout expires", async () => {
+        it("Throw device code expired exception if the timeout expires", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             const tokenRequestStub = sinon
             .stub(BaseClient.prototype, <any>"executePostToTokenEndpoint")
@@ -356,7 +356,7 @@ describe("DeviceCodeClient unit tests", () => {
             expect(tokenRequestStub.callCount).toBe(1);
         }, 15000);
 
-        it.skip("Throws if server throws an unexpected error", async () => {
+        it("Throws if server throws an unexpected error", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(SERVER_UNEXPECTED_ERROR);
 

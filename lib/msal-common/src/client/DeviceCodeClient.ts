@@ -65,7 +65,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
-        const queryParametersString = this.createTokenQueryParameters(request);
+        const queryParametersString = this.createExtraQueryParameters(request);
         const endpoint = UrlString.appendQueryString(this.authority.deviceCodeEndpoint, queryParametersString);
         const queryString = this.createQueryString(request);
         const headers = this.createTokenRequestHeaders();
@@ -82,6 +82,20 @@ export class DeviceCodeClient extends BaseClient {
         };
 
         return this.executePostRequestToDeviceCodeEndpoint(endpoint, queryString, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the device code request
+     * @param request
+     */
+    createExtraQueryParameters(request: CommonDeviceCodeRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
