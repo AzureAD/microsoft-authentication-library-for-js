@@ -49,8 +49,6 @@ export class Authority {
     private regionDiscovery: RegionDiscovery;
     // Region discovery metadata
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
-    // Proxy url string
-    private proxyUrl: string;
     // Logger object
     private logger: Logger;
     // Performance client
@@ -64,7 +62,6 @@ export class Authority {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string,
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ) {
@@ -74,7 +71,6 @@ export class Authority {
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
-        this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
         this.logger = logger;
         this.performanceClient = performanceClient;
         this.correlationId = correlationId;
@@ -391,10 +387,7 @@ export class Authority {
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
 
         const options: ImdsOptions = {};
-        if (this.proxyUrl) {
-            options.proxyUrl = this.proxyUrl;
-        }
-
+        
         /*
          * TODO: Add a timeout if the authority exists in our library's 
          * hardcoded list of metadata
@@ -429,8 +422,7 @@ export class Authority {
         this.performanceClient?.setPreQueueTime(PerformanceEvents.RegionDiscoveryDetectRegion, this.correlationId);
         const autodetectedRegionName = await this.regionDiscovery.detectRegion(
             this.authorityOptions.azureRegionConfiguration?.environmentRegion,
-            this.regionDiscoveryMetadata,
-            this.proxyUrl
+            this.regionDiscoveryMetadata
         );
 
         const azureRegion = 
@@ -560,9 +552,6 @@ export class Authority {
         const instanceDiscoveryEndpoint =
             `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
         const options: ImdsOptions = {};
-        if (this.proxyUrl) {
-            options.proxyUrl = this.proxyUrl;
-        }
 
         /*
          * TODO: Add a timeout if the authority exists in our library's

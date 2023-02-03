@@ -4,6 +4,7 @@
  */
 
 import { DeviceCodeResponse } from "../response/DeviceCodeResponse";
+import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
@@ -16,9 +17,12 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  * - timeout                    - Timeout period in seconds which the user explicitly configures for the polling of the device code endpoint. At the end of this period; assuming the device code has not expired yet; the device code polling is stopped and the request cancelled. The device code expiration window will always take precedence over this set period.
+ * - extraQueryParameters       - String to string map of custom query parameters added to the query string
  */
-export type CommonDeviceCodeRequest = BaseAuthRequest &  {
+// export type CommonDeviceCodeRequest = BaseAuthRequest &  {
+export type CommonDeviceCodeRequest = Omit<BaseAuthRequest, "tokenQueryParameters"> & {
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
     cancel?: boolean;
     timeout?: number;
+    extraQueryParameters?: StringDict;
 };

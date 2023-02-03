@@ -17,6 +17,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CcsCredentialType } from "../account/CcsCredential";
+import { UrlString } from "../url/UrlString";
 
 /**
  * Oauth2.0 Password grant client
@@ -68,6 +69,13 @@ export class UsernamePasswordClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
+        const requestBody = this.createTokenRequestBody(request);
+        const headers: Record<string, string> = this.createTokenRequestHeaders({
+            credential: request.username,
+            type: CcsCredentialType.UPN
+        });
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -79,13 +87,8 @@ export class UsernamePasswordClient extends BaseClient {
             shrClaims: request.shrClaims,
             sshKid: request.sshKid
         };
-        const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders({
-            credential: request.username,
-            type: CcsCredentialType.UPN
-        });
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
 
     /**
