@@ -93,6 +93,6 @@ export class RequestValidator {
 
         // remove empty string parameters
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(Object.entries(queryParams).filter(([key, value]) => value !== ""));
+        return Object.fromEntries(Object.entries(eQParams).filter(([key, value]) => value !== ""));
     }
 }

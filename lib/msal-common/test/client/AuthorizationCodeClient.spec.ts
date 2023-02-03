@@ -1313,13 +1313,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
-                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    code: TEST_TOKENS.AUTHORIZATION_CODE,
-                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                    claims: TEST_CONFIG.CLAIMS,
-                    correlationId: RANDOM_TEST_GUID,
-                    authenticationScheme: AuthenticationScheme.BEARER,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 tokenQueryParameters: {
                     testParam1: "testValue1",
                     testParam2: "",
