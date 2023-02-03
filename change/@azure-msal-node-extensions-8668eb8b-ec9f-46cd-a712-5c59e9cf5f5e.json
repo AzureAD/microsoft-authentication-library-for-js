@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Add Logging options to IPersistenceConfiguration #5626",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "fredrik.rasch@gmail.com",
+  "dependentChangeType": "patch"
+}
