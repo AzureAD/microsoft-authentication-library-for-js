@@ -2,6 +2,27 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:51 GMT",
+      "tag": "@azure/msal-angular_v2.5.3",
+      "version": "2.5.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "milos.buda@hotmail.com",
+            "package": "@azure/msal-angular",
+            "commit": "aa799b962bba2472b9c7244ec103bfb15212f970",
+            "comment": "Update ProtectedResourceScopes type to allow unprotected resource for concrete request type (#5563)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.33.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 09 Jan 2023 22:44:57 GMT",
       "tag": "@azure/msal-angular_v2.5.2",
       "version": "2.5.2",
