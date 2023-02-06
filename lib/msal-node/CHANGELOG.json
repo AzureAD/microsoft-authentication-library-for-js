@@ -2,6 +2,49 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:50 GMT",
+      "tag": "@azure/msal-node_v1.15.0",
+      "version": "1.15.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "55aa5b76afcbef8a185c0ab69535511c2dc76cd1",
+            "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor #5599"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b3920da6c81cc84cd5db53a11e0f0bef7969c3f7",
+            "comment": "Add support for custom http(s) agents #5472"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v10.0.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "d4612bfea17987566d24c4b6f4460f68dd814ce8",
+            "comment": "tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573"
+          }
+        ],
+        "none": [
+          {
+            "author": "v-ssalem@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "376e3c0b3562896940d365c9b8e803f6ce5604d9",
+            "comment": "add tests for obo and clientConfig #5493"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 09 Jan 2023 22:44:58 GMT",
       "tag": "@azure/msal-node_v1.14.6",
       "version": "1.14.6",

@@ -36,7 +36,7 @@ import { TemporaryCacheKeys, BrowserConstants } from "../../src/utils/BrowserCon
 class TestInteractionHandler extends InteractionHandler {
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
-        super(authCodeModule, storageImpl, testAuthCodeRequest, testBrowserRequestLogger);
+        super(authCodeModule, storageImpl, testAuthCodeRequest, testBrowserRequestLogger, performanceClient);
     }
 
     showUI(requestUrl: string): Window {
@@ -111,6 +111,23 @@ const cryptoInterface = {
         return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
     }
 }
+
+const performanceClient = {
+    startMeasurement: jest.fn(),
+    endMeasurement: jest.fn(),
+    addStaticFields: jest.fn(),
+    flushMeasurements: jest.fn(),
+    discardMeasurements: jest.fn(),
+    removePerformanceCallback: jest.fn(),
+    addPerformanceCallback: jest.fn(),
+    emitEvents: jest.fn(),
+    startPerformanceMeasurement: jest.fn(),
+    startPerformanceMeasuremeant: jest.fn(),
+    generateId: jest.fn(),
+    calculateQueuedTime: jest.fn(),
+    addQueueMeasurement: jest.fn(),
+    setPreQueueTime: jest.fn()
+};
 
 let authorityInstance: Authority;
 let authConfig: ClientConfiguration;

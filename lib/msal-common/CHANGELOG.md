@@ -1,8 +1,54 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 09 Jan 2023 22:44:58 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 10.0.0
+
+Mon, 06 Feb 2023 18:51:50 GMT
+
+### Major changes
+
+- proxyUrl is now passed to msal-node's httpClient via it's constructor #5599 (rginsburg@microsoft.com)
+
+### Minor changes
+
+- tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573 (rginsburg@microsoft.com)
+- Add JS Queue Measurements #5352 (joarroyo@microsoft.com)
+- Truncate integral telemetry fields #5627 (kshabelko@microsoft.com)
+- Track manually completed sub-measurements #5614 (kshabelko@microsoft.com)
+
+### Patches
+
+- Update discardCache in PerformanceClient #5645 (joarroyo@microsoft.com)
+- Optimize credential regular expressions #5621 (kshabelko@microsoft.com)
+- Added missing fields to InteractionRequiredAuthError #5566 (rginsburg@microsoft.com)
+
+## 9.1.1
+
+Thu, 19 Jan 2023 23:50:24 GMT
+
+### Patches
+
+- Update startMeasurement in PerformanceClient #5589 (joarroyo@microsoft.com)
+- Add broker timeouts #5580 (kshabelko@microsoft.com)
+
+## 9.1.0
+
+Wed, 18 Jan 2023 00:33:04 GMT
+
+### Minor changes
+
+- Adding page visibility change event for silent calls like AcquireTokenSilent #5555 (kshabelko@microsoft.com)
+
+### Patches
+
+- Add startPerformanceMeasurement to IPerformanceClient #5583 (joarroyo@microsoft.com)
+- Revert typo changes #5582 (joarroyo@microsoft.com)
+- Match long domain names #5581 (kshabelko@microsoft.com)
+- - Remove `lookBehind` regex as not compatible with Safari browser. #5551 (kshabelko@microsoft.com)
+- add claims to request body in OBO class #5493 (v-ssalem@microsoft.com)
 
 ## 9.0.2
 
