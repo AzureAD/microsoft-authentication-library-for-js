@@ -8,14 +8,15 @@ import { InteractionHandler } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserSystemOptions, DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
     private pollIntervalMilliseconds: number;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, systemOptions: Required<Pick<BrowserSystemOptions, "navigateFrameWait" | "pollIntervalMilliseconds">>, performanceClient: IPerformanceClient) {
-        super(authCodeModule, storageImpl, authCodeRequest, logger, performanceClient);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, systemOptions: Required<Pick<BrowserSystemOptions, "navigateFrameWait" | "pollIntervalMilliseconds">>) {
+        super(authCodeModule, storageImpl, authCodeRequest, logger);
         this.navigateFrameWait = systemOptions.navigateFrameWait;
         this.pollIntervalMilliseconds = systemOptions.pollIntervalMilliseconds;
     }
@@ -26,7 +27,7 @@ export class SilentHandler extends InteractionHandler {
      * @param userRequestScopes
      */
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId);
 
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
@@ -35,7 +36,7 @@ export class SilentHandler extends InteractionHandler {
         }
 
         if (this.navigateFrameWait) {
-            this.performanceClient.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
             return await this.loadFrame(requestUrl);
         }
         return this.loadFrameSync(requestUrl);
@@ -47,7 +48,7 @@ export class SilentHandler extends InteractionHandler {
      * @param timeout
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId);
 
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
@@ -102,7 +103,7 @@ export class SilentHandler extends InteractionHandler {
      * @ignore
      */
     private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
 
         /*
          * This trick overcomes iframe navigation in IE

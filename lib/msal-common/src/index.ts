@@ -105,6 +105,7 @@ export { Counters, IntFields, PerformanceEvent, PerformanceEvents, PerformanceEv
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
 export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";
+export { PerfClientParams, TelemetryFactory } from "./telemetry/TelemetryFactory";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
 

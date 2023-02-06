@@ -11,8 +11,8 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
 import { Logger } from "../logger/Logger";
-import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
+import {TelemetryFactory} from "../telemetry/TelemetryFactory";
 
 export class AuthorityFactory {
 
@@ -32,10 +32,9 @@ export class AuthorityFactory {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<Authority> {
-        performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, correlationId);
+        TelemetryFactory.client()?.addQueueMeasurement(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, correlationId);
 
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
@@ -44,12 +43,11 @@ export class AuthorityFactory {
             cacheManager,
             authorityOptions,
             logger,
-            performanceClient,
             correlationId
         );
 
         try {
-            performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityResolveEndpointsAsync, correlationId);
+            TelemetryFactory.client()?.setPreQueueTime(PerformanceEvents.AuthorityResolveEndpointsAsync, correlationId);
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {
@@ -73,7 +71,6 @@ export class AuthorityFactory {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Authority {
         // Throw error if authority url is empty
@@ -81,6 +78,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, performanceClient, correlationId);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, correlationId);
     }
 }

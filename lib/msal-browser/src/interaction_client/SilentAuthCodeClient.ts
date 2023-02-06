@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -16,12 +16,13 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
     }
 
@@ -39,7 +40,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
@@ -54,13 +55,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, request.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, request.correlationId);
             const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority);
             const authClient: HybridSpaAuthorizationCodeClient = new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
-            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);
+            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system);
 
             // Handle auth code parameters from request
             return silentHandler.handleCodeResponseFromServer(

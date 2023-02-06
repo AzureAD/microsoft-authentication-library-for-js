@@ -26,17 +26,19 @@ import {
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES, RANDOM_TEST_GUID, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
-import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError } from "../../src";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { TemporaryCacheKeys, BrowserConstants } from "../../src/utils/BrowserConstants";
+import { TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import {BrowserTelemetryFactory} from "../../src/telemetry/BrowserTelemetryFactory";
+import {stubPerformanceClient} from "../utils/TelemetryUtils";
 
 class TestInteractionHandler extends InteractionHandler {
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
-        super(authCodeModule, storageImpl, testAuthCodeRequest, testBrowserRequestLogger, performanceClient);
+        super(authCodeModule, storageImpl, testAuthCodeRequest, testBrowserRequestLogger);
     }
 
     showUI(requestUrl: string): Window {
@@ -112,23 +114,6 @@ const cryptoInterface = {
     }
 }
 
-const performanceClient = {
-    startMeasurement: jest.fn(),
-    endMeasurement: jest.fn(),
-    addStaticFields: jest.fn(),
-    flushMeasurements: jest.fn(),
-    discardMeasurements: jest.fn(),
-    removePerformanceCallback: jest.fn(),
-    addPerformanceCallback: jest.fn(),
-    emitEvents: jest.fn(),
-    startPerformanceMeasurement: jest.fn(),
-    startPerformanceMeasuremeant: jest.fn(),
-    generateId: jest.fn(),
-    calculateQueuedTime: jest.fn(),
-    addQueueMeasurement: jest.fn(),
-    setPreQueueTime: jest.fn()
-};
-
 let authorityInstance: Authority;
 let authConfig: ClientConfiguration;
 
@@ -180,6 +165,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
         authCodeModule = new AuthorizationCodeClient(authConfig);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOpts, logger);
+        stubPerformanceClient();
     });
 
     afterEach(() => {
@@ -242,7 +228,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), idTokenClaims.nonce);
             browserStorage.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(CcsCredentialType));
-            
+
             sinon.stub(Authority.prototype, "isAlias").returns(false);
             const authorityOptions: AuthorityOptions = {
                 protocolMode: ProtocolMode.AAD,
@@ -275,7 +261,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             //@ts-ignore
             expect(interactionHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
-        
+
         // TODO: Need to improve these tests
         it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
             const idTokenClaims = {

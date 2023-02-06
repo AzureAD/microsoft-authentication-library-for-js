@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
@@ -35,7 +35,7 @@ import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
-import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
+import { BrowserTelemetryFactory } from "../telemetry/BrowserTelemetryFactory";
 
 export abstract class ClientApplication {
 
@@ -76,9 +76,6 @@ export abstract class ClientApplication {
 
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
-
-    // Performance telemetry client
-    protected performanceClient: IPerformanceClient;
 
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
@@ -132,13 +129,20 @@ export abstract class ClientApplication {
         // Initial hybrid spa map
         this.hybridAuthCodeResponses = new Map();
 
-        // Initialize performance client
-        this.performanceClient = this.isBrowserEnvironment ?
-            new BrowserPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application, this.config.system.cryptoOptions) :
-            new StubPerformanceClient(this.config.auth.clientId, this.config.auth.authority, this.logger, name, version, this.config.telemetry.application);
-
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.performanceClient, this.config.system.cryptoOptions) : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger, this.config.system.cryptoOptions) : DEFAULT_CRYPTO_IMPLEMENTATION;
+
+        // Initialize performance client
+        BrowserTelemetryFactory.initClient({
+            clientId: this.config.auth.clientId,
+            authority: this.config.auth.authority,
+            logger: this.logger,
+            name,
+            version,
+            application: this.config.telemetry.application,
+            crypto: this.browserCrypto,
+            isBrowserEnv: this.isBrowserEnvironment
+        });
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -213,7 +217,7 @@ export abstract class ClientApplication {
                 let redirectResponse: Promise<AuthenticationResult | null>;
                 if (request && NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider) && this.nativeExtensionProvider && !hash) {
                     this.logger.trace("handleRedirectPromise - acquiring token from native platform");
-                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.performanceClient, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
+                    const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.nativeExtensionProvider, request.accountId, this.nativeInternalStorage, request.correlationId);
                     redirectResponse = nativeClient.handleRedirectPromise();
                 } else {
                     this.logger.trace("handleRedirectPromise - acquiring token from web flow");
@@ -286,7 +290,7 @@ export abstract class ClientApplication {
         let result: Promise<void>;
 
         if (this.nativeExtensionProvider && this.canUseNative(request)) {
-            const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.performanceClient, this.nativeExtensionProvider, this.getNativeAccountId(request), this.nativeInternalStorage, request.correlationId);
+            const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.nativeExtensionProvider, this.getNativeAccountId(request), this.nativeInternalStorage, request.correlationId);
             result = nativeClient.acquireTokenRedirect(request).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.nativeExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt
@@ -329,7 +333,7 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
-        const atPopupMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenPopup, correlationId);
+        const atPopupMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.AcquireTokenPopup, correlationId);
 
         try {
             this.logger.verbose("acquireTokenPopup called", correlationId);
@@ -458,7 +462,7 @@ export abstract class ClientApplication {
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.SsoSilent, correlationId);
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0
         });
@@ -526,7 +530,7 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.trace("acquireTokenByCode called", correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
-        const atbcMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
+        const atbcMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
             if (request.code) {
@@ -607,7 +611,7 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
-        this.acquireTokenByCodeAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
         this.acquireTokenByCodeAsyncMeasurement?.increment({
             visibilityChangeCount: 0
         });
@@ -646,7 +650,7 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -667,7 +671,7 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
@@ -675,7 +679,7 @@ export abstract class ClientApplication {
             case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
 
-                this.performanceClient.setPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken, commonRequest.correlationId);
+                BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken, commonRequest.correlationId);
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
@@ -690,11 +694,11 @@ export abstract class ClientApplication {
     protected async acquireTokenBySilentIframe(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId);
 
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
 
-        this.performanceClient.setPreQueueTime(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         return silentIframeClient.acquireToken(request);
     }
 
@@ -900,7 +904,7 @@ export abstract class ClientApplication {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
         }
 
-        const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.performanceClient, this.nativeExtensionProvider, accountId || this.getNativeAccountId(request), this.nativeInternalStorage, request.correlationId);
+        const nativeClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.nativeExtensionProvider, accountId || this.getNativeAccountId(request), this.nativeInternalStorage, request.correlationId);
 
         return nativeClient.acquireToken(request);
     }
@@ -953,7 +957,7 @@ export abstract class ClientApplication {
      * @param correlationId
      */
     protected createPopupClient(correlationId?: string): PopupClient {
-        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
+        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -961,7 +965,7 @@ export abstract class ClientApplication {
      * @param correlationId
      */
     protected createRedirectClient(correlationId?: string): RedirectClient {
-        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
+        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -969,28 +973,28 @@ export abstract class ClientApplication {
      * @param correlationId
      */
     protected createSilentIframeClient(correlationId?: string): SilentIframeClient {
-        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
+        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
     /**
      * Returns new instance of the Silent Cache Interaction Client
      */
     protected createSilentCacheClient(correlationId?: string): SilentCacheClient {
-        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
      * Returns new instance of the Silent Refresh Interaction Client
      */
     protected createSilentRefreshClient(correlationId?: string): SilentRefreshClient {
-        return new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.nativeExtensionProvider, correlationId);
     }
 
     /**
      * Returns new instance of the Silent AuthCode Interaction Client
      */
     protected createSilentAuthCodeClient(correlationId?: string): SilentAuthCodeClient {
-        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.performanceClient, this.nativeExtensionProvider, correlationId);
+        return new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, this.nativeExtensionProvider, correlationId);
     }
 
     /**
@@ -1016,7 +1020,7 @@ export abstract class ClientApplication {
      * @returns {string}
      */
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
-        return this.performanceClient.addPerformanceCallback(callback);
+        return BrowserTelemetryFactory.client().addPerformanceCallback(callback);
     }
 
     /**
@@ -1026,7 +1030,7 @@ export abstract class ClientApplication {
      * @returns {boolean}
      */
     removePerformanceCallback(callbackId: string): boolean {
-        return this.performanceClient.removePerformanceCallback(callbackId);
+        return BrowserTelemetryFactory.client().removePerformanceCallback(callbackId);
     }
 
     /**

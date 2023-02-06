@@ -3,28 +3,32 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, PerformanceEvent, PerformanceEvents, IPerformanceClient, PerformanceClient, IPerformanceMeasurement, InProgressPerformanceEvent, ApplicationTelemetry } from "@azure/msal-common";
-import { CryptoOptions } from "../config/Configuration";
-import { BrowserCrypto } from "../crypto/BrowserCrypto";
-import { GuidGenerator } from "../crypto/GuidGenerator";
+import {
+    Logger,
+    PerformanceEvent,
+    PerformanceEvents,
+    IPerformanceClient,
+    PerformanceClient,
+    IPerformanceMeasurement,
+    InProgressPerformanceEvent,
+    ApplicationTelemetry, ICrypto,
+} from "@azure/msal-common";
 import { BrowserPerformanceMeasurement } from "./BrowserPerformanceMeasurement";
 
 export class BrowserPerformanceClient extends PerformanceClient implements IPerformanceClient {
-    private browserCrypto: BrowserCrypto;
-    private guidGenerator: GuidGenerator;
-    
-    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry, cryptoOptions: CryptoOptions) {
+    private crypto: ICrypto;
+
+    constructor(clientId: string, authority: string, logger: Logger, libraryName: string, libraryVersion: string, applicationTelemetry: ApplicationTelemetry, crypto: ICrypto) {
         super(clientId, authority, logger, libraryName, libraryVersion, applicationTelemetry);
-        this.browserCrypto = new BrowserCrypto(this.logger, cryptoOptions);
-        this.guidGenerator = new GuidGenerator(this.browserCrypto);
+        this.crypto = crypto;
     }
-    
+
     startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
         return new BrowserPerformanceMeasurement(measureName, correlationId);
     }
 
     generateId() : string {
-        return this.guidGenerator.generateGuid();
+        return this.crypto.createNewGuid();
     }
 
     private getPageVisibility(): string | null {
@@ -36,7 +40,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
             typeof window.performance !== "undefined" &&
             typeof window.performance.now === "function";
     }
-    
+
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
      * Also captures browser page visibilityState.
@@ -48,7 +52,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent {
         // Capture page visibilityState and then invoke start/end measurement
         const startPageVisibility = this.getPageVisibility();
-        
+
         const inProgressEvent = super.startMeasurement(measureName, correlationId);
 
         return {
@@ -65,9 +69,9 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
 
     /**
      * Adds pre-queue time to preQueueTimeByCorrelationId map.
-     * @param {PerformanceEvents} eventName 
-     * @param {?string} correlationId 
-     * @returns 
+     * @param {PerformanceEvents} eventName
+     * @param {?string} correlationId
+     * @returns
      */
     setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void {
         if (!this.supportsBrowserPerformanceNow()) {
@@ -94,11 +98,11 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
 
     /**
      * Calculates and adds queue time measurement for given performance event.
-     * 
-     * @param {PerformanceEvents} name 
-     * @param {?string} correlationId 
-     * @param {?number} preQueueTime 
-     * @returns 
+     *
+     * @param {PerformanceEvents} name
+     * @param {?string} correlationId
+     * @param {?number} preQueueTime
+     * @returns
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string): void {
         if (!this.supportsBrowserPerformanceNow()) {
@@ -115,7 +119,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         if (!preQueueTime) {
             return;
         }
-        
+
         const currentTime = window.performance.now();
         const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
 

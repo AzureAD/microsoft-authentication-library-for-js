@@ -4,8 +4,18 @@
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import {stubPerformanceClient} from "../utils/TelemetryUtils";
+import sinon from "sinon";
 
 describe("Non-browser environment", () => {
+
+    beforeAll(() => {
+        stubPerformanceClient();
+    })
+
+    afterAll(() => {
+        sinon.restore();
+    })
 
     it("Constructor doesnt throw if window is undefined", () => {
         new PublicClientApplication({

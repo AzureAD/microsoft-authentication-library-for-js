@@ -3,10 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";
-import { BrowserConfigurationAuthErrorMessage } from "../../src/error/BrowserConfigurationAuthError";
+import { stubbedPublicClientApplication } from "../../src";
+import { BrowserConfigurationAuthErrorMessage } from "../../src";
+import {stubPerformanceClient} from "../utils/TelemetryUtils";
+import sinon from "sinon";
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {
+    beforeAll(() => {
+        stubPerformanceClient();
+    })
+
+    afterAll(() => {
+        sinon.restore();
+    })
+
     describe("stubbedPublicClientApplication tests", () => {
         it("acquireTokenPopup throws", (done) => {
             stubbedPublicClientApplication.acquireTokenPopup({scopes: ["openid"]}).catch(e => {

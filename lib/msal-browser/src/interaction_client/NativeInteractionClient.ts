@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -21,6 +21,7 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -29,13 +30,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected silentCacheClient: SilentCacheClient;
     protected nativeStorageManager: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, provider: NativeMessageHandler, accountId: string, nativeStorageImpl: BrowserCacheManager, correlationId?: string) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: NativeMessageHandler, accountId: string, nativeStorageImpl: BrowserCacheManager, correlationId?: string) {
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
         this.apiId = apiId;
         this.accountId = accountId;
         this.nativeMessageHandler = provider;
         this.nativeStorageManager = nativeStorageImpl;
-        this.silentCacheClient = new SilentCacheClient(config, this.nativeStorageManager, browserCrypto, logger, eventHandler, navigationClient, performanceClient, provider, correlationId);
+        this.silentCacheClient = new SilentCacheClient(config, this.nativeStorageManager, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
     }
 
     /**
@@ -46,12 +47,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.logger.trace("NativeInteractionClient - acquireToken called.");
 
         // start the perf measurement
-        const nativeATMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
+        const nativeATMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.NativeInteractionClientAcquireToken, request.correlationId);
         const reqTimestamp = TimeUtils.nowSeconds();
 
         // initialize native request
         const nativeRequest = await this.initializeNativeRequest(request);
-        
+
         // check if the tokens can be retrieved from internal cache
         try {
             const result = await this.acquireTokensFromCache(this.accountId, nativeRequest);
@@ -233,7 +234,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
         // Add Native Broker fields to Telemetry
         const mats = this.getMATSFromResponse(response);
-        this.performanceClient.addStaticFields({
+        BrowserTelemetryFactory.client().addStaticFields({
             extensionId: this.nativeMessageHandler.getExtensionId(),
             extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
             matsBrokerVersion: mats ? mats.broker_version : undefined,
@@ -436,7 +437,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         canonicalAuthority.validateAsUri();
 
         // scopes are expected to be received by the native broker as "scope" and will be added to the request below. Other properties that should be dropped from the request to the native broker can be included in the object destructuring here.
-        const { scopes, ...remainingProperties } = request; 
+        const { scopes, ...remainingProperties } = request;
         const scopeSet = new ScopeSet(scopes || []);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
@@ -469,7 +470,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     throw BrowserAuthError.createNativePromptParameterNotSupportedError();
             }
         };
-        
+
         const validatedRequest: NativeTokenRequest = {
             ...remainingProperties,
             accountId: this.accountId,

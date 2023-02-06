@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, PerformanceEvents } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -16,6 +16,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export abstract class BaseInteractionClient {
 
@@ -28,9 +29,8 @@ export abstract class BaseInteractionClient {
     protected navigationClient: INavigationClient;
     protected nativeMessageHandler: NativeMessageHandler | undefined;
     protected correlationId: string;
-    protected performanceClient: IPerformanceClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
@@ -40,7 +40,6 @@ export abstract class BaseInteractionClient {
         this.nativeMessageHandler = nativeMessageHandler;
         this.correlationId = correlationId || this.browserCrypto.createNewGuid();
         this.logger = logger.clone(BrowserConstants.MSAL_SKU, version, this.correlationId);
-        this.performanceClient = performanceClient;
     }
 
     abstract acquireToken(request: RedirectRequest|PopupRequest|SsoSilentRequest): Promise<AuthenticationResult|void>;
@@ -78,7 +77,7 @@ export abstract class BaseInteractionClient {
      * @param request
      */
     protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 

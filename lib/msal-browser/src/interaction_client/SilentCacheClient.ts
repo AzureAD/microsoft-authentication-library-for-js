@@ -8,6 +8,7 @@ import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, Server
 import { SilentRequest } from "../request/SilentRequest";
 import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -15,7 +16,7 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param silentRequest
      */
     async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, silentRequest.correlationId);
+        const acquireTokenMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, silentRequest.correlationId);
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
 
@@ -58,15 +59,15 @@ export class SilentCacheClient extends StandardInteractionClient {
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<SilentFlowClient> {
         // Create auth module.
-        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, this.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, this.correlationId);
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
-        return new SilentFlowClient(clientConfig, this.performanceClient);
+        return new SilentFlowClient(clientConfig, BrowserTelemetryFactory.client());
     }
 
     async initializeSilentRequest(request: SilentRequest, account: AccountInfo): Promise<CommonSilentFlowRequest> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeSilentRequest, this.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.InitializeSilentRequest, this.correlationId);
 
-        this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeBaseRequest, this.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.InitializeBaseRequest, this.correlationId);
         return {
             ...request,
             ...await this.initializeBaseRequest(request),

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger, ServerError, IPerformanceClient } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, Authority, INetworkModule, ClientAuthError, Logger, ServerError } from "@azure/msal-common";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -22,8 +22,8 @@ export class RedirectHandler extends InteractionHandler {
 
     private browserCrypto: ICrypto;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, browserCrypto: ICrypto, performanceClient: IPerformanceClient) {
-        super(authCodeModule, storageImpl, authCodeRequest, logger, performanceClient);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, browserCrypto: ICrypto) {
+        super(authCodeModule, storageImpl, authCodeRequest, logger);
         this.browserCrypto = browserCrypto;
     }
 
@@ -50,7 +50,7 @@ export class RedirectHandler extends InteractionHandler {
                 timeout: params.redirectTimeout,
                 noHistory: false
             };
-            
+
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
                 this.logger.verbose("RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback");

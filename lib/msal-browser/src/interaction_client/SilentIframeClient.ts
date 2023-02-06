@@ -16,13 +16,14 @@ import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
 import { NativeInteractionClient } from "./NativeInteractionClient";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export class SilentIframeClient extends StandardInteractionClient {
     protected apiId: ApiId;
     protected nativeStorage: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, nativeMessageHandler, correlationId);
         this.apiId = apiId;
         this.nativeStorage = nativeStorageImpl;
     }
@@ -32,9 +33,9 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         this.logger.verbose("acquireTokenByIframe called");
-        const acquireTokenMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
+        const acquireTokenMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
@@ -49,7 +50,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
             prompt: request.prompt || PromptValue.NONE
@@ -60,11 +61,11 @@ export class SilentIframeClient extends StandardInteractionClient {
 
         try {
             // Initialize the client
-            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, request.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, request.correlationId);
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
-            this.performanceClient.setPreQueueTime(PerformanceEvents.SilentIframeClientTokenHelper, request.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.SilentIframeClientTokenHelper, request.correlationId);
             return await this.silentTokenHelper(authClient, silentRequest).then((result: AuthenticationResult) => {
                 acquireTokenMeasurement.endMeasurement({
                     success: true,
@@ -103,25 +104,25 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param userRequestScopes
      */
     protected async silentTokenHelper(authClient: AuthorizationCodeClient, silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentIframeClientTokenHelper, silentRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.SilentIframeClientTokenHelper, silentRequest.correlationId);
 
         // Create auth code request and generate PKCE params
-        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, silentRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, silentRequest.correlationId);
         const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
         // Create authorize request url
-        this.performanceClient.setPreQueueTime(PerformanceEvents.GetAuthCodeUrl, silentRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.GetAuthCodeUrl, silentRequest.correlationId);
         const navigateUrl = await authClient.getAuthCodeUrl({
             ...silentRequest,
             nativeBroker: NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeMessageHandler, silentRequest.authenticationScheme)
         });
 
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system);
         // Get the frame handle for the silent request
-        this.performanceClient.setPreQueueTime(PerformanceEvents.SilentHandlerInitiateAuthRequest, silentRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.SilentHandlerInitiateAuthRequest, silentRequest.correlationId);
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-        this.performanceClient.setPreQueueTime(PerformanceEvents.SilentHandlerMonitorIframeForHash, silentRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.SilentHandlerMonitorIframeForHash, silentRequest.correlationId);
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
@@ -132,7 +133,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             if (!this.nativeMessageHandler) {
                 throw BrowserAuthError.createNativeConnectionNotEstablishedError();
             }
-            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.browserStorage, this.correlationId);
+            const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.apiId, this.nativeMessageHandler, serverParams.accountId, this.browserStorage, this.correlationId);
             const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
             return nativeInteractionClient.acquireToken({
                 ...silentRequest,
@@ -144,7 +145,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Handle response from hash string
-        this.performanceClient.setPreQueueTime(PerformanceEvents.HandleCodeResponseFromHash, silentRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.HandleCodeResponseFromHash, silentRequest.correlationId);
         return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
     }
 }

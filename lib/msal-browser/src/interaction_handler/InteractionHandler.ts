@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodePayload, StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
+import { AuthorizationCodePayload, StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger, ServerError, PerformanceEvents } from "@azure/msal-common";
 
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export type InteractionParams = {};
 
@@ -20,14 +21,12 @@ export class InteractionHandler {
     protected browserStorage: BrowserCacheManager;
     protected authCodeRequest: CommonAuthorizationCodeRequest;
     protected logger: Logger;
-    protected performanceClient: IPerformanceClient;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, performanceClient: IPerformanceClient) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
         this.authCodeRequest = authCodeRequest;
         this.logger = logger;
-        this.performanceClient = performanceClient;
     }
 
     /**
@@ -35,7 +34,7 @@ export class InteractionHandler {
      * @param locationHash
      */
     async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromHash, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromHash, this.authCodeRequest.correlationId);
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
@@ -61,20 +60,20 @@ export class InteractionHandler {
             }
         }
 
-        this.performanceClient.setPreQueueTime(PerformanceEvents.HandleCodeResponseFromServer, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.HandleCodeResponseFromServer, this.authCodeRequest.correlationId);
         return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
     }
 
     /**
      * Process auth code response from AAD
-     * @param authCodeResponse 
-     * @param state 
-     * @param authority 
-     * @param networkModule 
-     * @returns 
+     * @param authCodeResponse
+     * @param state
+     * @param authority
+     * @param networkModule
+     * @returns
      */
     async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true): Promise<AuthenticationResult> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromServer, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.HandleCodeResponseFromServer, this.authCodeRequest.correlationId);
         this.logger.trace("InteractionHandler.handleCodeResponseFromServer called");
 
         // Handle code response.
@@ -93,7 +92,7 @@ export class InteractionHandler {
 
         // Check for new cloud instance
         if (authCodeResponse.cloud_instance_host_name) {
-            this.performanceClient.setPreQueueTime(PerformanceEvents.UpdateTokenEndpointAuthority, this.authCodeRequest.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.UpdateTokenEndpointAuthority, this.authCodeRequest.correlationId);
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
@@ -115,7 +114,7 @@ export class InteractionHandler {
         }
 
         // Acquire token with retrieved code.
-        this.performanceClient.setPreQueueTime(PerformanceEvents.AuthClientAcquireToken, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.AuthClientAcquireToken, this.authCodeRequest.correlationId);
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
@@ -123,14 +122,14 @@ export class InteractionHandler {
 
     /**
      * Updates authority based on cloudInstanceHostname
-     * @param cloudInstanceHostname 
-     * @param authority 
-     * @param networkModule 
+     * @param cloudInstanceHostname
+     * @param authority
+     * @param networkModule
      */
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.UpdateTokenEndpointAuthority, this.authCodeRequest.correlationId);
+        BrowserTelemetryFactory.client().addQueueMeasurement(PerformanceEvents.UpdateTokenEndpointAuthority, this.authCodeRequest.correlationId);
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options, this.logger, this.performanceClient, this.authCodeRequest.correlationId);
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options, this.logger, this.authCodeRequest.correlationId);
         this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 

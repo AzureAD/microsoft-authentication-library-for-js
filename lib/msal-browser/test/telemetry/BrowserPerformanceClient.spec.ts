@@ -1,6 +1,8 @@
-import { ApplicationTelemetry, Logger, PerformanceEvents } from "@azure/msal-common";
+import {ApplicationTelemetry, ICrypto, Logger, PerformanceClient, PerformanceEvents} from "@azure/msal-common";
 import { name, version } from "../../src/packageMetadata";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
+import {BrowserTelemetryFactory} from "../../src/telemetry/BrowserTelemetryFactory";
+import {CryptoOps} from "../../src/crypto/CryptoOps";
 
 const clientId = "test-client-id";
 const authority = "https://login.microsoftonline.com";
@@ -28,6 +30,21 @@ jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
 });
 
 describe("BrowserPerformanceClient.ts", () => {
+    beforeAll(() => {
+        const crypto: ICrypto = new CryptoOps(logger, cryptoOptions);
+
+        BrowserTelemetryFactory.initClient({
+            clientId,
+            authority,
+            logger,
+            name,
+            version,
+            application: applicationTelemetry,
+            crypto,
+            isBrowserEnv: true
+        })
+    })
+
     afterAll(() => {
         jest.resetAllMocks();
         jest.restoreAllMocks();
@@ -35,16 +52,12 @@ describe("BrowserPerformanceClient.ts", () => {
 
     describe("generateId", () => {
         it("returns a string", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
-
-            expect(typeof browserPerfClient.generateId()).toBe("string");
+            expect(typeof BrowserTelemetryFactory.client().generateId()).toBe("string");
         });
     });
     describe("startPerformanceMeasuremeant", () => {
         it("calculate performance duration", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
-
-            const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            const measurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
             const result = measurement.endMeasurement();
 
@@ -54,9 +67,7 @@ describe("BrowserPerformanceClient.ts", () => {
         it("captures page visibilityState", () => {
             const spy = jest.spyOn(Document.prototype,"visibilityState", "get").mockReturnValue("visible");
 
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
-
-            const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            const measurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
 
             const result = measurement.endMeasurement();
 
@@ -68,11 +79,10 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     it("supportsBrowserPerformanceNow returns false if window.performance not present", () => {
-        const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
-
         // @ts-ignore
         jest.spyOn(window, "performance", "get").mockReturnValue(undefined);
 
-        expect(browserPerfClient.supportsBrowserPerformanceNow()).toBe(false);
+        expect(BrowserTelemetryFactory.client() instanceof BrowserPerformanceClient).toBeTruthy();
+        expect((BrowserTelemetryFactory.client() as BrowserPerformanceClient).supportsBrowserPerformanceNow()).toBeFalsy();
     });
 });

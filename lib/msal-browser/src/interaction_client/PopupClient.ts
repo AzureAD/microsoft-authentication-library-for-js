@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, PerformanceEvents, StringUtils, IPerformanceClient, Logger, ICrypto } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES, Constants, ProtocolUtils, ServerAuthorizationCodeResponse, PerformanceEvents, StringUtils, Logger, ICrypto } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId, BrowserConstants } from "../utils/BrowserConstants";
@@ -20,6 +20,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration } from "../config/Configuration";
 import { InteractionHandler, InteractionParams } from "../interaction_handler/InteractionHandler";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
+import {BrowserTelemetryFactory} from "../telemetry/BrowserTelemetryFactory";
 
 export type PopupParams = InteractionParams & {
     popup?: Window|null;
@@ -31,8 +32,8 @@ export class PopupClient extends StandardInteractionClient {
     private currentWindow: Window | undefined;
     protected nativeStorage: BrowserCacheManager;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, performanceClient: IPerformanceClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, performanceClient, nativeMessageHandler, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, nativeStorageImpl: BrowserCacheManager, nativeMessageHandler?: NativeMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, nativeMessageHandler, correlationId);
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
         this.nativeStorage = nativeStorageImpl;
@@ -107,17 +108,17 @@ export class PopupClient extends StandardInteractionClient {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
 
-        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
+        BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
         this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
 
         try {
             // Create auth code request and generate PKCE params
-            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, request.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, request.correlationId);
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, request.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, request.correlationId);
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
@@ -125,7 +126,7 @@ export class PopupClient extends StandardInteractionClient {
             // Start measurement for server calls with native brokering enabled
             let fetchNativeAccountIdMeasurement;
             if (isNativeBroker) {
-                fetchNativeAccountIdMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.FetchAccountIdWithNativeBroker, request.correlationId);
+                fetchNativeAccountIdMeasurement = BrowserTelemetryFactory.client().startMeasurement(PerformanceEvents.FetchAccountIdWithNativeBroker, request.correlationId);
             }
 
             // Create acquire token url.
@@ -135,7 +136,7 @@ export class PopupClient extends StandardInteractionClient {
             });
 
             // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.performanceClient);
+            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
@@ -167,7 +168,7 @@ export class PopupClient extends StandardInteractionClient {
                 if (!this.nativeMessageHandler) {
                     throw BrowserAuthError.createNativeConnectionNotEstablishedError();
                 }
-                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.performanceClient, this.nativeMessageHandler, serverParams.accountId, this.nativeStorage, validRequest.correlationId);
+                const nativeInteractionClient = new NativeInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenPopup, this.nativeMessageHandler, serverParams.accountId, this.nativeStorage, validRequest.correlationId);
                 const { userRequestState } = ProtocolUtils.parseRequestState(this.browserCrypto, state);
                 return nativeInteractionClient.acquireToken({
                     ...validRequest,
@@ -218,7 +219,7 @@ export class PopupClient extends StandardInteractionClient {
             await this.clearCacheOnLogout(validRequest.account);
 
             // Initialize the client
-            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, validRequest.correlationId);
+            BrowserTelemetryFactory.client().setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, validRequest.correlationId);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");
 

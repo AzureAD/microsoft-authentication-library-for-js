@@ -1,6 +1,6 @@
-import { Authority } from "../../src/authority/Authority";
-import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { Constants } from "../../src/utils/Constants";
+import { Authority } from "../../src";
+import { INetworkModule, NetworkRequestOptions } from "../../src";
+import { Constants } from "../../src";
 import {
     TEST_URIS,
     RANDOM_TEST_GUID,
@@ -9,12 +9,12 @@ import {
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     B2C_OPENID_CONFIG_RESPONSE
 } from "../test_kit/StringConstants";
-import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
-import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
-import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
-import { ProtocolMode } from "../../src/authority/ProtocolMode";
-import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src";
+import { AuthorityOptions } from "../../src";
+import { ProtocolMode } from "../../src";
+import { AuthorityMetadataEntity } from "../../src";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
 import { Logger, LogLevel } from "../../src";
 
@@ -954,7 +954,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
-                
+
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
             });

@@ -56,6 +56,8 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
+import {mockPerformanceClient} from "../utils/TelemetryUtils";
+import {BrowserTelemetryFactory} from "../../src/telemetry/BrowserTelemetryFactory";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
