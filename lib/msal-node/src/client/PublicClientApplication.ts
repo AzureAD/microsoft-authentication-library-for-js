@@ -91,7 +91,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
-        const { openBrowser, successTemplate, errorTemplate, customLoopbackClient, ...remainingProperties } = request;
+        const { openBrowser, successTemplate, errorTemplate, loopbackClient: customLoopbackClient, ...remainingProperties } = request;
 
         const loopbackClient: ILoopbackClient = customLoopbackClient || new LoopbackClient();
 

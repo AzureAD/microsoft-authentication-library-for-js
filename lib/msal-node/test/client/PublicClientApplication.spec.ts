@@ -291,7 +291,7 @@ describe('PublicClientApplication', () => {
         const request: InteractiveRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             openBrowser: openBrowser,
-            customLoopbackClient: customLoopbackClient,
+            loopbackClient: customLoopbackClient,
         };
 
         const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
