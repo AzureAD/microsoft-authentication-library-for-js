@@ -17,6 +17,7 @@ import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { ServerError } from "../error/ServerError";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 Device code client
@@ -64,6 +65,8 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
+        const queryParametersString = this.createExtraQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(this.authority.deviceCodeEndpoint, queryParametersString);
         const queryString = this.createQueryString(request);
         const headers = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -78,7 +81,21 @@ export class DeviceCodeClient extends BaseClient {
             sshKid: request.sshKid
         };
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
+        return this.executePostRequestToDeviceCodeEndpoint(endpoint, queryString, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the device code request
+     * @param request
+     */
+    createExtraQueryParameters(request: CommonDeviceCodeRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
@@ -107,8 +124,7 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers,
-                proxyUrl: this.config.systemOptions.proxyUrl
+                headers: headers
             });
 
         return {
@@ -130,6 +146,10 @@ export class DeviceCodeClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
@@ -173,7 +193,8 @@ export class DeviceCodeClient extends BaseClient {
     private async acquireTokenWithDeviceCode(
         request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
-
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(this.authority.tokenEndpoint, queryParametersString);
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Record<string, string> = this.createTokenRequestHeaders();
 
@@ -197,9 +218,8 @@ export class DeviceCodeClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid
             };
-
             const response = await this.executePostToTokenEndpoint(
-                this.authority.tokenEndpoint,
+                endpoint,
                 requestBody,
                 headers,
                 thumbprint);

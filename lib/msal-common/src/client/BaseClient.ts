@@ -19,6 +19,8 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -115,7 +117,7 @@ export abstract class BaseClient {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
             tokenEndpoint,
-            { body: queryString, headers: headers, proxyUrl: this.config.systemOptions.proxyUrl }
+            { body: queryString, headers: headers }
         );
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
@@ -135,5 +137,19 @@ export abstract class BaseClient {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Updated authority has not completed endpoint discovery.");
         }
         this.authority = updatedAuthority;
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request
+     */
+    createTokenQueryParameters(request: BaseAuthRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 }

@@ -76,7 +76,7 @@ export class RequestValidator {
     }
 
     /**
-     * Removes unnecessary or duplicate query parameters from extraQueryParameters
+     * Removes unnecessary, duplicate, and empty string query parameters from extraQueryParameters
      * @param request
      */
     static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>) : StringDict {
@@ -91,6 +91,8 @@ export class RequestValidator {
             }
         });
 
-        return eQParams;
+        // remove empty string parameters
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        return Object.fromEntries(Object.entries(eQParams).filter(([key, value]) => value !== ""));
     }
 }
