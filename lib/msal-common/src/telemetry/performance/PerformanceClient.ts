@@ -445,8 +445,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalQueueCount++;
         });
 
-        this.queueMeasurements.delete(correlationId);
-
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
         const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
         const counters = this.countersByCorrelationId.get(correlationId);
@@ -555,6 +553,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         this.logger.trace("PerformanceClient: Counters discarded", correlationId);
         this.countersByCorrelationId.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: QueueMeasurements discarded", correlationId);
+        this.queueMeasurements.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: Pre-queue times discarded", correlationId);
+        this.preQueueTimeByCorrelationId.delete(correlationId);
     }
 
     /**
