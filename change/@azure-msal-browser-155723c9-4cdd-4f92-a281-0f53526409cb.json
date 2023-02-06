@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Export browser telemetry classes #5641",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
