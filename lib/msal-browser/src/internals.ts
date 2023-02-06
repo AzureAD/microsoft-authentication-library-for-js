@@ -27,3 +27,13 @@ export { NativeMessageHandler } from "./broker/nativeBroker/NativeMessageHandler
 // Utilities
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
 export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
+
+// Crypto
+export { CryptoOps } from "./crypto/CryptoOps";
+
+// Browser Errors
+export { NativeAuthError } from "./error/NativeAuthError";
+
+// Telemetry
+export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
+export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Optimize credential regular expressions #5621",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

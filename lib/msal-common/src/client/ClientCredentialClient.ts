@@ -20,6 +20,7 @@ import { RequestThumbprint } from "../network/RequestThumbprint";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { IAppTokenProvider } from "../config/AppTokenProvider";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 client credential grant
@@ -140,6 +141,8 @@ export class ClientCredentialClient extends BaseClient {
                 token_type : AuthenticationScheme.BEARER
             };
         } else {
+            const queryParametersString = this.createTokenQueryParameters(request);
+            const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> = this.createTokenRequestHeaders();
             const thumbprint: RequestThumbprint = {
@@ -155,7 +158,7 @@ export class ClientCredentialClient extends BaseClient {
             };
     
             reqTimestamp = TimeUtils.nowSeconds();
-            const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+            const response = await this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
             serverTokenResponse = response.body;
         }
 

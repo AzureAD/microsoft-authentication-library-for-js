@@ -15,6 +15,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
  * - password               - credentials
+ * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call
  */
 export type CommonUsernamePasswordRequest = BaseAuthRequest & {
     username: string;

@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 21 Nov 2022 19:14:45 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Jan 2023 22:44:58 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.14.6
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- fix logger undefined error #5355 (bmahal@microsoft.com)
+- Upgrade jsonwebtoken to v9 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.2
+
+## 1.14.5
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Serialize/deserialize access token userAssertionHash property to fix cache persistence issue in OBO flow #5398 (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
 
 ## 1.14.4
 

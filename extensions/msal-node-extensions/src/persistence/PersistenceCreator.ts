@@ -24,7 +24,7 @@ export class PersistenceCreator {
                     "Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin");
             }
 
-            peristence = await FilePersistenceWithDataProtection.create(config.cachePath, DataProtectionScope.CurrentUser);
+            peristence = await FilePersistenceWithDataProtection.create(config.cachePath, DataProtectionScope.CurrentUser, undefined, config.loggerOptions);
         }
 
         // On Mac, uses keychain.
@@ -34,7 +34,7 @@ export class PersistenceCreator {
                     "Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin");
             }
 
-            peristence = await KeychainPersistence.create(config.cachePath, config.serviceName, config.accountName);
+            peristence = await KeychainPersistence.create(config.cachePath, config.serviceName, config.accountName, config.loggerOptions);
         }
 
         // On Linux, uses  libsecret to store to secret service. Libsecret has to be installed.
@@ -44,7 +44,7 @@ export class PersistenceCreator {
                     "Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin");
             }
 
-            peristence = await LibSecretPersistence.create(config.cachePath, config.serviceName, config.accountName);
+            peristence = await LibSecretPersistence.create(config.cachePath, config.serviceName, config.accountName, config.loggerOptions);
         }
 
         else {
@@ -54,7 +54,7 @@ export class PersistenceCreator {
 
         // Initially suppress the error thrown during persistence verification to allow us to fallback to plain text
         const isPersistenceVerified = await peristence.verifyPersistence().catch(() => false);
-        
+
         if (!isPersistenceVerified) {
             if (Environment.isLinuxPlatform() && config.usePlaintextFileOnLinux) {
                 if (!config.cachePath) {
@@ -62,7 +62,7 @@ export class PersistenceCreator {
                         "Cache path not provided for the FilePersistence cache plugin");
                 }
 
-                peristence = await FilePersistence.create(config.cachePath);
+                peristence = await FilePersistence.create(config.cachePath, config.loggerOptions);
 
                 const isFilePersistenceVerified = await peristence.verifyPersistence();
                 if (isFilePersistenceVerified) {

@@ -46,7 +46,7 @@ const config = {
 ## Implement your own custom INetworkModule
 
 There are two approaches to implementing a custom INetworkModule in this sample.
-1. The default msal-node (as of v1.14.2) INetworkModule has been copied to HttpClient.ts and can be imported to app.ts to be used as custom INetworkModule. You can edit HttpClient.ts to include console.log()'s to see how network traffic is processed.
+1. The default msal-node (as of v1.14.3) INetworkModule has been copied to HttpClient.ts and can be imported to app.ts to be used as custom INetworkModule. You can edit HttpClient.ts to include console.log()'s to see how network traffic is processed.
 2. You can implement your own custom INetworkModule inline. Stubs to mock the default implementation of INetworkModule have been provided.
 
 ## Use Fiddler Everywhere to perform a network trace

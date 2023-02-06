@@ -5,9 +5,16 @@
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
-import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction } from "./IPerformanceClient";
+import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction, QueueMeasurement } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
-import { PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./PerformanceEvent";
+import {
+    Counters,
+    PerformanceEvent,
+    IntFields,
+    PerformanceEvents,
+    PerformanceEventStatus,
+    StaticFields
+} from "./PerformanceEvent";
 
 export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
@@ -33,6 +40,11 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected staticFieldsByCorrelationId: Map<string, StaticFields>;
 
     /**
+     * Counters to be emitted which are scoped to the top level request and whose value may change in sub-measurements
+     */
+    protected countersByCorrelationId: Map<string, Counters>;
+
+    /**
      * Underlying performance measurements for each operation
      *
      * @protected
@@ -41,7 +53,23 @@ export abstract class PerformanceClient implements IPerformanceClient {
     protected measurementsById: Map<string, IPerformanceMeasurement>;
 
     /**
-     * Creates an instance of PerformanceClient, 
+     * Map of pre-queue times by correlation Id
+     *
+     * @protected
+     * @type {Map<string, Map<string, number>>}
+     */
+    protected preQueueTimeByCorrelationId: Map<string, Map<string, number>>;
+
+    /**
+     * Map of queue measurements by correlation Id
+     *
+     * @protected
+     * @type {Map<string, Array<QueueMeasurement>>}
+     */
+    protected queueMeasurements: Map<string, Array<QueueMeasurement>>;
+
+    /**
+     * Creates an instance of PerformanceClient,
      * an abstract class containing core performance telemetry logic.
      *
      * @constructor
@@ -62,17 +90,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.eventsByCorrelationId = new Map();
         this.staticFieldsByCorrelationId = new Map();
         this.measurementsById = new Map();
+        this.queueMeasurements = new Map();
+        this.preQueueTimeByCorrelationId = new Map();
+        this.countersByCorrelationId = new Map();
     }
-
-    /**
-     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
-     *
-     * @abstract
-     * @param {string} measureName
-     * @param {string} correlationId
-     * @returns {IPerformanceMeasurement}
-     */
-    abstract startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
 
     /**
      * Generates and returns a unique id, typically a guid.
@@ -81,6 +102,135 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {string}
      */
     abstract generateId(): string;
+
+    /**
+     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
+     * Note: this function can be changed to abstract at the next major version bump.
+     *
+     * @param {string} measureName
+     * @param {string} correlationId
+     * @returns {IPerformanceMeasurement}
+     */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement {
+        return {} as IPerformanceMeasurement;
+    }
+
+    /**
+     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
+     * Note: this incorrectly-named function will be removed at the next major version bump.
+     *
+     * @param {string} measureName
+     * @param {string} correlationId
+     * @returns {IPerformanceMeasurement}
+     */
+    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
+    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
+        return {} as IPerformanceMeasurement;
+    }
+
+    /**
+     * Sets pre-queue time by correlation Id
+     *
+     * @abstract
+     * @param {PerformanceEvents} eventName
+     * @param {string} correlationId
+     * @returns
+     */
+    abstract setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
+
+    /**
+     * Get integral fields.
+     * Override to change the set.
+     */
+    getIntFields(): ReadonlySet<string> {
+        return IntFields;
+    }
+
+    /**
+     * Gets map of pre-queue times by correlation Id
+     *
+     * @param {PerformanceEvents} eventName
+     * @param {string} correlationId
+     * @returns {number}
+     */
+    getPreQueueTime(eventName: PerformanceEvents, correlationId: string): number | void {
+        const preQueueTimesByEvents = this.preQueueTimeByCorrelationId.get(correlationId);
+
+        if (!preQueueTimesByEvents) {
+            this.logger.trace(`PerformanceClient.getPreQueueTime: no pre-queue times found for correlationId: ${correlationId}, unable to add queue measurement`);
+            return;
+        } else if (!preQueueTimesByEvents.get(eventName)) {
+            this.logger.trace(`PerformanceClient.getPreQueueTime: no pre-queue time found for ${eventName}, unable to add queue measurement`);
+            return;
+        }
+
+        return preQueueTimesByEvents.get(eventName);
+    }
+
+    /**
+     * Calculates the difference between current time and time when function was queued.
+     * Note: It is possible to have 0 as the queue time if the current time and the queued time was the same.
+     *
+     * @param {number} preQueueTime
+     * @param {number} currentTime
+     * @returns {number}
+     */
+    calculateQueuedTime(preQueueTime: number, currentTime: number): number {
+        if (preQueueTime < 1) {
+            this.logger.trace(`PerformanceClient: preQueueTime should be a positive integer and not ${preQueueTime}`);
+            return 0;
+        }
+
+        if (currentTime < 1) {
+            this.logger.trace(`PerformanceClient: currentTime should be a positive integer and not ${currentTime}`);
+            return 0;
+        }
+
+        if (currentTime < preQueueTime) {
+            this.logger.trace("PerformanceClient: currentTime is less than preQueueTime, check how time is being retrieved");
+            return 0;
+        }
+
+        return currentTime-preQueueTime;
+    }
+
+    /**
+     * Adds queue measurement time to QueueMeasurements array for given correlation ID.
+     *
+     * @param {PerformanceEvents} name
+     * @param {?string} correlationId
+     * @param {?number} time
+     * @returns
+     */
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void {
+        if (!correlationId) {
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: correlationId not provided for ${eventName}, cannot add queue measurement`);
+            return;
+        }
+
+        if (queueTime === 0) {
+            // Possible for there to be no queue time after calculation
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: queue time provided for ${eventName} is ${queueTime}`);
+        } else if (!queueTime) {
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: no queue time provided for ${eventName}`);
+            return;
+        }
+
+        const queueMeasurement = {eventName, queueTime} as QueueMeasurement;
+
+        // Adds to existing correlation Id if present in queueMeasurements
+        const existingMeasurements = this.queueMeasurements.get(correlationId);
+        if (existingMeasurements) {
+            existingMeasurements.push(queueMeasurement);
+            this.queueMeasurements.set(correlationId, existingMeasurements);
+        } else {
+            // Sets new correlation Id if not present in queueMeasurements
+            this.logger.trace(`PerformanceClient.addQueueMeasurement: adding correlationId ${correlationId} to queue measurements`);
+            const measurementArray = [queueMeasurement];
+            this.queueMeasurements.set(correlationId, measurementArray);
+        }
+    }
 
     /**
      * Starts measuring performance for a given operation. Returns a function that should be used to end the measurement.
@@ -96,9 +246,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.info(`PerformanceClient: No correlation id provided for ${measureName}, generating`, eventCorrelationId);
         }
 
+        // Duplicate code to address spelling error will be removed at the next major version bump.
         this.logger.trace(`PerformanceClient: Performance measurement started for ${measureName}`, eventCorrelationId);
-        const performanceMeasurement = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
-        performanceMeasurement.startMeasurement();
+        let validMeasurement: IPerformanceMeasurement;
+        const performanceMeasuremeant = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
+        if (performanceMeasuremeant.startMeasurement) {
+            performanceMeasuremeant.startMeasurement();
+            validMeasurement = performanceMeasuremeant;
+        } else {
+            const performanceMeasurement = this.startPerformanceMeasurement(measureName, eventCorrelationId);
+            performanceMeasurement.startMeasurement();
+            validMeasurement = performanceMeasurement;
+        }
 
         const inProgressEvent: PerformanceEvent = {
             eventId: this.generateId(),
@@ -120,7 +279,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             appVersion: this.applicationTelemetry?.appVersion,
         };
         this.addStaticFields(staticFields, eventCorrelationId);
-        this.cacheMeasurement(inProgressEvent, performanceMeasurement);
+        this.cacheMeasurement(inProgressEvent, validMeasurement);
 
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
@@ -136,7 +295,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     // Cache event so that submeasurements can be added downstream
                     this.cacheEventByCorrelationId(completedEvent);
                 }
-
                 return completedEvent;
             },
             flushMeasurement: () => {
@@ -148,7 +306,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
             addStaticFields: (fields: StaticFields) => {
                 return this.addStaticFields(fields, inProgressEvent.correlationId);
             },
-            measurement: performanceMeasurement,
+            increment: (counters: Counters) => {
+                return this.increment(counters, inProgressEvent.correlationId);
+            },
+            measurement: validMeasurement,
             event: inProgressEvent
         };
 
@@ -171,7 +332,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             // null indicates no measurement was taken (e.g. needed performance APIs not present)
             if (durationMs !== null) {
                 this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
-
                 const completedEvent: PerformanceEvent = {
                     // Allow duration to be overwritten when event ends (e.g. testing), but not status
                     durationMs: Math.round(durationMs),
@@ -192,8 +352,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Saves extra information to be emitted when the measurements are flushed
-     * @param fields 
-     * @param correlationId 
+     * @param fields
+     * @param correlationId
      */
     addStaticFields(fields: StaticFields, correlationId: string) : void{
         const existingStaticFields = this.staticFieldsByCorrelationId.get(correlationId);
@@ -203,6 +363,28 @@ export abstract class PerformanceClient implements IPerformanceClient {
         } else {
             this.logger.trace("PerformanceClient: Adding static fields");
             this.staticFieldsByCorrelationId.set(correlationId, fields);
+        }
+    }
+
+    /**
+     * Increment counters to be emitted when the measurements are flushed
+     * @param counters {Counters}
+     * @param correlationId {string} correlation identifier
+     */
+    increment(counters: Counters, correlationId: string): void {
+        const existing: Counters | undefined = this.countersByCorrelationId.get(correlationId);
+        if (!existing) {
+            this.logger.trace("PerformanceClient: Setting counters");
+            this.countersByCorrelationId.set(correlationId, { ...counters });
+            return;
+        }
+
+        this.logger.trace("PerformanceClient: Updating counters");
+        for (const counter in counters) {
+            if (!existing.hasOwnProperty(counter)) {
+                existing[counter] = 0;
+            }
+            existing[counter] += counters[counter];
         }
     }
 
@@ -245,9 +427,30 @@ export abstract class PerformanceClient implements IPerformanceClient {
      */
     flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
         this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
+
+        /**
+         * Adds all queue time and count measurements for given correlation ID
+         * then deletes queue times for given correlation ID from queueMeasurements map.
+         */
+
+        const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
+        if (!queueMeasurementForCorrelationId) {
+            this.logger.trace(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
+        }
+
+        let totalQueueTime = 0;
+        let totalQueueCount = 0;
+        queueMeasurementForCorrelationId?.forEach((measurement) => {
+            totalQueueTime += measurement.queueTime;
+            totalQueueCount++;
+        });
+
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
+        const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
+        const counters = this.countersByCorrelationId.get(correlationId);
+
         if (eventsForCorrelationId) {
-            this.discardMeasurements(correlationId);
+            this.discardCache(correlationId);
 
             /*
              * Manually end incomplete submeasurements to ensure there arent orphaned/never ending events.
@@ -255,9 +458,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
              * IE only supports Map.forEach.
              */
             const completedEvents: PerformanceEvent[] = [];
+            let incompleteSubsCount: number = 0;
+
             eventsForCorrelationId.forEach(event => {
                 if (event.name !== measureName && event.status !== PerformanceEventStatus.Completed) {
                     this.logger.trace(`PerformanceClient: Incomplete submeasurement ${event.name} found for ${measureName}`, correlationId);
+                    incompleteSubsCount++;
 
                     const completedEvent = this.endMeasurement(event);
                     if (completedEvent) {
@@ -282,7 +488,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     this.logger.verbose("PerformanceClient: Multiple distinct top-level performance events found, using the first", correlationId);
                 }
                 const topLevelEvent = topLevelEvents[0];
-
                 this.logger.verbose(`PerformanceClient: Measurement found for ${measureName}`, correlationId);
 
                 // Build event object with top level and sub measurements
@@ -306,11 +511,15 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     return previous;
                 }, topLevelEvent);
 
-                const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
                 const finalEvent: PerformanceEvent = {
                     ...eventToEmit,
-                    ...staticFields
+                    ...staticFields,
+                    ...counters,
+                    queuedTimeMs: totalQueueTime,
+                    queuedCount: totalQueueCount,
+                    incompleteSubsCount
                 };
+                this.truncateIntegralFields(finalEvent, this.getIntFields());
 
                 this.emitEvents([finalEvent], eventToEmit.correlationId);
             } else {
@@ -329,6 +538,27 @@ export abstract class PerformanceClient implements IPerformanceClient {
     discardMeasurements(correlationId: string): void {
         this.logger.trace("PerformanceClient: Performance measurements discarded", correlationId);
         this.eventsByCorrelationId.delete(correlationId);
+    }
+
+    /**
+     * Removes cache for a given correlation id.
+     *
+     * @param {string} correlation identifier
+     */
+    private discardCache(correlationId: string): void {
+        this.discardMeasurements(correlationId);
+
+        this.logger.trace("PerformanceClient: Static fields discarded", correlationId);
+        this.staticFieldsByCorrelationId.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: Counters discarded", correlationId);
+        this.countersByCorrelationId.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: QueueMeasurements discarded", correlationId);
+        this.queueMeasurements.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: Pre-queue times discarded", correlationId);
+        this.preQueueTimeByCorrelationId.delete(correlationId);
     }
 
     /**
@@ -378,4 +608,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
     }
 
+    /**
+     * Enforce truncation of integral fields in performance event.
+     * @param {PerformanceEvent} event performance event to update.
+     * @param {Set<string>} intFields integral fields.
+     */
+    private truncateIntegralFields(event: PerformanceEvent, intFields: ReadonlySet<string>): void {
+        intFields.forEach((key) => {
+            if (key in event && typeof event[key] === "number") {
+                event[key] = Math.floor(event[key]);
+            }
+        });
+    }
 }
