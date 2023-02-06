@@ -4,7 +4,14 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, b2cLocalAccountEnterCredentials, ONE_SECOND_IN_MS } from "../../../e2eTestUtils/TestUtils";
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    b2cLocalAccountEnterCredentials,
+    ONE_SECOND_IN_MS,
+    RETRY_TIMES
+} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -32,7 +39,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/B2C-Local.json");
 
 describe("Silent Flow B2C Tests", () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
