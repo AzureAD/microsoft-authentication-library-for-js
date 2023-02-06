@@ -17,7 +17,6 @@ export class CustomNavigationClient extends NavigationClient{
      */
     async navigateInternal(url, options) {
         const relativePath = url.replace(window.location.origin, '');
-        console.log(url)
         if (options.noHistory) {
             this.navigate(relativePath, { replace: true});
         } else {
