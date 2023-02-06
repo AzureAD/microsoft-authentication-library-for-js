@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Allow Native Broker by default #5616",
+  "comment": "`allowNativeBroker` configuration defaults to `true` #5616",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "major"
