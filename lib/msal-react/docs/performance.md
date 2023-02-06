@@ -18,7 +18,7 @@ If your application is doing all of the things above you can override the method
 
 Each router has their own method for doing client-side navigation and depending on how they expose the method you may need to refactor your application to support this feature. The example below will show how to implement this for `react-router-dom`. You can find a full sample apps that implement this for [react-router-dom](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample), [Next.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample) and [Gatsby](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample).
 
-> :information_source: This implantation uses react-router-dom version 6. If you're using react-router-dom version 5, please refer to the following: [implantation with react-router-dom version 5](https://github.com/AzureAD/microsoft-authentication-library-for-js/commit/3fe4e2e99270ad232ad1658aba83282e736cf97d#diff-a00cbe1eef40bb0fd03beb35a8e1b5580316b39187d4e96c826508ccca1b0b16).
+> :information_source: Samples mentioned above make use of `react-router-dom` v6. If you would like to use `react-router-dom` v5 instead, please refer to: [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/cf3dc599adc36d1c4460bcf7d8185c9beb5283f3/samples/msal-react-samples/react-router-sample/src/App.js).
 
 #### INavigationClient Implementation
 
