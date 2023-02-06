@@ -93,13 +93,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
         const { openBrowser, successTemplate, errorTemplate, customLoopbackClient, ...remainingProperties } = request;
 
-        let loopbackClient: ILoopbackClient;
-
-        if (customLoopbackClient) {
-            loopbackClient = customLoopbackClient;
-        } else {
-            loopbackClient = new LoopbackClient();
-        }
+        const loopbackClient: ILoopbackClient = customLoopbackClient || new LoopbackClient();
 
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
         const redirectUri = loopbackClient.getRedirectUri();
