@@ -9,6 +9,7 @@
         "start": "electron-forge start",
         "package": "electron-forge package",
         "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+        "install:local": "npm install ../../../lib/msal-common && npm install ../../../lib/msal-node",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx ."
@@ -47,7 +48,8 @@
         "typescript": "~4.5.4"
     },
     "dependencies": {
-        "@azure/msal-node": "^1.14.2",
+        "@azure/msal-common": "file:../../../lib/msal-common",
+        "@azure/msal-node": "file:../../../lib/msal-node",
         "axios": "^1.1.3",
         "bootstrap": "^5.2.2",
         "electron-squirrel-startup": "^1.0.0"
