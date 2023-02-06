@@ -160,7 +160,45 @@ describe("DeviceCodeClient unit tests", () => {
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(tokenReturnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+        });
 
+        it("Adds extraQueryParameters to request", (done) => {
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").callsFake((url: string) => {
+                try {
+                    expect(url.includes("/devicecode?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                    expect(!url.includes("/devicecode?testParam2=")).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+                try {
+                    expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+    
+            // let deviceCodeResponse = null;
+            const deviceCodeRequest: CommonDeviceCodeRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: "test-correlationId",
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                extraQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+                deviceCodeCallback: () => {},
+            };
+    
+            const client = new DeviceCodeClient(config);
+            client.acquireToken(deviceCodeRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
         });
 
         it("Adds claims to request", async () => {

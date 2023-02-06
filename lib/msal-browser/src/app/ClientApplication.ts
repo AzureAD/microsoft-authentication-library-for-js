@@ -646,6 +646,7 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -666,12 +667,15 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
             case CacheLookupPolicy.RefreshToken:
             case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
+
+                this.performanceClient.setPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken, commonRequest.correlationId);
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
@@ -686,7 +690,11 @@ export abstract class ClientApplication {
     protected async acquireTokenBySilentIframe(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId);
+
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+
+        this.performanceClient.setPreQueueTime(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         return silentIframeClient.acquireToken(request);
     }
 

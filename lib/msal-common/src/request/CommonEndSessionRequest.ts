@@ -14,6 +14,7 @@ import { StringDict } from "../utils/MsalTypes";
  * - idTokenHint            - ID Token used by B2C to validate logout if required by the policy
  * - state                  - A value included in the request to the logout endpoint which will be returned in the query string upon post logout redirection
  * - logoutHint             - A string that specifies the account that is being logged out in order to skip the server account picker on logout
+ * - extraQueryParameters   - String to string map of custom query parameters added to the /authorize call
  */
 export type CommonEndSessionRequest = {
     correlationId: string
@@ -22,5 +23,5 @@ export type CommonEndSessionRequest = {
     idTokenHint?: string,
     state?: string,
     logoutHint?: string,
-    extraQueryParameters?: StringDict 
+    extraQueryParameters?: StringDict
 };
