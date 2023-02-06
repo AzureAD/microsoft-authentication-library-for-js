@@ -5,6 +5,10 @@
 
 import { ServerAuthorizationCodeResponse } from "@azure/msal-common";
 
+/**
+ * Interface for LoopbackClient allowing to replace the default loopback server with a custom implementation.
+ * @public
+ */
 export interface ILoopbackClient {
     listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse>,
     getRedirectUri(): string,

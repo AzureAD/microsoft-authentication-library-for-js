@@ -10,6 +10,7 @@ import { ILoopbackClient } from "@azure/msal-node";
 /**
  * Implements ILoopbackClient interface to listen for authZ code response.
  * This custom implementation checks for a preferred port and uses it if available.
+ * If the preferred port is not available, it will use a random available port.
  */
 export class CustomLoopbackClient implements ILoopbackClient {
     port: number = 0; // default port, which will be set to a random available port

@@ -112,7 +112,10 @@ export default class AuthProvider {
         tokenRequest: SilentFlowRequest
     ): Promise<AuthenticationResult> {
         try {
-            // a custom loopback server which can attempt to listen on a preferred port
+            /**
+             * A loopback server of your own implementation, which can have custom logic
+             * such as attempting to listen on a given port if it is available.
+             */
             const customLoopbackClient = await CustomLoopbackClient.initialize(3874);
 
             // opens a browser instance via Electron shell API
