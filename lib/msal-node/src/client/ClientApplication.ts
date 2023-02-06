@@ -352,9 +352,6 @@ export abstract class ClientApplication {
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities
             },
-            systemOptions: {
-                proxyUrl: this.config.system.proxyUrl,
-            },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel ,
                 loggerCallback: this.config.system.loggerOptions.loggerCallback ,
@@ -453,7 +450,7 @@ export abstract class ClientApplication {
             skipAuthorityMetadataCache: this.config.auth.skipAuthorityMetadataCache,
         };
 
-        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.logger, this.config.system.proxyUrl);
+        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions, this.logger);
     }
 
     /**
