@@ -54,7 +54,7 @@ const app = express();
 
 // type "http://localhost:3000" into the browser to trigger this route
 app.get("/", async (req, res) => {
-    console.log("Hello World");
+    console.log(`Request received - ${new Date()}`);
 
     try {
         const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
