@@ -6,6 +6,8 @@
 import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * See eSTS docs for more info.
@@ -33,9 +35,11 @@ enum KeyLocation {
 export class PopTokenGenerator {
 
     private cryptoUtils: ICrypto;
+    private performanceClient?: IPerformanceClient;
 
-    constructor(cryptoUtils: ICrypto) {
+    constructor(cryptoUtils: ICrypto, performanceClient?: IPerformanceClient) {
         this.cryptoUtils = cryptoUtils;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -45,6 +49,9 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateCnf(request: SignedHttpRequestParameters): Promise<ReqCnfData> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.PopTokenGenerateCnf, request.correlationId);
+
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.PopTokenGenerateKid, request.correlationId);
         const reqCnf = await this.generateKid(request);
         const reqCnfString: string = this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
 
@@ -61,6 +68,8 @@ export class PopTokenGenerator {
      * @returns
      */
     async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.PopTokenGenerateKid, request.correlationId);
+
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
         return {

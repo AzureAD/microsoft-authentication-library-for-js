@@ -126,6 +126,37 @@ describe("Username Password unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.TOKEN_RESPONSE_TYPE}%20${Constants.ID_TOKEN_RESPONSE_TYPE}`)).toBe(true);
     });
 
+    it("Adds tokenQueryParameters to the /token request", (done) => {
+        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+            try {
+                expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                done();
+            } catch (error) {
+                done(error);
+            }
+        });
+
+        const client = new UsernamePasswordClient(config);
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: Constants.DEFAULT_AUTHORITY,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            username: "mock_name",
+            password: "mock_password",
+            claims: TEST_CONFIG.CLAIMS,
+            correlationId: RANDOM_TEST_GUID,
+            tokenQueryParameters: {
+                testParam1: "testValue1",
+                testParam2: "",
+                testParam3: "testValue3",
+            },
+        };
+
+        client.acquireToken(usernamePasswordRequest).catch((error) => {
+            // Catch errors thrown after the function call this test is testing
+        });
+    });
+
     it("properly encodes special characters in emails (usernames)", async () => {
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
 

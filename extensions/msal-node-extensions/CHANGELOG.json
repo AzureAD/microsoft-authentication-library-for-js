@@ -2,6 +2,101 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:50 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.30",
+      "version": "1.0.0-alpha.30",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "fredrik.rasch@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b7d772937a74abf2342fd044b1d8f6a58394af43",
+            "comment": "Add Logging options to IPersistenceConfiguration #5626"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "479c057de9d35a037d7383d69a5e6f8956ba91ea",
+            "comment": "Include packageMetadata in bundle #5638"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v10.0.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.29",
+      "version": "1.0.0-alpha.29",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Address dependabot alerts"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v9.0.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.28",
+      "version": "1.0.0-alpha.28",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v9.0.1",
+            "commit": "48cb414b1a722dacf5439a1df6bad070cff62aa4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.27",
+      "version": "1.0.0-alpha.27",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v9.0.0",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Nov 2022 22:46:55 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.26",
+      "version": "1.0.0-alpha.26",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v8.0.0",
+            "commit": "ae6f326996be7eec25faa19d3f714b860a424878"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 10 Oct 2022 22:27:03 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.25",
       "version": "1.0.0-alpha.25",
