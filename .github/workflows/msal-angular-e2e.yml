@@ -5,13 +5,14 @@ name: msal-angular E2E Tests
 
 on:
   push:
-    branches: 
+    branches:
       - dev
       - master
   pull_request:
-    paths: 
+    types: [ready_for_review]
+    paths:
       - 'lib/msal-angular/**/*'
-      - 'lib/msal-browser/**/*' 
+      - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
       - 'samples/msal-angular-v2-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
@@ -28,7 +29,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push' && github.event.pull_request.draft == false))
     runs-on: ubuntu-latest
 
     strategy:
