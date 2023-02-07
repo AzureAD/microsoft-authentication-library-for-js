@@ -44,7 +44,9 @@ These are steps needed to enable MSAL JS logging for your applications:
 An example usage in a sample can be accessed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/authConfig.js#:~:text=logLevel%3A%20msal.LogLevel.Trace%2C).
 
 
-3. Make sure you have the "Verbose" level enabled in your browser console to see these logs
+3. Make sure you have the appropriate log level enabled in your browser console to see these logs, eg: "verbose" may need to be enabled for the browser to load these.
+
+    ![browser console](./images/BrowserLogEnablement.png)
 
 
 
