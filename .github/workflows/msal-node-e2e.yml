@@ -5,6 +5,10 @@
 name: msal-node E2E Tests
 
 on:
+  push:
+    branches:
+      - dev
+      - master
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
@@ -203,7 +207,7 @@ jobs:
   #       path: samples/**/screenshots
 
   run-electron-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
