@@ -90,6 +90,6 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "file:../msal-common/dist"
+    "@azure/msal-common": "^10.0.0"
   }
 }
