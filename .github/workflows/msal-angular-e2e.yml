@@ -20,6 +20,7 @@ on:
       - '!**.md'
       - '.github/workflows/msal-angular-e2e.yml'
 
+
 concurrency:
   group: angular-e2e-${{github.ref}}
   cancel-in-progress: true
