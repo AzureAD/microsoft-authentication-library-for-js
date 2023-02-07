@@ -8,37 +8,45 @@ These are steps needed to enable MSAL JS logging for your applications:
 
 ```javascript
 
-    ...
-    ...
-
+    const msalConfig = {
+        auth: {
+            ...
+        },
+        cache: {
+            ...
+        },
         system: {
-        loggerOptions: {
-            logLevel: msal.LogLevel.Trace,
-            loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {	
-                    return;	
-                }
-                switch (level) {	
-                    case msal.LogLevel.Error:	
-                        console.error(message);	
+            loggerOptions: {
+                logLevel: msal.LogLevel.Trace,
+                loggerCallback: (level, message, containsPii) => {
+                    if (containsPii) {	
                         return;	
-                    case msal.LogLevel.Info:	
-                        console.info(message);	
-                        return;	
-                    case msal.LogLevel.Verbose:	
-                        console.debug(message);	
-                        return;	
-                    case msal.LogLevel.Warning:	
-                        console.warn(message);	
-                        return;	
-                    default:
-                        console.log(message);
-                        return;
+                    }
+                    switch (level) {	
+                        case msal.LogLevel.Error:	
+                            console.error(message);	
+                            return;	
+                        case msal.LogLevel.Info:	
+                            console.info(message);	
+                            return;	
+                        case msal.LogLevel.Verbose:	
+                            console.debug(message);	
+                            return;	
+                        case msal.LogLevel.Warning:	
+                            console.warn(message);	
+                            return;	
+                        default:
+                            console.log(message);
+                            return;
+                    }
                 }
             }
-        }
+        },
+
+        ...
     }
 
+    const msalInstance = new PublicClientApplication(msalConfig);      
 ```
 
 An example usage in a sample can be accessed [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/authConfig.js#:~:text=logLevel%3A%20msal.LogLevel.Trace%2C).
