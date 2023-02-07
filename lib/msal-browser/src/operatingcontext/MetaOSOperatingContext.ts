@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseOperatingContext } from "./BaseOperatingContext.js";
+import { BaseOperatingContext } from "./BaseOperatingContext";
 
 export class MetaOSOperatingContext extends BaseOperatingContext {
     

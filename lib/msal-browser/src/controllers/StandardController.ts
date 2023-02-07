@@ -113,7 +113,7 @@ export class StandardController implements IController{
      *
      * @param configuration Object for the MSAL PublicClientApplication instance
      */
-    private constructor(operatingContext: StandardOperatingContext, configuration: Configuration) {
+    constructor(operatingContext: StandardOperatingContext, configuration: Configuration) {
         
         this.operatingContext = operatingContext;
         /*

@@ -13,9 +13,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { WrapperSKU } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { IController } from "../controllers/IController";
-import { StandardController } from "../controllers/StandardController";
 import { AuthenticationResult, PerformanceCallbackFunction, AccountInfo, Logger, EndSessionRequest, SsoSilentRequest } from "..";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { ControllerFactory } from "../controllers/ControllerFactory";
 
 /**
