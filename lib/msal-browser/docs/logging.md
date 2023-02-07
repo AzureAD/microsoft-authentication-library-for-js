@@ -7,7 +7,7 @@ These are steps needed to enable MSAL JS logging for your applications:
 2. The logger options can be set as below, the example chooses `LogLevel.Trace`
 
 ```javascript
-
+import { PublicClientApplication, LogLevel } from "@azure/msal-browser";
     const msalConfig = {
         auth: {
             ...
