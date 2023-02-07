@@ -64,7 +64,7 @@
     "lodash": "^4.17.21",
     "rimraf": "^3.0.2",
     "rollup": "^3.14.0",
-    "rollup-plugin-typescript2": "^0.34.1",
+    "@rollup/plugin-typescript": "^11.0.0",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
     "ts-jest": "^27.1.5",
