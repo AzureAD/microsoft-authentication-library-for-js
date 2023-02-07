@@ -4,7 +4,7 @@ These are steps needed to enable MSAL JS logging for your applications:
 
 1. In the MSAL [Configuration](./configuration.md) object, you can enable logging to collect msal js logs. We enable different levels of logging and an appropriate level can be chosen as needed. 
 
-2. The logger options can be set as below, the example chooses `loglevel.trace`
+2. The logger options can be set as below, the example chooses `LogLevel.Trace`
 
 ```javascript
 
