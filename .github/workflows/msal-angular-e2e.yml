@@ -9,7 +9,7 @@ on:
       - dev
       - master
   pull_request:
-    types: [ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'lib/msal-angular/**/*'
       - 'lib/msal-browser/**/*'

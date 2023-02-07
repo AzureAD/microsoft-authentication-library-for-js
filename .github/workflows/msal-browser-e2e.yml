@@ -9,7 +9,7 @@ on:
       - dev
       - master
   pull_request:
-    types: [ready_for_review]
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push')) && !github.event.pull_request.draft
     runs-on: ubuntu-latest
 
     steps:
