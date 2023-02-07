@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573",
-  "packageName": "@azure/msal-node",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}
