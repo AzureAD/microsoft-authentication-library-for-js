@@ -15,7 +15,6 @@ import {
     ApplicationTelemetry,
     INativeBrokerPlugin
 } from "@azure/msal-common";
-import { DefaultNativeBrokerPlugin } from "../broker/DefaultNativeBrokerPlugin";
 import { HttpClient } from "../network/HttpClient";
 import { AgentOptions as httpAgentOptions } from "http";
 import { AgentOptions as httpsAgentOptions } from "https";
@@ -62,14 +61,12 @@ export type CacheOptions = {
 
 /**
  * Use this to configure the below broker options:
- * - allowNativeBroker - Set to true to allow MSAL to use the system's token broker for authentication.
  * - nativeBrokerPlugin - Native broker implementation (should be imported from msal-node-extensions)
  * 
  * Note: These options are only available for PublicClientApplications using the Authorization Code Flow
  * @public
  */
 export type BrokerOptions = {
-    allowNativeBroker?: boolean;
     nativeBrokerPlugin?: INativeBrokerPlugin;
 };
 
@@ -131,11 +128,6 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     skipAuthorityMetadataCache: false,
 };
 
-const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
-    allowNativeBroker: false,
-    nativeBrokerPlugin: new DefaultNativeBrokerPlugin()
-};
-
 const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
@@ -162,7 +154,7 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
 
 export type NodeConfiguration = {
     auth: Required<NodeAuthOptions>;
-    broker: Required<BrokerOptions>;
+    broker: BrokerOptions;
     cache: CacheOptions;
     system: Required<NodeSystemOptions>;
     telemetry: Required<NodeTelemetryOptions>;
@@ -194,7 +186,7 @@ export function buildAppConfiguration({
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        broker: { ...DEFAULT_BROKER_OPTIONS, ...broker},
+        broker: { ...broker},
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...systemOptions, ...system },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }

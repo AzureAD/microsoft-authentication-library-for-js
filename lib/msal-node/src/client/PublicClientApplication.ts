@@ -57,12 +57,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
-        if (this.config.broker.allowNativeBroker) {
+        if (this.config.broker.nativeBrokerPlugin) {
             if (this.config.broker.nativeBrokerPlugin.isBrokerAvailable) {
                 this.nativeBrokerPlugin = this.config.broker.nativeBrokerPlugin;
-                this.nativeBrokerPlugin.setLogger(this.config.system.loggerOptions);
+                this.nativeBrokerPlugin.setLogger(this.config.system.loggerOptions); 
             } else {
-                this.logger.warning("Usage of the NativeBroker is allowed but the broker is unavailable.");
+                this.logger.warning("NativeBroker implementation was provided but the broker is unavailable.");
             }
         }
     }
