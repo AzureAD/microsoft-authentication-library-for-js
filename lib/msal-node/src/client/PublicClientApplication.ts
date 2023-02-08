@@ -15,6 +15,7 @@ import {
     Constants as CommonConstants,
     ServerError,
     NativeRequest,
+    NativeSignOutRequest,
     AccountInfo,
     INativeBrokerPlugin
 } from "@azure/msal-common";
@@ -28,6 +29,7 @@ import { InteractiveRequest } from "../request/InteractiveRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { LoopbackClient } from "../network/LoopbackClient";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { SignOutRequest } from "../request/SignOutRequest";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -189,13 +191,31 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     /**
+     * Removes cache artifacts associated with the given account
+     * @param request 
+     * @returns 
+     */
+    async signOut(request: SignOutRequest): Promise<void> {
+        if (this.nativeBrokerPlugin && request.account.nativeAccountId) {
+            const signoutRequest: NativeSignOutRequest = {
+                clientId: this.config.auth.clientId,
+                accountId: request.account.nativeAccountId,
+                correlationId: request.correlationId || this.cryptoProvider.createNewGuid()
+            };
+            await this.nativeBrokerPlugin.signOut(signoutRequest);
+        }
+
+        await this.getTokenCache().removeAccount(request.account);
+    }
+
+    /**
      * Returns all cached accounts for this application. If brokering is enabled this request will be serviced by the broker.
      * @returns 
      */
     async getAllAccounts(): Promise<AccountInfo[]> {
-        if (this.config.broker.allowNativeBroker) {
+        if (this.nativeBrokerPlugin) {
             const correlationId = this.cryptoProvider.createNewGuid();
-            return this.config.broker.nativeBrokerPlugin.getAllAccounts(this.config.auth.clientId, correlationId);
+            return this.nativeBrokerPlugin.getAllAccounts(this.config.auth.clientId, correlationId);
         }
 
         return this.getTokenCache().getAllAccounts();
