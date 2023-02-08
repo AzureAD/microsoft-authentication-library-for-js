@@ -46,7 +46,6 @@ export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     codeChallengeMethod?: string;
     domainHint?: string;
     extraQueryParameters?: StringDict;
-    tokenQueryParameters?: StringDict;
     extraScopesToConsent?: Array<string>;
     loginHint?: string;
     nonce?: string;

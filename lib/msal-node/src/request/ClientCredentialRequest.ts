@@ -12,6 +12,7 @@ import { CommonClientCredentialRequest } from "@azure/msal-common";
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  * - clientAssertion         - A Base64Url-encoded signed JWT assertion string used in the Client Credential flow
+ * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * @public
  */
 export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash"|"clientAssertion">> & {
