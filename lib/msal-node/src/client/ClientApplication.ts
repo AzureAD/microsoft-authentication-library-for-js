@@ -291,7 +291,7 @@ export abstract class ClientApplication {
 
     /**
      * Validates OIDC state by comparing the user cached state with the state received from the server.
-     * 
+     *
      * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
      * CSRF attacks.
      * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
@@ -330,15 +330,18 @@ export abstract class ClientApplication {
      */
     protected async buildOauthClientConfiguration(
         authority: string,
-        requestCorrelationId?: string, 
+        requestCorrelationId?: string,
         serverTelemetryManager?: ServerTelemetryManager,
-        azureRegionConfiguration?: AzureRegionConfiguration, 
+        azureRegionConfiguration?: AzureRegionConfiguration,
         azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
-        
+
         this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
 
         // precedence - azureCloudInstance + tenant >> authority and request  >> config
         const userAzureCloudOptions = azureCloudOptions ? azureCloudOptions : this.config.auth.azureCloudOptions;
+
+        // refresh cache if needed before building client config
+        await this.tokenCache.refreshCacheContext();
 
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`, requestCorrelationId);
@@ -374,7 +377,7 @@ export abstract class ClientApplication {
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
-            serializableCache: this.tokenCache            
+            serializableCache: this.tokenCache
         };
 
         return clientConfiguration;
