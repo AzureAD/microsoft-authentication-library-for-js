@@ -3,19 +3,21 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants, Logger } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants, Logger, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
-import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+import { BrowserSystemOptions, DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, navigateFrameWait: number) {
-        super(authCodeModule, storageImpl, authCodeRequest, logger);
-        this.navigateFrameWait = navigateFrameWait;
+    private pollIntervalMilliseconds: number;
+
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger, systemOptions: Required<Pick<BrowserSystemOptions, "navigateFrameWait" | "pollIntervalMilliseconds">>, performanceClient: IPerformanceClient) {
+        super(authCodeModule, storageImpl, authCodeRequest, logger, performanceClient);
+        this.navigateFrameWait = systemOptions.navigateFrameWait;
+        this.pollIntervalMilliseconds = systemOptions.pollIntervalMilliseconds;
     }
 
     /**
@@ -24,13 +26,19 @@ export class SilentHandler extends InteractionHandler {
      * @param userRequestScopes
      */
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerInitiateAuthRequest, this.authCodeRequest.correlationId);
+
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
-        return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
+        if (this.navigateFrameWait) {
+            this.performanceClient.setPreQueueTime(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+            return await this.loadFrame(requestUrl);
+        }
+        return this.loadFrameSync(requestUrl);
     }
 
     /**
@@ -39,6 +47,8 @@ export class SilentHandler extends InteractionHandler {
      * @param timeout
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerMonitorIframeForHash, this.authCodeRequest.correlationId);
+
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
                 this.logger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`);
@@ -82,7 +92,7 @@ export class SilentHandler extends InteractionHandler {
                     resolve(contentHash);
                     return;
                 }
-            }, BrowserConstants.POLL_INTERVAL_MS);
+            }, this.pollIntervalMilliseconds);
         });
     }
 
@@ -92,6 +102,8 @@ export class SilentHandler extends InteractionHandler {
      * @ignore
      */
     private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.SilentHandlerLoadFrame, this.authCodeRequest.correlationId);
+
         /*
          * This trick overcomes iframe navigation in IE
          * IE does not load the page consistently in iframe

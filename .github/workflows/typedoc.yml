@@ -8,13 +8,13 @@ on:
     branches:
       - dev
 
-permissions:
-  contents: read
-
 jobs:
   deploy:
     if: ((github.event.pull_request.merged == true && contains(github.head_ref,'post-release')) || github.event_name == 'workflow_dispatch')
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
     steps:
       - uses: actions/checkout@v3
         with:
@@ -37,9 +37,6 @@ jobs:
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
-        permissions:
-          contents: read
-          pages: write
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./ref

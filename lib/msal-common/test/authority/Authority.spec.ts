@@ -21,7 +21,7 @@ import { AuthorityOptions, AzureCloudInstance } from "../../src/authority/Author
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
-import { AzureCloudOptions } from "../../src/config/ClientConfiguration";
+import { AzureCloudOptions, Logger, LogLevel } from "../../src";
 
 let mockStorage: MockStorageClass;
 
@@ -32,6 +32,13 @@ const authorityOptions: AuthorityOptions = {
     authorityMetadata: "",
     skipAuthorityMetadataCache: true,
 }
+
+const loggerOptions = {
+    loggerCallback: (): void => {},
+    piiLoggingEnabled: true,
+    logLevel: LogLevel.Verbose
+};
+const logger = new Logger(loggerOptions);
 
 describe("Authority.ts Class Unit Tests", () => {
     beforeEach(() => {
@@ -54,7 +61,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return null;
                 }
             };
-            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
             expect(authority.canonicalAuthority).toBe(`${Constants.DEFAULT_AUTHORITY}`);
         });
 
@@ -70,9 +77,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             };
 
-            expect(() => new Authority("http://login.microsoftonline.com/common", networkInterface, mockStorage, authorityOptions)).toThrowError(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
-            expect(() => new Authority("This is not a URI", networkInterface, mockStorage, authorityOptions)).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
-            expect(() => new Authority("", networkInterface, mockStorage, authorityOptions)).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
+            expect(() => new Authority("http://login.microsoftonline.com/common", networkInterface, mockStorage, authorityOptions, logger)).toThrowError(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
+            expect(() => new Authority("This is not a URI", networkInterface, mockStorage, authorityOptions, logger)).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
+            expect(() => new Authority("", networkInterface, mockStorage, authorityOptions, logger)).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
         });
     });
 
@@ -89,7 +96,7 @@ describe("Authority.ts Class Unit Tests", () => {
         };
         let authority: Authority;
         beforeEach(() => {
-            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
         });
 
         it("Gets canonical authority that ends in '/'", () => {
@@ -161,7 +168,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint and selfSignedJwtAudience", () => {
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 expect(() => authority.authorizationEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.tokenEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.endSessionEndpoint).toThrowError(ClientAuthErrorMessage.endpointResolutionError.desc);
@@ -174,12 +181,20 @@ describe("Authority.ts Class Unit Tests", () => {
                 jest.clearAllMocks();
                 const signInPolicy = "b2c_1_sisopolicy";
                 const resetPolicy = "b2c_1_password_reset";
-                const baseAuthority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/";
+                const baseAuthority = "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/";
                 jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(B2C_OPENID_CONFIG_RESPONSE.body);
 
-                authority = new Authority(`${baseAuthority}${signInPolicy}`, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(`${baseAuthority}${signInPolicy}`, networkInterface, mockStorage, {
+                    ...authorityOptions,
+                    knownAuthorities: ["msidlabb2c.b2clogin.com"],
+                }, logger);
+
                 await authority.resolveEndpointsAsync();
-                const secondAuthority = new Authority(`${baseAuthority}${resetPolicy}`, networkInterface, mockStorage, authorityOptions);
+                const secondAuthority = new Authority(`${baseAuthority}${resetPolicy}`, networkInterface, mockStorage, {
+                    ...authorityOptions,
+                    knownAuthorities: ["msidlabb2c.b2clogin.com"],
+                }, logger);
+
                 await secondAuthority.resolveEndpointsAsync();
 
                 expect(authority.authorizationEndpoint).toBe(B2C_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
@@ -222,7 +237,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
             };
 
-            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
             await authority.resolveEndpointsAsync();
 
             expect(authority.discoveryComplete()).toBe(true);
@@ -237,7 +252,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
             };
 
-            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: "westus2", environmentRegion: "centralus" }});
+            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: "westus2", environmentRegion: "centralus" }}, logger);
             await authority.resolveEndpointsAsync();
 
             expect(authority.discoveryComplete()).toBe(true);
@@ -252,7 +267,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
             };
 
-            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: "centralus" }});
+            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: "centralus" }}, logger);
             await authority.resolveEndpointsAsync();
 
             expect(authority.discoveryComplete()).toBe(true);
@@ -267,7 +282,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
             };
 
-            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: undefined }});
+            const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: undefined }}, logger);
             await authority.resolveEndpointsAsync();
 
             expect(authority.discoveryComplete()).toBe(true);
@@ -291,7 +306,7 @@ describe("Authority.ts Class Unit Tests", () => {
         };
         let authority: Authority;
         beforeEach(() => {
-            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+            authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
         });
 
         it("discoveryComplete returns false if endpoint discovery has not been completed", () => {
@@ -329,7 +344,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE.body)
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -367,7 +382,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: "invalid-json"
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options, logger);
                 authority.resolveEndpointsAsync().catch(e => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(ClientConfigurationErrorMessage.invalidAuthorityMetadata.desc);
@@ -387,7 +402,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: JSON.stringify(authorityJson)
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(() => authority.endSessionEndpoint).toThrowError(ClientAuthError.createLogoutNotSupportedError());
@@ -401,7 +416,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
 
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -444,7 +459,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -478,7 +493,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -522,7 +537,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return null;
                 };
 
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -567,11 +582,11 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
 
                 const expectedHardcodedRegionalValues = {
-                    "authorization_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/authorize/", 
-                    "canonical_authority": "https://login.microsoftonline.com/common/", 
-                    "end_session_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/logout/", 
-                    "endpointsFromNetwork": false, 
-                    "issuer": "https://login.microsoftonline.com/{tenantid}/v2.0", 
+                    "authorization_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/authorize/",
+                    "canonical_authority": "https://login.microsoftonline.com/common/",
+                    "end_session_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/logout/",
+                    "endpointsFromNetwork": false,
+                    "issuer": "https://login.microsoftonline.com/{tenantid}/v2.0",
                     "jwks_uri": "https://login.microsoftonline.com/common/discovery/v2.0/keys",
                     "token_endpoint": "https://westus2.login.microsoft.com/common/oauth2/v2.0/token/?allowestsrnonmsi=true"
                 };
@@ -580,7 +595,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return null;
                 };
 
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions, logger);
                 await authority.resolveEndpointsAsync();
 
                 expect(authority.discoveryComplete()).toBe(true);
@@ -615,7 +630,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     throw Error("Unable to reach endpoint");
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 authority.resolveEndpointsAsync().catch(e => {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorMessage.includes(ClientAuthErrorMessage.unableToGetOpenidConfigError.desc)).toBe(true);
@@ -635,7 +650,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias(Constants.DEFAULT_AUTHORITY_HOST)).toBe(true);
                 expect(authority.getPreferredCache()).toBe(Constants.DEFAULT_AUTHORITY_HOST);
@@ -665,7 +680,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
 
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
                 expect(authority.isAlias("login.windows.net")).toBe(true);
@@ -702,7 +717,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
 
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
@@ -744,8 +759,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-
+              
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
                 expect(authority.isAlias("login.windows.net")).toBe(true);
@@ -778,9 +793,10 @@ describe("Authority.ts Class Unit Tests", () => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-
+              
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
+              
                 expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
                 expect(authority.isAlias("login.windows.net")).toBe(true);
                 expect(authority.isAlias("sts.windows.net")).toBe(true);
@@ -813,9 +829,10 @@ describe("Authority.ts Class Unit Tests", () => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
-                authority = new Authority("https://custom-domain.microsoft.com", networkInterface, mockStorage, authorityOptions);
-
+              
+                authority = new Authority("https://custom-domain.microsoft.com", networkInterface, mockStorage, authorityOptions, logger);
                 await authority.resolveEndpointsAsync();
+              
                 expect(authority.isAlias("custom-domain.microsoft.com")).toBe(true);
                 expect(authority.getPreferredCache()).toBe("custom-domain.microsoft.com");
                 expect(authority.canonicalAuthority.includes("custom-domain.microsoft.com"));
@@ -833,14 +850,46 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             });
 
+
+            it("Sets metadata from host for DSTS authority", async () => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: ["https://custom-domain.microsoft.com/dstsv2"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                }
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                };
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
+                authority = new Authority("https://custom-domain.microsoft.com/dstsv2", networkInterface, mockStorage, authorityOptions, logger);
+
+                await authority.resolveEndpointsAsync();
+                expect(authority.isAlias("custom-domain.microsoft.com")).toBe(true);
+                expect(authority.getPreferredCache()).toBe("custom-domain.microsoft.com");
+                expect(authority.canonicalAuthority.includes("custom-domain.microsoft.com"));
+
+                // Test that the metadata is cached
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-custom-domain.microsoft.com`;
+                const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                if (!cachedAuthorityMetadata) {
+                    throw Error("Cached AuthorityMetadata should not be null!");
+                } else {
+                    expect(cachedAuthorityMetadata.aliases).toContain("custom-domain.microsoft.com");
+                    expect(cachedAuthorityMetadata.preferred_cache).toBe("custom-domain.microsoft.com");
+                    expect(cachedAuthorityMetadata.preferred_network).toBe("custom-domain.microsoft.com");
+                    expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(false);
+                }
+            });
+
             it("Throws if cloudDiscoveryMetadata cannot be parsed into json", (done) => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
                     cloudDiscoveryMetadata: "this-is-not-valid-json",
                     authorityMetadata: ""
-                };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                }
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 authority.resolveEndpointsAsync().catch(e => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(ClientConfigurationErrorMessage.invalidCloudDiscoveryMetadata.desc);
@@ -859,8 +908,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     throw Error("Unable to get response");
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 authority.resolveEndpointsAsync().catch(e => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(ClientConfigurationErrorMessage.untrustedAuthority.desc);
@@ -869,7 +917,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
-            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata", (done) => {
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is 'invalid_instance'", (done) => {
                 const authorityOptions: AuthorityOptions = {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [],
@@ -880,18 +928,40 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return {
                         body: {
-                            error: "This endpoint does not exist"
+                            error: Constants.INVALID_INSTANCE,
+                            error_description: "error_description"
                         }
                     };
                 };
-                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
                 authority.resolveEndpointsAsync().catch(e => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toEqual(ClientConfigurationErrorMessage.untrustedAuthority.desc);
                     expect(e.errorCode).toEqual(ClientConfigurationErrorMessage.untrustedAuthority.code);
                     done();
                 });
+            });
+
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata, and the error returned from AAD is NOT 'invalid_instance'", async () => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                }
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        body: {
+                            error: "not_invalid_instance",
+                            error_description: "error_description"
+                        }
+                    };
+                };
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
+                
+                await authority.resolveEndpointsAsync();
+                expect(authority.isAlias("login.microsoftonline.com")).toBe(true);
             });
 
             it("getPreferredCache throws error if discovery is not complete", () => {
@@ -902,7 +972,35 @@ describe("Authority.ts Class Unit Tests", () => {
         it("ADFS authority uses v1 well-known endpoint", async () => {
             const authorityUrl = "https://login.microsoftonline.com/adfs/";
             let endpoint = "";
-            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions, logger);
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
+        });
+
+        it("DSTS authority uses v1 well-known endpoint with common y", async () => {
+            const authorityUrl = "https://login.microsoftonline.com/dstsv2/common/"
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions, logger);
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
+                endpoint = openIdConfigEndpoint;
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            });
+
+            await authority.resolveEndpointsAsync();
+            expect(endpoint).toBe(`${authorityUrl}.well-known/openid-configuration`);
+        });
+
+        it("DSTS authority uses v1 well-known  with tenanted authority", async () => {
+            const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`
+            let endpoint = "";
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions, logger);
             jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
                 // @ts-ignore
                 endpoint = openIdConfigEndpoint;
@@ -921,8 +1019,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
                 authorityMetadata: ""
-            };
-            authority = new Authority(authorityUrl, networkInterface, mockStorage, options);
+            }
+            authority = new Authority(authorityUrl, networkInterface, mockStorage, options, logger);
             jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
                 // @ts-ignore
                 endpoint = openIdConfigEndpoint;

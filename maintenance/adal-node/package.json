@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Windows Azure Active Directory Client Library for node",
   "keywords": [
     "node",
@@ -26,7 +26,7 @@
     "node": ">= 0.6.15"
   },
   "dependencies": {
-    "@xmldom/xmldom": "^0.7.0",
+    "@xmldom/xmldom": "^0.8.3",
     "async": "^2.6.3",
     "axios": "^0.21.1",
     "date-utils": "*",

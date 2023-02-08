@@ -71,13 +71,13 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `clientId` | App ID of your application. Can be found in your [portal registration](../README#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
-| `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
+| `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}` (see [Authority](../../msal-common/docs/authority.md)) | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in absolute or relative URI format | Login request page (`window.location.href` of page which made auth request) |
 | `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in absolute or relative URI format. Pass `null` to disable post logout redirect. | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
-| `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request | Array of strings | [] |
+| `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md)) | Array of strings | [] |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints. | string | `"AAD"` |
 | `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](https://aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](https://aka.ms/msaljs/azure_cloud_instance)
 
@@ -85,9 +85,11 @@ const msalInstance = new PublicClientApplication(msalConfig);
 
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `cacheLocation` | Location of token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"` | `sessionStorage` |
+| `cacheLocation` | Location of token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
 | `storeAuthStateInCookie` | If true, stores cache items in cookies as well as browser cache. Should be set to true for use cases using IE. | boolean | `false` |
 | `secureCookies` | If true and `storeAuthStateInCookies` is also enabled, MSAL adds the `Secure` flag to the browser cookie so it can only be sent over HTTPS. | boolean | `false` |
+
+See [Caching in MSAL](./caching.md) for more.
 
 ### System Config Options
 
@@ -100,6 +102,8 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `navigateFrameWait ` | Delay in milliseconds to wait for the iframe to load in the window. | integer (milliseconds) | In IE or Edge: `500`, in all other browsers: `0` |
 | `asyncPopups` | Sets whether popups are opened asynchronously. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request. Can be set to true for scenarios where `about:blank` is not supported, e.g. desktop apps or progressive web apps | boolean | `false` |
 | `allowRedirectInIframe` | By default, MSAL will not allow redirect operations to be initiated when the application is inside an iframe. Set this flag to `true` to remove this check. | boolean | `false` |
+| `cryptoOptions` | Config object for crypto operations in the browser. | See [below](#crypto-config-options.) | See [below](#crypto-config-options.) |
+| `pollIntervalMilliseconds` | Interval of time in milliseconds between polls of popup URL hash during authenticaiton. | integer (milliseconds) | `30` |
 
 #### Logger Config Options
 
@@ -107,6 +111,12 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | ------ | ----------- | ------ | ------------- |
 | `loggerCallback` | Callback function which handles the logging of MSAL statements. | Function - `loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void` | See [above](#using-the-config-object). |
 | `piiLoggingEnabled` | If true, personally identifiable information (PII) is included in logs. | boolean | `false` |
+
+#### Crypto Config Options
+| Option | Description | Format | Default Value |
+| ------ | ----------- | ------ | ------------- |
+| `useMsrCrypto` | Whether to use [MSR Crypto](https://github.com/microsoft/MSR-JavaScript-Crypto) if available in the browser (and other crypto interfaces are not available). | boolean | `false`
+| `entropy` | Cryptographically strong random values used to seed MSR Crypto (e.g. `crypto.randomBytes(48)` from Node). 48 bits of entropy is recommended. Required if `useMsrCrypto` is enabled. | `Uint8Array` | `undefined` |
 
 ### Telemetry Config Options
 

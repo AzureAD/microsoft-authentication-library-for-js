@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, InteractionType, ApiId, CacheLookupPolicy, BrowserConstants } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -15,6 +15,7 @@ import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -24,6 +25,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
+    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
     /**
      * @constructor
@@ -50,6 +52,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         super(configuration);
 
         this.activeSilentTokenRequests = new Map();
+        // Register listener functions
+        this.trackPageVisibility = this.trackPageVisibility.bind(this);
     }
 
     /**
@@ -95,12 +99,18 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         const correlationId = this.getRequestCorrelationId(request);
         const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        atsMeasurement.addStaticFields({
+            cacheLookupPolicy: request.cacheLookupPolicy
+        });
+
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
+
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
+
         const thumbprint: RequestThumbprint = {
             clientId: this.config.auth.clientId,
             authority: request.authority || Constants.EMPTY_STRING,
@@ -114,21 +124,28 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             sshKid: request.sshKid
         };
         const silentRequestKey = JSON.stringify(thumbprint);
+
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
             const response = this.acquireTokenSilentAsync({
                 ...request,
                 correlationId
             }, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.addStaticFields({
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length
+                    });
                     atsMeasurement.endMeasurement({
                         success: true,
                         fromCache: result.fromCache,
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length,
-                        isNativeBroker: result.fromNativeBroker
+                        isNativeBroker: result.fromNativeBroker,
+                        cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId,
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -136,6 +153,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 .catch((error: AuthError) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     atsMeasurement.endMeasurement({
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
                         success: false
                     });
                     atsMeasurement.flushMeasurement();
@@ -154,16 +173,31 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }
     }
 
+    private trackPageVisibility():void {
+        if (!this.astsAsyncMeasurement) {
+            return;
+        }
+        this.logger.info("Perf: Visibility change detected");
+        this.astsAsyncMeasurement.increment({
+            visibilityChangeCount: 1,
+        });
+    }
+
     /**
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
      * @param {@link (SilentRequest:type)}
      * @param {@link (AccountInfo:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.astsAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibility);
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
@@ -175,41 +209,80 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.logger.verbose("acquireTokenSilent - native platform unavailable, falling back to web flow");
-                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
+                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
 
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
-            });     
+            });
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
+
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeSilentRequest, request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-            result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
-                return this.acquireTokenByRefreshToken(silentRequest);
+
+            const requestWithCLP = {
+                ...request,
+                // set the request's CacheLookupPolicy to Default if it was not optionally passed in
+                cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
+            };
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache, silentRequest.correlationId);
+            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
+                if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    throw cacheError;
+                }
+
+                // block the reload if it occurred inside a hidden iframe
+                BrowserUtils.blockReloadInHiddenIframes();
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
+
+                this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken, silentRequest.correlationId);
+                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
+                    const isServerError = refreshTokenError instanceof ServerError;
+                    const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
+                    const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+
+                    if ((!isServerError ||
+                            !isInvalidGrantError ||
+                            isInteractionRequiredError ||
+                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
+                        && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
+                    ) {
+                        throw refreshTokenError;
+                    }
+
+                    this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
+                    this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe, silentRequest.correlationId);
+                    return this.acquireTokenBySilentIframe(silentRequest);
+                });
             });
         }
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            astsAsyncMeasurement.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
-                accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
-                isNativeBroker: response.fromNativeBroker
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
             });
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            astsAsyncMeasurement.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false
             });
             throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibility);
         });
     }
 }

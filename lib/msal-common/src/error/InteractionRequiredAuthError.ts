@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Constants } from "../utils/Constants";
 import { AuthError } from "./AuthError";
 
 /**
@@ -40,12 +41,36 @@ export const InteractionRequiredAuthErrorMessage = {
  * Error thrown when user interaction is required.
  */
 export class InteractionRequiredAuthError extends AuthError {
+    /**
+     * The time the error occured at
+     */
+    timestamp: string;
 
-    constructor(errorCode?: string, errorMessage?: string, subError?: string) {
+    /**
+     * TraceId associated with the error
+     */
+    traceId: string;
+
+    /**
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/claims-challenge.md
+     * 
+     * A string with extra claims needed for the token request to succeed
+     * web site: redirect the user to the authorization page and set the extra claims
+     * web api: include the claims in the WWW-Authenticate header that are sent back to the client so that it knows to request a token with the extra claims
+     * desktop application or browser context: include the claims when acquiring the token interactively
+     * app to app context (client_credentials): include the claims in the AcquireTokenByClientCredential request
+     */
+    claims: string;
+
+    constructor(errorCode?: string, errorMessage?: string, subError?: string, timestamp?: string, traceId?: string, correlationId?: string, claims?: string) {
         super(errorCode, errorMessage, subError);
-        this.name = "InteractionRequiredAuthError";
-
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
+        
+        this.timestamp = timestamp || Constants.EMPTY_STRING;
+        this.traceId = traceId || Constants.EMPTY_STRING;
+        this.correlationId = correlationId || Constants.EMPTY_STRING;
+        this.claims = claims || Constants.EMPTY_STRING;
+        this.name = "InteractionRequiredAuthError";
     }
 
     /**
@@ -54,7 +79,7 @@ export class InteractionRequiredAuthError extends AuthError {
      * @param errorString 
      * @param subError 
      */
-    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string) : boolean {
+    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string): boolean {
         const isInteractionRequiredErrorCode = !!errorCode && InteractionRequiredServerErrorMessage.indexOf(errorCode) > -1;
         const isInteractionRequiredSubError = !!subError && InteractionRequiredAuthSubErrorMessage.indexOf(subError) > -1;
         const isInteractionRequiredErrorDesc = !!errorString && InteractionRequiredServerErrorMessage.some((irErrorCode) => {

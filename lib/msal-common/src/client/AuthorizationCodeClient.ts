@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrl
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, PromptValue, Separators, AADServerParamKeys } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue, Separators, AADServerParamKeys, HeaderNames } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -28,6 +28,8 @@ import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/Cl
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { RequestValidator } from "../request/RequestValidator";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -36,8 +38,8 @@ export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
     protected includeRedirectUri: boolean = true;
 
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+        super(configuration, performanceClient);
     }
 
     /**
@@ -51,6 +53,9 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async getAuthCodeUrl(request: CommonAuthorizationUrlRequest): Promise<string> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.GetAuthCodeUrl, request.correlationId);
+
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthClientCreateQueryString, request.correlationId);
         const queryString = await this.createAuthCodeUrlQueryString(request);
 
         return UrlString.appendQueryString(this.authority.authorizationEndpoint, queryString);
@@ -62,26 +67,68 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
-        this.logger.info("in acquireToken call");
-        if (!request || StringUtils.isEmpty(request.code)) {
+        if (!request || !request.code) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthClientAcquireToken, request.correlationId);
+        
+        // @ts-ignore
+        const atsMeasurement = this.performanceClient?.startMeasurement("AuthCodeClientAcquireToken", request.correlationId);
+        this.logger.info("in acquireToken call in auth-code client");
+
         const reqTimestamp = TimeUtils.nowSeconds();
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthClientExecuteTokenRequest, request.correlationId);
         const response = await this.executeTokenRequest(this.authority, request);
 
+        // Retrieve requestId from response headers
+        const requestId = response.headers?.[HeaderNames.X_MS_REQUEST_ID];
+        const httpVerAuthority = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        if(httpVerAuthority)
+        {
+            atsMeasurement?.addStaticFields({
+                httpVerAuthority
+            });
+        }
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
             this.logger,
             this.config.serializableCache,
-            this.config.persistencePlugin
+            this.config.persistencePlugin,
+            this.performanceClient
         );
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
+
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.HandleServerTokenResponse, request.correlationId);
+        return responseHandler.handleServerTokenResponse(
+            response.body,
+            this.authority,
+            reqTimestamp,
+            request,
+            authCodePayload,
+            undefined,
+            undefined,
+            undefined,
+            requestId
+        ).then((result: AuthenticationResult) => {
+            atsMeasurement?.endMeasurement({
+                success: true
+            });
+            return result;
+        })
+            .catch((error) => {
+                this.logger.verbose("Error in fetching token in ACC", request.correlationId);
+                atsMeasurement?.endMeasurement({
+                    errorCode: error.errorCode,
+                    subErrorCode: error.subError,
+                    success: false
+                });
+                throw error;
+            });
     }
 
     /**
@@ -134,20 +181,14 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.authOptions.clientId,
-            authority: authority.canonicalAuthority,
-            scopes: request.scopes,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid
-        };
-
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthClientExecuteTokenRequest, request.correlationId);
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthClientCreateTokenRequestBody, request.correlationId);
+        
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
+        
         const requestBody = await this.createTokenRequestBody(request);
-        const queryParameters = this.createTokenQueryParameters(request);
+        
         let ccsCredential: CcsCredential | undefined = undefined;
         if (request.clientInfo) {
             try {
@@ -161,23 +202,20 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
         const headers: Record<string, string> = this.createTokenRequestHeaders(ccsCredential || request.ccsCredential);
-        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.authOptions.clientId,
+            authority: authority.canonicalAuthority,
+            scopes: request.scopes,
+            claims: request.claims,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
+        };
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
-    }
-
-    /**
-     * Creates query string for the /token request
-     * @param request
-     */
-    private createTokenQueryParameters(request: CommonAuthorizationCodeRequest): string {
-        const parameterBuilder = new RequestParameterBuilder();
-
-        if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
-        }
-
-        return parameterBuilder.createQueryString();
     }
 
     /**
@@ -185,6 +223,8 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonAuthorizationCodeRequest): Promise<string> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthClientCreateTokenRequestBody, request.correlationId);
+
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -235,12 +275,14 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils, this.performanceClient);
+
+            this.performanceClient?.setPreQueueTime(PerformanceEvents.PopTokenGenerateCnf, request.correlationId);
             const reqCnfData = await popTokenGenerator.generateCnf(request);
             // SPA PoP requires full Base64Url encoded req_cnf string (unhashed)
             parameterBuilder.addPopToken(reqCnfData.reqCnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
-            if(request.sshJwk) {
+            if (request.sshJwk) {
                 parameterBuilder.addSshJwk(request.sshJwk);
             } else {
                 throw ClientConfigurationError.createMissingSshJwkError();
@@ -305,6 +347,8 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param request
      */
     private async createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): Promise<string> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthClientCreateQueryString, request.correlationId);
+
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -452,7 +496,7 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
 
-        if(request.state) {
+        if (request.state) {
             parameterBuilder.addState(request.state);
         }
 

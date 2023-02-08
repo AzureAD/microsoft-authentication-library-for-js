@@ -46,7 +46,7 @@ export type ClientConfiguration = {
     telemetry?: TelemetryOptions,
     serverTelemetryManager?: ServerTelemetryManager | null,
     persistencePlugin?: ICachePlugin | null,
-    serializableCache?: ISerializableTokenCache | null,        
+    serializableCache?: ISerializableTokenCache | null,   
 };
 
 export type CommonClientConfiguration = {
@@ -61,7 +61,7 @@ export type CommonClientConfiguration = {
     serverTelemetryManager: ServerTelemetryManager | null,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
-    serializableCache: ISerializableTokenCache | null,     
+    serializableCache: ISerializableTokenCache | null,    
 };
 
 /**
@@ -91,7 +91,6 @@ export type AuthOptions = {
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
-    proxyUrl?: string;
 };
 
 /**
@@ -146,8 +145,7 @@ export type ApplicationTelemetry = {
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false,
-    proxyUrl: Constants.EMPTY_STRING
+    preventCorsPreflight: false
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -214,7 +212,7 @@ export function buildClientConfiguration(
         telemetry: telemetry,
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
-        serializableCache: serializableCache,                 
+        serializableCache: serializableCache,             
     }: ClientConfiguration): CommonClientConfiguration {
 
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
@@ -231,7 +229,7 @@ export function buildClientConfiguration(
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
-        serializableCache: serializableCache || null,              
+        serializableCache: serializableCache || null,             
     };
 }
 

@@ -1063,7 +1063,6 @@ describe("MsalProvider tests", () => {
 
             expect(inProgressRenders).toEqual([
                 InteractionStatus.Startup,
-                InteractionStatus.HandleRedirect,
                 InteractionStatus.None
             ]);
         });

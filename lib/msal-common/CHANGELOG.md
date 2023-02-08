@@ -1,8 +1,153 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 18 Jul 2022 23:26:21 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 10.0.0
+
+Mon, 06 Feb 2023 18:51:50 GMT
+
+### Major changes
+
+- proxyUrl is now passed to msal-node's httpClient via it's constructor #5599 (rginsburg@microsoft.com)
+
+### Minor changes
+
+- tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573 (rginsburg@microsoft.com)
+- Add JS Queue Measurements #5352 (joarroyo@microsoft.com)
+- Truncate integral telemetry fields #5627 (kshabelko@microsoft.com)
+- Track manually completed sub-measurements #5614 (kshabelko@microsoft.com)
+
+### Patches
+
+- Update discardCache in PerformanceClient #5645 (joarroyo@microsoft.com)
+- Optimize credential regular expressions #5621 (kshabelko@microsoft.com)
+- Added missing fields to InteractionRequiredAuthError #5566 (rginsburg@microsoft.com)
+
+## 9.1.1
+
+Thu, 19 Jan 2023 23:50:24 GMT
+
+### Patches
+
+- Update startMeasurement in PerformanceClient #5589 (joarroyo@microsoft.com)
+- Add broker timeouts #5580 (kshabelko@microsoft.com)
+
+## 9.1.0
+
+Wed, 18 Jan 2023 00:33:04 GMT
+
+### Minor changes
+
+- Adding page visibility change event for silent calls like AcquireTokenSilent #5555 (kshabelko@microsoft.com)
+
+### Patches
+
+- Add startPerformanceMeasurement to IPerformanceClient #5583 (joarroyo@microsoft.com)
+- Revert typo changes #5582 (joarroyo@microsoft.com)
+- Match long domain names #5581 (kshabelko@microsoft.com)
+- - Remove `lookBehind` regex as not compatible with Safari browser. #5551 (kshabelko@microsoft.com)
+- add claims to request body in OBO class #5493 (v-ssalem@microsoft.com)
+
+## 9.0.2
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- Fix cache credential look-up (#5484) (kshabelko@microsoft.com)
+- fix logger explicitly set to undefined error #5355 (bmahal@microsoft.com)
+- http version telemetry data #5211 (bmahal@microsoft.com)
+- fix typos #5531 (bmahal@microsoft.com)
+
+## 9.0.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Fixed Typo in Authority Logs #5430 (rginsburg@microsoft.com)
+- Improvement to Cloud Instance Discovery #5448 (rginsburg@microsoft.com)
+
+## 9.0.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Major changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+
+## 8.0.0
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Major changes
+
+- Add static fields to telemetry #5224 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Add MATS fields to telemetry #5308 (thomas.norling@microsoft.com)
+
+## 7.6.0
+
+Mon, 10 Oct 2022 22:27:03 GMT
+
+### Minor changes
+
+- Include refresh token in ExternalTokenResponse #5233 (louisv@microsoft.com)
+
+### Patches
+
+- Fixed broken homeAccountId check in CacheManager #5246 (rginsburg@microsoft.com)
+
+## 7.5.0
+
+Mon, 03 Oct 2022 22:12:26 GMT
+
+### Minor changes
+
+- Add x-ms-request-id to perf telemetry logging #5244 (joarroyo@microsoft.com)
+- Added 'no_session' to prompt enum #5131 (rginsburg@microsoft.com)
+- Added Support for the OIDC max_age parameter #5125 (rginsburg@microsoft.com)
+- Add initial support for DSTS authorities in MSAL Common #5212 (hemoral@microsoft.com)
+
+### Patches
+
+- Implemented Cache Lookup Policy for acquireTokenSilent #5014 (rginsburg@microsoft.com)
+- Include Refresh token size in perf telemetry data #5250 (bmahal@microsoft.com)
+
+## 7.4.1
+
+Mon, 12 Sep 2022 18:19:32 GMT
+
+### Patches
+
+- Exporting constants #5189 (lalimasharda@microsoft.com)
+
+## 7.4.0
+
+Fri, 02 Sep 2022 18:06:53 GMT
+
+### Minor changes
+
+- Exposed raw id token on account info objects #5036 (rginsburg@microsoft.com)
+- Export ClientInfo APIs #6886 (lalimasharda@microsoft.com)
+- Add query string parsing helpers #5062 (thomas.norling@microsoft.com)
+
+## 7.3.0
+
+Mon, 01 Aug 2022 22:22:35 GMT
+
+### Minor changes
+
+- adding network performance measurement #4834 (ellymakuba@microsoft.com)
+
+### Patches
+
+- Add error handling for server errors in device-code (#5033) (sameera.gajjarapu@microsoft.com)
+- Send login_hint claim instead of sid if available #4990 (janutter@microsoft.com)
 
 ## 7.2.0
 

@@ -106,14 +106,18 @@ export class PopupClient extends StandardInteractionClient {
     protected async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
+
+        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
         this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || Constants.EMPTY_STRING, validRequest.account || null);
 
         try {
             // Create auth code request and generate PKCE params
+            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationCodeRequest, request.correlationId);
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
+            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, request.correlationId);
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
@@ -131,7 +135,7 @@ export class PopupClient extends StandardInteractionClient {
             });
 
             // Create popup interaction handler.
-            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
+            const interactionHandler = new InteractionHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.performanceClient);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
@@ -214,6 +218,7 @@ export class PopupClient extends StandardInteractionClient {
             await this.clearCacheOnLogout(validRequest.account);
 
             // Initialize the client
+            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientCreateAuthCodeClient, validRequest.correlationId);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");
 
@@ -290,7 +295,7 @@ export class PopupClient extends StandardInteractionClient {
              * Polling for popups needs to be tick-based,
              * since a non-trivial amount of time can be spent on interaction (which should not count against the timeout).
              */
-            const maxTicks = this.config.system.windowHashTimeout / BrowserConstants.POLL_INTERVAL_MS;
+            const maxTicks = this.config.system.windowHashTimeout / this.config.system.pollIntervalMilliseconds;
             let ticks = 0;
 
             this.logger.verbose("PopupHandler.monitorPopupForHash - polling started");
@@ -348,7 +353,7 @@ export class PopupClient extends StandardInteractionClient {
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createMonitorPopupTimeoutError());
                 }
-            }, BrowserConstants.POLL_INTERVAL_MS);
+            }, this.config.system.pollIntervalMilliseconds);
         });
     }
 
@@ -390,7 +395,7 @@ export class PopupClient extends StandardInteractionClient {
                 clearInterval(intervalId);
                 this.cleanPopup(popupWindow);
                 resolve();
-            }, BrowserConstants.POLL_INTERVAL_MS);
+            }, this.config.system.pollIntervalMilliseconds);
         });
     }
 

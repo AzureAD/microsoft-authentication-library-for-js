@@ -14,6 +14,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
+import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -492,6 +493,64 @@ describe("NativeInteractionClient Tests", () => {
             // @ts-ignore
             pca.browserStorage.setInteractionInProgress(true);
             await nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"]});
+            const response = await nativeInteractionClient.handleRedirectPromise();
+            expect(response).not.toBe(null);
+
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: mockWamResponse.scope.split(" "),
+                idToken: mockWamResponse.id_token,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                accessToken: mockWamResponse.access_token,
+                fromCache: false,
+                state: undefined,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: response && response.expiresOn, // Steal the expires on from the response as this is variable
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER,
+                fromNativeBroker: true
+            };
+            expect(response).toEqual(testTokenResponse);
+        });
+
+        it("If request includes a prompt value it is ignored on the 2nd call to native broker", async () => {
+            // The user should not be prompted twice, prompt value should only be used on the first call to the native broker (before returning to the redirect uri). Native broker calls from handleRedirectPromise should ignore the prompt.
+            const mockWamResponse = {
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2,
+                scope: "User.Read",
+                expires_in: 3600,
+                client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                account: {
+                    id: "nativeAccountId"
+                },
+                properties: {}
+            };
+
+            const testAccount: AccountInfo = {
+                homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+                localAccountId: ID_TOKEN_CLAIMS.oid,
+                environment: "login.windows.net",
+                tenantId: ID_TOKEN_CLAIMS.tid,
+                username: ID_TOKEN_CLAIMS.preferred_username,
+                name: ID_TOKEN_CLAIMS.name,
+                idTokenClaims: ID_TOKEN_CLAIMS,
+                nativeAccountId: mockWamResponse.account.id
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((url: string) => {
+                expect(url).toBe(window.location.href);
+                return Promise.resolve(true);
+            });
+            sinon.stub(NativeMessageHandler.prototype, "sendMessage").callsFake((messageBody: NativeExtensionRequestBody): Promise<object> => {
+                expect(messageBody.request && messageBody.request.prompt).toBe(undefined);
+                return Promise.resolve(mockWamResponse);
+            });
+            // @ts-ignore
+            pca.browserStorage.setInteractionInProgress(true);
+            await nativeInteractionClient.acquireTokenRedirect({scopes: ["User.Read"], prompt: "login"});
             const response = await nativeInteractionClient.handleRedirectPromise();
             expect(response).not.toBe(null);
 

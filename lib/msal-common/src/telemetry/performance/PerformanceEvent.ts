@@ -94,6 +94,22 @@ export enum PerformanceEvents {
      * Used to acquire a token from Native component when native brokering is enabled.
      */
     NativeInteractionClientAcquireToken = "nativeInteractionClientAcquireToken",
+    /**
+     * Time spent creating default headers for requests to token endpoint
+     */
+    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    /**
+     * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
+     */
+    BrokerHandhshake = "brokerHandshake",
+    /**
+     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
+     */
+    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+    /**
+     * Time taken for token acquisition by broker
+     */
+    AcquireTokenByBroker = "acquireTokenByBroker",
 
     /**
      * Time spent on the network for refresh token acquisition
@@ -101,25 +117,127 @@ export enum PerformanceEvents {
     RefreshTokenClientExecuteTokenRequest = "refreshTokenClientExecuteTokenRequest",
 
     /**
-     * Time spent creating default headers for requests to token endpoint
+     * Time taken for acquiring refresh token , records RT size
      */
-    BaseClientCreateTokenRequestHeaders = "baseClientCreateTokenRequestHeaders",
+    RefreshTokenClientAcquireToken = "refreshTokenClientAcquireToken",
 
     /**
-     * Used to measure the time taken for completing embedded-broker handshake (PW-Broker).
+     * Time taken for acquiring cached refresh token
      */
-    BrokerHandhshake = "brokerHandshake",
+    RefreshTokenClientAcquireTokenWithCachedRefreshToken = "refreshTokenClientAcquireTokenWithCachedRefreshToken",
 
     /**
-     * acquireTokenByRefreshToken API in BrokerClientApplication (PW-Broker) .
+     * acquireTokenByRefreshToken API in RefreshTokenClient (msal-common).
      */
-    AcquireTokenByRefreshTokenInBroker = "acquireTokenByRefreshTokenInBroker",
+    RefreshTokenClientAcquireTokenByRefreshToken = "refreshTokenClientAcquireTokenByRefreshToken",
 
     /**
-     * acquireToken API in BrokerClientApplication.
-     * Used to acquire a token on behalf of the embedded application (PW-Broker).
+     * Helper function to create token request body in RefreshTokenClient (msal-common).
      */
-    AcquireTokenByBroker = "acquireTokenByBroker"
+    RefreshTokenClientCreateTokenRequestBody = "refreshTokenClientCreateTokenRequestBody",
+
+    /**
+     * acquireTokenFromCache (msal-browser).
+     * Internal API for acquiring token from cache
+     */
+    AcquireTokenFromCache = "acquireTokenFromCache",
+
+    /**
+     * acquireTokenBySilentIframe (msal-browser).
+     * Internal API for acquiring token by silent Iframe
+     */
+    AcquireTokenBySilentIframe = "acquireTokenBySilentIframe",
+
+    /**
+     * Internal API for initializing base request in BaseInteractionClient (msal-browser)
+     */
+    InitializeBaseRequest = "initializeBaseRequest",
+
+    /**
+     * Internal API for initializing silent request in SilentCacheClient (msal-browser)
+     */
+    InitializeSilentRequest = "initializeSilentRequest",
+
+    /**
+     * Helper function in SilentIframeClient class (msal-browser).
+     */
+    SilentIframeClientTokenHelper = "silentIframeClientTokenHelper",
+
+    /**
+     * SilentHandler
+     */
+    SilentHandlerInitiateAuthRequest = "silentHandlerInitiateAuthRequest",
+    SilentHandlerMonitorIframeForHash = "silentHandlerMonitorIframeForHash",
+    SilentHandlerLoadFrame = "silentHandlerLoadFrame",
+
+    /**
+     * Helper functions in StandardInteractionClient class (msal-browser)
+     */
+    StandardInteractionClientCreateAuthCodeClient = "standardInteractionClientCreateAuthCodeClient",
+    StandardInteractionClientGetClientConfiguration = "standardInteractionClientGetClientConfiguration",
+    StandardInteractionClientInitializeAuthorizationRequest = "standardInteractionClientInitializeAuthorizationRequest",
+    StandardInteractionClientInitializeAuthorizationCodeRequest = "standardInteractionClientInitializeAuthorizationCodeRequest",
+
+    /**
+     * getAuthCodeUrl API (msal-browser and msal-node).
+     */
+    GetAuthCodeUrl = "getAuthCodeUrl",
+
+    /**
+     * Functions from InteractionHandler (msal-browser)
+     */
+    HandleCodeResponseFromServer = "handleCodeResponseFromServer",
+    HandleCodeResponseFromHash = "handleCodeResponseFromHash",
+    UpdateTokenEndpointAuthority = "updateTokenEndpointAuthority",
+
+    /**
+     * APIs in Authorization Code Client (msal-common)
+     */
+    AuthClientAcquireToken = "authClientAcquireToken",
+    AuthClientExecuteTokenRequest = "authClientExecuteTokenRequest",
+    AuthClientCreateTokenRequestBody = "authClientCreateTokenRequestBody",
+    AuthClientCreateQueryString = "authClientCreateQueryString",
+
+    /**
+     * Generate functions in PopTokenGenerator (msal-common)
+     */
+    PopTokenGenerateCnf = "popTokenGenerateCnf",
+    PopTokenGenerateKid = "popTokenGenerateKid",
+
+    /**
+     * handleServerTokenResponse API in ResponseHandler (msal-common)
+     */
+    HandleServerTokenResponse = "handleServerTokenResponse",
+
+    /**
+     * Authority functions
+     */
+    AuthorityFactoryCreateDiscoveredInstance = "authorityFactoryCreateDiscoveredInstance",
+    AuthorityResolveEndpointsAsync = "authorityResolveEndpointsAsync",
+    AuthorityGetCloudDiscoveryMetadataFromNetwork = "authorityGetCloudDiscoveryMetadataFromNetwork",
+    AuthorityUpdateCloudDiscoveryMetadata = "authorityUpdateCloudDiscoveryMetadata",
+    AuthorityGetEndpointMetadataFromNetwork = "authorityGetEndpointMetadataFromNetwork",
+    AuthorityUpdateEndpointMetadata = "authorityUpdateEndpointMetadata",
+    AuthorityUpdateMetadataWithRegionalInformation = "authorityUpdateMetadataWithRegionalInformation",
+
+    /**
+     * Region Discovery functions
+     */
+    RegionDiscoveryDetectRegion = "regionDiscoveryDetectRegion",
+    RegionDiscoveryGetRegionFromIMDS = "regionDiscoveryGetRegionFromIMDS",
+    RegionDiscoveryGetCurrentVersion = "regionDiscoveryGetCurrentVersion",
+
+    AcquireTokenByCodeAsync = "acquireTokenByCodeAsync",
+
+    GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
+    GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
+
+    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+
+    UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
+
+    UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
+
 }
 
 /**
@@ -135,12 +253,92 @@ export enum PerformanceEventStatus {
 }
 
 /**
+ * Fields whose value will not change throughout a request
+ */
+export type StaticFields = {
+    /**
+     * The Silent Token Cache Lookup Policy
+     *
+     * @type {?(number | undefined)}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Size of the id token
+     *
+     * @type {number}
+     */
+    idTokenSize?: number,
+
+    /**
+     *
+     * Size of the access token
+     *
+     * @type {number}
+     */
+
+    accessTokenSize?: number,
+
+    /**
+     *
+     * Size of the refresh token
+     *
+     * @type {number}
+     */
+
+    refreshTokenSize?: number | undefined,
+
+    /**
+     * Application name as specified by the app.
+     *
+     * @type {?string}
+     */
+    appName?: string,
+
+    /**
+     * Application version as specified by the app.
+     *
+     * @type {?string}
+     */
+    appVersion?: string,
+
+    /**
+     * The following are fields that may be emitted in native broker scenarios
+     */
+    extensionId?: string,
+    extensionVersion?: string
+    matsBrokerVersion?: string;
+    matsAccountJoinOnStart?: string;
+    matsAccountJoinOnEnd?: string;
+    matsDeviceJoin?: string;
+    matsPromptBehavior?: string;
+    matsApiErrorCode?: number;
+    matsUiVisible?: boolean;
+    matsSilentCode?: number;
+    matsSilentBiSubCode?: number;
+    matsSilentMessage?: string;
+    matsSilentStatus?: number;
+    matsHttpStatus?: number
+    matsHttpEventCount?: number;
+    httpVerToken?: string;
+    httpVerAuthority?: string;
+};
+
+/**
+ * Fields whose value may change throughout a request
+ */
+export type Counters = {
+    visibilityChangeCount?: number;
+    incompleteSubsCount?: number;
+};
+
+/**
  * Performance measurement taken by the library, including metadata about the request and application.
  *
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = {
+export type PerformanceEvent = StaticFields & Counters & {
     /**
      * Unique id for the event
      *
@@ -257,39 +455,49 @@ export type PerformanceEvent = {
     libraryVersion: string,
 
     /**
-     * Size of the id token
-     *
-     * @type {number}
-     */
-    idTokenSize?: number,
-
-    /**
-     * 
-     * Size of the access token
-     *
-     * @type {number}
-     */
-
-    accessTokenSize?: number,
-
-    /**
-     * Application name as specified by the app.
-     *
-     * @type {?string}
-     */
-    appName?: string,
-
-    /**
-     * Application version as specified by the app.
-     *
-     * @type {?string}
-     */
-    appVersion?: string,
-
-    /**
      * Whether the response is from a native component (e.g., WAM)
      *
      * @type {?boolean}
      */
-    isNativeBroker?: boolean
+    isNativeBroker?: boolean,
+
+    /**
+     * Request ID returned from the response
+     *
+     * @type {?string}
+     */
+    requestId?: string
+
+    /**
+     * Cache lookup policy
+     *
+     * @type {?number}
+     */
+    cacheLookupPolicy?: number | undefined,
+
+    /**
+     * Amount of time spent in the JS queue in milliseconds.
+     *
+     * @type {?number}
+     */
+    queuedTimeMs?: number,
+
+    /**
+     * Amount of times queued in the JS event queue.
+     *
+     * @type {?number}
+     */
+    queuedCount?: number
 };
+
+export const IntFields: ReadonlySet<string> = new Set([
+    "accessTokenSize",
+    "durationMs",
+    "idTokenSize",
+    "matsSilentStatus",
+    "matsHttpStatus",
+    "refreshTokenSize",
+    "queuedTimeMs",
+    "startTimeMs",
+    "status",
+]);

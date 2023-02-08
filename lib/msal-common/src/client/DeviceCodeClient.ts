@@ -16,6 +16,8 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { ServerError } from "../error/ServerError";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 Device code client
@@ -63,6 +65,8 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
+        const queryParametersString = this.createExtraQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(this.authority.deviceCodeEndpoint, queryParametersString);
         const queryString = this.createQueryString(request);
         const headers = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -77,7 +81,21 @@ export class DeviceCodeClient extends BaseClient {
             sshKid: request.sshKid
         };
 
-        return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
+        return this.executePostRequestToDeviceCodeEndpoint(endpoint, queryString, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the device code request
+     * @param request
+     */
+    createExtraQueryParameters(request: CommonDeviceCodeRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
@@ -106,8 +124,7 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers,
-                proxyUrl: this.config.systemOptions.proxyUrl
+                headers: headers
             });
 
         return {
@@ -129,6 +146,10 @@ export class DeviceCodeClient extends BaseClient {
 
         parameterBuilder.addScopes(request.scopes);
         parameterBuilder.addClientId(this.config.authOptions.clientId);
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
@@ -172,7 +193,8 @@ export class DeviceCodeClient extends BaseClient {
     private async acquireTokenWithDeviceCode(
         request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
-
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(this.authority.tokenEndpoint, queryParametersString);
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Record<string, string> = this.createTokenRequestHeaders();
 
@@ -197,16 +219,21 @@ export class DeviceCodeClient extends BaseClient {
                 sshKid: request.sshKid
             };
             const response = await this.executePostToTokenEndpoint(
-                this.authority.tokenEndpoint,
+                endpoint,
                 requestBody,
                 headers,
                 thumbprint);
 
-            if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
+            if (response.body && response.body.error) {
                 // user authorization is pending. Sleep for polling interval and try again
-                this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
-  
-                await TimeUtils.delay(pollingIntervalMilli);
+                if(response.body.error === Constants.AUTHORIZATION_PENDING) {
+                    this.logger.info("Authorization pending. Continue polling.");
+                    await TimeUtils.delay(pollingIntervalMilli);
+                } else {
+                    // for any other error, throw
+                    this.logger.info("Unexpected error in polling from the server");
+                    throw ServerError.createPostRequestFailed(response.body.error);
+                }
             } else {
                 this.logger.verbose("Authorization completed successfully. Polling stopped.");
                 return response.body;
@@ -240,7 +267,6 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addLibraryInfo(this.config.libraryInfo);
         requestParameters.addApplicationTelemetry(this.config.telemetry.application);
         requestParameters.addThrottling();
-        
         if (this.serverTelemetryManager) {
             requestParameters.addServerTelemetry(this.serverTelemetryManager);
         }

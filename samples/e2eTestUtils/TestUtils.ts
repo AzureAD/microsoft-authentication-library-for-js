@@ -3,6 +3,8 @@ import{ Page, HTTPResponse } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
+export const ONE_SECOND_IN_MS = 1000;
+
 export class Screenshot {
     private folderName: string;
     private screenshotNum: number;
@@ -23,6 +25,28 @@ export function createFolder(foldername: string) {
         fs.mkdirSync(foldername, { recursive: true });
     }
 }
+
+export async function storagePoller(callback: ()=>Promise<void>, timeoutMs: number): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        let lastError: Error;
+        const interval = setInterval(async () => {
+            if ((Date.now() - startTime) > timeoutMs) {
+                clearInterval(interval);
+                console.error(lastError);
+                reject(new Error("Timed out while polling storage"));
+            }
+            await callback().then(() => {
+                // If callback resolves - success
+                clearInterval(interval);
+                resolve();
+            }).catch((e: Error)=>{
+                // If callback throws storage hasn't been updated yet - check again on next interval
+                lastError = e;
+            });
+        }, 200);
+    });
+};
 
 export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
     let clientID = "";
@@ -132,4 +156,30 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
         throw e;
     });
+}
+
+export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
+    await page.waitForSelector("#logonIdentifier");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    await page.type("#logonIdentifier", username);
+    await page.type("#password", accountPwd);
+    await page.click("#next");
+}
+
+export async function b2cAadPpeAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MSIDLAB4_AzureAD");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MSIDLAB4_AzureAD");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
+}
+
+export async function b2cMsaAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForSelector("#MicrosoftAccountExchange");
+    await screenshot.takeScreenshot(page, "b2cSignInPage");
+    // Select Lab Provider
+    await page.click("#MicrosoftAccountExchange");
+    // Enter credentials
+    await enterCredentials(page, screenshot, username, accountPwd);
 }

@@ -14,6 +14,7 @@ export const Constants = {
     DEFAULT_COMMON_TENANT: "common",
     // ADFS String
     ADFS: "adfs",
+    DSTS: "dstsv2",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // Resource delimiter - used for certain cache entries
@@ -39,16 +40,19 @@ export const Constants = {
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
     EMPTY_STRING: "",
+    NOT_APPLICABLE: "N/A",
     FORWARD_SLASH: "/",
     IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
     IMDS_VERSION: "2020-06-01",
     IMDS_TIMEOUT: 2000,
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
+    REGIONAL_AUTH_NON_MSI_QUERY_STRING: "allowestsrnonmsi=true",
     KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
     TOKEN_RESPONSE_TYPE: "token",
     ID_TOKEN_RESPONSE_TYPE: "id_token",
     SHR_NONCE_VALIDITY: 240,
+    INVALID_INSTANCE: "invalid_instance",
 };
 
 export const OIDC_DEFAULT_SCOPES = [
@@ -70,7 +74,9 @@ export enum HeaderNames {
     RETRY_AFTER = "Retry-After",
     CCS_HEADER = "X-AnchorMailbox",
     WWWAuthenticate = "WWW-Authenticate",
-    AuthenticationInfo = "Authentication-Info"
+    AuthenticationInfo = "Authentication-Info",
+    X_MS_REQUEST_ID = "x-ms-request-id",
+    X_MS_HTTP_VERSION= "x-ms-httpver"
 }
 
 /**
@@ -132,7 +138,7 @@ export enum AADServerParamKeys {
     X_APP_NAME = "x-app-name",
     X_APP_VER = "x-app-ver",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
-    ID_TOKEN_HINT= "id_token_hint",
+    ID_TOKEN_HINT = "id_token_hint",
     DEVICE_CODE = "device_code",
     CLIENT_SECRET = "client_secret",
     CLIENT_ASSERTION = "client_assertion",
@@ -167,7 +173,8 @@ export const PromptValue = {
     SELECT_ACCOUNT: "select_account",
     CONSENT: "consent",
     NONE: "none",
-    CREATE: "create"
+    CREATE: "create",
+    NO_SESSION: "no_session"
 };
 
 /**
@@ -401,3 +408,5 @@ export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK"
 }
+
+export const ONE_DAY_IN_MS = 86400000;

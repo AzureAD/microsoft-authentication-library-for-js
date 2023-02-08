@@ -20,44 +20,49 @@ export class PersistenceCreator {
         // On Windows, uses a DPAPI encrypted file
         if (Environment.isWindowsPlatform()) {
             if (!config.cachePath || !config.dataProtectionScope) {
-                throw PersistenceError.createPersistenceNotValidatedError("Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin");
+                throw PersistenceError.createPersistenceNotValidatedError(
+                    "Cache path and/or data protection scope not provided for the FilePersistenceWithDataProtection cache plugin");
             }
 
-            peristence = await FilePersistenceWithDataProtection.create(config.cachePath, DataProtectionScope.CurrentUser);
+            peristence = await FilePersistenceWithDataProtection.create(config.cachePath, DataProtectionScope.CurrentUser, undefined, config.loggerOptions);
         }
 
         // On Mac, uses keychain.
         else if (Environment.isMacPlatform()) {
             if (!config.cachePath || !config.serviceName || !config.accountName) {
-                throw PersistenceError.createPersistenceNotValidatedError("Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin");
+                throw PersistenceError.createPersistenceNotValidatedError(
+                    "Cache path, service name and/or account name not provided for the KeychainPersistence cache plugin");
             }
 
-            peristence = await KeychainPersistence.create(config.cachePath, config.serviceName, config.accountName);
+            peristence = await KeychainPersistence.create(config.cachePath, config.serviceName, config.accountName, config.loggerOptions);
         }
 
         // On Linux, uses  libsecret to store to secret service. Libsecret has to be installed.
         else if (Environment.isLinuxPlatform()) {
             if (!config.cachePath || !config.serviceName || !config.accountName) {
-                throw PersistenceError.createPersistenceNotValidatedError("Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin");
+                throw PersistenceError.createPersistenceNotValidatedError(
+                    "Cache path, service name and/or account name not provided for the LibSecretPersistence cache plugin");
             }
 
-            peristence = await LibSecretPersistence.create(config.cachePath, config.serviceName, config.accountName);
+            peristence = await LibSecretPersistence.create(config.cachePath, config.serviceName, config.accountName, config.loggerOptions);
         }
 
         else {
-            throw PersistenceError.createNotSupportedError("The current environment is not supported by msal-node-extensions yet.");
+            throw PersistenceError.createNotSupportedError(
+                "The current environment is not supported by msal-node-extensions yet.");
         }
 
         // Initially suppress the error thrown during persistence verification to allow us to fallback to plain text
         const isPersistenceVerified = await peristence.verifyPersistence().catch(() => false);
-        
+
         if (!isPersistenceVerified) {
             if (Environment.isLinuxPlatform() && config.usePlaintextFileOnLinux) {
                 if (!config.cachePath) {
-                    throw PersistenceError.createPersistenceNotValidatedError("Cache path not provided for the FilePersistence cache plugin");
+                    throw PersistenceError.createPersistenceNotValidatedError(
+                        "Cache path not provided for the FilePersistence cache plugin");
                 }
 
-                peristence = await FilePersistence.create(config.cachePath);
+                peristence = await FilePersistence.create(config.cachePath, config.loggerOptions);
 
                 const isFilePersistenceVerified = await peristence.verifyPersistence();
                 if (isFilePersistenceVerified) {

@@ -1,4 +1,4 @@
-import { ElectronApplication, Page } from "playwright";
+import { ElectronApplication, Page } from "playwright-core";
 import * as fs from "fs";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
