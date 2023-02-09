@@ -18,24 +18,24 @@ const isFirefox = firefox > 0; // Only needed if you need to support the redirec
  */
  export const b2cPolicies = {
     names: {
-        signUpSignIn: "B2C_1_SISOPolicy",
-        editProfile: "B2C_1_ProfileEditPolicy"
+        signUpSignIn: process.env.REACT_APP_POLICY_SISO,
+        editProfile: process.env.REACT_APP_POLICY_EDIT_PROFILE
     },
     authorities: {
         signUpSignIn: {
-            authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy"
+            authority: `https://${process.env.REACT_APP_TENANT_NAME}.b2clogin.com/${process.env.REACT_APP_TENANT_NAME}.onmicrosoft.com/${process.env.REACT_APP_POLICY_SISO}`
         },
         editProfile: {
-            authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_ProfileEditPolicy"
+            authority: `https://${process.env.REACT_APP_TENANT_NAME}.b2clogin.com/${process.env.REACT_APP_TENANT_NAME}.onmicrosoft.com/${process.env.REACT_APP_POLICY_EDIT_PROFILE}`
         }
     },
-    authorityDomain: "msidlabb2c.b2clogin.com"
+    authorityDomain: `${process.env.REACT_APP_TENANT_NAME}.b2clogin.com`
 }
 
 // Config object to be passed to Msal on creation
 export const msalConfig = {
     auth: {
-        clientId: "e3b9ad76-9763-4827-b088-80c7a7888f79",
+        clientId: process.env.REACT_APP_CLIENT_ID,
         authority: b2cPolicies.authorities.signUpSignIn.authority,
         knownAuthorities: [b2cPolicies.authorityDomain],
         redirectUri: "/",
@@ -74,7 +74,7 @@ export const msalConfig = {
 
 // Scopes you add here will be prompted for consent during login
 export const loginRequest = {
-    scopes: ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"]
+    scopes: [process.env.REACT_APP_API_SCOPE]
 };
 
 /**
@@ -82,6 +82,6 @@ export const loginRequest = {
  * The current application coordinates were pre-registered in a B2C tenant.
  */
 export const apiConfig = {
-    scopes: ['https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read'],
-    uri: 'https://msidlabb2c.onmicrosoft.com/msidlabb2capi'
+    scopes: [process.env.REACT_APP_API_SCOPE],
+    uri: process.env.REACT_APP_API_URI
 };

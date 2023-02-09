@@ -40,13 +40,13 @@ This sample comes with a pre-registered application for demo purposes. If you wo
 
 ### Configure the application
 
-- Open `./src/authConfig.js` in an editor.
-- Replace `clientId` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
-  - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
-- Replace `names`, `authorities` and `authorityDomain` fields in `b2cPolicies` object with the parameters you've obtained after creating your own user-flows.
-  - Optionally, replace the `uri` and `scopes` fields in `apiConfig` object if you would like to call your own web API registered on Azure AD B2C (see: [Register a web API on Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga))
+- Open `./env.development` in an editor.
+- Replace the value of `REACT_APP_CLIENT_ID` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+- Replace the value of `REACT_APP_TENANT_NAME` with the name of your B2C tenant from the portal registration, or use the currently configured lab registration.
+- Replace the values of `REACT_APP_POLICY_SISO` and `REACT_APP_POLICY_EDIT_PROFILE` names of your B2C user flows for sign-up/sign-in and profile edit.
+  - Optionally, replace the values of `REACT_APP_API_URI` and `REACT_APP_API_SCOPE` if you would like to call your own web API registered on Azure AD B2C (see: [Register a web API on Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga))
 
-These parameters are taken in during runtime to initialize MSAL in `./src/index.js`.
+These parameters are used in `src/authConfig.js` to configure MSAL.
 
 #### Install npm dependencies for sample
 

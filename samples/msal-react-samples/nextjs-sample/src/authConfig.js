@@ -1,8 +1,8 @@
 // Config object to be passed to Msal on creation
 export const msalConfig = {
     auth: {
-        clientId: "ENTER_CLIENT_ID_HERE",
-        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
+        clientId: process.env.NEXT_PUBLIC_CLIENT_ID,
+        authority: process.env.NEXT_PUBLIC_AUTHORITY,
         redirectUri: "/",
         postLogoutRedirectUri: "/"
     }
@@ -15,5 +15,5 @@ export const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+    graphMeEndpoint: process.env.NEXT_PUBLIC_GRAPH_ENDPOINT
 };

@@ -48,6 +48,7 @@
     },
     "devDependencies": {
         "@types/jest": "^26.0.23",
+        "env-cmd": "^10.1.0",
         "jest": "^27.0.4"
     }
 }

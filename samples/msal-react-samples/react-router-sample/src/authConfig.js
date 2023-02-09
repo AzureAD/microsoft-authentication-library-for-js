@@ -14,8 +14,8 @@ const isFirefox = firefox > 0; // Only needed if you need to support the redirec
 // Config object to be passed to Msal on creation
 export const msalConfig = {
     auth: {
-        clientId: "ENTER_CLIENT_ID_HERE",
-        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
+        clientId: process.env.REACT_APP_CLIENT_ID,
+        authority: process.env.REACT_APP_AUTHORITY,
         redirectUri: "/",
         postLogoutRedirectUri: "/"
     },
@@ -57,5 +57,5 @@ export const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+    graphMeEndpoint: process.env.REACT_APP_GRAPH_ENDPOINT
 };

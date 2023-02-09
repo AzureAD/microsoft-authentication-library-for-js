@@ -15,8 +15,9 @@
         "react-router-dom": "^6.7.0"
     },
     "devDependencies": {
-        "react-scripts": "5.0.1",
-        "jest": "^27.0.4"
+        "env-cmd": "^10.1.0",
+        "jest": "^27.0.4",
+        "react-scripts": "5.0.1"
     },
     "scripts": {
         "start": "react-scripts start",
