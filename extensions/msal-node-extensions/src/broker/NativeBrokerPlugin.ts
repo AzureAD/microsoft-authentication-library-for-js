@@ -3,8 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthenticationScheme, Constants, IdTokenClaims, INativeBrokerPlugin, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, AuthenticationScheme, ClientAuthError, ClientConfigurationError, Constants, IdTokenClaims, INativeBrokerPlugin, InteractionRequiredAuthError, Logger, LoggerOptions, NativeRequest, NativeSignOutRequest, PromptValue, ServerError } from "@azure/msal-common";
 import { msalNodeRuntime, Account, AuthParameters, AuthResult, ErrorStatus, MsalRuntimeError, ReadAccountResult, DiscoverAccountsResult, SignOutResult, LogLevel as MsalRuntimeLogLevel} from "@azure/msal-node-runtime";
+import { ErrorCodes } from "../utils/Constants";
 import { NativeAuthError } from "../error/NativeAuthError";
 import { version, name } from "../packageMetadata";
 
@@ -384,10 +385,29 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private wrapError(error: Object): NativeAuthError | Object | null {
         if (this.isMsalRuntimeError(error)) {
             const { errorCode, errorStatus, errorContext, errorTag } = error as MsalRuntimeError;
-            if (errorStatus === ErrorStatus.UserSwitched) {
-                return null;
+            switch (errorStatus) {
+                case ErrorStatus.InteractionRequired:
+                case ErrorStatus.AccountUnusable:
+                    return new InteractionRequiredAuthError(ErrorCodes.INTERATION_REQUIRED_ERROR_CODE, errorContext);
+                case ErrorStatus.NoNetwork:
+                case ErrorStatus.NetworkTemporarilyUnavailable:
+                    return ClientAuthError.createNoNetworkConnectivityError();
+                case ErrorStatus.ServerTemporarilyUnavailable:
+                    return new ServerError(ErrorCodes.SERVER_UNAVAILABLE, errorContext);
+                case ErrorStatus.UserCanceled:
+                    return ClientAuthError.createUserCancelledError();
+                case ErrorStatus.AuthorityUntrusted:
+                    return ClientConfigurationError.createUntrustedAuthorityError();
+                case ErrorStatus.UserSwitched:
+                    // Not an error case, if there's customer demand we can surface this as a response property
+                    return null;
+                case ErrorStatus.AccountNotFound:
+                    return ClientAuthError.createNoAccountFoundError();
+                case ErrorStatus.UserDataRemovalRequired:
+                    return ClientAuthError.createUserDataRemovalRequiredError();
+                default:
+                    return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
             }
-            return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
         }
 
         return error;
