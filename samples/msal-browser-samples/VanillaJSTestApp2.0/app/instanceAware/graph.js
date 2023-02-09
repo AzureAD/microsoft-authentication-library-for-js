@@ -1,4 +1,4 @@
-// Helper function to call MS Graph API endpoint 
+// Helper function to call MS Graph API endpoint
 // using authorization bearer token scheme
 function callMSGraph(endpoint, accessToken, callback) {
     const headers = new Headers();
@@ -21,14 +21,14 @@ function callMSGraph(endpoint, accessToken, callback) {
 
 function getGraphMeEndpoint(msGraphHost) {
     if (!msGraphHost) {
-        return "https://graph.microsoft-ppe.com/v1.0/me";
+        return "https://graph.microsoft.com/v1.0/me";
     }
     return `https://${msGraphHost}/v1.0/me`
 }
 
 function getGraphMailEndpoint(msGraphHost) {
     if (!msGraphHost) {
-        return "https://graph.microsoft-ppe.com/v1.0/me/messages";
+        return "https://graph.microsoft.com/v1.0/me/messages";
     }
     return `https://${msGraphHost}/v1.0/me/messages`
 }

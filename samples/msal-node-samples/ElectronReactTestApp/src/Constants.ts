@@ -15,7 +15,7 @@ export enum IpcMessages {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const GRAPH_CONFIG = {
-    GRAPH_ME_ENDPT: 'https://graph.microsoft-ppe.com/v1.0/me',
+    GRAPH_ME_ENDPT: 'https://graph.microsoft.com/v1.0/me',
 };
 
 export const CACHE_LOCATION = './data/cache.json';
