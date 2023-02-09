@@ -211,10 +211,6 @@ export const ClientAuthErrorMessage = {
     userCanceledError: {
         code: "user_canceled",
         desc: "User canceled the flow."
-    },
-    userDataRemovalRequiredError: {
-        code: "user_data_removal_required",
-        desc: "User data removal required. MSAL cache has been cleared for this user, please remove any additional user data."
     }
 };
 
@@ -579,12 +575,5 @@ export class ClientAuthError extends AuthError {
      */
     static createUserCanceledError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userCanceledError.code, ClientAuthErrorMessage.userCanceledError.desc);
-    }
-
-    /**
-     * Create an error when the native broker throws UserDataRemovalRequired error. MSAL.js should clear cache and then throw.
-     */
-    static createUserDataRemovalRequiredError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.userDataRemovalRequiredError.code, ClientAuthErrorMessage.userDataRemovalRequiredError.desc);
     }
 }

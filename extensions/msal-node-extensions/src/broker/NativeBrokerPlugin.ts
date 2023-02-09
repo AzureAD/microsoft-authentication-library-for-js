@@ -406,8 +406,6 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     return null;
                 case ErrorStatus.AccountNotFound:
                     return ClientAuthError.createNoAccountFoundError();
-                case ErrorStatus.UserDataRemovalRequired:
-                    return ClientAuthError.createUserDataRemovalRequiredError();
                 default:
                     return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
             }
