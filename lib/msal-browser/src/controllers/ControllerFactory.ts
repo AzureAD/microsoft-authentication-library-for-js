@@ -6,9 +6,11 @@
 import { MetaOSOperatingContext } from "../operatingcontext/MetaOSOperatingContext";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
+import { StandardController } from "./StandardController";
 import { Logger } from "@azure/msal-common";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { version, name } from "../packageMetadata";
+import { BrokerClientController } from "./BrokerClientController";
 
 export class ControllerFactory {
     
@@ -31,18 +33,14 @@ export class ControllerFactory {
         ];
 
         return Promise.all(operatingContexts).then(async ()=> {
-
             if(metaOS.getAvailable()){
                 /*
                  * pull down metaos module
                  * create associated controller
                  */
-                // return await StandardController.createController(standard);
-                const controller = await import("./StandardController");
-                return await controller.StandardController.createController(standard);
+                return await BrokerClientController.createController(metaOS);
             }else if(standard.getAvailable()){
-                const controller = await import("./StandardController");
-                return await controller.StandardController.createController(standard);
+                return await StandardController.createController(standard);
             }
             
             throw new Error("No controller found.");

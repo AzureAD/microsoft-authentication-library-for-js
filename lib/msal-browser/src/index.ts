@@ -100,3 +100,5 @@ export {
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
+
+export { IAuthBridge } from "./broker/IAuthBridge";

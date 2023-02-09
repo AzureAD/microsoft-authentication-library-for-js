@@ -144,6 +144,11 @@ export type BrowserSystemOptions = SystemOptions & {
      * Sets the interval length in milliseconds for polling the location attribute in popup windows (default is 30ms)
      */
     pollIntervalMilliseconds?: number;
+
+    /**
+     * Sets the mode of operation
+     */
+    operatingMode?: OperatingMode;
 };
 
 export type CryptoOptions = {
@@ -269,12 +274,14 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         cryptoOptions: {
             useMsrCrypto: false,
             entropy: undefined
-        }
+        },
+        operatingMode: OperatingMode.Standard
     };
 
     const providedSystemOptions:BrowserSystemOptions = {
         ...userInputSystem,
-        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS
+        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
+        operatingMode: OperatingMode.Standard
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
@@ -293,3 +300,20 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     return overlayedConfig;
 }
 
+/**
+ * Flags defining the mode of operation of MSAL
+ */
+export enum OperatingMode {
+    /**
+     * Standard mode of operation, which is SPA running in browser
+     * This mode can be combined with BrokerClient mode
+     */
+    Standard = 0x1,
+
+    /**
+     * The mode to operate as a child application of broker. A SPA is being hosted by a broker.
+     * The broker is asked for token in this mode, which does the "right" things to get the token.
+     * This mode can be combined with Standard mode
+     */
+    BrokerClient = 0x2
+}

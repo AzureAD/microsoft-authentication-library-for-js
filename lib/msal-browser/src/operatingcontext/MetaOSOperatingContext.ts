@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BaseOperatingContext } from "./BaseOperatingContext";
+import { BrokerCommChannel } from "../broker/BrokerCommChannel.js";
+import { BaseOperatingContext } from "./BaseOperatingContext.js";
 
 export class MetaOSOperatingContext extends BaseOperatingContext {
     
@@ -44,7 +45,7 @@ export class MetaOSOperatingContext extends BaseOperatingContext {
          * TODO: Add implementation to check for presence of inject MetaOSHub JavaScript interface
          * TODO: Make pre-flight token request to ensure that App is eligible to use Nested App Auth
          */
-        return false;
+        return BrokerCommChannel.IsAvailable();
     }
 
 }
