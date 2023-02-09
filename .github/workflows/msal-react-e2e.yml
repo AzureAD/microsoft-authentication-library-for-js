@@ -5,13 +5,13 @@ name: msal-react E2E Tests
 
 on:
   push:
-    branches: 
+    branches:
       - dev
       - master
   pull_request:
-    paths: 
+    paths:
       - 'lib/msal-react/**/*'
-      - 'lib/msal-browser/**/*' 
+      - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
       - 'samples/msal-react-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
@@ -71,7 +71,7 @@ jobs:
     - name: Restore node_modules for test tools
       uses: actions/cache@v3
       id: test-tools-cache
-      with: 
+      with:
         path: |
           samples/node_modules
           samples/.cache/puppeteer
@@ -85,7 +85,7 @@ jobs:
     - name: Restore node_modules for sample
       uses: actions/cache@v3
       id: sample-cache
-      with: 
+      with:
         path: samples/msal-react-samples/${{ matrix.sample }}/node_modules
         key: ${{ runner.os }}-react-e2e-${{ hashFiles(format('samples/msal-react-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 
@@ -98,6 +98,8 @@ jobs:
 
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-react-samples/${{ matrix.sample }}
+      env:
+        E2E: true
       run: npm run build
 
     - name: E2E Tests

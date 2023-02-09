@@ -9,6 +9,7 @@
     "develop": "gatsby develop -p 3000",
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
+    "build:test": "cross-env E2E=true gatsby build && jest",
     "test": "jest",
     "clean": "gatsby clean",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
