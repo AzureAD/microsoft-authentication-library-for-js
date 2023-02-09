@@ -1,11 +1,14 @@
 import * as msal from "@azure/msal-node";
 // import { INetworkModule, } from "@azure/msal-common";
+import express from "express";
 /**
  * After "npx tsc" is executed via the "npm run start" script, app.ts and HttpClientCurrent.ts are compiled to .js and stored in the /dist folder
  * The app is run via "node dist/app.js", hence the .js import of the HttpClientCurrent
  */
 // import { HttpClientCurrent } from "./HttpClientCurrent.js";
 // import { HttpClientAxios } from "./HttpClientAxios.js";
+
+const SERVER_PORT = 3000;
 
 const clientConfig: msal.Configuration = {
     auth: {
@@ -15,17 +18,7 @@ const clientConfig: msal.Configuration = {
     },
     system: {
         /**
-         * Uncomment this to see this application's network trace inside of "Fiddler Everywhere" (https://www.telerik.com/download/fiddler-everywhere)
-         * 8866 is Fiddler Everywhere's default port
-         * 8888 is Fiddler Classic's default port
-         * These are both configurable inside of Fiddler's settings
-         * NOTE: Axios does not support proxy functionality. Therefore, neither does HttpClientAxios. The following 2 lines of code are only supported by HttpClientCurrent.
-         */
-        // proxyUrl: "http://localhost:8866", // Fiddler Everywhere default port
-        // proxyUrl: "http://localhost:8888", // Fiddler Classic default port
-
-        /**
-         * Uncomment either of the HttpClient import statement to use a custom INetworkModule
+         * Uncomment either of the HttpClient import statements to use a custom INetworkModule
          * The contents of ./HttpClientCurrent.ts are the default msal-node network functionality (msal-node v1.15.0), copied from:
          * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/network/HttpClient.ts
          * The contents of ./HttpClientAxios.ts are the msal-node network functionality from when Axios was used - before the HttpClient was rewritten to support proxys - copied from:
@@ -57,8 +50,12 @@ const request: msal.ClientCredentialRequest = {
     scopes: ["https://graph.microsoft.com/.default"],
 };
 
-// self-executing anonymous asyc function that's needed to use "await" for acquireTokenByClientCredential
-(async () => {
+const app = express();
+
+// type "http://localhost:3000" into the browser to trigger this route
+app.get("/", async (req, res) => {
+    console.log(`Request received - ${new Date()}`);
+
     try {
         const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
         const response = await confidentialClientApplication.acquireTokenByClientCredential(request);
@@ -66,4 +63,6 @@ const request: msal.ClientCredentialRequest = {
     } catch (error) {
         console.log(error);
     }
-})();
+});
+
+app.listen(SERVER_PORT, () => console.log(`Msal Node web app listening on port ${SERVER_PORT}!`))

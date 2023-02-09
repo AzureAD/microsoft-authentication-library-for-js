@@ -53,7 +53,17 @@ class NetworkUtils {
 /**
  * This class implements the API for network requests.
  */
-export class HttpClient implements INetworkModule {
+export class HttpClientCurrent implements INetworkModule {
+    private proxyUrl: string;
+    private customAgentOptions: http.AgentOptions | https.AgentOptions;
+
+    constructor(
+        proxyUrl?: string,
+        customAgentOptions?: http.AgentOptions | https.AgentOptions,
+    ) {
+        this.proxyUrl = proxyUrl || "";
+        this.customAgentOptions = customAgentOptions || {};
+    }
 
     /**
      * Http Get request
@@ -64,10 +74,10 @@ export class HttpClient implements INetworkModule {
         url: string,
         options?: NetworkRequestOptions,
     ): Promise<NetworkResponse<T>> {
-        if (options?.proxyUrl) {
-            return networkRequestViaProxy(url, HttpMethod.GET, options);
+        if (this.proxyUrl) {
+            return networkRequestViaProxy(url, this.proxyUrl, HttpMethod.GET, options, this.customAgentOptions as http.AgentOptions);
         } else {
-            return networkRequestViaHttps(url, HttpMethod.GET, options);
+            return networkRequestViaHttps(url, HttpMethod.GET, options, this.customAgentOptions as https.AgentOptions);
         }
     }
 
@@ -81,22 +91,24 @@ export class HttpClient implements INetworkModule {
         options?: NetworkRequestOptions,
         cancellationToken?: number,
     ): Promise<NetworkResponse<T>> {
-        if (options?.proxyUrl) {
-            return networkRequestViaProxy(url, HttpMethod.POST, options, cancellationToken);
+        if (this.proxyUrl) {
+            return networkRequestViaProxy(url, this.proxyUrl, HttpMethod.POST, options, this.customAgentOptions as http.AgentOptions, cancellationToken);
         } else {
-            return networkRequestViaHttps(url, HttpMethod.POST, options, cancellationToken);
+            return networkRequestViaHttps(url, HttpMethod.POST, options, this.customAgentOptions as https.AgentOptions, cancellationToken);
         }
     }
 }
 
 const networkRequestViaProxy = <T>(
     url: string,
+    proxyUrlString: string,
     httpMethod: string,
     options: NetworkRequestOptions,
+    agentOptions?: http.AgentOptions,
     timeout?: number,
 ): Promise<NetworkResponse<T>> => {
     const headers = options?.headers || {} as Record<string, string>;
-    const proxyUrl = new URL(options?.proxyUrl || "");
+    const proxyUrl = new URL(proxyUrlString);
     const destinationUrl = new URL(url);
 
     // "method: connect" must be used to establish a connection to the proxy
@@ -110,6 +122,10 @@ const networkRequestViaProxy = <T>(
 
     if (timeout) {
         tunnelRequestOptions.timeout = timeout;
+    }
+
+    if (agentOptions && Object.keys(agentOptions).length) {
+        tunnelRequestOptions.agent = new http.Agent(agentOptions);
     }
 
     // compose a request string for the socket
@@ -242,6 +258,7 @@ const networkRequestViaHttps = <T>(
     url: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
+    agentOptions?: https.AgentOptions,
     timeout?: number,
 ): Promise<NetworkResponse<T>> => {
     const isPostRequest = httpMethod === HttpMethod.POST;
@@ -255,6 +272,10 @@ const networkRequestViaHttps = <T>(
 
     if (timeout) {
         customOptions.timeout = timeout;
+    }
+
+    if (agentOptions && Object.keys(agentOptions).length) {
+        customOptions.agent = new https.Agent(agentOptions);
     }
 
     if (isPostRequest) {
