@@ -38,17 +38,17 @@
     ]
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "~13.3.10",
-    "@angular/animations": "~13.3.12",
-    "@angular/cli": "~13.3.10",
-    "@angular/common": "~13.3.12",
-    "@angular/compiler": "~13.3.12",
-    "@angular/compiler-cli": "~13.3.12",
-    "@angular/core": "~13.3.12",
-    "@angular/forms": "~13.3.12",
-    "@angular/platform-browser": "~13.3.12",
-    "@angular/platform-browser-dynamic": "~13.3.12",
-    "@angular/router": "~13.3.12",
+    "@angular-devkit/build-angular": "^14.2.10",
+    "@angular/animations": "^14.2.12",
+    "@angular/cli": "^14.2.10",
+    "@angular/common": "^14.2.12",
+    "@angular/compiler": "^14.2.12",
+    "@angular/compiler-cli": "^14.2.12",
+    "@angular/core": "^14.2.12",
+    "@angular/forms": "^14.2.12",
+    "@angular/platform-browser": "^14.2.12",
+    "@angular/platform-browser-dynamic": "^14.2.12",
+    "@angular/router": "^14.2.12",
     "@azure/msal-browser": "^2.32.2",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
@@ -60,7 +60,7 @@
     "karma-coverage-istanbul-reporter": "~3.0.2",
     "karma-jasmine": "~5.0.0",
     "karma-jasmine-html-reporter": "^2.0.0",
-    "ng-packagr": "^13.3.1",
+    "ng-packagr": "^14.2.2",
     "protractor": "~7.0.0",
     "rxjs": "^7.0.0",
     "ts-node": "~8.3.0",
@@ -70,6 +70,6 @@
   },
   "peerDependencies": {
     "@azure/msal-browser": "^2.32.2",
-    "rxjs": "^6.0.0 || ^7.0.0"
+    "rxjs": "^7.0.0"
   }
 }
