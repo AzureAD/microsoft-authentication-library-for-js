@@ -128,11 +128,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     async acquireTokenSilent(request: NativeRequest): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenSilent called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
-        let account: Account;
-        if (request.accountId) {
-            const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
-            account = readAccountResult.account;
-        }
+        const account = await this.getAccount(request);
 
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
             const resultCallback = (result: AuthResult) => {
@@ -164,14 +160,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
         });
     }
 
-    async acquireTokenInteractive(request: NativeRequest, windowHandle?: Buffer): Promise<AuthenticationResult> {
+    async acquireTokenInteractive(request: NativeRequest, providedWindowHandle?: Buffer): Promise<AuthenticationResult> {
         this.logger.trace("NativeBrokerPlugin - acquireTokenInteractive called", request.correlationId);
         const authParams = this.generateRequestParameters(request);
-        let account: Account;
-        if (request.accountId) {
-            const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
-            account = readAccountResult.account;
-        }
+        const account = await this.getAccount(request);
+        const windowHandle = providedWindowHandle || Buffer.from([0]);
 
         return new Promise((resolve: (value: AuthenticationResult) => void, reject) => {
             const resultCallback = (result: AuthResult) => {
@@ -195,7 +188,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     case PromptValue.CREATE:
                         this.logger.info("Calling native interop SignInInteractively API", request.correlationId);
                         const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                        msalNodeRuntime.SignInInteractivelyAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, loginHint, resultCallback);
+                        msalNodeRuntime.SignInInteractivelyAsync(windowHandle, authParams, request.correlationId, loginHint, resultCallback);
                         break;
                     case PromptValue.NONE:
                         if (account) {
@@ -209,11 +202,11 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     default:
                         if (account) {
                             this.logger.info("Calling native interop AcquireTokenInteractively API", request.correlationId);
-                            msalNodeRuntime.AcquireTokenInteractivelyAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, account, resultCallback);
+                            msalNodeRuntime.AcquireTokenInteractivelyAsync(windowHandle, authParams, request.correlationId, account, resultCallback);
                         } else {
                             this.logger.info("Calling native interop SignIn API", request.correlationId);
                             const loginHint = request.loginHint || Constants.EMPTY_STRING;
-                            msalNodeRuntime.SignInAsync(windowHandle || Buffer.from([0]), authParams, request.correlationId, loginHint, resultCallback);
+                            msalNodeRuntime.SignInAsync(windowHandle, authParams, request.correlationId, loginHint, resultCallback);
                         }
                         break;
                 }
@@ -229,8 +222,10 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     async signOut(request: NativeSignOutRequest): Promise<void> {
         this.logger.trace("NativeBrokerPlugin - signOut called", request.correlationId);
 
-        const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
-        const account = readAccountResult.account;
+        const account = await this.getAccount(request);
+        if (!account) {
+            throw ClientAuthError.createNoAccountFoundError();
+        }
 
         return new Promise((resolve, reject) => {
             const resultCallback = (result: SignOutResult) => {
@@ -255,6 +250,14 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 }
             }
         });
+    }
+
+    private async getAccount(request: NativeRequest | NativeSignOutRequest): Promise<Account|null> {
+        if (request.accountId) {
+            const readAccountResult = await this.readAccountById(request.accountId, request.correlationId);
+            return readAccountResult.account;
+        }
+        return null;
     }
 
     private async readAccountById(accountId: string, correlationId: string): Promise<ReadAccountResult> {
