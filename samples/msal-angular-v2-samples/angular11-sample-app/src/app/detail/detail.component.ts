@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
+import { environment } from 'src/environments/environment';
+
+const GRAPH_ENDPOINT = environment.protectedResources.graphApi.endpoint;
 
 type DetailType = {
   displayName?: string

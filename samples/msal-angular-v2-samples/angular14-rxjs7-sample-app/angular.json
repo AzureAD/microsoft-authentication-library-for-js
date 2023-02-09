@@ -53,6 +53,14 @@
               ],
               "outputHashing": "all"
             },
+            "e2e": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.e2e.ts"
+                }
+              ]
+            },
             "development": {
               "buildOptimizer": false,
               "optimization": false,
@@ -72,6 +80,9 @@
             },
             "development": {
               "browserTarget": "angular14-rxjs7-sample-app:build:development"
+            },
+            "e2e": {
+              "browserTarget": "angular14-rxjs7-sample-app:build:e2e"
             }
           },
           "defaultConfiguration": "development"

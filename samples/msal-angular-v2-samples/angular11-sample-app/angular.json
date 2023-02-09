@@ -61,6 +61,14 @@
                   "maximumError": "4kb"
                 }
               ]
+            },
+            "e2e": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.e2e.ts"
+                }
+              ]
             }
           }
         },
@@ -72,7 +80,10 @@
           "configurations": {
             "production": {
               "browserTarget": "angular11-sample-app:build:production"
-            }
+            },
+            "e2e": {
+              "browserTarget": "angular11-sample-app:build:e2e"
+            },
           }
         },
         "extract-i18n": {

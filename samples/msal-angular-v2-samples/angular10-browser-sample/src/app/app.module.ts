@@ -21,7 +21,8 @@ import { MsalInterceptorConfig } from './msal/msal.interceptor.config';
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+      clientId: 'ENTER_CLIENT_ID_HERE',
+      authority: 'https://login.microsoftonline.com/ENTER_TENANT_ID_HERE',
       redirectUri: 'http://localhost:4200'
     }
   });

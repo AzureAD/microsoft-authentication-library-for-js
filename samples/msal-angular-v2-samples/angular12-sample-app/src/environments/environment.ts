@@ -1,9 +1,20 @@
 // This file can be replaced during build by using the `fileReplacements` array.
-// `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
+// `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  msalConfig: {
+    auth: {
+      clientId: "ENTER_CLIENT_ID_HERE",
+      authority: "https://login.microsoftonline.com/ENTER_TENANT_ID_HERE",
+    }
+  },
+  protectedResources: {
+    graphApi: {
+      endpoint: "https://graph.microsoft.com/v1.0/me",
+    }
+  }
 };
 
 /*

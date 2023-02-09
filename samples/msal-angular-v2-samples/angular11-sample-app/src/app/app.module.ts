@@ -18,6 +18,8 @@ import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfig
 import { DetailComponent } from './detail/detail.component';
 import { LogoutComponent } from './logout/logout.component';
 
+import { environment } from 'src/environments/environment';
+
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1; // Remove this line to use Angular Universal
 
 export function loggerCallback(logLevel: LogLevel, message: string) {
@@ -27,8 +29,8 @@ export function loggerCallback(logLevel: LogLevel, message: string) {
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: 'ENTER_CLIENT_ID_HERE',
-      authority: 'https://login.microsoftonline.com/ENTER_TENANT_ID_HERE',
+      clientId: environment.msalConfig.auth.clientId,
+      authority: environment.msalConfig.auth.authority,
       redirectUri: '/',
       postLogoutRedirectUri: '/'
     },
@@ -49,7 +51,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
-  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
+  protectedResourceMap.set(environment.protectedResources.graphApi.endpoint, ['user.read']);
 
   return {
     interactionType: InteractionType.Redirect,

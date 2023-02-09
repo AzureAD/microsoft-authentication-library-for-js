@@ -54,6 +54,14 @@
               ],
               "outputHashing": "all"
             },
+            "e2e": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.e2e.ts"
+                }
+              ]
+            },
             "development": {
               "buildOptimizer": false,
               "optimization": false,
@@ -70,6 +78,9 @@
           "configurations": {
             "production": {
               "browserTarget": "angular13-rxjs6-sample-app:build:production"
+            },
+            "e2e": {
+              "browserTarget": "angular13-rxjs6-sample-app:build:e2e"
             },
             "development": {
               "browserTarget": "angular13-rxjs6-sample-app:build:development"
