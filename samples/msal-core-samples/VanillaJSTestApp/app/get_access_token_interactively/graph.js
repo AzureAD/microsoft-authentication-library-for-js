@@ -1,6 +1,6 @@
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me"
 };
 
 // Helper function to call MS Graph API endpoint
