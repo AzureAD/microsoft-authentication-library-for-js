@@ -39,6 +39,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       storeAuthStateInCookie: isIE, // set to true for IE 11. Remove this line to use Angular Universal
     },
     system: {
+      allowNativeBroker: false,
       allowRedirectInIframe: true,
       loggerOptions: {
         loggerCallback,
