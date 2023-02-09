@@ -1,5 +1,6 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Will not trigger unless PR is ready for review.
 
 name: msal-node E2E Tests
 
@@ -9,6 +10,7 @@ on:
       - dev
       - master
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'lib/msal-node/**/*'
       - 'lib/msal-common/**/*'
@@ -27,7 +29,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push')) && !github.event.pull_request.draft
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -203,7 +205,7 @@ jobs:
   #       path: samples/**/screenshots
 
   run-electron-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push')) && !github.event.pull_request.draft
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
