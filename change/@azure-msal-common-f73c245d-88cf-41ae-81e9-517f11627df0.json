@@ -2,6 +2,6 @@
   "type": "minor",
   "comment": "Expose native broker types and interfaces #5485",
   "packageName": "@azure/msal-common",
-  "email": "email not defined",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }
