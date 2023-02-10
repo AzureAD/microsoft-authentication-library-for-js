@@ -56,6 +56,8 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
+import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
+import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -80,7 +82,7 @@ jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
             return {
                 startMeasurement: () => {},
                 endMeasurement: () => {},
-                flushMeasurement: () => 50
+                flushMeasurement: () => 50,
             }
         })
     }
@@ -101,6 +103,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             }
         });
+        BrowserPerformanceMeasurement.flushMeasurements = jest.fn().mockReturnValue(null);
     });
 
     afterEach(() => {

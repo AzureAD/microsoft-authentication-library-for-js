@@ -147,7 +147,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         cacheLookupPolicy: request.cacheLookupPolicy,
                         requestId: result.requestId,
                     });
-                    atsMeasurement.flushMeasurement();
                     return result;
                 })
                 .catch((error: AuthError) => {
@@ -157,7 +156,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         subErrorCode: error.subError,
                         success: false
                     });
-                    atsMeasurement.flushMeasurement();
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
