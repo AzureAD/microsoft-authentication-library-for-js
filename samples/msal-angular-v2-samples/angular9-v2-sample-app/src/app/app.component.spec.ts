@@ -11,7 +11,7 @@ function MSALInstanceFactory(): IPublicClientApplication {
       redirectUri: 'http://localhost:4200'
     },
     system: {
-      // allowNativeBroker: false // Disables WAM Bridge
+     allowNativeBroker: false // Disables WAM Bridge
     }
   });
 }

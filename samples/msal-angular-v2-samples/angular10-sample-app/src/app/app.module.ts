@@ -37,7 +37,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       storeAuthStateInCookie: isIE, // set to true for IE 11
     },
     system: {
-      allowNativeBroker: false,
+      allowNativeBroker: false, // Disables WAM Broker
       loggerOptions: {
         loggerCallback,
         logLevel: LogLevel.Info,
