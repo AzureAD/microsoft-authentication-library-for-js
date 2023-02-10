@@ -4,7 +4,12 @@ import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestU
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { getBrowser, getHomeUrl } from "../../testUtils";
+import { clickLoginRedirect } from "./testUtils";
+import { msalConfig, apiConfig, request } from "../authConfigs/multipleResourcesAuthConfig.json";
+
+const fs = require('fs');
+
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let username = "";
 let accountPwd = "";
@@ -25,6 +30,8 @@ describe("Browser tests", function () {
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig, apiConfig, request}));
     });
 
     let context: puppeteer.BrowserContext;
@@ -33,8 +40,8 @@ describe("Browser tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-        BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
+        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+        BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
     });
 
@@ -49,13 +56,8 @@ describe("Browser tests", function () {
 
     it("Performs loginRedirect and acquires 2 tokens", async () => {
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/multipleResources`);
-        // Home Page
-        await screenshot.takeScreenshot(page, "samplePageInit");
-        // Click Sign In
-        await page.click("#SignIn");
-        await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Redirect
-        await page.click("#loginRedirect");
+        await clickLoginRedirect(screenshot, page);
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
         // Wait for return to page

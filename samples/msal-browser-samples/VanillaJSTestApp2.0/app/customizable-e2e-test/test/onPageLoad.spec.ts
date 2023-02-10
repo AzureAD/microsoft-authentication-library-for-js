@@ -5,6 +5,8 @@ import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestU
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
+import { msalConfig, apiConfig, request, scenario } from "../authConfigs/onPageLoadAuthConfig.json";
+const fs = require('fs');
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let sampleHomeUrl = "";
@@ -26,6 +28,8 @@ describe("On Page Load tests", function () {
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig, apiConfig, request, scenario}));
     });
 
     let context: puppeteer.BrowserContext;
@@ -35,10 +39,11 @@ describe("On Page Load tests", function () {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-        BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
+        BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
     });
 
     afterEach(async () => {
+        await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
         await page.close();
     });
 
@@ -56,9 +61,8 @@ describe("On Page Load tests", function () {
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
         // Wait for return to page
+        await page.waitForXPath("//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
-        await page.waitForSelector("#signOutButton");
-        await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
@@ -66,7 +70,7 @@ describe("On Page Load tests", function () {
         expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(5);
+        expect(Object.keys(storage).length).toEqual(4);
     }, 60000);
 
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
@@ -79,7 +83,7 @@ describe("On Page Load tests", function () {
         await enterCredentials(page, screenshot, username, accountPwd);
         // Wait for return to page
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
-        await page.waitForSelector("#signOutButton");
+        await page.waitForXPath("//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).toHaveLength(1);
@@ -88,6 +92,6 @@ describe("On Page Load tests", function () {
         expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(5);
+        expect(Object.keys(storage).length).toEqual(4);
     }, 60000);
 });

@@ -6,7 +6,9 @@ import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constan
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { JWT } from "jose";
 import {getBrowser, getHomeUrl} from "../../testUtils";
+import { msalConfig, apiConfig, request } from "../authConfigs/clientCapabilities.json";
 
+const fs = require('fs');
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let sampleHomeUrl = "";
 let username = "";
@@ -27,6 +29,7 @@ describe("Browser tests", function () {
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig, apiConfig, request}));
     });
 
     let context: puppeteer.BrowserContext;
@@ -36,11 +39,12 @@ describe("Browser tests", function () {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-        BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
+        BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
     });
 
     afterEach(async () => {
+        await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
         await page.close();
     });
 
@@ -50,8 +54,7 @@ describe("Browser tests", function () {
     });
 
     it("Performs loginRedirect, acquires and validates CAE token", async () => {
-        const testName = "redirectBaseCase";
-        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/clientCapabilities`);
 
         // Home Page
         await page.waitForSelector("#SignIn");
