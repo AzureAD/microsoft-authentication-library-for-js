@@ -5,9 +5,8 @@ let homeAccountId = "";
 // configuration parameters are located at authConfig.js
 let myMSALObj;
 let authConfig;
-initializeMsal();
-
 let popToken;
+initializeMsal();
 
 async function initializeMsal() {
     return fetch("testConfig.json").then(response => {
@@ -27,9 +26,9 @@ function handleResponse(resp) {
         showWelcomeMessage(resp.account);
         if (resp.accessToken) {
             updateUI(resp);
-        }
-        if (authConfig.scenario == "onPageLoad") {
-            seeProfile();
+            if (authConfig.scenario == "onPageLoad") {
+                seeProfile();
+            }
         }
     } else {
         // need to call getAccount here?
@@ -78,6 +77,7 @@ async function getTokenPopup(customRequest) {
         response = await myMSALObj.acquireTokenPopup(request).then(handleResponse).catch(error => {
             console.error(error);
         });
+        return response;
     }
 }
 
@@ -102,47 +102,37 @@ async function getTokenSilently(customRequest) {
 }
 
 async function seeProfile(pop) {
-    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
-    if (currentAcc) {
-        const requestParameters = pop ? {
-            ...authConfig.request.tokenRequest,
-            authenticationScheme: "pop",
-            resourceRequestMethod: "GET",
-            resourceRequestUri: authConfig.apiConfig.graphMeEndpoint
-        } : {
-            ...authConfig.request.tokenRequest
-        };
+    const requestParameters = pop ? {
+        ...authConfig.request.tokenRequest,
+        authenticationScheme: "pop",
+        resourceRequestMethod: "GET",
+        resourceRequestUri: authConfig.apiConfig.graphMeEndpoint
+    } : authConfig.request.tokenRequest;
 
-        const response = await myMSALObj.acquireTokenPopup(requestParameters).catch(error => {
-            console.log(error);
-        });
-        callMSGraph(authConfig.apiConfig.graphMeEndpoint, response.accessToken, updateInfo);
-        profileButton.style.display = 'none';
-    }
+    const response = await myMSALObj.acquireTokenPopup(requestParameters).catch(error => {
+        console.log(error);
+    });
+
+    callMSGraph(authConfig.apiConfig.graphMeEndpoint, response.accessToken, updateInfo);
+    profileButton.style.display = 'none';
 }
 
 async function getSecondToken() {
-    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
-    if (currentAcc) {
-        await myMSALObj.acquireTokenPopup(authConfig.request.tokenRequest).catch(error => {
-            console.log(error);
-        });
-        updateInfo("Second Token Acquired", "")
-        secondTokenButton.style.display = 'none';
-    }
+    await getTokenPopup(authConfig.request.secondTokenRequest).catch(error => {
+        console.log(error);
+    });
+    updateInfo("Second Token Acquired", "")
+    secondTokenButton.style.display = 'none';
 }
 
 async function fetchPopToken() {
-    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
-    if (currentAcc) {
-        const response = await myMSALObj.acquireTokenPopup(authConfig.request.popTokenRequest).catch(error => {
-            console.log(error);
-        });
+    const response = await myMSALObj.acquireTokenPopup(authConfig.request.popTokenRequest).catch(error => {
+        console.log(error);
+    });
 
-        popToken = response.accessToken
+    popToken = response.accessToken
 
-        if (popToken) {
-            showPopTokenAcquired(popToken);
-        }
+    if (popToken) {
+        showPopTokenAcquired(popToken);
     }
 }

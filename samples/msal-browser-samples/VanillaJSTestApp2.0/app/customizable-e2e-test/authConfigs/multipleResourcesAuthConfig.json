@@ -21,6 +21,11 @@
         },
         "tokenRequest": {
             "scopes": [
+                "User.Read"
+            ]
+        },
+        "secondTokenRequest": {
+            "scopes": [
                 "https://msidlab0.spoppe.com/User.Read"
             ]
         }

@@ -9,7 +9,6 @@ const secondTokenButton = document.getElementById("secondToken");
 const infoDiv = document.getElementById("info-div");
 const popCardDiv = document.getElementById("pop-card-div");
 const profileButton = document.getElementById("seeProfile");
-const popTokenAcquired = document.getElementById("PopTokenAcquired");
 const jwtBodyView = document.getElementById("jwtBodyView");
 const jwtHeaderView = document.getElementById("jwtHeaderView");
 
