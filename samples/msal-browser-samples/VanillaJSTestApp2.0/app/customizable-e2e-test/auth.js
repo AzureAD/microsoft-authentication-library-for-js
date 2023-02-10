@@ -1,13 +1,13 @@
-let signInType;
-let homeAccountId = "";
-
-// Create the main myMSALObj instance
-// configuration parameters are located at authConfig.js
 let myMSALObj;
 let authConfig;
 let popToken;
+let signInType;
+let homeAccountId = "";
+
 initializeMsal();
 
+// Create the main myMSALObj instance
+// configuration parameters are located at authConfig.js
 async function initializeMsal() {
     return fetch("testConfig.json").then(response => {
         return response.json();
@@ -26,7 +26,7 @@ function handleResponse(resp) {
         showWelcomeMessage(resp.account);
         if (resp.accessToken) {
             updateUI(resp);
-            if (authConfig.scenario == "onPageLoad") {
+            if (authConfig.scenario === "onPageLoad") {
                 seeProfile();
             }
         }
@@ -34,7 +34,7 @@ function handleResponse(resp) {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
         if (!currentAccounts || currentAccounts.length < 1) {
-            if (authConfig.scenario == "onPageLoad") {
+            if (authConfig.scenario === "onPageLoad") {
                 signIn("redirect");
             }
             return;
@@ -101,6 +101,28 @@ async function getTokenSilently(customRequest) {
     }
 }
 
+async function getSecondToken() {
+    await getTokenPopup(authConfig.request.secondTokenRequest).catch(error => {
+        console.log(error);
+    });
+    updateInfo("Second Token Acquired", "");
+}
+
+async function fetchPopToken() {
+    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
+    if (currentAcc) {
+        const response = await myMSALObj.acquireTokenPopup(authConfig.request.popTokenRequest).catch(error => {
+            console.log(error);
+        });
+
+        popToken = response.accessToken
+
+        if (popToken) {
+            showPopTokenAcquired(popToken);
+        }
+    }
+}
+
 async function seeProfile(pop) {
     const requestParameters = pop ? {
         ...authConfig.request.tokenRequest,
@@ -109,30 +131,12 @@ async function seeProfile(pop) {
         resourceRequestUri: authConfig.apiConfig.graphMeEndpoint
     } : authConfig.request.tokenRequest;
 
-    const response = await myMSALObj.acquireTokenPopup(requestParameters).catch(error => {
-        console.log(error);
-    });
+    const currentAcc = myMSALObj.getAccountByHomeId(homeAccountId);
+    if (currentAcc) {
+        const response = await myMSALObj.acquireTokenPopup(requestParameters).catch(error => {
+            console.log(error);
+        });
 
-    callMSGraph(authConfig.apiConfig.graphMeEndpoint, response.accessToken, updateInfo);
-    profileButton.style.display = 'none';
-}
-
-async function getSecondToken() {
-    await getTokenPopup(authConfig.request.secondTokenRequest).catch(error => {
-        console.log(error);
-    });
-    updateInfo("Second Token Acquired", "")
-    secondTokenButton.style.display = 'none';
-}
-
-async function fetchPopToken() {
-    const response = await myMSALObj.acquireTokenPopup(authConfig.request.popTokenRequest).catch(error => {
-        console.log(error);
-    });
-
-    popToken = response.accessToken
-
-    if (popToken) {
-        showPopTokenAcquired(popToken);
+        callMSGraph(authConfig.apiConfig.graphMeEndpoint, response.accessToken, updateInfo);
     }
 }

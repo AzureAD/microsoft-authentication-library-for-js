@@ -1,14 +1,14 @@
+import fs from "fs";
 import * as puppeteer from "puppeteer";
+import { JWT } from "jose";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { JWT } from "jose";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { getBrowser, getHomeUrl } from "./testUtils";
 import { msalConfig, apiConfig, request } from "../authConfigs/clientCapabilities.json";
 
-const fs = require('fs');
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let sampleHomeUrl = "";
 let username = "";
@@ -18,6 +18,7 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+
         const labApiParams: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,
             appType: AppTypes.CLOUD
@@ -29,7 +30,8 @@ describe("Browser tests", function () {
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig, apiConfig, request}));
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig, apiConfig, request }));
     });
 
     let context: puppeteer.BrowserContext;
@@ -38,13 +40,17 @@ describe("Browser tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
         BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
         await page.goto(sampleHomeUrl);
     });
 
     afterEach(async () => {
-        await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
+        if (msalConfig.cache.cacheLocation === "localStorage") {
+            await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
+        } else {
+            await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+        }
         await page.close();
     });
 
@@ -91,7 +97,7 @@ describe("Browser tests", function () {
         // Check cae token
         const accessToken = JSON.parse((await BrowserCache.getWindowStorage())[(tokenStore.accessTokens[0])]).secret;
         const decodedToken: any = JWT.decode(accessToken);
-        expect(decodedToken.xms_cc).toEqual([ "CP1" ]);
+        expect(decodedToken.xms_cc).toEqual(["CP1"]);
     });
 
     it("Performs loginRedirect, acquires and validates CAE PoP token", async () => {
@@ -127,7 +133,7 @@ describe("Browser tests", function () {
         await storagePoller(async () => {
             const tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.accessTokens).toHaveLength(2);
-        }, ONE_SECOND_IN_MS*5);
+        }, ONE_SECOND_IN_MS * 5);
 
         const tokenStore = await BrowserCache.getTokens();
         const cachedBearerToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
@@ -142,7 +148,7 @@ describe("Browser tests", function () {
 
         // Check cae pop token
         const decodedToken: any = JWT.decode(accessToken);
-        expect(decodedToken.xms_cc).toEqual([ "CP1" ]);
+        expect(decodedToken.xms_cc).toEqual(["CP1"]);
         expect(typeof decodedToken.cnf.kid).toEqual('string');
         expect(typeof decodedToken.cnf.xms_ksl).toEqual('string');
     });

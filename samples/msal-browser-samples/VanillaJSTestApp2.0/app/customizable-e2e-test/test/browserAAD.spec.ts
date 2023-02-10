@@ -1,3 +1,4 @@
+import fs from "fs";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
@@ -5,10 +6,7 @@ import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
-import { clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, waitForReturnToApp } from "./testUtils";
-import fs from "fs";
-import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, waitForReturnToApp, getBrowser, getHomeUrl } from "./testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
@@ -60,7 +58,7 @@ describe("AAD-PPE Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS*10);
             BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
         });
@@ -110,7 +108,7 @@ describe("AAD-PPE Tests", () => {
         });
 
         it("Performs loginRedirect with relative redirectUri", async () => {
-            const relativeRedirectUriRequest: RedirectRequest = {
+            const relativeRedirectUriRequest = {
                 ...aadTokenRequest,
                 redirectUri: "/"
             }
@@ -128,7 +126,7 @@ describe("AAD-PPE Tests", () => {
         });
 
         it("Performs loginRedirect with relative redirectStartPage", async () => {
-            const relativeRedirectUriRequest: RedirectRequest = {
+            const relativeRedirectUriRequest = {
                 ...aadTokenRequest,
                 redirectStartPage: "/"
             }
@@ -165,7 +163,7 @@ describe("AAD-PPE Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS*10);
             BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
 
@@ -212,7 +210,7 @@ describe("AAD-PPE Tests", () => {
         beforeAll(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS*10);
             BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
 

@@ -1,5 +1,5 @@
 import { Screenshot, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
-import { Page } from "puppeteer";
+import { Page, Browser } from "puppeteer";
 
 export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#MSIDLAB4_AzureAD");
@@ -72,4 +72,20 @@ export async function waitForReturnToApp(screenshot: Screenshot, page: Page, pop
     // Wait for token acquisition
     await page.waitForSelector("#scopes-acquired");
     await screenshot.takeScreenshot(page, "samplePageLoggedIn");
+}
+
+/**
+ * Returns an instance of {@link Browser}.
+ */
+export async function getBrowser(): Promise<Browser> {
+    // @ts-ignore
+    return global.__BROWSER__;
+}
+
+/**
+ * Returns a host url.
+ */
+export function getHomeUrl(): string {
+    // @ts-ignore
+    return `http://localhost:${global.__PORT__}/`;
 }

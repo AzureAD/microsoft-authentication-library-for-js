@@ -1,3 +1,4 @@
+import fs from "fs";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
@@ -5,9 +6,7 @@ import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams
 import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
-import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
-import fs from "fs";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, waitForReturnToApp, getBrowser, getHomeUrl } from "./testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
@@ -36,7 +35,7 @@ describe("B2C Tests", () => {
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: b2cMsalConfig, request: b2cTokenRequest}));
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig: b2cMsalConfig, request: b2cTokenRequest }));
     });
 
     afterAll(async () => {
@@ -61,14 +60,14 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
             });
 
             afterEach(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -102,7 +101,7 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
 
@@ -120,8 +119,8 @@ describe("B2C Tests", () => {
             });
 
             afterAll(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -206,14 +205,14 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
             });
 
             afterEach(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -247,7 +246,7 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 10);
                 BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
 
@@ -265,8 +264,8 @@ describe("B2C Tests", () => {
             });
 
             afterAll(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 

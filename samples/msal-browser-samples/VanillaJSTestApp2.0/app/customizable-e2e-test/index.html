@@ -17,7 +17,7 @@
         <a class="navbar-brand" href="/">MS Identity Platform</a>
         <div class="btn-group ml-auto dropleft">
             <button type="button" id="SignIn" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false"> Sign In </button>
+                aria-haspopup="true" aria-expanded="false">Sign In</button>
             <div class="dropdown-menu">
                 <button class="dropdown-item" id="popup" onclick="signIn(this.id)">Sign in using Popup</button>
                 <button class="dropdown-item" id="redirect" onclick="signIn(this.id)">Sign in using Redirect</button>
@@ -31,28 +31,25 @@
         <div id="card-div" class="col-md-4" style="display:none">
             <div class="card text-center">
                 <div class="card-body">
-                    <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails
-                    </h5>
+                    <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
                     <div id="profile-div"></div>
-                    <button class="btn btn-primary" id="acquireTokenRedirect"
-                        onclick="getTokenRedirect()">acquireTokenRedirect</button>
-                    <button class="btn btn-primary" id="acquireTokenPopup"
-                        onclick="getTokenPopup()">acquireTokenPopup</button>
-                    <button class="btn btn-primary" id="acquireTokenSilent"
-                        onclick="getTokenSilently()">acquireTokenSilent</button>
-                    <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
-                    <button class="btn btn-primary" id="secondToken" onclick="getSecondToken()">Acquire Token for Second
-                        Resource</button>
-                    <button class="btn btn-primary" id="seeProfilePop" onclick="seeProfile(true)">See Profile
-                        (PoP)</button>
+                    <button class="btn btn-primary" id="acquireTokenRedirect" onclick="getTokenRedirect()">acquireTokenRedirect</button>
+                    <button class="btn btn-primary" id="acquireTokenPopup" onclick="getTokenPopup()">acquireTokenPopup</button>
+                    <button class="btn btn-primary" id="acquireTokenSilent" onclick="getTokenSilently()">acquireTokenSilent</button>
+                    <button class="btn btn-primary" id="secondToken" onclick="getSecondToken()">Acquire Token for Second Resource</button>
                     <button class="btn btn-primary" id="popToken" onclick="fetchPopToken()">Acquire PoP Token</button>
+                    <button class="btn btn-primary" id="seeProfile" onclick="seeProfile()">See Profile</button>
+                    <button class="btn btn-primary" id="seeProfilePop" onclick="seeProfile(true)">See Profile (PoP)</button>
                 </div>
             </div>
         </div>
-        <br>
-        <br>
-        <div class="col-md-4">
-            <div id="info-div"></div>
+        <div id="info-card-div" class="col-md-4" style="display: none">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Profile info:</h5>
+                    <div id="info-div"></div>
+                </div>
+            </div>
         </div>
         <div id="pop-card-div" class="col-md-4" style="display: none">
             <div class="card">
@@ -60,18 +57,14 @@
                     <h5 class="card-title text-center">Signed HTTP Request:</h5>
                     <div class="tab-content right" id="jwtWindow">
                         <strong>Header</strong>
-                        <pre id="jwtHeaderView" style="white-space: pre-wrap;">
-            </pre>
+                        <pre id="jwtHeaderView" style="white-space: pre-wrap;"></pre>
                         <strong>Body</strong>
-                        <pre id="jwtBodyView" style="white-space: pre-wrap;">
-            </pre>
+                        <pre id="jwtBodyView" style="white-space: pre-wrap;"></pre>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <br>
-    <br>
     <!-- importing bootstrap.js and supporting js libraries -->
     <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
         integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
@@ -82,6 +75,7 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
         integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
         crossorigin="anonymous"></script>
+
     <!-- importing app scripts | load order is important -->
     <script type="text/javascript" src="./ui.js"></script>
     <script type="text/javascript" src="./auth.js"></script>

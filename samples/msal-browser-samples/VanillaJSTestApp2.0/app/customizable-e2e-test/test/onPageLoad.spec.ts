@@ -1,12 +1,13 @@
+import fs from "fs";
 import puppeteer from "puppeteer";
-import { getBrowser, getHomeUrl } from "../../testUtils";
+import { getBrowser, getHomeUrl } from "./testUtils";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig, apiConfig, request, scenario } from "../authConfigs/onPageLoadAuthConfig.json";
-const fs = require('fs');
+
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let sampleHomeUrl = "";
@@ -43,7 +44,11 @@ describe("On Page Load tests", function () {
     });
 
     afterEach(async () => {
-        await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+        if (msalConfig.cache.cacheLocation === "localStorage") {
+            await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
+        } else {
+            await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+        }
         await page.close();
     });
 
@@ -56,10 +61,13 @@ describe("On Page Load tests", function () {
         await page.goto(sampleHomeUrl);
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
         // Home Page
         await screenshot.takeScreenshot(page, "samplePageInit");
+
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
+
         // Wait for return to page
         await page.waitForXPath("//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
@@ -77,15 +85,19 @@ describe("On Page Load tests", function () {
         await page.goto(sampleHomeUrl + "?testPage");
         const testName = "navigateToLoginRequestUrl";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
         // Home Page
         await screenshot.takeScreenshot(page, "samplePageInit");
+
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
+
         // Wait for return to page
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
         await page.waitForXPath("//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         const tokenStore = await BrowserCache.getTokens();
+
         expect(tokenStore.idTokens).toHaveLength(1);
         expect(tokenStore.accessTokens).toHaveLength(1);
         expect(tokenStore.refreshTokens).toHaveLength(1);

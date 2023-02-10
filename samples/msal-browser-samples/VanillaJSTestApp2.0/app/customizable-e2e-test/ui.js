@@ -6,6 +6,7 @@ const redirectButton = document.getElementById("redirect");
 const cardDiv = document.getElementById("card-div");
 const profileDiv = document.getElementById("profile-div");
 const secondTokenButton = document.getElementById("secondToken");
+const infoCardDiv = document.getElementById("info-card-div");
 const infoDiv = document.getElementById("info-div");
 const popCardDiv = document.getElementById("pop-card-div");
 const profileButton = document.getElementById("seeProfile");
@@ -13,7 +14,6 @@ const jwtBodyView = document.getElementById("jwtBodyView");
 const jwtHeaderView = document.getElementById("jwtHeaderView");
 
 function showWelcomeMessage(account) {
-    // Reconfiguring DOM elements
     cardDiv.style.display = 'initial';
     welcomeDiv.innerHTML = `Welcome ${account.name}`;
     signInButton.setAttribute('class', "btn btn-success dropdown-toggle");
@@ -32,7 +32,7 @@ function updateUI(data) {
 }
 
 function updateInfo(data, endpoint) {
-    console.log('Graph API responded at: ' + new Date().toString());
+    infoCardDiv.style.display = 'initial';
 
     if (endpoint === authConfig.apiConfig.graphMeEndpoint) {
         const title = document.createElement('p');
@@ -47,6 +47,7 @@ function updateInfo(data, endpoint) {
         infoDiv.appendChild(email);
         infoDiv.appendChild(phone);
         infoDiv.appendChild(address);
+        profileButton.style.display = 'none';
     } else {
         const secondDiv = document.createElement('div');
         secondDiv.id = "second-resource-div";
@@ -55,6 +56,7 @@ function updateInfo(data, endpoint) {
         const title = document.createElement('p');
         title.innerHTML = data;
         secondDiv.appendChild(title);
+        secondTokenButton.style.display = 'none';
     }
 }
 

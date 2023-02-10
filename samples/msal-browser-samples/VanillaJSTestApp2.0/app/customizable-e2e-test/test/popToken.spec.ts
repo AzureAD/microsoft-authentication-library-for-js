@@ -1,14 +1,13 @@
+import fs from "fs";
 import puppeteer from "puppeteer";
+import { JWK, JWT } from "jose";
 import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { JWK, JWT } from "jose";
-import { getBrowser, getHomeUrl } from "../../testUtils";
-import { msalConfig, apiConfig, request } from "../authConfigs/popAuthConfig.json";
-import { clickLoginRedirect } from "./testUtils";
-const fs = require('fs');
+import { msalConfig, apiConfig, request } from "../authConfigs/popTokenAuthConfig.json";
+import { getBrowser, getHomeUrl, clickLoginRedirect } from "./testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let sampleHomeUrl = "";
@@ -30,6 +29,7 @@ describe("Browser tests", function () {
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
         fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig, apiConfig, request }));
     });
 
@@ -54,10 +54,13 @@ describe("Browser tests", function () {
 
     it("Performs loginRedirect, acquires and validates PoP token", async () => {
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/popToken`);
+
         // Click Sign In With Redirect
         await clickLoginRedirect(screenshot, page);
+
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
+
         // Wait for return to page
         await page.waitForXPath("//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");

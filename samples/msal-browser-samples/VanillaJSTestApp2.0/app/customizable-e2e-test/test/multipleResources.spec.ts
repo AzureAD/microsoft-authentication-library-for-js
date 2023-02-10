@@ -1,14 +1,12 @@
+import fs from "fs";
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { getBrowser, getHomeUrl } from "../../testUtils";
-import { clickLoginRedirect } from "./testUtils";
+import { clickLoginRedirect, getBrowser, getHomeUrl } from "./testUtils";
 import { msalConfig, apiConfig, request } from "../authConfigs/multipleResourcesAuthConfig.json";
-
-const fs = require('fs');
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let username = "";
@@ -55,10 +53,13 @@ describe("Browser tests", function () {
 
     it("Performs loginRedirect and acquires 2 tokens", async () => {
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/multipleResources`);
+
         // Click Sign In With Redirect
         await clickLoginRedirect(screenshot, page);
+
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
+
         // Wait for return to page
         await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
         await page.waitForXPath("//button[contains(., 'Sign Out')]");
