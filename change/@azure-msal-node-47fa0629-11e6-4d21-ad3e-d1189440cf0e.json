@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "restore cache from persistence by default #5678",
+  "packageName": "@azure/msal-node",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "patch"
+}
