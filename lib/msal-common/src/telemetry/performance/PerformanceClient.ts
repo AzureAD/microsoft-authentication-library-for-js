@@ -21,6 +21,11 @@ import {
     StaticFields
 } from "./PerformanceEvent";
 
+export interface PreQueueEvent {
+    name: PerformanceEvents;
+    time: number;
+}
+
 export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
     protected libraryName: string;
@@ -41,9 +46,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * Map of pre-queue times by correlation Id
      *
      * @protected
-     * @type {Map<string, Map<string, number>>}
+     * @type {Map<string, PreQueueEvent>}
      */
-    protected preQueueTimeByCorrelationId: Map<string, Map<string, number>>;
+    protected preQueueTimeByCorrelationId: Map<string, PreQueueEvent>;
 
     /**
      * Map of queue measurements by correlation Id
@@ -137,17 +142,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns {number}
      */
     getPreQueueTime(eventName: PerformanceEvents, correlationId: string): number | void {
-        const preQueueTimesByEvents = this.preQueueTimeByCorrelationId.get(correlationId);
+        const preQueueEvent: PreQueueEvent | undefined = this.preQueueTimeByCorrelationId.get(correlationId);
 
-        if (!preQueueTimesByEvents) {
+        if (!preQueueEvent) {
             this.logger.trace(`PerformanceClient.getPreQueueTime: no pre-queue times found for correlationId: ${correlationId}, unable to add queue measurement`);
             return;
-        } else if (!preQueueTimesByEvents.get(eventName)) {
+        } else if (preQueueEvent.name !== eventName) {
             this.logger.trace(`PerformanceClient.getPreQueueTime: no pre-queue time found for ${eventName}, unable to add queue measurement`);
             return;
         }
 
-        return preQueueTimesByEvents.get(eventName);
+        return preQueueEvent.time;
     }
 
     /**
@@ -212,6 +217,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
             const measurementArray = [queueMeasurement];
             this.queueMeasurements.set(correlationId, measurementArray);
         }
+        // Delete processed pre-queue event.
+        this.preQueueTimeByCorrelationId.delete(correlationId);
     }
 
     /**
