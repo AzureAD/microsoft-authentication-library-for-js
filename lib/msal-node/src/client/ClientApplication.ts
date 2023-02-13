@@ -31,7 +31,8 @@ import {
     AuthorizationCodePayload,
     StringUtils,
     ClientAuthError,
-    Constants, } from "@azure/msal-common";
+    Constants,
+} from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { NodeStorage } from "../cache/NodeStorage";
@@ -133,11 +134,11 @@ export abstract class ClientApplication {
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest, authCodePayLoad?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("acquireTokenByCode called");
-        if (request.state && authCodePayLoad){
+        if (request.state && authCodePayLoad) {
             this.logger.info("acquireTokenByCode - validating state");
             this.validateState(request.state, authCodePayLoad.state || "");
             // eslint-disable-next-line no-param-reassign
-            authCodePayLoad= {...authCodePayLoad, state: ""};
+            authCodePayLoad = { ...authCodePayLoad, state: "" };
         }
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -299,11 +300,11 @@ export abstract class ClientApplication {
      * @param cachedState
      */
     protected validateState(state: string, cachedState: string): void {
-        if(!state) {
+        if (!state) {
             throw NodeAuthError.createStateNotFoundError();
         }
 
-        if(state !== cachedState) {
+        if (state !== cachedState) {
             throw ClientAuthError.createStateMismatchError();
         }
     }
@@ -340,14 +341,16 @@ export abstract class ClientApplication {
         // precedence - azureCloudInstance + tenant >> authority and request  >> config
         const userAzureCloudOptions = azureCloudOptions ? azureCloudOptions : this.config.auth.azureCloudOptions;
 
-        // refresh cache if needed before building client config
-        await this.tokenCache.refreshCacheContext();
-
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`, requestCorrelationId);
         const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId, userAzureCloudOptions);
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
+
+        // if cache is persisted, restore cache context if needed before building client configuration
+        if (this.config.cache.cachePlugin) {
+            await this.tokenCache.restoreCacheContext();
+        }
 
         const clientConfiguration: ClientConfiguration = {
             authOptions: {
@@ -356,9 +359,9 @@ export abstract class ClientApplication {
                 clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
-                logLevel: this.config.system.loggerOptions.logLevel ,
-                loggerCallback: this.config.system.loggerOptions.loggerCallback ,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled ,
+                logLevel: this.config.system.loggerOptions.logLevel,
+                loggerCallback: this.config.system.loggerOptions.loggerCallback,
+                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
                 correlationId: requestCorrelationId
             },
             cryptoInterface: this.cryptoProvider,
