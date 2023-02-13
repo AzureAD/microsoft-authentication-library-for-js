@@ -45,7 +45,7 @@ export class MetaOSOperatingContext extends BaseOperatingContext {
          * TODO: Add implementation to check for presence of inject MetaOSHub JavaScript interface
          * TODO: Make pre-flight token request to ensure that App is eligible to use Nested App Auth
          */
-        return BrokerCommChannel.IsAvailable();
+        this.available = BrokerCommChannel.IsAvailable();
+        return this.available;
     }
-
 }

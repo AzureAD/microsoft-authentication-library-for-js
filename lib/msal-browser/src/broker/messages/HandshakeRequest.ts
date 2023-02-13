@@ -15,10 +15,10 @@ export type HandshakeRequest = {
     authLibVersion: string,
 
     /**
-     * List of supported protocol versions by broker client
+     * Supported protocol version by broker client
      * This is the version of protocol between broker client (MSAL.js, this module) and the broker server (broker app)
      */
-    supportedProtocolVersions: string[],
+    supportedProtocolVersion: string,
 
     /**
      * The client ID as used by the broker client application

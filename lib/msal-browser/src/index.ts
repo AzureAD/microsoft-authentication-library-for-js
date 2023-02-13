@@ -101,4 +101,6 @@ export {
 
 export { version } from "./packageMetadata";
 
-export { IAuthBridge } from "./broker/IAuthBridge";
+export { IAuthBridge, RequestMessage, ResponseMessage, AuthBridgeErrorCodes, AuthBridgeEventHandler } from "./broker/IAuthBridge";
+
+export { ControllerFactory } from "./controllers/ControllerFactory";

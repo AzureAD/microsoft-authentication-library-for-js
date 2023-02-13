@@ -39,15 +39,15 @@ export enum BrokerMessageName {
      * Name of Initial handshake message sent
      * This message should be sent only while initializing the module for once
      */
-    Handshake = 0,
+    Handshake,
 
     /**
      * Name of message sent to get the current account info
      */
-    Account = 1,
+    Account,
 
     /**
      * Name of message sent to get the access + id tokens
      */
-    Token = 2
+    Token
 }

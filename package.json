@@ -66,5 +66,8 @@
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
+  },
+  "dependencies": {
+    "nx": "^15.6.3"
   }
 }

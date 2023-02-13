@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, PerformanceCallbackFunction, AccountInfo, CommonAuthorizationUrlRequest, Logger, ClientAuthError, ClientConfigurationError, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, PerformanceCallbackFunction, AccountInfo, CommonAuthorizationUrlRequest, Logger, AuthError } from "@azure/msal-common";
 import { BrokerCommChannel } from "../broker/BrokerCommChannel";
 import { BrokerMessageName, IBrokerCommChannel } from "../broker/IBrokerCommChannel";
 import { HandshakeRequest } from "../broker/messages/HandshakeRequest";
@@ -24,6 +24,9 @@ import { WrapperSKU } from "../utils/BrowserConstants";
 import { IController } from "./IController";
 
 export class BrokerClientController implements IController {
+    protected readonly loggerPrefix: string = "BrokerClientController";
+
+    protected logger: Logger;
     protected config: Configuration;
     protected brokerAlias: string;
     protected commChannel: IBrokerCommChannel;
@@ -32,8 +35,9 @@ export class BrokerClientController implements IController {
 
     protected handshakeResponse: HandshakeResponse | null = null;
 
-    private constructor(config: Configuration, brokerAlias: string, commChannel: IBrokerCommChannel) {
-        this.config = config;
+    private constructor(operatingContext: BaseOperatingContext, brokerAlias: string, commChannel: IBrokerCommChannel) {
+        this.logger = operatingContext.getLogger();
+        this.config = operatingContext.getConfig();
         this.brokerAlias = brokerAlias;
         this.commChannel = commChannel;
 
@@ -47,49 +51,52 @@ export class BrokerClientController implements IController {
                 {
                     authLibName: "MSAL.js",
                     authLibVersion: "TODO: GetVersion",
-                    supportedProtocolVersions: [ "1.0" ],
+                    supportedProtocolVersion: "1.0",
                     clientId: this.config.auth.clientId
                 });
         
         // Check if the broker is supported. Otherwise throw non-recoverable error.
         if (this.handshakeResponse.brokerAlias !== this.brokerAlias) {
-            throw AuthError.createUnexpectedError(`Application wasn't configured to be hosted inside ${this.handshakeResponse.brokerAlias}. Please contact the app developer.`)
+            this.logger.error(`${this.loggerPrefix}:: client_id ${this.config.auth.clientId}) not configured for ${this.handshakeResponse.brokerAlias}, but being used inside it`);
+            throw AuthError.createUnexpectedError(`Application wasn't configured to be hosted inside ${this.handshakeResponse.brokerAlias}. Please contact the app developer.`);
         }
     }
 
     static async createController(operatingContext: BaseOperatingContext): Promise<IController> {
-        const controller = new BrokerClientController(operatingContext.getConfig(), "brk-multihub", new BrokerCommChannel());
+        const controller = new BrokerClientController(operatingContext, "brk-multihub", new BrokerCommChannel());
         controller.initialize();
         return controller;
     }
 
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        var tokenResponse =
+        const tokenResponse =
             await this.commChannel.sendMessageWithPayloadAndGetResponse<TokenRequest, AuthenticationResult>(
                 BrokerMessageName.Token,
                 this.converters.getTokenRequestFromPopupRequest(request));
 
-        // TODO: telemetry here
+        this.logger.info(`${this.loggerPrefix}:: acquireTokenPopup success. client_id ${this.config.auth.clientId}`);
 
         return tokenResponse;
     }
 
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        this.logger.info(`${this.loggerPrefix}:: Not implemented acquireTokenRedirect attemted. client_id ${this.config.auth.clientId}`);
         throw new Error("Method not implemented.");
     }
 
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        var tokenResponse =
+        const tokenResponse =
             await this.commChannel.sendMessageWithPayloadAndGetResponse<TokenRequest, AuthenticationResult>(
                 BrokerMessageName.Token,
                 this.converters.getTokenRequestFromSilentRequest(request));
 
-        // TODO: telemetry here
+        this.logger.info(`${this.loggerPrefix}:: acquireTokenSilent success. client_id ${this.config.auth.clientId}`);
 
         return tokenResponse;
     }
 
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.logger.info(`${this.loggerPrefix}:: Not implemented acquireTokenByCode attemted. client_id ${this.config.auth.clientId}`);
         throw new Error("Method not implemented.");
     }
 
@@ -127,7 +134,7 @@ export class BrokerClientController implements IController {
         return this.handshakeResponse !== null && this.handshakeResponse.account.localAccountId === localId ?
             this.handshakeResponse.account :
             null;
-        }
+    }
 
     getAccountByUsername(userName: string): AccountInfo | null {
         return this.handshakeResponse !== null && this.handshakeResponse.account.username === userName ?
@@ -136,7 +143,7 @@ export class BrokerClientController implements IController {
     }
 
     getAllAccounts(): AccountInfo[] {
-        var accounts = new Array<AccountInfo>();
+        const accounts = new Array<AccountInfo>();
 
         if (this.handshakeResponse !== null) {
             accounts[0] = this.handshakeResponse.account;
