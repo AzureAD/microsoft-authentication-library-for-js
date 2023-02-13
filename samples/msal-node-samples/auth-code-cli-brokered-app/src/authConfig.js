@@ -23,7 +23,6 @@ module.exports = {
             }
         },
         broker: {
-            allowNativeBroker: true,
             nativeBrokerPlugin: new NativeBrokerPlugin()
         }
     },
