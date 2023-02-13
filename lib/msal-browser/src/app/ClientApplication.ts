@@ -558,9 +558,6 @@ export abstract class ClientApplication {
                     this.hybridAuthCodeResponses.set(hybridAuthCode, response);
                 } else {
                     this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                    atbcMeasurement.endMeasurement({
-                        success: true
-                    });
                     atbcMeasurement.discardMeasurement();
                 }
                 return response;
