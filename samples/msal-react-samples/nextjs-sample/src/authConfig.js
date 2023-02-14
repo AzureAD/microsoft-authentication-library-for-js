@@ -5,6 +5,9 @@ export const msalConfig = {
         authority: "https://login.windows-ppe.net/common",
         redirectUri: "/",
         postLogoutRedirectUri: "/"
+    },
+    system: {
+        allowNativeBroker: false, // Disables WAM Broker
     }
 };
 
