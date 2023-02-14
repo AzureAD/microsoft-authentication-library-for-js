@@ -9,6 +9,9 @@ function MSALInstanceFactory(): IPublicClientApplication {
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
       redirectUri: 'http://localhost:4200'
+    },
+    system: {
+     allowNativeBroker: false // Disables WAM Bridge
     }
   });
 }
