@@ -269,7 +269,7 @@ describe('ClientConfiguration tests', () => {
         );
     })
 
-    test('beforeCacheAccess is invoked as expected', async () => {
+    test('beforeCacheAccess is invoked as expected if persistence is enabled', async () => {
 
         const authority: Authority = {
             regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
@@ -325,7 +325,6 @@ describe('ClientConfiguration tests', () => {
 
         await (new ConfidentialClientApplication(config)).acquireTokenOnBehalfOf(request);
 
-        expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenCalled();
         expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenCalledTimes(2); // before and after the request
         expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenNthCalledWith(1, expect.objectContaining({
             hasChanged: false,
