@@ -41,6 +41,21 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         return document.visibilityState?.toString() || null;
     }
 
+    private deleteIncompleteSubMeasurements(inProgressEvent: InProgressPerformanceEvent): void {
+        const rootEvent = this.eventsByCorrelationId.get(inProgressEvent.event.correlationId);
+        const isRootEvent = rootEvent && rootEvent.eventId === inProgressEvent.event.eventId;
+        const incompleteMeasurements: SubMeasurement[] = [];
+        if (isRootEvent && rootEvent?.incompleteSubMeasurements) {
+            rootEvent.incompleteSubMeasurements.forEach((subMeasurement) => {
+                incompleteMeasurements.push({...subMeasurement});
+            });
+        }
+        // Clean up remaining marks for incomplete sub-measurements
+        if (incompleteMeasurements.length > 0) {
+            BrowserPerformanceMeasurement.flushMeasurements(inProgressEvent.event.correlationId, incompleteMeasurements);
+        }
+    }
+
     supportsBrowserPerformanceNow(): boolean {
         return typeof window !== "undefined" &&
             typeof window.performance !== "undefined" &&
@@ -64,27 +79,19 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         return {
             ...inProgressEvent,
             endMeasurement: (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
-                const rootEvent = this.eventsByCorrelationId.get(inProgressEvent.event.correlationId);
-                const isRootEvent = rootEvent && rootEvent.eventId === inProgressEvent.event.eventId;
-                const incompleteMeasurements: SubMeasurement[] = [];
-                if (isRootEvent && rootEvent?.incompleteSubMeasurements) {
-                    rootEvent.incompleteSubMeasurements.forEach((subMeasurement) => {
-                        incompleteMeasurements.push({...subMeasurement});
-                    });
-                }
-
                 const res = inProgressEvent.endMeasurement({
                     startPageVisibility,
                     endPageVisibility: this.getPageVisibility(),
                     ...event
                 });
-
-                // Clean up remaining marks for incomplete sub-measurements
-                if (incompleteMeasurements.length > 0) {
-                    BrowserPerformanceMeasurement.flushMeasurements(inProgressEvent.event.correlationId, incompleteMeasurements);
-                }
+                this.deleteIncompleteSubMeasurements(inProgressEvent);
 
                 return res;
+            },
+            discardMeasurement: () => {
+                inProgressEvent.discardMeasurement();
+                this.deleteIncompleteSubMeasurements(inProgressEvent);
+                inProgressEvent.measurement.flushMeasurement();
             }
         };
     }
