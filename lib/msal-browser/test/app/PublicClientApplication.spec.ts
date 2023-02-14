@@ -109,6 +109,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     appName: TEST_CONFIG.applicationName,
                     appVersion: TEST_CONFIG.applicationVersion
                 }
+            },
+            system: {
+                allowNativeBroker: false
             }
         });
         BrowserPerformanceMeasurement.flushMeasurements = jest.fn().mockReturnValue(null);
@@ -437,6 +440,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: false
                 }
             });
 
@@ -810,6 +816,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cache: {
                     cacheLocation: BrowserCacheLocation.MemoryStorage,
                     storeAuthStateInCookie: false
+                },
+                system: {
+                    allowNativeBroker: false
                 }
             });
 

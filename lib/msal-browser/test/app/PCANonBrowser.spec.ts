@@ -152,6 +152,9 @@ describe("Non-browser environment", () => {
         const instance = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
+            system: {
+                allowNativeBroker: false
             }
         });
 
