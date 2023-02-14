@@ -1,4 +1,4 @@
-# MSAL.js Jest/Puppeteer Testing Example
+# MSAL.js Playwright Testing Example
 
 ⚠️ Warning: The ROPC Flow in msal-node should only be used for testing and is not suitable for authenticating users outside of a testing environment ⚠️
 
