@@ -200,7 +200,7 @@ describe('ClientConfiguration tests', () => {
         jest.spyOn(AuthorityFactory, 'createDiscoveredInstance').mockReturnValue(Promise.resolve(authority));
         jest.spyOn(AuthToken, 'extractTokenClaims').mockReturnValue({});
 
-        await (new ConfidentialClientApplication(appConfig)).acquireTokenByClientCredential(request);        
+        await (new ConfidentialClientApplication(appConfig)).acquireTokenByClientCredential(request);
 
         expect(appConfig.system?.networkClient?.sendPostRequestAsync).toHaveBeenCalledWith(
             undefined,
@@ -239,7 +239,7 @@ describe('ClientConfiguration tests', () => {
             skipCache: true
         };
 
-         const appConfig: Configuration = {
+        const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.AUTHORITY,
@@ -268,4 +268,70 @@ describe('ClientConfiguration tests', () => {
             )
         );
     })
+
+    test('beforeCacheAccess is invoked as expected', async () => {
+
+        const authority: Authority = {
+            regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
+            resolveEndpointsAsync: () => {
+                return new Promise<void>(resolve => {
+                    resolve();
+                });
+            },
+            discoveryComplete: () => {
+                return true;
+            },
+            getPreferredCache: () => {
+                return TEST_CONSTANTS.PREFERRED_CACHE;
+            }
+        } as Authority;
+
+        const config: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+                clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
+            },
+            cache: {
+                cachePlugin: {
+                    beforeCacheAccess: jest.fn(async (): Promise<void> => {
+                        return new Promise<void>(resolve => {
+                            resolve();
+                        });
+                    }),
+                    afterCacheAccess: jest.fn(async (): Promise<void> => {
+                        return new Promise<void>(resolve => {
+                            resolve();
+                        });
+                    })
+                }
+            },
+            system: {
+                networkClient: {
+                    sendGetRequestAsync: jest.fn(async (): Promise<any> => AUTHENTICATION_RESULT),
+                    sendPostRequestAsync: jest.fn(async (): Promise<any> => AUTHENTICATION_RESULT)
+                }
+            }
+        };
+
+        const request: OnBehalfOfRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_CONSTANTS.ACCESS_TOKEN,
+            skipCache: false
+        };
+
+        jest.spyOn(AuthorityFactory, 'createDiscoveredInstance').mockReturnValue(Promise.resolve(authority));
+        jest.spyOn(AuthToken, 'extractTokenClaims').mockReturnValue({});
+
+        await (new ConfidentialClientApplication(config)).acquireTokenOnBehalfOf(request);
+
+        expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenCalled();
+        expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenCalledTimes(2); // before and after the request
+        expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenNthCalledWith(1, expect.objectContaining({
+            hasChanged: false,
+        }));
+        expect(config.cache?.cachePlugin?.beforeCacheAccess).toHaveBeenNthCalledWith(2, expect.objectContaining({
+            hasChanged: true,
+        }));
+    });
 });

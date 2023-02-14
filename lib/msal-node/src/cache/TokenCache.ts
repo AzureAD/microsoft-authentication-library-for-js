@@ -98,18 +98,18 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     }
 
     /**
-     * API that retrieves all accounts currently in cache to the user
+     * API that restores cache context from persistence
      */
     async restoreCacheContext(): Promise<void> {
         this.logger.trace("refreshCacheContext called");
-        if (StringUtils.isEmpty(this.cacheSnapshot)) {
-            this.logger.trace("cache snapshot is empty, attempting to restore cache from persistence");
+        if (this.persistence && StringUtils.isEmpty(this.cacheSnapshot)) {
+            this.logger.trace("Cache snapshot is empty, attempting to restore cache from persistence");
             let cacheContext;
             try {
                 cacheContext = new TokenCacheContext(this, false);
                 await this.persistence.beforeCacheAccess(cacheContext);
             } finally {
-                if (cacheContext) {
+                if (this.persistence && cacheContext) {
                     await this.persistence.afterCacheAccess(cacheContext);
                 }
             }
