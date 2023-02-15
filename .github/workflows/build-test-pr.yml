@@ -11,7 +11,7 @@ on:
       - 'extensions/msal-node-extensions/**/*'
       - '!**.md'
       - '.github/workflows/build-test-pr.yml'
-
+      
 concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
