@@ -11,7 +11,6 @@ import {
   InteractionType,
   PopupRequest,
   RedirectRequest,
-  AccountInfo,
   EventMessage,
   EventType
 } from '@azure/msal-browser';
@@ -27,8 +26,6 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'Microsoft identity platform';
   loginDisplay = false;
   isIframe = false;
-  name: string | undefined;
-  accounts: AccountInfo[] = [];
 
   private readonly _destroying$ = new Subject<void>();
 
@@ -87,10 +84,6 @@ export class AppComponent implements OnInit, OnDestroy {
 
   setLoginDisplay() {
     this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
-    this.name = this.authService.instance.getActiveAccount()
-      ? this.authService.instance.getActiveAccount()?.username
-      : 'Unknown';
-    this.accounts = this.authService.instance.getAllAccounts();
   }
 
   checkAndSetActiveAccount() {

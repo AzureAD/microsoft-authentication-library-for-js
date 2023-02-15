@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
-import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
-import { InteractionStatus } from '@azure/msal-browser';
+import { MsalBroadcastService, MsalGuardConfiguration, MsalService, MSAL_GUARD_CONFIG } from '@azure/msal-angular';
+import { AuthenticationResult, InteractionStatus, InteractionType } from '@azure/msal-browser';
 
 import { createClaimsTable } from '../claim-utils';
 
@@ -20,6 +20,8 @@ export class HomeComponent implements OnInit {
   private readonly _destroying$ = new Subject<void>();
 
   constructor(
+    @Inject(MSAL_GUARD_CONFIG)
+    private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService
   ) { }
@@ -47,6 +49,25 @@ export class HomeComponent implements OnInit {
       const claimsTable = createClaimsTable(claims);
       this.dataSource = [...claimsTable];
     }
+  }
+
+  signUp() {
+    if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
+      this.authService
+        .loginPopup({
+          scopes: [],
+          prompt: 'create-account',
+        })
+        .subscribe((response: AuthenticationResult) => {
+          this.authService.instance.setActiveAccount(response.account);
+        });
+    } else {
+      this.authService.loginRedirect({
+        scopes: [],
+        prompt: 'create-account',
+      });
+    }
+
   }
 
   // unsubscribe to events when component is destroyed

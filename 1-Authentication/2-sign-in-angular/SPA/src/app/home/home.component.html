@@ -1,8 +1,8 @@
 <mat-card class="card-section" *ngIf="!loginDisplay">
   <mat-card-title>Angular single-page application built with MSAL Angular</mat-card-title>
-  <mat-card-subtitle>Sign-in with Azure AD and call Microsoft Graph</mat-card-subtitle>
-  <mat-card-content>This sample demonstrates how to configure MSAL Angular to sign-in, sign-out and acquire an access
-    token for the Microsoft Graph API</mat-card-content>
+  <mat-card-subtitle>Sign-in with Azure AD CIAM</mat-card-subtitle>
+  <mat-card-content>This sample demonstrates how to configure MSAL Angular to sign-up, sign-in and sign-out with Azure AD CIAM</mat-card-content>
+  <button mat-raised-button color="primary" (click)="signUp()">Sign up</button>
 </mat-card>
 <br>
 <p class="text-center" *ngIf="loginDisplay"> See below the claims in your <strong> ID token </strong>. For more
