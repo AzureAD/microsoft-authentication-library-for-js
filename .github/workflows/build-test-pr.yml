@@ -11,9 +11,7 @@ on:
       - 'extensions/msal-node-extensions/**/*'
       - '!**.md'
       - '.github/workflows/build-test-pr.yml'
-  merge_group:
-    types: [checks_requested]
-
+      
 concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
