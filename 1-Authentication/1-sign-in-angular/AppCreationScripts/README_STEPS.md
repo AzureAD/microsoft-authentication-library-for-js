@@ -1,7 +1,7 @@
 ---
 page_type: sample
 name: Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory
-description: This sample demonstrates an Angular single-page application (SPA) that uses Microsoft Authentication Library for Angular (MSAL Angular) to sign-in users with Azure Active Directory (Azure AD) Consumers Identity and Access Management (CIAM)
+description: This sample demonstrates an Angular single-page application (SPA) that uses Microsoft Authentication Library for Angular (MSAL Angular) to sign-in users with Azure Active Directory (Azure AD) and calls Microsoft Graph Api
 languages:
  - javascript
  - typescript
@@ -20,6 +20,8 @@ extensions:
 
 # Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory
 
+[![Build status](https://identitydivision.visualstudio.com/IDDP/_apis/build/status/AAD%20Samples/.NET%20client%20samples/ASP.NET%20Core%20Web%20App%20tutorial)](https://identitydivision.visualstudio.com/IDDP/_build/latest?definitionId=XXX)
+
 * [Overview](#overview)
 * [Scenario](#scenario)
 * [Contents](#contents)
@@ -34,14 +36,14 @@ extensions:
 
 ## Overview
 
-This sample demonstrates a Angular SPA that authenticates users against Azure AD CIAM.
+This sample demonstrates a Angular SPA that authenticates users against Azure AD.
 
 > :information_source: To learn how to integrate a JavaScript Angular application with Azure AD,consider going through the recorded session: [Deep dive on using MSAL.js to integrate Angular single-page applications with Azure Active Directory](https://www.youtube.com/watch?v=EJey9KP1dZA)
 
 ## Scenario
 
-1. The client Angular SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
-1. The **ID Token** proves that the user has successfully authenticated against **Azure AD CIAM**.
+1. The client Angular SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD**.
+1. The **ID Token** proves that the user has successfully authenticated against CIAM.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
 
@@ -117,6 +119,8 @@ There is one project in this sample. To register it, you can:
        ```
 
     > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provide a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
+    
+    
 </details>
 
 #### Choose the CIAM tenant where you want to create your applications
@@ -182,6 +186,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](Enter_Survey_Form_Link).
 
+
 ## Troubleshooting
 
 <details>
@@ -198,6 +203,7 @@ To provide feedback on or suggest features for Azure Active Directory, visit [Us
 
 > * Describe where the code uses auth libraries, or calls the graph
 > * Describe specific aspects (e.g. caching, validation etc.)
+
 
 ### Deploying SPA to Azure Storage
 

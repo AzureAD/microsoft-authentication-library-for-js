@@ -1,0 +1,34 @@
+<mat-card class="card-section" *ngIf="!loginDisplay">
+  <mat-card-title>Angular single-page application built with MSAL Angular</mat-card-title>
+  <mat-card-subtitle>Sign-in with Azure AD and call Microsoft Graph</mat-card-subtitle>
+  <mat-card-content>This sample demonstrates how to configure MSAL Angular to sign-in, sign-out and acquire an access
+    token for the Microsoft Graph API</mat-card-content>
+</mat-card>
+<br>
+<p class="text-center" *ngIf="loginDisplay"> See below the claims in your <strong> ID token </strong>. For more
+  information, visit: <span>
+    <a href="https://docs.microsoft.com/en-us/azure/active-directory/develop/id-tokens#claims-in-an-id-token">
+      docs.microsoft.com </a>
+  </span>
+</p>
+<div id="table-container">
+  <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="loginDisplay">
+    <!-- Claim Column -->
+    <ng-container matColumnDef="claim">
+      <th mat-header-cell *matHeaderCellDef> Claim </th>
+      <td mat-cell *matCellDef="let element"> {{element.claim}} </td>
+    </ng-container>
+    <!-- Value Column -->
+    <ng-container matColumnDef="value">
+      <th mat-header-cell *matHeaderCellDef> Value </th>
+      <td mat-cell *matCellDef="let element"> {{element.value}} </td>
+    </ng-container>
+    <!-- Value Column -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef> Description </th>
+      <td mat-cell *matCellDef="let element"> {{element.description}} </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="displayedColumns sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+</div>
