@@ -261,8 +261,7 @@ Function ConfigureApplications
     Write-Host "IMPORTANT: Please follow the instructions below to complete a few manual step(s) in the Azure portal":
     Write-Host "- For spa"
     Write-Host "  - Navigate to $spaPortalUrl"
-    Write-Host "  - Navigate to the Azure AD App Registration portal and grant admin consent to the API permissions defined for the application. " -ForegroundColor Red 
-    Write-Host "  - Application 'spa' authorized to call APIs. Do remember to navigate to the app registration in the app portal and consent for those, (if required)" -ForegroundColor Red 
+    Write-Host "  - Navigate to the Azure AD App Registration portal and grant admin consent to the API permissions defined for the application. " -ForegroundColor Red
     Write-Host -ForegroundColor Green "------------------------------------------------------------------------------------------------" 
    
 Add-Content -Value "</tbody></table></body></html>" -Path createdApps.html  

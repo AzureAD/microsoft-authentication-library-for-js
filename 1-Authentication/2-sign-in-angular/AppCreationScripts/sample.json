@@ -11,7 +11,7 @@
             "azure-active-directory",
             "msal-angular"
         ],
-        "RepositoryUrl": "ms-identity-javascript-angular-tutorial",
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
         "Platform": "JavaScript",
         "Endpoint": "AAD v2.0",
         "Provider": "CIAM",
@@ -34,11 +34,6 @@
                         "openid",
                         "offline_access"
                     ]
-                }
-            ],
-            "ManualSteps": [
-                {
-                    "Comment": "Navigate to the Azure AD App Registration portal and grant admin consent to the API permissions defined for the application. "
                 }
             ]
         }

@@ -8,14 +8,13 @@ languages:
 products:
  - azure-active-directory
  - msal-angular
-urlFragment: ms-identity-javascript-angular-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial
 extensions:
 - services: ms-identity
 - platform: JavaScript
 - endpoint: AAD v2.0
 - level: 100
 - client: Angular SPA
-- service: 
 ---
 
 # Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory
@@ -36,6 +35,8 @@ extensions:
 
 This sample demonstrates an Angular single-page application (SPA) that lets users sign-in with Azure Active Directory (Azure AD) Consumers Identity and Access Management (CIAM) using the [Microsoft Authentication Library for Angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular) (MSAL Angular).
 
+Here you'll learn about [ID Tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens), [OIDC scopes](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes), [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso), **silent requests** and more.
+
 > :information_source: To learn how to integrate a JavaScript Angular application with Azure AD,consider going through the recorded session: [Deep dive on using MSAL.js to integrate Angular single-page applications with Azure Active Directory](https://www.youtube.com/watch?v=EJey9KP1dZA)
 
 ## Scenario
@@ -47,13 +48,11 @@ This sample demonstrates an Angular single-page application (SPA) that lets user
 
 ## Contents
 
-> Give a high-level folder structure of the sample. Emphasize the files that you want people to look at.
-
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `LICENSE`         | The license for the sample.                |
+| File/folder                     | Description                                               |
+|---------------------------------|-----------------------------------------------------------|
+| `src/app/auth-config.ts`        | Authentication parameters reside here.                    |
+| `src/app/app.module.ts`         | MSAL Angular configuration parameters reside here.        |
+| `src/app/app-routing.module.ts` | Configure your MSAL-Guard here.                           |
 
 ## Prerequisites
 

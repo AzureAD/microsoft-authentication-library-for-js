@@ -57,9 +57,9 @@ export class HomeComponent implements OnInit {
         scopes: [],
         prompt: 'create',
       })
-      .subscribe((response: AuthenticationResult) => {
-        this.authService.instance.setActiveAccount(response.account);
-      });
+        .subscribe((response: AuthenticationResult) => {
+          this.authService.instance.setActiveAccount(response.account);
+        });
     } else {
       this.authService.loginRedirect({
         scopes: [],
