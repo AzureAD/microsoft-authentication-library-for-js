@@ -51,6 +51,12 @@ export class LabClient {
         return null;
     }
 
+    /**
+     * Queries the lab API for an app environment based on the provided parameters
+     * See: https://docs.msidlab.com/labapi/intro.html
+     * @param labApiParams
+     * @returns
+     */
     async getVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
         const apiParams: Array<string> = [];
