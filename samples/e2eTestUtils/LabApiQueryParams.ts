@@ -6,5 +6,6 @@ export type LabApiQueryParams = {
     homeDomain?: string,
     appType?: string,
     signInAudience?: string,
-    publicClient?: string
+    publicClient?: string,
+    appPlatform?: string,
 };
