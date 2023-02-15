@@ -94,10 +94,7 @@ export class AppComponent implements OnInit, OnDestroy {
      */
     let activeAccount = this.authService.instance.getActiveAccount();
 
-    if (
-      !activeAccount &&
-      this.authService.instance.getAllAccounts().length > 0
-    ) {
+    if (!activeAccount && this.authService.instance.getAllAccounts().length > 0) {
       let accounts = this.authService.instance.getAllAccounts();
       // add your code for handling multiple accounts here
       this.authService.instance.setActiveAccount(accounts[0]);
@@ -107,16 +104,14 @@ export class AppComponent implements OnInit, OnDestroy {
   login() {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
-        this.authService
-          .loginPopup({
-            ...this.msalGuardConfig.authRequest,
-          } as PopupRequest)
+        this.authService.loginPopup({
+          ...this.msalGuardConfig.authRequest,
+        } as PopupRequest)
           .subscribe((response: AuthenticationResult) => {
             this.authService.instance.setActiveAccount(response.account);
           });
       } else {
-        this.authService
-          .loginPopup()
+        this.authService.loginPopup()
           .subscribe((response: AuthenticationResult) => {
             this.authService.instance.setActiveAccount(response.account);
           });
@@ -133,9 +128,16 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   logout() {
-    this.authService.logoutRedirect({
-      account: this.authService.instance.getActiveAccount(),
-    });
+
+    if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
+      this.authService.logoutPopup({
+        account: this.authService.instance.getActiveAccount(),
+      });
+    } else {
+      this.authService.logoutRedirect({
+        account: this.authService.instance.getActiveAccount(),
+      });
+    }
   }
 
   // unsubscribe to events when component is destroyed
