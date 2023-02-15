@@ -53,13 +53,13 @@ describe('/ (Lazy Loading Page)', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
         [clientID, authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
 
-        await stringReplacer.replace({
+        stringReplacer.replace({
             "ENTER_CLIENT_ID_HERE": clientID
         });
     });
 
     afterAll(async () => {
-        await stringReplacer.restore();
+        stringReplacer.restore();
     });
 
     beforeEach(async () => {

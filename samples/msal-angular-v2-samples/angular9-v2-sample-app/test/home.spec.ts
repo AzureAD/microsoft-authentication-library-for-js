@@ -59,7 +59,7 @@ describe('/ (Home Page)', () => {
     });
 
     afterAll(async () => {
-        await stringReplacer.restore();
+        stringReplacer.restore();
     });
 
     beforeEach(async () => {
