@@ -4,7 +4,6 @@
  */
 
 import { ITokenCache } from "../cache/ITokenCache";
-import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -15,6 +14,10 @@ import { IPublicClientApplication } from "./IPublicClientApplication";
 import { IController } from "../controllers/IController";
 import { AuthenticationResult, PerformanceCallbackFunction, AccountInfo, Logger, EndSessionRequest, SsoSilentRequest } from "..";
 import { ControllerFactory } from "../controllers/ControllerFactory";
+import { StandardController } from "../controllers/StandardController";
+import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import { version, name } from "../packageMetadata";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -28,13 +31,20 @@ export class PublicClientApplication implements IPublicClientApplication {
 
         const factory = new ControllerFactory(configuration);
         const controller = await factory.createController();
-        const pca = new PublicClientApplication(controller);
+        const pca = new PublicClientApplication(configuration, controller);
         
         return pca;
     }
 
-    private constructor(controller: IController){
-        this.controller = controller;
+    public constructor(configuration: Configuration, controller?: IController){
+        if(controller){
+            this.controller = controller;
+        }else{
+            const config = buildConfiguration(configuration, true);
+            const logger = new Logger(config.system.loggerOptions, name, version);
+            const standardOperatingContext = new StandardOperatingContext(logger, config);
+            this.controller = new StandardController(standardOperatingContext, standardOperatingContext.getConfig());
+        }
     }
 
     initialize(): Promise<void> {
