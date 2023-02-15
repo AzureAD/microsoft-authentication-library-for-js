@@ -11,6 +11,11 @@ const config = {
 
 let tokenCache: CacheKVStore;
 
+/**
+ * This function populates the session storage with the users' authentication data; 
+ * for alternative ways to populate the session and local storage with Playwright, 
+ * visit: https://playwright.dev/docs/auth
+ */
 async function setSessionStorage(page: Page, tokens: CacheKVStore) {
     const cacheKeys = Object.keys(tokens);
     for (let key of cacheKeys) {
