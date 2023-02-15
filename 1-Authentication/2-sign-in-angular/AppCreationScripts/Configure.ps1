@@ -16,6 +16,61 @@ param(
  There are two ways to run this script. For more information, read the AppCreationScripts.md file in the same folder as this script.
 #>
 
+# Adds the requiredAccesses (expressed as a pipe separated string) to the requiredAccess structure
+# The exposed permissions are in the $exposedPermissions collection, and the type of permission (Scope | Role) is 
+# described in $permissionType
+Function AddResourcePermission($requiredAccess, `
+                               $exposedPermissions, [string]$requiredAccesses, [string]$permissionType)
+{
+    foreach($permission in $requiredAccesses.Trim().Split("|"))
+    {
+        foreach($exposedPermission in $exposedPermissions)
+        {
+            if ($exposedPermission.Value -eq $permission)
+                {
+                $resourceAccess = New-Object Microsoft.Graph.PowerShell.Models.MicrosoftGraphResourceAccess
+                $resourceAccess.Type = $permissionType # Scope = Delegated permissions | Role = Application permissions
+                $resourceAccess.Id = $exposedPermission.Id # Read directory data
+                $requiredAccess.ResourceAccess += $resourceAccess
+                }
+        }
+    }
+}
+
+#
+# Example: GetRequiredPermissions "Microsoft Graph"  "Graph.Read|User.Read"
+# See also: http://stackoverflow.com/questions/42164581/how-to-configure-a-new-azure-ad-application-through-powershell
+Function GetRequiredPermissions([string] $applicationDisplayName, [string] $requiredDelegatedPermissions, [string]$requiredApplicationPermissions, $servicePrincipal)
+{
+    # If we are passed the service principal we use it directly, otherwise we find it from the display name (which might not be unique)
+    if ($servicePrincipal)
+    {
+        $sp = $servicePrincipal
+    }
+    else
+    {
+        $sp = Get-MgServicePrincipal -Filter "DisplayName eq '$applicationDisplayName'"
+    }
+    $appid = $sp.AppId
+    $requiredAccess = New-Object Microsoft.Graph.PowerShell.Models.MicrosoftGraphRequiredResourceAccess
+    $requiredAccess.ResourceAppId = $appid 
+    $requiredAccess.ResourceAccess = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphResourceAccess]
+
+    # $sp.Oauth2Permissions | Select Id,AdminConsentDisplayName,Value: To see the list of all the Delegated permissions for the application:
+    if ($requiredDelegatedPermissions)
+    {
+        AddResourcePermission $requiredAccess -exposedPermissions $sp.Oauth2PermissionScopes -requiredAccesses $requiredDelegatedPermissions -permissionType "Scope"
+    }
+    
+    # $sp.AppRoles | Select Id,AdminConsentDisplayName,Value: To see the list of all the Application permissions for the application
+    if ($requiredApplicationPermissions)
+    {
+        AddResourcePermission $requiredAccess -exposedPermissions $sp.AppRoles -requiredAccesses $requiredApplicationPermissions -permissionType "Role"
+    }
+    return $requiredAccess
+}
+
+
 <#.Description
    This function takes a string input as a single line, matches a key value and replaces with the replacement value
 #> 
@@ -170,6 +225,23 @@ Function ConfigureApplications
     $spaPortalUrl = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/"+$currentAppId+"/isMSAApp~/false"
 
     Add-Content -Value "<tr><td>spa</td><td>$currentAppId</td><td><a href='$spaPortalUrl'>ciam-msal-angular-spa</a></td></tr>" -Path createdApps.html
+    # Declare a list to hold RRA items    
+    $requiredResourcesAccess = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphRequiredResourceAccess]
+
+    # Add Required Resources Access (from 'spa' to 'Microsoft Graph')
+    Write-Host "Getting access from 'spa' to 'Microsoft Graph'"
+    $requiredPermission = GetRequiredPermissions -applicationDisplayName "Microsoft Graph"`
+        -requiredDelegatedPermissions "openid|offline_access"
+
+    $requiredResourcesAccess.Add($requiredPermission)
+    Write-Host "Added 'Microsoft Graph' to the RRA list."
+    # Useful for RRA additions troubleshooting
+    # $requiredResourcesAccess.Count
+    # $requiredResourcesAccess
+    
+    Update-MgApplication -ApplicationId $currentAppObjectId -RequiredResourceAccess $requiredResourcesAccess
+    Write-Host "Granted permissions."
+    
 
     # print the registered app portal URL for any further navigation
     Write-Host "Successfully registered and configured that app registration for 'ciam-msal-angular-spa' at `n $spaPortalUrl" -ForegroundColor Green 
@@ -189,7 +261,8 @@ Function ConfigureApplications
     Write-Host "IMPORTANT: Please follow the instructions below to complete a few manual step(s) in the Azure portal":
     Write-Host "- For spa"
     Write-Host "  - Navigate to $spaPortalUrl"
-    Write-Host "  - Navigate to the Manifest page, find the 'replyUrlsWithType' section and change the type of redirect URI to 'Spa'" -ForegroundColor Red 
+    Write-Host "  - Navigate to the Azure AD App Registration portal and grant admin consent to the API permissions defined for the application. " -ForegroundColor Red 
+    Write-Host "  - Application 'spa' authorized to call APIs. Do remember to navigate to the app registration in the app portal and consent for those, (if required)" -ForegroundColor Red 
     Write-Host -ForegroundColor Green "------------------------------------------------------------------------------------------------" 
    
 Add-Content -Value "</tbody></table></body></html>" -Path createdApps.html  

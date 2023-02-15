@@ -3,8 +3,14 @@
         "Title": "Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory",
         "Level": 100,
         "Client": "Angular SPA",
-        "Languages": ["javascript", "typescript"],
-        "Products": ["azure-active-directory", "msal-angular"],
+        "Languages": [
+            "javascript",
+            "typescript"
+        ],
+        "Products": [
+            "azure-active-directory",
+            "msal-angular"
+        ],
         "RepositoryUrl": "ms-identity-javascript-angular-tutorial",
         "Platform": "JavaScript",
         "Endpoint": "AAD v2.0",
@@ -21,9 +27,18 @@
             "SampleSubPath": "1-Authentication\\1-sign-in-angular\\SPA",
             "HomePage": "http://localhost:4200",
             "ReplyUrls": "http://localhost:4200",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": [
+                        "openid",
+                        "offline_access"
+                    ]
+                }
+            ],
             "ManualSteps": [
                 {
-                    "Comment": "Navigate to the Manifest page, find the 'replyUrlsWithType' section and change the type of redirect URI to 'Spa'"
+                    "Comment": "Navigate to the Azure AD App Registration portal and grant admin consent to the API permissions defined for the application. "
                 }
             ]
         }
