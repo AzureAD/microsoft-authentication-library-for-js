@@ -1,9 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-// const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me'; // Prod graph endpoint. Uncomment to use.
-const GRAPH_ENDPOINT = 'https://graph.microsoft-ppe.com/v1.0/me';
-
 type ProfileType = {
   givenName?: string,
   surname?: string,
@@ -31,7 +28,7 @@ export class ProfileComponent implements OnInit {
   }
 
   getProfile() {
-    this.http.get(GRAPH_ENDPOINT)
+    this.http.get('https://graph.microsoft.com/v1.0/me')
       .subscribe(profile => {
         this.profile = profile;
       });
