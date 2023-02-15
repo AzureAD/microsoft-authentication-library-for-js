@@ -1,4 +1,4 @@
-import * as fs from 'fs/promises';
+import fs from 'fs';
 
 export class StringReplacer {
     private filePath: string;
@@ -12,40 +12,60 @@ export class StringReplacer {
     async replace(map: Record<string, string>): Promise<void> {
         this.mappings = map;
 
-        try {
-            const content = await fs.readFile(this.filePath, "utf-8");
-            let updatedContent = content;
+        return new Promise((resolve, reject) => {
+            fs.readFile(this.filePath, "utf-8", (err, data) => {
+                if (err) {
+                    console.error(`Error reading file: ${err}`);
+                    reject(err);
+                }
 
-            for (const [key, value] of Object.entries(map)) {
-                const regex = new RegExp(key, "g");
-                updatedContent = updatedContent.replace(regex, value);
-            }
+                let updatedContent = data;
 
-            await fs.writeFile(this.filePath, updatedContent, "utf-8");
-        } catch (err) {
-            console.error(`Error replacing file: ${err}`);
-        }
+                for (const [key, value] of Object.entries(map)) {
+                    const regex = new RegExp(key, "g");
+                    updatedContent = updatedContent.replace(regex, value);
+                }
+
+                fs.writeFile(this.filePath, updatedContent, (err) => {
+                    if (err) {
+                        console.error(`Error writing file: ${err}`);
+                        reject(err);
+                    }
+
+                    resolve();
+                });
+            });
+        });
     }
 
     async restore(): Promise<void> {
         if (Object.keys(this.mappings).length === 0) {
-            console.log("No replacements to restore from");
+            console.log("No mappings to restore from");
             return;
         }
 
-        try {
-            const content = await fs.readFile(this.filePath, "utf-8");
+        return new Promise((resolve, reject) => {
+            fs.readFile(this.filePath, "utf-8", (err, data) => {
+                if (err) {
+                    console.error(`Error reading file: ${err}`);
+                    reject(err);
+                }
 
-            let updatedContent = content;
+                let updatedContent = data;
 
-            for (const [key, value] of Object.entries(this.mappings)) {
-                const regex = new RegExp(value, "g");
-                updatedContent = updatedContent.replace(regex, key);
-            }
+                for (const [key, value] of Object.entries(this.mappings)) {
+                    const regex = new RegExp(value, "g");
+                    updatedContent = updatedContent.replace(regex, key);
+                }
 
-            await fs.writeFile(this.filePath, updatedContent, "utf-8");
-        } catch (err) {
-            console.error(`Error restoring file: ${err}`);
-        }
+                fs.writeFile(this.filePath, updatedContent, (err) => {
+                    if (err) {
+                        console.error(`Error writing file: ${err}`);
+                        reject(err);
+                    }
+                    resolve();
+                });
+            });
+        });
     }
 }
