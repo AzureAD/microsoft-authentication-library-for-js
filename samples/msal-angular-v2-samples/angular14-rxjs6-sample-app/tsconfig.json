@@ -15,6 +15,7 @@
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "node",
+    "esModuleInterop": true,
     "importHelpers": true,
     "target": "es2017",
     "module": "es2020",
@@ -22,8 +23,8 @@
       "es2020",
       "dom"
     ],
-    "paths": { 
-      "@angular/*": ["./node_modules/@angular/*"] 
+    "paths": {
+      "@angular/*": ["./node_modules/@angular/*"]
     }
   },
   "angularCompilerOptions": {
