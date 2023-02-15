@@ -4,8 +4,7 @@
  */
 
 import { Logger } from "@azure/msal-common";
-import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
-import { version, name } from "../packageMetadata";
+import { BrowserConfiguration } from "../config/Configuration";
 
 /**
  * Base class for operating context
