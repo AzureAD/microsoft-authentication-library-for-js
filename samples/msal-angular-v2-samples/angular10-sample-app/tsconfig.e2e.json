@@ -1,6 +1,6 @@
 /* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
-    "extends": "./tsconfig.base.json",
+    "extends": "./tsconfig.json",
     "compilerOptions": {
       "types": [
           "jest"
@@ -10,4 +10,3 @@
       "test/**/*.spec.ts"
     ]
   }
-  
