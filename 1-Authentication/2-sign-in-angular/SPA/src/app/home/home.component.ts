@@ -55,7 +55,7 @@ export class HomeComponent implements OnInit {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       this.authService.loginPopup({
         scopes: [],
-        prompt: 'create-account',
+        prompt: 'create',
       })
       .subscribe((response: AuthenticationResult) => {
         this.authService.instance.setActiveAccount(response.account);
@@ -63,7 +63,7 @@ export class HomeComponent implements OnInit {
     } else {
       this.authService.loginRedirect({
         scopes: [],
-        prompt: 'create-account',
+        prompt: 'create',
       });
     }
 
