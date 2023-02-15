@@ -43,7 +43,7 @@ This sample demonstrates an Angular single-page application (SPA) that lets user
 1. The client Angular SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
 1. The **ID Token** proves that the user has successfully authenticated against **Azure AD CIAM**.
 
-![Scenario Image](./ReadmeFiles/topology.png)
+![Scenario Image](../ReadmeFiles/topology.png)
 
 ## Contents
 
@@ -176,7 +176,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Open your browser and navigate to `http://localhost:4200`.
 1. Select the **Sign-in** button on the top right corner. Once you sign-in, you will see some of the important claims in your ID token.
 
-![Screenshot](./ReadmeFiles/screenshot.png)
+![Screenshot](../ReadmeFiles/screenshot.png)
 
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
 
