@@ -7,6 +7,9 @@
         "cache": {
             "cacheLocation": "localStorage",
             "storeAuthStateInCookie": false
+        },
+        "system": {
+            "allowNativeBroker": false
         }
     },
     "request": {

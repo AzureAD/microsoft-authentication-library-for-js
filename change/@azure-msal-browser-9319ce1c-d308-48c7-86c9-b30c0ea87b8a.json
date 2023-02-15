@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix logger explicitly set to undefined error #5355 ",
-  "packageName": "@azure/msal-browser",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}

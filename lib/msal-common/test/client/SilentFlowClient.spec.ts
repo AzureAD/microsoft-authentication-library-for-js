@@ -620,5 +620,40 @@ describe("SilentFlowClient unit tests", () => {
             expect(refreshTokenSpy.called).toBe(true);
             expect(refreshTokenSpy.calledWith(expectedRefreshRequest)).toBe(true);
         });
+
+        it("Adds tokenQueryParameters to the /token request", (done) => {
+            sinon.restore();
+            AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+                expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                done();
+            });
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
+            testAccessTokenEntity.refreshOn = `${Number(testAccessTokenEntity.cachedAt) - 1}`;
+            testAccessTokenEntity.expiresOn = `${Number(testAccessTokenEntity.cachedAt) + AUTHENTICATION_RESULT.body.expires_in}`;
+            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+    
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                tokenQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+            };
+    
+            client.acquireToken(silentFlowRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
     });
 });

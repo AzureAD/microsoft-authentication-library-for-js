@@ -56,6 +56,7 @@ const msalConfig = {
             logLevel: msal.LogLevel.Verbose,
         },
         proxyUrl: "",
+        customAgentOptions: {},
     }
 }
 
@@ -86,6 +87,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
 | `NetworkClient` | Custom HTTP implementation | INetworkModule | [HttpClient.ts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/src/network/HttpClient.ts) |
 | `proxyUrl` | The URL of the proxy the app is running behind | string | Empty string `""` |
+| `customAgentOptions` | Set of configurable options to set on a http(s) agent | Object - [NodeJS documentation on alloweable options](https://nodejs.org/docs/latest-v16.x/api/http.html#new-agentoptions) | Empty Object `{}` |
 
 #### Logger Config Options
 | Option | Description | Format | Default Value |

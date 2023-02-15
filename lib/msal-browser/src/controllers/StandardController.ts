@@ -5,7 +5,7 @@
 
 import { IController } from "./IController";
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, RequestThumbprint, ServerError, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, RequestThumbprint, ServerError, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy, DEFAULT_REQUEST, BrowserConstants } from "../utils/BrowserConstants";
@@ -91,7 +91,10 @@ export class StandardController implements IController{
 
     // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
+    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
+    private ssoSilentMeasurement?: InProgressPerformanceEvent;
+    private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -168,12 +171,28 @@ export class StandardController implements IController{
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
 
         this.activeSilentTokenRequests = new Map();
+
+        // Register listener functions
+        this.trackPageVisibility = this.trackPageVisibility.bind(this);
+
+        // Register listener functions
+        this.trackPageVisibilityWithMeasurement = this.trackPageVisibilityWithMeasurement.bind(this);
     }
 
     static async createController(operatingContext: BaseOperatingContext): Promise<IController> {
         const controller = new StandardController(operatingContext, operatingContext.getConfig());
         controller.initialize();
         return controller;
+    }
+
+    private trackPageVisibility():void {
+        if (!this.astsAsyncMeasurement) {
+            return;
+        }
+        this.logger.info("Perf: Visibility change detected");
+        this.astsAsyncMeasurement.increment({
+            visibilityChangeCount: 1,
+        });
     }
 
     /**
@@ -434,6 +453,17 @@ export class StandardController implements IController{
         });
     }
 
+    private trackPageVisibilityWithMeasurement():void {
+        const measurement = this.ssoSilentMeasurement || this.acquireTokenByCodeAsyncMeasurement;
+        if(!measurement) {
+            return;
+        }
+
+        this.logger.info("Perf: Visibility change detected in ", measurement.event.name);
+        measurement.increment({
+            visibilityChangeCount: 1,
+        });
+    }
     // #endregion
 
     // #region Silent Flow
@@ -462,7 +492,11 @@ export class StandardController implements IController{
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        const ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
@@ -485,27 +519,30 @@ export class StandardController implements IController{
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
-            ssoSilentMeasurement.addStaticFields({
+            this.ssoSilentMeasurement?.addStaticFields({
                 accessTokenSize: response.accessToken.length,
                 idTokenSize: response.idToken.length
             });
-            ssoSilentMeasurement.endMeasurement({
+            this.ssoSilentMeasurement?.endMeasurement({
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            ssoSilentMeasurement.flushMeasurement();
+            this.ssoSilentMeasurement?.flushMeasurement();
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
-            ssoSilentMeasurement.endMeasurement({
+            this.ssoSilentMeasurement?.endMeasurement({
                 errorCode: e.errorCode,
                 subErrorCode: e.subError,
                 success: false
             });
-            ssoSilentMeasurement.flushMeasurement();
+            this.ssoSilentMeasurement?.flushMeasurement();
             throw e;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         });
+
     }
 
     /**
@@ -604,8 +641,30 @@ export class StandardController implements IController{
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
-        const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+        const silentTokenResult = await silentAuthCodeClient.acquireToken(request).then((response) => {
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                success: true,
+                fromCache: response.fromCache,
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
+            });
+            return response;
+        }).catch((tokenRenewalError: AuthError) => {
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                errorCode: tokenRenewalError.errorCode,
+                subErrorCode: tokenRenewalError.subError,
+                success: false
+            });
+            throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+        });
         return silentTokenResult;
     }
 
@@ -621,6 +680,7 @@ export class StandardController implements IController{
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -641,12 +701,15 @@ export class StandardController implements IController{
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
             case CacheLookupPolicy.RefreshToken:
             case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
+
+                this.performanceClient.setPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken, commonRequest.correlationId);
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
@@ -661,7 +724,11 @@ export class StandardController implements IController{
     protected async acquireTokenBySilentIframe(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId);
+
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+
+        this.performanceClient.setPreQueueTime(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         return silentIframeClient.acquireToken(request);
     }
 
@@ -1128,7 +1195,7 @@ export class StandardController implements IController{
         atsMeasurement.addStaticFields({
             cacheLookupPolicy: request.cacheLookupPolicy
         });
-        
+
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", correlationId);
 
@@ -1155,6 +1222,7 @@ export class StandardController implements IController{
         if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
 
+            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
             const response = this.acquireTokenSilentAsync({
                 ...request,
                 correlationId
@@ -1169,7 +1237,8 @@ export class StandardController implements IController{
                         success: true,
                         fromCache: result.fromCache,
                         isNativeBroker: result.fromNativeBroker,
-                        requestId: result.requestId
+                        cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId,
                     });
                     atsMeasurement.flushMeasurement();
                     return result;
@@ -1201,12 +1270,17 @@ export class StandardController implements IController{
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
      * @param {@link (SilentRequest:type)}
      * @param {@link (AccountInfo:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
      */
     protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        const astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.astsAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibility);
         let result: Promise<AuthenticationResult>;
         if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
@@ -1218,26 +1292,29 @@ export class StandardController implements IController{
                 // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof NativeAuthError && e.isFatal()) {
                     this.logger.verbose("acquireTokenSilent - native platform unavailable, falling back to web flow");
-                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
+                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
 
                     // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                     return silentIframeClient.acquireToken(request);
                 }
                 throw e;
-            });     
+            });
         } else {
             this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
 
             const silentCacheClient = this.createSilentCacheClient(request.correlationId);
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeSilentRequest, request.correlationId);
             const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-            
+
             const requestWithCLP = {
                 ...request,
                 // set the request's CacheLookupPolicy to Default if it was not optionally passed in
                 cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
             };
 
+            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache, silentRequest.correlationId);
             result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
                 if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
                     throw cacheError;
@@ -1247,22 +1324,24 @@ export class StandardController implements IController{
                 BrowserUtils.blockReloadInHiddenIframes();
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
 
+                this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken, silentRequest.correlationId);
                 return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
                     const isServerError = refreshTokenError instanceof ServerError;
                     const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
                     const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
                     if ((!isServerError ||
-                        !isInvalidGrantError ||
-                        isInteractionRequiredError ||
-                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
+                            !isInvalidGrantError ||
+                            isInteractionRequiredError ||
+                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
                         && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
                     ) {
                         throw refreshTokenError;
                     }
-                        
+
                     this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
+                    this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe, silentRequest.correlationId);
                     return this.acquireTokenBySilentIframe(silentRequest);
                 });
             });
@@ -1270,7 +1349,7 @@ export class StandardController implements IController{
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            astsAsyncMeasurement.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
@@ -1279,12 +1358,14 @@ export class StandardController implements IController{
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            astsAsyncMeasurement.endMeasurement({
+            this.astsAsyncMeasurement?.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false
             });
             throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibility);
         });
     }
 

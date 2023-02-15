@@ -10,6 +10,9 @@ describe("withMsal tests", () => {
     const msalConfig: Configuration = {
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
+        },
+        system: {
+            allowNativeBroker: false
         }
     };
 

@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Wed, 07 Dec 2022 16:53:07 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.30
+
+Mon, 06 Feb 2023 18:51:50 GMT
+
+### Changes
+
+- Add Logging options to IPersistenceConfiguration #5626 (fredrik.rasch@gmail.com)
+- Include packageMetadata in bundle #5638 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v10.0.0
+
+## 1.0.0-alpha.29
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Changes
+
+- Bump @azure/msal-common to v9.0.2
 
 ## 1.0.0-alpha.28
 
