@@ -10,6 +10,8 @@ on:
   pull_request:
     branches: 
       - dev
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: metadata-checker-${{github.ref}}

@@ -2,15 +2,14 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Dev branch CI 
-# Runs CI on all libraries when a PR is merged to dev
+# Runs CI on all libraries when a PR is merged
 
 on:
-  push:
-    branches:
-      - "dev"
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
-  group: dev-ci-${{github.ref}}
+  group: merge-ci-${{github.ref}}
   cancel-in-progress: true
 
 permissions:
