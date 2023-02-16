@@ -1,6 +1,6 @@
 import * as puppeteer from "puppeteer";
 import * as path from "path";
-import { Screenshot, setupCredentials, enterCredentials, retrieveAppConfiguration } from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, setupCredentials, enterCredentials, retrieveAppConfiguration, RETRY_TIMES } from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes, UserTypes, AppPlatforms } from "../../../e2eTestUtils/Constants";
@@ -23,7 +23,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
 }
 
 describe('/ (Detail Page)', () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
