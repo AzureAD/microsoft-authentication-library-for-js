@@ -250,8 +250,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
 
-        // this.cacheMeasurement(inProgressEvent, validMeasurement);
-
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             endMeasurement: (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
@@ -353,7 +351,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param correlationId
      */
     addStaticFields(fields: StaticFields, correlationId: string) : void {
-        this.logger.trace("PerformanceClient: Upserting static fields");
+        this.logger.trace("PerformanceClient: Updating static fields");
         const event = this.eventsByCorrelationId.get(correlationId);
         if (event) {
             this.eventsByCorrelationId.set(correlationId, {...event, ...fields});
