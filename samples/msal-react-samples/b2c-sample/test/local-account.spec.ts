@@ -1,5 +1,5 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, setupCredentials, b2cLocalAccountEnterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, setupCredentials, b2cLocalAccountEnterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { UserTypes, B2cProviders } from "../../../e2eTestUtils/Constants";
@@ -8,7 +8,7 @@ import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/local-account-tests`;
 
 describe('B2C user-flow tests (local account)', () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -73,7 +73,7 @@ describe('B2C user-flow tests (local account)', () => {
         expect(tokenStoreBeforeEdit.refreshTokens.length).toBe(1);
         expect(await BrowserCache.getAccountFromCache(tokenStoreBeforeEdit.idTokens[0])).not.toBeNull();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStoreBeforeEdit.accessTokens, ["https://msidlabb2c.onmicrosoft.com/msidlabb2capi/read"])).toBeTruthy;
-        
+
         // initiate edit profile flow
         const editProfileButton = await page.waitForSelector("#editProfileButton");
         if (editProfileButton) {
@@ -91,7 +91,7 @@ describe('B2C user-flow tests (local account)', () => {
             page.waitForSelector("#idTokenClaims"),
             page.waitForXPath("//*[@id=\"interactionStatus\"]/center[contains(., 'ssoSilent success')]", {timeout: 4000})
         ]);
-        const idTokenClaims = await page.$eval("#idTokenClaims", (e) => e.textContent);  
+        const idTokenClaims = await page.$eval("#idTokenClaims", (e) => e.textContent);
         expect(idTokenClaims).toContain("B2C_1_SISOPolicy"); // implies the current active account
         expect(idTokenClaims).toContain(`${displayName}`);
 
