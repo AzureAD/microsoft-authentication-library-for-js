@@ -232,24 +232,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
         // Add Native Broker fields to Telemetry
-        const mats = this.getMATSFromResponse(response);
-        this.performanceClient.addStaticFields({
-            extensionId: this.nativeMessageHandler.getExtensionId(),
-            extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
-            matsBrokerVersion: mats ? mats.broker_version : undefined,
-            matsAccountJoinOnStart: mats ? mats.account_join_on_start : undefined,
-            matsAccountJoinOnEnd: mats ? mats.account_join_on_end : undefined,
-            matsDeviceJoin: mats ? mats.device_join : undefined,
-            matsPromptBehavior: mats ? mats.prompt_behavior : undefined,
-            matsApiErrorCode: mats ? mats.api_error_code : undefined,
-            matsUiVisible: mats ? mats.ui_visible : undefined,
-            matsSilentCode: mats ? mats.silent_code : undefined,
-            matsSilentBiSubCode: mats ? mats.silent_bi_sub_code : undefined,
-            matsSilentMessage: mats ? mats.silent_message : undefined,
-            matsSilentStatus: mats ? mats.silent_status : undefined,
-            matsHttpStatus: mats ? mats.http_status : undefined,
-            matsHttpEventCount: mats ? mats.http_event_count : undefined
-        }, this.correlationId);
+        const mats = this.addNativeBrokerFieldsToTelemetry(response);
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
@@ -374,6 +357,30 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return result;
     }
 
+    protected addNativeBrokerFieldsToTelemetry(response: NativeResponse): MATS | null {
+
+        const mats = this.getMATSFromResponse(response);
+        this.performanceClient.addStaticFields({
+            extensionId: this.nativeMessageHandler.getExtensionId(),
+            extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
+            matsBrokerVersion: mats ? mats.broker_version : undefined,
+            matsAccountJoinOnStart: mats ? mats.account_join_on_start : undefined,
+            matsAccountJoinOnEnd: mats ? mats.account_join_on_end : undefined,
+            matsDeviceJoin: mats ? mats.device_join : undefined,
+            matsPromptBehavior: mats ? mats.prompt_behavior : undefined,
+            matsApiErrorCode: mats ? mats.api_error_code : undefined,
+            matsUiVisible: mats ? mats.ui_visible : undefined,
+            matsSilentCode: mats ? mats.silent_code : undefined,
+            matsSilentBiSubCode: mats ? mats.silent_bi_sub_code : undefined,
+            matsSilentMessage: mats ? mats.silent_message : undefined,
+            matsSilentStatus: mats ? mats.silent_status : undefined,
+            matsHttpStatus: mats ? mats.http_status : undefined,
+            matsHttpEventCount: mats ? mats.http_event_count : undefined
+        }, this.correlationId);
+
+        return mats;
+    }
+
     /**
      * Validates native platform response before processing
      * @param response
@@ -398,7 +405,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      * @returns
      */
-    private getMATSFromResponse(response: NativeResponse): MATS|null {
+    protected getMATSFromResponse(response: NativeResponse): MATS|null {
         if (response.properties.MATS) {
             try {
                 return JSON.parse(response.properties.MATS);

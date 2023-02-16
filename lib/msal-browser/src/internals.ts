@@ -41,4 +41,4 @@ export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMea
 
 // Native request and response
 export { NativeTokenRequest } from "./broker/nativeBroker/NativeRequest";
-export { NativeResponse } from "./broker/nativeBroker/NativeResponse";
+export { NativeResponse, MATS } from "./broker/nativeBroker/NativeResponse";
