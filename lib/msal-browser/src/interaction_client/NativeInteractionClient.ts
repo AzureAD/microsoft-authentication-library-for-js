@@ -405,7 +405,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      * @returns
      */
-    protected getMATSFromResponse(response: NativeResponse): MATS|null {
+    private getMATSFromResponse(response: NativeResponse): MATS|null {
         if (response.properties.MATS) {
             try {
                 return JSON.parse(response.properties.MATS);
@@ -422,7 +422,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      * @returns
      */
-    private isResponseFromCache(mats: MATS): boolean {
+    protected isResponseFromCache(mats: MATS): boolean {
         if (typeof mats.is_cached === "undefined") {
             this.logger.verbose("NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false.");
             return false;
