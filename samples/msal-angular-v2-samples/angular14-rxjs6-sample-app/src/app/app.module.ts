@@ -26,6 +26,11 @@ export function loggerCallback(logLevel: LogLevel, message: string) {
 }
 
 export function MSALInstanceFactory(): IPublicClientApplication {
+  /**
+   * See the README for instructions on how to register an Azure AD application.
+   * For a full list of MSAL configuration parameters, visit:
+   * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md
+   */
   return new PublicClientApplication({
     auth: {
       clientId: 'ENTER_CLIENT_ID_HERE',
@@ -49,7 +54,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
-  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['User.Read']);
 
   return {
     interactionType: InteractionType.Redirect,
@@ -61,7 +66,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     interactionType: InteractionType.Redirect,
     authRequest: {
-      scopes: ['user.read']
+      scopes: ['User.Read']
     },
     loginFailedRoute: '/login-failed'
   };

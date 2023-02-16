@@ -21,7 +21,7 @@ import { MsalInterceptorConfig } from './msal/msal.interceptor.config';
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+      clientId: 'ENTER_CLIENT_ID_HERE',
       redirectUri: 'http://localhost:4200'
     }
   });
@@ -29,7 +29,7 @@ function MSALInstanceFactory(): IPublicClientApplication {
 
 function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
   const protectedResourceMap = new Map<string, Array<string>>();
-  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['User.Read']);
 
   return {
     interactionType: InteractionType.Redirect,
