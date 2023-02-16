@@ -51,10 +51,11 @@ describe('/ (Lazy Loading Page)', () => {
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-        [clientID, authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
 
         stringReplacer.replace({
-            "ENTER_CLIENT_ID_HERE": clientID
+            "ENTER_CLIENT_ID_HERE": clientID,
+            "ENTER_TENANT_INFO_HERE": authority.split("/")[3],
         });
     });
 

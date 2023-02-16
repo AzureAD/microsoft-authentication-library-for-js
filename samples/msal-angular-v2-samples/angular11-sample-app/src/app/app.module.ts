@@ -33,7 +33,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: 'ENTER_CLIENT_ID_HERE',
-      authority: 'https://login.microsoftonline.com/common',
+      authority: 'https://login.microsoftonline.com/ENTER_TENANT_INFO_HERE',
       redirectUri: '/',
       postLogoutRedirectUri: '/'
     },
