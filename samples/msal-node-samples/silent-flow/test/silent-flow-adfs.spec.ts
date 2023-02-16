@@ -4,7 +4,7 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -34,7 +34,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/ADFS.json");
 
 describe("Silent Flow ADFS 2019 Tests", () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -133,7 +133,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
             tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, ONE_SECOND_IN_MS*2);
             const expiredAccessToken = tokens.accessTokens[0];
-            
+
             // Wait to ensure new token has new iat
             await new Promise(r => setTimeout(r, ONE_SECOND_IN_MS));
             await page.click("#acquireTokenSilent");
