@@ -5,6 +5,7 @@
 
 import { AuthenticationScheme } from "../utils/Constants";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * BaseAuthRequest
@@ -21,6 +22,7 @@ import { AzureCloudOptions } from "../config/ClientConfiguration";
  * - sshKid                  - Key ID that uniquely identifies the SSH public key mentioned above.
  * - azureCloudOptions       - Convenience string enums for users to provide public/sovereign cloud ids
  * - requestedClaimsHash     - SHA 256 hash string of the requested claims string, used as part of an access token cache key so tokens can be filtered by requested claims
+ * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -37,4 +39,5 @@ export type BaseAuthRequest = {
     azureCloudOptions?: AzureCloudOptions;
     requestedClaimsHash?: string;
     maxAge?: number;
+    tokenQueryParameters?: StringDict;
 };

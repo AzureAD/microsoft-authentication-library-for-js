@@ -16,6 +16,7 @@ export const ParamKeys = {
     APP_TYPE: "apptype",
     SIGN_IN_AUDIENCE: "signInAudience",
     PUBLIC_CLIENT: "publicClient",
+    APP_PLATFORM: "appPlatform"
 };
 
 // Lab API Query Param Values
@@ -73,3 +74,7 @@ export const AppTypes = {
     ONPREM: "onprem"
 };
 
+export const AppPlatforms = {
+    SPA: "spa",
+    WEB: "web"
+};

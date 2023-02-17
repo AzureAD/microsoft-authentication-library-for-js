@@ -12,11 +12,12 @@ import { Authority } from "../authority/Authority";
 import { NetworkResponse } from "../network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType } from "../utils/Constants";
+import { GrantType, HeaderNames } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CcsCredentialType } from "../account/CcsCredential";
+import { UrlString } from "../url/UrlString";
 
 /**
  * Oauth2.0 Password grant client
@@ -34,11 +35,18 @@ export class UsernamePasswordClient extends BaseClient {
      * @param request
      */
     async acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("in acquireToken call");
+        // @ts-ignore
+        const atsMeasurement = this.performanceClient?.startMeasurement("UsernamePasswordClientAcquireToken", request.correlationId);
+        this.logger.info("in acquireToken call in username-password client");
 
         const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
+        const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
+        atsMeasurement?.addStaticFields({
+            httpVerToken
+        });
+    
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -61,6 +69,13 @@ export class UsernamePasswordClient extends BaseClient {
      * @param request
      */
     private async executeTokenRequest(authority: Authority, request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
+        const requestBody = this.createTokenRequestBody(request);
+        const headers: Record<string, string> = this.createTokenRequestHeaders({
+            credential: request.username,
+            type: CcsCredentialType.UPN
+        });
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -72,13 +87,8 @@ export class UsernamePasswordClient extends BaseClient {
             shrClaims: request.shrClaims,
             sshKid: request.sshKid
         };
-        const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders({
-            credential: request.username,
-            type: CcsCredentialType.UPN
-        });
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
 
     /**

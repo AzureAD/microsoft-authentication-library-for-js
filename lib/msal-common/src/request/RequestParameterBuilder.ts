@@ -333,12 +333,12 @@ export class RequestParameterBuilder {
 
     /**
      * add extraQueryParams
-     * @param eQparams
+     * @param eQParams
      */
-    addExtraQueryParameters(eQparams: StringDict): void {
-        RequestValidator.sanitizeEQParams(eQparams, this.parameters);
-        Object.keys(eQparams).forEach((key) => {
-            this.parameters.set(key, eQparams[key]);
+    addExtraQueryParameters(eQParams: StringDict): void {
+        const sanitizedEQParams = RequestValidator.sanitizeEQParams(eQParams, this.parameters);
+        Object.keys(sanitizedEQParams).forEach((key) => {
+            this.parameters.set(key, eQParams[key]);
         });
     }
 

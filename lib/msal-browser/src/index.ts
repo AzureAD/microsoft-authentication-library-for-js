@@ -48,6 +48,8 @@ export { EventType } from "./event/EventType";
 
 export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
 
+export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
@@ -86,8 +88,8 @@ export {
     AzureCloudOptions,
     AuthenticationHeaderParser,
     OIDC_DEFAULT_SCOPES,
-    PerformanceCallbackFunction, 
-    PerformanceEvent, 
+    PerformanceCallbackFunction,
+    PerformanceEvent,
     PerformanceEvents
 } from "@azure/msal-common";
 

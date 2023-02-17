@@ -15,5 +15,10 @@
     },
     "jsx": "react",
     "esModuleInterop": true
-  }
+  },
+  "references": [
+    {
+        "path": "../../lib/msal-common"
+    }
+  ]
 }

@@ -242,7 +242,9 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        loggerCallback: (): void => {},
+        loggerCallback: (): void => {
+            // allow users to not set logger call back 
+        },
         logLevel: LogLevel.Info,
         piiLoggingEnabled: false
     };
@@ -270,6 +272,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         }
     };
 
+    const providedSystemOptions:BrowserSystemOptions = {
+        ...userInputSystem,
+        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS
+    };
+
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
             appName: Constants.EMPTY_STRING,
@@ -280,7 +287,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem },
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
     };
     return overlayedConfig;

@@ -4,10 +4,6 @@
 name: msal-react E2E Tests
 
 on:
-  push:
-    branches: 
-      - dev
-      - master
   pull_request:
     paths: 
       - 'lib/msal-react/**/*'
@@ -18,6 +14,8 @@ on:
       - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-react-e2e.yml'
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: react-e2e-${{github.ref}}
@@ -28,7 +26,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
     runs-on: ubuntu-latest
 
     strategy:
@@ -72,7 +70,9 @@ jobs:
       uses: actions/cache@v3
       id: test-tools-cache
       with: 
-        path: samples/node_modules
+        path: |
+          samples/node_modules
+          samples/.cache/puppeteer
         key: ${{ runner.os }}-react-e2e-${{ hashFiles('samples/package-lock.json') }}
 
     - name: Install Test Tools

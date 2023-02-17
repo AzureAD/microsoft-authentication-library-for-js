@@ -2,6 +2,117 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:51 GMT",
+      "tag": "@azure/msal-react_v1.5.3",
+      "version": "1.5.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.33.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "@azure/msal-react_v1.5.2",
+      "version": "1.5.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "67a1646f747e9885b0abd8996c91c474ad655ba4",
+            "comment": "Address dependabot alerts"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "e1daf5781025aaa31f0985293c33a78d3aac486b",
+            "comment": "Update react dev dependency"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.32.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-react_v1.5.1",
+      "version": "1.5.1",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "e1daf5781025aaa31f0985293c33a78d3aac486b",
+            "comment": "Update react dev dependency"
+          }
+        ],
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.32.1",
+            "commit": "48cb414b1a722dacf5439a1df6bad070cff62aa4"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-react_v1.5.0",
+      "version": "1.5.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d",
+            "comment": "Fix SSR hydration errors #5399"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "b3e5a8f3356896a65988b09f2f26452d37648095",
+            "comment": "Fix state update on unmounted component #5396"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.32.0",
+            "commit": "b6454bd1ff556f8d3482689d6a769e5e659a9f7d"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 07 Nov 2022 22:46:55 GMT",
+      "tag": "@azure/msal-react_v1.4.10",
+      "version": "1.4.10",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.31.0",
+            "commit": "ae6f326996be7eec25faa19d3f714b860a424878"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 10 Oct 2022 22:27:03 GMT",
       "tag": "@azure/msal-react_v1.4.9",
       "version": "1.4.9",

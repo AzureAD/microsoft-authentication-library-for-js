@@ -4,20 +4,10 @@
             "clientId": "Enter_the_Application_Id_Here",
             "authority": "Enter_the_Cloud_Instance_Id_Here/Enter_the_Tenant_Info_Here"
         },
-    "request":
-    {
-        "authCodeUrlParameters": {
-            "scopes": ["User.Read", "Mail.Read"],
-            "redirectUri": "http://localhost:8080/"
-        },
-        "authCodeRequest": {
-            "redirectUri": "http://localhost:8080/",
-            "scopes":  ["User.Read", "Mail.Read"]
-        }
-    },
     "resourceApi":
     {
-        "endpoint": "Enter_the_Graph_Endpoint_Here"
+        "endpoint": "Enter_the_Graph_Endpoint_Here",
+        "scopes": ["User.Read", "Mail.Read"]
     },
     "customProtocol":
     {
