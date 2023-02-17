@@ -18,7 +18,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "test": "jest",
+    "test": "jest --runInBand",
     "build": "react-scripts build",
     "build:package": "cd ../../../lib/msal-react & npm run build:all",
     "eject": "react-scripts eject",

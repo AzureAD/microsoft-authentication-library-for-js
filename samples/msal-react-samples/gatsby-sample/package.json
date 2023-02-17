@@ -9,7 +9,7 @@
     "develop": "gatsby develop -p 3000",
     "start": "gatsby serve -p 3000",
     "serve": "gatsby serve",
-    "test": "jest",
+    "test": "jest --runInBand",
     "clean": "gatsby clean",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"

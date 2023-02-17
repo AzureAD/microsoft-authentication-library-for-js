@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "test": "jest",
+    "test": "jest --runInBand",
     "build": "next build",
     "build:package": "cd ../../../lib/msal-react && npm run build:all",
     "start": "next start",

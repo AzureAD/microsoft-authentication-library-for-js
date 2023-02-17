@@ -1,13 +1,17 @@
+import path from "path";
 import puppeteer from "puppeteer";
-import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES, retrieveAppConfiguration} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes, UserTypes, AppPlatforms } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
+import { StringReplacer } from "../../../e2eTestUtils/ConfigUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
 
-async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
+const stringReplacer = new StringReplacer(path.join(__dirname, "../src/authConfig.js"));
+
+async function verifyTokenStore(BrowserCache: BrowserCacheUtils, clientID: string, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
     expect(tokenStore.idTokens.length).toBe(1);
     expect(tokenStore.accessTokens.length).toBe(1);
@@ -16,7 +20,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
     expect(Object.keys(storage).length).toBe(5);
-    const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry("3fba556e-5d4a-48e3-8e1a-fd57c12cb82e");
+    const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(clientID);
     expect(telemetryCacheEntry).not.toBeNull;
     expect(telemetryCacheEntry["cacheHits"]).toBe(1);
 }
@@ -27,6 +31,8 @@ describe('/profile', () => {
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let port: number;
+    let clientID: string;
+    let authority: string;
     let username: string;
     let accountPwd: string;
     let BrowserCache: BrowserCacheUtils;
@@ -38,14 +44,26 @@ describe('/profile', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.SPA,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        stringReplacer.replace({
+            "ENTER_CLIENT_ID_HERE": clientID,
+            "ENTER_TENANT_INFO_HERE": authority.split("/")[3],
+        });
+    });
+
+    afterAll(async () => {
+        stringReplacer.restore();
     });
 
     beforeEach(async () => {
@@ -87,7 +105,7 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
-        await verifyTokenStore(BrowserCache, ["User.Read"]);
+        await verifyTokenStore(BrowserCache, clientID, ["User.Read"]);
     });
 
     it("MsalAuthenticationTemplate - renders children without invoking login if user is already signed in", async () => {
@@ -125,7 +143,7 @@ describe('/profile', () => {
         await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
         await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache
-        await verifyTokenStore(BrowserCache, ["User.Read"]);
+        await verifyTokenStore(BrowserCache, clientID, ["User.Read"]);
     });
   }
 );
