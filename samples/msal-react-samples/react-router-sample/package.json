@@ -13,7 +13,7 @@
     "react": "file:../../../lib/msal-react/node_modules/react",
     "react-app-polyfill": "^2.0.0",
     "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.7.0",
     "react-scripts": "^5.0.1"
   },
   "scripts": {
@@ -23,7 +23,7 @@
     "build:package": "cd ../../../lib/msal-react & npm run build:all",
     "eject": "react-scripts eject",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"
+    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
   },
   "eslintConfig": {
     "extends": [

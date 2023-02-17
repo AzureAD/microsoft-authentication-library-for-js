@@ -18,6 +18,8 @@ If your application is doing all of the things above you can override the method
 
 Each router has their own method for doing client-side navigation and depending on how they expose the method you may need to refactor your application to support this feature. The example below will show how to implement this for `react-router-dom`. You can find a full sample apps that implement this for [react-router-dom](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample), [Next.js](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample) and [Gatsby](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample).
 
+> :information_source: Samples mentioned above make use of `react-router-dom` v6. If you would like to use `react-router-dom` v5 instead, please refer to: [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/cf3dc599adc36d1c4460bcf7d8185c9beb5283f3/samples/msal-react-samples/react-router-sample/src/App.js).
+
 #### INavigationClient Implementation
 
 ```javascript
@@ -28,9 +30,9 @@ import { NavigationClient } from "@azure/msal-browser";
  * If you would like to overwrite both you can implement INavigationClient directly instead
  */
 class CustomNavigationClient extends NavigationClient{
-    constructor(history) {
+    constructor(navigate) {
         super();
-        this.history = history // Passed in from useHistory hook provided by react-router-dom;
+        this.navigate = navigate // Passed in from useNavigate hook provided by react-router-dom;
     }
     
     // This function will be called anytime msal needs to navigate from one page in your application to another
@@ -38,9 +40,9 @@ class CustomNavigationClient extends NavigationClient{
         // url will be absolute, you will need to parse out the relative path to provide to the history API
         const relativePath = url.replace(window.location.origin, '');
         if (options.noHistory) {
-            this.history.replace(relativePath);
+            this.navigate(relativePath, {replace: true});
         } else {
-            this.history.push(relativePath);
+            this.navigate(relativePath);
         }
 
         return false;
@@ -52,7 +54,7 @@ class CustomNavigationClient extends NavigationClient{
 
 ```javascript
 import { MsalProvider } from "@azure/msal-react";
-import { Router, Switch, Route, useHistory } from "react-router-dom";
+import { BrowserRouter as Router , Routes, Route, useNavigate } from "react-router-dom";
 
 function App({ msalInstance }) {
     // It's important that the Router component is above the Example component because you'll need to use the useHistory hook before rendering MsalProvider
@@ -64,20 +66,16 @@ function App({ msalInstance }) {
 };
 
 function Example({ msalInstance }) {
-    const history = useHistory();
-    const navigationClient = new CustomNavigationClient(history);
+    const navigate = useNavigate();
+    const navigationClient = new CustomNavigationClient(navigate);
     msalInstance.setNavigationClient(navigationClient);
 
     return (
         <MsalProvider instance={msalInstance}>
-            <Switch>
-                <Route path="/protected">
-                    <ProtectedRoute />
-                </Route>
-                <Route path="/">
-                    <Home />
-                </Route>
-            </Switch>
+            <Routes>
+                <Route path="/protected" element={<ProtectedRoute />} />
+                <Route path="/" element={<Home />} />
+            </Routes>
         </MsalProvider>
     )
 }

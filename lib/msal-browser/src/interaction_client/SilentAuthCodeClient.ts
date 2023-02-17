@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, IPerformanceClient } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError, Constants, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -39,6 +39,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
+        this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientInitializeAuthorizationRequest, request.correlationId);
         const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent);
         this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || Constants.EMPTY_STRING, silentRequest.account || null);
 
@@ -53,12 +54,13 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
+            this.performanceClient.setPreQueueTime(PerformanceEvents.StandardInteractionClientGetClientConfiguration, request.correlationId);
             const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority);
             const authClient: HybridSpaAuthorizationCodeClient = new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
-            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system);
+            const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system, this.performanceClient);
 
             // Handle auth code parameters from request
             return silentHandler.handleCodeResponseFromServer(

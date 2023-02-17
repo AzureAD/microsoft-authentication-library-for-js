@@ -21,6 +21,7 @@ import { AuthToken } from "../account/AuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AccountInfo } from "../account/AccountInfo";
+import { UrlString } from "../url/UrlString";
 
 /**
  * On-Behalf-Of client
@@ -187,7 +188,8 @@ export class OnBehalfOfClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority, userAssertionHash: string)
         : Promise<AuthenticationResult | null> {
-
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -203,7 +205,7 @@ export class OnBehalfOfClient extends BaseClient {
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const response = await this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,

@@ -87,8 +87,8 @@ export {
     AzureCloudOptions,
     AuthenticationHeaderParser,
     OIDC_DEFAULT_SCOPES,
-    PerformanceCallbackFunction, 
-    PerformanceEvent, 
+    PerformanceCallbackFunction,
+    PerformanceEvent,
     PerformanceEvents
 } from "@azure/msal-common";
 

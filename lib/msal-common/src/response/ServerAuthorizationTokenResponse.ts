@@ -47,4 +47,5 @@ export type ServerAuthorizationTokenResponse = {
     timestamp?: string;
     trace_id?: string;
     correlation_id?: string;
+    claims?: string;
 };
