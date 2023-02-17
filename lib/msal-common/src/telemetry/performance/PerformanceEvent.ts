@@ -158,6 +158,8 @@ export enum PerformanceEvents {
      */
     InitializeSilentRequest = "initializeSilentRequest",
 
+    InitializeClientApplication = "initializeClientApplication",
+
     /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
@@ -238,6 +240,7 @@ export enum PerformanceEvents {
 
     UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
 
+    NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake",
 }
 
 /**
@@ -322,6 +325,16 @@ export type StaticFields = {
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
+
+    /**
+     * WAM bridge flags
+     */
+    wamAllowed?: boolean;
+    wamChannel?: string;
+    wamExtensionInstalled?: boolean;
+    wamExtensionId?: string;
+    wamTimeoutMs?: number;
+    wamTimedOut?: boolean;
 };
 
 /**
