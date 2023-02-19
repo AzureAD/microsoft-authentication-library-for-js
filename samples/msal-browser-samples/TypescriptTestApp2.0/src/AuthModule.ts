@@ -2,12 +2,12 @@ import { PublicClientApplication, SilentRequest, AuthenticationResult, Configura
 import { UIManager } from "./UIManager";
 
 /**
- * Configuration class for @azure/msal-browser: 
+ * Configuration class for @azure/msal-browser:
  * https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html
  */
 const MSAL_CONFIG: Configuration = {
     auth: {
-        clientId: "2eb9245f-612b-46cc-994a-f5e35ef37da0"
+        clientId: "ENTER_CLIENT_ID_HERE"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -16,22 +16,22 @@ const MSAL_CONFIG: Configuration = {
     system: {
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {	
-                    return;	
-                }	
-                switch (level) {	
-                    case LogLevel.Error:	
-                        console.error(message);	
-                        return;	
-                    case LogLevel.Info:	
-                        console.info(message);	
-                        return;	
-                    case LogLevel.Verbose:	
-                        console.debug(message);	
-                        return;	
-                    case LogLevel.Warning:	
-                        console.warn(message);	
-                        return;	
+                if (containsPii) {
+                    return;
+                }
+                switch (level) {
+                    case LogLevel.Error:
+                        console.error(message);
+                        return;
+                    case LogLevel.Info:
+                        console.info(message);
+                        return;
+                    case LogLevel.Verbose:
+                        console.debug(message);
+                        return;
+                    case LogLevel.Warning:
+                        console.warn(message);
+                        return;
                 }
             }
         }
@@ -98,14 +98,14 @@ export class AuthModule {
         };
 
         this.silentLoginRequest = {
-            loginHint: "IDLAB@msidlab0.ccsctp.net"
+            loginHint: "janedoe@contoso.net"
         }
     }
 
     /**
      * Calls getAllAccounts and determines the correct account to sign into, currently defaults to first account found in cache.
      * TODO: Add account chooser code
-     * 
+     *
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
      */
     private getAccount(): AccountInfo | null {
@@ -129,7 +129,7 @@ export class AuthModule {
 
     /**
      * Checks whether we are in the middle of a redirect and handles state accordingly. Only required for redirect flows.
-     * 
+     *
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis
      */
     loadAuthModule(): void {
@@ -140,7 +140,7 @@ export class AuthModule {
 
     /**
      * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
-     * @param response 
+     * @param response
      */
     handleResponse(response: AuthenticationResult | null) {
         if (response !== null) {
@@ -156,7 +156,7 @@ export class AuthModule {
 
     /**
      * Calls ssoSilent to attempt silent flow. If it fails due to interaction required error, it will prompt the user to login using popup.
-     * @param request 
+     * @param request
      */
     attemptSsoSilent() {
         this.myMSALObj.ssoSilent(this.silentLoginRequest).then(() => {
@@ -176,7 +176,7 @@ export class AuthModule {
 
     /**
      * Calls loginPopup or loginRedirect based on given signInType.
-     * @param signInType 
+     * @param signInType
      */
     login(signInType: string): void {
         if (signInType === "loginPopup") {
@@ -199,7 +199,7 @@ export class AuthModule {
         const logOutRequest: EndSessionRequest = {
             account
         };
-        
+
         this.myMSALObj.logoutRedirect(logOutRequest);
     }
 

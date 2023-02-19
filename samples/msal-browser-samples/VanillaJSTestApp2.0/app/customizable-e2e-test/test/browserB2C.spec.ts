@@ -4,10 +4,10 @@ import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestU
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
+import { Configuration } from "../../../../../../lib/msal-browser/src";
 import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { getBrowser, getHomeUrl } from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
@@ -30,18 +30,38 @@ describe("B2C Tests", () => {
     let BrowserCache: BrowserCacheUtils;
     let username = "";
     let accountPwd = "";
+    let msalConfig: Configuration;
+    let request: any;
 
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: b2cMsalConfig, request: b2cTokenRequest}));
+        msalConfig = {
+            auth: {
+                clientId: "4c837770-7a2b-471e-aafa-3328d04a23b1",
+                authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy/",
+                knownAuthorities: ["msidlabb2c.b2clogin.com"]
+            },
+            cache: {
+                cacheLocation: "sessionStorage",
+                storeAuthStateInCookie: false
+            }
+        };
+
+        request = {
+            scopes: ["https://msidlabb2c.onmicrosoft.com/4c837770-7a2b-471e-aafa-3328d04a23b1/read"]
+        }
+
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig: msalConfig, request: request }));
     });
 
     afterAll(async () => {
         await context.close();
         await browser.close();
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({}));
     });
 
     describe("AAD Account", () => {
@@ -61,14 +81,14 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-                BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
             });
 
             afterEach(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -80,7 +100,7 @@ describe("B2C Tests", () => {
                 await b2cAadPpeEnterCredentials(page, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page);
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("Performs loginPopup", async () => {
@@ -91,7 +111,7 @@ describe("B2C Tests", () => {
                 await b2cAadPpeEnterCredentials(popupPage, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
         });
 
@@ -102,8 +122,8 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-                BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
 
                 testName = "b2cAcquireTokenBaseCase";
@@ -120,8 +140,8 @@ describe("B2C Tests", () => {
             });
 
             afterAll(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -137,7 +157,7 @@ describe("B2C Tests", () => {
                 await screenshot.takeScreenshot(page, "acquireTokenRedirectGotTokens");
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("acquireTokenPopup", async () => {
@@ -152,7 +172,7 @@ describe("B2C Tests", () => {
                 await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("acquireTokenSilent from Cache", async () => {
@@ -162,14 +182,14 @@ describe("B2C Tests", () => {
                 await page.waitForSelector("#scopes-acquired");
                 await screenshot.takeScreenshot(page, "acquireTokenSilent-fromCache-GotTokens");
 
-                const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(b2cMsalConfig.auth.clientId);
+                const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(msalConfig.auth.clientId);
                 expect(telemetryCacheEntry).toBeDefined();
                 expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
                 // Remove Telemetry Cache entry for next test
-                await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(b2cMsalConfig.auth.clientId)]);
+                await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(msalConfig.auth.clientId)]);
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("acquireTokenSilent via RefreshToken", async () => {
@@ -184,7 +204,7 @@ describe("B2C Tests", () => {
                 await screenshot.takeScreenshot(page, "acquireTokenSilent-viaRefresh-GotTokens");
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
         });
     });
@@ -206,14 +226,14 @@ describe("B2C Tests", () => {
             beforeEach(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-                BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
             });
 
             afterEach(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -225,7 +245,7 @@ describe("B2C Tests", () => {
                 await b2cLocalAccountEnterCredentials(page, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page);
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("Performs loginPopup", async () => {
@@ -236,7 +256,7 @@ describe("B2C Tests", () => {
                 await b2cLocalAccountEnterCredentials(popupPage, screenshot, username, accountPwd);
                 await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
         });
 
@@ -247,8 +267,8 @@ describe("B2C Tests", () => {
             beforeAll(async () => {
                 context = await browser.createIncognitoBrowserContext();
                 page = await context.newPage();
-                page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-                BrowserCache = new BrowserCacheUtils(page, b2cMsalConfig.cache.cacheLocation);
+                page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+                BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
                 await page.goto(sampleHomeUrl);
 
                 testName = "b2cAcquireTokenLocalAccountCase";
@@ -265,8 +285,8 @@ describe("B2C Tests", () => {
             });
 
             afterAll(async () => {
-                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
                 await page.close();
             });
 
@@ -282,7 +302,7 @@ describe("B2C Tests", () => {
                 await screenshot.takeScreenshot(page, "acquireTokenRedirectGotTokens");
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("acquireTokenPopup", async () => {
@@ -297,7 +317,7 @@ describe("B2C Tests", () => {
                 await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("acquireTokenSilent from Cache", async () => {
@@ -307,14 +327,14 @@ describe("B2C Tests", () => {
                 await page.waitForSelector("#scopes-acquired");
                 await screenshot.takeScreenshot(page, "acquireTokenSilent-fromCache-GotTokens");
 
-                const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(b2cMsalConfig.auth.clientId);
+                const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(msalConfig.auth.clientId);
                 expect(telemetryCacheEntry).toBeDefined();
                 expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
                 // Remove Telemetry Cache entry for next test
-                await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(b2cMsalConfig.auth.clientId)]);
+                await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(msalConfig.auth.clientId)]);
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
 
             it("acquireTokenSilent via RefreshToken", async () => {
@@ -329,7 +349,7 @@ describe("B2C Tests", () => {
                 await screenshot.takeScreenshot(page, "acquireTokenSilent-viaRefresh-GotTokens");
 
                 // Verify we now have an access_token
-                await verifyTokenStore(BrowserCache, b2cTokenRequest.scopes);
+                await verifyTokenStore(BrowserCache, request.scopes);
             });
         });
     });

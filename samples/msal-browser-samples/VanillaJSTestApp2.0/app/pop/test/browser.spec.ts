@@ -1,32 +1,51 @@
+import path from "path";
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { JWK, JWT } from "jose";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, retrieveAppConfiguration } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes, AppPlatforms, UserTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { JWK, JWT } from "jose";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { getBrowser, getHomeUrl } from "../../testUtils";
+import { StringReplacer } from "../../../../../e2eTestUtils/ConfigUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-let sampleHomeUrl = "";
-let username = "";
-let accountPwd = "";
+
+const stringReplacer = new StringReplacer(path.join(__dirname, "../authConfig.js"));
 
 describe("Browser tests", function () {
     let browser: puppeteer.Browser;
+    let sampleHomeUrl = "";
+    let clientID: string;
+    let authority: string;
+    let username = "";
+    let accountPwd = "";
+
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.SPA,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        stringReplacer.replace({
+            "ENTER_CLIENT_ID_HERE": clientID,
+            "ENTER_TENANT_INFO_HERE": authority.split("/")[3],
+        });
+    });
+
+    afterAll(async () => {
+        stringReplacer.restore();
     });
 
     let context: puppeteer.BrowserContext;

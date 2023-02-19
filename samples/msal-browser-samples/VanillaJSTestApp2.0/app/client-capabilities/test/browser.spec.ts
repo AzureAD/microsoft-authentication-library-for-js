@@ -1,24 +1,33 @@
+import * as path from "path";
 import * as puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
+import { JWT } from "jose";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS, retrieveAppConfiguration } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes, UserTypes, AppPlatforms } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { JWT } from "jose";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { getBrowser, getHomeUrl } from "../../testUtils";
+import { StringReplacer } from "../../../../../e2eTestUtils/ConfigUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-let sampleHomeUrl = "";
-let username = "";
-let accountPwd = "";
+
+const stringReplacer = new StringReplacer(path.join(__dirname, "../authConfig.js"));
 
 describe("Browser tests", function () {
     let browser: puppeteer.Browser;
+    let sampleHomeUrl = "";
+    let clientID: string;
+    let authority: string;
+    let username = "";
+    let accountPwd = "";
+
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.SPA,
         };
 
         browser = await getBrowser();
@@ -27,6 +36,16 @@ describe("Browser tests", function () {
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        stringReplacer.replace({
+            "ENTER_CLIENT_ID_HERE": clientID,
+            "ENTER_TENANT_INFO_HERE": authority.split("/")[3],
+        });
+    });
+
+    afterAll(async () => {
+        stringReplacer.restore();
     });
 
     let context: puppeteer.BrowserContext;
@@ -35,7 +54,7 @@ describe("Browser tests", function () {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
-        page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
+        page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(sampleHomeUrl);
     });
@@ -88,7 +107,7 @@ describe("Browser tests", function () {
         // Check cae token
         const accessToken = JSON.parse((await BrowserCache.getWindowStorage())[(tokenStore.accessTokens[0])]).secret;
         const decodedToken: any = JWT.decode(accessToken);
-        expect(decodedToken.xms_cc).toEqual([ "CP1" ]);
+        expect(decodedToken.xms_cc).toEqual(["CP1"]);
     });
 
     it("Performs loginRedirect, acquires and validates CAE PoP token", async () => {
@@ -124,7 +143,7 @@ describe("Browser tests", function () {
         await storagePoller(async () => {
             const tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.accessTokens).toHaveLength(2);
-        }, ONE_SECOND_IN_MS*5);
+        }, ONE_SECOND_IN_MS * 5);
 
         const tokenStore = await BrowserCache.getTokens();
         const cachedBearerToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
@@ -139,7 +158,7 @@ describe("Browser tests", function () {
 
         // Check cae pop token
         const decodedToken: any = JWT.decode(accessToken);
-        expect(decodedToken.xms_cc).toEqual([ "CP1" ]);
+        expect(decodedToken.xms_cc).toEqual(["CP1"]);
         expect(typeof decodedToken.cnf.kid).toEqual('string');
         expect(typeof decodedToken.cnf.xms_ksl).toEqual('string');
     });

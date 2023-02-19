@@ -5,7 +5,7 @@
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <script type="text/javascript" src="./javascripts/msrcrypto.js"></script>
     <script src="../../lib/msal-browser.js"></script>
-    
+
   </head>
   <body>
     {{{body}}}
@@ -13,28 +13,28 @@
         const entropy = Uint8Array.from([{{entropy}}]);
         const msalInstance = new msal.PublicClientApplication({
             auth: {
-                clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456"
+                clientId: "ENTER_CLIENT_ID_HERE"
             },
             system: {
                 loggerOptions: {
                     logLevel: msal.LogLevel.Trace,
                     loggerCallback: (level, message, containsPii) => {
-                        if (containsPii) {	
-                            return;	
+                        if (containsPii) {
+                            return;
                         }
-                        switch (level) {	
-                            case msal.LogLevel.Error:	
-                                console.error(message);	
-                                return;	
-                            case msal.LogLevel.Info:	
-                                console.info(message);	
-                                return;	
-                            case msal.LogLevel.Verbose:	
-                                console.debug(message);	
-                                return;	
-                            case msal.LogLevel.Warning:	
-                                console.warn(message);	
-                                return;	
+                        switch (level) {
+                            case msal.LogLevel.Error:
+                                console.error(message);
+                                return;
+                            case msal.LogLevel.Info:
+                                console.info(message);
+                                return;
+                            case msal.LogLevel.Verbose:
+                                console.debug(message);
+                                return;
+                            case msal.LogLevel.Warning:
+                                console.warn(message);
+                                return;
                             default:
                                 console.log(message);
                                 return;

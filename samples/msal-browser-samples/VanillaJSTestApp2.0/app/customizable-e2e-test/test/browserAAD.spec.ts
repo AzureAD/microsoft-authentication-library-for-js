@@ -1,14 +1,13 @@
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS, retrieveAppConfiguration } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes, UserTypes, AppPlatforms } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
 import { clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
-import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { RedirectRequest, Configuration } from "../../../../../../lib/msal-browser/src";
+import { getBrowser, getHomeUrl } from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/default tests`;
 let sampleHomeUrl = "";
@@ -25,13 +24,17 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
 }
 
 
-describe("AAD-PPE Tests", () => {
+describe("AAD Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let BrowserCache: BrowserCacheUtils;
+    let clientID: string;
+    let authority: string;
     let username = "";
     let accountPwd = "";
+    let msalConfig: Configuration;
+    let request: any;
 
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -39,35 +42,54 @@ describe("AAD-PPE Tests", () => {
         sampleHomeUrl = getHomeUrl();
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.SPA,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: aadTokenRequest}));
+        msalConfig = {
+            auth: {
+                clientId: clientID,
+                authority: authority
+            },
+            cache: {
+                cacheLocation: "sessionStorage",
+                storeAuthStateInCookie: false
+            }
+        };
+
+        request = {
+            scopes: ["User.Read"]
+        }
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig: msalConfig, request: request }));
     });
 
     afterAll(async () => {
         await context.close();
         await browser.close();
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({}));
     });
 
     describe("login Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
         });
 
         afterEach(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
             await page.close();
         });
 
@@ -79,7 +101,7 @@ describe("AAD-PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("Performs loginRedirect from url with empty query string", async () => {
@@ -91,7 +113,7 @@ describe("AAD-PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
             expect(page.url()).toEqual(sampleHomeUrl);
         });
 
@@ -105,16 +127,16 @@ describe("AAD-PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
             expect(page.url()).toEqual(testUrl);
         });
 
         it("Performs loginRedirect with relative redirectUri", async () => {
             const relativeRedirectUriRequest: RedirectRequest = {
-                ...aadTokenRequest,
+                ...request,
                 redirectUri: "/"
             }
-            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: relativeRedirectUriRequest}));
+            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig: msalConfig, request: relativeRedirectUriRequest }));
             page.reload();
 
             const testName = "redirectBaseCase";
@@ -124,15 +146,15 @@ describe("AAD-PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("Performs loginRedirect with relative redirectStartPage", async () => {
             const relativeRedirectUriRequest: RedirectRequest = {
-                ...aadTokenRequest,
+                ...request,
                 redirectStartPage: "/"
             }
-            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: relativeRedirectUriRequest}));
+            fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig: msalConfig, request: relativeRedirectUriRequest }));
             page.reload();
 
             const testName = "redirectBaseCase";
@@ -142,7 +164,7 @@ describe("AAD-PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("Performs loginPopup", async () => {
@@ -154,7 +176,7 @@ describe("AAD-PPE Tests", () => {
             await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
     });
 
@@ -165,8 +187,8 @@ describe("AAD-PPE Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
 
             testName = "logoutBaseCase";
@@ -177,14 +199,14 @@ describe("AAD-PPE Tests", () => {
         });
 
         afterEach(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
             await page.close();
         });
 
         it("logoutRedirect", async () => {
             await clickLogoutRedirect(screenshot, page);
-            expect(page.url().startsWith("https://login.windows-ppe.net/common/")).toBeTruthy();
+            expect(page.url().startsWith(authority)).toBeTruthy();
             expect(page.url()).toContain("logout");
             // Skip server sign-out
             const tokenStore = await BrowserCache.getTokens();
@@ -196,7 +218,7 @@ describe("AAD-PPE Tests", () => {
         it("logoutPopup", async () => {
             const [popupWindow, popupWindowClosed] = await clickLogoutPopup(screenshot, page);
             await popupWindow.waitForNavigation();
-            expect(popupWindow.url().startsWith("https://login.windows-ppe.net/common/")).toBeTruthy();
+            expect(popupWindow.url().startsWith(authority)).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
             const tokenStore = await BrowserCache.getTokens();
             expect(tokenStore.idTokens.length).toEqual(0);
@@ -212,8 +234,8 @@ describe("AAD-PPE Tests", () => {
         beforeAll(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
 
             testName = "acquireTokenBaseCase";
@@ -229,8 +251,8 @@ describe("AAD-PPE Tests", () => {
         });
 
         afterAll(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.sessionStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
             await page.close();
         });
 
@@ -248,7 +270,7 @@ describe("AAD-PPE Tests", () => {
             await screenshot.takeScreenshot(page, "acquireTokenRedirectGotTokens");
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("acquireTokenPopup", async () => {
@@ -265,7 +287,7 @@ describe("AAD-PPE Tests", () => {
             await screenshot.takeScreenshot(page, "acquireTokenPopupGotTokens");
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("acquireTokenSilent from Cache", async () => {
@@ -276,14 +298,14 @@ describe("AAD-PPE Tests", () => {
             await page.waitForSelector("#scopes-acquired");
             await screenshot.takeScreenshot(page, "acquireTokenSilent-fromCache-GotTokens");
 
-            const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(aadMsalConfig.auth.clientId);
+            const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry(msalConfig.auth.clientId);
             expect(telemetryCacheEntry).toBeDefined();
             expect(telemetryCacheEntry["cacheHits"]).toEqual(1);
             // Remove Telemetry Cache entry for next test
-            await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(aadMsalConfig.auth.clientId)]);
+            await BrowserCache.removeTokens([BrowserCacheUtils.getTelemetryKey(msalConfig.auth.clientId)]);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("acquireTokenSilent via RefreshToken", async () => {
@@ -300,7 +322,7 @@ describe("AAD-PPE Tests", () => {
             await screenshot.takeScreenshot(page, "acquireTokenSilent-viaRefresh-GotTokens");
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
     });
 });

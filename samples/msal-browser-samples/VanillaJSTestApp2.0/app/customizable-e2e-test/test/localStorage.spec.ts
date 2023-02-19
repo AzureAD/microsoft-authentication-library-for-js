@@ -1,13 +1,13 @@
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS, retrieveAppConfiguration } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
+import { AzureEnvironments, AppTypes, UserTypes, AppPlatforms } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/localStorageAuthConfig.json";
+import { Configuration } from "../../../../../../lib/msal-browser/src";
 import { clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
-import {getBrowser, getHomeUrl} from "../../testUtils";
+import { getBrowser, getHomeUrl } from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/localStorageTests`;
 
@@ -26,24 +26,46 @@ describe("LocalStorage Tests", function () {
     let username = "";
     let accountPwd = "";
     let sampleHomeUrl = "";
-
+    let clientID: string;
+    let authority: string;
     let browser: puppeteer.Browser;
+    let msalConfig: Configuration;
+    let request: any;
+
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         browser = await getBrowser();
         sampleHomeUrl = getHomeUrl();
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.SPA,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
 
-        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: aadTokenRequest}));
+        msalConfig = {
+            auth: {
+                clientId: clientID,
+                authority: authority
+            },
+            cache: {
+                cacheLocation: "localStorage",
+                storeAuthStateInCookie: false
+            }
+        };
+
+        request = {
+            scopes: ["User.Read"]
+        }
+
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({ msalConfig: msalConfig, request: request }));
     });
 
     let context: puppeteer.BrowserContext;
@@ -53,19 +75,20 @@ describe("LocalStorage Tests", function () {
     afterAll(async () => {
         await context.close();
         await browser.close();
+        fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({}));
     });
 
     describe("login Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
-            BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+            page.setDefaultTimeout(ONE_SECOND_IN_MS * 5);
+            BrowserCache = new BrowserCacheUtils(page, msalConfig.cache.cacheLocation);
             await page.goto(sampleHomeUrl);
         });
 
         afterEach(async () => {
-            await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+            await page.evaluate(() => Object.assign({}, window.localStorage.clear()));
             await page.close();
         });
 
@@ -77,14 +100,14 @@ describe("LocalStorage Tests", function () {
             await enterCredentials(page, screenshot, username, accountPwd);
             await waitForReturnToApp(screenshot, page);
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("Going back to app during redirect clears cache", async () => {
             const testName = "redirectBrowserBackButton";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             await clickLoginRedirect(screenshot, page);
-            await page.waitForNavigation({ waitUntil: "networkidle0"});
+            await page.waitForNavigation({ waitUntil: "networkidle0" });
             // Navigate back to home page
             await page.goto(sampleHomeUrl);
             // Wait for processing
@@ -108,14 +131,14 @@ describe("LocalStorage Tests", function () {
             await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
 
             // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
-            await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            await verifyTokenStore(BrowserCache, request.scopes);
         });
 
         it("Closing popup before login resolves clears cache", async () => {
             const testName = "popupCloseWindow";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
-            await popupPage.waitForNavigation({waitUntil: 'networkidle0'});
+            await popupPage.waitForNavigation({ waitUntil: 'networkidle0' });
             await popupPage.close();
             // Wait until popup window closes
             await popupWindowClosed;
