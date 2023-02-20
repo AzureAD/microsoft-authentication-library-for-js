@@ -27,6 +27,10 @@ describe("SilentIframeClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         // @ts-ignore
         silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient, pca.nativeInternalStorage);
     });
@@ -230,6 +234,10 @@ describe("SilentIframeClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger);
             // @ts-ignore
@@ -302,6 +310,10 @@ describe("SilentIframeClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
             silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient, pca.nativeInternalStorage);
             const testServerTokenResponse = {

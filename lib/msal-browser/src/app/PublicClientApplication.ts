@@ -129,7 +129,7 @@ export class PublicClientApplication implements IPublicClientApplication {
         return this.controller.getActiveAccount();
     }
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
-        return this.initializeWrapperLibrary(sku, version);
+        return this.controller.initializeWrapperLibrary(sku, version);
     }
     setNavigationClient(navigationClient: INavigationClient): void {
         this.controller.setNavigationClient(navigationClient);
