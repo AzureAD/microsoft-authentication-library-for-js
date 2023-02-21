@@ -1,15 +1,15 @@
 import puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, RETRY_TIMES, retrieveAppConfiguration } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
+import { AppPlatforms, AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     enterCredentialsADFS,
     enterCredentialsADFSWithConsent,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
- } from "../../testUtils";
+} from "../../testUtils";
 import { PublicClientApplication } from "../../../../lib/msal-node/";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
@@ -18,12 +18,7 @@ const getTokenAuthCode = require("../index");
 
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-const config = require("../config/ADFS.json");
-
-let username: string;
-let accountPwd: string;
-
-describe('Auth Code ADFS PPE Tests', () => {
+describe('Auth Code ADFS Tests', () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
@@ -31,9 +26,15 @@ describe('Auth Code ADFS PPE Tests', () => {
     let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
+    let clientID: string;
+    let authority: string;
+    let username: string;
+    let accountPwd: string;
+    let config: any;
+
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/adfs`;
 
-    beforeAll(async() => {
+    beforeAll(async () => {
         // @ts-ignore
         browser = await global.__BROWSER__;
         // @ts-ignore
@@ -45,12 +46,38 @@ describe('Auth Code ADFS PPE Tests', () => {
             azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
             federationProvider: FederationProviders.ADFS2019,
-            userType: UserTypes.FEDERATED
+            userType: UserTypes.FEDERATED,
+            appPlatform: AppPlatforms.WEB,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        config = {
+            authOptions: {
+                clientId: clientID,
+                authority: authority
+            },
+            request: {
+                authCodeUrlParameters: {
+                    scopes: [
+                        "User.Read"
+                    ],
+                    redirectUri: "http://localhost:3001/redirect"
+                },
+                tokenRequest: {
+                    redirectUri: "http://localhost:3001/redirect",
+                    scopes: [
+                        "User.Read"
+                    ]
+                }
+            },
+            resourceApi: {
+                endpoint: "https://graph.microsoft.com/v1.0/me"
+            }
+        }
     });
 
     afterAll(async () => {
@@ -62,7 +89,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         let server: any;
 
         beforeAll(async () => {
-            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin } });
             server = getTokenAuthCode(config, publicClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
@@ -128,7 +155,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             // Reset the cache
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
-            await page.goto(`${homeRoute}/?prompt=none`, {waitUntil: "networkidle0"});
+            await page.goto(`${homeRoute}/?prompt=none`, { waitUntil: "networkidle0" });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
@@ -151,7 +178,7 @@ describe('Auth Code ADFS PPE Tests', () => {
 
         it("Performs acquire token with login hint", async () => {
             const USERNAME = "test@domain.abc";
-            await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, {waitUntil: "networkidle0"});
+            await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, { waitUntil: "networkidle0" });
             await page.waitForSelector("#i0116");
             const emailInput = await page.$("#i0116")
             const email = await page.evaluate(element => {

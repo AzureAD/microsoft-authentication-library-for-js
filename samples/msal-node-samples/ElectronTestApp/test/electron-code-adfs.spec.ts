@@ -2,7 +2,7 @@ import * as path from 'path';
 
 import { ElectronApplication, Page, _electron as electron, test, expect } from "@playwright/test";
 
-import { setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import { retrieveAppConfiguration, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -17,19 +17,19 @@ import {
 import {
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
-} from '../../testUtils'
-
-import config from '../src/config/ADFS.json';
+} from '../../testUtils';
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/adfs.cache.json`;
 
-test.describe('Electron Auth Code ADFS 2019 PPE Tests ', () => {
+test.describe('Electron Auth Code ADFS 2019 Tests ', () => {
     let electronApp: ElectronApplication;
     let page: Page;
-
+    let clientID: string;
+    let authority: string;
     let username: string;
     let accountPwd: string;
+    let config: any;
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/ElectronTestApp/adfs`;
 
@@ -47,6 +47,33 @@ test.describe('Electron Auth Code ADFS 2019 PPE Tests ', () => {
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        config = {
+            authOptions: {
+                clientId: clientID,
+                authority: authority
+            },
+            request: {
+                authCodeUrlParameters: {
+                    scopes: ["User.Read"],
+                    redirectUri: "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth"
+                },
+                authCodeRequest: {
+                    scopes: ["User.Read"],
+                    redirectUri: "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth"
+                }
+            },
+            resourceApi: {
+                endpoint: "https://graph.microsoft.com/v1.0/me"
+            },
+            customProtocol: {
+                name: "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"
+            },
+            cache: {
+                cacheLocation: "./data/adfs.cache.json"
+            }
+        };
 
         electronApp = await electron.launch({
             args: [path.join(__dirname, "../dist/App.js"),

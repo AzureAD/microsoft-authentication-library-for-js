@@ -4,17 +4,17 @@
  */
 
 import puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, RETRY_TIMES, retrieveAppConfiguration } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
+import { AppPlatforms, AppTypes, AzureEnvironments, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
     SAMPLE_HOME_URL
- } from "../../testUtils";
+} from "../../testUtils";
 
 import { PublicClientApplication } from "../../../../lib/msal-node/dist";
 
@@ -27,10 +27,7 @@ const getTokenAuthCode = require("../index");
 // Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-// Load scenario configuration
-const config = require("../config/AAD.json");
-
-describe("Auth Code AAD PPE Tests", () => {
+describe("Auth Code AAD Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
@@ -38,13 +35,15 @@ describe("Auth Code AAD PPE Tests", () => {
     let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
-
+    let clientID: string;
+    let authority: string;
     let username: string;
     let accountPwd: string;
+    let config: any;
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/aad`;
 
-    beforeAll(async() => {
+    beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -55,13 +54,40 @@ describe("Auth Code AAD PPE Tests", () => {
         createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.WEB,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        config = {
+            authOptions: {
+                clientId: clientID,
+                authority: authority
+            },
+            request: {
+                authCodeUrlParameters: {
+                    scopes: [
+                        "User.Read"
+                    ],
+                    redirectUri: "http://localhost:3000/redirect"
+                },
+                tokenRequest: {
+                    redirectUri: "http://localhost:3000/redirect",
+                    scopes: [
+                        "User.Read"
+                    ]
+                }
+            },
+            resourceApi: {
+                endpoint: "https://graph.microsoft.com/v1.0/me"
+            }
+        }
     });
 
     afterAll(async () => {
@@ -73,7 +99,7 @@ describe("Auth Code AAD PPE Tests", () => {
         let server: any;
 
         beforeAll(async () => {
-            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin } });
             server = getTokenAuthCode(config, publicClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
@@ -147,7 +173,7 @@ describe("Auth Code AAD PPE Tests", () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
             // Login without a prompt
-            await page.goto(`${homeRoute}/?prompt=none`, {waitUntil: "networkidle0"});
+            await page.goto(`${homeRoute}/?prompt=none`, { waitUntil: "networkidle0" });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
@@ -170,7 +196,7 @@ describe("Auth Code AAD PPE Tests", () => {
 
         it("Performs acquire token with login hint", async () => {
             const USERNAME = "test@domain.abc";
-            await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, {waitUntil: "networkidle0"});
+            await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, { waitUntil: "networkidle0" });
             await page.waitForSelector("#i0116");
             const emailInput = await page.$("#i0116");
             const email = await page.evaluate(element => {

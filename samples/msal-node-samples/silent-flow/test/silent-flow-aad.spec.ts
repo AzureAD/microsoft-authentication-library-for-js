@@ -4,11 +4,11 @@
  */
 
 import puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES, retrieveAppConfiguration} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
+import { AppPlatforms, AppTypes, AzureEnvironments, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     clickSignIn,
     enterCredentials,
@@ -30,10 +30,7 @@ const getTokenSilent = require("../index");
 // Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-// Load scenario configuration
-const config = require("../config/AAD.json");
-
-describe("Silent Flow AAD PPE Tests", () => {
+describe("Silent Flow AAD Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
     let browser: puppeteer.Browser;
@@ -46,8 +43,11 @@ describe("Silent Flow AAD PPE Tests", () => {
     let msalTokenCache: TokenCache;
     let server: any;
 
+    let clientID: string;
+    let authority: string;
     let username: string;
     let accountPwd: string;
+    let config: any;
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/aad`;
 
@@ -61,14 +61,41 @@ describe("Silent Flow AAD PPE Tests", () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            appPlatform: AppPlatforms.WEB,
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        config = {
+            authOptions: {
+                clientId: clientID,
+                authority: authority
+            },
+            request: {
+                authCodeUrlParameters: {
+                    scopes: [
+                        "User.Read"
+                    ],
+                    redirectUri: `http://localhost:${port}/redirect`
+                },
+                tokenRequest: {
+                    redirectUri: `http://localhost:${port}/redirect`,
+                    scopes: [
+                        "User.Read"
+                    ]
+                }
+            },
+            resourceApi: {
+                endpoint: "https://graph.microsoft.com/v1.0/me"
+            }
+        }
 
         publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
         msalTokenCache = publicClientApplication.getTokenCache();
