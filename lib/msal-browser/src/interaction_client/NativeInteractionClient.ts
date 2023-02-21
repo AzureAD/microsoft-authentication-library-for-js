@@ -232,7 +232,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
         // Add Native Broker fields to Telemetry
-        const mats = this.addNativeBrokerFieldsToTelemetry(response);
+        const mats = this.addTelemetryFromNativeResponse(response);
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
@@ -357,7 +357,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return result;
     }
 
-    protected addNativeBrokerFieldsToTelemetry(response: NativeResponse): MATS | null {
+    protected addTelemetryFromNativeResponse(response: NativeResponse): MATS | null {
 
         const mats = this.getMATSFromResponse(response);
         this.performanceClient.addStaticFields({
