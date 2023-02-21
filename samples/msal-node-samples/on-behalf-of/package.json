@@ -25,6 +25,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
+    "dotenv": "^16.0.3",
     "jest": "^27.0.4"
   }
 }

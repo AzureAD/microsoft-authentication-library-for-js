@@ -4,12 +4,12 @@
  */
 
 const express = require("express");
-const session = require("express-session")
 const msal = require("@azure/msal-node");
 const http = require("http");
-const https = require('https');
-const jwt = require("jsonwebtoken")
+const https = require("https");
+const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
+require("dotenv").config({ path: "../../../.env" });
 
 /**
  * Command line arguments can be used to configure:
@@ -24,6 +24,28 @@ const cachePlugin = require("../cachePlugin")(TEST_CACHE_LOCATION);
 
 const webAppConfig = require("./config/WEB-APP.json");
 const webApiConfig = require("./config/WEB-API.json");
+
+if (process.env.OBO_WEB_APP_CLIENT_ID) {
+    webAppConfig.authOptions.clientId = process.env.OBO_WEB_APP_CLIENT_ID;
+}
+if (process.env.OBO_WEB_APP_CLIENT_SECRET) {
+    webAppConfig.authOptions.clientSecret = process.env.OBO_WEB_APP_CLIENT_SECRET;
+}
+
+if (process.env.OBO_WEB_API_CLIENT_ID) {
+    webApiConfig.authOptions.clientId = process.env.OBO_WEB_API_CLIENT_ID;
+    webApiConfig.webApiUrl = `api://${process.env.OBO_WEB_API_CLIENT_ID}/access_as_user`;
+}
+if (process.env.OBO_WEB_API_CLIENT_SECRET) {
+    webApiConfig.authOptions.clientSecret = process.env.OBO_WEB_API_CLIENT_SECRET;
+}
+if (process.env.OBO_WEB_API_TENANT_ID) {
+    webApiConfig.authOptions.authority = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}`;
+    webApiConfig.discoveryKeysEndpoint = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}/discovery/v2.0/keys`;
+}
+
+console.log(webAppConfig);
+console.log(webApiConfig);
 
 const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiUrl) => {
     const app = express();
@@ -175,7 +197,7 @@ if(argv.$0 === "index.js") {
             console.log(message);
         },
         piiLoggingEnabled: false,
-        logLevel: msal.LogLevel.Verbose,
+        logLevel: msal.LogLevel.ERROR,
     };
 
     const webAppConfidentialClient = new msal.ConfidentialClientApplication({auth: webAppConfig.authOptions, cache: { cachePlugin }, system: { loggerOptions }});
