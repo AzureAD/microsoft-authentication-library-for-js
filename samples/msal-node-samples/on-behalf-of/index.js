@@ -44,9 +44,6 @@ if (process.env.OBO_WEB_API_TENANT_ID) {
     webApiConfig.discoveryKeysEndpoint = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}/discovery/v2.0/keys`;
 }
 
-console.log(webAppConfig);
-console.log(webApiConfig);
-
 const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiUrl) => {
     const app = express();
 
