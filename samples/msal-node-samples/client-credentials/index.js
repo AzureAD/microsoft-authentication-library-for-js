@@ -20,15 +20,15 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the customConfig.json file in the
  * /config directory.
- * 
+ *
  * You can create your own configuration file and replace the path inside the "config" require statement below
  * with the path to your custom configuraiton.
  */
 const runtimeOptions = argv.ro || null;
-const config = require(`./config/AAD.json`);
+const config = require(`./config/customConfig.json`);
 
 function getClientCredentialsToken(cca, clientCredentialRequestScopes, ro) {
-    // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
+    // With client credentials flows permissions need to be granted in the portal by a tenant administrator.
     // The scope is always in the format "<resource>/.default"
     const clientCredentialRequest = {
         scopes: clientCredentialRequestScopes,
@@ -60,7 +60,7 @@ if(argv.$0 === "index.js") {
         piiLoggingEnabled: false,
         logLevel: msal.LogLevel.Verbose,
     }
-    
+
     // Build MSAL ClientApplication Configuration object
     const clientConfig = {
         auth: config.authOptions,
@@ -72,7 +72,7 @@ if(argv.$0 === "index.js") {
         //    loggerOptions,
         // }
     };
-    
+
     // Create msal application object
     const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
 

@@ -4,7 +4,7 @@
  */
 
 import puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, RETRY_TIMES, retrieveAppConfiguration} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -27,10 +27,7 @@ const getTokenDeviceCode = require("../index");
 // Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-// Load scenario configuration
-const config = require("../config/ADFS.json");
-
-describe('Device Code ADFS PPE Tests', () => {
+describe('Device Code ADFS Tests', () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -38,9 +35,11 @@ describe('Device Code ADFS PPE Tests', () => {
     let page: puppeteer.Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
-
+    let clientID: string;
+    let authority: string;
     let username: string;
     let accountPwd: string;
+    let config: any;
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/adfs`;
 
@@ -55,12 +54,28 @@ describe('Device Code ADFS PPE Tests', () => {
             azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
             federationProvider: FederationProviders.ADFS2019,
-            userType: UserTypes.FEDERATED
+            userType: UserTypes.FEDERATED,
+            publicClient: 'yes'
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        config = {
+            authOptions:
+            {
+                clientId: clientID,
+                authority: authority
+            },
+            request:
+            {
+                deviceCodeUrlParameters: {
+                    scopes: ["User.Read"]
+                }
+            },
+        };
     });
 
     afterAll(async () => {

@@ -22,12 +22,12 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
  * The scenario string is the name of a .json file which contains the MSAL client configuration
  * For an example of what a configuration file should look like, check out the AAD.json file in the
  * /config directory.
- * 
+ *
  * You can create your own configuration file and replace the path inside the "config" require statement below
  * with the path to your custom configuraiton.
  */
 const scenario = argv.s || "AAD";
-const config = require(`./config/${scenario}.json`);
+const config = require(`./config/customConfig.json`);
 
 // Sample Application Code
 const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeOptions) {
@@ -39,7 +39,7 @@ const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeO
         }
     }
 
-    const deviceCodeRequest = { 
+    const deviceCodeRequest = {
         ...requestConfig.deviceCodeUrlParameters,
         deviceCodeCallback: runtimeOptions.deviceCodeCallback
     };
@@ -48,18 +48,18 @@ const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeO
     if (runtimeOptions.timeout) {
         deviceCodeRequest.timeout = runtimeOptions.timeout;
     }
-            
+
     /**
      * MSAL Usage
      * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByDeviceCode API.
-     * 
+     *
      * Device Code Grant
-     * 
+     *
      * In this code block, the application uses MSAL to obtain an Access Token through the Device Code grant.
      * Once the device code request is executed, the user will be prompted by the console application to visit a URL,
      * where they will input the device code shown in the console. Once the code is entered, the promise below should resolve
      * with an AuthenticationResult object.
-     * 
+     *
      * The AuthenticationResult contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
      * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
      */
@@ -84,7 +84,7 @@ const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeO
             piiLoggingEnabled: false,
         logLevel: msal.LogLevel.Verbose,
     }
-    
+
     // Build MSAL Client Configuration from scenario configuration file
     const clientConfig = {
         auth: config.authOptions,
@@ -95,11 +95,11 @@ const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeO
         /*
          *   system: {
          *    loggerOptions: loggerOptions
-         *   } 
+         *   }
          */
     };
-    
-    // Create an MSAL PublicClientApplication object 
+
+    // Create an MSAL PublicClientApplication object
     const pca = new msal.PublicClientApplication(clientConfig);
     getTokenDeviceCode(config, pca, runtimeOptions).then(response => {
         console.log(response);

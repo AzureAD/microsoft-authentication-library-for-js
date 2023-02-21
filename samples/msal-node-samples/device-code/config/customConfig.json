@@ -1,0 +1,13 @@
+{
+    "authOptions": {
+        "clientId": "ENTER_CLIENT_ID_HERE",
+        "authority": "ENTER_AUTHORITY_HERE"
+    },
+    "request": {
+        "deviceCodeUrlParameters": {
+            "scopes": [
+                "User.Read"
+            ]
+        }
+    }
+}

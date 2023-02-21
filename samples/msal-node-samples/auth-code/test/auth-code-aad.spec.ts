@@ -75,10 +75,10 @@ describe("Auth Code AAD Tests", () => {
                     scopes: [
                         "User.Read"
                     ],
-                    redirectUri: "http://localhost:3000/redirect"
+                    redirectUri: `http://localhost:${port}/redirect`
                 },
                 tokenRequest: {
-                    redirectUri: "http://localhost:3000/redirect",
+                    redirectUri: `http://localhost:${port}/redirect`,
                     scopes: [
                         "User.Read"
                     ]

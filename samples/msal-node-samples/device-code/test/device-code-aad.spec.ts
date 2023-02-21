@@ -4,18 +4,18 @@
  */
 
 import puppeteer from "puppeteer";
-import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, RETRY_TIMES, retrieveAppConfiguration } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments, UserTypes } from "../../../e2eTestUtils/Constants";
 import {
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
- } from "../../testUtils";
+} from "../../testUtils";
 
 import { Configuration, PublicClientApplication } from "../../../../lib/msal-node";
 
@@ -28,10 +28,7 @@ const getTokenDeviceCode = require("../index");
 // Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-// Load scenario configuration
-const config = require("../config/AAD.json");
-
-describe('Device Code AAD PPE Tests', () => {
+describe('Device Code AAD Tests', () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -39,9 +36,11 @@ describe('Device Code AAD PPE Tests', () => {
     let page: puppeteer.Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
-
+    let clientID: string;
+    let authority: string;
     let username: string;
     let accountPwd: string;
+    let config: any;
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/aad`;
 
@@ -53,13 +52,34 @@ describe('Device Code AAD PPE Tests', () => {
 
         // Configure Lab API Query Parameters
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
+            userType: UserTypes.CLOUD,
+            publicClient: 'yes'
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        [clientID, , authority] = await retrieveAppConfiguration(envResponse[0], labClient, false);
+
+        config = {
+            authOptions:
+            {
+                clientId: clientID,
+                authority: authority
+            },
+            request:
+            {
+                deviceCodeUrlParameters: {
+                    scopes: ["User.Read"]
+                }
+            },
+            resourceApi:
+            {
+                endpoint: "https://graph.microsoft.com/v1.0/me"
+            }
+        };
     });
 
     afterAll(async () => {
@@ -89,7 +109,7 @@ describe('Device Code AAD PPE Tests', () => {
             const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
-                const { userCode, verificationUri} = deviceCodeResponse;
+                const { userCode, verificationUri } = deviceCodeResponse;
                 await enterDeviceCode(page, screenshot, userCode, verificationUri);
                 await approveRemoteConnect(page, screenshot);
                 await enterCredentials(page, screenshot, username, accountPwd);
@@ -102,6 +122,6 @@ describe('Device Code AAD PPE Tests', () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
     });
 });

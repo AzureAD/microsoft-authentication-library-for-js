@@ -65,10 +65,10 @@ describe('Auth Code ADFS Tests', () => {
                     scopes: [
                         "User.Read"
                     ],
-                    redirectUri: "http://localhost:3001/redirect"
+                    redirectUri: `http://localhost:${port}/redirect`
                 },
                 tokenRequest: {
-                    redirectUri: "http://localhost:3001/redirect",
+                    redirectUri: `http://localhost:${port}/redirect`,
                     scopes: [
                         "User.Read"
                     ]

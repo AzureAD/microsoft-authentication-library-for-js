@@ -4,7 +4,7 @@ import {RETRY_TIMES, retrieveAppConfiguration} from "../../../e2eTestUtils/TestU
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { validateCacheLocation } from "../../testUtils";
 import { ConfidentialClientApplication } from "../../../../lib/msal-node/";
-import config from "../config/AAD.json";
+import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
@@ -15,10 +15,11 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 let clientID;
 let clientSecret;
 let authority;
+let config: any;
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
-describe('Client Credentials AAD PPE Tests', () => {
+describe('Client Credentials AAD Tests', () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
@@ -26,7 +27,8 @@ describe('Client Credentials AAD PPE Tests', () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
         const labApiParms: LabApiQueryParams = {
-            appType: "cloud",
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
             publicClient: "no",
             signInAudience: "azureadmyorg"
         };
@@ -37,9 +39,13 @@ describe('Client Credentials AAD PPE Tests', () => {
         [clientID, clientSecret, authority] = await retrieveAppConfiguration(envResponse[0], labClient, true);
 
         // Update the complete config
-        config.authOptions.clientId = clientID;
-        config.authOptions.clientSecret = clientSecret;
-        config.authOptions.authority = authority;
+        config = {
+            authOptions: {
+                clientId: clientID,
+                authority: authority,
+                clientSecret: clientSecret
+            }
+        };
     });
 
     describe("Acquire Token", () => {
