@@ -3,17 +3,12 @@ const path = require("path");
 
 const APP_DIR = path.join(__dirname, 'app');
 
-let sampleFolders;
-
-if (process.argv.find((x) => x.startsWith('--sample'))) {
-    sampleFolders = [APP_DIR + '/' + process.argv.find((x) => x.startsWith('--sample')).split('=')[1]];
-} else {
-    sampleFolders = fs.readdirSync(APP_DIR, { withFileTypes: true }).filter(function(file) {
-        return file.isDirectory() && file.name !== "node_modules" && fs.existsSync(path.resolve(APP_DIR, file.name, "jest.config.js"));
-    }).map(function(file) {
-        return path.join(APP_DIR, file.name);
-    });
-}
+// if a sample is specified, only run tests for that sample
+const sampleFolders = process.argv.find(arg => arg.startsWith('--sample='))
+    ? [path.join(APP_DIR, process.argv.find(arg => arg.startsWith('--sample='))?.split('=')[1])]
+    : fs.readdirSync(APP_DIR, { withFileTypes: true })
+        .filter(file => file.isDirectory() && file.name !== "node_modules" && fs.existsSync(path.resolve(APP_DIR, file.name, "jest.config.js")))
+        .map(file => path.join(APP_DIR, file.name));
 
 module.exports = {
     projects: sampleFolders,
