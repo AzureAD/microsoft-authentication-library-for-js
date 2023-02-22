@@ -360,7 +360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com"
             };
-            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").rejects("Error");
             let acquireTokenFailureFired = false;
             sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
@@ -514,7 +514,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Uses default request if no request provided", (done) => {
-            sinon.stub(pca, "acquireTokenRedirect").callsFake(async (request): Promise<void> => {
+            sinon.stub(StandardController.prototype, "acquireTokenRedirect").callsFake(async (request): Promise<void> => {
                 expect(request.scopes).toContain("openid");
                 expect(request.scopes).toContain("profile");
                 done();
@@ -855,7 +855,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com"
             };
 
-            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "acquireToken").rejects("Error");
             let acquireTokenStartEmitted = false;
             let acquireTokenFailureEmitted = false;
@@ -959,7 +959,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            sinon.stub(pca, "acquireTokenPopup").callsFake(async (request) => {
+            sinon.stub(StandardController.prototype, "acquireTokenPopup").callsFake(async (request) => {
                 expect(request.scopes).toContain("openid");
                 expect(request.scopes).toContain("profile");
                 done();
@@ -1331,7 +1331,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").callsFake(() => {
-                sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+                sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
                 return Promise.resolve(testTokenResponse);
             });
             let loginStartEmitted = false;
@@ -1344,7 +1344,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            const response = await pca.acquireTokenPopup({scopes: ["openid"]});
+            const response = await (pca as any).controller.acquireTokenPopup({scopes: ["openid"]});
             expect(response).toEqual(testTokenResponse);
             expect(popupClientSpy.calledOnce).toBe(true);
             expect(loginStartEmitted).toBe(true);
@@ -1373,7 +1373,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
             const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").resolves(testTokenResponse);
             let acquireTokenStartEmitted = false;
             let acquireTokenSuccessEmitted = false;
@@ -1401,7 +1401,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com"
             };
 
-            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
             const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").rejects("Error");
             let acquireTokenStartEmitted = false;
             let acquireTokenFailureEmitted = false;
