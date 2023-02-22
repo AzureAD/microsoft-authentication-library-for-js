@@ -18,6 +18,7 @@
     "@azure/keyvault-certificates": "^4.6.0",
     "@azure/keyvault-secrets": "^4.6.0",
     "@azure/msal-node": "^1.0.1",
+    "dotenv": "^16.0.3",
     "express": "^4.17.1",
     "express-session": "^1.17.2",
     "jsonwebtoken": "^8.5.1",
@@ -25,7 +26,6 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "dotenv": "^16.0.3",
     "jest": "^27.0.4"
   }
 }

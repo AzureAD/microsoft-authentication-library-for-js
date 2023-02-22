@@ -5,6 +5,6 @@
         "clientSecret": "<ENTER_CLIENT_SECRET>"
     },
     "serverPort": 8000,
-    "webApiUrl": "api://<ENTER_CLIENT_ID>/access_as_user",
+    "webApiUrl": "<ENTER_WEB_API_URL>",
     "discoveryKeysEndpoint": "https://login.microsoftonline.com/<ENTER_TENANT_ID>/discovery/v2.0/keys"
 }

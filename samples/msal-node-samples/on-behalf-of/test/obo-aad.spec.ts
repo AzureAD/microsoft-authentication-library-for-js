@@ -11,11 +11,10 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
 import { enterCredentials, SCREENSHOT_BASE_FOLDER_NAME, validateCacheLocation, SAMPLE_HOME_URL } from "../../testUtils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
+import path from "path";
 import * as dotenv from "dotenv";
 
-dotenv.config({
-    path: "../../../../.env",
-});
+dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
 const { acquireTokenByCode, acquireTokenObo } = require("../index");
 
@@ -31,10 +30,12 @@ if (process.env.OBO_WEB_APP_CLIENT_SECRET) {
 
 if (process.env.OBO_WEB_API_CLIENT_ID) {
     webApiConfig.authOptions.clientId = process.env.OBO_WEB_API_CLIENT_ID;
-    webApiConfig.webApiUrl = `api://${process.env.OBO_WEB_API_CLIENT_ID}/access_as_user`;
 }
 if (process.env.OBO_WEB_API_CLIENT_SECRET) {
     webApiConfig.authOptions.clientSecret = process.env.OBO_WEB_API_CLIENT_SECRET;
+}
+if (process.env.OBO_WEB_API_URL) {
+    webApiConfig.webApiUrl = process.env.OBO_WEB_API_URL;
 }
 if (process.env.OBO_WEB_API_TENANT_ID) {
     webApiConfig.authOptions.authority = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}`;
@@ -46,7 +47,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 const HOME_ROUTE = `http://localhost:${webAppConfig.serverPort}`;
 
-describe("OBO AAD PPE Tests", () => {
+describe("OBO AAD Tests", () => {
     jest.retryTimes(1);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
