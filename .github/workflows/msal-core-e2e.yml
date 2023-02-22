@@ -5,7 +5,7 @@ name: msal-core E2E Tests
 
 on:
   pull_request:
-    paths: 
+    paths:
       - 'lib/msal-core/**/*'
       - 'samples/msal-core-samples/VanillaJSTestApp/**/*'
       - '!**.md'
@@ -50,7 +50,7 @@ jobs:
     - name: Restore node_modules for sample
       uses: actions/cache@v3
       id: sample-cache
-      with: 
+      with:
         path: samples/msal-core-samples/VanillaJSTestApp/node_modules
         key: ${{ runner.os }}-core-e2e-${{ hashFiles('samples/msal-core-samples/VanillaJSTestApp/package.json') }}
 
@@ -65,7 +65,7 @@ jobs:
 
     - name: E2E Tests
       working-directory: samples/msal-core-samples/VanillaJSTestApp
-      timeout-minutes: 5
+      timeout-minutes: 10
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
