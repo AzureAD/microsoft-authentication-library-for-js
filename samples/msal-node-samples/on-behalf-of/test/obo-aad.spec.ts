@@ -19,28 +19,15 @@ dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 const { acquireTokenByCode, acquireTokenObo } = require("../index");
 
 const webAppConfig = require("../config/WEB-APP.json");
+webAppConfig.authOptions.clientId = process.env.OBO_WEB_APP_CLIENT_ID;
+webAppConfig.authOptions.clientSecret = process.env.OBO_WEB_APP_CLIENT_SECRET;
+
 const webApiConfig = require("../config/WEB-API.json");
-
-if (process.env.OBO_WEB_APP_CLIENT_ID) {
-    webAppConfig.authOptions.clientId = process.env.OBO_WEB_APP_CLIENT_ID;
-}
-if (process.env.OBO_WEB_APP_CLIENT_SECRET) {
-    webAppConfig.authOptions.clientSecret = process.env.OBO_WEB_APP_CLIENT_SECRET;
-}
-
-if (process.env.OBO_WEB_API_CLIENT_ID) {
-    webApiConfig.authOptions.clientId = process.env.OBO_WEB_API_CLIENT_ID;
-}
-if (process.env.OBO_WEB_API_CLIENT_SECRET) {
-    webApiConfig.authOptions.clientSecret = process.env.OBO_WEB_API_CLIENT_SECRET;
-}
-if (process.env.OBO_WEB_API_URL) {
-    webApiConfig.webApiUrl = process.env.OBO_WEB_API_URL;
-}
-if (process.env.OBO_WEB_API_TENANT_ID) {
-    webApiConfig.authOptions.authority = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}`;
-    webApiConfig.discoveryKeysEndpoint = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}/discovery/v2.0/keys`;
-}
+webApiConfig.authOptions.clientId = process.env.OBO_WEB_API_CLIENT_ID;
+webApiConfig.authOptions.clientSecret = process.env.OBO_WEB_API_CLIENT_SECRET;
+webApiConfig.webApiUrl = process.env.OBO_WEB_API_URL;
+webApiConfig.authOptions.authority = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}`;
+webApiConfig.discoveryKeysEndpoint = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}/discovery/v2.0/keys`;
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/cache.json`;
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
