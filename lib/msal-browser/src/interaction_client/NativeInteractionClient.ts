@@ -360,22 +360,27 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected addTelemetryFromNativeResponse(response: NativeResponse): MATS | null {
 
         const mats = this.getMATSFromResponse(response);
+
+        if (!mats){
+            return null;
+        }
+        
         this.performanceClient.addStaticFields({
             extensionId: this.nativeMessageHandler.getExtensionId(),
             extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
-            matsBrokerVersion: mats ? mats.broker_version : undefined,
-            matsAccountJoinOnStart: mats ? mats.account_join_on_start : undefined,
-            matsAccountJoinOnEnd: mats ? mats.account_join_on_end : undefined,
-            matsDeviceJoin: mats ? mats.device_join : undefined,
-            matsPromptBehavior: mats ? mats.prompt_behavior : undefined,
-            matsApiErrorCode: mats ? mats.api_error_code : undefined,
-            matsUiVisible: mats ? mats.ui_visible : undefined,
-            matsSilentCode: mats ? mats.silent_code : undefined,
-            matsSilentBiSubCode: mats ? mats.silent_bi_sub_code : undefined,
-            matsSilentMessage: mats ? mats.silent_message : undefined,
-            matsSilentStatus: mats ? mats.silent_status : undefined,
-            matsHttpStatus: mats ? mats.http_status : undefined,
-            matsHttpEventCount: mats ? mats.http_event_count : undefined
+            matsBrokerVersion: mats.broker_version,
+            matsAccountJoinOnStart: mats.account_join_on_start,
+            matsAccountJoinOnEnd: mats.account_join_on_end,
+            matsDeviceJoin: mats.device_join,
+            matsPromptBehavior: mats.prompt_behavior,
+            matsApiErrorCode: mats.api_error_code,
+            matsUiVisible: mats.ui_visible,
+            matsSilentCode: mats.silent_code,
+            matsSilentBiSubCode: mats.silent_bi_sub_code,
+            matsSilentMessage: mats.silent_message,
+            matsSilentStatus: mats.silent_status,
+            matsHttpStatus: mats.http_status,
+            matsHttpEventCount: mats.http_event_count
         }, this.correlationId);
 
         return mats;
