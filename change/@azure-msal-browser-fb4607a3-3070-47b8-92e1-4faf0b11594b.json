@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix cache bugs in native flow (#5706)",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
