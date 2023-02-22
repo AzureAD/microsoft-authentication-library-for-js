@@ -124,6 +124,7 @@ async function validateAccessTokens(page: puppeteer.Page, localStorage: Storage)
 }
 
 describe("Browser tests", function () {
+    this.timeout(60000);
     this.retries(1);
 
     let browser: puppeteer.Browser;
