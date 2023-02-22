@@ -11,7 +11,7 @@ $("#login").click(function () {
 });
 
 var applicationConfig = {
-    clientID: '0813e1d1-ad72-46a9-8665-399bba48c201',
+    clientID: 'ENTER_CLIENT_ID_HERE',
     graphEndpoint: "https://graph.microsoft.com/v1.0/me/sendMail",
     graphScopes: ["user.read", "mail.send"]
 };

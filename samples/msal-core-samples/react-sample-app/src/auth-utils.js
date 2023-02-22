@@ -60,8 +60,8 @@ export const GRAPH_REQUESTS = {
 
 export const msalApp = new UserAgentApplication({
     auth: {
-        clientId: "245e9392-c666-4d51-8f8a-bfd9e55b2456",
-        authority: "https://login.microsoftonline.com/common",
+        clientId: "ENTER_CLIENT_ID_HERE",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO_HERE",
         redirectUri: "http://localhost:3000/auth.html",
         validateAuthority: true,
         postLogoutRedirectUri: "http://localhost:3000",
