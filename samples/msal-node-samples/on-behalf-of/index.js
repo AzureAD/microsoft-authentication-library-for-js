@@ -9,7 +9,6 @@ const http = require("http");
 const https = require("https");
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
-require("dotenv").config({ path: "../../../.env" });
 
 /**
  * Command line arguments can be used to configure:
