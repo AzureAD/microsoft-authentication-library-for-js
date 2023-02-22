@@ -1,13 +1,18 @@
-import * as Mocha from "mocha";
+import path from "path"
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
 import { LabClient, ILabApiParams } from "../../../e2eTests/LabClient";
+import { StringReplacer } from "../../../../../e2eTestUtils/ConfigUtils";
+
+const stringReplacer = new StringReplacer(path.join(__dirname, "../authConfig.js"));
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
 let username = "";
 let accountPwd = "";
+let clientID: string;
+let tenantID: string;
 
 function setupScreenshotDir() {
     if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
@@ -17,11 +22,21 @@ function setupScreenshotDir() {
 
 async function setupCredentials() {
     const testCreds = new LabClient();
-    const userParams: ILabApiParams = {azureEnvironment: "azureppe"};
+    const userParams: ILabApiParams = {
+        azureEnvironment: "azurecloud",
+        userType: "cloud",
+        appPlatform: "spa",
+    };
     const envResponse = await testCreds.getUserVarsByCloudEnvironment(userParams);
     const testEnv = envResponse[0];
     if (testEnv.upn) {
         username = testEnv.upn;
+    }
+    if (testEnv.tenantID) {
+        tenantID = testEnv.tenantID;
+    }
+    if (testEnv.appId) {
+        clientID = testEnv.appId;
     }
 
     const testPwdSecret = await testCreds.getSecret(testEnv.labName);
@@ -47,6 +62,14 @@ async function enterCredentials(page: puppeteer.Page, testName: string): Promise
     await takeScreenshot(page, testName, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
+    await page.waitForSelector('input#KmsiCheckboxField', {timeout: 1000});
+    await page.waitForSelector("input#idSIButton9");
+    await Promise.all([
+        page.waitForResponse((response) => response.url().startsWith("http://localhost")),
+        page.click('input#idSIButton9')
+    ]).catch(async (e) => {
+        throw e;
+    });
 }
 
 describe("Browser tests", function () {
@@ -56,7 +79,13 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         setupScreenshotDir();
-        setupCredentials();
+        await setupCredentials();
+
+        stringReplacer.replace({
+            "ENTER_CLIENT_ID_HERE": clientID,
+            "ENTER_TENANT_INFO_HERE": tenantID,
+        });
+
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
@@ -79,6 +108,7 @@ describe("Browser tests", function () {
     after(async () => {
         await context.close();
         await browser.close();
+        stringReplacer.restore();
     });
 
     it("Performs loginPopup then acquireTokenRedirect", async () => {

@@ -1,9 +1,9 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "57448aa1-9515-4176-a106-5cb9be8550e1",
-        authority: "https://fs.msidlab8.com/adfs/",
-        knownAuthorities: ["fs.msidlab8.com"]
+        clientId: "ENTER_CLIENT_ID_HERE",
+        authority: "ENTER_ADFS_AUTHORITY_HERE",
+        knownAuthorities: ["ENTER_ADFS_DOMAIN_HERE"]
     },
     cache: {
         cacheLocation: "localStorage", // This configures where your cache will be stored

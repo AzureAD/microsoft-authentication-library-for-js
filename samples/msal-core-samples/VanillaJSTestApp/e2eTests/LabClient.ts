@@ -7,7 +7,8 @@ export interface ILabApiParams {
     azureEnvironment?: string,
     userType?: string,
     b2cProvider?: string,
-    federationProvider?: string
+    federationProvider?: string,
+    appPlatform?: string,
 };
 
 export class LabClient {
@@ -15,7 +16,7 @@ export class LabClient {
     private credentials: ClientSecretCredential;
     private currentToken: AccessToken;
     constructor() {
-        this.credentials = new ClientSecretCredential(process.env["AZURE_TENANT_ID"], process.env["AZURE_CLIENT_ID"], process.env["AZURE_CLIENT_SECRET"]);   
+        this.credentials = new ClientSecretCredential(process.env["AZURE_TENANT_ID"], process.env["AZURE_CLIENT_ID"], process.env["AZURE_CLIENT_SECRET"]);
     }
 
     private async getCurrentToken(): Promise<string> {
@@ -39,7 +40,7 @@ export class LabClient {
         } catch (e) {
             console.error(e);
         }
-    
+
         return null;
     }
 
@@ -61,6 +62,9 @@ export class LabClient {
         }
         if (apiParams.federationProvider) {
             queryParams.push(`federationprovider=${apiParams.federationProvider}`);
+        }
+        if (apiParams.appPlatform) {
+            queryParams.push(`appPlatform=${apiParams.appPlatform}`);
         }
 
         if (queryParams.length <= 0) {

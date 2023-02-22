@@ -1,20 +1,22 @@
-import * as Mocha from "mocha";
+import path from "path"
 import puppeteer from "puppeteer";
 import { expect } from "chai";
 import fs from "fs";
 import { LabClient, ILabApiParams } from "../../../e2eTests/LabClient";
+import { StringReplacer } from "../../../../../e2eTestUtils/ConfigUtils";
+
+const stringReplacer = new StringReplacer(path.join(__dirname, "../authConfig.js"));
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let SCREENSHOT_NUM = 0;
 let username = "";
 let accountPwd = "";
+let idTokenCacheKey: string;
+let clientInfoCacheKey: string;
+let clientId: string;
 
-// Set App Info
-const clientId = "57448aa1-9515-4176-a106-5cb9be8550e1";
-const authority = "https://fs.msidlab8.com/adfs/"
-const scopes = ["openid"]
-const idTokenCacheKey = "msal." + clientId + ".idtoken"
-const clientInfoCacheKey = "msal." + clientId + ".client.info"
+let authority = "https://fs.msidlab8.com/adfs/";
+let domain = "fs.msidlab8.com";
 
 function setupScreenshotDir() {
     if (!fs.existsSync(`${SCREENSHOT_BASE_FOLDER_NAME}`)) {
@@ -33,6 +35,11 @@ async function setupCredentials() {
     const testEnv = envResponse[0];
     if (testEnv.upn) {
         username = testEnv.upn;
+    }
+    if (testEnv.appId) {
+        clientId = testEnv.appId;
+        idTokenCacheKey = "msal." + clientId + ".idtoken"
+        clientInfoCacheKey = "msal." + clientId + ".client.info"
     }
 
     const testPwdSecret = await testCreds.getSecret(testEnv.labName);
@@ -123,7 +130,14 @@ describe("Browser tests", function () {
     let browser: puppeteer.Browser;
     before(async () => {
         setupScreenshotDir();
-        setupCredentials();
+        await setupCredentials();
+
+        stringReplacer.replace({
+            "ENTER_CLIENT_ID_HERE": clientId,
+            "ENTER_ADFS_AUTHORITY_HERE": authority,
+            "ENTER_ADFS_DOMAIN_HERE": domain,
+        });
+
         browser = await puppeteer.launch({
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
@@ -136,16 +150,17 @@ describe("Browser tests", function () {
     after(async () => {
         await context.close();
         await browser.close();
+        stringReplacer.restore();
     });
 
-    describe("Test Login functions", async () => {  
+    describe("Test Login functions", async () => {
         beforeEach(async () => {
             SCREENSHOT_NUM = 0;
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             await page.goto('http://localhost:30662/');
         });
-    
+
         afterEach(async () => {
             await page.close();
         });
@@ -153,17 +168,17 @@ describe("Browser tests", function () {
         it("Performs loginRedirect", async () => {
             const testName = "redirectBaseCase";
             await loginRedirect(page, testName);
-            
+
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
 
             expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
         });
-        
+
         it("Performs loginPopup", async () => {
             const testName = "popupBaseCase";
             await loginPopup(page, testName);
-            
+
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
             expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
@@ -180,7 +195,7 @@ describe("Browser tests", function () {
             await page.goto('http://localhost:30662/');
             await loginPopup(page, testName);
         });
-    
+
         after(async () => {
             await page.close();
         });
@@ -200,7 +215,7 @@ describe("Browser tests", function () {
 
             const accessTokensFound = await validateAccessTokens(page, localStorage);
             expect(accessTokensFound).to.equal(1);
-        }); 
+        });
 
         it("Test acquireTokenPopup", async () => {
             await page.click("#getAccessTokenPopup");
@@ -213,7 +228,7 @@ describe("Browser tests", function () {
 
             const accessTokensFound = await validateAccessTokens(page, localStorage);
             expect(accessTokensFound).to.equal(1);
-        }); 
+        });
 
         it("Test acquireTokenSilent", async () => {
             await page.click("#getAccessTokenSilent");
@@ -223,9 +238,9 @@ describe("Browser tests", function () {
             const localStorage = await page.evaluate(() =>  Object.assign({}, window.localStorage));
             expect(Object.keys(localStorage)).to.contain(idTokenCacheKey);
             expect(Object.keys(localStorage)).to.contain(clientInfoCacheKey);
-            
+
             const accessTokensFound = await validateAccessTokens(page, localStorage);
             expect(accessTokensFound).to.equal(1);
-        }); 
+        });
     });
 });

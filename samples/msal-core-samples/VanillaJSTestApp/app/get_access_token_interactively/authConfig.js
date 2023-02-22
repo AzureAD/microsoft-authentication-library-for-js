@@ -1,10 +1,10 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+        clientId: "ENTER_CLIENT_ID_HERE",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO_HERE",
         redirectUri: "http://localhost:30662/",
         navigateToLoginRequestUrl: true,
-        authority: "https://login.windows-ppe.net/common"
     },
     cache: {
         cacheLocation: "localStorage", // This configures where your cache will be stored
