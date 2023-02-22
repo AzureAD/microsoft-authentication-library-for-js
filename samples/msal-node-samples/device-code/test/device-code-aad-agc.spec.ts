@@ -4,9 +4,9 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
-import { 
+import {
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
@@ -38,18 +38,18 @@ config.resourceApi = {
 
 describe('Device Code AAD AGC Tests', () => {
     jest.setTimeout(45000);
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
-    
+
     let username: string;
     let password: string;
-    
+
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/aad-agc`;
-    
+
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
@@ -94,7 +94,7 @@ describe('Device Code AAD AGC Tests', () => {
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };
-            
+
             await getTokenDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);

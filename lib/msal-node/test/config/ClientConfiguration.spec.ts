@@ -6,6 +6,7 @@ import { HttpClient } from '../../src/network/HttpClient';
 import { TEST_CONSTANTS, AUTHENTICATION_RESULT } from '../utils/TestConstants';
 import { Authority, AuthorityFactory, LogLevel, NetworkRequestOptions, AuthToken, AzureCloudInstance } from '@azure/msal-common';
 import { ClientCredentialRequest, ConfidentialClientApplication } from '../../src';
+import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
 
 describe('ClientConfiguration tests', () => {
     test('builds configuration and assigns default functions', () => {
@@ -199,7 +200,7 @@ describe('ClientConfiguration tests', () => {
         jest.spyOn(AuthorityFactory, 'createDiscoveredInstance').mockReturnValue(Promise.resolve(authority));
         jest.spyOn(AuthToken, 'extractTokenClaims').mockReturnValue({});
 
-        await (new ConfidentialClientApplication(appConfig)).acquireTokenByClientCredential(request);
+        await (new ConfidentialClientApplication(appConfig)).acquireTokenByClientCredential(request);        
 
         expect(appConfig.system?.networkClient?.sendPostRequestAsync).toHaveBeenCalledWith(
             undefined,
@@ -210,4 +211,61 @@ describe('ClientConfiguration tests', () => {
             )
         );
     });
+
+    test('client capabilities are handled as expected for OBO flow', async () => {
+
+        const authority: Authority = {
+            regionDiscoveryMetadata: {
+                region_used: undefined,
+                region_source: undefined,
+                region_outcome: undefined
+            },
+            resolveEndpointsAsync: () => {
+                return new Promise<void>(resolve => {
+                    resolve();
+                });
+            },
+            discoveryComplete: () => {
+                return true;
+            },
+            getPreferredCache: () => {
+                return TEST_CONSTANTS.PREFERRED_CACHE;
+            }
+        } as Authority;
+
+        const oboRequest: OnBehalfOfRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: "user_assertion_hash",
+            skipCache: true
+        };
+
+         const appConfig: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+                clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
+                clientCapabilities: ["TEST-CAPABILITY"]
+            },
+            system: {
+                networkClient: {
+                    sendGetRequestAsync: jest.fn(async (): Promise<any> => AUTHENTICATION_RESULT),
+                    sendPostRequestAsync: jest.fn(async (): Promise<any> => AUTHENTICATION_RESULT)
+                }
+            }
+        };
+
+        jest.spyOn(AuthorityFactory, 'createDiscoveredInstance').mockReturnValue(Promise.resolve(authority));
+        jest.spyOn(AuthToken, "extractTokenClaims").mockReturnValue({});
+
+        await (new ConfidentialClientApplication(appConfig)).acquireTokenOnBehalfOf(oboRequest);
+
+        expect(appConfig.system?.networkClient?.sendPostRequestAsync).toHaveBeenCalledWith(
+            undefined,
+            expect.objectContaining(
+                {
+                    "body": expect.stringContaining('TEST-CAPABILITY')
+                }
+            )
+        );
+    })
 });

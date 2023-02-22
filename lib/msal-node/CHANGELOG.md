@@ -1,8 +1,32 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 07 Dec 2022 16:53:07 GMT and should not be manually modified.
+This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.15.0
+
+Mon, 06 Feb 2023 18:51:50 GMT
+
+### Minor changes
+
+- proxyUrl is now passed to msal-node's httpClient via it's constructor #5599 (rginsburg@microsoft.com)
+- Add support for custom http(s) agents #5472 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v10.0.0
+
+### Patches
+
+- tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573 (rginsburg@microsoft.com)
+
+## 1.14.6
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- fix logger undefined error #5355 (bmahal@microsoft.com)
+- Upgrade jsonwebtoken to v9 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.2
 
 ## 1.14.5
 

@@ -2,6 +2,104 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:51 GMT",
+      "tag": "@azure/msal-browser_v2.33.0",
+      "version": "2.33.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "860be0de8a95165a48eea8727708ea0a9ef1618a",
+            "comment": "Add JS Queue Measurements to acquireTokenSilent #5352"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "44882f9b34db5954be640b5897678a6f3340ec7e",
+            "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor #5599"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v10.0.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9e32914346f11a1d2925e66b1301adf89d443bd6",
+            "comment": "Removed tokenQueryParameters from Public Client flows because they don't use the /token endpoint. #5573"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5894ff0920bfaad5c17d83b7d1921399f044a88e",
+            "comment": "Export browser telemetry classes #5641"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c37a5debbcac889ed509880d476e3721d3aff2bc",
+            "comment": "Adding page visibility change event for silent calls like AcquireTokenSilent #5555"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0c107eaadf7fe5c22367d3f22265d355acc0ac96",
+            "comment": "Revert typo changes #5582"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 09 Jan 2023 22:44:57 GMT",
+      "tag": "@azure/msal-browser_v2.32.2",
+      "version": "2.32.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0caefaa1ada3372f33fc0c07584f922855ceb1fb",
+            "comment": "Export CryptoOps and NativeAuthError for internal use #5482"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5d768052d5de051f93068d7327b8d90bfebb8a91",
+            "comment": "added http version changes #5211"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0db3780cd80f1b3853f8c993e50cf91a84cbf345",
+            "comment": "fix typos #5531"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "00d3fd949453e3f9dc3316cc0e913a84b9c2cfa2",
+            "comment": "fix logger explicitly set to undefined error #5355 "
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0d1a3cd2bdd67ae4e361fc1504dfeb010bf2b98b",
+            "comment": "Log number of accounts in trace mode. #5529"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v9.0.2",
+            "commit": "1c8f7d7e2fde5d0b701f7eb5bd1866177a5f8794"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 07 Dec 2022 16:53:07 GMT",
       "tag": "@azure/msal-browser_v2.32.1",
       "version": "2.32.1",
