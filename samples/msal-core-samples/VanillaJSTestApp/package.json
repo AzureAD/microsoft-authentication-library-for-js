@@ -33,6 +33,7 @@
     "@types/morgan": "^1.9.0",
     "@types/puppeteer": "^2.0.1",
     "chai": "^4.2.0",
+    "dotenv": "^16.0.3",
     "mocha": "^7.1.0",
     "puppeteer": "^2.1.1",
     "ts-node": "^8.6.2",
