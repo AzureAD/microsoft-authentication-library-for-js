@@ -2,7 +2,9 @@ import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
 const labApiUri = "https://msidlab.com/api"
 
-require('dotenv').config();
+require('dotenv').config({
+    path: "../../.env"
+});
 
 export interface ILabApiParams {
     envName?: string,
