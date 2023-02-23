@@ -186,7 +186,6 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
         initMeasurement.endMeasurement({wamAllowed: allowNativeBroker, success: true});
-        initMeasurement.flushMeasurement();
     }
 
     // #region Redirect Flow

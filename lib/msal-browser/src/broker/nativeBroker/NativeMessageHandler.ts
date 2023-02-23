@@ -130,7 +130,6 @@ export class NativeMessageHandler {
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
                 this.handshakeEvent.endMeasurement({wamTimedOut: true, success: false});
-                this.handshakeEvent.flushMeasurement();
                 reject(BrowserAuthError.createNativeHandshakeTimeoutError());
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
@@ -168,7 +167,6 @@ export class NativeMessageHandler {
             const handshakeResolver = this.handshakeResolvers.get(request.responseId);
             if (handshakeResolver) {
                 this.handshakeEvent.endMeasurement({success: false, wamExtensionInstalled: false});
-                this.handshakeEvent.flushMeasurement();
                 handshakeResolver.reject(BrowserAuthError.createNativeExtensionNotInstalledError());
             }
         }
@@ -217,7 +215,6 @@ export class NativeMessageHandler {
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(`NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
                 this.handshakeEvent.endMeasurement({wamExtensionInstalled: true, success: true});
-                this.handshakeEvent.flushMeasurement();
 
                 handshakeResolver.resolve();
                 this.handshakeResolvers.delete(request.responseId);
