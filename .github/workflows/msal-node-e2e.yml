@@ -22,8 +22,24 @@ concurrency:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Az CLI login'
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.TEST_CLIENT_ID }}
+          tenant-id: ${{ secrets.TEST_TENANT_ID }}
+          allow-no-subscriptions: true
+  
+      - name: 'Run az commands'
+        run: |
+          az account show
+          az group list
+
   run-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
     runs-on: ubuntu-latest
