@@ -332,6 +332,11 @@ export type Counters = {
     incompleteSubsCount?: number;
 };
 
+export type SubMeasurement = {
+    name: PerformanceEvents,
+    startTimeMs: number
+};
+
 /**
  * Performance measurement taken by the library, including metadata about the request and application.
  *
@@ -488,6 +493,11 @@ export type PerformanceEvent = StaticFields & Counters & {
      * @type {?number}
      */
     queuedCount?: number
+
+    /**
+     * Sub-measurements for internal use. To be deleted before flushing.
+     */
+    incompleteSubMeasurements?: Map<string, SubMeasurement>
 };
 
 export const IntFields: ReadonlySet<string> = new Set([

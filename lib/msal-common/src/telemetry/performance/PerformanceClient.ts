@@ -5,12 +5,17 @@
 
 import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
-import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction, QueueMeasurement } from "./IPerformanceClient";
+import {
+    InProgressPerformanceEvent,
+    IPerformanceClient,
+    PerformanceCallbackFunction,
+    QueueMeasurement
+} from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 import {
     Counters,
-    PerformanceEvent,
     IntFields,
+    PerformanceEvent,
     PerformanceEvents,
     PerformanceEventStatus,
     StaticFields
@@ -27,30 +32,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
     /**
      * Multiple events with the same correlation id.
-     * Double keyed by correlation id and event id.
      * @protected
-     * @type {Map<string, Map<string, PerformanceEvent>>}
+     * @type {Map<string, PerformanceEvent>}
      */
-    protected eventsByCorrelationId: Map<string, Map<string, PerformanceEvent>>;
-
-    /**
-     * Fields to be emitted which are scoped to the top level request and whose value will not change in submeasurements
-     * For example: App name, version, etc.
-     */
-    protected staticFieldsByCorrelationId: Map<string, StaticFields>;
-
-    /**
-     * Counters to be emitted which are scoped to the top level request and whose value may change in sub-measurements
-     */
-    protected countersByCorrelationId: Map<string, Counters>;
-
-    /**
-     * Underlying performance measurements for each operation
-     *
-     * @protected
-     * @type {Map<string, IPerformanceMeasurement>}
-     */
-    protected measurementsById: Map<string, IPerformanceMeasurement>;
+    protected eventsByCorrelationId: Map<string, PerformanceEvent>;
 
     /**
      * Map of pre-queue times by correlation Id
@@ -88,11 +73,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
         this.logger = logger;
         this.callbacks = new Map();
         this.eventsByCorrelationId = new Map();
-        this.staticFieldsByCorrelationId = new Map();
-        this.measurementsById = new Map();
         this.queueMeasurements = new Map();
         this.preQueueTimeByCorrelationId = new Map();
-        this.countersByCorrelationId = new Map();
     }
 
     /**
@@ -198,9 +180,9 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Adds queue measurement time to QueueMeasurements array for given correlation ID.
      *
-     * @param {PerformanceEvents} name
+     * @param {PerformanceEvents} eventName
      * @param {?string} correlationId
-     * @param {?number} time
+     * @param {?number} queueTime
      * @returns
      */
     addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void {
@@ -248,16 +230,8 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Duplicate code to address spelling error will be removed at the next major version bump.
         this.logger.trace(`PerformanceClient: Performance measurement started for ${measureName}`, eventCorrelationId);
-        let validMeasurement: IPerformanceMeasurement;
-        const performanceMeasuremeant = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
-        if (performanceMeasuremeant.startMeasurement) {
-            performanceMeasuremeant.startMeasurement();
-            validMeasurement = performanceMeasuremeant;
-        } else {
-            const performanceMeasurement = this.startPerformanceMeasurement(measureName, eventCorrelationId);
-            performanceMeasurement.startMeasurement();
-            validMeasurement = performanceMeasurement;
-        }
+        const performanceMeasurement = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
+        performanceMeasurement.startMeasurement();
 
         const inProgressEvent: PerformanceEvent = {
             eventId: this.generateId(),
@@ -269,34 +243,25 @@ export abstract class PerformanceClient implements IPerformanceClient {
             name: measureName,
             startTimeMs: Date.now(),
             correlationId: eventCorrelationId,
+            appName: this.applicationTelemetry?.appName,
+            appVersion: this.applicationTelemetry?.appVersion,
         };
 
         // Store in progress events so they can be discarded if not ended properly
         this.cacheEventByCorrelationId(inProgressEvent);
 
-        const staticFields: StaticFields = {
-            appName: this.applicationTelemetry?.appName,
-            appVersion: this.applicationTelemetry?.appVersion,
-        };
-        this.addStaticFields(staticFields, eventCorrelationId);
-        this.cacheMeasurement(inProgressEvent, validMeasurement);
-
         // Return the event and functions the caller can use to properly end/flush the measurement
         return {
             endMeasurement: (event?: Partial<PerformanceEvent>): PerformanceEvent | null => {
-                const completedEvent = this.endMeasurement({
+                return this.endMeasurement({
                     // Initial set of event properties
                     ...inProgressEvent,
                     // Properties set when event ends
                     ...event
-                });
-
-                if (completedEvent) {
-                    // Cache event so that submeasurements can be added downstream
-                    this.cacheEventByCorrelationId(completedEvent);
-                }
-                return completedEvent;
+                },
+                performanceMeasurement);
             },
+            // @deprecated use "endMeasurement" instead
             flushMeasurement: () => {
                 return this.flushMeasurements(inProgressEvent.name, inProgressEvent.correlationId);
             },
@@ -309,7 +274,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             increment: (counters: Counters) => {
                 return this.increment(counters, inProgressEvent.correlationId);
             },
-            measurement: validMeasurement,
+            measurement: performanceMeasurement,
             event: inProgressEvent
         };
 
@@ -318,36 +283,66 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Stops measuring the performance for an operation. Should only be called directly by PerformanceClient classes,
      * as consumers should instead use the function returned by startMeasurement.
+     * Adds a new field named as "[event name]DurationMs" for sub-measurements, completes and emits an event
+     * otherwise.
      *
      * @param {PerformanceEvent} event
+     * @param {IPerformanceMeasurement} measurement
      * @returns {(PerformanceEvent | null)}
      */
-    endMeasurement(event: PerformanceEvent): PerformanceEvent | null {
-        const performanceMeasurement = this.measurementsById.get(event.eventId);
-        if (performanceMeasurement) {
-            // Immediately delete so that the same event isnt ended twice
-            this.measurementsById.delete(event.eventId);
-            performanceMeasurement.endMeasurement();
-            const durationMs = performanceMeasurement.flushMeasurement();
-            // null indicates no measurement was taken (e.g. needed performance APIs not present)
-            if (durationMs !== null) {
-                this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
-                const completedEvent: PerformanceEvent = {
-                    // Allow duration to be overwritten when event ends (e.g. testing), but not status
-                    durationMs: Math.round(durationMs),
-                    ...event,
-                    status: PerformanceEventStatus.Completed,
-                };
-
-                return completedEvent;
-            } else {
-                this.logger.trace("PerformanceClient: Performance measurement not taken", event.correlationId);
-            }
-        } else {
+    endMeasurement(event: PerformanceEvent, measurement?: IPerformanceMeasurement): PerformanceEvent | null {
+        const rootEvent: PerformanceEvent | undefined = this.eventsByCorrelationId.get(event.correlationId);
+        if (!rootEvent) {
             this.logger.trace(`PerformanceClient: Measurement not found for ${event.eventId}`, event.correlationId);
+            return null;
         }
 
-        return null;
+        const isRoot = event.eventId === rootEvent.eventId;
+        if (isRoot) {
+            this.discardCache(rootEvent.correlationId);
+        } else {
+            rootEvent.incompleteSubMeasurements?.delete(event.eventId);
+        }
+
+        measurement?.endMeasurement();
+        const durationMs = measurement?.flushMeasurement();
+        // null indicates no measurement was taken (e.g. needed performance APIs not present)
+        if (!durationMs) {
+            this.logger.trace("PerformanceClient: Performance measurement not taken", rootEvent.correlationId);
+            return null;
+        }
+
+        this.logger.trace(`PerformanceClient: Performance measurement ended for ${event.name}: ${durationMs} ms`, event.correlationId);
+
+        // Add sub-measurement attribute to root event.
+        if (!isRoot) {
+            rootEvent[event.name + "DurationMs"] = Math.floor(durationMs);
+            return { ...rootEvent };
+        }
+
+        let finalEvent: PerformanceEvent = { ...rootEvent, ...event };
+        let incompleteSubsCount: number = 0;
+        // Incomplete sub-measurements are discarded. They are likely an instrumentation bug that should be fixed.
+        finalEvent.incompleteSubMeasurements?.forEach(subMeasurement => {
+            this.logger.trace(`PerformanceClient: Incomplete submeasurement ${subMeasurement.name} found for ${event.name}`, finalEvent.correlationId);
+            incompleteSubsCount++;
+        });
+        finalEvent.incompleteSubMeasurements = undefined;
+
+        const queueInfo = this.getQueueInfo(event.correlationId);
+
+        finalEvent = {
+            ...finalEvent,
+            durationMs: Math.round(durationMs),
+            queuedTimeMs: queueInfo.totalQueueTime,
+            queuedCount: queueInfo.totalQueueCount,
+            status: PerformanceEventStatus.Completed,
+            incompleteSubsCount
+        };
+        this.truncateIntegralFields(finalEvent, this.getIntFields());
+        this.emitEvents([finalEvent], event.correlationId);
+
+        return finalEvent;
     }
 
     /**
@@ -355,14 +350,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param fields
      * @param correlationId
      */
-    addStaticFields(fields: StaticFields, correlationId: string) : void{
-        const existingStaticFields = this.staticFieldsByCorrelationId.get(correlationId);
-        if (existingStaticFields) {
-            this.logger.trace("PerformanceClient: Updating static fields");
-            this.staticFieldsByCorrelationId.set(correlationId, {...existingStaticFields, ...fields});
+    addStaticFields(fields: StaticFields, correlationId: string) : void {
+        this.logger.trace("PerformanceClient: Updating static fields");
+        const event = this.eventsByCorrelationId.get(correlationId);
+        if (event) {
+            this.eventsByCorrelationId.set(correlationId, {...event, ...fields});
         } else {
-            this.logger.trace("PerformanceClient: Adding static fields");
-            this.staticFieldsByCorrelationId.set(correlationId, fields);
+            this.logger.trace("PerformanceClient: Event not found for", correlationId);
         }
     }
 
@@ -372,19 +366,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param correlationId {string} correlation identifier
      */
     increment(counters: Counters, correlationId: string): void {
-        const existing: Counters | undefined = this.countersByCorrelationId.get(correlationId);
-        if (!existing) {
-            this.logger.trace("PerformanceClient: Setting counters");
-            this.countersByCorrelationId.set(correlationId, { ...counters });
-            return;
-        }
-
         this.logger.trace("PerformanceClient: Updating counters");
-        for (const counter in counters) {
-            if (!existing.hasOwnProperty(counter)) {
-                existing[counter] = 0;
+        const event = this.eventsByCorrelationId.get(correlationId);
+        if (event) {
+            for (const counter in counters) {
+                if (!event.hasOwnProperty(counter)) {
+                    event[counter] = 0;
+                }
+                event[counter] += counters[counter];
             }
-            existing[counter] += counters[counter];
+        } else {
+            this.logger.trace("PerformanceClient: Event not found for", correlationId);
         }
     }
 
@@ -398,41 +390,18 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {PerformanceEvent} event
      */
     private cacheEventByCorrelationId(event: PerformanceEvent) {
-        const existingEvents = this.eventsByCorrelationId.get(event.correlationId);
-        if (existingEvents) {
+        const rootEvent = this.eventsByCorrelationId.get(event.correlationId);
+        if (rootEvent) {
             this.logger.trace(`PerformanceClient: Performance measurement for ${event.name} added/updated`, event.correlationId);
-            existingEvents.set(event.eventId, event);
+            rootEvent.incompleteSubMeasurements = rootEvent.incompleteSubMeasurements || new Map();
+            rootEvent.incompleteSubMeasurements.set(event.eventId, {name: event.name, startTimeMs: event.startTimeMs });
         } else {
             this.logger.trace(`PerformanceClient: Performance measurement for ${event.name} started`, event.correlationId);
-            this.eventsByCorrelationId.set(event.correlationId, new Map().set(event.eventId, event));
+            this.eventsByCorrelationId.set(event.correlationId, { ...event });
         }
     }
 
-    /**
-     * Cache measurements by their id.
-     *
-     * @private
-     * @param {PerformanceEvent} event
-     * @param {IPerformanceMeasurement} measurement
-     */
-    private cacheMeasurement(event: PerformanceEvent, measurement: IPerformanceMeasurement) {
-        this.measurementsById.set(event.eventId, measurement);
-    }
-
-    /**
-     * Gathers and emits performance events for measurements taked for the given top-level API and correlation ID.
-     *
-     * @param {PerformanceEvents} measureName
-     * @param {string} correlationId
-     */
-    flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
-        this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
-
-        /**
-         * Adds all queue time and count measurements for given correlation ID
-         * then deletes queue times for given correlation ID from queueMeasurements map.
-         */
-
+    private getQueueInfo(correlationId: string): { totalQueueTime: number, totalQueueCount: number } {
         const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
             this.logger.trace(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
@@ -445,89 +414,21 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalQueueCount++;
         });
 
-        const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
-        const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
-        const counters = this.countersByCorrelationId.get(correlationId);
+        return {
+            totalQueueTime,
+            totalQueueCount
+        };
+    }
 
-        if (eventsForCorrelationId) {
-            this.discardCache(correlationId);
-
-            /*
-             * Manually end incomplete submeasurements to ensure there arent orphaned/never ending events.
-             * Incomplete submeasurements are likely an instrumentation bug that should be fixed.
-             * IE only supports Map.forEach.
-             */
-            const completedEvents: PerformanceEvent[] = [];
-            let incompleteSubsCount: number = 0;
-
-            eventsForCorrelationId.forEach(event => {
-                if (event.name !== measureName && event.status !== PerformanceEventStatus.Completed) {
-                    this.logger.trace(`PerformanceClient: Incomplete submeasurement ${event.name} found for ${measureName}`, correlationId);
-                    incompleteSubsCount++;
-
-                    const completedEvent = this.endMeasurement(event);
-                    if (completedEvent) {
-                        completedEvents.push(completedEvent);
-                    }
-                }
-
-                completedEvents.push(event);
-            });
-
-            // Sort events by start time (earliest first)
-            const sortedCompletedEvents = completedEvents.sort((eventA, eventB) => eventA.startTimeMs - eventB.startTimeMs);
-
-            // Take completed top level event and add completed submeasurements durations as properties
-            const topLevelEvents = sortedCompletedEvents.filter(event => event.name === measureName && event.status === PerformanceEventStatus.Completed);
-            if (topLevelEvents.length > 0) {
-                /*
-                 * Only take the first top-level event if there are multiple events with the same correlation id.
-                 * This greatly simplifies logic for submeasurements.
-                 */
-                if (topLevelEvents.length > 1) {
-                    this.logger.verbose("PerformanceClient: Multiple distinct top-level performance events found, using the first", correlationId);
-                }
-                const topLevelEvent = topLevelEvents[0];
-                this.logger.verbose(`PerformanceClient: Measurement found for ${measureName}`, correlationId);
-
-                // Build event object with top level and sub measurements
-                const eventToEmit = sortedCompletedEvents.reduce((previous, current) => {
-                    if (current.name !== measureName) {
-                        this.logger.trace(`PerformanceClient: Complete submeasurement found for ${current.name}`, correlationId);
-                        // TODO: Emit additional properties for each subMeasurement
-                        const subMeasurementName = `${current.name}DurationMs`;
-                        /*
-                         * Some code paths, such as resolving an authority, can occur multiple times.
-                         * Only take the first measurement, since the second could be read from the cache,
-                         * or due to the same correlation id being used for two distinct requests.
-                         */
-                        if (!previous[subMeasurementName]) {
-                            previous[subMeasurementName] = current.durationMs;
-                        } else {
-                            this.logger.verbose(`PerformanceClient: Submeasurement for ${measureName} already exists for ${current.name}, ignoring`, correlationId);
-                        }
-                    }
-
-                    return previous;
-                }, topLevelEvent);
-
-                const finalEvent: PerformanceEvent = {
-                    ...eventToEmit,
-                    ...staticFields,
-                    ...counters,
-                    queuedTimeMs: totalQueueTime,
-                    queuedCount: totalQueueCount,
-                    incompleteSubsCount
-                };
-                this.truncateIntegralFields(finalEvent, this.getIntFields());
-
-                this.emitEvents([finalEvent], eventToEmit.correlationId);
-            } else {
-                this.logger.verbose(`PerformanceClient: No completed top-level measurements found for ${measureName}`, correlationId);
-            }
-        } else {
-            this.logger.verbose("PerformanceClient: No measurements found", correlationId);
-        }
+    /**
+     * Gathers and emits performance events for measurements taked for the given top-level API and correlation ID.
+     * @deprecated use "endMeasurement" instead
+     *
+     * @param {PerformanceEvents} measureName
+     * @param {string} correlationId
+     */
+    flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
+        this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
     }
 
     /**
@@ -543,16 +444,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
     /**
      * Removes cache for a given correlation id.
      *
-     * @param {string} correlation identifier
+     * @param {string} correlationId correlation identifier
      */
     private discardCache(correlationId: string): void {
         this.discardMeasurements(correlationId);
-
-        this.logger.trace("PerformanceClient: Static fields discarded", correlationId);
-        this.staticFieldsByCorrelationId.delete(correlationId);
-
-        this.logger.trace("PerformanceClient: Counters discarded", correlationId);
-        this.countersByCorrelationId.delete(correlationId);
 
         this.logger.trace("PerformanceClient: QueueMeasurements discarded", correlationId);
         this.queueMeasurements.delete(correlationId);

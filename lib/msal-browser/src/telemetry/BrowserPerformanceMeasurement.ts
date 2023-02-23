@@ -3,29 +3,64 @@
  * Licensed under the MIT License.
  */
 
-import { IPerformanceMeasurement } from "@azure/msal-common";
+import { IPerformanceMeasurement, SubMeasurement } from "@azure/msal-common";
 
 export class BrowserPerformanceMeasurement implements IPerformanceMeasurement {
-    private measureName: string;
-    private correlationId: string;
-    private startMark: string;
-    private endMark: string;
+    private readonly measureName: string;
+    private readonly correlationId: string;
+    private readonly startMark: string;
+    private readonly endMark: string;
 
     constructor(name: string, correlationId: string) {
         this.correlationId = correlationId;
-        this.measureName = `msal.measure.${name}.${this.correlationId}`;
-        this.startMark = `msal.start.${name}.${this.correlationId}`;
-        this.endMark = `msal.end.${name}.${this.correlationId}`;
+        this.measureName = BrowserPerformanceMeasurement.makeMeasureName(name, correlationId);
+        this.startMark = BrowserPerformanceMeasurement.makeStartMark(name, correlationId);
+        this.endMark = BrowserPerformanceMeasurement.makeEndMark(name, correlationId);
+    }
+
+    private static makeMeasureName(name: string, correlationId: string) {
+        return `msal.measure.${name}.${correlationId}`;
+    }
+
+    private static makeStartMark(name: string, correlationId: string) {
+        return `msal.start.${name}.${correlationId}`;
+    }
+
+    private static makeEndMark(name: string, correlationId: string) {
+        return `msal.end.${name}.${correlationId}`;
     }
 
     static supportsBrowserPerformance(): boolean {
         return typeof window !== "undefined" &&
             typeof window.performance !== "undefined" &&
-            typeof window.performance.mark === "function" && 
+            typeof window.performance.mark === "function" &&
             typeof window.performance.measure === "function" &&
             typeof window.performance.clearMarks === "function" &&
             typeof window.performance.clearMeasures === "function" &&
             typeof window.performance.getEntriesByName === "function";
+    }
+
+    /**
+     * Flush browser marks and measurements.
+     * @param {string} correlationId
+     * @param {SubMeasurement} measurements
+     */
+    public static flushMeasurements(correlationId: string, measurements: SubMeasurement[]): void {
+        if (BrowserPerformanceMeasurement.supportsBrowserPerformance()) {
+            try {
+                measurements.forEach((measurement) => {
+                    const measureName = BrowserPerformanceMeasurement.makeMeasureName(measurement.name, correlationId);
+                    const entriesForMeasurement = window.performance.getEntriesByName(measureName, "measure");
+                    if (entriesForMeasurement.length > 0) {
+                        window.performance.clearMeasures(measureName);
+                        window.performance.clearMarks(BrowserPerformanceMeasurement.makeStartMark(measureName, correlationId));
+                        window.performance.clearMarks(BrowserPerformanceMeasurement.makeEndMark(measureName, correlationId));
+                    }
+                });
+            } catch (e) {
+                // Silently catch and return null
+            }
+        }
     }
 
     startMeasurement(): void {
