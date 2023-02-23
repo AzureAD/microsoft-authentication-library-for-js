@@ -6,12 +6,12 @@
 import {
     ApplicationTelemetry,
     IGuidGenerator,
+    IPerformanceClient,
     IPerformanceMeasurement,
     Logger,
+    PerformanceClient,
     PerformanceEvents,
-    PerformanceEventStatus,
-    IPerformanceClient,
-    PerformanceClient
+    PerformanceEventStatus
 } from "../../src";
 import crypto from 'crypto';
 
@@ -349,6 +349,31 @@ describe("PerformanceClient.spec.ts", () => {
             refreshTokenSize,
             idTokenSize
         })
+        topLevelEvent.endMeasurement({
+            success: true
+        });
+    });
+
+    it("captures total count of manually completed queue events", done => {
+        const mockPerfClient = new MockPerformanceClient();
+        const correlationId = "test-correlation-id";
+
+        mockPerfClient.addPerformanceCallback((events =>{
+            expect(events.length).toEqual(1);
+            const event = events[0];
+            expect(event.queuedCount).toEqual(4);
+            expect(event.queuedManuallyCompletedCount).toEqual(2);
+            expect(event.queuedTimeMs).toEqual(10);
+            done();
+        }));
+
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+
+        mockPerfClient.addQueueMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, topLevelEvent.event.correlationId, 1, false);
+        mockPerfClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilent, topLevelEvent.event.correlationId, 2, false);
+        mockPerfClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, topLevelEvent.event.correlationId, 3, true);
+        mockPerfClient.addQueueMeasurement(PerformanceEvents.GetAuthCodeUrl, topLevelEvent.event.correlationId, 4, true);
+
         topLevelEvent.endMeasurement({
             success: true
         });

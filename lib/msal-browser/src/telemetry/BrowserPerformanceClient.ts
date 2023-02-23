@@ -12,7 +12,8 @@ import {
     IPerformanceMeasurement,
     InProgressPerformanceEvent,
     ApplicationTelemetry,
-    SubMeasurement
+    SubMeasurement,
+    PreQueueEvent
 } from "@azure/msal-common";
 import { CryptoOptions } from "../config/Configuration";
 import { BrowserCrypto } from "../crypto/BrowserCrypto";
@@ -113,16 +114,16 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
             return;
         }
 
-        const preQueueTimesByEvents = this.preQueueTimeByCorrelationId.get(correlationId);
-
-        if (preQueueTimesByEvents){
-            preQueueTimesByEvents.set(eventName, window.performance.now());
-            this.preQueueTimeByCorrelationId.set(correlationId, preQueueTimesByEvents);
-        } else {
-            const preQueueTimes = new Map();
-            preQueueTimes.set(eventName, window.performance.now());
-            this.preQueueTimeByCorrelationId.set(correlationId, preQueueTimes);
+        const preQueueEvent: PreQueueEvent | undefined = this.preQueueTimeByCorrelationId.get(correlationId);
+        /**
+         * Manually complete queue measurement if there is an incomplete pre-queue event.
+         * Incomplete pre-queue events are instrumentation bugs that should be fixed.
+         */
+        if (preQueueEvent) {
+            this.logger.trace(`BrowserPerformanceClient: Incomplete pre-queue ${preQueueEvent.name} found`, correlationId);
+            this.addQueueMeasurement(preQueueEvent.name, correlationId, undefined, true);
         }
+        this.preQueueTimeByCorrelationId.set(eventName, { name: eventName, time: window.performance.now() });
     }
 
     /**
@@ -130,9 +131,11 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
      *
      * @param {PerformanceEvents} eventName
      * @param {?string} correlationId
+     * @param {?number} queueTime
+     * @param {?boolean} manuallyCompleted - indicator for manually completed queue measurements
      * @returns
      */
-    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string): void {
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number, manuallyCompleted?: boolean): void {
         if (!this.supportsBrowserPerformanceNow()) {
             this.logger.trace(`BrowserPerformanceClient: window performance API not available, unable to add queue measurement for ${eventName}`);
             return;
@@ -149,8 +152,8 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         }
 
         const currentTime = window.performance.now();
-        const queueTime = super.calculateQueuedTime(preQueueTime, currentTime);
+        const resQueueTime = queueTime || super.calculateQueuedTime(preQueueTime, currentTime);
 
-        return super.addQueueMeasurement(eventName, correlationId, queueTime);
+        return super.addQueueMeasurement(eventName, correlationId, resQueueTime, manuallyCompleted);
     }
 }
