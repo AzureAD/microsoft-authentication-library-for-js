@@ -188,9 +188,10 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @param {PerformanceEvents} eventName
      * @param {?string} correlationId
      * @param {?number} queueTime
+     * @param {?boolean} manuallyCompleted - indicator for manually completed queue measurements
      * @returns
      */
-    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void {
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number, manuallyCompleted?: boolean): void {
         if (!correlationId) {
             this.logger.trace(`PerformanceClient.addQueueMeasurement: correlationId not provided for ${eventName}, cannot add queue measurement`);
             return;
@@ -204,7 +205,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
             return;
         }
 
-        const queueMeasurement = {eventName, queueTime} as QueueMeasurement;
+        const queueMeasurement: QueueMeasurement = {eventName, queueTime, manuallyCompleted};
 
         // Adds to existing correlation Id if present in queueMeasurements
         const existingMeasurements = this.queueMeasurements.get(correlationId);
@@ -305,7 +306,13 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
 
         const isRoot = event.eventId === rootEvent.eventId;
+        let queueInfo = {
+            totalQueueTime: 0,
+            totalQueueCount: 0,
+            manuallyCompletedCount: 0
+        };
         if (isRoot) {
+            queueInfo = this.getQueueInfo(event.correlationId);
             this.discardCache(rootEvent.correlationId);
         } else {
             rootEvent.incompleteSubMeasurements?.delete(event.eventId);
@@ -336,13 +343,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
         finalEvent.incompleteSubMeasurements = undefined;
 
-        const queueInfo = this.getQueueInfo(event.correlationId);
-
         finalEvent = {
             ...finalEvent,
             durationMs: Math.round(durationMs),
             queuedTimeMs: queueInfo.totalQueueTime,
             queuedCount: queueInfo.totalQueueCount,
+            queuedManuallyCompletedCount: queueInfo.manuallyCompletedCount,
             status: PerformanceEventStatus.Completed,
             incompleteSubsCount
         };
@@ -408,7 +414,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
         }
     }
 
-    private getQueueInfo(correlationId: string): { totalQueueTime: number, totalQueueCount: number } {
+    private getQueueInfo(correlationId: string): { totalQueueTime: number, totalQueueCount: number, manuallyCompletedCount: number } {
         const queueMeasurementForCorrelationId = this.queueMeasurements.get(correlationId);
         if (!queueMeasurementForCorrelationId) {
             this.logger.trace(`PerformanceClient: no queue measurements found for for correlationId: ${correlationId}`);
@@ -416,14 +422,17 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         let totalQueueTime = 0;
         let totalQueueCount = 0;
+        let manuallyCompletedCount = 0;
         queueMeasurementForCorrelationId?.forEach((measurement) => {
             totalQueueTime += measurement.queueTime;
             totalQueueCount++;
+            manuallyCompletedCount += measurement.manuallyCompleted ? 1 : 0;
         });
 
         return {
             totalQueueTime,
-            totalQueueCount
+            totalQueueCount,
+            manuallyCompletedCount
         };
     }
 

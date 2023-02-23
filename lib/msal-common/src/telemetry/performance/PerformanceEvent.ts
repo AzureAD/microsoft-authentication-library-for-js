@@ -330,6 +330,18 @@ export type StaticFields = {
 export type Counters = {
     visibilityChangeCount?: number;
     incompleteSubsCount?: number;
+    /**
+     * Amount of times queued in the JS event queue.
+     *
+     * @type {?number}
+     */
+    queuedCount?: number
+    /**
+     * Amount of manually completed queue events.
+     *
+     * @type {?number}
+     */
+    queuedManuallyCompletedCount?: number;
 };
 
 export type SubMeasurement = {
@@ -486,13 +498,6 @@ export type PerformanceEvent = StaticFields & Counters & {
      * @type {?number}
      */
     queuedTimeMs?: number,
-
-    /**
-     * Amount of times queued in the JS event queue.
-     *
-     * @type {?number}
-     */
-    queuedCount?: number
 
     /**
      * Sub-measurements for internal use. To be deleted before flushing.

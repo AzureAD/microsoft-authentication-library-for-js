@@ -32,7 +32,7 @@ export interface IPerformanceClient {
     startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
-    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void;
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number, manuallyCompleted?: boolean): void;
     setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
 }
 
@@ -48,5 +48,10 @@ export type QueueMeasurement = {
     /**
      * Time spent in JS queue
      */
-    queueTime: number
+    queueTime: number,
+
+    /**
+     * Incomplete pre-queue events are instrumentation bugs that should be fixed.
+     */
+    manuallyCompleted?: boolean;
 };
