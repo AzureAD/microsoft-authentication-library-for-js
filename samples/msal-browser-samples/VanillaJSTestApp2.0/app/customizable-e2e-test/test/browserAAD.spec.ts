@@ -195,10 +195,11 @@ describe("AAD-Prod Tests", () => {
 
         it("logoutPopup", async () => {
             const [popupWindow, popupWindowClosed] = await clickLogoutPopup(screenshot, page);
-            await popupWindow.waitForNavigation();
             expect(popupWindow.url().startsWith("https://login.microsoftonline.com/common/")).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
+            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
+
             expect(tokenStore.idTokens.length).toEqual(0);
             expect(tokenStore.accessTokens.length).toEqual(0);
             expect(tokenStore.refreshTokens.length).toEqual(0);
