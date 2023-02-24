@@ -269,10 +269,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 },
                 performanceMeasurement);
             },
-            // @deprecated use "endMeasurement" instead
-            flushMeasurement: () => {
-                return this.flushMeasurements(inProgressEvent.name, inProgressEvent.correlationId);
-            },
             discardMeasurement: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
             },
