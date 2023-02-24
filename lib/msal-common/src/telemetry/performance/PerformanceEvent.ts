@@ -330,7 +330,6 @@ export type StaticFields = {
      * Native broker fields
      */
     allowNativeBroker?: boolean;
-    extensionChannel?: string;
     extensionInstalled?: boolean;
     extensionHandshakeTimeoutMs?: number;
     extensionHandshakeTimedOut?: boolean;

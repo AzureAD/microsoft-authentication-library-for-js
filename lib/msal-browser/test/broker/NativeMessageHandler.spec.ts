@@ -98,7 +98,6 @@ describe("NativeMessageHandler Tests", () => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
-                expect(event.extensionChannel).toEqual("53ee284d-920a-4b59-9d30-a60315b26836");
                 expect(event.extensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
                 expect(event.extensionInstalled).toBeTruthy();
                 expect(event.extensionHandshakeTimedOut).toBeUndefined();
@@ -179,7 +178,6 @@ describe("NativeMessageHandler Tests", () => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
-                expect(event.extensionChannel).toEqual("53ee284d-920a-4b59-9d30-a60315b26836");
                 expect(event.extensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
                 expect(event.extensionInstalled).toBeFalsy();
                 expect(event.extensionHandshakeTimedOut).toBeUndefined();

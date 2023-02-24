@@ -108,7 +108,6 @@ export class NativeMessageHandler {
             }
         };
         this.handshakeEvent.addStaticFields({
-            extensionChannel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             extensionHandshakeTimeoutMs: this.handshakeTimeoutMs
         });
