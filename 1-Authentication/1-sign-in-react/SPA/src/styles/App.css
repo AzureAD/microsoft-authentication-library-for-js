@@ -9,35 +9,35 @@ footer {
 }
 
 .iconText {
-    margin: 0 .5rem;
+    margin: 0 0.5rem;
 }
 
 .navbarStyle {
-    padding: .5rem 1rem !important;
+    padding: 0.5rem 1rem !important;
 }
 
 .navbarButton {
     color: #fff !important;
-    padding: .5rem 1rem !important;
+    padding: 0.5rem 1rem !important;
 }
 
 .iconText {
-  margin: 0 .5rem
+    margin: 0 0.5rem;
 }
 
 .navbarStyle {
-  padding: .5rem 1rem
+    padding: 0.5rem 1rem;
 }
 
 .navbarButton {
-  color: #fff !important
+    color: #fff !important;
 }
 
 .data-area-div {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-evenly
+    justify-content: space-evenly;
 }
 
 .todo-form {
@@ -59,11 +59,11 @@ footer {
 }
 
 .tableColumn {
-    word-break: break-all
+    word-break: break-all;
 }
 
 .table-responsive {
-  max-height: 37rem !important;
+    max-height: 37rem !important;
 }
 
 .warningMessage {
@@ -71,5 +71,9 @@ footer {
 }
 
 .card-title {
-  text-align: center;
+    text-align: center;
+}
+
+.signInButton {
+    margin: 1rem;
 }
