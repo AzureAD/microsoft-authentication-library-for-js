@@ -116,7 +116,6 @@ const performanceClient = {
     startMeasurement: jest.fn(),
     endMeasurement: jest.fn(),
     addStaticFields: jest.fn(),
-    flushMeasurements: jest.fn(),
     discardMeasurements: jest.fn(),
     removePerformanceCallback: jest.fn(),
     addPerformanceCallback: jest.fn(),
@@ -242,7 +241,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), idTokenClaims.nonce);
             browserStorage.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(CcsCredentialType));
-            
+
             sinon.stub(Authority.prototype, "isAlias").returns(false);
             const authorityOptions: AuthorityOptions = {
                 protocolMode: ProtocolMode.AAD,
@@ -275,7 +274,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             //@ts-ignore
             expect(interactionHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
-        
+
         // TODO: Need to improve these tests
         it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
             const idTokenClaims = {

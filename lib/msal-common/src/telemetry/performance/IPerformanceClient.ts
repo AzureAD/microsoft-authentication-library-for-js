@@ -9,8 +9,7 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type InProgressPerformanceEvent = {
-    endMeasurement: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null
-    flushMeasurement: () => void,
+    endMeasurement: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null,
     discardMeasurement: () => void,
     addStaticFields: (staticFields: StaticFields) => void,
     increment: (counters: Counters) => void,
@@ -21,8 +20,6 @@ export type InProgressPerformanceEvent = {
 export interface IPerformanceClient {
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent;
     endMeasurement(event: PerformanceEvent): PerformanceEvent | null;
-    // @deprecated use "endMeasurement" instead
-    flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void;
     discardMeasurements(correlationId: string): void;
     addStaticFields(staticFields: StaticFields, correlationId: string): void;
     removePerformanceCallback(callbackId: string): boolean;

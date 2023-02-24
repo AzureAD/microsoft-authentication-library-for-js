@@ -269,10 +269,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
                 },
                 performanceMeasurement);
             },
-            // @deprecated use "endMeasurement" instead
-            flushMeasurement: () => {
-                return this.flushMeasurements(inProgressEvent.name, inProgressEvent.correlationId);
-            },
             discardMeasurement: () => {
                 return this.discardMeasurements(inProgressEvent.correlationId);
             },
@@ -434,17 +430,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalQueueCount,
             manuallyCompletedCount
         };
-    }
-
-    /**
-     * Gathers and emits performance events for measurements taked for the given top-level API and correlation ID.
-     * @deprecated use "endMeasurement" instead
-     *
-     * @param {PerformanceEvents} measureName
-     * @param {string} correlationId
-     */
-    flushMeasurements(measureName: PerformanceEvents, correlationId: string): void {
-        this.logger.trace(`PerformanceClient: Performance measurements flushed for ${measureName}`, correlationId);
     }
 
     /**
