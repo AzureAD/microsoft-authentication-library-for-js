@@ -20,8 +20,6 @@ export type InProgressPerformanceEvent = {
 export interface IPerformanceClient {
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent;
     endMeasurement(event: PerformanceEvent): PerformanceEvent | null;
-    // @deprecated use "endMeasurement" instead
-    flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void;
     discardMeasurements(correlationId: string): void;
     addStaticFields(staticFields: StaticFields, correlationId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
