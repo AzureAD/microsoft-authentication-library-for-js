@@ -38,7 +38,7 @@ describe('/profileWithMsal', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
