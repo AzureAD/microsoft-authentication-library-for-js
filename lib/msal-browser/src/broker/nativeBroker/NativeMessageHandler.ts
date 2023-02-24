@@ -108,9 +108,9 @@ export class NativeMessageHandler {
             }
         };
         this.handshakeEvent.addStaticFields({
-            wamChannel: NativeConstants.CHANNEL_ID,
-            wamExtensionId: this.extensionId,
-            wamTimeoutMs: this.handshakeTimeoutMs
+            extensionChannel: NativeConstants.CHANNEL_ID,
+            extensionId: this.extensionId,
+            extensionHandshakeTimeoutMs: this.handshakeTimeoutMs
         });
 
         this.messageChannel.port1.onmessage = (event) => {
@@ -129,7 +129,7 @@ export class NativeMessageHandler {
                 window.removeEventListener("message", this.windowListener, false);
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
-                this.handshakeEvent.endMeasurement({wamTimedOut: true, success: false});
+                this.handshakeEvent.endMeasurement({extensionHandshakeTimedOut: true, success: false});
                 reject(BrowserAuthError.createNativeHandshakeTimeoutError());
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
@@ -166,7 +166,7 @@ export class NativeMessageHandler {
             window.removeEventListener("message", this.windowListener, false);
             const handshakeResolver = this.handshakeResolvers.get(request.responseId);
             if (handshakeResolver) {
-                this.handshakeEvent.endMeasurement({success: false, wamExtensionInstalled: false});
+                this.handshakeEvent.endMeasurement({success: false, extensionInstalled: false});
                 handshakeResolver.reject(BrowserAuthError.createNativeExtensionNotInstalledError());
             }
         }
@@ -214,7 +214,7 @@ export class NativeMessageHandler {
                 this.extensionId = request.extensionId;
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(`NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
-                this.handshakeEvent.endMeasurement({wamExtensionInstalled: true, success: true});
+                this.handshakeEvent.endMeasurement({extensionInstalled: true, success: true});
 
                 handshakeResolver.resolve();
                 this.handshakeResolvers.delete(request.responseId);

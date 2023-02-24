@@ -97,11 +97,11 @@ describe("NativeMessageHandler Tests", () => {
             const callbackId = performanceClient.addPerformanceCallback((events => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.wamTimeoutMs).toEqual(2000);
-                expect(event.wamChannel).toEqual("53ee284d-920a-4b59-9d30-a60315b26836");
-                expect(event.wamExtensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
-                expect(event.wamExtensionInstalled).toBeTruthy();
-                expect(event.wamTimedOut).toBeUndefined();
+                expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
+                expect(event.extensionChannel).toEqual("53ee284d-920a-4b59-9d30-a60315b26836");
+                expect(event.extensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
+                expect(event.extensionInstalled).toBeTruthy();
+                expect(event.extensionHandshakeTimedOut).toBeUndefined();
                 expect(event.success).toBeTruthy();
                 performanceClient.removePerformanceCallback(callbackId);
                 done();
@@ -178,11 +178,11 @@ describe("NativeMessageHandler Tests", () => {
             const callbackId = performanceClient.addPerformanceCallback((events => {
                 expect(events.length).toBe(1);
                 const event = events[0];
-                expect(event.wamTimeoutMs).toEqual(2000);
-                expect(event.wamChannel).toEqual("53ee284d-920a-4b59-9d30-a60315b26836");
-                expect(event.wamExtensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
-                expect(event.wamExtensionInstalled).toBeFalsy();
-                expect(event.wamTimedOut).toBeUndefined();
+                expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
+                expect(event.extensionChannel).toEqual("53ee284d-920a-4b59-9d30-a60315b26836");
+                expect(event.extensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
+                expect(event.extensionInstalled).toBeFalsy();
+                expect(event.extensionHandshakeTimedOut).toBeUndefined();
                 expect(event.success).toBeFalsy();
                 performanceClient.removePerformanceCallback(callbackId);
                 callbackDone = true;

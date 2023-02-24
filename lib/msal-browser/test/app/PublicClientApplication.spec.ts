@@ -568,7 +568,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(events.length).toBe(1);
                 const event = events[0];
                 expect(event.success).toBeTruthy();
-                expect(event.wamAllowed).toBeTruthy();
+                expect(event.allowNativeBroker).toBeTruthy();
                 pca.removePerformanceCallback(callbackId);
                 done();
             }));

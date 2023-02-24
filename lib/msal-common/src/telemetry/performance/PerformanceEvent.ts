@@ -327,14 +327,13 @@ export type StaticFields = {
     httpVerAuthority?: string;
 
     /**
-     * WAM bridge flags
+     * Native broker fields
      */
-    wamAllowed?: boolean;
-    wamChannel?: string;
-    wamExtensionInstalled?: boolean;
-    wamExtensionId?: string;
-    wamTimeoutMs?: number;
-    wamTimedOut?: boolean;
+    allowNativeBroker?: boolean;
+    extensionChannel?: string;
+    extensionInstalled?: boolean;
+    extensionHandshakeTimeoutMs?: number;
+    extensionHandshakeTimedOut?: boolean;
 };
 
 /**
