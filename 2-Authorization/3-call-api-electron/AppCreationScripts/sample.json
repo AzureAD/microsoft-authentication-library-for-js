@@ -1,0 +1,54 @@
+{
+    "Sample": {
+        "Title": "An Electron desktop application secured by MSAL Node on Microsoft identity platform",
+        "Level": 100,
+        "Client": "Electron desktop app",
+        "Service": "Microsoft Graph",
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial.git",
+        "Endpoint": "AAD v2.0",
+        "platform": "javascript",
+        "Languages": ["javascript"],
+        "Description": "An Electron desktop application secured by MSAL Node on Microsoft identity platform",
+        "products": ["azure-active-directory", "msal-js", "msal-node"],
+        "Provider": "CIAM",
+        "Platform": "javascript"
+    },
+    "AADApps": [
+        {
+            "Id": "client",
+            "Name": "msal-node-desktop",
+            "Kind": "Desktop",
+            "ReplyUrls": "http://localhost",
+            "SDK": "MsalJs",
+            "Audience": "AzureADMyOrg",
+            "SampleSubPath": "2-Authorization\\3-call-api-electron\\App",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["User.Read", "openid", "offline_access"]
+                }
+            ],
+
+            "OptionalClaims": {
+                "IdTokenClaims": ["login_hint"]
+            }
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\App\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                }
+            ]
+        }
+    ]
+}

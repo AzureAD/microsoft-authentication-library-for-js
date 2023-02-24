@@ -1,0 +1,23 @@
+{
+    "name": "electron-test-app",
+    "version": "1.0.0",
+    "description": "A sample Electron application that uses msal-node to acquire tokens",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "electron main.js"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^23.1.1"
+    },
+    "dependencies": {
+        "@azure/msal-node": "^1.15.0",
+        "@microsoft/microsoft-graph-client": "^3.0.5",
+        "bootstrap": "^5.2.3",
+        "isomorphic-fetch": "^3.0.0",
+        "jquery": "^3.6.3",
+        "popper.js": "^1.16.1"
+    }
+}
