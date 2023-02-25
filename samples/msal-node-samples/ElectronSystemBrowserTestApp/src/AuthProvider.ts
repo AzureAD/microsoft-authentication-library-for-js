@@ -11,10 +11,15 @@ import { CustomLoopbackClient } from "./CustomLoopbackClient";
 import { cachePlugin } from "./CachePlugin";
 import * as fs from "fs";
 
+import { IpcMessages } from "./Constants";
+
 export default class AuthProvider {
     private clientApplication: PublicClientApplication;
     private account: AccountInfo;
     private authConfig: any;
+
+    // publishTest is used only in the testing environment
+    public publishTest: any;
 
     constructor(authConfig: any) {
         this.authConfig = authConfig;
@@ -120,9 +125,13 @@ export default class AuthProvider {
 
             // opens a browser instance via Electron shell API
             const openBrowser = async (url: any) => {
-                await shell.openExternal(url);
+                if (process.env.automation != null) {
+                    // publishTest is used only in the testing environment to listen to the AuthCodeURL
+                    this.publishTest(IpcMessages.GET_AUTH_CODE_URL, url);
+                } else {
+                    await shell.openExternal(url);
+                }
             };
-
             const interactiveRequest: InteractiveRequest = {
                 ...tokenRequest,
                 openBrowser,
