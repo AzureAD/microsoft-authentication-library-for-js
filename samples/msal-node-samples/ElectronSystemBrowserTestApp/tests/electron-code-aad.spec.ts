@@ -28,6 +28,7 @@ import * as path from "path";
 
 let electronApp: ElectronApplication;
 let page: Page;
+let browser: any;
 let browserPage: Page
 let username: string;
 let accountPwd: string;
@@ -65,6 +66,8 @@ test.beforeAll(async () => {
         },
     });
 
+    browser = await chromium.launch();
+
     await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 });
 
@@ -76,6 +79,7 @@ test.afterAll(async () => {
 test.describe("Acquire token", () => {
     test.beforeEach(async () => {
         page = await electronApp.firstWindow();
+        browserPage = await browser.newPage();
     });
 
     test.afterEach(async () => {
@@ -96,8 +100,6 @@ test.describe("Acquire token", () => {
 
             let AuthCodeUrl = await getAuthCodeUrl(page)
            
-            let browser = await chromium.launch();
-            browserPage = await browser.newPage();
             await browserPage.goto(AuthCodeUrl);
             await enterCredentials(
                 browserPage,
@@ -116,4 +118,7 @@ test.describe("Acquire token", () => {
             console.log(error);
         }
     });
+
+
+
 });
