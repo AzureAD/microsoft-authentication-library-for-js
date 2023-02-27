@@ -24,6 +24,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { InteractiveRequest } from "../request/InteractiveRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { LoopbackClient } from "../network/LoopbackClient";
+import { ILoopbackClient } from "../network/ILoopbackClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -86,22 +87,23 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     /**
-     * Acquires a token by requesting an Authorization code then exchanging it for a token.
+     * Acquires a token interactively via the browser by requesting an authorization code then exchanging it for a token.
      */
-    async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
+    public async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
-        const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
+        const { openBrowser, successTemplate, errorTemplate, loopbackClient: customLoopbackClient, ...remainingProperties } = request;
 
-        const loopbackClient = new LoopbackClient();
+        const loopbackClient: ILoopbackClient = customLoopbackClient || new LoopbackClient();
+
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
         const redirectUri = loopbackClient.getRedirectUri();
 
         const validRequest: AuthorizationUrlRequest = {
             ...remainingProperties,
-            scopes: request.scopes || [],
+            scopes: request.scopes || OIDC_DEFAULT_SCOPES,
             redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
-            codeChallenge: challenge, 
+            codeChallenge: challenge,
             codeChallengeMethod: CodeChallengeMethodValues.S256
         };
 
@@ -120,10 +122,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const clientInfo = authCodeResponse.client_info;
         const tokenRequest: AuthorizationCodeRequest = {
             code: authCodeResponse.code,
-            scopes: OIDC_DEFAULT_SCOPES,
-            redirectUri: validRequest.redirectUri,
             codeVerifier: verifier,
-            clientInfo: clientInfo || CommonConstants.EMPTY_STRING
+            clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+            ...validRequest
         };
         return this.acquireTokenByCode(tokenRequest);
     }

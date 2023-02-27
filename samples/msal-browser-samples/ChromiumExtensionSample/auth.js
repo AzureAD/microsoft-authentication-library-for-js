@@ -69,7 +69,7 @@ document.getElementById("sign-out").addEventListener("click", async () => {
 });
 
 /**
- * Logout button
+ * Call graph button
  */
 document.getElementById("call-graph").addEventListener("click", async () => {
     const graphResult = await callGraphMeEndpoint();

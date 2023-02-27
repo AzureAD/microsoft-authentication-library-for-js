@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import { Button } from "gatsby-material-ui-components";
-import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
+import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
 import { loginRequest } from "../authConfig";
 
 export const SignInButton = () => {

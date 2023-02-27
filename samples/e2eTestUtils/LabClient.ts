@@ -47,10 +47,16 @@ export class LabClient {
         } catch (e) {
             console.error(e);
         }
-    
+
         return null;
     }
 
+    /**
+     * Queries the lab API for an app environment based on the provided parameters
+     * See: https://docs.msidlab.com/labapi/intro.html
+     * @param labApiParams
+     * @returns
+     */
     async getVarsByCloudEnvironment(labApiParams: LabApiQueryParams): Promise<any> {
         const accessToken = await this.getCurrentToken();
         const apiParams: Array<string> = [];
@@ -85,6 +91,10 @@ export class LabClient {
 
         if (labApiParams.publicClient) {
             apiParams.push(`${ParamKeys.PUBLIC_CLIENT}=${labApiParams.publicClient}`);
+        }
+
+        if (labApiParams.appPlatform) {
+            apiParams.push(`${ParamKeys.APP_PLATFORM}=${labApiParams.appPlatform}`);
         }
 
         if (apiParams.length <= 0) {

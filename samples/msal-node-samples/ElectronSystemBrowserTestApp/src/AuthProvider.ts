@@ -1,32 +1,20 @@
-/*
- * Copyright (c) Microsoft Corporation. All rights reserved.
- * Licensed under the MIT License.
- */
+import { shell } from "electron";
 import {
     PublicClientApplication,
     LogLevel,
     AccountInfo,
-    AuthorizationCodeRequest,
-    AuthorizationUrlRequest,
     AuthenticationResult,
+    InteractiveRequest,
     SilentFlowRequest,
-    CryptoProvider,
 } from "@azure/msal-node";
+import { CustomLoopbackClient } from "./CustomLoopbackClient";
 import { cachePlugin } from "./CachePlugin";
-import * as urlparse from "url-parse";
-
-const Opener = require("opener");
+import * as fs from "fs";
 
 export default class AuthProvider {
     private clientApplication: PublicClientApplication;
     private account: AccountInfo;
-    private authCodeUrlParams: AuthorizationUrlRequest;
-    private authCodeRequest: AuthorizationCodeRequest;
-    private silentProfileRequest: SilentFlowRequest;
-    private silentMailRequest: SilentFlowRequest;
     private authConfig: any;
-    private challenge: string;
-    private verifier: string;
 
     constructor(authConfig: any) {
         this.authConfig = authConfig;
@@ -46,61 +34,62 @@ export default class AuthProvider {
                 },
             },
         });
-
-        this.account = null;
-        this.setRequestObjects();
     }
 
-    public get currentAccount(): AccountInfo {
+    async login(): Promise<AccountInfo> {
+        const tokenRequest: SilentFlowRequest = {
+            scopes: this.authConfig.resourceApi.scopes,
+            account: null,
+        };
+        const authResult = await this.getToken(tokenRequest);
+        return this.handleResponse(authResult);
+    }
+
+    async logout(): Promise<void> {
+        try {
+            if (!this.account) {
+                return;
+            }
+            await this.clientApplication
+                .getTokenCache()
+                .removeAccount(this.account);
+            this.account = null;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+    async loginSilent(tokenRequest: SilentFlowRequest): Promise<AccountInfo> {
+        let response;
+        if (!this.account) {
+            const account = await this.getAccount();
+            if (account) {
+                tokenRequest.account = account;
+                response = await this.getTokenSilent(tokenRequest);
+                this.account = response.account;
+            }
+        }
+
         return this.account;
     }
 
-    /**
-     * Initialize request objects used by this AuthModule.
-     */
-    private setRequestObjects(): void {
-        const baseSilentRequest = {
-            account: null,
-            forceRefresh: false,
-        };
-
-        this.authCodeUrlParams = this.authConfig.request.authCodeUrlParameters;
-
-        this.authCodeRequest = {
-            ...this.authConfig.request.authCodeRequest,
-            code: null,
-        };
-
-        this.silentProfileRequest = {
-            ...baseSilentRequest,
-            scopes: ["User.Read"],
-        };
-
-        this.silentMailRequest = {
-            ...baseSilentRequest,
-            scopes: ["Mail.Read"],
-        };
-    }
-
-    async getProfileToken(): Promise<string> {
-        return await this.getToken(this.silentProfileRequest);
-    }
-
-    async getMailToken(): Promise<string> {
-        return await this.getToken(this.silentMailRequest);
-    }
-
-    async getToken(request: SilentFlowRequest): Promise<string> {
-        let authResponse: AuthenticationResult;
-        const account = this.account || (await this.getAccount());
-        if (account) {
-            request.account = account;
-            authResponse = await this.getTokenSilent(request);
-        } else {
-            await this.login();
+    async getToken(
+        tokenRequest: SilentFlowRequest
+    ): Promise<AuthenticationResult> {
+        try {
+            let authResponse: AuthenticationResult;
+            const account = this.account || (await this.getAccount());
+            if (account) {
+                tokenRequest.account = account;
+                authResponse = await this.getTokenSilent(tokenRequest);
+            } else {
+                authResponse = await this.getTokenInteractive(tokenRequest);
+            }
+            this.account = authResponse.account;
+            return authResponse;
+        } catch (error) {
+            throw error;
         }
-
-        return authResponse.accessToken || null;
     }
 
     async getTokenSilent(
@@ -115,72 +104,44 @@ export default class AuthProvider {
                 "Silent token acquisition failed, acquiring token using pop up"
             );
 
-            await this.login();
-            return null;
+            return await this.getTokenInteractive(tokenRequest);
         }
     }
 
-    async getAuthCode(tokenRequest: AuthorizationUrlRequest): Promise<string> {
-        // Generate PKCE Challenge and Verifier before request
-        const cryptoProvider = new CryptoProvider();
-        const { challenge, verifier } =
-            await cryptoProvider.generatePkceCodes();
-
-        this.challenge = challenge;
-        this.verifier = verifier;
-
-        // Add PKCE params to Auth Code URL request
-        const authCodeUrlParams = {
-            ...this.authCodeUrlParams,
-            scopes: tokenRequest.scopes,
-            codeChallenge: this.challenge,
-            codeChallengeMethod: "S256",
-        };
+    async getTokenInteractive(
+        tokenRequest: SilentFlowRequest
+    ): Promise<AuthenticationResult> {
         try {
-            const authCodeUrl = await this.clientApplication.getAuthCodeUrl(
-                authCodeUrlParams
-            );
-            return authCodeUrl;
-        } catch (error) {
-            console.log(error);
-            throw error;
-        }
-    }
+            /**
+             * A loopback server of your own implementation, which can have custom logic
+             * such as attempting to listen on a given port if it is available.
+             */
+            const customLoopbackClient = await CustomLoopbackClient.initialize(3874);
 
-    async login(): Promise<void> {
-        const getAuthURL = await this.getAuthCode(this.authCodeUrlParams);
-        Opener(getAuthURL);
-    }
+            // opens a browser instance via Electron shell API
+            const openBrowser = async (url: any) => {
+                await shell.openExternal(url);
+            };
 
-    async getTokenByCode(url: string): Promise<AccountInfo> {
-        try {
-            const parsedUtl = urlparse(url, true);
-            let code = parsedUtl.query.code;
-            const authResult = await this.clientApplication.acquireTokenByCode({
-                ...this.authCodeRequest,
-                code: code,
-                codeVerifier: this.verifier,
-            });
-            return this.handleResponse(authResult);
+            const interactiveRequest: InteractiveRequest = {
+                ...tokenRequest,
+                openBrowser,
+                successTemplate: fs
+                    .readFileSync("./public/successTemplate.html", "utf8")
+                    .toString(),
+                errorTemplate: fs
+                    .readFileSync("./public/errorTemplate.html", "utf8")
+                    .toString(),
+                loopbackClient: customLoopbackClient // overrides default loopback client
+            };
+
+            const authResponse =
+                await this.clientApplication.acquireTokenInteractive(
+                    interactiveRequest
+                );
+            return authResponse;
         } catch (error) {
             throw error;
-        }
-    }
-
-    async loginSilent(): Promise<AccountInfo> {
-        if (!this.account) {
-            this.account = await this.getAccount();
-        }
-
-        return this.account;
-    }
-
-    async logout(): Promise<void> {
-        if (this.account) {
-            await this.clientApplication
-                .getTokenCache()
-                .removeAccount(this.account);
-            this.account = null;
         }
     }
 
@@ -190,18 +151,14 @@ export default class AuthProvider {
      */
     private async handleResponse(response: AuthenticationResult) {
         this.account = response?.account || (await this.getAccount());
-
         return this.account;
     }
 
-    /**
-     * Calls getAllAccounts and determines the correct account to sign into, currently defaults to first account found in cache.
-     * TODO: Add account chooser code
-     *
-     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
-     */
+    public currentAccount(): AccountInfo {
+        return this.account;
+    }
+
     private async getAccount(): Promise<AccountInfo> {
-        // need to call getAccount here?
         const cache = this.clientApplication.getTokenCache();
         const currentAccounts = await cache.getAllAccounts();
 
@@ -211,7 +168,6 @@ export default class AuthProvider {
         }
 
         if (currentAccounts.length > 1) {
-            // Add choose account code here
             console.log(
                 "Multiple accounts detected, need to add choose account code."
             );

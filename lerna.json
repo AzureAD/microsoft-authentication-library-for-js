@@ -1,5 +1,4 @@
 {
-  "lerna": "3.16.4",
   "command": {
     "run": {
       "scope": [
@@ -30,7 +29,8 @@
             "@azure/msal-common",
             "@azure/msal-node",
             "@azure/msal-react",
-            "@azure/msal-angular"
+            "@azure/msal-angular",
+            "@azure/msal-node-extensions"
       ],
       "stream": true
     }

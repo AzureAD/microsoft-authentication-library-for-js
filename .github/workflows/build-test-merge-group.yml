@@ -1,0 +1,105 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Dev branch CI 
+# Runs CI on all libraries when a PR is merged
+
+on:
+  merge_group:
+    types: [checks_requested]
+
+concurrency:
+  group: merge-ci-${{github.ref}}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lib-build-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+        fail-fast: false
+        matrix:
+          library: 
+            - msal-core
+            - msal-common
+            - msal-browser
+            - msal-node
+            - msal-angular
+            - msal-react
+            - node-token-validation
+
+    name: ${{ matrix.library }}
+  
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+
+    - name: Restore node_modules
+      uses: actions/cache@v3
+      id: cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+
+    - name: Clean Install
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      working-directory: lib/${{ matrix.library }}
+      run: npm run build:all
+
+    - name: Unit Tests with coverage
+      working-directory: lib/${{ matrix.library }}
+      run: npm run test:coverage
+
+    - name: Upload Test Coverage to CodeCov
+      if: success()
+      uses: codecov/codecov-action@v3
+      with:
+        files: lib/${{matrix.library}}/coverage/lcov.info
+        flags: ${{ matrix.library }}
+        
+  extensions-build-test:
+    runs-on: windows-2019
+  
+    name: msal-node-extensions
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Use Node.js
+      uses: actions/setup-node@v3
+
+    - name: Clean Install
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      working-directory: extensions/msal-node-extensions
+      run: npm run build:all
+
+    - name: Lint
+      working-directory: extensions/msal-node-extensions
+      run: npm run lint
+
+    - name: Unit Tests with coverage
+      working-directory: extensions/msal-node-extensions
+      run: npm run test:coverage
+
+    - name: Upload Test Coverage to CodeCov
+      if: success()
+      uses: codecov/codecov-action@v3
+      with:
+        files: extensions/msal-node-extensions/coverage/lcov.info
+        flags: msal-node-extensions

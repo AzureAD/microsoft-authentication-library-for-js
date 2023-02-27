@@ -180,7 +180,7 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
