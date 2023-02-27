@@ -147,7 +147,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         cacheLookupPolicy: request.cacheLookupPolicy,
                         requestId: result.requestId,
                     });
-                    atsMeasurement.flushMeasurement();
                     return result;
                 })
                 .catch((error: AuthError) => {
@@ -157,16 +156,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                         subErrorCode: error.subError,
                         success: false
                     });
-                    atsMeasurement.flushMeasurement();
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
             return response;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
-            atsMeasurement.endMeasurement({
-                success: true
-            });
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
             atsMeasurement.discardMeasurement();
             return cachedResponse;
