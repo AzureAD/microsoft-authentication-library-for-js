@@ -337,7 +337,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // cache idToken in inmemory storage
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
             homeAccountIdentifier,
-            authority.getPreferredCache(),
+            request.authority,
             response.id_token || Constants.EMPTY_STRING,
             request.clientId,
             idTokenObj.claims.tid || Constants.EMPTY_STRING,
@@ -355,7 +355,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             homeAccountIdentifier,
-            authority.getPreferredCache(),
+            request.authority,
             responseAccessToken,
             request.clientId,
             tid,
