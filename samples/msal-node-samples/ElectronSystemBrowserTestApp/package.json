@@ -14,7 +14,7 @@
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx .",
         "pretest": "npm run package",
-        "test": "playwright test"
+        "test": "npx playwright test"
     },
     "keywords": [
         "msal-node",
