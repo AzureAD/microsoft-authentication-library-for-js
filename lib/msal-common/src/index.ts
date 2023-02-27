@@ -101,9 +101,9 @@ export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryReques
 
 // Performance Telemetry
 export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent, QueueMeasurement } from "./telemetry/performance/IPerformanceClient";
-export { Counters, IntFields, PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./telemetry/performance/PerformanceEvent";
+export { Counters, IntFields, PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields, SubMeasurement } from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
-export { PerformanceClient } from "./telemetry/performance/PerformanceClient";
+export { PerformanceClient, PreQueueEvent } from "./telemetry/performance/PerformanceClient";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
