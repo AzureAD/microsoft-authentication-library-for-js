@@ -213,6 +213,9 @@ jobs:
 
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
+    env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        PLAYWRIGHT_BROWSERS_PATH: 0
     steps:
     - uses: actions/checkout@v3
 
@@ -257,13 +260,9 @@ jobs:
         key: ${{ runner.os }}-electron-e2e-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 
     - name: Install dependencies
-      if: steps.sample-cache.outputs.cache-hit != 'true'
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |
         npx playwright install-deps
-      env:
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        PLAYWRIGHT_BROWSERS_PATH: 0
 
     - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'
