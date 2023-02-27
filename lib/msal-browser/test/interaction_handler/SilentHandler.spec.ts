@@ -50,7 +50,7 @@ describe("SilentHandler.ts Unit Tests", () => {
     let browserRequestLogger: Logger;
     let browserStorage: BrowserCacheManager;
     let performanceClient: IPerformanceClient;
-    
+
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -127,7 +127,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             startMeasurement: jest.fn(),
             endMeasurement: jest.fn(),
             addStaticFields: jest.fn(),
-            flushMeasurements: jest.fn(),
             discardMeasurements: jest.fn(),
             removePerformanceCallback: jest.fn(),
             addPerformanceCallback: jest.fn(),
