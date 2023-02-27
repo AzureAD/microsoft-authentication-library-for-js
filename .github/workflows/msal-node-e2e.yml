@@ -262,6 +262,7 @@ jobs:
       run: |
         npm run install:local
         npm install
+        npx playwright install 
       env:
         PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
 
