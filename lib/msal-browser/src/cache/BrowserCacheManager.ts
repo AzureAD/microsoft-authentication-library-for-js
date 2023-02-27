@@ -41,7 +41,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger = logger;
         this.internalStorage = new MemoryStorage();
         this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
-        this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
+        this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.temporaryCacheLocation, this.cacheConfig.temporaryCacheLocation);
 
         // Migrate any cache entries from older versions of MSAL.
         this.migrateCacheEntries();
@@ -56,7 +56,6 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
                 try {
-                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
                     return new BrowserStorage(cacheLocation);
                 } catch (e) {
                     this.logger.verbose(e);
@@ -71,16 +70,30 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     *
+     * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured temporaryCacheLocation.
+     * @param temporaryCacheLocation
      * @param cacheLocation
      */
-    protected setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
-        switch (cacheLocation) {
+    protected setupTemporaryCacheStorage(temporaryCacheLocation: BrowserCacheLocation | string, cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
+        // Create a new variable to avoid modifying the function parameter
+        let tempCacheLocation = temporaryCacheLocation;
+        if (!tempCacheLocation) {
+            /*
+             * When users do not explicitly choose their own temporaryCacheLocation and cacheLocation is set to LocalStorage
+             * Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
+             */
+            if (cacheLocation === BrowserCacheLocation.LocalStorage) {   
+                tempCacheLocation = BrowserCacheLocation.SessionStorage;
+            } else {
+                tempCacheLocation = cacheLocation;
+            }
+        }
+    
+        switch (tempCacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
                 try {
-                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    return new BrowserStorage(BrowserCacheLocation.SessionStorage);
+                    return new BrowserStorage(tempCacheLocation);
                 } catch (e) {
                     this.logger.verbose(e);
                     return this.internalStorage;
@@ -90,7 +103,7 @@ export class BrowserCacheManager extends CacheManager {
                 return this.internalStorage;
         }
     }
-
+    
     /**
      * Migrate all old cache entries to new schema. No rollback supported.
      * @param storeAuthStateInCookie
@@ -109,7 +122,7 @@ export class BrowserCacheManager extends CacheManager {
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
 
-        keysToMigrate.forEach((cacheKey:string, index: number) => this.migrateCacheEntry(cacheKey, values[index]));
+        keysToMigrate.forEach((cacheKey: string, index: number) => this.migrateCacheEntry(cacheKey, values[index]));
     }
 
     /**
@@ -118,7 +131,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      * @param storeAuthStateInCookie
      */
-    protected migrateCacheEntry(newKey: string, value: string|null): void {
+    protected migrateCacheEntry(newKey: string, value: string | null): void {
         if (value) {
             this.setTemporaryCache(newKey, value, true);
         }
@@ -345,7 +358,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      *
      */
-    getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
         const value = this.internalStorage.getItem(key);
         if (!value) {
             this.logger.trace("BrowserCacheManager.getAuthorityMetadata: called, no cache hit");
@@ -408,12 +421,12 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.trace("BrowserCacheManager.getActiveAccount: No active account filters cache schema found, looking for legacy schema");
             const activeAccountKeyLocal = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
             const activeAccountValueLocal = this.getItem(activeAccountKeyLocal);
-            if(!activeAccountValueLocal) {
+            if (!activeAccountValueLocal) {
                 this.logger.trace("BrowserCacheManager.getActiveAccount: No active account found");
                 return null;
             }
-            const activeAccount = this.getAccountInfoByFilter({localAccountId: activeAccountValueLocal})[0] || null;
-            if(activeAccount) {
+            const activeAccount = this.getAccountInfoByFilter({ localAccountId: activeAccountValueLocal })[0] || null;
+            if (activeAccount) {
                 this.logger.trace("BrowserCacheManager.getActiveAccount: Legacy active account cache schema found");
                 this.logger.trace("BrowserCacheManager.getActiveAccount: Adding active account filters cache schema");
                 this.setActiveAccount(activeAccount);
@@ -422,7 +435,7 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
         const activeAccountValueObj = this.validateAndParseJson(activeAccountValueFilters) as AccountInfo;
-        if(activeAccountValueObj) {
+        if (activeAccountValueObj) {
             this.logger.trace("BrowserCacheManager.getActiveAccount: Active account filters schema found");
             return this.getAccountInfoByFilter({
                 homeAccountId: activeAccountValueObj.homeAccountId,
@@ -459,7 +472,7 @@ export class BrowserCacheManager extends CacheManager {
      * Gets a list of accounts that match all of the filters provided
      * @param account
      */
-    getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims"|"name">>): AccountInfo[] {
+    getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims" | "name">>): AccountInfo[] {
         const allAccounts = this.getAllAccounts();
         this.logger.trace(`BrowserCacheManager.getAccountInfoByFilter: total ${allAccounts.length} accounts found`);
 
@@ -815,7 +828,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param serverAuthenticationRequest
      * @param account
      */
-    updateCacheEntries(state: string, nonce: string, authorityInstance: string, loginHint: string, account: AccountInfo|null): void {
+    updateCacheEntries(state: string, nonce: string, authorityInstance: string, loginHint: string, account: AccountInfo | null): void {
         this.logger.trace("BrowserCacheManager.updateCacheEntries called");
         // Cache the request state
         const stateCacheKey = this.generateStateKey(state);
@@ -1084,6 +1097,7 @@ export class BrowserCacheManager extends CacheManager {
 export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger): BrowserCacheManager => {
     const cacheOptions = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
+        temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
         secureCookies: false
     };

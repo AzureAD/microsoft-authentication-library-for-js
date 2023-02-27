@@ -78,6 +78,10 @@ export type CacheOptions = {
      */
     cacheLocation?: BrowserCacheLocation | string;
     /**
+     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
+     */
+    temporaryCacheLocation?: BrowserCacheLocation | string;
+    /**
      * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
      */
     storeAuthStateInCookie?: boolean;
@@ -147,13 +151,13 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type CryptoOptions = {
-    
+
     /**
      * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
      * @type {?boolean}
      */
     useMsrCrypto?: boolean;
-     
+
     /**
      * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
      * @type {?Uint8Array}
@@ -235,6 +239,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
+        temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
         secureCookies: false
     };
@@ -272,7 +277,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         }
     };
 
-    const providedSystemOptions:BrowserSystemOptions = {
+    const providedSystemOptions: BrowserSystemOptions = {
         ...userInputSystem,
         loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS
     };
