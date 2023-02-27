@@ -17,6 +17,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const testPopupWondowDefaults = {
@@ -30,8 +31,8 @@ describe("PopupClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let popupClient: PopupClient;
     let pca: PublicClientApplication;
-    beforeEach(() => {
-        pca = new PublicClientApplication({
+    beforeEach(async () => {
+        pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -130,7 +131,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", async () => {
-            const pca = new PublicClientApplication({
+            const pca = await getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -172,7 +173,7 @@ describe("PopupClient", () => {
         });
 
         it("calls native broker if server responds with accountId", async () => {
-            pca = new PublicClientApplication({
+            pca = await getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -244,76 +245,77 @@ describe("PopupClient", () => {
         });
 
         it("throws if server responds with accountId but extension message handler is not instantiated", (done) => {
-            pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     allowNativeBroker: true
                 }
-            });
-            const testServerTokenResponse = {
-                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
-                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-                access_token: TEST_TOKENS.ACCESS_TOKEN,
-                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
-            };
-            const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
-            };
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || ""
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid || "",
-                tenantId: testIdTokenClaims.tid || "",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                idToken: testServerTokenResponse.id_token,
-                idTokenClaims: testIdTokenClaims,
-                accessToken: testServerTokenResponse.access_token,
-                correlationId: RANDOM_TEST_GUID,
-                fromCache: false,
-                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
-                account: testAccount,
-                tokenType: AuthenticationScheme.BEARER
-            };
-            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
-            sinon.stub(PopupClient.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
-                expect(requestUrl).toEqual(testNavUrl);
-                return window;
-            });
-            sinon.stub(PopupClient.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
-            sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
-            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
-                challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER
-            });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+            }).then((pca) => {
+                const testServerTokenResponse = {
+                    token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    access_token: TEST_TOKENS.ACCESS_TOKEN,
+                    refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                    id_token: TEST_TOKENS.IDTOKEN_V2
+                };
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                };
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid || "",
+                    username: testIdTokenClaims.preferred_username || ""
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testIdTokenClaims.oid || "",
+                    tenantId: testIdTokenClaims.tid || "",
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: testServerTokenResponse.id_token,
+                    idTokenClaims: testIdTokenClaims,
+                    accessToken: testServerTokenResponse.access_token,
+                    correlationId: RANDOM_TEST_GUID,
+                    fromCache: false,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
+                };
+                sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
+                sinon.stub(PopupClient.prototype, "initiateAuthRequest").callsFake((requestUrl: string): Window => {
+                    expect(requestUrl).toEqual(testNavUrl);
+                    return window;
+                });
+                sinon.stub(PopupClient.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_NATIVE_ACCOUNT_ID_POPUP);
+                sinon.stub(NativeInteractionClient.prototype, "acquireToken").resolves(testTokenResponse);
+                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                });
+                sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
-            popupClient.acquireToken({
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES
-            }).catch(e => {
-                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code);
-                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
-                done();
+                popupClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES
+                }).catch(e => {
+                    expect(e.errorCode).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.code);
+                    expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.nativeConnectionNotEstablished.desc);
+                    done();
+                });
             });
         });
 
@@ -433,25 +435,26 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", (done) => {
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     asyncPopups: true
                 }
-            });
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate, popupName) => {
-                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
-                expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBeTruthy();
-                done();
-                return null;
-            });
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate, popupName) => {
+                    expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
+                    expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBeTruthy();
+                    done();
+                    return null;
+                });
 
-            popupClient.logout().catch(() => {});
+                popupClient.logout().catch(() => {});
+            });
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
@@ -476,34 +479,35 @@ describe("PopupClient", () => {
         });
 
         it("includes postLogoutRedirectUri if one is passed", (done) => {
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     asyncPopups: true
                 }
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
+                    expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
+                    expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                    done();
+                    throw "Stop Test";
+                });
+
+                const postLogoutRedirectUri = "https://localhost:8000/logout";
+
+                popupClient.logout({
+                    postLogoutRedirectUri
+                }).catch(() => {});
             });
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
-
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
-                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
-                expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
-                done();
-                throw "Stop Test";
-            });
-
-            const postLogoutRedirectUri = "https://localhost:8000/logout";
-
-            popupClient.logout({
-                postLogoutRedirectUri
-            }).catch(() => {});
         });
 
         it("includes postLogoutRedirectUri if one is configured", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
@@ -511,159 +515,161 @@ describe("PopupClient", () => {
                 system: {
                     asyncPopups: true
                 }
-            });
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
-                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
-                expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
-                done();
-                throw "Stop Test";
-            });
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
+                    expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
+                    expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                    done();
+                    throw "Stop Test";
+                });
 
-            popupClient.logout().catch(() => {});
+                popupClient.logout().catch(() => {});
+            });
         });
 
         it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     asyncPopups: true
                 }
-            });
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
-                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
-                expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
-                done();
-                throw "Stop Test";
-            });
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
+                    expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
+                    expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
+                    done();
+                    throw "Stop Test";
+                });
 
-            popupClient.logout().catch(() => {});
+                popupClient.logout().catch(() => {});
+            })
         });
 
         it("includes logoutHint if it is set on request", (done) => {
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     asyncPopups: true
                 }
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+                const logoutHint = "test@user.com";
+
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
+                    expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                    done();
+                    throw "Stop Test";
+                });
+
+                popupClient.logout({
+                    logoutHint
+                }).catch(() => {});
             });
-
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
-            const logoutHint = "test@user.com";
-
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
-                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
-                done();
-                throw "Stop Test";
-            });
-
-            popupClient.logout({
-                logoutHint
-            }).catch(() => {});
         });
 
         it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     asyncPopups: true
                 }
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+
+                const logoutHint = "test@user.com";
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                    "login_hint": logoutHint
+                };
+
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid || "",
+                    username: testIdTokenClaims.preferred_username || "",
+                    idTokenClaims: testIdTokenClaims
+                };
+
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
+                    expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                    done();
+                    throw "Stop Test";
+                });
+
+                popupClient.logout({
+                    account: testAccountInfo
+                }).catch(() => {});
             });
-
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
-
-            const logoutHint = "test@user.com";
-            const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
-                "login_hint": logoutHint
-            };
-
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-                idTokenClaims: testIdTokenClaims
-            };
-
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
-                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
-                done();
-                throw "Stop Test";
-            });
-
-            popupClient.logout({
-                account: testAccountInfo
-            }).catch(() => {});
         });
 
         it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     asyncPopups: true
                 }
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+                const logoutHint = "test@user.com";
+                const loginHint = "anothertest@user.com";
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                    "login_hint": loginHint
+                };
+
+                const testAccountInfo: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid || "",
+                    username: testIdTokenClaims.preferred_username || "",
+                    idTokenClaims: testIdTokenClaims
+                };
+
+                sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
+                    expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                    expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
+                    done();
+                    throw "Stop Test";
+                });
+
+                popupClient.logout({
+                    account: testAccountInfo,
+                    logoutHint
+                }).catch(() => {});
             });
-
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
-            const logoutHint = "test@user.com";
-            const loginHint = "anothertest@user.com";
-            const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
-                "login_hint": loginHint
-            };
-
-            const testAccountInfo: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || "",
-                idTokenClaims: testIdTokenClaims
-            };
-
-            sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
-                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
-                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
-                done();
-                throw "Stop Test";
-            });
-
-            popupClient.logout({
-                account: testAccountInfo,
-                logoutHint
-            }).catch(() => {});
         });
 
         it("redirects main window when logout is complete", (done) => {
@@ -957,21 +963,22 @@ describe("PopupClient", () => {
                 close: () => {}
             };
 
-            pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
                 system: {
                     windowHashTimeout: 10
                 }
-            });
-            //@ts-ignore
-            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
+            }).then((pca) => {
+                //@ts-ignore
+                popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
 
-            // @ts-ignore
-            popupClient.monitorPopupForHash(popup).catch((e) => {
-                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.monitorPopupTimeoutError.code);
-                done();
+                // @ts-ignore
+                popupClient.monitorPopupForHash(popup).catch((e) => {
+                    expect(e.errorCode).toEqual(BrowserAuthErrorMessage.monitorPopupTimeoutError.code);
+                    done();
+                });
             });
         });
 

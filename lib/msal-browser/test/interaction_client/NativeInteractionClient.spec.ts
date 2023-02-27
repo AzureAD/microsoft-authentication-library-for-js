@@ -15,6 +15,7 @@ import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const networkInterface = {
@@ -61,14 +62,20 @@ testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
-    const pca = new PublicClientApplication({
-        auth: {
-            clientId: TEST_CONFIG.MSAL_CLIENT_ID
-        }
+    let pca: PublicClientApplication;
+    let wamProvider: NativeMessageHandler;
+    let nativeInteractionClient: NativeInteractionClient;
+    beforeAll(async () => {
+        pca = await getPublicClientApplication({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            }
+        });
+        wamProvider = new NativeMessageHandler(pca.getLogger(), 2000, getDefaultPerformanceClient());
+        // @ts-ignore
+        nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
     });
-    const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000, getDefaultPerformanceClient());
-    // @ts-ignore
-    const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
+
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
 

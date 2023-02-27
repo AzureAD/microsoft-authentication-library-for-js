@@ -12,6 +12,7 @@ import { TEST_CONFIG, TEST_STATE_VALUES, TEST_URIS, DEFAULT_TENANT_DISCOVERY_RES
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { FetchClient } from "../../src/network/FetchClient";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 class testStandardInteractionClient extends StandardInteractionClient {
     acquireToken(): Promise<void> {
@@ -35,8 +36,8 @@ describe("StandardInteractionClient", () => {
     let pca: PublicClientApplication;
     let testClient: testStandardInteractionClient;
 
-    beforeEach(() => {
-        pca = new PublicClientApplication({
+    beforeEach(async () => {
+        pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }

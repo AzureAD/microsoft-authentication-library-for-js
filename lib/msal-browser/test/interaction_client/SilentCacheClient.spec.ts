@@ -8,6 +8,7 @@ import { PublicClientApplication, BrowserAuthError } from "../../src";
 import { TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_TOKENS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { AuthToken, CacheManager, IdTokenEntity, AccountEntity, AccessTokenEntity, CredentialType, AuthenticationScheme, RefreshTokenEntity, TimeUtils, AuthenticationResult, AccountInfo, Authority } from "@azure/msal-common";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
@@ -60,8 +61,8 @@ const testAccount: AccountInfo = {
 describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;
 
-    beforeEach(() => {
-        const pca = new PublicClientApplication({
+    beforeEach(async () => {
+        const pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -94,7 +95,7 @@ describe("SilentCacheClient", () => {
             await expect(silentCacheClient.acquireToken({
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: "testCorrelationId",
-                account: testAccount, 
+                account: testAccount,
                 scopes: ["openid"],
                 forceRefresh: false
             })).resolves.toMatchObject(response);

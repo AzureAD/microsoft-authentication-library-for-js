@@ -12,12 +12,13 @@ import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 import { ApiId, AuthorizationCodeRequest } from "../../src";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
 
-    beforeEach(() => {
-        const pca = new PublicClientApplication({
+    beforeEach(async () => {
+        const pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -85,7 +86,7 @@ describe("SilentAuthCodeClient", () => {
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const handleCodeSpy = sinon.stub(SilentHandler.prototype, "handleCodeResponseFromServer").resolves(testTokenResponse);
- 
+
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 
             const request: AuthorizationCodeRequest = {
@@ -95,7 +96,7 @@ describe("SilentAuthCodeClient", () => {
             const tokenResp = await silentAuthCodeClient.acquireToken(request);
 
             expect(handleCodeSpy.calledWith({
-                code: "test-code", 
+                code: "test-code",
                 msgraph_host: request.msGraphHost,
                 cloud_graph_host_name: request.cloudGraphHostName,
                 cloud_instance_host_name: request.cloudInstanceHostName

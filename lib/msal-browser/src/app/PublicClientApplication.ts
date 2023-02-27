@@ -29,7 +29,21 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     /**
      * @constructor
-     * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
+     * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object. To be used
+     * internally within the class or any class that extends it but not externally
+     *
+     * @param configuration object for the MSAL PublicClientApplication instance
+     */
+    protected constructor(configuration: Configuration) {
+        super(configuration);
+
+        this.activeSilentTokenRequests = new Map();
+        // Register listener functions
+        this.trackPageVisibility = this.trackPageVisibility.bind(this);
+    }
+
+    /**
+     * Static method to instantiate the PublicClientApplication object
      *
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal : https://portal.azure.com/#blade/Microsoft_AAD_IAM/ActiveDirectoryMenuBlade/RegisteredAppsPreview
@@ -46,14 +60,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
      * Full B2C functionality will be available in this library in future versions.
      *
-     * @param configuration object for the MSAL PublicClientApplication instance
+     * @param configuration {Configuration}
      */
-    constructor(configuration: Configuration) {
-        super(configuration);
-
-        this.activeSilentTokenRequests = new Map();
-        // Register listener functions
-        this.trackPageVisibility = this.trackPageVisibility.bind(this);
+    public static async getInstance(configuration: Configuration): Promise<PublicClientApplication> {
+        const app: PublicClientApplication = new PublicClientApplication(configuration);
+        await app.initialize();
+        return app;
     }
 
     /**

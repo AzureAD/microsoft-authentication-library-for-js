@@ -58,6 +58,7 @@ import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest"
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -87,19 +88,11 @@ jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
     }
 });
 
-function stubProvider(pca: PublicClientApplication) {
-    // @ts-ignore
-    const perfClient = pca.performanceClient;
-    return sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-        return new NativeMessageHandler(pca.getLogger(), 2000, perfClient, "test-extensionId");
-    });
-}
-
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
     let pca: PublicClientApplication;
-    beforeEach(() => {
-        pca = new PublicClientApplication({
+    beforeEach(async () => {
+        pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             },
@@ -110,7 +103,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             },
             system: {
-                allowNativeBroker: false
+                allowNativeBroker: true
             }
         });
         BrowserPerformanceMeasurement.flushMeasurements = jest.fn().mockReturnValue(null);
@@ -133,7 +126,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("intialize tests", () => {
         it("creates extension provider if allowNativeBroker is true", async () => {
-            pca = new PublicClientApplication({
+            const createProviderSpy = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
+            });
+            pca = await PublicClientApplication.getInstance({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -141,8 +137,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-            const createProviderSpy = stubProvider(pca);
-            await pca.initialize();
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeInstanceOf(NativeMessageHandler);
@@ -150,7 +144,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("does not create extension provider if allowNativeBroker is false", async () => {
             const createProviderSpy = sinon.spy(NativeMessageHandler, "createProvider");
-            pca = new PublicClientApplication({
+            pca = await PublicClientApplication.getInstance({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -158,7 +152,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: false
                 }
             });
-            await pca.initialize();
             expect(createProviderSpy.called).toBeFalsy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeUndefined();
@@ -168,7 +161,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const createProviderSpy = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
                 throw new Error("testError");
             });
-            pca = new PublicClientApplication({
+            pca = await PublicClientApplication.getInstance({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -176,7 +169,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-            await pca.initialize();
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeUndefined();
@@ -224,15 +216,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Calls NativeInteractionClient.handleRedirectPromise and returns its response", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -278,8 +261,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     loginSuccessFired = true;
                 }
             });
-            stubProvider(pca);
-            await pca.initialize();
             const response = await pca.handleRedirectPromise();
             expect(response).toEqual(testTokenResponse);
             expect(redirectClientSpy.calledOnce).toBe(true);
@@ -436,14 +417,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: false
-                }
-            });
 
             const promise1 = pca.handleRedirectPromise();
             const promise2 = pca.handleRedirectPromise();
@@ -525,15 +498,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("acquireTokenRedirect", () => {
         it("goes directly to the native broker if nativeAccountId is present", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -543,8 +507,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 return;
             });
@@ -561,15 +523,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("captures telemetry data points during initialization", (done) => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const callbackId = pca.addPerformanceCallback((events => {
                 expect(events.length).toBe(1);
                 const event = events[0];
@@ -579,20 +532,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
             }));
 
-            stubProvider(pca);
             pca.initialize();
         });
 
         it("falls back to web flow if prompt is select_account", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -602,8 +545,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireTokenRedirect");
             const redirectSpy = sinon.stub(RedirectClient.prototype, "acquireToken").callsFake(async () => {
                 return;
@@ -619,15 +560,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if native broker call fails due to fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -637,8 +569,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
             });
@@ -655,15 +585,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if native broker call fails due to interaction_required error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -673,8 +594,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
             });
@@ -691,15 +610,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if native broker call fails due to non-fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -709,8 +619,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 throw new Error("testError");
             });
@@ -796,20 +704,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
         });
 
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            })
-            await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
-        });
-
         it("throws error if cacheLocation is Memory Storage and storeAuthStateInCookie is false", async () =>{
-            pca = new PublicClientApplication({
+            pca = await getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -975,15 +871,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("goes directly to the native broker if nativeAccountId is present", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1007,8 +894,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
             });
@@ -1026,15 +911,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if prompt is select_account", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1058,8 +934,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
             const popupSpy = sinon.stub(PopupClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
@@ -1076,15 +950,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if native broker call fails due to fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1108,8 +973,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
             });
@@ -1127,15 +990,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if native broker call fails due to interaction_required error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1159,8 +1013,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
             });
@@ -1178,15 +1030,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if native broker call fails due to non-fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1196,8 +1039,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new Error("testError");
             });
@@ -1238,18 +1079,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             browserStorage.setInteractionInProgress(true);
 
             await expect(pca.acquireTokenPopup({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
-        });
-
-        it("throws an error if allowNativeBroker: true and intialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            })
-            await expect(pca.acquireTokenPopup({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
         });
 
         it("Calls PopupClient.acquireToken and returns its response", async () => {
@@ -1440,15 +1269,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("ssoSilent", () => {
         it("goes directly to the native broker if nativeAccountId is present", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1472,8 +1292,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
             });
@@ -1491,15 +1309,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if native broker call fails due to fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1523,8 +1332,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
             });
@@ -1542,15 +1349,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if native broker call fails due to non-fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1560,8 +1358,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new Error("testError");
             });
@@ -1591,18 +1387,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             .catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
-        });
-
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            })
-            await expect(pca.ssoSilent({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
         });
 
         it("Calls SilentIframeClient.acquireToken and returns its response", async () => {
@@ -1754,15 +1538,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("acquireTokenByCode", () => {
         it("goes directly to the native broker if nativeAccountId is present", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1786,8 +1561,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
             });
@@ -1801,17 +1574,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if native broker call fails", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "something went wrong in the extension");
             });
@@ -1826,7 +1588,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if nativeAccountId is provided but extension is not installed", async () => {
-            pca = new PublicClientApplication({
+            pca = await PublicClientApplication.getInstance({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -1834,7 +1596,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-            await pca.initialize();
 
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
 
@@ -1860,18 +1621,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             .catch(() => null);
 
             expect(request.correlationId).toBe(undefined);
-        });
-
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            })
-            await expect(pca.acquireTokenByCode({})).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
         });
 
         it("Calls SilentAuthCodeClient.acquireToken and returns its response", async () => {
@@ -2143,28 +1892,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.acquireTokenSilent({scopes: []})).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
         });
 
-        it("throws an error if allowNativeBroker: true and initialize was not called prior", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            })
-            await expect(pca.acquireTokenSilent({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createNativeBrokerCalledBeforeInitialize());
-        });
-
         it("goes directly to the native broker if nativeAccountId is present", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2188,8 +1916,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
             });
@@ -2207,15 +1933,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("falls back to web flow if native broker call fails due to fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2239,8 +1956,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
             });
@@ -2258,15 +1973,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error if native broker call fails due to non-fatal error", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2276,8 +1982,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            stubProvider(pca);
-            await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new Error("testError");
             });
@@ -3549,8 +3253,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(activeAccount2).toEqual(newTestAccountInfo1);
             });
 
-            it("getActiveAccount picks up legacy account id from local storage", () => {
-                const pcaLocal = new PublicClientApplication({
+            it("getActiveAccount picks up legacy account id from local storage", async () => {
+                const pcaLocal = await PublicClientApplication.getInstance({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID
                     },
@@ -3833,7 +3537,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         test("logger undefined", async () => {
-            const authApp = new PublicClientApplication(testAppConfig);
+            const authApp = await getPublicClientApplication(testAppConfig);
 
            expect(authApp.getLogger()).toBeDefined();
            expect(authApp.getLogger().info("Test logger")).toEqual(undefined);

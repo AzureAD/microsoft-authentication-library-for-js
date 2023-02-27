@@ -24,6 +24,7 @@ import { EventType } from "../../src/event/EventType";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -46,8 +47,8 @@ describe("RedirectClient", () => {
     let browserStorage: BrowserCacheManager;
     let pca: PublicClientApplication;
 
-    beforeEach(() => {
-        pca = new PublicClientApplication({
+    beforeEach(async () => {
+        pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             },
@@ -242,14 +243,6 @@ describe("RedirectClient", () => {
         });
 
         it("gets hash from cache and calls native broker if hash contains accountId", async () => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger, 2000, getDefaultPerformanceClient());
             // @ts-ignore
@@ -341,14 +334,6 @@ describe("RedirectClient", () => {
         });
 
         it("gets hash from cache and throws if hash contains accountId but native broker connection is not established", (done) => {
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: true
-                }
-            });
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             const b64Encode = new Base64Encode();
@@ -517,7 +502,7 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            const pca = new PublicClientApplication({
+            const pca = await getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
@@ -620,11 +605,6 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            const pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                }
-            });
 
             let callbackCalled = false;
             const navigationClient = new NavigationClient();
@@ -738,7 +718,7 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            const pca = new PublicClientApplication({
+            const pca = await getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
@@ -797,11 +777,6 @@ describe("RedirectClient", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
-            const pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
             const config = {
                 // @ts-ignore
                 ...pca.config,
@@ -959,12 +934,6 @@ describe("RedirectClient", () => {
         });
 
         it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            const pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    navigateToLoginRequestUrl: false
-                }
-            });
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -1863,17 +1832,16 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
                 }
+            }).then((pca) => {
+                // @ts-ignore
+                redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
+                redirectClient.logout();
             });
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
-
-            redirectClient.logout();
         });
 
         it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
@@ -1883,17 +1851,16 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            const pca = new PublicClientApplication({
+            getPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri: null
                 }
+            }).then((pca) => {
+                // @ts-ignore
+                redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+                redirectClient.logout();
             });
-
-            // @ts-ignore
-            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
-
-            redirectClient.logout();
         });
 
         it("doesn't include postLogoutRedirectUri if null is set on request", (done) => {

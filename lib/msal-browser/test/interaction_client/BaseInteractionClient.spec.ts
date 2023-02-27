@@ -8,6 +8,7 @@ import { AccountInfo, AccountEntity, TokenClaims } from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_CONFIG } from "../utils/StringConstants";
 import { BaseInteractionClient } from "../../src/interaction_client/BaseInteractionClient";
 import { EndSessionRequest, PublicClientApplication } from "../../src";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 class testInteractionClient extends BaseInteractionClient {
     acquireToken(): Promise<void> {
@@ -22,8 +23,8 @@ class testInteractionClient extends BaseInteractionClient {
 describe("BaseInteractionClient", () => {
     let pca: PublicClientApplication;
     let testClient: testInteractionClient;
-    beforeEach(() => {
-        pca = new PublicClientApplication({
+    beforeEach(async () => {
+        pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }

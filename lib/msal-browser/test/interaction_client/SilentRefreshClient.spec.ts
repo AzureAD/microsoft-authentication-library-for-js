@@ -10,12 +10,13 @@ import { Constants, AccountInfo, TokenClaims, AuthenticationResult, Authenticati
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { getPublicClientApplication } from "../utils/PublicClientApplication";
 
 describe("SilentRefreshClient", () => {
     let silentRefreshClient: SilentRefreshClient;
 
-    beforeEach(() => {
-        const pca = new PublicClientApplication({
+    beforeEach(async () => {
+        const pca = await getPublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
