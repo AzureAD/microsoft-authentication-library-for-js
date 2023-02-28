@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "exporting native classes as internals and separating out native telemetry #5692",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "none"
+}
