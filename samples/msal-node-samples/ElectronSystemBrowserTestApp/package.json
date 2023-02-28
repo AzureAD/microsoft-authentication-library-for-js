@@ -10,7 +10,6 @@
         "package": "electron-forge package",
         "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
         "install:local": "npm install ../../../lib/msal-common && npm install ../../../lib/msal-node",
-        "postinstall": "npx playwright install",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
         "lint": "eslint --ext .ts,.tsx .",
