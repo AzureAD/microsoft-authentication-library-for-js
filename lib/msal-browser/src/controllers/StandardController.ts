@@ -391,7 +391,6 @@ export class StandardController implements IController{
                     isNativeBroker: true,
                     requestId: response.requestId
                 });
-                atPopupMeasurement.flushMeasurement();
                 return response;
             }).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
@@ -431,8 +430,6 @@ export class StandardController implements IController{
                 success: true,
                 requestId: result.requestId
             });
-
-            atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e: AuthError) => {
             if (loggedInAccounts.length > 0) {
@@ -446,8 +443,6 @@ export class StandardController implements IController{
                 subErrorCode: e.subError,
                 success: false
             });
-            atPopupMeasurement.flushMeasurement();
-
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         });
@@ -528,7 +523,6 @@ export class StandardController implements IController{
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            this.ssoSilentMeasurement?.flushMeasurement();
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
@@ -537,7 +531,6 @@ export class StandardController implements IController{
                 subErrorCode: e.subError,
                 success: false
             });
-            this.ssoSilentMeasurement?.flushMeasurement();
             throw e;
         }).finally(() => {
             document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
@@ -584,7 +577,6 @@ export class StandardController implements IController{
                                 isNativeBroker: result.fromNativeBroker,
                                 requestId: result.requestId
                             });
-                            atbcMeasurement.flushMeasurement();
                             return result;
                         })
                         .catch((error: AuthError) => {
@@ -595,15 +587,11 @@ export class StandardController implements IController{
                                 subErrorCode: error.subError,
                                 success: false
                             });
-                            atbcMeasurement.flushMeasurement();
                             throw error;
                         });
                     this.hybridAuthCodeResponses.set(hybridAuthCode, response);
                 } else {
                     this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                    atbcMeasurement.endMeasurement({
-                        success: true
-                    });
                     atbcMeasurement.discardMeasurement();
                 }
                 return response;
@@ -1240,7 +1228,6 @@ export class StandardController implements IController{
                         cacheLookupPolicy: request.cacheLookupPolicy,
                         requestId: result.requestId,
                     });
-                    atsMeasurement.flushMeasurement();
                     return result;
                 })
                 .catch((error: AuthError) => {
@@ -1250,16 +1237,12 @@ export class StandardController implements IController{
                         subErrorCode: error.subError,
                         success: false
                     });
-                    atsMeasurement.flushMeasurement();
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
             return response;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
-            atsMeasurement.endMeasurement({
-                success: true
-            });
             // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
             atsMeasurement.discardMeasurement();
             return cachedResponse;

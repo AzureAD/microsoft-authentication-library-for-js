@@ -874,7 +874,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readAccountFromCacheWithNativeAccountId", () => {
-        const account = mockCache.cacheManager.readAccountFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID) as AccountEntity;
+        const account = mockCache.cacheManager.readAccountFromCacheWithNativeAccountId(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID.nativeAccountId) as AccountEntity;
         if (!account) {
             throw TestError.createTestSetupError("account does not have a value");
         }

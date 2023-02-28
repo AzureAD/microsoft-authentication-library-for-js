@@ -61,6 +61,7 @@ export class PublicClientApplication implements IPublicClientApplication {
     async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         return this.controller.acquireTokenPopup(request);
     }
+
     acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         return this.controller.acquireTokenRedirect(request);
     }
