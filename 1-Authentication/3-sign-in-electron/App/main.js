@@ -8,8 +8,7 @@ const { app, ipcMain, BrowserWindow } = require("electron");
 
 const AuthProvider = require("./AuthProvider");
 const { IPC_MESSAGES } = require("./constants");
-const { protectedResources, msalConfig } = require("./authConfig");
-const getGraphClient = require("./graph");
+const { msalConfig } = require("./authConfig");
 
 let authProvider;
 let mainWindow;
@@ -45,31 +44,17 @@ app.on('activate', () => {
 // Event handlers
 ipcMain.on(IPC_MESSAGES.LOGIN, async () => {
     const account = await authProvider.login();
-
     await mainWindow.loadFile(path.join(__dirname, "./index.html"));
-    
     mainWindow.webContents.send(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
 });
 
 ipcMain.on(IPC_MESSAGES.LOGOUT, async () => {
     await authProvider.logout();
-
-    await mainWindow.loadFile(path.join(__dirname, "./index.html"));
+    await mainWindow.loadFile(path.join(__dirname, './index.html')); 
 });
 
-ipcMain.on(IPC_MESSAGES.GET_PROFILE, async () => {
-    const tokenRequest = {
-        scopes: protectedResources.graphMe.scopes
-    };
-
-    const tokenResponse = await authProvider.getToken(tokenRequest);
-    const account = authProvider.account;
-
-    await mainWindow.loadFile(path.join(__dirname, "./index.html"));
-
-    const graphResponse = await getGraphClient(tokenResponse.accessToken)
-        .api(protectedResources.graphMe.endpoint).get();
-
+ipcMain.on(IPC_MESSAGES.SIGNUP, async () => {
+    const account = await authProvider.signup();
+    await mainWindow.loadFile(path.join(__dirname, './index.html'));
     mainWindow.webContents.send(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
-    mainWindow.webContents.send(IPC_MESSAGES.SET_PROFILE, graphResponse);
 });

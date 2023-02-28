@@ -26,19 +26,7 @@ const msalConfig = {
     },
 };
 
-/**
- * Add here the endpoints and scopes when obtaining an access token for protected web APIs. For more information, see:
- * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md
- */
-const protectedResources = {
-    graphMe: {
-        endpoint: 'https://graph.microsoft.com/v1.0/me',
-        scopes: ['User.Read'],
-    },
-};
-
 
 module.exports = {
     msalConfig: msalConfig,
-    protectedResources: protectedResources,
 };

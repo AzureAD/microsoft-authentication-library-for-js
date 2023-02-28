@@ -20,6 +20,8 @@ extensions:
 
 # An Electron desktop application secured by MSAL Node on Microsoft identity platform
 
+[![Build status](https://identitydivision.visualstudio.com/IDDP/_apis/build/status/AAD%20Samples/.NET%20client%20samples/ASP.NET%20Core%20Web%20App%20tutorial)](https://identitydivision.visualstudio.com/IDDP/_build/latest?definitionId=XXX)
+
 * [Overview](#overview)
 * [Scenario](#scenario)
 * [Contents](#contents)
@@ -47,13 +49,15 @@ This sample demonstrates a Electron desktop app calling Microsoft Graph.
 
 ## Contents
 
-> Give a high-level folder structure of the sample. Emphasize the files that you want people to look at.
-
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `LICENSE`         | The license for the sample.                |
+| File/folder                  | Description                                                  |
+|------------------------------|--------------------------------------------------------------|
+| `AppCreationScripts/`        | Contains Powershell scripts for automating app registration. |
+| `App/authProvider.js`        | Main authentication logic resides here.                      |
+| `App/main.js`                | Application main process.                                    |
+| `App/renderer.js`            | Renderer processes and UI methods.                           |
+| `App/constants.js`           | Example user accounts in JSON .                              |
+| `App/preload.js`             | Give the Renderer process controlled access to some Node API.|
+| `App/authConfig.js`          | Configuration objects to be passed to MSAL instance.         |
 
 ## Prerequisites
 
@@ -83,7 +87,7 @@ or download and extract the repository *.zip* file.
 ### Step 2: Install project dependencies
 
 ```console
-    cd 2-Authorization\3-call-api-electron\App
+    cd 1-Authentication\3-sign-in-electron\App
     npm install
 ```
 
@@ -91,10 +95,10 @@ or download and extract the repository *.zip* file.
 
 There is one project in this sample. To register it, you can:
 
-- follow the steps below for manually register your apps
-- or use PowerShell scripts that:
-  - **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you.
-  - modify the projects' configuration files.
+* follow the steps below for manually register your apps
+* or use PowerShell scripts that:
+  * **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you.
+  * modify the projects' configuration files.
 
 <details>
    <summary>Expand this section if you want to use this automation:</summary>
@@ -117,7 +121,6 @@ There is one project in this sample. To register it, you can:
     ```
 
 > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provide a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
-    
 
 </details>
 
@@ -160,7 +163,7 @@ Please refer to:
     1. Select the **Add a permission** button and then:
     1. Ensure that the **Microsoft APIs** tab is selected.
     1. In the *Commonly used Microsoft APIs* section, select **Microsoft Graph**
-    1. In the **Delegated permissions** section, select **User.Read**, **openid**, **offline_access** in the list. Use the search box if necessary.
+    1. In the **Delegated permissions** section, select **openid**, **offline_access** in the list. Use the search box if necessary.
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
@@ -186,21 +189,21 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 ### Step 4: Running the sample
 
 ```console
-    cd 2-Authorization\3-call-api-electron\App
+    cd 1-Authentication\3-sign-in-electron\App
     npm start
 ```
 
 ## Explore the sample
 
-> * Explain how to explore the sample.
-> * Insert a screenshot of the client application.
+1. After running the sample, the desktop app window will appear automatically.
+1. Select the **Sign In** button in the top right.
+![Screenshot](./ReadmeFiles/screenshot.png)
 
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
 
 ## We'd love your feedback!
 
 Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](Enter_Survey_Form_Link).
-
 
 ## Troubleshooting
 

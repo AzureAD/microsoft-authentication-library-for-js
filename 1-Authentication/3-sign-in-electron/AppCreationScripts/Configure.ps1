@@ -263,7 +263,7 @@ Function ConfigureApplications
     # Add Required Resources Access (from 'client' to 'Microsoft Graph')
     Write-Host "Getting access from 'client' to 'Microsoft Graph'"
     $requiredPermission = GetRequiredPermissions -applicationDisplayName "Microsoft Graph"`
-        -requiredDelegatedPermissions "User.Read|openid|offline_access"
+        -requiredDelegatedPermissions "openid|offline_access"
 
     $requiredResourcesAccess.Add($requiredPermission)
     Write-Host "Added 'Microsoft Graph' to the RRA list."

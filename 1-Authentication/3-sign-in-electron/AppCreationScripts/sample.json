@@ -1,6 +1,6 @@
 {
     "Sample": {
-        "Title": "An Electron desktop application secured by MSAL Node on Microsoft identity platform",
+        "Title": "An Electron application using MSAL Node to authentication users against Customer Identity Access Management (CIAM)",
         "Level": 100,
         "Client": "Electron desktop app",
         "Service": "Microsoft Graph",
@@ -8,7 +8,7 @@
         "Endpoint": "AAD v2.0",
         "platform": "javascript",
         "Languages": ["javascript"],
-        "Description": "An Electron desktop application secured by MSAL Node on Microsoft identity platform",
+        "Description": "Electron application using MSAL Node to authentication users against Customer Identity Access Management (CIAM)",
         "products": ["azure-active-directory", "msal-js", "msal-node"],
         "Provider": "CIAM",
         "Platform": "javascript"
@@ -21,14 +21,13 @@
             "ReplyUrls": "http://localhost",
             "SDK": "MsalJs",
             "Audience": "AzureADMyOrg",
-            "SampleSubPath": "2-Authorization\\3-call-api-electron\\App",
+            "SampleSubPath": "1-Authentication\\3-sign-in-electron\\App",
             "RequiredResourcesAccess": [
                 {
                     "Resource": "Microsoft Graph",
-                    "DelegatedPermissions": ["User.Read", "openid", "offline_access"]
+                    "DelegatedPermissions": ["openid", "offline_access"]
                 }
             ],
-
             "OptionalClaims": {
                 "IdTokenClaims": ["login_hint"]
             }

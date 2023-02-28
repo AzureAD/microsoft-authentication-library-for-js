@@ -7,7 +7,7 @@ const { PublicClientApplication, InteractionRequiredAuthError } = require('@azur
 const { shell } = require('electron');
 
 class AuthProvider {
-    msalConfig
+    msalConfig;
     clientApplication;
     account;
     cache;
@@ -21,6 +21,18 @@ class AuthProvider {
         this.clientApplication = new PublicClientApplication(this.msalConfig);
         this.cache = this.clientApplication.getTokenCache();
         this.account = null;
+    }
+
+    async signup() {
+        console.log("get token")
+        const authResponse = await this.getToken({
+            // If there are scopes that you would like users to consent up front, add them below
+            // by default, MSAL will add the OIDC scopes to every token request, so we omit those here
+            scopes: [],
+            prompt: 'create',
+        });
+
+        return this.handleResponse(authResponse);
     }
 
     async login() {
@@ -43,7 +55,11 @@ class AuthProvider {
              * https://learn.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
              */
             if (this.account.idTokenClaims.hasOwnProperty('login_hint')) {
-                await shell.openExternal(`${this.msalConfig.auth.authority}/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(this.account.idTokenClaims.login_hint)}`);
+                await shell.openExternal(
+                    `${this.msalConfig.auth.authority}/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(
+                        this.account.idTokenClaims.login_hint
+                    )}`
+                );
             }
 
             await this.cache.removeAccount(this.account);
