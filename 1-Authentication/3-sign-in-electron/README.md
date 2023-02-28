@@ -219,7 +219,7 @@ To provide feedback on or suggest features for Azure Active Directory, visit [Us
 
 ### Initialization
 
-In order to use MSAL Node, we instantiate the PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) class as shown in the [AuthProvider.js](./App/AuthProvider.js) class.
+In order to use MSAL Node, we instantiate the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) class as shown in the [AuthProvider.js](./App/AuthProvider.js) class.
 
 ```javascript
 
