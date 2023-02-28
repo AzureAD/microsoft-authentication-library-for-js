@@ -20,8 +20,6 @@ extensions:
 
 # An Electron desktop application secured by MSAL Node on Microsoft identity platform
 
-[![Build status](https://identitydivision.visualstudio.com/IDDP/_apis/build/status/AAD%20Samples/.NET%20client%20samples/ASP.NET%20Core%20Web%20App%20tutorial)](https://identitydivision.visualstudio.com/IDDP/_build/latest?definitionId=XXX)
-
 * [Overview](#overview)
 * [Scenario](#scenario)
 * [Contents](#contents)
@@ -36,9 +34,9 @@ extensions:
 
 ## Overview
 
-This sample demonstrates a Electron desktop app calling Microsoft Graph.
+This sample demonstrates an Electron application that authenticates users against [Customer Identity Access Management](https://github.com/microsoft/entra-previews/tree/PP2/docs) (CIAM), using the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs) (MSAL Node).
 
-> :information_source: To learn how applications integrate with [Microsoft Graph](https://aka.ms/graph), consider going through the recorded session:: [An introduction to Microsoft Graph for developers](https://www.youtube.com/watch?v=EBbnpFdB92A)
+Here you'll learn how to sign-in users and acquire [ID tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
 
 ## Scenario
 
@@ -219,10 +217,91 @@ To provide feedback on or suggest features for Azure Active Directory, visit [Us
 
 ## About the code
 
-> * Describe where the code uses auth libraries, or calls the graph
-> * Describe specific aspects (e.g. caching, validation etc.)
+### Initialization
 
-</details>
+In order to use MSAL Node, we instantiate the PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) class as shown in the [AuthProvider.js](./App/AuthProvider.js) class.
+
+```javascript
+
+constructor(msalConfig) {
+        /**
+         * Initialize a public client application. For more information, visit:
+         * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md
+         */
+        this.msalConfig = msalConfig;
+        this.clientApplication = new PublicClientApplication(this.msalConfig);
+        this.cache = this.clientApplication.getTokenCache();
+        this.account = null;
+    }
+
+```
+
+### Sign-in
+
+MSAL Node exposes two APIs: `acquireTokenSilent()`, `acquireTokenInteractive()` to authenticate the user and acquire tokens. Using the [acquireTokenInteractive](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationcoderequest) API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching and navigating the system browser to authorization code URL and listens for the authorization code response via loopback server. Once the code is received successfully, `acquireTokenInteractive` will load the assigned **successTemplate**.
+
+```javascript
+async getTokenInteractive(tokenRequest) {
+        try {
+            const openBrowser = async (url) => {
+                await shell.openExternal(url);
+            };
+
+            const authResponse = await this.clientApplication.acquireTokenInteractive({
+                ...tokenRequest,
+                openBrowser,
+                successTemplate: '<h1>Successfully signed in!</h1> <p>You can close this window now.</p>',
+                errorTemplate: '<h1>Oops! Something went wrong</h1> <p>Check the console for more information.</p>',
+            });
+
+            return authResponse;
+        } catch (error) {
+            throw error;
+        }
+    }
+```
+
+After authenticating the user successfully, MSAL Node will cache the tokens in memory for future usage. MSAL Node manages the token lifetime and refreshes for you. APIs like `acquireTokenSilent()` retrieve the access tokens from the cache for a given account, as shown below:
+
+```javascript
+async getTokenSilent(tokenRequest) {
+        try {
+            return await this.clientApplication.acquireTokenSilent(tokenRequest);
+        } catch (error) {
+            if (error instanceof InteractionRequiredAuthError) {
+                console.log('Silent token acquisition failed, acquiring token interactive');
+                return await this.getTokenInteractive(tokenRequest);
+            }
+
+            console.log(error);
+        }
+    }
+```
+
+### Sign-out
+
+Use the [logout endpoint](https://learn.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request) to end the user's session with **Azure AD CIAM**. You'll need to enable the [optional token claim](https://learn.microsoft.com/azure/active-directory/develop/active-directory-optional-claims) 'login_hint' to work as expected. After that, we will use the `removeAccount()` API to remove the user account from the in-memory cache.
+
+```javascript
+async logout() {
+        if (!this.account) return;
+
+        try {
+            if (this.account.idTokenClaims.hasOwnProperty('login_hint')) {
+                await shell.openExternal(
+                    `${this.msalConfig.auth.authority}/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(
+                        this.account.idTokenClaims.login_hint
+                    )}`
+                );
+            }
+
+            await this.cache.removeAccount(this.account);
+            this.account = null;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+```
 
 ## Next Steps
 
