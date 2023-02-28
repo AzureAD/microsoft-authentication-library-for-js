@@ -42,8 +42,11 @@ export class CredentialEntity {
     keyId?: string;
     requestedClaimsHash?: string;
 
-    // Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", https://localhost:5000, etc.
-    private static credentialDomainRegex = "(https?:\\/\\/)?((([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63})))|(localhost))(\\:[0-9]{4,5})?";
+    /*
+     * Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", https://localhost:5000,
+     * "login.microsoftonline.com/common", "login.microsoftonline.com:4000/common", etc
+     */
+    private static credentialDomainRegex = "(https?:\\/\\/)?((([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63})))|(localhost))(\\:[0-9]{4,5})?(\\/[\\w-]+)?";
     // Maps {CredentialType} to the corresponding regular expression.
     private static credentialRegexMap: Map<CredentialType, RegExp>;
 
