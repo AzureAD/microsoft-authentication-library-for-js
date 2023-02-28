@@ -232,24 +232,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
         // Add Native Broker fields to Telemetry
-        const mats = this.getMATSFromResponse(response);
-        this.performanceClient.addStaticFields({
-            extensionId: this.nativeMessageHandler.getExtensionId(),
-            extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
-            matsBrokerVersion: mats ? mats.broker_version : undefined,
-            matsAccountJoinOnStart: mats ? mats.account_join_on_start : undefined,
-            matsAccountJoinOnEnd: mats ? mats.account_join_on_end : undefined,
-            matsDeviceJoin: mats ? mats.device_join : undefined,
-            matsPromptBehavior: mats ? mats.prompt_behavior : undefined,
-            matsApiErrorCode: mats ? mats.api_error_code : undefined,
-            matsUiVisible: mats ? mats.ui_visible : undefined,
-            matsSilentCode: mats ? mats.silent_code : undefined,
-            matsSilentBiSubCode: mats ? mats.silent_bi_sub_code : undefined,
-            matsSilentMessage: mats ? mats.silent_message : undefined,
-            matsSilentStatus: mats ? mats.silent_status : undefined,
-            matsHttpStatus: mats ? mats.http_status : undefined,
-            matsHttpEventCount: mats ? mats.http_event_count : undefined
-        }, this.correlationId);
+        const mats = this.addTelemetryFromNativeResponse(response);
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
@@ -374,6 +357,35 @@ export class NativeInteractionClient extends BaseInteractionClient {
         return result;
     }
 
+    protected addTelemetryFromNativeResponse(response: NativeResponse): MATS | null {
+
+        const mats = this.getMATSFromResponse(response);
+
+        if (!mats){
+            return null;
+        }
+        
+        this.performanceClient.addStaticFields({
+            extensionId: this.nativeMessageHandler.getExtensionId(),
+            extensionVersion: this.nativeMessageHandler.getExtensionVersion(),
+            matsBrokerVersion: mats.broker_version,
+            matsAccountJoinOnStart: mats.account_join_on_start,
+            matsAccountJoinOnEnd: mats.account_join_on_end,
+            matsDeviceJoin: mats.device_join,
+            matsPromptBehavior: mats.prompt_behavior,
+            matsApiErrorCode: mats.api_error_code,
+            matsUiVisible: mats.ui_visible,
+            matsSilentCode: mats.silent_code,
+            matsSilentBiSubCode: mats.silent_bi_sub_code,
+            matsSilentMessage: mats.silent_message,
+            matsSilentStatus: mats.silent_status,
+            matsHttpStatus: mats.http_status,
+            matsHttpEventCount: mats.http_event_count
+        }, this.correlationId);
+
+        return mats;
+    }
+
     /**
      * Validates native platform response before processing
      * @param response
@@ -415,7 +427,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param response
      * @returns
      */
-    private isResponseFromCache(mats: MATS): boolean {
+    protected isResponseFromCache(mats: MATS): boolean {
         if (typeof mats.is_cached === "undefined") {
             this.logger.verbose("NativeInteractionClient - MATS telemetry does not contain field indicating if response was served from cache. Returning false.");
             return false;
