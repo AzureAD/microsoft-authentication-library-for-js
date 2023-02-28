@@ -6,7 +6,7 @@ name: msal-node E2E Tests
 on:
   pull_request:
     paths:
-      - 'samples/msal-node-samples/**/*'
+      - '.github/workflows/msal-node-e2e.yml'
   merge_group:
     types: [checks_requested]
 
