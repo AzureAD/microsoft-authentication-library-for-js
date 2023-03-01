@@ -3,8 +3,9 @@ import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { Location } from "@angular/common";
 import { RouterTestingModule } from "@angular/router/testing";
-import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
+import { AccountInfo, AuthError, InteractionStatus, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, ProtectedResourceScopes } from './public-api';
+import { BehaviorSubject } from 'rxjs';
 
 let interceptor: MsalInterceptor;
 let httpMock: HttpTestingController;
@@ -162,7 +163,12 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
-  it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token", done => {
+  it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token, interaction type is Popup and interaction invocation waits for interaction status becomes None", done => {
+    const _inProgress = new BehaviorSubject<InteractionStatus>(InteractionStatus.Startup);
+    const msalBroadcastService = TestBed.inject(MsalBroadcastService);
+
+    msalBroadcastService.inProgress$ = _inProgress.asObservable();
+
     const spy1 = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -185,14 +191,23 @@ describe('MsalInterceptor', () => {
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {
+      const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
+      expect(request).toBeUndefined();
+      expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+      expect(spy2).not.toHaveBeenCalled();
+      httpMock.verify();
+
+      _inProgress.next(InteractionStatus.None);
+    }, 200);
+
+    setTimeout(() => {
       const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
       expect(spy2).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
       httpMock.verify();
       done();
-    }, 200);
+    }, 400);
   });
 
   it("attaches authorization header with access token for protected resource with wildcard", done => {
@@ -331,7 +346,12 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", done => {
+  it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor, interaction type is Popup and interaction status is None", done => {
+    const _inProgress = new BehaviorSubject<InteractionStatus>(InteractionStatus.None);
+    const msalBroadcastService = TestBed.inject(MsalBroadcastService);
+
+    msalBroadcastService.inProgress$ = _inProgress.asObservable();
+
     const sampleError = new AuthError("123", "message");
     const sampleAccessToken = {
       accessToken: "123abc"
@@ -364,9 +384,15 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
-  it("does not attach authorization header if acquireTokenSilent fails in interceptor and interaction type is Redirect", done => {
+  it("does not attach authorization header if acquireTokenSilent fails in interceptor, interaction type is Redirect and interaction status is None", done => {
     testInteractionType = InteractionType.Redirect;
     initializeMsal();
+
+    const _inProgress = new BehaviorSubject<InteractionStatus>(InteractionStatus.None);
+    const msalBroadcastService = TestBed.inject(MsalBroadcastService);
+
+    msalBroadcastService.inProgress$ = _inProgress.asObservable();
+
     const sampleError = new AuthError("123", "message");
 
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
@@ -393,6 +419,102 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
+  it("does not invoke interaction if acquireTokenSilent fails in interceptor and interaction status other than None", done => {
+    const _inProgress = new BehaviorSubject<InteractionStatus>(InteractionStatus.Startup);
+    const msalBroadcastService = TestBed.inject(MsalBroadcastService);
+
+    msalBroadcastService.inProgress$ = _inProgress.asObservable();
+
+    const sampleError = new AuthError("123", "message");
+    const sampleAccessToken = {
+      accessToken: "123abc"
+    };
+
+    const spy1 = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve, reject) => {
+        reject(sampleError);
+      })
+    ));
+
+    const spy2 = spyOn(PublicClientApplication.prototype, "acquireTokenPopup").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve(sampleAccessToken);
+      })
+    ));
+
+    const spy3 = spyOn(PublicClientApplication.prototype, "acquireTokenRedirect").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve();
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
+      expect(request).toBeUndefined();
+      expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+      expect(spy2).not.toHaveBeenCalled();
+      expect(spy3).not.toHaveBeenCalled();
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("does not invoke interaction if acquireTokenSilent fails in interceptor and interaction status other than None and should invoke acquireTokenSilent when status became None", done => {
+    const _inProgress = new BehaviorSubject<InteractionStatus>(InteractionStatus.Startup);
+    const msalBroadcastService = TestBed.inject(MsalBroadcastService);
+
+    msalBroadcastService.inProgress$ = _inProgress.asObservable();
+
+    const sampleError = new AuthError("123", "message");
+    const sampleAccessToken = {
+      accessToken: "123abc"
+    };
+
+    const spy1 = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve, reject) => {
+        reject(sampleError);
+      })
+    ));
+
+    const spy2 = spyOn(PublicClientApplication.prototype, "acquireTokenPopup").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve(sampleAccessToken);
+      })
+    ));
+
+    const spy3 = spyOn(PublicClientApplication.prototype, "acquireTokenRedirect").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve();
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
+      expect(request).toBeUndefined();
+      expect(spy1).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+      expect(spy2).not.toHaveBeenCalled();
+      expect(spy3).not.toHaveBeenCalled();
+      httpMock.verify();
+
+      _inProgress.next(InteractionStatus.None);
+    }, 200);
+
+    setTimeout(() => {
+      expect(spy1.calls.mostRecent().args).toEqual([{account: sampleAccountInfo, scopes: ["user.read"]}]);
+      expect(spy1).toHaveBeenCalledTimes(2);
+      done();
+    }, 400);
+  });
 
   it("keeps original authority, https://login.microsoftonline.com/common", done => {
     const originalAuthority = 'https://login.microsoftonline.com/common';
