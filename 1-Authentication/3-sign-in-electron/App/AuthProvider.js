@@ -104,8 +104,10 @@ class AuthProvider {
             const authResponse = await this.clientApplication.acquireTokenInteractive({
                 ...tokenRequest,
                 openBrowser,
-                successTemplate: '<h1>Successfully signed in!</h1> <p>You can close this window now.</p>',
-                errorTemplate: '<h1>Oops! Something went wrong</h1> <p>Check the console for more information.</p>',
+                successTemplate:
+                    '<h1>Successfully signed in!</h1> <p>You can close this window now and navigate back to the electron application.</p>',
+                errorTemplate:
+                    '<h1>Oops! Something went wrong</h1> <p>Navigate back to the electron application and check the console for more information.</p>',
             });
 
             return authResponse;
