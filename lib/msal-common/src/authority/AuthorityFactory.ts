@@ -32,7 +32,6 @@ export class AuthorityFactory {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string,
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<Authority> {
@@ -45,7 +44,6 @@ export class AuthorityFactory {
             cacheManager,
             authorityOptions,
             logger,
-            proxyUrl,
             performanceClient,
             correlationId
         );
@@ -75,7 +73,6 @@ export class AuthorityFactory {
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
         logger: Logger,
-        proxyUrl?: string,
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Authority {
@@ -84,6 +81,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, proxyUrl, performanceClient, correlationId);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, performanceClient, correlationId);
     }
 }

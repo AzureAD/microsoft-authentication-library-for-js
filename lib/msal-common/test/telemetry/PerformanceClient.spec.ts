@@ -19,7 +19,7 @@ const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
 const libraryName = "@azure/msal-common";
 const libraryVersion = "1.0.0";
-const samplePerfDuration = 50;
+const samplePerfDuration = 50.25;
 const sampleApplicationTelemetry: ApplicationTelemetry = {
     appName: "Test Comon App",
     appVersion: "1.0.0-test.1"
@@ -115,14 +115,14 @@ describe("PerformanceClient.spec.ts", () => {
 
             expect(events[0].correlationId).toBe(correlationId);
             expect(events[0].authority).toBe(authority);
-            expect(events[0].durationMs).toBe(samplePerfDuration);
+            expect(events[0].durationMs).toBe(Math.floor(samplePerfDuration));
             expect(events[0].clientId).toBe(sampleClientId);
             expect(events[0].libraryName).toBe(libraryName);
             expect(events[0].libraryVersion).toBe(libraryVersion);
             expect(events[0].success).toBe(true);
             expect(events[0].appName).toBe(sampleApplicationTelemetry.appName);
             expect(events[0].appVersion).toBe(sampleApplicationTelemetry.appVersion);
-            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration));
             done();
         }));
 
@@ -196,8 +196,8 @@ describe("PerformanceClient.spec.ts", () => {
         mockPerfClient.addPerformanceCallback((events =>{
             expect(events.length).toEqual(1);
             const event = events[0];
-            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
-            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
+            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(Math.floor(samplePerfDuration));
             expect(event.incompleteSubsCount).toEqual(0);
             done();
         }));
@@ -230,9 +230,9 @@ describe("PerformanceClient.spec.ts", () => {
         mockPerfClient.addPerformanceCallback((events =>{
             expect(events.length).toEqual(1);
             const event = events[0];
-            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
-            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
-            expect(event["silentCacheClientAcquireTokenDurationMs"]).toBe(samplePerfDuration);
+            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(event["silentCacheClientAcquireTokenDurationMs"]).toBe(Math.floor(samplePerfDuration));
             expect(event.incompleteSubsCount).toEqual(2);
 
             // Ensure endMeasurement was called for the incomplete event
@@ -267,7 +267,7 @@ describe("PerformanceClient.spec.ts", () => {
         mockPerfClient.addPerformanceCallback((events =>{
             expect(events.length).toBe(1);
             const event = events[0];
-            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(samplePerfDuration);
+            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration))
             expect(event.incompleteSubsCount).toEqual(0);
             done();
         }));
@@ -344,6 +344,42 @@ describe("PerformanceClient.spec.ts", () => {
 
         topLevelEvent2.flushMeasurement();
         topLevelEvent1.flushMeasurement();
+    });
+
+    it("truncates integral fields", done => {
+        const mockPerfClient = new MockPerformanceClient();
+
+        const correlationId = "test-correlation-id";
+        const accessTokenSize = 12345.67;
+        const refreshTokenSize = 23456.78;
+        const idTokenSize = undefined;
+
+        function isIntegral(val: number | undefined) {
+            return val && Math.floor(val) === val;
+        }
+
+        mockPerfClient.addPerformanceCallback((events => {
+            expect(events.length).toBe(1);
+            expect(isIntegral(events[0].startTimeMs)).toBeTruthy();
+            expect(isIntegral(events[0].durationMs)).toBeTruthy();
+            expect(isIntegral(events[0].accessTokenSize)).toBeTruthy();
+            expect(isIntegral(events[0].refreshTokenSize)).toBeTruthy();
+            expect(isIntegral(events[0].idTokenSize)).toBeUndefined();
+
+            done();
+        }));
+
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)
+        topLevelEvent.addStaticFields({
+            accessTokenSize,
+            refreshTokenSize,
+            idTokenSize
+        })
+        topLevelEvent.endMeasurement({
+            success: true
+        });
+        topLevelEvent.flushMeasurement();
     });
 
     describe('calculateQueuedTime', () => {

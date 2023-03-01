@@ -7,7 +7,14 @@ import { ApplicationTelemetry } from "../../config/ClientConfiguration";
 import { Logger } from "../../logger/Logger";
 import { InProgressPerformanceEvent, IPerformanceClient, PerformanceCallbackFunction, QueueMeasurement } from "./IPerformanceClient";
 import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
-import { Counters, PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields } from "./PerformanceEvent";
+import {
+    Counters,
+    PerformanceEvent,
+    IntFields,
+    PerformanceEvents,
+    PerformanceEventStatus,
+    StaticFields
+} from "./PerformanceEvent";
 
 export abstract class PerformanceClient implements IPerformanceClient {
     protected authority: string;
@@ -131,6 +138,14 @@ export abstract class PerformanceClient implements IPerformanceClient {
      * @returns
      */
     abstract setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
+
+    /**
+     * Get integral fields.
+     * Override to change the set.
+     */
+    getIntFields(): ReadonlySet<string> {
+        return IntFields;
+    }
 
     /**
      * Gets map of pre-queue times by correlation Id
@@ -430,8 +445,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             totalQueueCount++;
         });
 
-        this.queueMeasurements.delete(correlationId);
-
         const eventsForCorrelationId = this.eventsByCorrelationId.get(correlationId);
         const staticFields = this.staticFieldsByCorrelationId.get(correlationId);
         const counters = this.countersByCorrelationId.get(correlationId);
@@ -506,6 +519,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
                     queuedCount: totalQueueCount,
                     incompleteSubsCount
                 };
+                this.truncateIntegralFields(finalEvent, this.getIntFields());
 
                 this.emitEvents([finalEvent], eventToEmit.correlationId);
             } else {
@@ -539,6 +553,12 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         this.logger.trace("PerformanceClient: Counters discarded", correlationId);
         this.countersByCorrelationId.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: QueueMeasurements discarded", correlationId);
+        this.queueMeasurements.delete(correlationId);
+
+        this.logger.trace("PerformanceClient: Pre-queue times discarded", correlationId);
+        this.preQueueTimeByCorrelationId.delete(correlationId);
     }
 
     /**
@@ -588,4 +608,16 @@ export abstract class PerformanceClient implements IPerformanceClient {
         });
     }
 
+    /**
+     * Enforce truncation of integral fields in performance event.
+     * @param {PerformanceEvent} event performance event to update.
+     * @param {Set<string>} intFields integral fields.
+     */
+    private truncateIntegralFields(event: PerformanceEvent, intFields: ReadonlySet<string>): void {
+        intFields.forEach((key) => {
+            if (key in event && typeof event[key] === "number") {
+                event[key] = Math.floor(event[key]);
+            }
+        });
+    }
 }
