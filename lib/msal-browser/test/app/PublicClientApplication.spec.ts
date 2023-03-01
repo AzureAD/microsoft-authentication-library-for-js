@@ -60,6 +60,7 @@ import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerfor
 import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
 
 const cacheConfig = {
+    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false

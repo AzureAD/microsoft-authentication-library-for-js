@@ -26,6 +26,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
+    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false
 };
