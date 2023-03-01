@@ -213,9 +213,6 @@ jobs:
 
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
-    env:
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-        PLAYWRIGHT_BROWSERS_PATH: 0
     steps:
     - uses: actions/checkout@v3
 
@@ -266,7 +263,10 @@ jobs:
         npm run install:local
         npm install
         npx playwright install
-        
+      env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        PLAYWRIGHT_BROWSERS_PATH: 0
+      
     - name: Build Sample
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |
