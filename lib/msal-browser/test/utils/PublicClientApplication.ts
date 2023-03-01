@@ -3,6 +3,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { Logger, PublicClientApplication } from "../../src";
 import { Configuration } from "../../lib";
 import { LoggerOptions } from "@azure/msal-common";
+import { getDefaultPerformanceClient } from "./TelemetryUtils";
 
 const extensionId = "test-extensionId";
 
@@ -13,11 +14,11 @@ export async function getPublicClientApplication(configuration: Configuration): 
     };
     const logger: Logger = new Logger(loggerOptions);
     const providerStub: sinon.SinonStub = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-        return new NativeMessageHandler(logger, 2000, extensionId);
+        return new NativeMessageHandler(logger, 2000, getDefaultPerformanceClient(), extensionId);
     });
 
     try {
-        return PublicClientApplication.getInstance(configuration);
+        return PublicClientApplication.createPublicClientApplication(configuration);
     } finally {
         providerStub.restore();
     }
