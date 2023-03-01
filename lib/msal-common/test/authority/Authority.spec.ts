@@ -331,7 +331,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
 
-        describe.only("Endpoint Metadata", () => {
+        describe("Endpoint Metadata", () => {
             it("Gets endpoints from config", async () => {
                 const options = {
                     protocolMode: ProtocolMode.AAD,
