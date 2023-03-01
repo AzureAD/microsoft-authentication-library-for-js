@@ -8,33 +8,19 @@ const msedge = ua.indexOf("Edge/");
 const isIE = msie > 0 || msie11 > 0;
 const isEdge = msedge > 0;
 
-
 let signInType;
 let accountId = "";
-let myMSALObj;
-
-import { PublicClientApplication } from "../../lib/index.js";
-import { MsalConfig, loginRequest } from "./authConfig.js";
 
 // Create the main myMSALObj instance
 // configuration parameters are located at authConfig.js
-PublicClientApplication.createPublicClientApplication(MsalConfig).then((pca) => {
-    myMSALObj = pca;
+const myMSALObj = new msal.PublicClientApplication(msalConfig);
+
+myMSALObj.initialize().then(() => {
     // Redirect: once login is successful and redirects with tokens, call Graph API
     myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
         console.error(err);
     });
 })
-
-document.getElementById('redirect').addEventListener('click', () => {
-    return myMSALObj.loginRedirect(loginRequest)
-});
-
-document.getElementById('popup').addEventListener('click', () => {
-    return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
-        console.log(error);
-    });
-});
 
 function handleResponse(resp) {
     if (resp !== null) {
