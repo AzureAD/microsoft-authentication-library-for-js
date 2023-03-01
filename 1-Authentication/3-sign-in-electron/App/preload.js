@@ -16,9 +16,6 @@ contextBridge.exposeInMainWorld('renderer', {
     sendSignoutMessage: () => {
         ipcRenderer.send('LOGOUT');
     },
-    sendSignUpMessage: () => {
-        ipcRenderer.send('SIGNUP');
-    },
     showWelcomeMessage: (func) => {
         ipcRenderer.on('SHOW_WELCOME_MESSAGE', (event, ...args) => func(event, ...args));
     }

@@ -23,17 +23,6 @@ class AuthProvider {
         this.account = null;
     }
 
-    async signup() {
-        const authResponse = await this.getToken({
-            // If there are scopes that you would like users to consent up front, add them below
-            // by default, MSAL will add the OIDC scopes to every token request, so we omit those here
-            scopes: [],
-            prompt: 'create',
-        });
-
-        return this.handleResponse(authResponse);
-    }
-
     async login() {
         const authResponse = await this.getToken({
             // If there are scopes that you would like users to consent up front, add them below
@@ -105,9 +94,9 @@ class AuthProvider {
                 ...tokenRequest,
                 openBrowser,
                 successTemplate:
-                    '<h1>Successfully signed in!</h1> <p>You can close this window now and navigate back to the electron application.</p>',
+                    '<h1>Successfully signed in!</h1> <p>You can close this window now and navigate back to the Electron application.</p>',
                 errorTemplate:
-                    '<h1>Oops! Something went wrong</h1> <p>Navigate back to the electron application and check the console for more information.</p>',
+                    '<h1>Oops! Something went wrong</h1> <p>Navigate back to the Electron application and check the console for more information.</p>',
             });
 
             return authResponse;

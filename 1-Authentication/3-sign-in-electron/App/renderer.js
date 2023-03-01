@@ -9,7 +9,7 @@
 const welcomeDiv = document.getElementById('WelcomeMessage');
 const signInButton = document.getElementById('signIn');
 const signOutButton = document.getElementById('signOut');
-const signUpButton = document.getElementById('SignUp');
+const loginButton = document.getElementById('loginButton');
 const cardDiv = document.getElementById('cardDiv');
 const profileDiv = document.getElementById('profileDiv');
 const tableDiv = document.getElementById('table-div');
@@ -23,7 +23,7 @@ window.renderer.showWelcomeMessage((event, account) => {
 
     welcomeDiv.innerHTML = `Welcome ${account.name}`;
     signInButton.hidden = true;
-    signUpButton.hidden = true;
+    loginButton.hidden = true;
     signOutButton.hidden = false;
     cardRow.style.display = 'none';
     table.style.overflow = 'scroll';
@@ -52,8 +52,8 @@ signOutButton.addEventListener('click', () => {
     window.renderer.sendSignoutMessage();
 });
 
-signUpButton.addEventListener('click', () => {
-    window.renderer.sendSignUpMessage();
+loginButton.addEventListener('click', () => {
+    window.renderer.sendLoginMessage();
 });
 
 

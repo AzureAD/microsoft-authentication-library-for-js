@@ -52,9 +52,3 @@ ipcMain.on(IPC_MESSAGES.LOGOUT, async () => {
     await authProvider.logout();
     await mainWindow.loadFile(path.join(__dirname, './index.html')); 
 });
-
-ipcMain.on(IPC_MESSAGES.SIGNUP, async () => {
-    const account = await authProvider.signup();
-    await mainWindow.loadFile(path.join(__dirname, './index.html'));
-    mainWindow.webContents.send(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
-});
