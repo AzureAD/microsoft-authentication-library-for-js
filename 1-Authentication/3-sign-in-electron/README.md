@@ -75,7 +75,7 @@ Here you'll learn how to sign-in users and acquire [ID tokens](https://docs.micr
 From your shell or command line:
 
 ```console
-git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git.git
+git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
 ```
 
 or download and extract the repository *.zip* file.
