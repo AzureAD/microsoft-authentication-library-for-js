@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add temporaryCacheLocation to Cache Options",
+  "comment": "Add temporaryCacheLocation to Cache Options #5725",
   "packageName": "@azure/msal-browser",
   "email": "nicolas.zawada@gmail.com",
   "dependentChangeType": "patch"

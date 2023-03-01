@@ -74,11 +74,11 @@ export type BrowserAuthOptions = {
  */
 export type CacheOptions = {
     /**
-     * Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
+     * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
     /**
-     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
+     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     temporaryCacheLocation?: BrowserCacheLocation | string;
     /**

@@ -75,25 +75,15 @@ export class BrowserCacheManager extends CacheManager {
      * @param cacheLocation
      */
     protected setupTemporaryCacheStorage(temporaryCacheLocation: BrowserCacheLocation | string, cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
-        // Create a new variable to avoid modifying the function parameter
-        let tempCacheLocation = temporaryCacheLocation;
-        if (!tempCacheLocation) {
-            /*
-             * When users do not explicitly choose their own temporaryCacheLocation and cacheLocation is set to LocalStorage
-             * Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-             */
-            if (cacheLocation === BrowserCacheLocation.LocalStorage) {   
-                tempCacheLocation = BrowserCacheLocation.SessionStorage;
-            } else {
-                tempCacheLocation = cacheLocation;
-            }
-        }
-    
-        switch (tempCacheLocation) {
+        switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
                 try {
-                    return new BrowserStorage(tempCacheLocation);
+                    /*
+                     * When users do not explicitly choose their own temporaryCacheLocation, 
+                     * temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
+                     */
+                    return new BrowserStorage(temporaryCacheLocation || BrowserCacheLocation.SessionStorage);
                 } catch (e) {
                     this.logger.verbose(e);
                     return this.internalStorage;
@@ -103,7 +93,7 @@ export class BrowserCacheManager extends CacheManager {
                 return this.internalStorage;
         }
     }
-    
+
     /**
      * Migrate all old cache entries to new schema. No rollback supported.
      * @param storeAuthStateInCookie
