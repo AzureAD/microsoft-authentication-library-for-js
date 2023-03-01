@@ -113,11 +113,11 @@ export function createFolder(foldername: string) {
     }
 }
 
-export async function getAuthCodeUrl(page: Page): Promise<string> {
+export async function retrieveAuthCodeUrlFromBrowserContext(page: Page): Promise<string> {
     const msgPromise = await page.waitForEvent("console", {
         predicate: async (message) => {
             const text = message.text();
-            if (text.includes("https://login.microsoftonline.com")) {
+            if (text.includes("https://login.microsoftonline.com/")) {
                 return true;
             }
             return false;

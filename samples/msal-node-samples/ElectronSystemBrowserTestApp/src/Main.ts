@@ -105,8 +105,8 @@ export default class Main {
         Main.registerSubscriptions();
         Main.attemptSSOSilent();
 
-        if (process.env.automation != null) {
-            Main.authProvider.publishTest = Main.publish;
+        if (process.env.automation >= "1") {
+            Main.authProvider.publishForTest = Main.publish;
         }
     }
 

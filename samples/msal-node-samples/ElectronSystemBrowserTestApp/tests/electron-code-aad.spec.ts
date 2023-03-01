@@ -5,6 +5,7 @@ import {
     ElectronApplication,
     _electron as electron,
     chromium,
+    Browser,
 } from "@playwright/test";
 
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -16,7 +17,7 @@ import { setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import {
     Screenshot,
     enterCredentials,
-    getAuthCodeUrl,
+    retrieveAuthCodeUrlFromBrowserContext,
 } from "../../../e2eTestUtils/ElectronPlaywrightTestUtils";
 
 import {
@@ -28,11 +29,10 @@ import * as path from "path";
 
 let electronApp: ElectronApplication;
 let page: Page;
-let browser: any;
-let browserPage: Page
+let browser: Browser;
+let browserPage: Page;
 let username: string;
 let accountPwd: string;
-
 
 const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/ElectronSystemBrowserTestApp/AAD`;
 
@@ -50,8 +50,8 @@ test.beforeAll(async () => {
 
     const labClient = new LabClient();
     const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
-    [username, accountPwd] = await setupCredentials(envResponse[0],labClient);
-   
+    [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+
     electronApp = await electron.launch({
         args: [
             path.join(__dirname, "../.webpack/main"),
@@ -75,7 +75,6 @@ test.afterAll(async () => {
     await electronApp.close();
 });
 
-
 test.describe("Acquire token", () => {
     test.beforeEach(async () => {
         page = await electronApp.firstWindow();
@@ -89,36 +88,26 @@ test.describe("Acquire token", () => {
     });
 
     test("Acquire token by auth code", async () => {
-        try {
-            const screenshot = new Screenshot(
-                `${screenshotFolder}/AcquireTokenAuthCode`
-            );
+        const screenshot = new Screenshot(
+            `${screenshotFolder}/AcquireTokenAuthCode`
+        );
 
-            await page.waitForSelector("#SignIn");
-            await screenshot.takeScreenshot(page, "samplePageInit");
-            page.click("#SignIn");
+        await page.waitForSelector("#SignIn");
+        await screenshot.takeScreenshot(page, "samplePageInit");
+        page.click("#SignIn");
 
-            let AuthCodeUrl = await getAuthCodeUrl(page)
-           
-            await browserPage.goto(AuthCodeUrl);
-            await enterCredentials(
-                browserPage,
-                screenshot,
-                username,
-                accountPwd
-            );            
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
-                TEST_CACHE_LOCATION,
-                2000
-            );
-            expect(cachedTokens.accessTokens.length).toBe(1);
-            expect(cachedTokens.idTokens.length).toBe(1);
-            expect(cachedTokens.refreshTokens.length).toBe(1);
-        } catch (error) {
-            console.log(error);
-        }
+        let AuthCodeUrl = await retrieveAuthCodeUrlFromBrowserContext(page);
+
+        await browserPage.goto(AuthCodeUrl);
+        await enterCredentials(browserPage, screenshot, username, accountPwd);
+        const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+            TEST_CACHE_LOCATION,
+            2000
+        );
+        expect(cachedTokens.accessTokens.length).toBe(1);
+        expect(cachedTokens.idTokens.length).toBe(1);
+        expect(cachedTokens.refreshTokens.length).toBe(1);
+
+        await expect(page.locator(`text=${username}`).first()).toBeVisible();
     });
-
-
-
 });

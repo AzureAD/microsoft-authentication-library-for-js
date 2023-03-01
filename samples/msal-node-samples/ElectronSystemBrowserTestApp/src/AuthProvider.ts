@@ -18,8 +18,8 @@ export default class AuthProvider {
     private account: AccountInfo;
     private authConfig: any;
 
-    // publishTest is used only in the testing environment
-    public publishTest: any;
+    // publishForTest is used only in the testing environment
+    public publishForTest: any;
 
     constructor(authConfig: any) {
         this.authConfig = authConfig;
@@ -125,9 +125,9 @@ export default class AuthProvider {
 
             // opens a browser instance via Electron shell API
             const openBrowser = async (url: any) => {
-                if (process.env.automation != null) {
-                    // publishTest is used only in the testing environment to listen to the AuthCodeURL
-                    this.publishTest(IpcMessages.GET_AUTH_CODE_URL, url);
+                if (process.env.automation >= "1") {
+                    // publishForTest is used only in the testing environment to listen to the AuthCodeURL
+                    this.publishForTest(IpcMessages.GET_AUTH_CODE_URL, url);
                 } else {
                     await shell.openExternal(url);
                 }
