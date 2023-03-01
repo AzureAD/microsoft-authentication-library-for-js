@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Hardcoded values as default metadata source #5734",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
