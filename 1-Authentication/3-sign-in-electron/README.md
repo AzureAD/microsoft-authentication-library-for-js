@@ -40,7 +40,7 @@ Here you'll learn how to sign-in users and acquire [ID tokens](https://docs.micr
 
 ## Scenario
 
-1. The client Electron desktop app uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
+1. The client Electron desktop app uses the to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
 1. The **access token** is used as a *bearer* token to authorize the user to call the Microsoft Graph protected by **Azure AD CIAM**.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
