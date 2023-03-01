@@ -3,12 +3,27 @@
  * Licensed under the MIT License.
  */
 
-import { Logger, AuthError, AuthErrorMessage } from "@azure/msal-common";
+import { Logger, AuthError, AuthErrorMessage, IPerformanceClient } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+
+let performanceClient: IPerformanceClient;
+
+jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
+    return {
+        BrowserPerformanceMeasurement: jest.fn().mockImplementation(() => {
+            return {
+                startMeasurement: () => {},
+                endMeasurement: () => {},
+                flushMeasurement: () => 50
+            }
+        })
+    }
+});
 
 describe("NativeMessageHandler Tests", () => {
     let postMessageSpy: sinon.SinonSpy;
@@ -18,6 +33,7 @@ describe("NativeMessageHandler Tests", () => {
     beforeEach(() => {
         postMessageSpy = sinon.spy(window, "postMessage");
         sinon.stub(MessageEvent.prototype, "source").get(() => window); // source property not set by jsdom window messaging APIs
+        performanceClient = getDefaultPerformanceClient();
     });
 
     afterEach(() => {
@@ -49,10 +65,51 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000);
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient);
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
+        });
+
+        it("Emits event during handshake request to preferred extension which responds", (done) => {
+            const eventHandler = function (event: MessageEvent) {
+                event.stopImmediatePropagation();
+                const request = event.data;
+                const req  = {
+                    channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                    extensionId: "test-ext-id",
+                    responseId: request.responseId,
+                    body: {
+                        method: "HandshakeResponse",
+                        version: 3
+                    }
+                };
+
+                mcPort = postMessageSpy.args[0][2][0];
+                if (!mcPort) {
+                    throw new Error("MessageChannel port was not transferred");
+                }
+                mcPort.postMessage(req);
+            };
+
+            window.addEventListener("message", eventHandler, true);
+
+            const callbackId = performanceClient.addPerformanceCallback((events => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
+                expect(event.extensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
+                expect(event.extensionInstalled).toBeTruthy();
+                expect(event.extensionHandshakeTimedOut).toBeUndefined();
+                expect(event.success).toBeTruthy();
+                performanceClient.removePerformanceCallback(callbackId);
+                done();
+            }));
+
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient)
+                .then(() => {
+                    window.removeEventListener("message", eventHandler, true);
+                });
         });
 
         it("Sends handshake to any extension if preferred extension is not installed", async () => {
@@ -83,14 +140,14 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000);
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient);
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             window.removeEventListener("message", eventHandler, true);
         });
 
         it("Throws if no extension is installed", (done) => {
-            NativeMessageHandler.createProvider(new Logger({}), 2000).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativeExtensionNotInstalled.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativeExtensionNotInstalled.desc);
@@ -105,7 +162,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({}), 2000).catch((e) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.nativeHandshakeTimeout.code);
                 expect(e.errorMessage).toBe(BrowserAuthErrorMessage.nativeHandshakeTimeout.desc);
@@ -113,6 +170,28 @@ describe("NativeMessageHandler Tests", () => {
             }).finally(() => {
                 window.removeEventListener("message", eventHandler, true);
             });
+        });
+
+        it("Emits event if no extension responds to handshake", (done) => {
+            let callbackDone = false;
+            const callbackId = performanceClient.addPerformanceCallback((events => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.extensionHandshakeTimeoutMs).toEqual(2000);
+                expect(event.extensionId).toEqual("ppnbnpeolgkicgegkbkbjmhlideopiji");
+                expect(event.extensionInstalled).toBeFalsy();
+                expect(event.extensionHandshakeTimedOut).toBeUndefined();
+                expect(event.success).toBeFalsy();
+                performanceClient.removePerformanceCallback(callbackId);
+                callbackDone = true;
+            }));
+
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient)
+                .catch(() => {
+                    if (callbackDone) {
+                        done();
+                    }
+                });
         });
     });
 
@@ -158,7 +237,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000);
+            const wamMessageHandler = await NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient);
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
             const response = await wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken});
@@ -207,7 +286,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({}), 2000).then((wamMessageHandler) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient).then((wamMessageHandler) => {
                 wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(NativeAuthError);
                     expect(e.errorCode).toEqual(testResponse.code);
@@ -261,7 +340,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({}), 2000).then((wamMessageHandler) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient).then((wamMessageHandler) => {
                 wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(NativeAuthError);
                     expect(e.errorCode).toEqual(testResponse.result.code);
@@ -311,7 +390,7 @@ describe("NativeMessageHandler Tests", () => {
 
             window.addEventListener("message", eventHandler, true);
 
-            NativeMessageHandler.createProvider(new Logger({}), 2000).then((wamMessageHandler) => {
+            NativeMessageHandler.createProvider(new Logger({}), 2000, performanceClient).then((wamMessageHandler) => {
                 wamMessageHandler.sendMessage({method: NativeExtensionMethod.GetToken}).catch((e) => {
                     expect(e).toBeInstanceOf(AuthError);
                     expect(e.errorCode).toEqual(AuthErrorMessage.unexpectedError.code);
