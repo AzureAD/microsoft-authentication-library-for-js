@@ -8,7 +8,7 @@
         "Endpoint": "AAD v2.0",
         "platform": "javascript",
         "Languages": ["javascript"],
-        "Description": "Electron application using MSAL Node to authentication users against Customer Identity Access Management (CIAM)",
+        "Description": "Electron application using MSAL Node to authentication users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM)",
         "products": ["azure-active-directory", "msal-js", "msal-node"],
         "Provider": "CIAM",
         "Platform": "javascript"
