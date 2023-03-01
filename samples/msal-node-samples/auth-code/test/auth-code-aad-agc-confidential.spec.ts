@@ -4,9 +4,9 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
-import { 
+import {
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
@@ -37,14 +37,14 @@ config.resourceApi = {
 };
 
 describe("Auth Code AAD AGC Confidential Tests", () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
-    
+
     let username: string;
     let password: string;
 
@@ -142,11 +142,11 @@ describe("Auth Code AAD AGC Confidential Tests", () => {
             await enterCredentials(page, screenshot, username, password);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
-            
+
             // Reset the cache to prepare for the second login
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
-            // Login without a prompt 
+            // Login without a prompt
             await page.goto(`${homeRoute}/?prompt=none`, {waitUntil: "networkidle0"});
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);

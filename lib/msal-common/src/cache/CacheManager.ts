@@ -706,7 +706,7 @@ export abstract class CacheManager implements ICacheManager {
             throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
         }
 
-        return accountCache[0];
+        return accounts[0];
     }
 
     /**

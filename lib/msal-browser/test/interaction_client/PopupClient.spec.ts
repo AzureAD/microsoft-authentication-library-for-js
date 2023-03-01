@@ -17,6 +17,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -232,7 +233,7 @@ describe("PopupClient", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(pca.logger);
+            const nativeMessageHandler = new NativeMessageHandler(pca.logger, 2000, getDefaultPerformanceClient());
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
             const tokenResp = await popupClient.acquireToken({

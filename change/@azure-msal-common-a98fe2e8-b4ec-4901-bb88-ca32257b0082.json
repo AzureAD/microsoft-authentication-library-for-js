@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add JS Queue Measurements #5352",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -158,6 +158,8 @@ export enum PerformanceEvents {
      */
     InitializeSilentRequest = "initializeSilentRequest",
 
+    InitializeClientApplication = "initializeClientApplication",
+
     /**
      * Helper function in SilentIframeClient class (msal-browser).
      */
@@ -238,6 +240,7 @@ export enum PerformanceEvents {
 
     UsernamePasswordClientAcquireToken = "usernamePasswordClientAcquireToken",
 
+    NativeMessageHandlerHandshake = "nativeMessageHandlerHandshake",
 }
 
 /**
@@ -322,6 +325,14 @@ export type StaticFields = {
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
+
+    /**
+     * Native broker fields
+     */
+    allowNativeBroker?: boolean;
+    extensionInstalled?: boolean;
+    extensionHandshakeTimeoutMs?: number;
+    extensionHandshakeTimedOut?: boolean;
 };
 
 /**
@@ -330,6 +341,23 @@ export type StaticFields = {
 export type Counters = {
     visibilityChangeCount?: number;
     incompleteSubsCount?: number;
+    /**
+     * Amount of times queued in the JS event queue.
+     *
+     * @type {?number}
+     */
+    queuedCount?: number
+    /**
+     * Amount of manually completed queue events.
+     *
+     * @type {?number}
+     */
+    queuedManuallyCompletedCount?: number;
+};
+
+export type SubMeasurement = {
+    name: PerformanceEvents,
+    startTimeMs: number
 };
 
 /**
@@ -483,11 +511,9 @@ export type PerformanceEvent = StaticFields & Counters & {
     queuedTimeMs?: number,
 
     /**
-     * Amount of times queued in the JS event queue.
-     *
-     * @type {?number}
+     * Sub-measurements for internal use. To be deleted before flushing.
      */
-    queuedCount?: number
+    incompleteSubMeasurements?: Map<string, SubMeasurement>
 };
 
 export const IntFields: ReadonlySet<string> = new Set([

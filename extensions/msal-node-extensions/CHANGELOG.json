@@ -2,6 +2,33 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:50 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.30",
+      "version": "1.0.0-alpha.30",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "fredrik.rasch@gmail.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b7d772937a74abf2342fd044b1d8f6a58394af43",
+            "comment": "Add Logging options to IPersistenceConfiguration #5626"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "479c057de9d35a037d7383d69a5e6f8956ba91ea",
+            "comment": "Include packageMetadata in bundle #5638"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v10.0.0",
+            "commit": "a7d7ecc41dbd3aed621d22a3e3263aee25ce6c10"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 09 Jan 2023 22:44:58 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.29",
       "version": "1.0.0-alpha.29",
