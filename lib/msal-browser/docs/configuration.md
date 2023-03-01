@@ -87,7 +87,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `cacheLocation` | Location of token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
-| `temporaryCacheLocation` | Location of temporary token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
+| `temporaryCacheLocation` | Location of temporary token cache in browser. This option is rarely needed to be configured. Please refer to [caching](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md#cached-artifacts) for more. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
 | `storeAuthStateInCookie` | If true, stores cache items in cookies as well as browser cache. Should be set to true for use cases using IE. | boolean | `false` |
 | `secureCookies` | If true and `storeAuthStateInCookies` is also enabled, MSAL adds the `Secure` flag to the browser cookie so it can only be sent over HTTPS. | boolean | `false` |
 
