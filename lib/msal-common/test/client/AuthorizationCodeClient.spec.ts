@@ -554,6 +554,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "end_session_endpoint": "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
             });
 
+            // Use network sourced metadata stubbed above because hardcoded authority does not support end session endpoint
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromHardcodedValues").returns(null);
+
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
@@ -2152,7 +2155,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "authorization_endpoint": "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
                 "end_session_endpoint": "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
             });
+            // Use network sourced metadata stubbed above because hardcoded authority does not support end sessionendpoint
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromHardcodedValues").returns(null);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+
             const client = new AuthorizationCodeClient(config);
 
             const logoutUri = client.getLogoutUri({

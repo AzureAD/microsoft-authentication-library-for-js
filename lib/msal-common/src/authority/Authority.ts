@@ -306,32 +306,14 @@ export class Authority {
      */
     private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityUpdateEndpointMetadata, this.correlationId);
+        /*
+         * First attempt to get metadata from hardcoded values
+         * If there is no hardcoded metadata for under the configured canonical authority, fall back to configured metadata
+         * If hardcoded and configured metadata are not present, acquire metadata from network
+         */
 
-        let metadata = this.getEndpointMetadataFromConfig();
-        if (metadata) {
-            metadataEntity.updateEndpointMetadata(metadata, false);
-            return AuthorityMetadataSource.CONFIG;
-        }
-
-        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
-            // No need to update
-            return AuthorityMetadataSource.CACHE;
-        }
-
+        // Get metadata from hardcoded values
         let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
-        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
-        metadata = await this.getEndpointMetadataFromNetwork();
-        if (metadata) {
-            // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation, this.correlationId);
-                metadata = await this.updateMetadataWithRegionalInformation(metadata);
-            }
-
-            metadataEntity.updateEndpointMetadata(metadata, true);
-            return AuthorityMetadataSource.NETWORK;
-        }    
-
         if (harcodedMetadata && !this.authorityOptions.skipAuthorityMetadataCache) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
@@ -343,11 +325,39 @@ export class Authority {
 
             metadataEntity.updateEndpointMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
-        } else {
-            throw ClientAuthError.createUnableToGetOpenidConfigError(
-                this.defaultOpenIdConfigurationEndpoint
-            );
         }
+
+        // Get metadata from config
+        let metadata = this.getEndpointMetadataFromConfig();
+        if (metadata) {
+            metadataEntity.updateEndpointMetadata(metadata, false);
+            return AuthorityMetadataSource.CONFIG;
+        }
+
+        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
+            // No need to update
+            return AuthorityMetadataSource.CACHE;
+        }
+
+        // Get metadata from network
+        this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
+        metadata = await this.getEndpointMetadataFromNetwork();
+
+        if (metadata) {
+            // If the user prefers to use an azure region replace the global endpoints with regional information.
+            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateMetadataWithRegionalInformation, this.correlationId);
+                metadata = await this.updateMetadataWithRegionalInformation(metadata);
+            }
+
+            metadataEntity.updateEndpointMetadata(metadata, true);
+            return AuthorityMetadataSource.NETWORK;
+        }    
+
+        // All metadata sources failed, throw unable to get OpenId Config
+        throw ClientAuthError.createUnableToGetOpenidConfigError(
+            this.defaultOpenIdConfigurationEndpoint
+        );
     }
 
     /**

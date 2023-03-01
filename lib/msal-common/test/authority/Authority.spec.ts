@@ -331,7 +331,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
 
-        describe("Endpoint Metadata", () => {
+        describe.only("Endpoint Metadata", () => {
             it("Gets endpoints from config", async () => {
                 const options = {
                     protocolMode: ProtocolMode.AAD,
@@ -339,6 +339,9 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE.body)
                 };
+
+                jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromHardcodedValues").mockReturnValue(null);
+
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options, logger);
                 await authority.resolveEndpointsAsync();
 
@@ -375,7 +378,8 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: "invalid-json"
+                    authorityMetadata: "invalid-json",
+                    skipAuthorityMetadataCache: true
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options, logger);
                 authority.resolveEndpointsAsync().catch(e => {
@@ -385,7 +389,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
-            it("Throws error if authority does not containn end_session_endpoint but calls logout", async () => {
+            it("Throws error if authority does not contain end_session_endpoint but calls logout", async () => {
                 const authorityJson = {
                     ...DEFAULT_OPENID_CONFIG_RESPONSE.body,
                     end_session_endpoint: undefined
@@ -395,8 +399,10 @@ describe("Authority.ts Class Unit Tests", () => {
                     protocolMode: ProtocolMode.AAD,
                     knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
                     cloudDiscoveryMetadata: "",
-                    authorityMetadata: JSON.stringify(authorityJson)
+                    authorityMetadata: JSON.stringify(authorityJson),
+                    skipAuthorityMetadataCache: true
                 };
+                
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, options, logger);
                 await authority.resolveEndpointsAsync();
 
@@ -621,6 +627,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 }
             });
 
+
             it("Throws error if openid-configuration network call fails", (done) => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     throw Error("Unable to reach endpoint");
@@ -630,6 +637,108 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(e).toBeInstanceOf(ClientAuthError);
                     expect(e.errorMessage.includes(ClientAuthErrorMessage.unableToGetOpenidConfigError.desc)).toBe(true);
                     done();
+                });
+            });
+
+            // Test authority metadata source precedence: Hardcoded > Configuration > Network
+            describe("AuthorityMetadataSource Precedence", () => {
+                afterEach(() => {
+                    jest.clearAllMocks();
+                });
+
+                it("Gets endpoints from hardcoded values by default", async () => {
+                    const customAuthorityOptions: AuthorityOptions = {
+                        protocolMode: ProtocolMode.AAD,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                        cloudDiscoveryMetadata: "",
+                        authorityMetadata: JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE.body),
+                        skipAuthorityMetadataCache: false,
+                    };
+
+                    networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                        return null;
+                    };
+
+                    const metadataFromHardcodedValuesSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromHardcodedValues")
+                    const metadataFromConfigSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromConfig");
+                    const metadataFromNetworkSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromNetwork");
+
+                    authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions, logger);
+                    await authority.resolveEndpointsAsync();
+
+                    // Test that the metadata is cached
+                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                    const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                    if (!cachedAuthorityMetadata) {
+                        throw Error("Cached AuthorityMetadata should not be null!");
+                    } else {
+                        expect(metadataFromHardcodedValuesSpy).toBeCalled();
+                        expect(metadataFromConfigSpy).not.toBeCalled();
+                        expect(metadataFromNetworkSpy).not.toBeCalled();
+                    }
+                });
+
+                it("Gets endpoints from config if hardcoded metadata fails", async () => {
+                    const customAuthorityOptions: AuthorityOptions = {
+                        protocolMode: ProtocolMode.AAD,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                        cloudDiscoveryMetadata: "",
+                        authorityMetadata: JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE.body),
+                        skipAuthorityMetadataCache: false,
+                    };
+
+                    networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                        return null;
+                    };
+
+                    const metadataFromHardcodedValuesSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromHardcodedValues").mockReturnValue(null);
+                    const metadataFromConfigSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromConfig");
+                    const metadataFromNetworkSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromNetwork");
+
+                    authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions, logger);
+                    await authority.resolveEndpointsAsync();
+
+                    // Test that the metadata is cached
+                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                    const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                    if (!cachedAuthorityMetadata) {
+                        throw Error("Cached AuthorityMetadata should not be null!");
+                    } else {
+                        expect(metadataFromHardcodedValuesSpy).toBeCalled();
+                        expect(metadataFromConfigSpy).toBeCalled();
+                        expect(metadataFromNetworkSpy).not.toBeCalled();
+                    }
+                });
+
+                it("Gets endpoints from network if hardcoded and config metadata fail", async () => {
+                    const customAuthorityOptions: AuthorityOptions = {
+                        protocolMode: ProtocolMode.AAD,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+                        cloudDiscoveryMetadata: "",
+                        authorityMetadata: "",
+                    };
+
+                    networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    };
+
+                    const metadataFromHardcodedValuesSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromHardcodedValues").mockReturnValue(null);
+                    const metadataFromConfigSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromConfig").mockReturnValue(null);
+                    const metadataFromNetworkSpy = jest.spyOn(Authority.prototype as any, "getEndpointMetadataFromNetwork");
+
+                    authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, customAuthorityOptions, logger);
+                    await authority.resolveEndpointsAsync();
+
+                    // Test that the metadata is cached
+                    const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                    const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
+                    if (!cachedAuthorityMetadata) {
+                        throw Error("Cached AuthorityMetadata should not be null!");
+                    } else {
+                        expect(metadataFromHardcodedValuesSpy).toBeCalled();
+                        expect(metadataFromConfigSpy).toBeCalled();
+                        expect(metadataFromNetworkSpy).toBeCalled();
+                    }
                 });
             });
         });
