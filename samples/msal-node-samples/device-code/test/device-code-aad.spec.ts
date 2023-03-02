@@ -31,7 +31,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/AAD.json");
 
-describe('Device Code AAD PPE Tests', () => {
+describe('Device Code AAD Prod Tests', () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
@@ -53,7 +53,7 @@ describe('Device Code AAD PPE Tests', () => {
 
         // Configure Lab API Query Parameters
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
         };
 
