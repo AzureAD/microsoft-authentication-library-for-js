@@ -20,6 +20,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration } from "../config/Configuration";
 import { InteractionHandler, InteractionParams } from "../interaction_handler/InteractionHandler";
 import { PopupWindowAttributes } from "../request/PopupWindowAttributes";
+import { EventError } from "../event/EventMessage";
 
 export type PopupParams = InteractionParams & {
     popup?: Window|null;
@@ -190,9 +191,9 @@ export class PopupClient extends StandardInteractionClient {
 
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
 
-            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
@@ -255,12 +256,12 @@ export class PopupClient extends StandardInteractionClient {
 
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
 
             this.browserStorage.setInteractionInProgress(false);
-            this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e as EventError);
             this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
-            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
 
