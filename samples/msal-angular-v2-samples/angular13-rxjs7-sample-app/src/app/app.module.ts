@@ -26,10 +26,10 @@ export function loggerCallback(logLevel: LogLevel, message: string) {
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      // clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6', // Prod enviroment. Uncomment to use. 
-      clientId: '3fba556e-5d4a-48e3-8e1a-fd57c12cb82e', // PPE testing environment
-      // authority: 'https://login.microsoftonline.com/common', // Prod environment. Uncomment to use.
-      authority: 'https://login.windows-ppe.net/common', // PPE testing environment.
+      clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
+      // clientId: '3fba556e-5d4a-48e3-8e1a-fd57c12cb82e', // PPE testing environment
+      authority: "https://login.microsoftonline.com/common",
+      // authority: 'https://login.windows-ppe.net/common', // PPE testing environment
       redirectUri: '/',
       postLogoutRedirectUri: '/'
     },
@@ -49,8 +49,8 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
-  // protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']); // Prod environment. Uncomment to use.
-  protectedResourceMap.set('https://graph.microsoft-ppe.com/v1.0/me', ['user.read']);
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
+  // protectedResourceMap.set('https://graph.microsoft-ppe.com/v1.0/me', ['user.read']); // PPE testing environment
 
   return {
     interactionType: InteractionType.Redirect,
@@ -59,7 +59,7 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
 }
 
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
-  return { 
+  return {
     interactionType: InteractionType.Redirect,
     authRequest: {
       scopes: ['user.read']

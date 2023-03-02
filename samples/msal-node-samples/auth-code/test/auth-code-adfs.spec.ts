@@ -23,7 +23,7 @@ const config = require("../config/ADFS.json");
 let username: string;
 let accountPwd: string;
 
-describe('Auth Code ADFS PPE Tests', () => {
+describe('Auth Code ADFS 2019 Tests', () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
