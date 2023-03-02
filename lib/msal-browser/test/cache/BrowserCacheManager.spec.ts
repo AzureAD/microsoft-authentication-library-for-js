@@ -674,7 +674,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it(
-            "getTemporaryCache falls back to local storage if not found in session/memory storage",
+            "getTemporaryCache returns value from localStorage",
             () => {
                 const testTempItemKey = "test-temp-item-key";
                 const testTempItemValue = "test-temp-item-value";
@@ -684,13 +684,6 @@ describe("BrowserCacheManager tests", () => {
                 expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).toBe(testTempItemValue);
             }
         )
-
-        it("setItem", () => {
-            window.sessionStorage.setItem(msalCacheKey, cacheVal);
-            window.localStorage.setItem(msalCacheKey2, cacheVal);
-            expect(browserSessionStorage.getItem(msalCacheKey)).toBe(cacheVal);
-            expect(browserLocalStorage.getItem(msalCacheKey2)).toBe(cacheVal);
-        });
 
         it("removeItem()", () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
