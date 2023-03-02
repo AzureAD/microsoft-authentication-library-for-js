@@ -27,7 +27,7 @@ const pca = new PublicClientApplication(authConfig);
 
 const acquireToken = async () => {
     const accounts = await pca.getAllAccounts();
-    if (accounts.length == 1) {
+    if (accounts.length === 1) {
         const silentRequest = {
             account: accounts[0],
             scopes: ["User.Read"]

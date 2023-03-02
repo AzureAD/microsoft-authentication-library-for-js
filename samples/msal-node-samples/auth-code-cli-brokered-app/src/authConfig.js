@@ -8,7 +8,7 @@ module.exports = {
     authConfig: {
         auth: {
             clientId: "ENTER_CLIENT_ID",
-            authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
+            authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
         },
         cache: {
             cachePlugin

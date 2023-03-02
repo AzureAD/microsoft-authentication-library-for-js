@@ -27,7 +27,7 @@ Before running the sample, you will need to replace the values in the configurat
 const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
-        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
     }
 };
 ```
