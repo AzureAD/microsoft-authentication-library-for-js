@@ -15,7 +15,9 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     
     constructor() {
         const defaultLoggerOptions: LoggerOptions = {
-            loggerCallback: () => {},
+            loggerCallback: (): void => {
+                // Empty logger callback
+            },
             piiLoggingEnabled: false
         };
         this.logger = new Logger(defaultLoggerOptions, name, version); // Default logger
