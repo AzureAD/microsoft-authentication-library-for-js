@@ -1,5 +1,5 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, setupCredentials, enterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
@@ -19,7 +19,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
 }
 
 describe('/ (Home Page)', () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -35,7 +35,7 @@ describe('/ (Home Page)', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
@@ -89,7 +89,7 @@ describe('/ (Home Page)', () => {
         const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton?.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
-        
+
         // Verify displays profile page without activating MsalGuard
         await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });
@@ -131,7 +131,7 @@ describe('/ (Home Page)', () => {
         const profileButton = await page.waitForSelector("xpath=//span[contains(., 'Profile')]");
         await profileButton?.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
-        
+
         // Verify displays profile page without activating MsalGuard
         await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });

@@ -25,7 +25,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
 }
 
 
-describe("AAD-PPE Tests", () => {
+describe("AAD-Prod Tests", () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -39,7 +39,7 @@ describe("AAD-PPE Tests", () => {
         sampleHomeUrl = getHomeUrl();
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
@@ -184,7 +184,7 @@ describe("AAD-PPE Tests", () => {
 
         it("logoutRedirect", async () => {
             await clickLogoutRedirect(screenshot, page);
-            expect(page.url().startsWith("https://login.windows-ppe.net/common/")).toBeTruthy();
+            expect(page.url().startsWith("https://login.microsoftonline.com/common/")).toBeTruthy();
             expect(page.url()).toContain("logout");
             // Skip server sign-out
             const tokenStore = await BrowserCache.getTokens();
@@ -195,10 +195,11 @@ describe("AAD-PPE Tests", () => {
 
         it("logoutPopup", async () => {
             const [popupWindow, popupWindowClosed] = await clickLogoutPopup(screenshot, page);
-            await popupWindow.waitForNavigation();
-            expect(popupWindow.url().startsWith("https://login.windows-ppe.net/common/")).toBeTruthy();
+            expect(popupWindow.url().startsWith("https://login.microsoftonline.com/common/")).toBeTruthy();
             expect(popupWindow.url()).toContain("logout");
+            await popupWindow.waitForNavigation();
             const tokenStore = await BrowserCache.getTokens();
+
             expect(tokenStore.idTokens.length).toEqual(0);
             expect(tokenStore.accessTokens.length).toEqual(0);
             expect(tokenStore.refreshTokens.length).toEqual(0);

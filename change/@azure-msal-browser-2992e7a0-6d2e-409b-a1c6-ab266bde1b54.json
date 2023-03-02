@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Export browser telemetry classes #5641",
+  "type": "minor",
+  "comment": "Reduce telemetry RAM footprint and improve usability/readability #5676",
   "packageName": "@azure/msal-browser",
   "email": "kshabelko@microsoft.com",
   "dependentChangeType": "patch"

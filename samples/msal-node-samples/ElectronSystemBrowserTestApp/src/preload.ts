@@ -61,5 +61,12 @@ contextBridge.exposeInMainWorld("api", {
                 );
             }
         );
+
+        ipcRenderer.on(
+            IpcMessages.GET_AUTH_CODE_URL,
+            (event: any, url: string) => {
+                console.log(url);
+            }
+        );
     },
 });

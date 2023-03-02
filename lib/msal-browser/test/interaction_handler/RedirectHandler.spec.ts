@@ -54,7 +54,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     let browserRequestLogger: Logger;
     let browserStorage: BrowserCacheManager;
     let performanceClient: IPerformanceClient;
-    
+
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -137,7 +137,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             startMeasurement: jest.fn(),
             endMeasurement: jest.fn(),
             addStaticFields: jest.fn(),
-            flushMeasurements: jest.fn(),
             discardMeasurements: jest.fn(),
             removePerformanceCallback: jest.fn(),
             addPerformanceCallback: jest.fn(),
@@ -231,7 +230,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            
+
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (requestUrl, options): Promise<boolean> => {
                 expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);

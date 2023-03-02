@@ -30,6 +30,7 @@ import { NodeAuthError } from "../error/NodeAuthError";
 import { LoopbackClient } from "../network/LoopbackClient";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { SignOutRequest } from "../request/SignOutRequest";
+import { ILoopbackClient } from "../network/ILoopbackClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -101,12 +102,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     /**
-     * Acquires a token by requesting an Authorization code then exchanging it for a token.
+     * Acquires a token interactively via the browser by requesting an authorization code then exchanging it for a token.
      */
     async acquireTokenInteractive(request: InteractiveRequest): Promise<AuthenticationResult> {
         const correlationId = request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenInteractive called", correlationId);
-        const { openBrowser, successTemplate, errorTemplate, windowHandle, ...remainingProperties } = request;
+        const { openBrowser, successTemplate, errorTemplate, windowHandle, loopbackClient: customLoopbackClient, ...remainingProperties } = request;
 
         if (this.nativeBrokerPlugin) {
             const brokerRequest: NativeRequest = {
@@ -127,7 +128,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
 
-        const loopbackClient = new LoopbackClient();
+        const loopbackClient: ILoopbackClient = customLoopbackClient || new LoopbackClient();
+
         const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
         const redirectUri = loopbackClient.getRedirectUri();
 
@@ -137,7 +139,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             scopes: request.scopes || OIDC_DEFAULT_SCOPES,
             redirectUri: redirectUri,
             responseMode: ResponseMode.QUERY,
-            codeChallenge: challenge, 
+            codeChallenge: challenge,
             codeChallengeMethod: CodeChallengeMethodValues.S256
         };
 

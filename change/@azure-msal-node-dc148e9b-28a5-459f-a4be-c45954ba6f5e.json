@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "add tests for obo and clientConfig #5493",
-  "packageName": "@azure/msal-node",
-  "email": "v-ssalem@microsoft.com",
-  "dependentChangeType": "none"
-}

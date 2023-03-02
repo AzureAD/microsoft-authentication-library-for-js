@@ -5,7 +5,13 @@
 
 import puppeteer from "puppeteer";
 
-import { Screenshot, createFolder, setupCredentials, b2cMsaAccountEnterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    b2cMsaAccountEnterCredentials,
+    RETRY_TIMES
+} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -31,7 +37,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/B2C-MSA.json");
 
 describe("B2C User Flow Tests", () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;

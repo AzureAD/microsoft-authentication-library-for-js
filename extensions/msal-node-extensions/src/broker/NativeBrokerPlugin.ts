@@ -15,7 +15,9 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     
     constructor() {
         const defaultLoggerOptions: LoggerOptions = {
-            loggerCallback: () => {},
+            loggerCallback: (): void => {
+                // Empty logger callback
+            },
             piiLoggingEnabled: false
         };
         this.logger = new Logger(defaultLoggerOptions, name, version); // Default logger
@@ -398,7 +400,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                 case ErrorStatus.ServerTemporarilyUnavailable:
                     return new ServerError(ErrorCodes.SERVER_UNAVAILABLE, errorContext);
                 case ErrorStatus.UserCanceled:
-                    return ClientAuthError.createUserCancelledError();
+                    return ClientAuthError.createUserCanceledError();
                 case ErrorStatus.AuthorityUntrusted:
                     return ClientConfigurationError.createUntrustedAuthorityError();
                 case ErrorStatus.UserSwitched:

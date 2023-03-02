@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Revert typo changes #5582",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
