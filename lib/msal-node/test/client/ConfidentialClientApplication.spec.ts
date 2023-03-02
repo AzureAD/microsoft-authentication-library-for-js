@@ -4,7 +4,6 @@ import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { Configuration } from "../../src/config/Configuration";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
 import { UsernamePasswordRequest } from '../../src';
-import { mocked } from 'ts-jest/utils';
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock } from './test-fixtures';
 
@@ -80,7 +79,7 @@ describe('ConfidentialClientApplication', () => {
             .mockImplementation((conf) => new mockRefreshTokenClient(conf));
 
         const fakeAuthResult = {}
-        mocked(mockRefreshTokenClient.prototype.acquireToken)
+        jest.spyOn(mockRefreshTokenClient.prototype, 'acquireToken')
             .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult))
 
         const authApp = new ConfidentialClientApplication(appConfig);
@@ -99,15 +98,15 @@ describe('ConfidentialClientApplication', () => {
                     accessToken: "accessToken",
                     expiresInSeconds: 3601,
                     refreshInSeconds: 1801,
-                }))};      
+                }))};
 
         const configWithExtensibility: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
-                authority: TEST_CONSTANTS.AUTHORITY,                                
+                authority: TEST_CONSTANTS.AUTHORITY,
                 clientAssertion: "testAssertion"
             },
-        }                  
+        }
 
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -123,7 +122,7 @@ describe('ConfidentialClientApplication', () => {
         authApp.SetAppTokenProvider(testProvider);
 
         await authApp.acquireTokenByClientCredential(request);
-        expect(ClientCredentialClient).toHaveBeenCalledTimes(1);      
+        expect(ClientCredentialClient).toHaveBeenCalledTimes(1);
     });
 
     test('acquireTokenByClientCredential with client assertion', async () => {
@@ -208,7 +207,7 @@ describe('ConfidentialClientApplication', () => {
 
         jest.spyOn(AuthError.prototype, 'setCorrelationId');
 
-        mocked(MockClientCredentialClient.prototype.acquireToken)
+        jest.spyOn(MockClientCredentialClient.prototype, 'acquireToken')
             .mockImplementation(() => {
                 throw new AuthError();
             });

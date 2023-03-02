@@ -53,7 +53,7 @@ export class AuthorityFactory {
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e as string);
         }
     }
 

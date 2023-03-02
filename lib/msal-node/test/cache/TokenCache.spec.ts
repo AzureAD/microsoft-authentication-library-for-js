@@ -125,7 +125,8 @@ describe("TokenCache tests", () => {
         try {
             await fs.unlink(cachePath);
         } catch (err) {
-            if (err.code == "ENOENT") {
+            const errnoException = err as NodeJS.ErrnoException;
+            if (errnoException.code == "ENOENT") {
                 console.log("Tried to delete temp cache file but it does not exist");
             }
         }

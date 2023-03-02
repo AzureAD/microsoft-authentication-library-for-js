@@ -123,7 +123,7 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
-            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url) => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url: string) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
                 done();
             });
