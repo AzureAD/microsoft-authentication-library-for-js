@@ -209,6 +209,7 @@ jobs:
         os: [windows-latest, macos-latest]
         sample:
           - 'ElectronTestApp'
+          - 'ElectronSystemBrowserTestApp'
 
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
@@ -247,6 +248,9 @@ jobs:
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples
       run: npm ci
+      env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        PLAYWRIGHT_BROWSERS_PATH: 0
 
     - name: Restore node_modules for sample
       uses: actions/cache@v3
@@ -261,9 +265,8 @@ jobs:
       run: |
         npm run install:local
         npm install
-      env:
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
-
+        npx playwright install
+      
     - name: Build Sample
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |
