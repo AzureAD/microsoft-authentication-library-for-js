@@ -1,0 +1,16 @@
+{
+    "authOptions": {
+         "clientId": "4b0db8c2-9f26-4417-8bde-3f0e3656f8e0",
+         "authority": "https://login.microsoftonline.com/common/"
+    },
+    "resourceApi": {
+        "endpoint": "https://graph.microsoft.com/v1.0/me",
+        "scopes": ["User.Read", "Mail.Read"]
+    },
+    "customProtocol": {
+        "name": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"
+    },
+    "cache": {
+        "cacheLocation": "./data/aad.cache.json"
+    }
+}
