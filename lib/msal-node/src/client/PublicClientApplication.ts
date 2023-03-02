@@ -80,8 +80,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }

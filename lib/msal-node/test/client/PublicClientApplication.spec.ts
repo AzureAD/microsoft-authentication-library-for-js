@@ -13,7 +13,6 @@ import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlReque
 import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
 import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
-import { mocked } from 'ts-jest/utils';
 import http from "http";
 
 import * as msalCommon from '@azure/msal-common';
@@ -76,13 +75,12 @@ describe('PublicClientApplication', () => {
 
         const MockDeviceCodeClient2 = getMsalCommonAutoMock().DeviceCodeClient;
 
-
         jest.spyOn(msalCommon, 'DeviceCodeClient')
             .mockImplementation((conf) => new MockDeviceCodeClient2(conf));
 
         const fakeAuthResult = { "foo": "bar" }
-        mocked(MockDeviceCodeClient2.prototype.acquireToken)
-            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult))
+        jest.spyOn(MockDeviceCodeClient2.prototype, 'acquireToken')
+            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult));
 
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
@@ -337,13 +335,13 @@ describe('PublicClientApplication', () => {
         jest.spyOn(msalCommon, 'SilentFlowClient')
             .mockImplementation((config) => new silentFlowClient(config));
 
-
+        const acquireTokenSpy = jest.spyOn(silentFlowClient.prototype, "acquireToken");
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenSilent(request);
         expect(silentFlowClient.prototype.acquireToken)
             .toHaveBeenCalledWith(expect.objectContaining({ requestedClaimsHash: expect.any(String) }))
 
-        const submittedRequest = mocked(silentFlowClient.prototype.acquireToken).mock.calls[0][0];
+        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
         expect((submittedRequest as any)?.requestedClaimsHash?.length)
             .toBeGreaterThan(0);
     })

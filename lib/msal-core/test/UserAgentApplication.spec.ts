@@ -291,7 +291,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation
             };
-            sinon.stub(window.location, "assign").callsFake((url) => {
+            sinon.stub(window.location, "assign").callsFake((url: string) => {
                 try {
                     expect(url).toContain("&state");
                     const hash = UrlUtils.getHashFromUrl(url);
@@ -359,7 +359,7 @@ describe("UserAgentApplication.ts Class", function () {
                     console.error(e);
                 }
             })
-            
+
             msal.handleRedirectCallback(authCallback);
             expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
 
@@ -918,7 +918,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Account is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["S1"],
                 account: account
             };
 
@@ -944,7 +944,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("State is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["S1"],
                 account: account
             };
 
@@ -969,7 +969,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("LoginStartPage is cached on acquireTokenRedirect call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["S1"],
                 account: account
             };
 
@@ -1197,7 +1197,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
-            
+
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
                 expect(response.idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
                 expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
@@ -1252,7 +1252,7 @@ describe("UserAgentApplication.ts Class", function () {
                 scopes: ["S1"],
                 account: account
             };
-           
+
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
@@ -1277,7 +1277,7 @@ describe("UserAgentApplication.ts Class", function () {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
-            
+
             msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
                 expect(response.scopes).toEqual(["s1"]);
                 expect(response.account).toBe(account);
@@ -1290,11 +1290,11 @@ describe("UserAgentApplication.ts Class", function () {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
-            
+
         });
 
         it("tests getCachedToken when organizations authority is passed and single matching accessToken is found", function (done) {
-            
+
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_URIS.DEFAULT_INSTANCE + "organizations/",
                 scopes: ["S1"],
@@ -1315,7 +1315,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "organizations/";
             accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            
+
             idTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + "organizations/";
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
             idTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "organizations/";
@@ -1347,7 +1347,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken when consumers authority is passed and single matching accessToken is found", function (done) {
-            
+
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_URIS.DEFAULT_INSTANCE + "consumers/",
                 scopes: ["S1"],
@@ -1368,7 +1368,7 @@ describe("UserAgentApplication.ts Class", function () {
             accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
             accessTokenValue.accessToken = "accessTokenAlternate";
             cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            
+
             idTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
             idTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
@@ -1400,7 +1400,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken when tenant authority is passed and single matching accessToken is found", function (done) {
-            
+
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_URIS.DEFAULT_INSTANCE + "common/",
                 scopes: ["S1"],
@@ -1411,7 +1411,7 @@ describe("UserAgentApplication.ts Class", function () {
                 scopes: ["S1"],
                 account: account
             };
-            
+
             const params: kv = {  };
             params[SSOTypes.SID] = account.sid;
             setUtilUnifiedCacheQPStubs(params);
@@ -1691,7 +1691,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                     msal.acquireTokenSilent(tokenRequest);
                 });
-                
+
                 it("should return access token if there is a valid matching access token in the cache", (done) => {
                     cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
@@ -1832,7 +1832,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                     msal.acquireTokenSilent(tokenRequest);
                 });
-                
+
                 it("should return ID token if there is a valid matching ID token in the cache", (done) => {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
@@ -2035,7 +2035,7 @@ describe("UserAgentApplication.ts Class", function () {
                         scopes: "s1",
                         homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
                     };
-            
+
                     cacheStorage.setItem(JSON.stringify(validAccessTokenKey), JSON.stringify(accessTokenValue));
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
@@ -2057,7 +2057,7 @@ describe("UserAgentApplication.ts Class", function () {
                         scopes: undefined,
                         homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
                     };
-            
+
                     cacheStorage.setItem(JSON.stringify(invalidAccessTokenKey), JSON.stringify(accessTokenValue));
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
                     const renewTokenSpy = sinon.spy(msal, <any>"renewToken");
@@ -2129,7 +2129,7 @@ describe("UserAgentApplication.ts Class", function () {
                         scopes: undefined,
                         homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
                     };
-            
+
                     cacheStorage.setItem(JSON.stringify(validIdTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
@@ -2211,7 +2211,7 @@ describe("UserAgentApplication.ts Class", function () {
             setAuthInstanceStubs();
             setTestCacheItems();
             cacheStorage.setInteractionInProgress(true);
-            
+
             delete window.location;
             window.location = {
                 ...oldWindowLocation
@@ -2369,7 +2369,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             sinon.stub(window, "parent").returns(window);
             sinon.stub(window.location, "assign").callsFake(() => {});
-            
+
             sinon.stub(history, "replaceState").callsFake((data, title, url) => {
                 window.location.href = `http://localhost:8081${url}`;
             });
@@ -2921,7 +2921,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("Account is cached on acquireTokenPopup call", (done) => {
             const tokenRequest: AuthenticationParameters = {
-                scopes: ["S1"], 
+                scopes: ["S1"],
                 account: account
             };
 
@@ -2979,7 +2979,7 @@ describe("UserAgentApplication.ts Class", function () {
         it("acquireTokenSilent returns even if a new UserAgentApplication instance is instantiated", (done) => {
             // Tests a bug whereby the instantiation of a 2nd UserAgentApplication was causing in-progress acquireTokenSilent calls on other instances to hang
             const request = {
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID], 
+                scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
                 loginHint: TEST_LOGIN_HINT,
                 forceRefresh: true
             }
@@ -3006,7 +3006,7 @@ describe("UserAgentApplication.ts Class", function () {
 
     describe("Test null request calls for acquireTokenSilent and acquireTokenPopup", () => {
         let msal : UserAgentApplication;
-        
+
         beforeEach(function() {
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
             const config: Configuration = {
@@ -3015,13 +3015,13 @@ describe("UserAgentApplication.ts Class", function () {
                     redirectUri: TEST_URIS.TEST_REDIR_URI
                 }
             };
-    
+
             msal = new UserAgentApplication(config);
         });
 
         afterEach(() => {
             sinon.restore();
-        }); 
+        });
 
         it("throws an error if configured with a null request", () => {
             try {
@@ -3139,18 +3139,18 @@ describe("UserAgentApplication.ts Class", function () {
                     msal = new UserAgentApplication(config);
                     setAuthInstanceStubs();
                     setTestCacheItems();
-        
+
                     delete window.location;
                 });
-        
+
                 afterEach(function () {
                     cacheStorage.clear();
                     sinon.restore();
                     window.location = oldWindowLocation;
                 });
-    
-                // Redirect 
-                
+
+                // Redirect
+
                 it("loginRedirect should set response_type to id_token", (done) => {
                     window.location = {
                         ...oldWindowLocation,
@@ -3165,7 +3165,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     msal.loginRedirect();
                 });
             });
@@ -3193,10 +3193,10 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.clear();
                     sinon.restore();
                 });
-                
+
                 it("loginPopup should set response_type to id_token", (done) => {
                     let navigateUrl: string;
-                    sinon.stub(window, "open").callsFake((url) => {
+                    sinon.stub(window, "open").callsFake((url: string) => {
                         navigateUrl = url;
                         return null;
                     })
@@ -3226,10 +3226,10 @@ describe("UserAgentApplication.ts Class", function () {
                     msal = new UserAgentApplication(config);
                     setAuthInstanceStubs();
                     setTestCacheItems();
-    
+
                     delete window.location;
                 });
-        
+
                 afterEach(function () {
                     cacheStorage.clear();
                     sinon.restore();
@@ -3269,7 +3269,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
                 });
@@ -3288,7 +3288,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account});
                 });
@@ -3307,7 +3307,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
                 });
@@ -3326,7 +3326,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
                 });
@@ -3345,7 +3345,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: ["S1", Constants.openidScope], account});
                 });
@@ -3364,7 +3364,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: ["S1", Constants.profileScope], account});
                 });
@@ -3384,7 +3384,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: ["S1", ...oidcScopes], account});
                 });
@@ -3404,7 +3404,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
                 });
@@ -3424,7 +3424,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: ["S1"], account});
                 });
@@ -3444,7 +3444,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: ["S1", "S2"], account});
                 });
@@ -3463,11 +3463,11 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     sinon.stub(msal, "getAccount").returns(account);
                     msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"], account});
                 });
-            }); 
+            });
 
             describe("when accounts don't match", () => {
                 beforeEach(function() {
@@ -3481,10 +3481,10 @@ describe("UserAgentApplication.ts Class", function () {
                     msal = new UserAgentApplication(config);
                     setAuthInstanceStubs();
                     setTestCacheItems();
-    
+
                     delete window.location;
                 });
-        
+
                 afterEach(function () {
                     cacheStorage.clear();
                     sinon.restore();
@@ -3523,7 +3523,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     msal.acquireTokenRedirect({ scopes: [Constants.openidScope, Constants.profileScope], account});
                 });
 
@@ -3541,7 +3541,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     msal.acquireTokenRedirect({ scopes: [Constants.openidScope], account });
                 });
 
@@ -3559,7 +3559,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     msal.acquireTokenRedirect({ scopes: [Constants.profileScope], account});
                 });
 
@@ -3577,7 +3577,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     msal.acquireTokenRedirect({ scopes: ["S1", Constants.openidScope], account});
                 });
 
@@ -3595,7 +3595,7 @@ describe("UserAgentApplication.ts Class", function () {
                             }
                         }
                     };
-                    
+
                     msal.acquireTokenRedirect({ scopes: ["S1", Constants.profileScope], account});
                 });
 
@@ -3614,7 +3614,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     msal.acquireTokenRedirect({ scopes: ["S1", ...oidcScopes], account});
                 });
 
@@ -3633,7 +3633,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, ...oidcScopes], account});
                 });
 
@@ -3652,7 +3652,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     msal.acquireTokenRedirect({ scopes: ["S1"], account});
                 });
 
@@ -3671,7 +3671,7 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     msal.acquireTokenRedirect({ scopes: ["S1", "S2"], account});
                 });
                 it("should treat clientId as a resource scope when included with resource scopes and therefore set response_type to id_token token because login is required", (done) => {
@@ -3689,10 +3689,10 @@ describe("UserAgentApplication.ts Class", function () {
                         }
                     };
 
-                    const oidcScopes = [Constants.openidScope, Constants.profileScope];                        
+                    const oidcScopes = [Constants.openidScope, Constants.profileScope];
                     msal.acquireTokenRedirect({ scopes: [TEST_CONFIG.MSAL_CLIENT_ID, "S1"], account});
                 });
-            }); 
+            });
         });
     });
 });
