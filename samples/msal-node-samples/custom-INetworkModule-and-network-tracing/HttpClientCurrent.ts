@@ -11,6 +11,7 @@ import {
 
 import http from "http";
 import https from "https";
+import { urlToHttpOptions } from "node:url";
 
 enum HttpMethod {
     GET = "get",
@@ -265,17 +266,13 @@ const networkRequestViaHttps = <T>(
     const body: string = options?.body || "";
 
     const url = new URL(urlString);
-    const emptyHeaders: Record<string, string> = {};
-    const customOptions: https.RequestOptions = {
-        hostname: url.hostname,
-        path: url.pathname,
+    const headers = options?.headers || {} as Record<string, string>;
+    let customOptions: https.RequestOptions = {
         method: httpMethod,
-        headers: options?.headers || emptyHeaders,
+        headers: headers,
+        ...urlToHttpOptions(url),
     };
-    if (url.search) {
-        customOptions.path += url.search;
-    }
-
+    
     if (timeout) {
         customOptions.timeout = timeout;
     }
