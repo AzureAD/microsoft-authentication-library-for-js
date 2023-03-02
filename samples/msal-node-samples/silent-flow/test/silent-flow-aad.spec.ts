@@ -33,7 +33,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/AAD.json");
 
-describe("Silent Flow AAD PPE Tests", () => {
+describe("Silent Flow AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
     let browser: puppeteer.Browser;
@@ -61,7 +61,7 @@ describe("Silent Flow AAD PPE Tests", () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 

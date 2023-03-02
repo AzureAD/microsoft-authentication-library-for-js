@@ -14,3 +14,4 @@ export { CrossPlatformLockOptions } from "./lock/CrossPlatformLockOptions";
 export { PersistenceCreator } from "./persistence/PersistenceCreator";
 export { IPersistenceConfiguration } from "./persistence/IPersistenceConfiguration";
 export { Environment } from "./utils/Environment";
+export { NativeBrokerPlugin } from "./broker/NativeBrokerPlugin";
