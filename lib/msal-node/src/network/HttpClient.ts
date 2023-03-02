@@ -78,9 +78,6 @@ const networkRequestViaProxy = <T>(
         path: destinationUrl.hostname,
         headers: headers,
     };
-    if (destinationUrl.searchParams) {
-        tunnelRequestOptions.path += `?${destinationUrl.searchParams}`;
-    }
 
     if (timeout) {
         tunnelRequestOptions.timeout = timeout;
@@ -234,8 +231,8 @@ const networkRequestViaHttps = <T>(
         method: httpMethod,
         headers: options?.headers || emptyHeaders,
     };
-    if (url.searchParams) {
-        customOptions.path += `?${url.searchParams}`;
+    if (url.search) {
+        customOptions.path += url.search;
     }
 
     if (timeout) {
