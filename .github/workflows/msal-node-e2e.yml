@@ -265,7 +265,10 @@ jobs:
       run: |
         npm run install:local
         npm install
-        npx playwright install
+
+    - name: Install Playwright
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: npx playwright install
       
     - name: Build Sample
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
