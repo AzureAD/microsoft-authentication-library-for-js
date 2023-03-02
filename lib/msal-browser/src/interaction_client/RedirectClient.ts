@@ -19,6 +19,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
+import { EventError } from "../event/EventMessage";
 
 export class RedirectClient extends StandardInteractionClient {
     protected nativeStorage: BrowserCacheManager;
@@ -81,9 +82,9 @@ export class RedirectClient extends StandardInteractionClient {
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
             window.removeEventListener("pageshow", handleBackButton);
-            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
@@ -182,8 +183,8 @@ export class RedirectClient extends StandardInteractionClient {
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             throw e;
         }
@@ -309,9 +310,9 @@ export class RedirectClient extends StandardInteractionClient {
         } catch(e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
-            this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e as EventError);
             this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Redirect);
             throw e;
         }
