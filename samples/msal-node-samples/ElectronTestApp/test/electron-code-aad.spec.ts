@@ -24,7 +24,7 @@ import config from '../src/config/AAD.json';
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/aad.cache.json`;
 
-test.describe('Electron Auth Code AAD PPE Tests ', () => {
+test.describe('Electron Auth Code AAD Prod Tests ', () => {
     let electronApp: ElectronApplication;
     let page: Page;
 
@@ -37,7 +37,7 @@ test.describe('Electron Auth Code AAD PPE Tests ', () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
