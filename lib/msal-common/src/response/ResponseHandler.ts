@@ -201,7 +201,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId, serverTokenResponse.spa_accountid);
     }
 
     /**
@@ -342,7 +342,8 @@ export class ResponseHandler {
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
         code?: string,
-        requestId?: string
+        requestId?: string,
+        accountId?: string,
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -374,6 +375,11 @@ export class ResponseHandler {
         const uid = idTokenObj?.claims.oid || idTokenObj?.claims.sub || Constants.EMPTY_STRING;
         const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
 
+        // for hybrid + native bridge enablement, send back the native account Id
+        if(accountId && !!cacheRecord.account){
+            cacheRecord.account.nativeAccountId = accountId;
+        }
+
         return {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
@@ -394,7 +400,7 @@ export class ResponseHandler {
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
             code,
-            fromNativeBroker: false,
+            fromNativeBroker: accountId ? true : false,
         };
     }
 }
