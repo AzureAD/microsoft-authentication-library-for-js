@@ -30,7 +30,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
-    await page.click("#idSIButton9");
+    await page.click("#idSIButton9", { noWaitAfter: true });
 }
 
 export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -111,4 +111,17 @@ export function createFolder(foldername: string) {
     if (!fs.existsSync(foldername)) {
         fs.mkdirSync(foldername, { recursive: true });
     }
+}
+
+export async function retrieveAuthCodeUrlFromBrowserContext(page: Page): Promise<string> {
+    const msgPromise = await page.waitForEvent("console", {
+        predicate: async (message) => {
+            const text = message.text();
+            if (text.includes("https://login.microsoftonline.com/")) {
+                return true;
+            }
+            return false;
+        },
+    });
+    return msgPromise.text();
 }
