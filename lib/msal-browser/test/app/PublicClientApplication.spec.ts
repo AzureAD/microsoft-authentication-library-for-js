@@ -143,11 +143,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-            const createProviderSpy = stubProvider(pca);
-            await pca.initialize();
 
             //Implementation of PCA was moved to controller.
             pca = (pca as any).controller;
+
+            const createProviderSpy = stubProvider(pca);
+            await pca.initialize();
+
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeInstanceOf(NativeMessageHandler);
@@ -657,6 +659,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -692,6 +697,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1016,6 +1024,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1117,6 +1128,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1167,6 +1181,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1484,6 +1501,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1535,6 +1555,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1585,6 +1608,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1798,6 +1824,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1844,6 +1873,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
 
             stubProvider(pca);
             await pca.initialize();
@@ -2200,6 +2232,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2251,6 +2286,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
+
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2301,6 +2339,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //Implementation of PCA was moved to controller.
+            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
