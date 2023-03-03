@@ -170,16 +170,22 @@ export abstract class ClientApplication {
             this.logger.info("initialize has already been called, exiting early.");
             return;
         }
+
+        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const initMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.InitializeClientApplication);
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
-        if (this.config.system.allowNativeBroker) {
+
+        if (allowNativeBroker) {
             try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
                 this.logger.verbose(e);
             }
         }
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+
+        initMeasurement.endMeasurement({allowNativeBroker, success: true});
     }
 
     // #region Redirect Flow

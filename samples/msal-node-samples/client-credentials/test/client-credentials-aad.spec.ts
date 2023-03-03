@@ -18,7 +18,7 @@ let authority;
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
-describe('Client Credentials AAD PPE Tests', () => {
+describe('Client Credentials AAD Prod Tests', () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 

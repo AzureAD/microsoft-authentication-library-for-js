@@ -12,7 +12,9 @@
         "install:local": "npm install ../../../lib/msal-common && npm install ../../../lib/msal-node",
         "make": "electron-forge make",
         "publish": "electron-forge publish",
-        "lint": "eslint --ext .ts,.tsx ."
+        "lint": "eslint --ext .ts,.tsx .",
+        "pretest": "npm run package",
+        "test": "npx playwright test"
     },
     "keywords": [
         "msal-node",
@@ -21,13 +23,14 @@
     ],
     "license": "MIT",
     "devDependencies": {
-        "@electron-forge/cli": "^6.0.0-beta.70",
-        "@electron-forge/maker-deb": "^6.0.0-beta.70",
-        "@electron-forge/maker-rpm": "^6.0.0-beta.70",
-        "@electron-forge/maker-squirrel": "^6.0.0-beta.70",
-        "@electron-forge/maker-zip": "^6.0.0-beta.70",
-        "@electron-forge/plugin-webpack": "6.0.0-beta.70",
-        "@popperjs/core": "^2.11.6",
+        "@electron-forge/cli": "^6.0.4",
+        "@electron-forge/maker-deb": "^6.0.4",
+        "@electron-forge/maker-rpm": "^6.0.4",
+        "@electron-forge/maker-squirrel": "^6.0.4",
+        "@electron-forge/maker-zip": "^6.0.4",
+        "@electron-forge/plugin-webpack": "^6.0.4",
+        "@electron/asar": "^3.2.3",
+        "@playwright/test": "^1.31.1",
         "@typescript-eslint/eslint-plugin": "^5.0.0",
         "@typescript-eslint/parser": "^5.0.0",
         "@vercel/webpack-asset-relocator-loader": "1.7.3",
@@ -56,7 +59,9 @@
     },
     "config": {
         "forge": {
-            "packagerConfig": {},
+            "packagerConfig": {
+                "asar": true
+            },
             "makers": [
                 {
                     "name": "@electron-forge/maker-squirrel",
