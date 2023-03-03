@@ -228,13 +228,13 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      * @param reqTimestamp
      */
-    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number, isHostApp?: boolean): Promise<AuthenticationResult> {
+    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number, cacheOptedIn?: boolean): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(response);
 
-        if (response.account.id !== request.accountId && isHostApp) {
+        if (response.account.id !== request.accountId && cacheOptedIn) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw NativeAuthError.createUserSwitchError();
         }
@@ -276,7 +276,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
             fromNativeBroker: true
         };
 
-        if(isHostApp) {
+        if(cacheOptedIn) {
             // Store the account info and hence `nativeAccountId` in browser cache
             this.browserStorage.setAccount(accountEntity);
 
