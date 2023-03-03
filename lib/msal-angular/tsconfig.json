@@ -12,13 +12,14 @@
     "target": "es2020",
     "module": "es2020",
     "lib": [
-      "es2018",
+      "ES2020",
       "dom"
     ],
     "paths": {
       "msal-angular": [
         "dist/msal-angular"
       ]
-    }
+    },
+    "useDefineForClassFields": false
   }
 }
