@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo, Authority } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -243,7 +243,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const authority = await this.getDiscoveredAuthority(request.authority);
         const authorityPreferredCache = authority.getPreferredCache();
 
-        // Store the account info and hence `nativeAccountId` in browser cache
+        // generate identifiers
         const idTokenObj = this.createIdTokenObj(response);
         const homeAccountIdentifier = this.createHomeAccountIdentifier(response, idTokenObj);
         const accountEntity = this.createAccountEntity(request, response, homeAccountIdentifier, idTokenObj, authorityPreferredCache);
@@ -277,7 +277,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         };
 
         if(isHostApp) {
-            // cache the nativeAccountId in the browser
+            // Store the account info and hence `nativeAccountId` in browser cache
             this.browserStorage.setAccount(accountEntity);
 
             // Cache the access_token and id_token in inmemory storage
