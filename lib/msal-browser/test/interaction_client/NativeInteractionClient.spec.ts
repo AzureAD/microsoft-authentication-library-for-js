@@ -15,6 +15,7 @@ import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -65,7 +66,7 @@ describe("NativeInteractionClient Tests", () => {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
         }
     });
-    const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000);
+    const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000, getDefaultPerformanceClient());
     // @ts-ignore
     const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
     let postMessageSpy: sinon.SinonSpy;

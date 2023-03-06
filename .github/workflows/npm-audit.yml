@@ -13,11 +13,8 @@ on:
       - '**/package-lock.json'
       - '!**.md'
       - '.github/workflows/npm-audit.yml'
-  push:
-    branches:
-      - 'master'
-      - 'npm-audit'
-      - 'fix-node-extension-audit'
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: audit-${{github.ref}}
