@@ -157,9 +157,9 @@ export const BrowserAuthErrorMessage = {
         code: "auth_code_or_nativeAccountId_required",
         desc: "An authorization code or nativeAccountId must be provided to this flow."
     },
-    authCodeAndNativeAccountPresent: {
-        code: "auth_code_and_nativeAccountId_present",
-        desc: "Request cannot contain both authorization code and native account id."
+    spaCodeAndNativeAccountPresent: {
+        code: "spa_code_and_nativeAccountId_present",
+        desc: "Request cannot contain both spa code and native account id."
     },
     databaseUnavailable: {
         code: "database_unavailable",
@@ -488,8 +488,8 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error when both authorization code and native account ID are provided
      */
-    static createAuthCodeAndNativeAccountIdPresentError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.authCodeAndNativeAccountPresent.code, BrowserAuthErrorMessage.authCodeAndNativeAccountPresent.desc);
+    static createSpaCodeAndNativeAccountIdPresentError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.spaCodeAndNativeAccountPresent.code, BrowserAuthErrorMessage.spaCodeAndNativeAccountPresent.desc);
     }
 
     /**
