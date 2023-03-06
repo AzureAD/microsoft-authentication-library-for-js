@@ -49,7 +49,7 @@ export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";
 export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions, StubbedNetworkModule } from "./network/INetworkModule";
-export { NetworkManager, NetworkResponse } from "./network/NetworkManager";
+export { NetworkManager, NetworkResponse, UrlToHttpRequestOptions } from "./network/NetworkManager";
 export { ThrottlingUtils } from "./network/ThrottlingUtils";
 export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
