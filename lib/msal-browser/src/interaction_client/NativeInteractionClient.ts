@@ -243,14 +243,14 @@ export class NativeInteractionClient extends BaseInteractionClient {
         // generate identifiers
         const idTokenObj = this.createIdTokenObj(response);
         const homeAccountIdentifier = this.createHomeAccountIdentifier(response, idTokenObj);
-        const accountEntity = this.createAccountEntity(request, response, homeAccountIdentifier, idTokenObj, authorityPreferredCache);
+        const accountEntity = this.createAccountEntity(response, homeAccountIdentifier, idTokenObj, authorityPreferredCache);
 
         // generate authenticationResult
-        const result = await this.generateAuthenticationResult(request, response, idTokenObj, accountEntity, authority.canonicalAuthority, reqTimestamp);
+        const result = await this.generateAuthenticationResult(response, request, idTokenObj, accountEntity, authority.canonicalAuthority, reqTimestamp);
 
         // cache accounts and tokens in the appropriate storage
         this.cacheAccount(accountEntity);
-        this.cacheNativeTokens(request, response, homeAccountIdentifier, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
+        this.cacheNativeTokens(response, request, homeAccountIdentifier, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
         
         return result;
     }
@@ -285,7 +285,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param idTokenObj 
      * @returns 
      */
-    protected createAccountEntity(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, authority: string): AccountEntity {
+    protected createAccountEntity(response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, authority: string): AccountEntity {
 
         return AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authority, response.account.id);
     }
@@ -305,7 +305,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request 
      * @param response 
      */
-    protected async generatePopAccessToken(request: NativeTokenRequest, response: NativeResponse): Promise<string> {
+    protected async generatePopAccessToken(response: NativeResponse, request: NativeTokenRequest): Promise<string> {
         
         if(request.tokenType === AuthenticationScheme.POP) {
             /** 
@@ -354,7 +354,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp 
      * @returns 
      */
-    protected async generateAuthenticationResult(request: NativeTokenRequest, response: NativeResponse, idTokenObj: AuthToken, accountEntity: AccountEntity, authority: string, reqTimestamp: number): Promise<AuthenticationResult> {
+    protected async generateAuthenticationResult(response: NativeResponse, request: NativeTokenRequest, idTokenObj: AuthToken, accountEntity: AccountEntity, authority: string, reqTimestamp: number): Promise<AuthenticationResult> {
 
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(response);
@@ -367,7 +367,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
         // generate PoP token as needed
-        const responseAccessToken = await this.generatePopAccessToken(request, response);
+        const responseAccessToken = await this.generatePopAccessToken(response, request);
         const tokenType = (request.tokenType === AuthenticationScheme.POP) ? AuthenticationScheme.POP : AuthenticationScheme.BEARER;
 
         const result: AuthenticationResult = {
@@ -422,7 +422,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param tenantId 
      * @param reqTimestamp 
      */
-    protected cacheNativeTokens(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
+    protected cacheNativeTokens(response: NativeResponse, request: NativeTokenRequest, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
 
         // cache idToken in inmemory storage
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
