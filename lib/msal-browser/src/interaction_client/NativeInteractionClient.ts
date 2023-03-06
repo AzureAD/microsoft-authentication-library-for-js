@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES, PopTokenGenerator, SignedHttpRequestParameters, IPerformanceClient, PerformanceEvents, IdTokenEntity, AccessTokenEntity, ClientAuthError, AuthError, CommonSilentFlowRequest, AccountInfo, Authority } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -21,6 +21,7 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
+import { Scope } from "@babel/traverse";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
@@ -228,13 +229,10 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param request
      * @param reqTimestamp
      */
-    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number, cacheOptedIn?: boolean): Promise<AuthenticationResult> {
+    protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
-        // Add Native Broker fields to Telemetry
-        const mats = this.addTelemetryFromNativeResponse(response);
-
-        if (response.account.id !== request.accountId && cacheOptedIn) {
+        if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw NativeAuthError.createUserSwitchError();
         }
@@ -255,40 +253,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
-        // generate PoP token as needed
-        const responseAccessToken = await this.generatePopAccessToken(request, response);
-        const tokenType = (request.tokenType === AuthenticationScheme.POP) ? AuthenticationScheme.POP : AuthenticationScheme.BEARER;
-
-        const result: AuthenticationResult = {
-            authority: authority.canonicalAuthority,
-            uniqueId: uid,
-            tenantId: tid,
-            scopes: responseScopes.asArray(),
-            account: accountEntity.getAccountInfo(),
-            idToken: response.id_token,
-            idTokenClaims: idTokenObj.claims,
-            accessToken: responseAccessToken,
-            fromCache: mats ? this.isResponseFromCache(mats) : false,
-            expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
-            tokenType: tokenType,
-            correlationId: this.correlationId,
-            state: response.state,
-            fromNativeBroker: true
-        };
-
-        if(cacheOptedIn) {
-            // Store the account info and hence `nativeAccountId` in browser cache
-            this.browserStorage.setAccount(accountEntity);
-
-            // Cache the access_token and id_token in inmemory storage
-            const accessToken = response.shr ? response.shr : response.access_token;
-            this.cacheNativeTokens(request, response, homeAccountIdentifier, idTokenObj, accessToken, responseScopes, result.tenantId, reqTimestamp);
-
-            // Remove any existing cached tokens for this account in browser storage
-            this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
-                this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
-            });
-        }
+        const result = this.generateAuthenticationResult(request, response, accountEntity, idTokenObj,authority.canonicalAuthority, uid, tid, responseScopes, reqTimestamp);
+        this.cacheAccountAndTokens(request, response, homeAccountIdentifier, accountEntity,idTokenObj, responseScopes, tid, reqTimestamp);
         
         return result;
     }
@@ -367,6 +333,73 @@ export class NativeInteractionClient extends BaseInteractionClient {
         } else {
             return response.access_token;
         }
+    }
+
+    /**
+     * 
+     * @param request 
+     * @param response 
+     * @param accountEntity 
+     * @param idTokenObj 
+     * @param authority 
+     * @param uid 
+     * @param tid 
+     * @param responseScopes 
+     * @param reqTimestamp 
+     * @returns 
+     */
+    protected async generateAuthenticationResult(request: NativeTokenRequest, response: NativeResponse, accountEntity: AccountEntity, idTokenObj: AuthToken, authority: string, uid: string, tid: string, responseScopes: ScopeSet, reqTimestamp: number): Promise<AuthenticationResult> {
+
+        // Add Native Broker fields to Telemetry
+        const mats = this.addTelemetryFromNativeResponse(response);
+
+        // generate PoP token as needed
+        const responseAccessToken = await this.generatePopAccessToken(request, response);
+        const tokenType = (request.tokenType === AuthenticationScheme.POP) ? AuthenticationScheme.POP : AuthenticationScheme.BEARER;
+
+        const result: AuthenticationResult = {
+            authority: authority,
+            uniqueId: uid,
+            tenantId: tid,
+            scopes: responseScopes.asArray(),
+            account: accountEntity.getAccountInfo(),
+            idToken: response.id_token,
+            idTokenClaims: idTokenObj.claims,
+            accessToken: responseAccessToken,
+            fromCache: mats ? this.isResponseFromCache(mats) : false,
+            expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
+            tokenType: tokenType,
+            correlationId: this.correlationId,
+            state: response.state,
+            fromNativeBroker: true
+        };
+
+        return result;
+    }
+
+    /**
+     * 
+     * @param request 
+     * @param response 
+     * @param homeAccountIdentifier 
+     * @param accountEntity 
+     * @param idTokenObj 
+     * @param responseScopes 
+     * @param tenantId 
+     * @param reqTimestamp 
+     */
+    protected cacheAccountAndTokens(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, accountEntity: AccountEntity, idTokenObj: AuthToken, responseScopes: ScopeSet, tenantId: string, reqTimestamp: number): void{
+        // Store the account info and hence `nativeAccountId` in browser cache
+        this.browserStorage.setAccount(accountEntity);
+
+        // Cache the access_token and id_token in inmemory storage
+        const accessToken = response.shr ? response.shr : response.access_token;
+        this.cacheNativeTokens(request, response, homeAccountIdentifier, idTokenObj, accessToken, responseScopes, result.tenantId, reqTimestamp);
+
+        // Remove any existing cached tokens for this account in browser storage
+        this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
+            this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
+        });
     }
 
     /**
