@@ -63,8 +63,7 @@ router.post('/server-redirect', (req, res) => {
         console.log('Hybrid enabled');
         tokenRequest.enableSpaAuthorizationCode = true;
         tokenRequest.tokenBodyParameters = {
-            return_spa_code: "1",
-            "webnativebroker": "true"
+            return_spa_code: "1"
         };
     } else {
         console.log('Hybrid disabled');
@@ -95,7 +94,6 @@ router.post('/server-redirect', (req, res) => {
             req.session.preferredUsername = preferredUsername;
 
             // Parameters to set when native broker is enabled for public client app. 
-            req.session.fromNativeBroker = response.fromNativeBroker;
             req.session.account = JSON.stringify(response.account);
 
             // Redirect user to appropriate redirect page

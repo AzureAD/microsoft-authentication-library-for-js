@@ -530,7 +530,7 @@ export abstract class ClientApplication {
         try {
             if (request.code && request.nativeAccountId) {
                 // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
-                throw AuthError.createUnexpectedError("Request cannot contain both SPA code and native account id.");
+                throw BrowserAuthError.createAuthCodeAndNativeAccountIdPresentError();
             }
             else if (request.code) {
                 const hybridAuthCode = request.code;

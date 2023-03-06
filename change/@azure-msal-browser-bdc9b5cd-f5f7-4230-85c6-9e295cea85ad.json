@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Hybrid flow with native bridge enabled #5759",
+  "comment": "Add support for hybrid flow with native bridge enabled #5759",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"

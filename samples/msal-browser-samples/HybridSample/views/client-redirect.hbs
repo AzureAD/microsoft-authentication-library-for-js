@@ -39,7 +39,6 @@
                     const preferredUsername = "{{preferredUsername}}";
                     const loginHint = "{{{loginHint}}}";
                     
-                    const fromNativeBroker = "{{fromNativeBroker}}";
                     const account = {{{account}}};
 
                     const scopes = [ "user.read" ];
@@ -51,14 +50,14 @@
                     const hybridParams = !!(code);
                     console.log(`MSAL: Initiating client-side auth (hybrid: ${hybridParams})`);
 
-                    if (hybridParams || (fromNativeBroker && account.nativeAccountId)) {
+                    if (hybridParams || account.nativeAccountId) {
                         const timeLabel = "Time for acquireTokenByCode";
                         console.time(timeLabel);
                         console.log('MSAL: acquireTokenByCode hybrid parameters present');
 
                         return msalInstance.acquireTokenByCode({
                             code,
-                            account.nativeAccountId,
+                            nativeAccountId: account.nativeAccountId,
                             scopes,
                             tokenQueryParameters
                         })

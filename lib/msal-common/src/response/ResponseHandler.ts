@@ -201,7 +201,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId, serverTokenResponse.spa_accountid);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse, serverRequestId);
     }
 
     /**
@@ -341,9 +341,8 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
-        code?: string,
+        serverTokenResponse?: ServerAuthorizationTokenResponse,
         requestId?: string,
-        accountId?: string,
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -376,8 +375,8 @@ export class ResponseHandler {
         const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
 
         // for hybrid + native bridge enablement, send back the native account Id
-        if(accountId && !!cacheRecord.account){
-            cacheRecord.account.nativeAccountId = accountId;
+        if(serverTokenResponse?.spa_accountid && !!cacheRecord.account){
+            cacheRecord.account.nativeAccountId = serverTokenResponse?.spa_accountid;
         }
 
         return {
@@ -399,8 +398,8 @@ export class ResponseHandler {
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
-            code,
-            fromNativeBroker: accountId ? true : false,
+            code: serverTokenResponse?.spa_code,
+            fromNativeBroker: false,
         };
     }
 }
