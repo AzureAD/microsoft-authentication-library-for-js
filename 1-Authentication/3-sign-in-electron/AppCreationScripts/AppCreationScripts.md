@@ -140,7 +140,7 @@ The acceptable values for this parameter are:
 
 - AzureCloud
 - `AzureChinaCloud`
-- AzureUSGovernment
+- `AzureUSGovernment`
 
 Example:
 
