@@ -15,11 +15,11 @@ import { BrowserConfiguration } from "../config/Configuration";
  */
 export abstract class BaseOperatingContext {
 
-    protected logger:Logger;
-    protected config:BrowserConfiguration;
-    protected available:boolean;
+    protected logger: Logger;
+    protected config: BrowserConfiguration;
+    protected available: boolean;
 
-    constructor(logger:Logger, config:BrowserConfiguration){
+    constructor(logger: Logger, config: BrowserConfiguration) {
         this.config = config;
         this.logger = logger;
         this.available = false;
@@ -28,23 +28,23 @@ export abstract class BaseOperatingContext {
     /**
      * returns the name of the module containing the API controller associated with this operating context
      */
-    abstract getModuleName():string;
+    abstract getModuleName(): string;
 
     /**
      * returns the string identifier of this operating context
      */
-    abstract getId():string;
+    abstract getId(): string;
 
     /**
      * returns a boolean indicating whether this operating context is present
      */
-    abstract isAvailable():Promise<boolean>;
+    abstract initialize(): Promise<boolean>;
 
     /**
      * Return the MSAL config
      * @returns BrowserConfiguration
      */
-    getConfig():BrowserConfiguration {
+    getConfig(): BrowserConfiguration {
         return this.config;
     }
 
@@ -52,11 +52,11 @@ export abstract class BaseOperatingContext {
      * Returns the MSAL Logger
      * @returns Logger
      */
-    getLogger():Logger {
+    getLogger(): Logger {
         return this.logger;
     }
 
-    getAvailable():boolean {
+    isAvailable(): boolean {
         return this.available;
     }
 

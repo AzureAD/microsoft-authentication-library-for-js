@@ -6,7 +6,7 @@
 import { BaseOperatingContext } from "./BaseOperatingContext";
 
 export class StandardOperatingContext extends BaseOperatingContext {
-    
+
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
      * containing the implementation for this operating context
@@ -34,16 +34,12 @@ export class StandardOperatingContext extends BaseOperatingContext {
         return StandardOperatingContext.ID;
     }
 
-    getAvailable(): boolean {
-        return this.available;
-    }
-
     /**
      * Checks whether the operating context is available.  
      * Confirms that the code is running a browser rather.  This is required.
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
-    async isAvailable(): Promise<boolean> {
+    async initialize(): Promise<boolean> {
         this.available = typeof window !== "undefined";
         return this.available;
         /*

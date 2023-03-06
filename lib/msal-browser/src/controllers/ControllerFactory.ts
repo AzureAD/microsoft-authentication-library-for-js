@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { MetaOSOperatingContext } from "../operatingcontext/MetaOSOperatingContext";
+import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
 import { Logger } from "@azure/msal-common";
@@ -23,16 +23,16 @@ export class ControllerFactory {
     async createController(): Promise<IController> {
 
         const standard = new StandardOperatingContext(this.logger, this.config);
-        const metaOS = new MetaOSOperatingContext(this.logger, this.config);
+        const metaOS = new TeamsAppOperatingContext(this.logger, this.config);
 
         const operatingContexts = [
-            standard.isAvailable(),
-            metaOS.isAvailable()
+            standard.initialize(),
+            metaOS.initialize()
         ];
 
         return Promise.all(operatingContexts).then(async ()=> {
 
-            if(metaOS.getAvailable()){
+            if(metaOS.isAvailable()){
                 /*
                  * pull down metaos module
                  * create associated controller
@@ -40,7 +40,7 @@ export class ControllerFactory {
                 // return await StandardController.createController(standard);
                 const controller = await import("./StandardController");
                 return await controller.StandardController.createController(standard);
-            }else if(standard.getAvailable()){
+            }else if(standard.isAvailable()){
                 const controller = await import("./StandardController");
                 return await controller.StandardController.createController(standard);
             }
