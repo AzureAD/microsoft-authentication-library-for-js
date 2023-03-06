@@ -74,7 +74,7 @@ The scripts install the required PowerShell module (Microsoft.Graph.Applications
 1. If you have not done it already, in the PowerShell window, install the `Microsoft.Graph.Applications` PowerShell modules:
 
    1. Open PowerShell as admin (On Windows, Search Powershell in the search bar, right click on it and select **Run as administrator**).
-   2. Type:
+   2. Run either;
 
       ```PowerShell
       Install-Module Microsoft.Graph.Applications
