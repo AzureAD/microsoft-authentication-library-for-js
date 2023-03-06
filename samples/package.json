@@ -18,7 +18,7 @@
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4",
         "jest": "^27.1.1",
-        "playwright-core": "^1.28.1",
+        "playwright-core": "^1.31.1",
         "puppeteer": "^19.2.0",
         "ts-jest": "^27.0.5"
     }
