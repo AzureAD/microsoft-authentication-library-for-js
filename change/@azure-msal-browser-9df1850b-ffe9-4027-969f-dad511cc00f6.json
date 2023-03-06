@@ -1,7 +1,7 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Refactor handleNativeResponse (#5757)",
   "packageName": "@azure/msal-browser",
   "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "none"
+  "dependentChangeType": "patch"
 }
