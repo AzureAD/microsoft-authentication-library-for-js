@@ -8,7 +8,6 @@ import { HttpMethod, Constants, HttpStatus, ProxyStatus } from "../utils/Constan
 import { NetworkUtils } from "../utils/NetworkUtils";
 import http from "http";
 import https from "https";
-import { urlToHttpOptions } from "node:url";
 
 /**
  * This class implements the API for network requests.
@@ -229,7 +228,7 @@ const networkRequestViaHttps = <T>(
     const customOptions: https.RequestOptions = {
         method: httpMethod,
         headers: headers,
-        ...urlToHttpOptions(url),
+        ...NetworkUtils.urlToHttpOptions(url),
     };
 
     if (timeout) {

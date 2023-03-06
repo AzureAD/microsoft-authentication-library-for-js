@@ -11,7 +11,6 @@ import {
 
 import http from "http";
 import https from "https";
-import { urlToHttpOptions } from "node:url";
 
 enum HttpMethod {
     GET = "get",
@@ -48,6 +47,31 @@ class NetworkUtils {
             body: body,
             status: statusCode,
         };
+    }
+
+    /*
+     * Utility function that converts a URL object into an ordinary options object as expected by the
+     * http.request and https.request APIs.
+     */
+    static urlToHttpOptions(url: URL): https.RequestOptions {
+        const options: https.RequestOptions & Partial<Omit<URL, "port">> = {
+            protocol: url.protocol,
+            hostname: url.hostname && url.hostname.startsWith("[") ?
+                url.hostname.slice(1, -1) :
+                url.hostname,
+            hash: url.hash,
+            search: url.search,
+            pathname: url.pathname,
+            path: `${url.pathname || ""}${url.search || ""}`,
+            href: url.href,
+        };
+        if (url.port !== "") {
+            options.port = Number(url.port);
+        }
+        if (url.username || url.password) {
+            options.auth = `${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`;
+        }
+        return options;
     }
 }
 
@@ -270,7 +294,7 @@ const networkRequestViaHttps = <T>(
     let customOptions: https.RequestOptions = {
         method: httpMethod,
         headers: headers,
-        ...urlToHttpOptions(url),
+        ...NetworkUtils.urlToHttpOptions(url),
     };
     
     if (timeout) {
