@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "patch",
   "comment": "Hybrid flow with native bridge enabled #5759",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
