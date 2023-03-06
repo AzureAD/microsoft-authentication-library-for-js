@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, Logger } from "@azure/msal-common";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
@@ -12,6 +12,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { TokenCache } from "../cache/TokenCache";
 import { InteractiveRequest } from "../request/InteractiveRequest";
+import { SignOutRequest } from "../request/SignOutRequest";
 
 /**
  * Interface for the PublicClientApplication class defining the public API signatures
@@ -51,4 +52,10 @@ export interface IPublicClientApplication {
 
     /** Clear the cache */
     clearCache(): void;
+
+    /** Gets all cached accounts */
+    getAllAccounts(): Promise<AccountInfo[]>;
+
+    /** Removes cache artifacts associated with the given account */
+    signOut(request: SignOutRequest): Promise<void>;
 }
