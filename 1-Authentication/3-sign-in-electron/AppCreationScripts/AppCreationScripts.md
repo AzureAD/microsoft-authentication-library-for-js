@@ -57,7 +57,7 @@ The `Configure.ps1` will stop if it tries to create an Azure AD application whic
 
 ## How to use the app creation scripts?
 
-### Pre-requisites
+### Prerequisites
 
 1. Open PowerShell (On Windows, press  `Windows-R` and type `PowerShell` in the search window)
 1. Navigate to the root directory of the project.
