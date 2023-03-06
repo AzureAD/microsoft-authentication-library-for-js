@@ -114,7 +114,7 @@ Here are the details on how to do this.
 - Run `.\Configure.ps1` in the terminal, and you will be prompted to sign-in (email address, password, and if needed MFA).
 - The script will be run as the signed-in user and will use the tenant in which the user is defined.
 
-Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to re-sign-in.
+Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to sign-in again.
 
 #### Option 2 (Interactive, but create apps in a specified tenant)
 
