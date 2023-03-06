@@ -21,9 +21,7 @@
     "node": ">=10"
   },
   "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "scripts": {
     "start": "tsdx watch",
