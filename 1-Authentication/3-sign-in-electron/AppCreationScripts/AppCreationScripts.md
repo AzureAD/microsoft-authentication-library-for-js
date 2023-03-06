@@ -111,7 +111,7 @@ Here are the details on how to do this.
 
 #### Option 1 (interactive)
 
-- Just run ``.\Configure.ps1``, and you will be prompted to sign-in (email address, password, and if needed MFA).
+- Run `.\Configure.ps1` in the terminal, and you will be prompted to sign-in (email address, password, and if needed MFA).
 - The script will be run as the signed-in user and will use the tenant in which the user is defined.
 
 Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to re-sign-in.
