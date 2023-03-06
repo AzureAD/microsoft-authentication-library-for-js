@@ -47,7 +47,7 @@ These scripts are:
     - the AppId of the application
     - the url of its registration in the [Azure portal](https://portal.azure.com).
 
-- `Cleanup.ps1` which cleans-up the Azure AD objects created by `Configure.ps1`. Note that this script does not revert the changes done in the configuration files, though. You will need to undo the change from source control (from Visual Studio, or from the command line using, for instance, `git reset`).
+- `Cleanup.ps1` which cleans-up the Azure AD objects created by `Configure.ps1`. Note that this script does not revert the changes done in the configuration files, though. You'll need to undo the change from source control (from Visual Studio, or from the command line using, for instance, `git reset`).
 
 > :information_source: If the sample supports using certificates instead of client secrets, this folder will contain an additional set of scripts: `Configure-WithCertificates.ps1` and `Cleanup-WithCertificates.ps1`. You can use them in the same way to register app(s) that use certificates instead of client secrets.
 
