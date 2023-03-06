@@ -283,11 +283,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * creates accountEntity
-     * @param request 
+     * Creates account entity
      * @param response 
      * @param homeAccountIdentifier 
      * @param idTokenObj 
+     * @param authority 
      * @returns 
      */
     protected createAccountEntity(response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, authority: string): AccountEntity {
@@ -296,12 +296,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * 
-     * @param request 
+     * Helper to generate scopes
      * @param response 
+     * @param request 
      * @returns 
      */
-    generateScopes(request: NativeTokenRequest, response: NativeResponse): ScopeSet {
+    generateScopes(response: NativeResponse, request: NativeTokenRequest): ScopeSet {
         return response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
     }
 
@@ -347,15 +347,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * 
-     * @param request 
+     * Generates authentication result
      * @param response 
-     * @param accountEntity 
+     * @param request 
      * @param idTokenObj 
+     * @param accountEntity 
      * @param authority 
-     * @param uid 
-     * @param tid 
-     * @param responseScopes 
      * @param reqTimestamp 
      * @returns 
      */
@@ -396,15 +393,8 @@ export class NativeInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * 
-     * @param request 
-     * @param response 
-     * @param homeAccountIdentifier 
+     * cache the account entity in browser storage
      * @param accountEntity 
-     * @param idTokenObj 
-     * @param responseScopes 
-     * @param tenantId 
-     * @param reqTimestamp 
      */
     cacheAccount(accountEntity: AccountEntity): void{
         // Store the account info and hence `nativeAccountId` in browser cache
@@ -418,12 +408,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
 
     /**
      * Stores the access_token and id_token in inmemory storage
-     * @param request 
      * @param response 
+     * @param request 
      * @param homeAccountIdentifier 
      * @param idTokenObj 
      * @param responseAccessToken 
-     * @param responseScopes 
      * @param tenantId 
      * @param reqTimestamp 
      */
@@ -448,7 +437,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     : response.expires_in
             ) || 0;
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
-        const responseScopes = this.generateScopes(request, response);
+        const responseScopes = this.generateScopes(response, request);
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             homeAccountIdentifier,
             request.authority,
