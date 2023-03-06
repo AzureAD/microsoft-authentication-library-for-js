@@ -88,7 +88,7 @@ The scripts install the required PowerShell module (Microsoft.Graph.Applications
 
 ### Run the script and start running
 
-1. Go to the `AppCreationScripts` sub-folder. From the folder where you cloned the repo,
+1. Navigate to *AppCreationScripts* from the folder where you cloned the repo by running the following command.
 
     ```PowerShell
     cd AppCreationScripts
