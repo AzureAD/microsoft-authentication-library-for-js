@@ -21,7 +21,6 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "./SilentCacheClient";
-import { Scope } from "@babel/traverse";
 
 export class NativeInteractionClient extends BaseInteractionClient {
     protected apiId: ApiId;
