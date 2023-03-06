@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Added new UrlToHttpRequestOptions type",
+  "comment": "Fixed bug in msal-node's httpClient #5722",
   "packageName": "@azure/msal-common",
-  "email": "rgins16@gmail.com",
+  "email": "rginsburg@microsoft.com",
   "dependentChangeType": "patch"
 }
