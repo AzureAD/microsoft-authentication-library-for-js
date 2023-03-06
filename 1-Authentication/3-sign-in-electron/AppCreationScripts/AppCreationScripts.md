@@ -24,7 +24,7 @@
   - [Presentation of the scripts](#presentation-of-the-scripts)
   - [Usage pattern for tests and DevOps scenarios](#usage-pattern-for-tests-and-DevOps-scenarios)
 - [How to use the app creation scripts?](#how-to-use-the-app-creation-scripts)
-  - [Pre-requisites](#pre-requisites)
+  - [Prerequisites](#prerequisites)
   - [Run the script and start running](#run-the-script-and-start-running)
   - [Four ways to run the script](#four-ways-to-run-the-script)
     - [Option 1 (interactive)](#option-1-interactive)
