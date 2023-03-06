@@ -14,7 +14,7 @@ const cca = new msal.ConfidentialClientApplication({
                 console.log(message);
             },
             piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
+            logLevel: msal.LogLevel.Info,
         }
     }
 });

@@ -16,8 +16,7 @@ router.get('/login', (req, res) => {
         redirectUri: "https://localhost:3000/auth/server-redirect",
         responseMode: "form_post",
         extraQueryParameters: {
-            "webnativebridge": "true",
-            "nativebroker": "1"
+            "nativebroker": "1",
         }
     };
 
@@ -43,7 +42,6 @@ router.get('/login', (req, res) => {
 router.post('/server-redirect', (req, res) => {
 
     console.log("Inside server redirect.");
-    console.log(req.body.code);
     const tokenRequest = {
         code: req.body.code,
         scopes: ["user.read"],
@@ -67,18 +65,18 @@ router.post('/server-redirect', (req, res) => {
         tokenRequest.tokenBodyParameters = {
             return_spa_code: "1",
             "webnativebroker": "true"
-        }
+        };
     } else {
         console.log('Hybrid disabled');
     }
 
-    const timeLabel = "Time for acquireTokenByCode";
+    const timeLabel = "Time for acquireTokenByCode for CCA";
+    console.log("Acquire Token Request for CCA: ", tokenRequest);
     console.time(timeLabel);
 
     msalInstance.acquireTokenByCode(tokenRequest)
         .then((response) => {
-            console.timeEnd(timeLabel)
-            console.log("Response: ", response);
+            console.timeEnd(timeLabel);
 
             const {
                 sid, // Session ID claim, used for non-hybrid
@@ -96,15 +94,19 @@ router.post('/server-redirect', (req, res) => {
             req.session.loginHint = loginHint;
             req.session.preferredUsername = preferredUsername;
 
+            // Parameters to set when native broker is enabled for public client app. 
+            req.session.fromNativeBroker = response.fromNativeBroker;
+            req.session.account = JSON.stringify(response.account);
+
             // Redirect user to appropriate redirect page
             if (useImplicit) {
-                res.redirect(`/auth/implicit-redirect`)
+                res.redirect(`/auth/implicit-redirect`);
             } else {
-                res.redirect(`/auth/client-redirect`)
+                res.redirect(`/auth/client-redirect`);
             }
         })
         .catch((error) => {
-            console.timeEnd(timeLabel)
+            console.timeEnd(timeLabel);
             console.log(error);
             res.status(500).send(error);
         });
