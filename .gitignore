@@ -277,4 +277,9 @@ lib/msal-node/temp
 ref/
 .server.pid
 *.pem
+
+# Typescript & Rollup
 tsconfig.build.tsbuildinfo
+
+# MSAL Node Cache Files
+temp-cache.json
