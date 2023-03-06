@@ -1,5 +1,5 @@
 import { HttpClient } from '../../src/network/HttpClient';
-import { NetworkResponse, NetworkRequestOptions } from '../../../msal-common';
+import { NetworkResponse, NetworkRequestOptions, UrlToHttpRequestOptions } from '../../../msal-common';
 import { MockedMetadataResponse } from '../utils/TestConstants';
 
 import http from "http";
@@ -124,6 +124,27 @@ const getNetworkResponse = <T>(body: Object, statusCode: number): NetworkRespons
     };
 }
 
+const urlToHttpOptions = (url: URL): UrlToHttpRequestOptions => {
+    const options: UrlToHttpRequestOptions = {
+        protocol: url.protocol,
+        hostname: url.hostname && url.hostname.startsWith("[") ?
+            url.hostname.slice(1, -1) :
+            url.hostname,
+        hash: url.hash,
+        search: url.search,
+        pathname: url.pathname,
+        path: `${url.pathname || ""}${url.search || ""}`,
+        href: url.href,
+    };
+    if (url.port !== "") {
+        options.port = Number(url.port);
+    }
+    if (url.username || url.password) {
+        options.auth = `${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`;
+    }
+    return options;
+}
+
 /**
  * Mocks the https request method
  * @param buffer mocked buffer containing the body of the network response
@@ -206,6 +227,27 @@ describe("HttpClient", () => {
 
     const proxyUrl: string = "http://proxyUrl.com";
     const httpClientWithProxyUrl = new HttpClient(proxyUrl);
+
+    describe("Test urlToHttpOptions", () => {
+        // https://github.com/nodejs/node/blob/ca033c16fe0c2a62067f6188045c225424077fbd/test/parallel/test-url-urltooptions.js#L4
+        test("All properties are extracted from a URL", async () => {
+            const urlObj = new URL("http://user:pass@foo.bar.com:21/aaa/zzz?l=24#test");
+            const opts = urlToHttpOptions(urlObj);
+
+            expect(opts instanceof URL).toStrictEqual(false);
+            expect(opts.protocol).toStrictEqual("http:");
+            expect(opts.auth).toStrictEqual("user:pass");
+            expect(opts.hostname).toStrictEqual("foo.bar.com");
+            expect(opts.port).toStrictEqual(21);
+            expect(opts.path).toStrictEqual("/aaa/zzz?l=24");
+            expect(opts.pathname).toStrictEqual("/aaa/zzz");
+            expect(opts.search).toStrictEqual("?l=24");
+            expect(opts.hash).toStrictEqual("#test");
+
+            const { hostname } = urlToHttpOptions(new URL("http://[::1]:21"));
+            expect(hostname).toStrictEqual("::1");
+        });
+    });
 
     describe("Successful Get Request", <T>() => {
         test("Via Https", async () => {

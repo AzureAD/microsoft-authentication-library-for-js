@@ -34,6 +34,7 @@ const clientConfig: msal.Configuration = {
          * console.log()'s can be added to help the developer debug network issues
          */
         // networkClient: new HttpClientCurrent,
+        // networkClient: new HttpClientCurrent(<proxyUrl>, <customHttp(s)AgentOptions>),
         // networkClient: new HttpClientAxios,
 
         /**
