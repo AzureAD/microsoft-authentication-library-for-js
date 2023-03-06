@@ -277,3 +277,4 @@ lib/msal-node/temp
 ref/
 .server.pid
 *.pem
+tsconfig.build.tsbuildinfo
