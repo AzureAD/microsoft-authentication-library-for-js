@@ -246,15 +246,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const homeAccountIdentifier = this.createHomeAccountIdentifier(response, idTokenObj);
         const accountEntity = this.createAccountEntity(request, response, homeAccountIdentifier, idTokenObj, authorityPreferredCache);
 
-        // If scopes not returned in server response, use request scopes
-        const responseScopes = response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
+        // generate authenticationResult
+        const result = await this.generateAuthenticationResult(request, response, idTokenObj, accountEntity, authority.canonicalAuthority, reqTimestamp);
 
-        const accountProperties = response.account.properties || {};
-        const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
-        const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
-
-        const result = this.generateAuthenticationResult(request, response, accountEntity, idTokenObj,authority.canonicalAuthority, uid, tid, responseScopes, reqTimestamp);
-        this.cacheAccountAndTokens(request, response, homeAccountIdentifier, accountEntity,idTokenObj, responseScopes, tid, reqTimestamp);
+        // cache accounts and tokens in the appropriate storage
+        this.cacheAccount(accountEntity);
+        this.cacheNativeTokens(request, response, homeAccountIdentifier, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
         
         return result;
     }
@@ -292,6 +289,16 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected createAccountEntity(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, authority: string): AccountEntity {
 
         return AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authority, response.account.id);
+    }
+
+    /**
+     * 
+     * @param request 
+     * @param response 
+     * @returns 
+     */
+    generateScopes(request: NativeTokenRequest, response: NativeResponse): ScopeSet {
+        return response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
     }
 
     /**
@@ -348,10 +355,17 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param reqTimestamp 
      * @returns 
      */
-    protected async generateAuthenticationResult(request: NativeTokenRequest, response: NativeResponse, accountEntity: AccountEntity, idTokenObj: AuthToken, authority: string, uid: string, tid: string, responseScopes: ScopeSet, reqTimestamp: number): Promise<AuthenticationResult> {
+    protected async generateAuthenticationResult(request: NativeTokenRequest, response: NativeResponse, idTokenObj: AuthToken, accountEntity: AccountEntity, authority: string, reqTimestamp: number): Promise<AuthenticationResult> {
 
         // Add Native Broker fields to Telemetry
         const mats = this.addTelemetryFromNativeResponse(response);
+
+        // If scopes not returned in server response, use request scopes
+        const responseScopes = response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
+
+        const accountProperties = response.account.properties || {};
+        const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
+        const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
         // generate PoP token as needed
         const responseAccessToken = await this.generatePopAccessToken(request, response);
@@ -388,13 +402,9 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param tenantId 
      * @param reqTimestamp 
      */
-    protected cacheAccountAndTokens(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, accountEntity: AccountEntity, idTokenObj: AuthToken, responseScopes: ScopeSet, tenantId: string, reqTimestamp: number): void{
+    protected cacheAccount(accountEntity: AccountEntity): void{
         // Store the account info and hence `nativeAccountId` in browser cache
         this.browserStorage.setAccount(accountEntity);
-
-        // Cache the access_token and id_token in inmemory storage
-        const accessToken = response.shr ? response.shr : response.access_token;
-        this.cacheNativeTokens(request, response, homeAccountIdentifier, idTokenObj, accessToken, responseScopes, result.tenantId, reqTimestamp);
 
         // Remove any existing cached tokens for this account in browser storage
         this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
@@ -413,7 +423,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @param tenantId 
      * @param reqTimestamp 
      */
-    protected cacheNativeTokens(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, responseScopes: ScopeSet, tenantId: string, reqTimestamp: number): void {
+    protected cacheNativeTokens(request: NativeTokenRequest, response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
 
         // cache idToken in inmemory storage
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
@@ -434,6 +444,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     : response.expires_in
             ) || 0;
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
+        const responseScopes = this.generateScopes(request, response);
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             homeAccountIdentifier,
             request.authority,
