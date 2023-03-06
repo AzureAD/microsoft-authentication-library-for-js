@@ -138,7 +138,7 @@ All the four options listed above can be used on any Azure Sovereign clouds. By 
 
 The acceptable values for this parameter are:
 
-- AzureCloud
+- `AzureCloud`
 - `AzureChinaCloud`
 - `AzureUSGovernment`
 
