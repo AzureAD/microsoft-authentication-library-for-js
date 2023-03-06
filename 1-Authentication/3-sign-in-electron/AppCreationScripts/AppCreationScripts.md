@@ -4,7 +4,7 @@
 
 ### Quick summary
 
-1. On Windows, run PowerShell as **Administrator** and navigate to the root of the cloned directory
+1. On Windows, run PowerShell as **Administrator** and navigate to the root of the cloned directory.
 1. In PowerShell run:
 
    ```PowerShell
