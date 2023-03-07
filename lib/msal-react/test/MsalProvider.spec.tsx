@@ -31,7 +31,7 @@ describe("MsalProvider tests", () => {
         let eventId = 0;
         pca = new PublicClientApplication(msalConfig);
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
-            eventCallbacks.push(callbackFn);
+            eventCallbacks.push(callbackFn as EventCallbackFunction);
             eventId += 1;
             return eventId.toString();
         });

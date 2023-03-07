@@ -9,7 +9,6 @@ const msalConfig = {
         storeAuthStateInCookie: false, // Set this to "true" if you are having issues on IE11 or Edge
     },
     system: {
-        allowNativeBroker: false, // Disables WAM Broker
         loggerOptions: {
             logLevel: msal.LogLevel.Trace,
             loggerCallback: (level, message, containsPii) => {

@@ -23,7 +23,7 @@ describe("withMsal tests", () => {
     beforeEach(() => {
         pca = new PublicClientApplication(msalConfig);
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
-            eventCallback = callbackFn;
+            eventCallback = callbackFn as EventCallbackFunction;
             return "callbackId";
         });
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
