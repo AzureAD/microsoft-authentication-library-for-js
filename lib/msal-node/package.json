@@ -40,9 +40,7 @@
     "prepack": "npm run build:all"
   },
   "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
