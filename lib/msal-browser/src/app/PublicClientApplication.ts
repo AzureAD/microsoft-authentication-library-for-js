@@ -17,7 +17,7 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
-import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import { BrowserConfiguration, Configuration } from "../config/Configuration";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 
 /**

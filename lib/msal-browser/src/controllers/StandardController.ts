@@ -7,7 +7,7 @@ import { IController } from "./IController";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, RequestThumbprint, ServerError, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
-import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
+import { BrowserConfiguration, CacheOptions } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy, DEFAULT_REQUEST, BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
