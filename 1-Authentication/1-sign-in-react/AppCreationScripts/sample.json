@@ -1,0 +1,54 @@
+{
+    "Sample": {
+        "Title": "React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)",
+        "Level": 100,
+        "Client": "React SPA",
+        "RepositoryUrl": "ms-identity-javascript-react-tutorial",
+        "Languages": ["javascript"],
+        "Endpoint": "AAD v2.0",
+        "Description": "React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)",
+        "products": ["azure-active-directory", "msal-js", "msal-react"],
+        "Provider": "CIAM",
+        "Platform": "javascript"
+    },
+    "AADApps": [
+        {
+            "Id": "client",
+            "Name": "msal-react-spa",
+            "Kind": "SinglePageApplication",
+            "HomePage": "http://localhost:3000/",
+            "ReplyUrls": "http://localhost:3000/, http://localhost:3000/redirect.html",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalJs",
+            "SampleSubPath": "1-Authentication\\1-sign-in-react\\SPA",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\SPA\\src\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Id_Here",
+                    "value": "$tenantId"
+                }
+            ]
+        }
+    ]
+}
