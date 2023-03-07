@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { ICacheClient } from "@azure/msal-node";
 import { RedisClientType } from "redis";
 
 /**
-* Simple persistence client helper, using Redis (node-redis). You must have redis installed 
-* on your machine and have redis server listening. Note that this is only for illustration, 
-* and you'll likely need to consider cache eviction policies and handle cache server connection 
+* Simple persistence client helper, using Redis (node-redis). You must have redis installed
+* on your machine and have redis server listening. Note that this is only for illustration,
+* and you'll likely need to consider cache eviction policies and handle cache server connection
 * issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
 */
 class RedisClientWrapper implements ICacheClient {

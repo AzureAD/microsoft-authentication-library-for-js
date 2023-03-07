@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 
 import { AppConfig } from './AuthProvider';

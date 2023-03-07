@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import jwt from "jsonwebtoken";
 import jwksClient, { JwksClient } from "jwks-rsa";
 import { TokenClaims, TimeUtils, AuthToken, StringUtils } from "@azure/msal-common";

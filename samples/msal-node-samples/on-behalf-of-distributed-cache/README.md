@@ -77,7 +77,7 @@ After that, you should see the following in your terminal:
 
 ## Remarks
 
-You can use the [auth-code-distributed-cache](ADD_RELATEIVE_LINK_HERE) sample as the client app to call this web API.
+You can use the [auth-code-distributed-cache](../auth-code-distributed-cache/) sample as the client app to call this web API.
 
 For persisting tokens using a distributed cache, web APIs using OBO flow should use the scheme `hash(oboAssertion)` as the partition key. This is shown in the `getToken` method of [AuthProvider.ts](./src/AuthProvider.ts). See also [CustomCachePlugin.ts](./src/CustomCachePlugin.ts).
 

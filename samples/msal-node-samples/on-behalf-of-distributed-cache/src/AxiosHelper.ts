@@ -1,11 +1,16 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import axios from "axios";
 
 class AxiosHelper {
 
     /**
      * Makes an Authorization Bearer request with the given accessToken to the given endpoint.
-     * @param endpoint 
-     * @param accessToken 
+     * @param endpoint
+     * @param accessToken
      */
     static async callEndpointWithToken(endpoint: string, accessToken: string | undefined): Promise<any> {
         const options = {
