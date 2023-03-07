@@ -2,8 +2,8 @@
     "extends": "./tsconfig.base.json",
     "compilerOptions": {
         "moduleResolution": "node",
-        "module": "es6",
-        "target": "es5",
+        "module": "ESNext",
+        "target": "ESNext",
         "lib": [
             "es2015",
             "dom",

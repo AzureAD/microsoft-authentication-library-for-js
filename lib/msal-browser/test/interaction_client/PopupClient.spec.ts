@@ -36,6 +36,10 @@ describe("PopupClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         //@ts-ignore
         popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
     });
@@ -130,7 +134,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", async () => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -138,6 +142,10 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -180,6 +188,10 @@ describe("PopupClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+            
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -252,6 +264,10 @@ describe("PopupClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -433,7 +449,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -441,6 +457,10 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -476,7 +496,7 @@ describe("PopupClient", () => {
         });
 
         it("includes postLogoutRedirectUri if one is passed", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -484,6 +504,10 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -503,7 +527,7 @@ describe("PopupClient", () => {
 
         it("includes postLogoutRedirectUri if one is configured", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
@@ -512,6 +536,10 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
 
@@ -526,7 +554,7 @@ describe("PopupClient", () => {
         });
 
         it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -534,6 +562,10 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -548,7 +580,7 @@ describe("PopupClient", () => {
         });
 
         it("includes logoutHint if it is set on request", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -556,6 +588,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
@@ -573,7 +608,7 @@ describe("PopupClient", () => {
         });
 
         it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -581,6 +616,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -619,7 +657,7 @@ describe("PopupClient", () => {
         });
 
         it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -627,6 +665,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -965,6 +1006,10 @@ describe("PopupClient", () => {
                     windowHashTimeout: 10
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, undefined, TEST_CONFIG.CORRELATION_ID);
 
