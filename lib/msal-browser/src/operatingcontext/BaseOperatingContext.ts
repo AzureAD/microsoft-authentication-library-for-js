@@ -70,7 +70,7 @@ export abstract class BaseOperatingContext {
         return this.available;
     }
 
-    isBrokerEnvironment(): boolean{
+    isBrowserEnvironment(): boolean{
         return this.browserEnvironment;
     }
 

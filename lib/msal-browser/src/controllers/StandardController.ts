@@ -119,12 +119,7 @@ export class StandardController implements IController {
     constructor(operatingContext: StandardOperatingContext) {
 
         this.operatingContext = operatingContext;
-        /*
-         * If loaded in an environment where window is not available,
-         * set internal flag to false so that further requests fail.
-         * This is to support server-side rendering environments.
-         */
-        this.isBrowserEnvironment = typeof window !== "undefined";
+        this.isBrowserEnvironment = this.operatingContext.isBrowserEnvironment();
         // Set the configuration.
         this.config = operatingContext.getConfig();
         this.initialized = false;
