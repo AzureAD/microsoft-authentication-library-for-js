@@ -18,7 +18,6 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
 import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
-import { version, name } from "../packageMetadata";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 
 /**
@@ -64,18 +63,8 @@ export class PublicClientApplication implements IPublicClientApplication {
         if (controller) {
             this.controller = controller;
         } else {
-
-            /*
-             * If loaded in an environment where window is not available,
-             * set internal flag to false so that further requests fail.
-             * This is to support server-side rendering environments.
-             */
-            const isBrowserEnvironment = typeof window !== "undefined";
-
-            const config = buildConfiguration(configuration, isBrowserEnvironment);
-            const logger = new Logger(config.system.loggerOptions, name, version);
-            const standardOperatingContext = new StandardOperatingContext(logger, config);
-            this.controller = new StandardController(standardOperatingContext, standardOperatingContext.getConfig());
+            const standardOperatingContext = new StandardOperatingContext(configuration);
+            this.controller = new StandardController(standardOperatingContext);
         }
     }
 

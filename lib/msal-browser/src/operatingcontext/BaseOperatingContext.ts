@@ -4,7 +4,8 @@
  */
 
 import { Logger } from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
+import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import { version, name } from "../packageMetadata";
 
 /**
  * Base class for operating context
@@ -18,10 +19,19 @@ export abstract class BaseOperatingContext {
     protected logger: Logger;
     protected config: BrowserConfiguration;
     protected available: boolean;
+    protected browserEnvironment: boolean;
 
-    constructor(logger: Logger, config: BrowserConfiguration) {
-        this.config = config;
-        this.logger = logger;
+    constructor(config: Configuration) {
+
+        /* 
+         * If loaded in an environment where window is not available,
+         * set internal flag to false so that further requests fail.
+         * This is to support server-side rendering environments.
+         */
+        this.browserEnvironment = typeof window !== "undefined";
+
+        this.config = buildConfiguration(config, this.browserEnvironment);
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
         this.available = false;
     }
 
@@ -58,6 +68,10 @@ export abstract class BaseOperatingContext {
 
     isAvailable(): boolean {
         return this.available;
+    }
+
+    isBrokerEnvironment(): boolean{
+        return this.browserEnvironment;
     }
 
 }

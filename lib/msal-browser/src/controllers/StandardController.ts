@@ -116,7 +116,7 @@ export class StandardController implements IController {
      *
      * @param configuration Object for the MSAL PublicClientApplication instance
      */
-    constructor(operatingContext: StandardOperatingContext, configuration: Configuration) {
+    constructor(operatingContext: StandardOperatingContext) {
 
         this.operatingContext = operatingContext;
         /*
@@ -126,7 +126,7 @@ export class StandardController implements IController {
          */
         this.isBrowserEnvironment = typeof window !== "undefined";
         // Set the configuration.
-        this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
+        this.config = operatingContext.getConfig();
         this.initialized = false;
 
         // Initialize logger
@@ -180,7 +180,7 @@ export class StandardController implements IController {
     }
 
     static async createController(operatingContext: BaseOperatingContext): Promise<IController> {
-        const controller = new StandardController(operatingContext, operatingContext.getConfig());
+        const controller = new StandardController(operatingContext);
         controller.initialize();
         return controller;
     }
