@@ -45,7 +45,6 @@ const MainContent = () => {
                 ) : null}
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
-                <h5 className="card-title">Please sign-in to see your profile information.</h5>
                 <Button className='signInButton' onClick={handleLoginPopup} variant="primary">
                     Sign up
                 </Button>
