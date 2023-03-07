@@ -16,6 +16,18 @@ export type NetworkResponse<T> = {
     status: number;
 };
 
+export type UrlToHttpRequestOptions = {
+    protocol: string;
+    hostname: string;
+    hash: string;
+    search: string;
+    pathname: string;
+    path: string;
+    href: string;
+    port?: number;
+    auth?: string;
+};
+
 export class NetworkManager {
     private networkClient: INetworkModule;
     private cacheManager: CacheManager;

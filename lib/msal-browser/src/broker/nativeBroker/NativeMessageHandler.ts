@@ -4,7 +4,14 @@
  */
 
 import { NativeConstants, NativeExtensionMethod } from "../../utils/BrowserConstants";
-import { Logger, AuthError, AuthenticationScheme } from "@azure/msal-common";
+import {
+    Logger,
+    AuthError,
+    AuthenticationScheme,
+    InProgressPerformanceEvent,
+    PerformanceEvents,
+    IPerformanceClient
+} from "@azure/msal-common";
 import { NativeExtensionRequest, NativeExtensionRequestBody } from "./NativeRequest";
 import { NativeAuthError } from "../../error/NativeAuthError";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
@@ -19,15 +26,17 @@ export class NativeMessageHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
-    private handshakeTimeoutMs: number;
+    private readonly handshakeTimeoutMs: number;
     private responseId: number;
     private timeoutId: number | undefined;
     private resolvers: Map<number, ResponseResolvers<object>>;
     private handshakeResolvers: Map<number, ResponseResolvers<void>>;
     private messageChannel: MessageChannel;
-    private windowListener: (event: MessageEvent) => void;
+    private readonly windowListener: (event: MessageEvent) => void;
+    private readonly performanceClient: IPerformanceClient;
+    private readonly handshakeEvent: InProgressPerformanceEvent;
 
-    constructor(logger: Logger, handshakeTimeoutMs: number, extensionId?: string) {
+    constructor(logger: Logger, handshakeTimeoutMs: number, performanceClient: IPerformanceClient, extensionId?: string) {
         this.logger = logger;
         this.handshakeTimeoutMs = handshakeTimeoutMs;
         this.extensionId = extensionId;
@@ -36,11 +45,13 @@ export class NativeMessageHandler {
         this.responseId = 0;
         this.messageChannel = new MessageChannel();
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
+        this.performanceClient = performanceClient;
+        this.handshakeEvent = performanceClient.startMeasurement(PerformanceEvents.NativeMessageHandlerHandshake);
     }
 
     /**
      * Sends a given message to the extension and resolves with the extension response
-     * @param body 
+     * @param body
      */
     async sendMessage(body: NativeExtensionRequestBody): Promise<object> {
         this.logger.trace("NativeMessageHandler - sendMessage called.");
@@ -62,18 +73,19 @@ export class NativeMessageHandler {
 
     /**
      * Returns an instance of the MessageHandler that has successfully established a connection with an extension
-     * @param logger 
-     * @param handshakeTimeoutMs
+     * @param {Logger} logger
+     * @param {number} handshakeTimeoutMs
+     * @param {IPerformanceClient} performanceClient
      */
-    static async createProvider(logger: Logger, handshakeTimeoutMs: number): Promise<NativeMessageHandler> {
+    static async createProvider(logger: Logger, handshakeTimeoutMs: number, performanceClient: IPerformanceClient): Promise<NativeMessageHandler> {
         logger.trace("NativeMessageHandler - createProvider called.");
         try {
-            const preferredProvider = new NativeMessageHandler(logger, handshakeTimeoutMs, NativeConstants.PREFERRED_EXTENSION_ID);
+            const preferredProvider = new NativeMessageHandler(logger, handshakeTimeoutMs, performanceClient, NativeConstants.PREFERRED_EXTENSION_ID);
             await preferredProvider.sendHandshakeRequest();
             return preferredProvider;
         } catch (e) {
             // If preferred extension fails for whatever reason, fallback to using any installed extension
-            const backupProvider = new NativeMessageHandler(logger, handshakeTimeoutMs);
+            const backupProvider = new NativeMessageHandler(logger, handshakeTimeoutMs, performanceClient);
             await backupProvider.sendHandshakeRequest();
             return backupProvider;
         }
@@ -91,11 +103,14 @@ export class NativeMessageHandler {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
             responseId: this.responseId++,
-
             body: {
                 method: NativeExtensionMethod.HandshakeRequest
             }
         };
+        this.handshakeEvent.addStaticFields({
+            extensionId: this.extensionId,
+            extensionHandshakeTimeoutMs: this.handshakeTimeoutMs
+        });
 
         this.messageChannel.port1.onmessage = (event) => {
             this.onChannelMessage(event);
@@ -113,6 +128,7 @@ export class NativeMessageHandler {
                 window.removeEventListener("message", this.windowListener, false);
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
+                this.handshakeEvent.endMeasurement({extensionHandshakeTimedOut: true, success: false});
                 reject(BrowserAuthError.createNativeHandshakeTimeoutError());
                 this.handshakeResolvers.delete(req.responseId);
             }, this.handshakeTimeoutMs); // Use a reasonable timeout in milliseconds here
@@ -121,7 +137,7 @@ export class NativeMessageHandler {
 
     /**
      * Invoked when a message is posted to the window. If a handshake request is received it means the extension is not installed.
-     * @param event 
+     * @param event
      */
     private onWindowMessage(event: MessageEvent): void {
         this.logger.trace("NativeMessageHandler - onWindowMessage called");
@@ -149,6 +165,7 @@ export class NativeMessageHandler {
             window.removeEventListener("message", this.windowListener, false);
             const handshakeResolver = this.handshakeResolvers.get(request.responseId);
             if (handshakeResolver) {
+                this.handshakeEvent.endMeasurement({success: false, extensionInstalled: false});
                 handshakeResolver.reject(BrowserAuthError.createNativeExtensionNotInstalledError());
             }
         }
@@ -156,18 +173,18 @@ export class NativeMessageHandler {
 
     /**
      * Invoked when a message is received from the extension on the MessageChannel port
-     * @param event 
+     * @param event
      */
     private onChannelMessage(event: MessageEvent): void {
         this.logger.trace("NativeMessageHandler - onChannelMessage called.");
         const request = event.data;
-        
+
         const resolver = this.resolvers.get(request.responseId);
         const handshakeResolver = this.handshakeResolvers.get(request.responseId);
 
         try {
             const method = request.body.method;
-            
+
             if (method === NativeExtensionMethod.Response) {
                 if (!resolver) {
                     return;
@@ -196,10 +213,11 @@ export class NativeMessageHandler {
                 this.extensionId = request.extensionId;
                 this.extensionVersion = request.body.version;
                 this.logger.verbose(`NativeMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
+                this.handshakeEvent.endMeasurement({extensionInstalled: true, success: true});
 
                 handshakeResolver.resolve();
                 this.handshakeResolvers.delete(request.responseId);
-            } 
+            }
             // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
             this.logger.error("Error parsing response from WAM Extension");
@@ -216,7 +234,7 @@ export class NativeMessageHandler {
 
     /**
      * Returns the Id for the browser extension this handler is communicating with
-     * @returns 
+     * @returns
      */
     getExtensionId(): string | undefined {
         return this.extensionId;
@@ -224,18 +242,18 @@ export class NativeMessageHandler {
 
     /**
      * Returns the version for the browser extension this handler is communicating with
-     * @returns 
+     * @returns
      */
     getExtensionVersion(): string | undefined {
         return this.extensionVersion;
     }
-    
+
     /**
      * Returns boolean indicating whether or not the request should attempt to use native broker
      * @param logger
      * @param config
      * @param nativeExtensionProvider
-     * @param authenticationScheme 
+     * @param authenticationScheme
      */
     static isNativeAvailable(config: BrowserConfiguration, logger: Logger, nativeExtensionProvider?: NativeMessageHandler, authenticationScheme?: AuthenticationScheme): boolean {
         logger.trace("isNativeAvailable called");
@@ -265,4 +283,4 @@ export class NativeMessageHandler {
 
         return true;
     }
-} 
+}

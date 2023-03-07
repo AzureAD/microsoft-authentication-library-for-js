@@ -104,6 +104,10 @@ export default class Main {
         Main.fetchManager = new FetchManager();
         Main.registerSubscriptions();
         Main.attemptSSOSilent();
+
+        if (process.env.automation >= "1") {
+            Main.authProvider.publishForTest = Main.publish;
+        }
     }
 
     private static onClose(): void {

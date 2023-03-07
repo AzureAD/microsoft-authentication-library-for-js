@@ -170,16 +170,22 @@ export abstract class ClientApplication {
             this.logger.info("initialize has already been called, exiting early.");
             return;
         }
+
+        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const initMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.InitializeClientApplication);
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
-        if (this.config.system.allowNativeBroker) {
+
+        if (allowNativeBroker) {
             try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
                 this.logger.verbose(e);
             }
         }
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+
+        initMeasurement.endMeasurement({allowNativeBroker, success: true});
     }
 
     // #region Redirect Flow
@@ -357,7 +363,6 @@ export abstract class ClientApplication {
                     isNativeBroker: true,
                     requestId: response.requestId
                 });
-                atPopupMeasurement.flushMeasurement();
                 return response;
             }).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
@@ -397,8 +402,6 @@ export abstract class ClientApplication {
                 success: true,
                 requestId: result.requestId
             });
-
-            atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e: AuthError) => {
             if (loggedInAccounts.length > 0) {
@@ -412,8 +415,6 @@ export abstract class ClientApplication {
                 subErrorCode: e.subError,
                 success: false
             });
-            atPopupMeasurement.flushMeasurement();
-
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         });
@@ -494,7 +495,6 @@ export abstract class ClientApplication {
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            this.ssoSilentMeasurement?.flushMeasurement();
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
@@ -503,7 +503,6 @@ export abstract class ClientApplication {
                 subErrorCode: e.subError,
                 success: false
             });
-            this.ssoSilentMeasurement?.flushMeasurement();
             throw e;
         }).finally(() => {
             document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
@@ -529,7 +528,11 @@ export abstract class ClientApplication {
         const atbcMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
-            if (request.code) {
+            if (request.code && request.nativeAccountId) {
+                // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
+                throw BrowserAuthError.createSpaCodeAndNativeAccountIdPresentError();
+            }
+            else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
                 if (!response) {
@@ -550,7 +553,6 @@ export abstract class ClientApplication {
                                 isNativeBroker: result.fromNativeBroker,
                                 requestId: result.requestId
                             });
-                            atbcMeasurement.flushMeasurement();
                             return result;
                         })
                         .catch((error: AuthError) => {
@@ -561,15 +563,11 @@ export abstract class ClientApplication {
                                 subErrorCode: error.subError,
                                 success: false
                             });
-                            atbcMeasurement.flushMeasurement();
                             throw error;
                         });
                     this.hybridAuthCodeResponses.set(hybridAuthCode, response);
                 } else {
                     this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                    atbcMeasurement.endMeasurement({
-                        success: true
-                    });
                     atbcMeasurement.discardMeasurement();
                 }
                 return response;
