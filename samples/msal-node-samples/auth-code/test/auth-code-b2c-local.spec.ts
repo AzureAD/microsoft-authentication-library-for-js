@@ -4,7 +4,13 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials, b2cLocalAccountEnterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {
+    Screenshot,
+    createFolder,
+    setupCredentials,
+    b2cLocalAccountEnterCredentials,
+    RETRY_TIMES
+} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
@@ -30,7 +36,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/B2C-Local.json");
 
 describe("Auth Code B2C Tests (local account)", () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;

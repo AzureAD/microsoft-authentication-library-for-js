@@ -1,7 +1,6 @@
 import * as path from 'path';
 
-import { ElectronApplication, Page, _electron as electron } from "playwright";
-import { test, expect, } from "@playwright/test";
+import { ElectronApplication, Page, _electron as electron, test, expect } from "@playwright/test";
 
 import { setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -25,7 +24,7 @@ import config from '../src/config/AAD.json';
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/aad.cache.json`;
 
-test.describe('Electron Auth Code AAD PPE Tests ', () => {
+test.describe('Electron Auth Code AAD Prod Tests ', () => {
     let electronApp: ElectronApplication;
     let page: Page;
 
@@ -38,7 +37,7 @@ test.describe('Electron Auth Code AAD PPE Tests ', () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 

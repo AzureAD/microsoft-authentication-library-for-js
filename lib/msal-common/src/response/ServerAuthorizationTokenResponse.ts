@@ -38,6 +38,7 @@ export type ServerAuthorizationTokenResponse = {
     client_info?: string;
     foci?: string;
     spa_code?: string;
+    spa_accountid?: string;
     key_id?: string;
     // Error
     error?: string;
@@ -47,4 +48,5 @@ export type ServerAuthorizationTokenResponse = {
     timestamp?: string;
     trace_id?: string;
     correlation_id?: string;
+    claims?: string;
 };

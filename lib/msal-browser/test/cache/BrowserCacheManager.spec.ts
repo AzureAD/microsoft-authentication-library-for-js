@@ -7,13 +7,12 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, ClientAuthError, AuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, AuthError, ClientAuthErrorMessage } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
-import { ClientAuthErrorMessage } from "@azure/msal-common";
 
 describe("BrowserCacheManager tests", () => {
 
@@ -121,7 +120,7 @@ describe("BrowserCacheManager tests", () => {
                 authorityMetadata: "",
                 cloudDiscoveryMetadata: "",
                 knownAuthorities: []
-            });
+            }, logger);
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -619,6 +618,19 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getThrottlingCache(testKey)).toEqual(testVal);
                     expect(browserLocalStorage.getThrottlingCache(testKey)).toBeInstanceOf(ThrottlingEntity);
                 });
+            });
+
+            describe("RedirectRequestContext", () => {
+                it("Returns redirect request context as null if context not set in browser cache", () => {
+                    expect(browserSessionStorage.getRedirectRequestContext()).toEqual(null);
+                });
+    
+                it("Returns redirect request context if context set in browser cache", () => {
+                    const testVal = "testId";
+                    browserSessionStorage.setRedirectRequestContext(testVal);
+                    expect(browserSessionStorage.getRedirectRequestContext()).toEqual(testVal);
+                });
+    
             });
         });
     });

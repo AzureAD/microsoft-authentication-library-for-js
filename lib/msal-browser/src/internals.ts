@@ -18,6 +18,7 @@ export { PopupClient } from "./interaction_client/PopupClient";
 export { SilentIframeClient } from "./interaction_client/SilentIframeClient";
 export { SilentCacheClient } from "./interaction_client/SilentCacheClient";
 export { SilentRefreshClient } from "./interaction_client/SilentRefreshClient";
+export { NativeInteractionClient } from "./interaction_client/NativeInteractionClient";
 
 // Handlers
 export { RedirectHandler } from "./interaction_handler/RedirectHandler";
@@ -27,3 +28,17 @@ export { NativeMessageHandler } from "./broker/nativeBroker/NativeMessageHandler
 // Utilities
 export { BrowserStateObject } from "./utils/BrowserProtocolUtils";
 export { BrowserConstants, TemporaryCacheKeys } from "./utils/BrowserConstants";
+
+// Crypto
+export { CryptoOps } from "./crypto/CryptoOps";
+
+// Browser Errors
+export { NativeAuthError } from "./error/NativeAuthError";
+
+// Telemetry
+export { BrowserPerformanceClient } from "./telemetry/BrowserPerformanceClient";
+export { BrowserPerformanceMeasurement } from "./telemetry/BrowserPerformanceMeasurement";
+
+// Native request and response
+export { NativeTokenRequest } from "./broker/nativeBroker/NativeRequest";
+export { NativeResponse, MATS } from "./broker/nativeBroker/NativeResponse";

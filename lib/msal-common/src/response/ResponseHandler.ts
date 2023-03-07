@@ -32,6 +32,8 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 /**
  * Class that handles response parsing.
@@ -44,14 +46,16 @@ export class ResponseHandler {
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
+    private performanceClient?: IPerformanceClient;
 
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null, performanceClient?: IPerformanceClient) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
         this.logger = logger;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
+        this.performanceClient = performanceClient;
     }
 
     /**
@@ -73,7 +77,15 @@ export class ResponseHandler {
         // Check for error
         if (serverResponseHash.error || serverResponseHash.error_description || serverResponseHash.suberror) {
             if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponseHash.error, serverResponseHash.error_description, serverResponseHash.suberror)) {
-                throw new InteractionRequiredAuthError(serverResponseHash.error || Constants.EMPTY_STRING, serverResponseHash.error_description, serverResponseHash.suberror);
+                throw new InteractionRequiredAuthError(
+                    serverResponseHash.error || Constants.EMPTY_STRING,
+                    serverResponseHash.error_description,
+                    serverResponseHash.suberror,
+                    serverResponseHash.timestamp || Constants.EMPTY_STRING,
+                    serverResponseHash.trace_id || Constants.EMPTY_STRING,
+                    serverResponseHash.correlation_id || Constants.EMPTY_STRING,
+                    serverResponseHash.claims || Constants.EMPTY_STRING,
+                );
             }
 
             throw new ServerError(serverResponseHash.error || Constants.EMPTY_STRING, serverResponseHash.error_description, serverResponseHash.suberror);
@@ -92,7 +104,15 @@ export class ResponseHandler {
         // Check for error
         if (serverResponse.error || serverResponse.error_description || serverResponse.suberror) {
             if (InteractionRequiredAuthError.isInteractionRequiredError(serverResponse.error, serverResponse.error_description, serverResponse.suberror)) {
-                throw new InteractionRequiredAuthError(serverResponse.error, serverResponse.error_description, serverResponse.suberror);
+                throw new InteractionRequiredAuthError(
+                    serverResponse.error,
+                    serverResponse.error_description,
+                    serverResponse.suberror,
+                    serverResponse.timestamp || Constants.EMPTY_STRING,
+                    serverResponse.trace_id || Constants.EMPTY_STRING,
+                    serverResponse.correlation_id || Constants.EMPTY_STRING,
+                    serverResponse.claims || Constants.EMPTY_STRING,
+                );
             }
 
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
@@ -115,6 +135,7 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean,
         forceCacheRefreshTokenResponse?: boolean,
         serverRequestId?: string): Promise<AuthenticationResult> {
+        this.performanceClient?.addQueueMeasurement(PerformanceEvents.HandleServerTokenResponse, serverTokenResponse.correlation_id);
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
@@ -180,7 +201,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code, serverRequestId);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse, serverRequestId);
     }
 
     /**
@@ -320,8 +341,8 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
-        code?: string,
-        requestId?: string
+        serverTokenResponse?: ServerAuthorizationTokenResponse,
+        requestId?: string,
     ): Promise<AuthenticationResult> {
         let accessToken: string = Constants.EMPTY_STRING;
         let responseScopes: Array<string> = [];
@@ -353,6 +374,11 @@ export class ResponseHandler {
         const uid = idTokenObj?.claims.oid || idTokenObj?.claims.sub || Constants.EMPTY_STRING;
         const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
 
+        // for hybrid + native bridge enablement, send back the native account Id
+        if(serverTokenResponse?.spa_accountid && !!cacheRecord.account){
+            cacheRecord.account.nativeAccountId = serverTokenResponse?.spa_accountid;
+        }
+
         return {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
@@ -372,8 +398,8 @@ export class ResponseHandler {
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
-            code,
-            fromNativeBroker: false
+            code: serverTokenResponse?.spa_code,
+            fromNativeBroker: false,
         };
     }
 }

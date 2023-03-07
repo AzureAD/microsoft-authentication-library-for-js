@@ -60,3 +60,8 @@ export enum Platform {
     LINUX = "linux",
     MACOS = "darwin"
 }
+
+export enum ErrorCodes {
+    INTERATION_REQUIRED_ERROR_CODE = "interaction_required",
+    SERVER_UNAVAILABLE = "server_unavailable"
+}

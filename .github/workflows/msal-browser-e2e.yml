@@ -1,22 +1,22 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Will not trigger unless PR is ready for review.
 
 name: msal-browser E2E Tests
 
 on:
-  push:
-    branches: 
-      - dev
-      - master
   pull_request:
-    paths: 
-      - 'lib/msal-browser/**/*' 
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - 'samples/e2eTestUtils/**/*'
       - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-browser-e2e.yml'
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: browser-e2e-${{github.ref}}
@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))  && !github.event.pull_request.draft
     runs-on: ubuntu-latest
 
     steps:
@@ -54,8 +54,10 @@ jobs:
     - name: Restore node_modules for test tools
       uses: actions/cache@v3
       id: test-tools-cache
-      with: 
-        path: samples/node_modules
+      with:
+        path: |
+          samples/node_modules
+          samples/.cache/puppeteer
         key: ${{ runner.os }}-browser-test-tools-${{ hashFiles('samples/package-lock.json') }}
 
     - name: Install Test Tools
@@ -66,7 +68,7 @@ jobs:
     - name: Restore node_modules for sample
       uses: actions/cache@v3
       id: sample-cache
-      with: 
+      with:
         path: samples/msal-browser-samples/VanillaJSTestApp2.0/node_modules
         key: ${{ runner.os }}-browser-sample-${{ hashFiles('samples/msal-browser-samples/VanillaJSTestApp2.0/package.json', 'samples/package-lock.json') }}
 

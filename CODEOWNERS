@@ -1,27 +1,27 @@
-* @jasonnutter @tnorling @sameerag @jo-arroyo @hectormmg @bmahall @peterzenz @bgavrilMS
+* @tnorling @sameerag @jo-arroyo @hectormmg @lalimasharda @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft
 
 # MSAL Angular
-/lib/msal-angular/ @jasonnutter @jo-arroyo @tnorling @peterzenz
-/maintenance/msal-angularjs/ @jasonnutter @jo-arroyo @tnorling @peterzenz
-/samples/msal-angular-samples/ @jasonnutter @jo-arroyo @tnorling @peterzenz
-/samples/msal-angular-v2-samples/ @jasonnutter @jo-arroyo @tnorling @peterzenz
-/samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo @tnorling @peterzenz
+/lib/msal-angular/ @jo-arroyo @tnorling @peterzenz
+/maintenance/msal-angularjs/ @jo-arroyo @tnorling @peterzenz
+/samples/msal-angular-samples/ @derisen @jo-arroyo @tnorling @peterzenz
+/samples/msal-angular-v2-samples/ @derisen @jo-arroyo @tnorling @peterzenz
+/samples/msal-angularjs-samples/ @derisen @jo-arroyo @tnorling @peterzenz
 
 # MSAL Browser
-/lib/msal-browser/ @jasonnutter @tnorling @peterzenz
-/samples/msal-browser-samples/ @jasonnutter @tnorling @peterzenz
+/lib/msal-browser/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
+/samples/msal-browser-samples/ @derisen @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
 
 # MSAL Common
-/lib/msal-common/ @sameerag @tnorling @peterzenz @bgavrilMS
+/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft
 
 # MSAL Core
-/lib/msal-core/ @jasonnutter @sameerag @tnorling @peterzenz
-/samples/msal-core-samples/ @jasonnutter @sameerag @tnorling @peterzenz
+/lib/msal-core/ @sameerag @tnorling @peterzenz
+/samples/msal-core-samples/ @derisen @sameerag @tnorling @peterzenz
 
 # MSAL Node
-/lib/msal-node/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur @bgavrilMS
-/samples/msal-node-samples/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur @bgavrilMS
-/extensions/msal-node-extensions/ @sameerag @hectormmg @bmahall @peterzenz @jennyf19 @jmprieur @bgavrilMS
+/lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
+/samples/msal-node-samples/ @derisen @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
+/extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS
 
 # ADAL Node
 /maintenance/adal-node @sameerag @peterzenz @bgavrilMS
@@ -30,20 +30,21 @@
 /maintenance/passport-azure-ad @jennyf19 @jmprieur @bgavrilMS
 
 # MSAL React
-/lib/msal-react/ @tnorling @jasonnutter @jo-arroyo @peterzenz
-/samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo @peterzenz
+/lib/msal-react/ @tnorling @jo-arroyo @peterzenz
+/samples/msal-react-samples/ @derisen @tnorling @jo-arroyo @peterzenz
 
 # Node Token Validation
 /lib/node-token-validation @jennyf19 @jmprieur @bgavrilMS
 /samples/node-token-validation @jennyf19 @jmprieur @bgavrilMS
 
 ## ADAL.js
-/maintenance/adal-angular @jasonnutter @sameerag @peterzenz
+/maintenance/adal-angular @sameerag @peterzenz
 
 # Build
-/build/ @jasonnutter @tnorling @bmahall @peterzenz
-/release-scripts/ @jasonnutter @tnorling @bmahall @peterzenz
-/.github/ @jasonnutter @tnorling @bmahall @peterzenz
+/build/ @sameerag @tnorling @hectormmg @peterzenz
+/release-scripts/ @sameerag @tnorling @hectormmg @peterzenz
+/.github/ @sameerag @tnorling @hectormmg @peterzenz
+/.pipelines/ @hectormmg @tnorling @peterzenz
 
 # Filepaths to ignore
 /change/

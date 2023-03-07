@@ -13,7 +13,7 @@ export type EventMessage = {
 };
 ```
 
-The payload and error in `EventMessage` are defined as follows: 
+The payload and error in `EventMessage` are defined as follows:
 ```javascript
 export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
 
@@ -32,7 +32,7 @@ this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
 ```
 
 ## How to use the event API
-Msal-browser exports the `addEventCallback` function which takes in a callback function and can be used to process emitted events. 
+Msal-browser exports the `addEventCallback` function which takes in a callback function and can be used to process emitted events.
 
 Here is an example of how you could consume the emitted events in your application:
 ```javascript
@@ -50,7 +50,7 @@ msalInstance.removeEventCallback(callbackId);
 ```
 
 ### Handling errors
-Due to the way `EventError` is defined, handling errors emitted with an event may require validating that the error is of the correct type before accessing specific properties on the emitted error. The error can be cast to `AuthError` or checked that it is an instance of `AuthError`. 
+Due to the way `EventError` is defined, handling errors emitted with an event may require validating that the error is of the correct type before accessing specific properties on the emitted error. The error can be cast to `AuthError` or checked that it is an instance of `AuthError`.
 
 Here is an example of consuming an emitted event and casting the error:
 
@@ -62,6 +62,22 @@ const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
             // Do something with the error
         }
      }
+});
+```
+
+### Getting interaction status from events
+You can get the current interaction status from events by using the [getInteractionStatusFromEvent](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.eventmessageutils.html#getinteractionstatusfromevent) API:
+
+Here is an example of displaying a message when there are no interactions in progress:
+
+```javascript
+const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
+    const status = EventMessageUtils.getInteractionStatusFromEvent(message);
+
+    // Update UI or interact with EventMessage here
+    if (status === InteractionStatus.None) {
+        console.log(message.payload);
+    }
 });
 ```
 

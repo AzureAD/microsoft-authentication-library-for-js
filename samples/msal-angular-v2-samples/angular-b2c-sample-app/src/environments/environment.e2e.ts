@@ -17,15 +17,15 @@ export const environment = {
         },
         authorities: {
             signUpSignIn: {
-                authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy"
+                authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_SISOPolicy"
             },
             resetPassword: {
-                authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_PasswordResetPolicy"
+                authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_PasswordResetPolicy"
             },
             editProfile: {
-                authority: "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/B2C_1_ProfileEditPolicy"
+                authority: "https://msidlabb2c.b2clogin.com/msidlabb2c.onmicrosoft.com/B2C_1_ProfileEditPolicy"
             }
         },
-        authorityDomain: "login.microsoftonline.com"
+        authorityDomain: "msidlabb2c.b2clogin.com"
     }
 };

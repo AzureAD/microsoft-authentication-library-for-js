@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.4.9",
+  "version": "1.5.4",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -29,7 +29,7 @@
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:modules:watch": "tsdx watch --verbose --tsconfig ./tsconfig.build.json",
-    "test": "tsdx test .*.spec.*",
+    "test": "tsdx test .*MsalAuthenticationTemplate.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "cd ../../ && npm run lint:react",
@@ -41,25 +41,24 @@
     "prepack": "npm run build:all"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.30.0",
+    "@azure/msal-browser": "^2.34.0",
     "react": "^16.8.0 || ^17 || ^18"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.30.0",
+    "@azure/msal-browser": "^2.34.0",
     "@testing-library/jest-dom": "^5.11.5",
-    "@testing-library/react": "^11.2.3",
+    "@testing-library/react": "^13.4.0",
     "@types/jest": "^27.0.0",
     "@types/react": "^17.0.2",
     "@types/react-dom": "^17.0.2",
     "jest": "^27.0.4",
     "jest-environment-jsdom-fifteen": "^1.0.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
     "ts-jest": "^27.0.2",
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
-  },
-  "dependencies": {}
+  }
 }

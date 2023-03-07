@@ -42,6 +42,37 @@ export class CredentialEntity {
     keyId?: string;
     requestedClaimsHash?: string;
 
+    /*
+     * Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", https://localhost:5000,
+     * "login.microsoftonline.com/common", "login.microsoftonline.com:4000/common", etc
+     */
+    private static credentialDomainRegex = "(https?:\\/\\/)?((([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63})))|(localhost))(\\:[0-9]{4,5})?(\\/[\\w-]+)?";
+    // Maps {CredentialType} to the corresponding regular expression.
+    private static credentialRegexMap: Map<CredentialType, RegExp>;
+
+    /**
+     * Initializes a map with credential {CredentialType} regular expressions.
+     */
+    static _initRegex(): void {
+        const separator = Separators.CACHE_KEY_SEPARATOR;
+        CredentialEntity.credentialRegexMap = new Map<CredentialType, RegExp>();
+        for (const credKey of Object.keys(CredentialType)) {
+            const credVal = CredentialType[credKey].toLowerCase();
+
+            try {
+                // Verify credential type is preceded by a valid host name (environment) using lookbehind
+                CredentialEntity.credentialRegexMap.set(
+                    CredentialType[credKey],
+                    new RegExp(`(?<=${separator}${CredentialEntity.credentialDomainRegex})${separator}${credVal}${separator}`));
+            } catch (err) {
+                // Lookbehind is not supported (Safari or older versions of IE) - removing it
+                CredentialEntity.credentialRegexMap.set(
+                    CredentialType[credKey],
+                    new RegExp(`${separator}${CredentialEntity.credentialDomainRegex}${separator}${credVal}${separator}`));
+            }
+        }
+    }
+
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
      */
@@ -108,17 +139,10 @@ export class CredentialEntity {
      * @param key
      */
     static getCredentialType(key: string): string {
-        // First keyword search will match all "AccessToken" and "AccessToken_With_AuthScheme" credentials
-        if (key.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) !== -1) {
-            // Perform second search to differentiate between "AccessToken" and "AccessToken_With_AuthScheme" credential types
-            if (key.indexOf(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) !== -1) {
-                return CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+        for (const credKey of Object.keys(CredentialType)) {
+            if (this.credentialRegexMap.get(CredentialType[credKey])?.test(key.toLowerCase())) {
+                return CredentialType[credKey];
             }
-            return CredentialType.ACCESS_TOKEN;
-        } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
-            return CredentialType.ID_TOKEN;
-        } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
-            return CredentialType.REFRESH_TOKEN;
         }
 
         return Constants.NOT_DEFINED;
@@ -214,3 +238,5 @@ export class CredentialEntity {
         return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
     }
 }
+
+CredentialEntity._initRegex();

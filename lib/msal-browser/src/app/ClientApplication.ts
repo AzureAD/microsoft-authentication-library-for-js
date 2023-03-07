@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError } from "@azure/msal-common";
+import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
@@ -83,6 +83,8 @@ export abstract class ClientApplication {
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
 
+    private ssoSilentMeasurement?: InProgressPerformanceEvent;
+    private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -155,6 +157,8 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+        // Register listener functions
+        this.trackPageVisibilityWithMeasurement = this.trackPageVisibilityWithMeasurement.bind(this);
     }
 
     /**
@@ -166,16 +170,22 @@ export abstract class ClientApplication {
             this.logger.info("initialize has already been called, exiting early.");
             return;
         }
+
+        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const initMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.InitializeClientApplication);
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
-        if (this.config.system.allowNativeBroker) {
+
+        if (allowNativeBroker) {
             try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
                 this.logger.verbose(e);
             }
         }
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+
+        initMeasurement.endMeasurement({allowNativeBroker, success: true});
     }
 
     // #region Redirect Flow
@@ -351,11 +361,8 @@ export abstract class ClientApplication {
                 atPopupMeasurement.endMeasurement({
                     success: true,
                     isNativeBroker: true,
-                    accessTokenSize: response.accessToken.length,
-                    idTokenSize: response.idToken.length,
                     requestId: response.requestId
                 });
-                atPopupMeasurement.flushMeasurement();
                 return response;
             }).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
@@ -387,14 +394,14 @@ export abstract class ClientApplication {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
             }
 
+            atPopupMeasurement.addStaticFields({
+                accessTokenSize: result.accessToken.length,
+                idTokenSize: result.idToken.length
+            });
             atPopupMeasurement.endMeasurement({
                 success: true,
-                accessTokenSize: result.accessToken.length,
-                idTokenSize: result.idToken.length,
                 requestId: result.requestId
             });
-
-            atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e: AuthError) => {
             if (loggedInAccounts.length > 0) {
@@ -408,13 +415,22 @@ export abstract class ClientApplication {
                 subErrorCode: e.subError,
                 success: false
             });
-            atPopupMeasurement.flushMeasurement();
-
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         });
     }
 
+    private trackPageVisibilityWithMeasurement():void {
+        const measurement = this.ssoSilentMeasurement || this.acquireTokenByCodeAsyncMeasurement;
+        if(!measurement) {
+            return;
+        }
+
+        this.logger.info("Perf: Visibility change detected in ", measurement.event.name);
+        measurement.increment({
+            visibilityChangeCount: 1,
+        });
+    }
     // #endregion
 
     // #region Silent Flow
@@ -443,7 +459,11 @@ export abstract class ClientApplication {
             correlationId: correlationId
         };
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        const ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.SsoSilent, correlationId);
+        this.ssoSilentMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
@@ -466,25 +486,28 @@ export abstract class ClientApplication {
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
-            ssoSilentMeasurement.endMeasurement({
+            this.ssoSilentMeasurement?.addStaticFields({
+                accessTokenSize: response.accessToken.length,
+                idTokenSize: response.idToken.length
+            });
+            this.ssoSilentMeasurement?.endMeasurement({
                 success: true,
                 isNativeBroker: response.fromNativeBroker,
-                accessTokenSize: response.accessToken.length,
-                idTokenSize: response.idToken.length,
                 requestId: response.requestId
             });
-            ssoSilentMeasurement.flushMeasurement();
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
-            ssoSilentMeasurement.endMeasurement({
+            this.ssoSilentMeasurement?.endMeasurement({
                 errorCode: e.errorCode,
                 subErrorCode: e.subError,
                 success: false
             });
-            ssoSilentMeasurement.flushMeasurement();
             throw e;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         });
+
     }
 
     /**
@@ -505,7 +528,11 @@ export abstract class ClientApplication {
         const atbcMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
-            if (request.code) {
+            if (request.code && request.nativeAccountId) {
+                // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
+                throw BrowserAuthError.createSpaCodeAndNativeAccountIdPresentError();
+            }
+            else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
                 if (!response) {
@@ -517,14 +544,15 @@ export abstract class ClientApplication {
                         .then((result: AuthenticationResult) => {
                             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                             this.hybridAuthCodeResponses.delete(hybridAuthCode);
+                            atbcMeasurement.addStaticFields({
+                                accessTokenSize: result.accessToken.length,
+                                idTokenSize: result.idToken.length
+                            });
                             atbcMeasurement.endMeasurement({
                                 success: true,
-                                accessTokenSize: result.accessToken.length,
-                                idTokenSize: result.idToken.length,
                                 isNativeBroker: result.fromNativeBroker,
                                 requestId: result.requestId
                             });
-                            atbcMeasurement.flushMeasurement();
                             return result;
                         })
                         .catch((error: AuthError) => {
@@ -535,15 +563,11 @@ export abstract class ClientApplication {
                                 subErrorCode: error.subError,
                                 success: false
                             });
-                            atbcMeasurement.flushMeasurement();
                             throw error;
                         });
                     this.hybridAuthCodeResponses.set(hybridAuthCode, response);
                 } else {
                     this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                    atbcMeasurement.endMeasurement({
-                        success: true
-                    });
                     atbcMeasurement.discardMeasurement();
                 }
                 return response;
@@ -581,8 +605,30 @@ export abstract class ClientApplication {
      */
     private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCodeAsync, request.correlationId);
+        this.acquireTokenByCodeAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
-        const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+        const silentTokenResult = await silentAuthCodeClient.acquireToken(request).then((response) => {
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                success: true,
+                fromCache: response.fromCache,
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
+            });
+            return response;
+        }).catch((tokenRenewalError: AuthError) => {
+            this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
+                errorCode: tokenRenewalError.errorCode,
+                subErrorCode: tokenRenewalError.subError,
+                success: false
+            });
+            throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+        });
         return silentTokenResult;
     }
 
@@ -598,6 +644,7 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
@@ -618,12 +665,15 @@ export abstract class ClientApplication {
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId);
         switch(silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
             case CacheLookupPolicy.RefreshToken:
             case CacheLookupPolicy.RefreshTokenAndNetwork:
                 const silentRefreshClient = this.createSilentRefreshClient(commonRequest.correlationId);
+
+                this.performanceClient.setPreQueueTime(PerformanceEvents.SilentRefreshClientAcquireToken, commonRequest.correlationId);
                 return silentRefreshClient.acquireToken(commonRequest);
             default:
                 throw ClientAuthError.createRefreshRequiredError();
@@ -638,7 +688,11 @@ export abstract class ClientApplication {
     protected async acquireTokenBySilentIframe(
         request: CommonSilentFlowRequest
     ): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenBySilentIframe, request.correlationId);
+
         const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+
+        this.performanceClient.setPreQueueTime(PerformanceEvents.SilentIframeClientAcquireToken, request.correlationId);
         return silentIframeClient.acquireToken(request);
     }
 

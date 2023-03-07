@@ -1,6 +1,6 @@
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
-import { retrieveAppConfiguration } from "../../../e2eTestUtils/TestUtils";
+import {RETRY_TIMES, retrieveAppConfiguration} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { validateCacheLocation } from "../../testUtils";
 import { ConfidentialClientApplication } from "../../../../lib/msal-node/";
@@ -18,8 +18,8 @@ let authority;
 
 const clientCredentialRequestScopes = ["https://graph.microsoft.com/.default"];
 
-describe('Client Credentials AAD PPE Tests', () => {
-    jest.retryTimes(1);
+describe('Client Credentials AAD Prod Tests', () => {
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
     beforeAll(async () => {
@@ -41,7 +41,7 @@ describe('Client Credentials AAD PPE Tests', () => {
         config.authOptions.clientSecret = clientSecret;
         config.authOptions.authority = authority;
     });
-    
+
     describe("Acquire Token", () => {
         let confidentialClientApplication: ConfidentialClientApplication;
         let server: any;

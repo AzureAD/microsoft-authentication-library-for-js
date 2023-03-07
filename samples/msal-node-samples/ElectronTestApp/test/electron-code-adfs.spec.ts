@@ -1,7 +1,6 @@
 import * as path from 'path';
 
-import { ElectronApplication, Page, _electron as electron } from "playwright";
-import { test, expect, } from "@playwright/test";
+import { ElectronApplication, Page, _electron as electron, test, expect } from "@playwright/test";
 
 import { setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -25,7 +24,7 @@ import config from '../src/config/ADFS.json';
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/adfs.cache.json`;
 
-test.describe('Electron Auth Code ADFS 2019 PPE Tests ', () => {
+test.describe('Electron Auth Code ADFS 2019 Tests ', () => {
     let electronApp: ElectronApplication;
     let page: Page;
 

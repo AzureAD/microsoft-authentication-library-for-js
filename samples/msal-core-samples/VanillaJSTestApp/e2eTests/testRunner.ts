@@ -65,13 +65,13 @@ function runMochaTests(sampleIndex: number) {
 
     // Set the front-end folder to serve public assets.
     app.use("/dist", express.static(path.join(PARENT_DIR, "../../../lib/msal-core/dist")));
-    
+
     let sampleName = sampleFolders[sampleIndex];
     const mocha = createMochaObject(sampleName);
     app.use(express.static(`${APP_DIR}/${sampleName}`));
 
     // Set up a route for index.html.
-    app.get('*', function (req, res) {
+    app.get('*', function (req: any, res: any) {
         res.sendFile(path.join(`${APP_DIR}/${sampleName}/index.html`));
     });
 

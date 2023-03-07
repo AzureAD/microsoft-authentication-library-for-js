@@ -1,38 +1,32 @@
-import "mocha";
-import puppeteer from "puppeteer";
-import { expect } from "chai";
+import * as puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, storagePoller, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
-import { JWK, JWT } from "jose";
+import { JWT } from "jose";
+import {getBrowser, getHomeUrl} from "../../testUtils";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-const SAMPLE_HOME_URL = "http://localhost:30662/";
+let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
 
 describe("Browser tests", function () {
-    this.timeout(0);
-    this.retries(1);
-
     let browser: puppeteer.Browser;
-    before(async () => {
+    beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
+
+        browser = await getBrowser();
+        sampleHomeUrl = getHomeUrl();
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-        
-        browser = await puppeteer.launch({
-            headless: true,
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
-        });
     });
 
     let context: puppeteer.BrowserContext;
@@ -43,14 +37,14 @@ describe("Browser tests", function () {
         page = await context.newPage();
         page.setDefaultTimeout(ONE_SECOND_IN_MS*5);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
-        await page.goto(SAMPLE_HOME_URL);
+        await page.goto(sampleHomeUrl);
     });
 
     afterEach(async () => {
         await page.close();
     });
 
-    after(async () => {
+    afterAll(async () => {
         await context.close();
         await browser.close();
     });
@@ -83,18 +77,18 @@ describe("Browser tests", function () {
 
         // Check token
         const tokenStore = await BrowserCache.getTokens();
-        expect(tokenStore.idTokens).to.be.length(1);
-        expect(tokenStore.accessTokens).to.be.length(1);
-        expect(tokenStore.refreshTokens).to.be.length(1);
+        expect(tokenStore.idTokens).toHaveLength(1);
+        expect(tokenStore.accessTokens).toHaveLength(1);
+        expect(tokenStore.refreshTokens).toHaveLength(1);
         const cachedAccount = await BrowserCache.getAccountFromCache(tokenStore.idTokens[0]);
         const defaultCachedToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
-        expect(cachedAccount).to.not.be.null;
-        expect(defaultCachedToken).to.be.true;
-        
+        expect(cachedAccount).toBeDefined();
+        expect(defaultCachedToken).toBeTruthy();
+
         // Check cae token
         const accessToken = JSON.parse((await BrowserCache.getWindowStorage())[(tokenStore.accessTokens[0])]).secret;
         const decodedToken: any = JWT.decode(accessToken);
-        expect(decodedToken.xms_cc).to.deep.equal([ "CP1" ]);
+        expect(decodedToken.xms_cc).toEqual([ "CP1" ]);
     });
 
     it("Performs loginRedirect, acquires and validates CAE PoP token", async () => {
@@ -115,7 +109,7 @@ describe("Browser tests", function () {
 
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
-        
+
         // Click to get cae pop token
         await page.waitForSelector("#seeProfilePop", { visible: true });
         await screenshot.takeScreenshot(page, "samplePageLoggedInPop");
@@ -129,15 +123,15 @@ describe("Browser tests", function () {
         // Check for both tokens in cache
         await storagePoller(async () => {
             const tokenStore = await BrowserCache.getTokens();
-            expect(tokenStore.accessTokens).to.be.length(2);
+            expect(tokenStore.accessTokens).toHaveLength(2);
         }, ONE_SECOND_IN_MS*5);
 
         const tokenStore = await BrowserCache.getTokens();
         const cachedBearerToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
-        expect(cachedBearerToken).to.be.true;
+        expect(cachedBearerToken).toBeTruthy();
 
         const cachedPopToken = await BrowserCache.popAccessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
-        expect(cachedPopToken).to.be.true;
+        expect(cachedPopToken).toBeTruthy();
 
         const storage = await BrowserCache.getWindowStorage();
         const caePopTokenKey = tokenStore.accessTokens.find(key => key.includes("accesstoken_with_authscheme"));
@@ -145,8 +139,8 @@ describe("Browser tests", function () {
 
         // Check cae pop token
         const decodedToken: any = JWT.decode(accessToken);
-        expect(decodedToken.xms_cc).to.deep.equal([ "CP1" ]);
-        expect(decodedToken.cnf.kid).to.be.string;
-        expect(decodedToken.cnf.xms_ksl).to.be.string;
+        expect(decodedToken.xms_cc).toEqual([ "CP1" ]);
+        expect(typeof decodedToken.cnf.kid).toEqual('string');
+        expect(typeof decodedToken.cnf.xms_ksl).toEqual('string');
     });
 });

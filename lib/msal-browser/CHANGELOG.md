@@ -1,8 +1,92 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 10 Oct 2022 22:27:02 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Mar 2023 16:48:51 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.34.0
+
+Tue, 07 Mar 2023 16:48:51 GMT
+
+### Minor changes
+
+- Reduce telemetry RAM footprint and improve usability/readability #5676 (kshabelko@microsoft.com)
+- Capture native bridge telemetry data points #5698 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v11.0.0
+
+### Patches
+
+- Reduce preQueueTimeByCorrelationId RAM footprint #5681 (kshabelko@microsoft.com)
+- exporting native classes as internals and separating out native telemetry #5692 (lalimasharda@microsoft.com)
+- Remove deprecated telemetry `flushMeasurements()` function from unit tests #5718 (kshabelko@microsoft.com)
+- Refactor handleNativeResponse (#5757) (sameera.gajjarapu@microsoft.com)
+- Add support for hybrid flow with native bridge enabled #5759 (lalimasharda@microsoft.com)
+
+## 2.33.0
+
+Mon, 06 Feb 2023 18:51:51 GMT
+
+### Minor changes
+
+- Add JS Queue Measurements to acquireTokenSilent #5352 (joarroyo@microsoft.com)
+- proxyUrl is now passed to msal-node's httpClient via it's constructor #5599 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v10.0.0
+
+### Patches
+
+- Removed tokenQueryParameters from Public Client flows because they don't use the /token endpoint. #5573 (rginsburg@microsoft.com)
+- Export browser telemetry classes #5641 (kshabelko@microsoft.com)
+- Adding page visibility change event for silent calls like AcquireTokenSilent #5555 (kshabelko@microsoft.com)
+- Revert typo changes #5582 (joarroyo@microsoft.com)
+
+## 2.32.2
+
+Mon, 09 Jan 2023 22:44:57 GMT
+
+### Patches
+
+- Export CryptoOps and NativeAuthError for internal use #5482 (lalimasharda@microsoft.com)
+- added http version changes #5211 (bmahal@microsoft.com)
+- fix typos #5531 (bmahal@microsoft.com)
+- fix logger explicitly set to undefined error #5355  (bmahal@microsoft.com)
+- Log number of accounts in trace mode. #5529 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v9.0.2
+
+## 2.32.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Added caching methods to set or get redirect context of application during redirect flow. #5411 (lalimasharda@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
+
+## 2.32.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Minor changes
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
+
+### Patches
+
+- Export popup attributes #5364 (hemoral@microsoft.com)
+
+## 2.31.0
+
+Mon, 07 Nov 2022 22:46:55 GMT
+
+### Minor changes
+
+- Add static fields to telemetry #5224 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v8.0.0
+
+### Patches
+
+- Add MATS fields to telemetry #5308 (thomas.norling@microsoft.com)
+- Fix double prompt in native broker redirect flow #5239 (thomas.norling@microsoft.com)
 
 ## 2.30.0
 
