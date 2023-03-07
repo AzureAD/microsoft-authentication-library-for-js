@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 07 Mar 2023 16:48:52 GMT",
+      "tag": "@azure/msal-node_v1.16.0",
+      "version": "1.16.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7d0ef8cb6792a30a29ec94011ff8ea1f5ca6a9bc",
+            "comment": "Add support for NativeBrokerPlugin #5550"
+          },
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "956d66b35ff6553f90b975b152f6bdf16d8f6235",
+            "comment": "Allow adding custom loopback client in acquireTokenInteractive #5578"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v11.0.0",
+            "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
+          }
+        ],
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "80b52e998ee91bb8bda7de17c71963781a5767ae",
+            "comment": "Fixed bug in msal-node's httpClient #5722"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 Feb 2023 18:51:50 GMT",
       "tag": "@azure/msal-node_v1.15.0",
       "version": "1.15.0",

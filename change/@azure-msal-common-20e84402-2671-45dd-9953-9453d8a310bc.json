@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix SHR typ header to pop value #5751",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
