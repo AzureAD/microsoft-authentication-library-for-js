@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Remove deprecated telemetry event \"flushMeasurement()\" function #5718",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

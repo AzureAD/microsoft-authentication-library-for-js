@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixed bug in msal-node's httpClient #5722",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

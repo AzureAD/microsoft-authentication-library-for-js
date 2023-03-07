@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove deprecated telemetry `flushMeasurements()` function from unit tests #5718",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
