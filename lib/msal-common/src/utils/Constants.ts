@@ -406,7 +406,8 @@ export enum CacheOutcome {
 
 export enum JsonTypes {
     Jwt = "JWT",
-    Jwk = "JWK"
+    Jwk = "JWK",
+    Pop = "pop"
 }
 
 export const ONE_DAY_IN_MS = 86400000;
