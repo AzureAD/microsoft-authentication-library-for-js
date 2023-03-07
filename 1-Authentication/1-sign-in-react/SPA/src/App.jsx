@@ -31,6 +31,7 @@ const MainContent = () => {
             .loginPopup({
                 ...loginRequest,
                 redirectUri: '/redirect.html',
+                prompt: "create"
             })
             .catch((error) => console.log(error));
     }
@@ -46,7 +47,7 @@ const MainContent = () => {
             <UnauthenticatedTemplate>
                 <h5 className="card-title">Please sign-in to see your profile information.</h5>
                 <Button className='signInButton' onClick={handleLoginPopup} variant="primary">
-                    Sign in
+                    Sign up
                 </Button>
             </UnauthenticatedTemplate>
         </div>
