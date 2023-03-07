@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for NativeBrokerPlugin #5550",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
