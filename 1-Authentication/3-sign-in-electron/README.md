@@ -1,23 +1,24 @@
 ---
 page_type: sample
-name: React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)
-description: React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)
+name: An Electron desktop application secured by MSAL Node on Microsoft identity platform
+description: An Electron desktop application secured by MSAL Node on Microsoft identity platform
 languages:
  - javascript
 products:
  - azure-active-directory
  - msal-js
- - msal-react
-urlFragment: ms-identity-javascript-react-tutorial
+ - msal-node
+urlFragment: ms-identity-ciam-javascript-tutorial.git
 extensions:
 - services: ms-identity
 - platform: javascript
 - endpoint: AAD v2.0
 - level: 100
-- client: React SPA 
+- client: Electron desktop app
+- service: Microsoft Graph
 ---
 
-# React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)
+# An Electron desktop application secured by MSAL Node on Microsoft identity platform
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -33,26 +34,27 @@ extensions:
 
 ## Overview
 
-This sample demonstrates a React SPA that authenticates users against [Customer Identity Access Management](https://github.com/microsoft/entra-previews/tree/PP2/docs) (CIAM), using the [Microsoft Authentication Library for React](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react) (MSAL React).
+This sample demonstrates an Electron application that authenticates users against [Customer Identity Access Management](https://github.com/microsoft/entra-previews/tree/PP2/docs) (CIAM), using the [Microsoft Authentication Library for Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node/docs) (MSAL Node).
 
-MSAL React is a wrapper around the [Microsoft Authentication Library for JavaScript](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser) (MSAL.js). As such, it exposes the same public APIs that MSAL.js offers, while adding many new features customized for modern React applications.
-
-Here you'll learn how to [sign-in](https://docs.microsoft.com/azure/active-directory/develop/scenario-spa-sign-in) users and acquire [ID tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
+Here you'll learn how to sign-in users and acquire [ID tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens).
 
 ## Scenario
 
-1. The client React SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
-1. The **ID Token** proves that the user has successfully authenticated against **Azure AD CIAM**.
+1. The client Electron desktop app uses the to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
+1. The **access token** is used as a *bearer* token to authorize the user to call the Microsoft Graph protected by **Azure AD CIAM**.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
 
 ## Contents
 
-| File/folder                | Description                                      |
-|----------------------------|--------------------------------------------------|
-| `App.jsx`                  | Main application logic resides here.             |
-| `NavigationBar.jsx`        | Authentication logic .                           |
-| `authConfig.js`            | Contains authentication parameters.              |
+| File/folder                  | Description                                                  |
+|------------------------------|--------------------------------------------------------------|
+| `AppCreationScripts/`        | Contains Powershell scripts for automating app registration. |
+| `App/authProvider.js`        | Main authentication logic resides here.                      |
+| `App/main.js`                | Application main process.                                    |
+| `App/renderer.js`            | Renderer processes and UI methods.                           |
+| `App/preload.js`             | Give the Renderer process controlled access to some Node API.|
+| `App/authConfig.js`          | Configuration objects to be passed to MSAL instance.         |
 
 ## Prerequisites
 
@@ -72,7 +74,7 @@ Here you'll learn how to [sign-in](https://docs.microsoft.com/azure/active-direc
 From your shell or command line:
 
 ```console
-git clone https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial.git
+git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
 ```
 
 or download and extract the repository *.zip* file.
@@ -82,7 +84,7 @@ or download and extract the repository *.zip* file.
 ### Step 2: Install project dependencies
 
 ```console
-    cd 1-Authentication\1-sign-in-react\SPA
+    cd 1-Authentication\3-sign-in-electron\App
     npm install
 ```
 
@@ -90,7 +92,7 @@ or download and extract the repository *.zip* file.
 
 There is one project in this sample. To register it, you can:
 
-* follow the steps below for manually register your apps
+* follow the steps below to manually register your app
 * or use PowerShell scripts that:
   * **automatically** creates the Azure AD applications and related objects (passwords, permissions, dependencies) for you.
   * modify the projects' configuration files.
@@ -116,14 +118,15 @@ There is one project in this sample. To register it, you can:
     ```
 
 > Other ways of running the scripts are described in [App Creation Scripts guide](./AppCreationScripts/AppCreationScripts.md). The scripts also provide a guide to automated application registration, configuration and removal which can help in your CI/CD scenarios.
+
 </details>
 
-#### Choose the CIAM tenant where you want to create your applications
+#### Choose the Azure AD CIAM tenant where you want to create your applications
 
 To manually register the apps, as a first step you'll need to:
 
 1. Sign in to the [Azure portal](https://portal.azure.com).
-1. If your account is present in more than one CIAM tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired CIAM tenant.
+1. If your account is present in more than one Azure AD CIAM tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD CIAM tenant.
 
 #### Create User Flows
 
@@ -138,20 +141,19 @@ Please refer to:
 * [Tutorial: Add Google as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/6-Add-Google-identity-provider.md)
 * [Tutorial: Add Facebook as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/7-Add-Facebook-identity-provider.md)
 
-#### Register the client app (msal-react-spa)
+#### Register the client app (msal-node-desktop)
 
 1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-react-spa`.
+    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-desktop`.
     1. Under **Supported account types**, select **Accounts in this organizational directory only**
     1. Select **Register** to create the application.
 1. In the **Overview** blade, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
 1. In the app's registration screen, select the **Authentication** blade to the left.
-1. If you don't have a platform added, select **Add a platform** and select the **Single-page application** option.
-    1. In the **Redirect URI** section enter the following redirect URIs:
-        1. `http://localhost:3000/`
-        1. `http://localhost:3000/redirect.html`
+1. If you don't have a platform added, select **Add a platform** and select the **Public client (mobile & desktop)** option.
+    1. In the **Redirect URIs** | **Suggested Redirect URIs for public clients (mobile, desktop)** type in the value **http://localhost**
+    1. In the **Redirect URI** section enter the following redirect URI `http://localhost`.
     1. Click **Save** to save your changes.
 1. Since this app signs-in users, we will now proceed to select **delegated permissions**, which is is required by apps signing-in users.
     1. In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs:
@@ -162,28 +164,36 @@ Please refer to:
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
-##### Configure the client app (msal-react-spa) to use your app registration
+##### Configure Optional Claims
+
+1. Still on the same app registration, select the **Token configuration** blade to the left.
+1. Select **Add optional claim**:
+    1. Select **optional claim type**, then choose **ID**.
+    1. Select the optional claim **login_hint**.
+    > An opaque, reliable login hint claim. This claim is the best value to use for the login_hint OAuth parameter in all flows to get SSO.See [optional claims](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims) for more details on this optional claim.
+    1. Select **Add** to save your changes.
+
+##### Configure the client app (msal-node-desktop) to use your app registration
 
 Open the project in your IDE (like Visual Studio or Visual Studio Code) to configure the code.
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `SPA\src\authConfig.js` file.
-1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `msal-react-spa` app copied from the Azure portal.
-1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Open the `App\authConfig.js` file.
+1. Find the key `Enter_the_Tenant_Info_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `msal-node-desktop` app copied from the Azure portal.
 
 ### Step 4: Running the sample
 
 ```console
-    cd 1-Authentication\1-sign-in-react\SPA
+    cd 1-Authentication\3-sign-in-electron\App
     npm start
 ```
 
 ## Explore the sample
 
-1. Open your browser and navigate to `http://localhost:3000`.
-1. Select the **Sign In** button on the top right corner. Choose either **Popup** or **Redirect** flows (see: [MSAL.js interaction types](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#choosing-an-interaction-type)).
-
+1. After running the sample, the desktop app window will appear automatically.
+1. Select the **Sign In** button in the top right.
 ![Screenshot](./ReadmeFiles/screenshot.png)
 
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
@@ -199,113 +209,98 @@ Were we successful in addressing your learning objective? Consider taking a mome
 
 > * Use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) to get support from the community. Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
 Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before.
-Make sure that your questions or comments are tagged with [`azure-active-directory` `node` `ms-identity` `adal` `msal-js` `msal`].
+Make sure that your questions or comments are tagged with [`azure-active-directory-b2c` `node` `ms-identity` `adal` `msal-js` `msal`].
 
 To provide feedback on or suggest features for Azure Active Directory, visit [User Voice page](https://feedback.azure.com/d365community/forum/79b1327d-d925-ec11-b6e6-000d3a4f06a4).
 </details>
 
 ## About the code
 
-MSAL React should be instantiated outside of the component tree to prevent it from being re-instantiated on re-renders. After instantiation, pass it as props to your application.
+### Initialization
+
+In order to use MSAL Node, we instantiate the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) class as shown in the [AuthProvider.js](./App/AuthProvider.js) class.
 
 ```javascript
-const msalInstance = new PublicClientApplication(msalConfig);
 
-ReactDOM.render(
-    <React.StrictMode>
-        <App msalInstance={msalInstance}/>
-    </React.StrictMode>,
-    document.getElementById("root")
-);
+constructor(msalConfig) {
+        /**
+         * Initialize a public client application. For more information, visit:
+         * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md
+         */
+        this.msalConfig = msalConfig;
+        this.clientApplication = new PublicClientApplication(this.msalConfig);
+        this.cache = this.clientApplication.getTokenCache();
+        this.account = null;
+    }
 
-export default function App({msalInstance}) {
-
-    return (
-        <MsalProvider instance={msalInstance}>
-            <PageLayout>
-                <MainContent />
-            </PageLayout>
-        </MsalProvider>
-    );
-}
-```
-
-At the top of your component tree, wrap everything between **MsalProvider** component. All components underneath **MsalProvider** will have access to the *PublicClientApplication* instance via context as well as all hooks and components provided by msal-react.
-
-```javascript
-export default function App({msalInstance}) {
-
-    return (
-        <MsalProvider instance={msalInstance}>
-            <PageLayout>
-                <MainContent />
-            </PageLayout>
-        </MsalProvider>
-    );
-}
 ```
 
 ### Sign-in
 
-MSAL.js exposes 3 login APIs: `loginPopup()`, `loginRedirect()` and `ssoSilent()`. These APIs are usable in MSAL React as well:
+MSAL Node exposes two APIs: `acquireTokenSilent()`, `acquireTokenInteractive()` to authenticate the user and acquire tokens. Using the [acquireTokenInteractive](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#authorizationcoderequest) API, the desktop application starts the [Authorization code flow with PKCE flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) by launching and navigating the system browser to authorization code URL and listens for the authorization code response via loopback server. Once the code is received successfully, `acquireTokenInteractive` will load the assigned **successTemplate**.
 
 ```javascript
-    export function App() {
-        const { instance, accounts, inProgress } = useMsal();
-    
-        if (accounts.length > 0) {
-            return <span>There are currently {accounts.length} users signed in!</span>
-        } else if (inProgress === "login") {
-            return <span>Login is currently in progress!</span>
-        } else {
-            return (
-                <>
-                    <span>There are currently no users signed in!</span>
-                    <button onClick={() => instance.loginPopup()}>Login</button>
-                </>
-            );
+async getTokenInteractive(tokenRequest) {
+        try {
+            const openBrowser = async (url) => {
+                await shell.openExternal(url);
+            };
+
+            const authResponse = await this.clientApplication.acquireTokenInteractive({
+                ...tokenRequest,
+                openBrowser,
+                successTemplate: '<h1>Successfully signed in!</h1> <p>You can close this window now.</p>',
+                errorTemplate: '<h1>Oops! Something went wrong</h1> <p>Check the console for more information.</p>',
+            });
+
+            return authResponse;
+        } catch (error) {
+            throw error;
         }
     }
 ```
 
-You may also use MSAL React's [useMsalAuthentication](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook) hook. Below is an example in which the `ssoSilent()` API is used. When using `ssoSilent()`, the recommended pattern is that you fallback to an **interactive method** should the silent SSO attempt fails:
+After authenticating the user successfully, MSAL Node will cache the tokens in memory for future usage. MSAL Node manages the token lifetime and refreshes for you. APIs like `acquireTokenSilent()` retrieve the access tokens from the cache for a given account, as shown below:
 
 ```javascript
-function App() {
-    const request = {
-        loginHint: "name@example.com",
-        scopes: ["User.Read"]
-    }
+async getTokenSilent(tokenRequest) {
+        try {
+            return await this.clientApplication.acquireTokenSilent(tokenRequest);
+        } catch (error) {
+            if (error instanceof InteractionRequiredAuthError) {
+                console.log('Silent token acquisition failed, acquiring token interactive');
+                return await this.getTokenInteractive(tokenRequest);
+            }
 
-    const { login, result, error } = useMsalAuthentication(InteractionType.Silent, request);
-
-    useEffect(() => {
-        if (error) {
-            login(InteractionType.Popup, request);
+            console.log(error);
         }
-    }, [error]);
-
-    const { accounts } = useMsal();
-
-    return (
-        <React.Fragment>
-            <p>Anyone can see this paragraph.</p>
-            <AuthenticatedTemplate>
-                <p>Signed in as: {accounts[0]?.username}</p>
-            </AuthenticatedTemplate>
-            <UnauthenticatedTemplate>
-                <p>No users are signed in!</p>
-            </UnauthenticatedTemplate>
-        </React.Fragment>
-    );
-}
+    }
 ```
 
-As shown above, the components that depend on whether the user is authenticated should be wrapped inside React's `AuthenticatedTemplate` and `UnauthenticatedTemplate` components. Alternatively, you may use the [useIsAuthenticated](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md#useisauthenticated-hook) hook to conditionally render components.
+### Sign-out
 
-### ID token validation
+Use the [logout endpoint](https://learn.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request) to end the user's session with **Azure AD CIAM**. You'll need to enable the [optional token claim](https://learn.microsoft.com/azure/active-directory/develop/active-directory-optional-claims) 'login_hint' to work as expected. After that, we will use the `removeAccount()` API to remove the user account from the in-memory cache.
 
-When you receive an [ID token](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) directly from the IdP on a secure channel (e.g. HTTPS), such is the case with SPAs, there’s no need to validate it. If you were to do it, you would validate it by asking the same server that gave you the ID token to give you the keys needed to validate it, which renders it pointless, as if one is compromised so is the other.
+```javascript
+async logout() {
+        if (!this.account) return;
+
+        try {
+            if (this.account.idTokenClaims.hasOwnProperty('login_hint')) {
+                await shell.openExternal(
+                    `${this.msalConfig.auth.authority}/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(
+                        this.account.idTokenClaims.login_hint
+                    )}`
+                );
+            }
+
+            await this.cache.removeAccount(this.account);
+            this.account = null;
+        } catch (error) {
+            console.log(error);
+        }
+    }
+```
 
 ## Next Steps
 
@@ -331,3 +326,4 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 * [Logging in MSAL.js applications](https://docs.microsoft.com/azure/active-directory/develop/msal-logging?tabs=javascript)
 * [Pass custom state in authentication requests using MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request)
 * [Prompt behavior in MSAL.js interactive requests](https://docs.microsoft.com/azure/active-directory/develop/msal-js-prompt-behavior)
+* [Use MSAL.js to work with Azure AD B2C](https://docs.microsoft.com/azure/active-directory/develop/msal-b2c-overview)

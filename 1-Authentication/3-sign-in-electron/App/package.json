@@ -1,0 +1,20 @@
+{
+    "name": "electron-test-app",
+    "version": "1.0.0",
+    "description": "Electron application using MSAL Node to authentication users against Customer Identity Access Management (CIAM)",
+    "main": "main.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "start": "electron main.js"
+    },
+    "license": "ISC",
+    "devDependencies": {
+        "electron": "^23.1.1"
+    },
+    "dependencies": {
+        "@azure/msal-node": "^1.15.0",
+        "bootstrap": "^5.2.3",
+        "jquery": "^3.6.3",
+        "popper.js": "^1.16.1"
+    }
+}

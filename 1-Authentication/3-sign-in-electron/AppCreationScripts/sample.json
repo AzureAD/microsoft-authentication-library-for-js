@@ -1,0 +1,58 @@
+{
+    "Sample": {
+        "Title": "An Electron application using MSAL Node to authentication users against Customer Identity Access Management (CIAM)",
+        "Level": 100,
+        "Client": "Electron desktop app",
+        "Service": "Microsoft Graph",
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial.git",
+        "Endpoint": "AAD v2.0",
+        "platform": "javascript",
+        "Languages": ["javascript"],
+        "Description": "Electron application using MSAL Node to authentication users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM)",
+        "products": ["azure-active-directory", "msal-js", "msal-node"],
+        "Provider": "CIAM",
+        "Platform": "javascript"
+    },
+    "AADApps": [
+        {
+            "Id": "client",
+            "Name": "msal-node-desktop",
+            "Kind": "Desktop",
+            "ReplyUrls": "http://localhost",
+            "SDK": "MsalJs",
+            "Audience": "AzureADMyOrg",
+            "SampleSubPath": "1-Authentication\\3-sign-in-electron\\App",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                }
+            ],
+            "OptionalClaims": {
+                "IdTokenClaims": ["login_hint"]
+            },
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\App\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                }
+            ]
+        }
+    ]
+}

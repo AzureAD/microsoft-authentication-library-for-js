@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no" />
+        <meta http-equiv="Content-Security-Policy" content="script-src 'self'" />
+        <title>MSAL Node Electron Sample App</title>
+
+        <!-- adding Bootstrap 5 for UI components  -->
+        <link rel="stylesheet" href="./node_modules/bootstrap/dist/css/bootstrap.min.css" />
+    </head>
+
+    <body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+            <a class="navbar-brand" style="padding: .5rem 1rem">Microsoft identity platform</a>
+            <div class="btn-group ms-auto dropstart" style="padding: .5rem 1rem">
+                <button type="button" id="signIn" class="btn btn-secondary" aria-expanded="false">Sign in</button>
+                <button type="button" id="signOut" class="btn btn-success" hidden aria-expanded="false">
+                    Sign out
+                </button>
+            </div>
+        </nav>
+        <br />
+        <h5 class="card-header text-center" id="WelcomeMessage">Welcome to the Microsoft Authentication Library For Electron Tutorial</h5>
+        <br />
+        <div class="row" style="margin: auto" id="cardRow">
+            <div id="cardDiv" class="col-md-offset-3 col-md-6" style="margin: auto">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <div id="profileDiv"></div>
+                        <br />
+                        <br />
+                        <button class="btn btn-primary" id="signUp">Sign up</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row" style="margin: auto">
+            <div class="table-responsive-ms" id="table" style=" max-height: 35rem !important">
+                <table id="table-div" class="table table-striped d-none">
+                    <thead>
+                        <tr>
+                            <th>Claim Type</th>
+                            <th>Value</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body-div"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- importing bootstrap.js and supporting js libraries -->
+        <script src="./node_modules/jquery/dist/jquery.js"></script>
+        <script src="./node_modules/popper.js/dist/umd/popper.js"></script>
+        <script src="./node_modules/bootstrap/dist/js/bootstrap.js"></script>
+
+        <!-- importing app scripts | load order is important -->
+        <script src="./renderer.js"></script>
+    </body>
+</html>
