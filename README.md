@@ -8,7 +8,7 @@ products:
 - msal-angular
 - msal-node
 description: "Tutorial: Enable your JavaScript application to sign-in users and call APIs with Azure AD CIAM"
-urlFragment: "ms-identity-javascript-react-tutorial"
+urlFragment: "ms-identity-ciam-javascript-tutorial"
 ---
 
 # Tutorial: Enable your JavaScript application to sign-in users and call APIs with Azure AD CIAM
