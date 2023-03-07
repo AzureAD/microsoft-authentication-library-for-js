@@ -85,8 +85,6 @@ MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/micros
 * a **client interface**, which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
 * a **partition manager**, for reading from and writing to cache with respect to a given **partition key**.
 
-Please refer to the [RedisTestApp](../../../samples/msal-node-samples/RedisTestApp/README.md) for a sample implementation.
-
 > :bulb: We recommend you to obtain performance metrics for cache operations, such as **cache retrieval duration** and **cache hit ratios** in your applications. This would give you a reliable picture of how your app scales over time. For instance, to measure how much time MSAL spends in `acquireToken*` calls, you can use Node's [performance measurement API](https://nodejs.org/api/perf_hooks.html)s along with the `fromCache` property in [AuthenticationResult](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult) class:
 >
 > ```javascript
@@ -118,6 +116,5 @@ Please refer to the [RedisTestApp](../../../samples/msal-node-samples/RedisTestA
 ## More information
 
 * [(Sample) Public client app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
-* [(Sample) Confidential client Express MVC web app with distributed token cache](../../../samples/msal-node-samples/RedisTestApp/README.md)
 * [(Docs) Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
 * [(Docs) App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)
