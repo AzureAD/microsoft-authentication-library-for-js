@@ -7,6 +7,7 @@ const IPC_MESSAGES = {
     SHOW_WELCOME_MESSAGE: 'SHOW_WELCOME_MESSAGE',
     LOGIN: 'LOGIN',
     LOGOUT: 'LOGOUT',
+    SIGNUP: 'SIGNUP',
 };
 
 module.exports = {

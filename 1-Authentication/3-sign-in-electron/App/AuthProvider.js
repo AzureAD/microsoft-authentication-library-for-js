@@ -23,6 +23,17 @@ class AuthProvider {
         this.account = null;
     }
 
+    async signUp() {
+        const authResponse = await this.getToken({
+            // If there are scopes that you would like users to consent up front, add them below
+            // by default, MSAL will add the OIDC scopes to every token request, so we omit those here
+            scopes: [],
+            prompt: "create"
+        });
+
+        return this.handleResponse(authResponse);
+    }
+
     async login() {
         const authResponse = await this.getToken({
             // If there are scopes that you would like users to consent up front, add them below
