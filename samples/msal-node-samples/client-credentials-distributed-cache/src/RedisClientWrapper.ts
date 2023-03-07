@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { ICacheClient } from "@azure/msal-node";
 import { RedisClientType } from "redis";
 

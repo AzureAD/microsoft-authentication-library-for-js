@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { CryptoProvider } from "@azure/msal-node";
 import open from "open";

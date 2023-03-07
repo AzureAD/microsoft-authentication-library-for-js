@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import axios from 'axios';
 import { performance } from "perf_hooks";
 import { RedisClientType } from "redis";
