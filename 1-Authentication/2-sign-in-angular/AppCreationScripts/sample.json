@@ -1,0 +1,58 @@
+{
+    "Sample": {
+        "Title": "Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory",
+        "Level": 100,
+        "Client": "Angular SPA",
+        "Languages": [
+            "javascript",
+            "typescript"
+        ],
+        "Products": [
+            "azure-active-directory",
+            "msal-angular"
+        ],
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Platform": "JavaScript",
+        "Endpoint": "AAD v2.0",
+        "Provider": "CIAM",
+        "description": "This sample demonstrates an Angular single-page application (SPA) that uses Microsoft Authentication Library for Angular (MSAL Angular) to sign-in users with Azure Active Directory (Azure AD) and calls Microsoft Graph Api"
+    },
+    "AADApps": [
+        {
+            "Id": "spa",
+            "Name": "ciam-msal-angular-spa",
+            "Kind": "SinglePageApplication",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalAngular",
+            "SampleSubPath": "1-Authentication\\1-sign-in-angular\\SPA",
+            "HomePage": "http://localhost:4200",
+            "ReplyUrls": "http://localhost:4200",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": [
+                        "openid",
+                        "offline_access"
+                    ]
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "spa",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\SPA\\src\\app\\auth-config.ts",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                }
+            ]
+        }
+    ]
+}
