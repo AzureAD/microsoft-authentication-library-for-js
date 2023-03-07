@@ -35,6 +35,11 @@
                         "offline_access"
                     ]
                 }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
             ]
         }
     ],

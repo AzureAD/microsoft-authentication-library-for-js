@@ -259,9 +259,10 @@ Function ConfigureApplications
     ReplaceInTextFile -configFilePath $configFile -dictionary $dictionary
     Write-Host -ForegroundColor Green "------------------------------------------------------------------------------------------------" 
     Write-Host "IMPORTANT: Please follow the instructions below to complete a few manual step(s) in the Azure portal":
-    Write-Host "- For spa"
-    Write-Host "  - Navigate to $spaPortalUrl"
-    Write-Host "  - Navigate to the Azure AD App Registration portal and grant admin consent to the API permissions defined for the application. " -ForegroundColor Red
+    Write-Host "- For SPA"
+    Write-Host "  - Navigate to $clientPortalUrl"
+    Write-Host "  - The delegated permissions for the 'client' application require admin consent. Do remember to navigate to the application registration in the app portal and consent for those." -ForegroundColor Red 
+    Write-Host "  - Navigate to your tenant and create user flows to allow users to sign up for the application." -ForegroundColor Red 
     Write-Host -ForegroundColor Green "------------------------------------------------------------------------------------------------" 
    
 Add-Content -Value "</tbody></table></body></html>" -Path createdApps.html  
