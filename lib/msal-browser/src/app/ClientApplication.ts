@@ -528,7 +528,11 @@ export abstract class ClientApplication {
         const atbcMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
-            if (request.code) {
+            if (request.code && request.nativeAccountId) {
+                // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
+                throw BrowserAuthError.createSpaCodeAndNativeAccountIdPresentError();
+            }
+            else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
                 if (!response) {
