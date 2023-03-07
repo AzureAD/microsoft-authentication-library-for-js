@@ -5,10 +5,6 @@
 name: msal-node E2E Tests
 
 on:
-  push:
-    branches:
-      - dev
-      - master
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
@@ -275,7 +271,7 @@ jobs:
     - name: Install Playwright
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: npx playwright install
-      
+
     - name: Build Sample
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |

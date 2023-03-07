@@ -5,10 +5,6 @@
 name: msal-angular E2E Tests
 
 on:
-  push:
-    branches:
-      - dev
-      - master
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
