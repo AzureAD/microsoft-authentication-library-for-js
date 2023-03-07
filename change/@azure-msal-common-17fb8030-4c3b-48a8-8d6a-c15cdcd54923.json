@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Handle new spa_accountid parameter from server #5759",
+  "packageName": "@azure/msal-common",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
