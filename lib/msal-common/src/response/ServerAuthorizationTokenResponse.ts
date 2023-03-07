@@ -38,6 +38,7 @@ export type ServerAuthorizationTokenResponse = {
     client_info?: string;
     foci?: string;
     spa_code?: string;
+    spa_accountid?: string;
     key_id?: string;
     // Error
     error?: string;
