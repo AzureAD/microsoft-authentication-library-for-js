@@ -15,11 +15,15 @@ describe("SilentRefreshClient", () => {
     let silentRefreshClient: SilentRefreshClient;
 
     beforeEach(() => {
-        const pca = new PublicClientApplication({
+        let pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
         // @ts-ignore
         silentRefreshClient = new SilentRefreshClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
