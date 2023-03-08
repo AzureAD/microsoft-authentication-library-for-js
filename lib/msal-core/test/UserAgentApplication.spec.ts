@@ -291,7 +291,7 @@ describe("UserAgentApplication.ts Class", function () {
             window.location = {
                 ...oldWindowLocation
             };
-            sinon.stub(window.location, "assign").callsFake((url: string) => {
+            sinon.stub(window.location, "assign").callsFake((url) => {
                 try {
                     expect(url).toContain("&state");
                     const hash = UrlUtils.getHashFromUrl(url);
@@ -3196,7 +3196,7 @@ describe("UserAgentApplication.ts Class", function () {
 
                 it("loginPopup should set response_type to id_token", (done) => {
                     let navigateUrl: string;
-                    sinon.stub(window, "open").callsFake((url: string) => {
+                    sinon.stub(window, "open").callsFake((url) => {
                         navigateUrl = url;
                         return null;
                     })
