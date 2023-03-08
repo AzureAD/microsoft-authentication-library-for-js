@@ -170,11 +170,11 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 ## Explore the sample
 
 1. Navigate to the project directory and run the `npm start` command. The browser will open automatically.
-2. Copy the device code from the message in the terminal.
+1. Copy the device code from the message in the terminal.
 ![Screenshot](./ReadmeFiles/code.png)
-3. Past the code in the Enter code prompt to sign in.
+1. Past the code in the Enter code prompt to sign in.
 ![Screenshot](./ReadmeFiles/prompt.png)
-4. Head back to the terminal to see your authentication information.
+1. Head back to the terminal to see your authentication information.
 
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
 
