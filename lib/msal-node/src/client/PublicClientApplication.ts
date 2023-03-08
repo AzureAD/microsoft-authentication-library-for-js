@@ -48,8 +48,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      *
      * ADFS authorities are of the form https://\{instance\}/adfs.
      */
+    protected loopbackClient: LoopbackClient;
     constructor(configuration: Configuration) {
         super(configuration);
+        this.loopbackClient = new LoopbackClient();
     }
 
     /**
@@ -92,38 +94,74 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const { verifier, challenge } = await this.cryptoProvider.generatePkceCodes();
         const { openBrowser, successTemplate, errorTemplate, ...remainingProperties } = request;
 
-        const loopbackClient = new LoopbackClient();
-        const authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
-        const redirectUri = loopbackClient.getRedirectUri();
+        const loopbackClient = this.loopbackClient;
+        let authCodeListener;
+        if (loopbackClient.server) {
+            authCodeListener = loopbackClient.authCodeListener;
+            const redirectUri = loopbackClient.getRedirectUri();
 
-        const validRequest: AuthorizationUrlRequest = {
-            ...remainingProperties,
-            scopes: request.scopes || OIDC_DEFAULT_SCOPES,
-            redirectUri: redirectUri,
-            responseMode: ResponseMode.QUERY,
-            codeChallenge: challenge, 
-            codeChallengeMethod: CodeChallengeMethodValues.S256
-        };
+            const validRequest: AuthorizationUrlRequest = {
+                ...remainingProperties,
+                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                redirectUri: redirectUri,
+                responseMode: ResponseMode.QUERY,
+                codeChallenge: challenge, 
+                codeChallengeMethod: CodeChallengeMethodValues.S256
+            };
 
-        const authCodeUrl = await this.getAuthCodeUrl(validRequest);
-        await openBrowser(authCodeUrl);
-        const authCodeResponse = await authCodeListener.finally(() => {
-            loopbackClient.closeServer();
-        });
+            const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+            await openBrowser(authCodeUrl);
+            const authCodeResponse = await authCodeListener!.finally(() => {
+                loopbackClient.closeServer();
+            });
 
-        if (authCodeResponse.error) {
-            throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
-        } else if (!authCodeResponse.code) {
-            throw NodeAuthError.createNoAuthCodeInResponseError();
+            if (authCodeResponse.error) {
+                throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
+            } else if (!authCodeResponse.code) {
+                throw NodeAuthError.createNoAuthCodeInResponseError();
+            }
+
+            const clientInfo = authCodeResponse.client_info;
+            const tokenRequest: AuthorizationCodeRequest = {
+                code: authCodeResponse.code,
+                codeVerifier: verifier,
+                clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+                ...validRequest
+            };
+            return this.acquireTokenByCode(tokenRequest);
+          } else {
+            authCodeListener = loopbackClient.listenForAuthCode(successTemplate, errorTemplate);
+            const redirectUri = loopbackClient.getRedirectUri();
+
+            const validRequest: AuthorizationUrlRequest = {
+                ...remainingProperties,
+                scopes: request.scopes || OIDC_DEFAULT_SCOPES,
+                redirectUri: redirectUri,
+                responseMode: ResponseMode.QUERY,
+                codeChallenge: challenge, 
+                codeChallengeMethod: CodeChallengeMethodValues.S256
+            };
+
+            const authCodeUrl = await this.getAuthCodeUrl(validRequest);
+            await openBrowser(authCodeUrl);
+            const authCodeResponse = await authCodeListener.finally(() => {
+                loopbackClient.closeServer();
+            });
+
+            if (authCodeResponse.error) {
+                throw new ServerError(authCodeResponse.error, authCodeResponse.error_description, authCodeResponse.suberror);
+            } else if (!authCodeResponse.code) {
+                throw NodeAuthError.createNoAuthCodeInResponseError();
+            }
+
+            const clientInfo = authCodeResponse.client_info;
+            const tokenRequest: AuthorizationCodeRequest = {
+                code: authCodeResponse.code,
+                codeVerifier: verifier,
+                clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
+                ...validRequest
+            };
+            return this.acquireTokenByCode(tokenRequest);
         }
-
-        const clientInfo = authCodeResponse.client_info;
-        const tokenRequest: AuthorizationCodeRequest = {
-            code: authCodeResponse.code,
-            codeVerifier: verifier,
-            clientInfo: clientInfo || CommonConstants.EMPTY_STRING,
-            ...validRequest
-        };
-        return this.acquireTokenByCode(tokenRequest);
     }
 }

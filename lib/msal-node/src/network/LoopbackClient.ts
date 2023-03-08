@@ -16,15 +16,15 @@ import {
     LOOPBACK_SERVER_CONSTANTS
 } from "../utils/Constants";
 
-console.log("here");
 export class LoopbackClient {
-    private server: Server;
+    public server: Server | null;
     private port: number = 64000;
+    public authCodeListener: Promise<ServerAuthorizationCodeResponse> | null;
 
     async startServer() {
         let error = null;
         try {
-            this.server.listen(this.port, Constants.LOCALHOST);
+            this.server!.listen(this.port, Constants.LOCALHOST);
         } catch (e) {
             error = e;
         }
@@ -45,7 +45,7 @@ export class LoopbackClient {
             throw NodeAuthError.createLoopbackServerAlreadyExistsError();
         }
 
-        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
+         this.authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
             (resolve, reject) => {
                 this.server = createServer(
                     async (req: IncomingMessage, res: ServerResponse) => {
@@ -82,6 +82,7 @@ export class LoopbackClient {
                         resolve(authCodeResponse);
                     }
                 );
+                this.server.listen(this.port, Constants.LOCALHOST);
             }
         );
 
@@ -97,7 +98,7 @@ export class LoopbackClient {
                     throw NodeAuthError.createLoopbackServerTimeoutError();
                 }
 
-                if (this.server.listening) {
+                if (this.server!.listening) {
                     clearInterval(id);
                     resolve();
                 }
@@ -105,7 +106,7 @@ export class LoopbackClient {
             }, LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS);
         });
 
-        return authCodeListener;
+        return this.authCodeListener;
     }
 
     /**
@@ -126,6 +127,8 @@ export class LoopbackClient {
     closeServer(): void {
         if (!!this.server) {
             this.server.close();
+            this.server = null;
+            this.authCodeListener = null;
         }
     }
 }
