@@ -2,6 +2,7 @@
   "include": ["src", "test"],
   "compilerOptions": {
     "module": "esnext",
+    "target": "esnext",
     "moduleResolution": "node",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
