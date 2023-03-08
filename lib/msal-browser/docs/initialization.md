@@ -19,7 +19,7 @@ In order to use MSAL.js, you need to instantiate a `PublicClientApplication` obj
 
 ### Option 1
 
-Instantiate an application object and initialize it afterwards.
+Instantiate a `PublicClientApplication` object and initialize it afterwards. The `initialize` function is asynchronous and must resolve before invoking other MSAL.js APIs.
 
 ```javascript
 import * as msal from "@azure/msal-browser";
@@ -36,7 +36,7 @@ await msalInstance.initialize();
 
 ### Option 2
 
-Invoke a static method to get initialized application object.
+Invoke the `createPublicClientApplication` static method which returns an initialized `PublicClientApplication` object. Note that this function is asynchronous.
 
 ```javascript
 import * as msal from "@azure/msal-browser";
