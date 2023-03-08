@@ -112,7 +112,6 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
             return this.storage.getAllAccounts();
         } finally {
             if (this.persistence && cacheContext) {
-                this.logger.trace(cacheContext);
                 await this.persistence.afterCacheAccess(cacheContext);
             }
         }
@@ -126,6 +125,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      */
     async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
+        this.logger.trace("getAccountByHomeId called");
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
             return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
         } else {
