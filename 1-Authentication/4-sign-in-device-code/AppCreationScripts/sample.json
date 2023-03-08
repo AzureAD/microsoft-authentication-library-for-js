@@ -1,0 +1,49 @@
+{
+    "Sample": {
+        "Title": "A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
+        "Level": 100,
+        "Client": "Node console application",
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial.git",
+        "Endpoint": "AAD v2.0",
+        "platform": "javascript",
+        "Languages": ["javascript"],
+        "Description": "A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
+        "products": ["azure-active-directory", "msal-js", "msal-node"],
+        "Provider": "CIAM",
+        "Platform": "javascript"
+    },
+    "AADApps": [
+        {
+            "Id": "client",
+            "Name": "msal-node-console",
+            "Kind": "Browserless",
+            "IsPublicClient": true,
+            "SDK": "MsalJs",
+            "Audience": "AzureADMyOrg",
+            "SampleSubPath": "1-Authentication\\4-sign-in-device-code\\App",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                }
+            ]       
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\App\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Tenant_Id_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                }
+            ]
+        }
+    ]
+}
