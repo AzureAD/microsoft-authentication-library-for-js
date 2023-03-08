@@ -63,7 +63,7 @@
             "author": "kshabelko@microsoft.com",
             "package": "@azure/msal-common",
             "commit": "392e3c350509bd85a38ef71ec8614c8367c93f4e",
-            "comment": "Remove deprecated telemetry event \"flushMeasurement()\" function #5718"
+            "comment": "Remove deprecated telemetry event flushMeasurement() function #5718"
           },
           {
             "author": "kshabelko@microsoft.com",
