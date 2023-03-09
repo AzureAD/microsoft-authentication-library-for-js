@@ -36,7 +36,7 @@ This sample demonstrates a Node console application that authenticates users wit
 
 ## Scenario
 
-1. The client Node console application uses the to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
+1. The client Node console application uses MSAL Node to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
 1. The **ID Token** proves that the user has successfully authenticated against **Azure AD CIAM**.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
