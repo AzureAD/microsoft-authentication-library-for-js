@@ -113,7 +113,9 @@ There is one project in this sample. To register it, you can:
 To manually register the apps, as a first step you'll need to:
 
 1. Sign in to the [Azure portal](https://portal.azure.com).
-1. If your account is present in more than one Azure AD CIAM tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD CIAM tenant.
+1. If your account is present in more than one directory, make sure you're using the directory that contains your Azure AD CIAM tenant:
+    1. Select the **Directories + subscriptions** icon in the portal toolbar.
+    1. On the **Portal settings | Directories + subscriptions** page, find your Azure AD CIAM tenant in the Directory name list, and then select **Switch**
 
 #### Create User Flows
 
