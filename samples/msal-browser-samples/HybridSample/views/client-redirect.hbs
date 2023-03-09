@@ -6,44 +6,61 @@
     const msalInstance = new msal.PublicClientApplication({
         auth: {
             clientId: "{{clientId}}",
-            redirectUri: "http://localhost:3000/auth/client-redirect",
+            redirectUri: "https://localhost:3000/auth/client-redirect",
             authority: "{{authority}}"
+        },
+        system: {
+            loggerOptions: {
+                loggerCallback: (loglevel, message, containsPii) => {
+                    console.log(message);
+                },
+                piiLoggingEnabled: false,
+                logLevel: msal.LogLevel.Verbose,
+            },
+            allowNativeBroker: true
         }
-    })
+    });
+    
+    // Initialize native broker if available
+    msalInstance.initialize().then(() => {
 
-    // Only handle hash when in top frame
-    if (window === window.top) {
-        msalInstance.handleRedirectPromise()
-            .then(result => {
-                if (result) {
-                    console.log('MSAL: Returning from login');
-                    return result;
-                }
-                
-                const sid = "{{sid}}";
-                const code = "{{code}}";
-                const preferredUsername = "{{preferredUsername}}";
-                const loginHint = "{{{loginHint}}}";
+        // Only handle hash when in top frame
+        if (window === window.top) {
+            msalInstance.handleRedirectPromise()
+                .then(result => {
+                    if (result) {
+                        console.log('MSAL: Returning from login');
+                        console.log(result);
+                        return result;
+                    }
+                    
+                    const sid = "{{sid}}";
+                    const code = "{{code}}";
+                    const preferredUsername = "{{preferredUsername}}";
+                    const loginHint = "{{{loginHint}}}";
+                    
+                    const account = {{{account}}};
 
-                const scopes = [ "user.read" ];
-                const tokenQueryParameters = {
-                    dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
-                    hybridspa: "true"
-                }
+                    const scopes = [ "user.read" ];
+                    const tokenQueryParameters = {
+                        dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
+                        hybridspa: "true",
+                    }
 
-                const hybridParams = !!(code);
-                console.log(`MSAL: Initiating client-side auth (hybrid: ${hybridParams})`);
+                    const hybridParams = !!(code);
+                    console.log(`MSAL: Initiating client-side auth (hybrid: ${hybridParams})`);
 
-                if (hybridParams) {
-                    const timeLabel = "Time for acquireTokenByCode";
-                    console.time(timeLabel);
-                    console.log('MSAL: acquireTokenByCode hybrid parameters present');
+                    if (hybridParams || account.nativeAccountId) {
+                        const timeLabel = "Time for acquireTokenByCode";
+                        console.time(timeLabel);
+                        console.log('MSAL: acquireTokenByCode hybrid parameters present');
 
-                    return msalInstance.acquireTokenByCode({
-                        code,
-                        scopes,
-                        tokenQueryParameters
-                    })
+                        return msalInstance.acquireTokenByCode({
+                            code,
+                            nativeAccountId: account.nativeAccountId,
+                            scopes,
+                            tokenQueryParameters
+                        })
                         .then(result => {
                             console.timeEnd(timeLabel);
                             console.log('MSAL: acquireTokenByCode completed successfully', result);
@@ -61,11 +78,10 @@
                                 })
                             }
                         });
-                } else {
+                    } else {
                     const timeLabel = "Time for ssoSilent";
                     console.time(timeLabel);
                     console.log('MSAL: ssoSilent hybrid parameters not present');
-
                     return msalInstance.ssoSilent({
                         sid: loginHint ? undefined : sid, // If loginHint claim is provided, dont use sid
                         loginHint: loginHint || preferredUsername, // Prefer loginHint claim over email
@@ -79,7 +95,6 @@
                         .catch((error) => {
                             console.timeEnd(timeLabel);
                             console.error('MSAL: ssoSilent failed', error);
-
                             if (error instanceof msal.InteractionRequiredAuthError) {
                                 console.log('MSAL: ssoSilent failed, redirecting')
                                 // Use loginHint from server to ensure same user
@@ -90,9 +105,11 @@
                             }
                         });
                 }
-            })
-            .catch(error => {
-                console.error("MSAL: Error returning from redirect", error);
-            });
-    }
+                })
+                .catch(error => {
+                    console.error("MSAL: Error returning from redirect", error);
+                });
+            }
+        }
+    );
 </script>

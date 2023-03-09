@@ -8,26 +8,47 @@ var app = require('../app');
 var debug = require('debug')('hybridsample:server');
 var http = require('http');
 
+const argv = require('yargs')
+    .usage('Usage: $0 -sample [sample-name] -p [PORT] -https')
+    .alias('hyb', 'Hybrid sample type: Regular')
+    .alias('wam', 'Hybrid sampe type: With WAM Flow')
+    .alias('p', 'port')
+    .alias('h', 'https')
+    .describe('sample', '(Optional) Name of sample to run')
+    .describe('port', '(Optional) Port Number - default is 30662')
+    .describe('https', '(Optional) Serve over https')
+    .strict()
+    .argv;
+
+
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(process.env.PORT || '3000');
+var port = normalizePort(process.env.PORT || argv.p || '3000');
 app.set('port', port);
 
 /**
  * Create HTTP server.
  */
-
-var server = http.createServer(app);
+let server;
+if (argv.https) {
+  const https = require('https');
+  const fs = require('fs');
+  const privateKey  = fs.readFileSync('./key.pem', 'utf8');
+  const certificate = fs.readFileSync('./cert.pem', 'utf8');
+  const credentials = {key: privateKey, cert: certificate};
+  server = https.createServer(credentials, app);
+} else {
+  server = http.createServer(app);
+}
 
 /**
  * Listen on provided port, on all network interfaces.
  */
-
-server.listen(port);
-server.on('error', onError);
-server.on('listening', onListening);
+ server.listen(port);
+ server.on('error', onError);
+ server.on('listening', onListening);
 
 /**
  * Normalize a port into a number, string, or false.
