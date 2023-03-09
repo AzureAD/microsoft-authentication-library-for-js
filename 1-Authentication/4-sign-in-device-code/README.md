@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
-description: A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
+name: A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
+description: A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
 languages:
  - javascript
 products:
@@ -14,10 +14,10 @@ extensions:
 - platform: javascript
 - endpoint: AAD v2.0
 - level: 100
-- client: Node console application
+- client: Node headless application
 ---
 
-# A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
+# A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -26,17 +26,16 @@ extensions:
 * [Explore the sample](#explore-the-sample)
 * [Troubleshooting](#troubleshooting)
 * [About the code](#about-the-code)
-* [Next Steps](#next-steps)
 * [Contributing](#contributing)
 * [Learn More](#learn-more)
 
 ## Overview
 
-This sample demonstrates a Node console application that authenticates users with the [device code flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code) against Azure AD CIAM.
+This sample demonstrates a Node headless application that authenticates users with the [device code flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code) against Azure AD CIAM.
 
 ## Scenario
 
-1. The client Node console application uses MSAL Node to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
+1. The client Node headless application uses MSAL Node to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
 1. The **ID Token** proves that the user has successfully authenticated against **Azure AD CIAM**.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
@@ -129,12 +128,12 @@ Please refer to:
 * [Tutorial: Add Google as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/6-Add-Google-identity-provider.md)
 * [Tutorial: Add Facebook as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/7-Add-Facebook-identity-provider.md)
 
-#### Register the client app (msal-node-console)
+#### Register the client app (msal-node-headless)
 
 1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-console`.
+    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-headless`.
     1. Under **Supported account types**, select **Accounts in this organizational directory only**
     1. Select **Register** to create the application.
 1. In the **Overview** blade, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
@@ -150,7 +149,7 @@ Please refer to:
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
-##### Configure the client app (msal-node-console) to use your app registration
+##### Configure the client app (msal-node-headless) to use your app registration
 
 Open the project in your IDE (like Visual Studio or Visual Studio Code) to configure the code.
 
@@ -158,7 +157,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 1. Open the `App\authConfig.js` file.
 1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
-1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `msal-node-console` app copied from the Azure portal.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `msal-node-headless` app copied from the Azure portal.
 
 ### Step 4: Running the sample
 
@@ -169,8 +168,8 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 ## Explore the sample
 
-1. Navigate to the project directory and run the `npm start` command. The browser will open automatically.
-1. Copy the device code from the message in the terminal.
+1. Navigate to the project directory and run the `npm start` command.
+1. Copy the suggested URL `https://microsoft.com/devicelogin` from the message in the terminal and open it in the browser. Then copy the device code from the message in the terminal.
 ![Screenshot](./ReadmeFiles/code.png)
 1. Past the code in the Enter code prompt to sign in. <br />
 ![Screenshot](./ReadmeFiles/prompt.png)
@@ -180,7 +179,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 ## We'd love your feedback!
 
-Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](Enter_Survey_Form_Link).
+Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_ivMYEeUKlEq8CxnMPgdNZUNDlUTTk2NVNYQkZSSjdaTk5KT1o4V1VVNS4u).
 
 ## Troubleshooting
 
@@ -206,14 +205,13 @@ const getTokenDeviceCode = (clientApplication) => {
         ...loginRequest,
         deviceCodeCallback: (response) => {
             console.log(response.message);
-            open(response.verificationUri);
         },
     };
 
     /**
      * The code below demonstrates the correct usage pattern of the acquireTokenByDeviceCode API.
      * The application uses MSAL to obtain an Access Token through the Device Code grant.
-     * Once the device code request is executed, the user will be prompted by the console application to visit a URL,
+     * Once the device code request is executed, the user will be prompted by the headless application to visit a URL,
      * where they will input the device code shown in the console. Once the code is entered, the promise below should resolve
      * with an AuthenticationResult object. For information about acquireTokenByDeviceCode see:
      * https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html#acquiretokenbydevicecode
@@ -239,10 +237,6 @@ getTokenDeviceCode(msalInstance).then(response => {
 ```
 
 </details>
-
-## Next Steps
-
-Learn how to:
 
 ## Contributing
 

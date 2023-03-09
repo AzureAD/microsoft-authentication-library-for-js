@@ -1,13 +1,13 @@
 {
     "Sample": {
-        "Title": "A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
+        "Title": "A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
         "Level": 100,
-        "Client": "Node console application",
+        "Client": "Node headless application",
         "RepositoryUrl": "ms-identity-ciam-javascript-tutorial.git",
         "Endpoint": "AAD v2.0",
         "platform": "javascript",
         "Languages": ["javascript"],
-        "Description": "A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
+        "Description": "A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
         "products": ["azure-active-directory", "msal-js", "msal-node"],
         "Provider": "CIAM",
         "Platform": "javascript"
@@ -15,7 +15,7 @@
     "AADApps": [
         {
             "Id": "client",
-            "Name": "msal-node-console",
+            "Name": "msal-node-headless",
             "Kind": "Browserless",
             "IsPublicClient": true,
             "SDK": "MsalJs",
@@ -26,7 +26,7 @@
                     "Resource": "Microsoft Graph",
                     "DelegatedPermissions": ["openid", "offline_access"]
                 }
-            ]       
+            ]
         }
     ],
     "CodeConfiguration": [

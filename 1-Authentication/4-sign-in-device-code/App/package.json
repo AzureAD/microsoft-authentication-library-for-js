@@ -1,14 +1,13 @@
 {
     "name": "4-sign-in-device-code",
     "version": "1.0.0",
-    "description": "A Node console application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
+    "description": "A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)",
     "main": "index.js",
     "scripts": {
         "start": "node index.js"
     },
     "license": "ISC",
     "dependencies": {
-        "@azure/msal-node": "^1.16.0",
-        "open": "^8.4.2"
+        "@azure/msal-node": "^1.16.0"
     }
 }
