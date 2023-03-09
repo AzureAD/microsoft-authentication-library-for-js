@@ -6,7 +6,7 @@ const { msalConfig, loginRequest } = require("./authConfig");
 const getTokenDeviceCode = (clientApplication) => {
     
     /**
-     * Device Code Request for more information visit:
+     * Device Code Request. For more information visit:
      * https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#devicecoderequest
      */
     const deviceCodeRequest = {
