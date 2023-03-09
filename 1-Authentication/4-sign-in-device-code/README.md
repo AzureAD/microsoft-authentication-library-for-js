@@ -193,8 +193,50 @@ To provide feedback on or suggest features for Azure Active Directory, visit [Us
 
 ## About the code
 
-> * Describe where the code uses auth libraries, or calls the graph
-> * Describe specific aspects (e.g. caching, validation etc.)
+MSAL Node exposes [acquireTokenByDeviceCode](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html#acquiretokenbydevicecode) API to support the [device authorization grant](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-device-code), which allows users to sign in to input-constrained devices such as a smart TV, IoT device, or a printer. To enable this flow, the device has the user visit a webpage in a browser on another device to sign in as shown in the code below:
+
+```javascript
+const getTokenDeviceCode = (clientApplication) => {
+    
+    /**
+     * Device Code Request for more information visit:
+     * https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#devicecoderequest
+     */
+    const deviceCodeRequest = {
+        ...loginRequest,
+        deviceCodeCallback: (response) => {
+            console.log(response.message);
+            open(response.verificationUri);
+        },
+    };
+
+    /**
+     * The code below demonstrates the correct usage pattern of the acquireTokenByDeviceCode API.
+     * The application uses MSAL to obtain an Access Token through the Device Code grant.
+     * Once the device code request is executed, the user will be prompted by the console application to visit a URL,
+     * where they will input the device code shown in the console. Once the code is entered, the promise below should resolve
+     * with an AuthenticationResult object. For information about acquireTokenByDeviceCode see:
+     * https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html#acquiretokenbydevicecode
+     *
+     */
+    return clientApplication
+        .acquireTokenByDeviceCode(deviceCodeRequest)
+        .then((response) => {
+            return response;
+        })
+        .catch((error) => {
+            return error;
+        });
+}
+```
+
+Once the user signs in, the device is able to get the user's authentication information.
+
+```javascript
+getTokenDeviceCode(msalInstance).then(response => {
+    console.log(response)
+});
+```
 
 </details>
 
