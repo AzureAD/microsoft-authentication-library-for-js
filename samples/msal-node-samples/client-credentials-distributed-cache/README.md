@@ -21,13 +21,12 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Under **Supported account types**, select **Accounts in any organizational directory (Any Azure AD directory - Multitenant)**.
    - In the **Redirect URI (optional)** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `http://localhost` (this is required for provisioning the app into other tenants via admin consent).
 1. Select **Register** to create the application.
-1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
 1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
    - In the **Client secrets** section, select **New client secret**.
    - Type a key description (for instance `app secret`),
    - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
-   - The generated key value will be displayed when you select the **Add** button. Copy and save the generated value for use in later steps.
+   - The generated key value will be displayed when you select the **Add** button. Record this value for use in a later step (it's shown only once).
 1. In the app's registration screen, select the API permissions blade in the left to open the page where we add access to the APIs that your application needs.
    - Select the **Add a permission** button and then,
    - Ensure that the **Microsoft APIs** tab is selected.
@@ -78,7 +77,7 @@ Provide the required parameters. For example:
 
 ## Remarks
 
-The daemon app in this sample is configured to be multitenant. In order to acquire tokens from tenants other than the one where the app was originally registered, you must provision the app by granting admin consent to required scopes. In the sample, the admin consent request is handled in [ProvisionHandler.ts](./src/ProvisionHandler.ts). This is for demonstration purposes only.
+The daemon app in this sample is configured to be multitenant. In order to acquire tokens from tenants other than the one where the app was originally registered, you must provision the app by granting admin consent to the required scopes. In the sample, the admin consent request is handled in [ProvisionHandler.ts](./src/ProvisionHandler.ts). This is for demonstration purposes only.
 
 For persisting tokens using a distributed cache, multitenant daemon apps should use the scheme `<clientId>.<tenantId>` as the partition key. This is shown in `getToken` method of [AuthProvider.ts](./src/AuthProvider.ts). See also [CustomCachePlugin.ts](./src/CustomCachePlugin.ts).
 
