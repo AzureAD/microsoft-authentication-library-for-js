@@ -48,7 +48,7 @@ Click the `Copy to Clipboard` icon, and add the secret to the config object in `
         {
             "clientId": "YOUR_CLIENT_ID",
             "authority": "YOUR_AUTHORITY",
-            "clientSecret": "YOUR_CLIENT_SECRET" // Add client secret here
+            "clientSecret": "YOUR_CLIENT_SECRET"
 
         },
     "request":
