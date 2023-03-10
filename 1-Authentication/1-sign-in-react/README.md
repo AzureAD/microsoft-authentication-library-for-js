@@ -72,7 +72,7 @@ Here you'll learn how to [sign-in](https://docs.microsoft.com/azure/active-direc
 From your shell or command line:
 
 ```console
-git clone https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial.git
+git clone https://github.com/Azure-Samples/ms-identity-ciam-javascript-tutorial.git
 ```
 
 or download and extract the repository *.zip* file.
