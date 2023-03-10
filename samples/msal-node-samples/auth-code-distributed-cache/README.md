@@ -36,7 +36,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - In the **Delegated permissions** section, select the **access_as_user** in the list. Use the search box if necessary.
    - Select the **Add permissions** button at the bottom.
 
-Before running the sample, you will need to replace the values in the configuration object (see [index.ts](./src/index.ts)):
+Before running the sample, you will need to replace the values in the configuration object (see [app.ts](./src/app.ts)):
 
 ```typescript
 const appConfig: AppConfig = {
