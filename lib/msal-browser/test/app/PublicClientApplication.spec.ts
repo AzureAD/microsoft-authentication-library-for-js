@@ -814,7 +814,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window
             };
 
+            // @ts-ignore
             delete window.opener;
+            // @ts-ignore
             delete window.name;
             window.opener = newWindow;
             window.name = "msal.testPopup"
@@ -1473,7 +1475,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window
             };
 
+            // @ts-ignore
             delete window.opener;
+            // @ts-ignore
             delete window.name;
             window.opener = newWindow;
             window.name = "msal.testPopup"
@@ -2789,10 +2793,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
-            const testError = {
-                errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
-            };
+            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2819,10 +2820,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws when making parallel requests", async () => {
-            const testError = {
-                errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
-            };
+            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,

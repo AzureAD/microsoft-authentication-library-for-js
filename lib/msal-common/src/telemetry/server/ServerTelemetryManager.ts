@@ -67,7 +67,7 @@ export class ServerTelemetryManager {
      * API to cache token failures for MSER data capture
      * @param error
      */
-    cacheFailedRequest(error: AuthError): void {
+    cacheFailedRequest(error: unknown): void {
         const lastRequests = this.getLastRequests();
         if (lastRequests.errors.length >= SERVER_TELEM_CONSTANTS.MAX_CACHED_ERRORS) {
             // Remove a cached error to make room, first in first out
@@ -75,15 +75,21 @@ export class ServerTelemetryManager {
             lastRequests.failedRequests.shift(); // correlationId
             lastRequests.errors.shift();
         }
-        
+
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
 
-        if (!StringUtils.isEmpty(error.subError)) {
-            lastRequests.errors.push(error.subError);
-        } else if (!StringUtils.isEmpty(error.errorCode)) {
-            lastRequests.errors.push(error.errorCode);
-        } else if (!!error && error.toString()) {
-            lastRequests.errors.push(error.toString());
+        if (error instanceof Error && !!error && error.toString()) {
+            if (error instanceof AuthError) {
+                if (!StringUtils.isEmpty(error.subError)) {
+                    lastRequests.errors.push(error.subError);
+                } else if (!StringUtils.isEmpty(error.errorCode)) {
+                    lastRequests.errors.push(error.errorCode);
+                } else {
+                    lastRequests.errors.push(error.toString());
+                }
+            } else {
+                lastRequests.errors.push(error.toString());
+            }
         } else {
             lastRequests.errors.push(SERVER_TELEM_CONSTANTS.UNKNOWN_ERROR);
         }
@@ -165,7 +171,7 @@ export class ServerTelemetryManager {
 
     /**
      * Get the region discovery fields
-     * 
+     *
      * @returns string
      */
     getRegionDiscoveryFields(): string {
@@ -180,7 +186,7 @@ export class ServerTelemetryManager {
 
     /**
      * Update the region discovery metadata
-     * 
+     *
      * @param regionDiscoveryMetadata
      * @returns void
      */
@@ -191,7 +197,7 @@ export class ServerTelemetryManager {
     }
 
     /**
-     * Set cache outcome 
+     * Set cache outcome
      */
     setCacheOutcome(cacheOutcome: CacheOutcome): void {
         this.cacheOutcome = cacheOutcome;
