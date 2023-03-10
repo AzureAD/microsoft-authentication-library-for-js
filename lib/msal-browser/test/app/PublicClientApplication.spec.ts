@@ -30,7 +30,8 @@ import {
     CacheManager,
     ClientAuthError,
     PersistentCacheKeys,
-    Authority
+    Authority,
+    AuthError
 } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation, CacheLookupPolicy } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -469,7 +470,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;            
+            pca = (pca as any).controller;
 
             const promise1 = pca.handleRedirectPromise();
             const promise2 = pca.handleRedirectPromise();
@@ -814,7 +815,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window
             };
 
+            // @ts-ignore
             delete window.opener;
+            // @ts-ignore
             delete window.name;
             window.opener = newWindow;
             window.name = "msal.testPopup"
@@ -1473,7 +1476,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window
             };
 
+            // @ts-ignore
             delete window.opener;
+            // @ts-ignore
             delete window.name;
             window.opener = newWindow;
             window.name = "msal.testPopup"
@@ -2789,10 +2794,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
-            const testError = {
-                errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
-            };
+            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2819,10 +2821,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws when making parallel requests", async () => {
-            const testError = {
-                errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
-            };
+            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -3604,7 +3603,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
             "homeAccountId": testAccountInfo2.homeAccountId,
         };
-        
+
         const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
 
         beforeEach(() => {
@@ -3889,7 +3888,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // @ts-ignore
             pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            
+
             // @ts-ignore
             expect(pca.browserStorage.getInteractionInProgress()).toBeTruthy;
         });

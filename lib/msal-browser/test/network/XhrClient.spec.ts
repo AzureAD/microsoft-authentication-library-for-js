@@ -20,7 +20,7 @@ describe("XhrClient.ts Unit Tests", () => {
 
         it("sends a get request as expected", () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
-            sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string, async: boolean) => {
+            sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string | URL, async: boolean) => {
                 expect(method).toBe(HTTP_REQUEST_TYPE.GET);
                 expect(url).toBe(targetUri);
                 expect(async).toBe(true);
@@ -40,7 +40,7 @@ describe("XhrClient.ts Unit Tests", () => {
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody"
             };
-            sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string, async: boolean) => {
+            sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string | URL, async: boolean) => {
                 expect(method).toBe(HTTP_REQUEST_TYPE.POST);
                 expect(url).toBe(targetUri);
                 expect(async).toBe(true);
@@ -73,7 +73,7 @@ describe("XhrClient.ts Unit Tests", () => {
 
         it("throws error if called with an unrecognized request type", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
-            sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string, async: boolean) => {
+            sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string | URL, async: boolean) => {
                 expect(method).toBe("NOTATYPE");
                 expect(url).toBe(targetUri);
                 expect(async).toBe(true);
@@ -86,7 +86,8 @@ describe("XhrClient.ts Unit Tests", () => {
                 await xhrClient.sendGetRequestAsync<any>(targetUri);
             } catch (e) {
                 expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e.errorMessage.includes(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc)).toBe(true);
+                const browserAuthError: BrowserAuthError = e as BrowserAuthError;
+                expect(browserAuthError.errorMessage.includes(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc)).toBe(true);
             }
         });
 

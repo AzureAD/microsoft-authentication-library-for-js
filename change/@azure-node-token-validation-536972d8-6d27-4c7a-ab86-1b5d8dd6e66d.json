@@ -1,0 +1,7 @@
+{
+  "comment": "Bump typescript to 4.9.5 and build target to es2020 #5750",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "none"
+}
