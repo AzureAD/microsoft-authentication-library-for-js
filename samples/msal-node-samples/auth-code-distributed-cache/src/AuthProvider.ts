@@ -104,7 +104,7 @@ export class AuthProvider {
         }
     }
 
-    async getTokenInteractive(tokenRequest: AuthorizationCodeRequest, authCodePayLoad: AuthorizationCodePayload, sessionId: string,): Promise<AuthenticationResult | null> {
+    async getTokenInteractive(tokenRequest: AuthorizationCodeRequest, authCodePayLoad: AuthorizationCodePayload, sessionId: string): Promise<AuthenticationResult | null> {
         const msalInstance = this.getMsalInstance(sessionId);
         let tokenResponse = null;
 
