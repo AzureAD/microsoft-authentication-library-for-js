@@ -2,7 +2,7 @@
   "include": ["src", "test"],
   "compilerOptions": {
     "module": "esnext",
-    "target": "esnext",
+    "target": "es2020",
     "moduleResolution": "node",
     "lib": ["dom", "esnext"],
     "importHelpers": true,
