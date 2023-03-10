@@ -78,8 +78,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
-                serverTelemetryManager.cacheFailedRequest(e);
             }
+            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
