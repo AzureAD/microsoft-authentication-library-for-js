@@ -7,7 +7,7 @@
     "resourceApi":
     {
         "endpoint": "Enter_the_Graph_Endpoint_Here",
-        "scopes": ["User.Read", "Mail.Read"]
+        "scopes": ["User.Read"]
     },
     "customProtocol":
     {

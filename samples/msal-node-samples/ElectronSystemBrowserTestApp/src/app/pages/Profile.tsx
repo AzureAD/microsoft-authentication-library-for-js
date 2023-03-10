@@ -1,8 +1,7 @@
-import React from 'react';
-import { useEffect, useState } from 'react';
-import { IpcMessages } from '../../Constants';
-import { ProfileData } from '../components/ProfileData';
-import { UserInfo } from '../../GraphReponseTypes';
+import React, { useEffect, useState } from "react";
+import { ProfileData } from "../components/ProfileData";
+import { UserInfo } from "../../GraphReponseTypes";
+import { IpcMessages } from "../../Constants";
 
 declare const window: any;
 
@@ -13,11 +12,13 @@ export const Profile = () => {
         window.api.receive(IpcMessages.SET_PROFILE, (graphData: UserInfo) => {
             setGraphData(graphData);
         });
-
         return () => {
+            window.api.removeAllListeners(IpcMessages.GET_PROFILE);
             window.api.removeAllListeners(IpcMessages.SET_PROFILE);
         };
     }, []);
 
     return <>{graphData ? <ProfileData graphData={graphData} /> : null}</>;
+
+
 };

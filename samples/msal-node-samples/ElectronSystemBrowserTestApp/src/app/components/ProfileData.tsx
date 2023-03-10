@@ -1,6 +1,11 @@
-import React from 'react';
+import React from "react";
+import { UserInfo } from "../../GraphReponseTypes";
 
-export const ProfileData = (props: any) => {
+type PageLayoutProps = {
+    graphData: UserInfo;
+};
+
+export const ProfileData = (props: PageLayoutProps) => {
     const tableRows = Object.entries(props.graphData).map((entry, index) => {
         return (
             <tr key={index}>
@@ -23,7 +28,8 @@ export const ProfileData = (props: any) => {
                         <strong>resource:</strong> <mark>User</mark> object
                     </li>
                     <li>
-                        <strong>endpoint:</strong> <mark>https://graph.microsoft.com/v1.0/me</mark>
+                        <strong>endpoint:</strong>{" "}
+                        <mark>https://graph.microsoft.com/v1.0/me</mark>
                     </li>
                     <li>
                         <strong>scope:</strong> <mark>user.read</mark>
