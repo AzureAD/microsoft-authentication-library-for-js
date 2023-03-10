@@ -13,7 +13,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EventCallbackFunction } from "../event/EventMessage";
+import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -208,7 +208,7 @@ export class StandardController implements IController {
             try {
                 this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
-                this.logger.verbose(e);
+                this.logger.verbose(e as string);
             }
         }
         this.initialized = true;
@@ -276,9 +276,9 @@ export class StandardController implements IController {
                 }).catch((e) => {
                     // Emit login event if there is an account
                     if (loggedInAccounts.length > 0) {
-                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e as EventError);
                     } else {
-                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e as EventError);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
@@ -613,7 +613,7 @@ export class StandardController implements IController {
             }
 
         } catch (e) {
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e as EventError);
             atbcMeasurement.endMeasurement({
                 errorCode: e instanceof AuthError && e.errorCode || undefined,
                 subErrorCode: e instanceof AuthError && e.subError || undefined,
