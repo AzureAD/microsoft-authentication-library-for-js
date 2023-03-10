@@ -47,7 +47,7 @@ The first thing that we need to do is to declare the unique [resource](https://d
    - Modify the `"knownClientApplications": []` array to contain the client ID/app ID of the client application(S) that will call this web API (for example `knownClientApplications": ["APP_ID_OF_THE_CLIENT_APP"]`)
    - Click on **Save**.
 
-Before running the sample, you will need to replace the values in the configuration object (see [index.ts](./src/index.ts)):
+Before running the sample, you will need to replace the values in the configuration object (see [app.ts](./src/app.ts)):
 
 ```typescript
 const appConfig: AppConfig = {
