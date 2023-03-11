@@ -12,7 +12,7 @@
 /samples/msal-browser-samples/ @derisen @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @konstantin-msft
 
 # MSAL Common
-/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @bgavrilMS @robbie-microsoft @konstantin-msft
+/lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft
 
 # MSAL Core
 /lib/msal-core/ @sameerag @tnorling @peterzenz
@@ -20,8 +20,8 @@
 
 # MSAL Node
 /lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
-/samples/msal-node-samples/ @derisen @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
-/extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS
+/samples/msal-node-samples/ @derisen @sameerag @tnorling @hectormmg @peterzenz @bgavrilMS @robbie-microsoft
+/extensions/msal-node-extensions/ @sameerag @tnorling @hectormmg @peterzenz
 
 # ADAL Node
 /maintenance/adal-node @sameerag @peterzenz @bgavrilMS
