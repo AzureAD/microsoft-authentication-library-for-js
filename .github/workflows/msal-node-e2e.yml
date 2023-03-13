@@ -1,10 +1,12 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Will not trigger unless PR is ready for review.
 
 name: msal-node E2E Tests
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'lib/msal-node/**/*'
       - 'lib/msal-common/**/*'
@@ -25,7 +27,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -201,7 +203,7 @@ jobs:
   #       path: samples/**/screenshots
 
   run-electron-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -209,6 +211,7 @@ jobs:
         os: [windows-latest, macos-latest]
         sample:
           - 'ElectronTestApp'
+          - 'ElectronSystemBrowserTestApp'
 
     name: ${{ matrix.sample }} - ${{ matrix.os }}
 
@@ -247,6 +250,9 @@ jobs:
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples
       run: npm ci
+      env:
+        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+        PLAYWRIGHT_BROWSERS_PATH: 0
 
     - name: Restore node_modules for sample
       uses: actions/cache@v3
@@ -261,8 +267,10 @@ jobs:
       run: |
         npm run install:local
         npm install
-      env:
-        PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: 1
+
+    - name: Install Playwright
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: npx playwright install
 
     - name: Build Sample
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
