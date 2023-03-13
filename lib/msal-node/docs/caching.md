@@ -45,7 +45,9 @@ In production, you would most likely want to serialize and persist the token cac
 
 ## In-memory cache
 
-By default, MSAL has an in-memory cache. The in-memory cache is the single source of truth for all MSAL activities involving tokens and accounts. The lifetime of in-memory cache is the same as the MSAL instance. If the MSAL instance restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
+MSAL maintains an in-memory cache. The in-memory cache is the single source of truth for all MSAL activities involving tokens and accounts. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. This affects user scenarios as users will have to re-authenticate, and although the browser will do most some of the work, the end user experience suffers. Service to service scenarios suffer because getting a token from AAD involves HTTP requests, and is much slower than getting a token from a cache.
+
+ We recommend persisting the cache with encryption for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
 Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
 
