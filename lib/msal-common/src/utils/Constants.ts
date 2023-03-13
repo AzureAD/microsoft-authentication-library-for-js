@@ -269,22 +269,6 @@ export enum CredentialType {
 }
 
 /**
- * Credential Type stored in the cache
- */
-export enum CacheSchemaType {
-    ACCOUNT = "Account",
-    CREDENTIAL = "Credential",
-    ID_TOKEN = "IdToken",
-    ACCESS_TOKEN = "AccessToken",
-    REFRESH_TOKEN = "RefreshToken",
-    APP_METADATA = "AppMetadata",
-    TEMPORARY = "TempCache",
-    TELEMETRY = "Telemetry",
-    UNDEFINED = "Undefined",
-    THROTTLING = "Throttling"
-}
-
-/**
  * Combine all cache types
  */
 export enum CacheType {
