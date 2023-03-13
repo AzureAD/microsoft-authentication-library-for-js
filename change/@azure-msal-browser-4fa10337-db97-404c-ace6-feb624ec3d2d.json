@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Dup code removal in NativeInteractionClient (#5768)",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
