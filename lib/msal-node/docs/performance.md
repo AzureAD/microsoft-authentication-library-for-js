@@ -17,7 +17,7 @@ Applications that want to measure the performance of authentication flows in MSA
 
 For example:
 
-```typescript
+```javascript
     const { PerformanceObserver, performance } = require('node:perf_hooks');
 
     const perfObserver = new PerformanceObserver((items) => {
@@ -26,50 +26,63 @@ For example:
         })
     });
 
-    perfObserver.observe({ entryTypes: ["measure"], buffer: true });
+    perfObserver.observe({ entryTypes: ["measure"], buffered: true });
 
     // ...
 
     performance.mark("acquireTokenByClientCredential-start");
+
     const tokenResponse = await msalInstance.acquireTokenByClientCredential({
         scopes: ["User.Read.All"],
     });
+
     performance.mark("acquireTokenByClientCredential-end");
 
-    const measurementName = tokenResponse.fromCache ? "acquireTokenByClientCredential-fromCache" : "acquireTokenByClientCredential-fromNetwork";
-    performance.measure(measurementName, "acquireTokenByClientCredential-start", "acquireTokenByClientCredential-end");
+    performance.measure("acquireTokenByClientCredential", {
+        start: "acquireTokenByClientCredential-start"
+        end: "acquireTokenByClientCredential-end"
+        detail: {
+            tokenSource: tokenResponse.fromCache
+            correlationId: tokenResponse.correlationId
+        }
+    });
 ```
 
 ## Performance considerations for confidential client applications
 
-Since confidential client applications (CCA) are primarily used with server-side scenarios involving concurrent processing of requests, we recommend to scope CCA instances to each user, request or session.
+Since confidential client applications are primarily used with server-side scenarios involving concurrent processing of requests, we recommend to scope MSAL `ConfidenticalClientApplication` (CCA) instances to each user, request or session.
 
-A fresh CCA instance for each request means an empty in-memory token cache and no OIDC metadata.
-
-In order to avoid poor performance, the fresh CCA instance should be prepared before the token request.
+A fresh CCA instance for each request means its default in-memory cache will initially not contain any tokens or metadata about how to acquire tokens. As such, the CCA instance you create should be prepared before the token request in order to avoid poor performance.
 
 ```typescript
 import {
-    Configuration,
-    LogLevel,
     ConfidentialClientApplication,
     AuthenticationResult,
     CryptoProvider,
     OnBehalfOfRequest
 } from "@azure/msal-node";
 
-async function getToken(tokenRequest: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-    const partitionKey = await this.cryptoProvider.hashString(tokenRequest.oboAssertion);
-
-    const cca = new ConfidentialClientApplication({
-        ...this.msalConfig,
+function getMsalInstance(partitionKey: string): ConfidentialClientApplication {
+    return new ConfidentialClientApplication({
+        auth: {
+            clientId: "ENTER_CLIENT_ID",
+            authority: "http://login.microsoftonline.com/ENTER_TENANT_ID"
+            cloudDiscoveryMetadata: "PROVIDE_STRINGIFIED_DISCOVERY_METADATA"
+            authorityMetadata: "PROVIDE_STRINGIFIED_AUTHORITY_METADATA"
+        },
         cache: {
             cachePlugin: new CustomCachePlugin(
                 this.cacheClientWrapper,
-                partitionKey // partitionKey hash(oboAssertion)
+                partitionKey
             )
         }
     });
+};
+
+async function getToken(tokenRequest: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
+    const partitionKey = await this.cryptoProvider.hashString(tokenRequest.oboAssertion);
+
+    const cca = getMsalInstance(partitionKey);
 
     let tokenResponse = null;
 
@@ -81,10 +94,10 @@ async function getToken(tokenRequest: OnBehalfOfRequest): Promise<Authentication
     }
 
     return tokenResponse;
-}
+};
 ```
 
-See []() for more.
+See [(CCA) Web API using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md) for more.
 
 ## More information
 

@@ -15,7 +15,7 @@ const cca = new msal.ConfidentialClientApplication({
 });
 
 /**
-* login* and acquireToken* APIs return an account object containing "homeAccountId"
+* acquireToken* APIs return an account object containing the "homeAccountId"
 * you should keep a record of this in your app and use it later on when calling acquireTokenSilent
 * For more, see: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/accounts.md
 */
@@ -45,11 +45,11 @@ In production, you would most likely want to serialize and persist the token cac
 
 ## In-memory cache
 
-MSAL maintains an in-memory cache. The in-memory cache is the single source of truth for all MSAL activities involving tokens and accounts. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. This affects user scenarios as users will have to re-authenticate, and although the browser will do most some of the work, the end user experience suffers. Service to service scenarios suffer because getting a token from AAD involves HTTP requests, and is much slower than getting a token from a cache.
-
- We recommend persisting the cache with encryption for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
+MSAL maintains an in-memory cache. The in-memory cache is the single source of truth for all MSAL activities involving tokens and accounts. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. This affects user scenarios as users will have to re-authenticate, and although the browser will do most some of the work, the end user experience suffers. Service to service scenarios also suffer because getting a token from AAD involves HTTP requests, and is much slower than getting a token from a cache.
 
 Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
+
+> :warning: We recommend persisting the cache with encryption for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
 ## Persistent cache
 
@@ -58,7 +58,7 @@ MSAL Node fires events when the in-memory cache is accessed and apps can choose 
 1. Deserialize the cache from persistence to MSAL's memory before accessing the cache
 2. If the in-memory cache has changed since last access, serialize the cache back to persistence
 
-For that, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This plugin should implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) interface:
+For persisting the cache, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This plugin should implement the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) interface:
 
 ```typescript
 interface ICachePlugin {
@@ -90,7 +90,7 @@ class MyCachePlugin implements ICachePlugin {
 }
 ```
 
-* If you are developing a public client app (such as desktop, headless etc.), [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
+* If you are developing a public client app, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
 * If you are developing a confidential client app, you should persist the cache via a separate service, since a single, *per-server* cache instance isn't suitable for a cloud environment with many servers and app instances.
 
 > :warning: We strongly recommend to encrypt the token cache when persisting it on disk. For public client apps, this is offered out-of-box with [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md). For confidential clients however, you are responsible for devising an appropriate encryption solution.
@@ -105,14 +105,14 @@ On confidential client apps that handle users (web apps that sign in users and c
 * For multi-tenant daemon apps using client credentials grant: `<clientId>.<tenantId>`
 * For web APIs calling other web APIs using OBO: hash of the incoming access token (i.e. `oboAssertion`) -the token which will subsequently be exchanged for an OBO token
 
-See also [performance](./performance.md) for more information on how to monitor usage and avoid poor performance.
+> :warning: Please make sure to see [performance](./performance.md) for more information on how to monitor usage and avoid poor performance.
 
 ### Web apps
 
 Since web apps are user-facing and often rely on sessions to keep track of each user, the appropriate partition key for caching is often stored within the session data, and needs to be retrieved before the cache lookup can take place. To help with this, MSAL Node provides the [DistributedCachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.distributedcacheplugin.html) class, which implements the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html). An instance of `DistributedCachePlugin` requires:
 
-* a **client interface**, which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
-* a **partition manager**, for reading from and writing to cache with respect to a given **session ID**.
+* a **client interface** ([ICacheClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.icacheclient.html)), which implements `get` and `set` operations on the persistence server (Redis, MySQL etc.).
+* a **partition manager** ([IPartitionManager](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_node.ipartitionmanager.html)), for reading from and writing to cache with respect to a given **session ID**.
 
 Please refer to the [Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md) for a sample implementation.
 
@@ -124,4 +124,4 @@ See the samples below for more about how to handle caching in MSAL Node apps:
 * [(PCA) Dektop app using MSAL Node Extensions](../../../extensions/samples/electron-webpack/README.md)
 * [(CCA) Web app using DistributedCachePlugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
 * [(CCA) Web API using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
-* [(CCA) Daemon app a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
+* [(CCA) Daemon app using a custom distributed cache plugin](../../../samples/msal-node-samples/auth-code-distributed-cache/README.md)
