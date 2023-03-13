@@ -9,12 +9,8 @@
  */
 
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
-export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
-export { ClientCredentialClient } from "./client/ClientCredentialClient";
-export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
-export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
 export { IAppTokenProvider, AppTokenProviderParameters, AppTokenProviderResult } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";

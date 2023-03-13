@@ -11,16 +11,16 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
     RANDOM_TEST_GUID
-} from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, PasswordGrantConstants, ThrottlingConstants } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
-import { Authority } from "../../src/authority/Authority";
+} from "@azure/msal-common/test/test_kit/StringConstants";
+import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
+import { AADServerParamKeys, GrantType, Constants, PasswordGrantConstants, ThrottlingConstants } from "@azure/msal-common/src/utils/Constants";
+import { ClientTestUtils } from "@azure/msal-common/test/client/ClientTestUtils";
+import { Authority } from "@azure/msal-common/src/authority/Authority";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
-import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
-import { AuthToken } from "../../src/account/AuthToken";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { CommonUsernamePasswordRequest } from "@azure/msal-common/src/request/CommonUsernamePasswordRequest";
+import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
+import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
+import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
 
 describe("Username Password unit tests", () => {
     let config: ClientConfiguration;

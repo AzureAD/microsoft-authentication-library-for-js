@@ -3,25 +3,25 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration } from "../config/ClientConfiguration";
-import { BaseClient } from "./BaseClient";
-import { Authority } from "../authority/Authority";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, AuthenticationScheme } from "../utils/Constants";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
-import { TimeUtils } from "../utils/TimeUtils";
-import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
-import { AccountEntity } from "../cache/entities/AccountEntity";
-import { AuthToken } from "../account/AuthToken";
-import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { AccountInfo } from "../account/AccountInfo";
-import { UrlString } from "../url/UrlString";
+import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
+import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
+import { Authority } from "@azure/msal-common/src/authority/Authority";
+import { RequestParameterBuilder } from "@azure/msal-common/src/request/RequestParameterBuilder";
+import { ScopeSet } from "@azure/msal-common/src/request/ScopeSet";
+import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, AuthenticationScheme } from "@azure/msal-common/src/utils/Constants";
+import { ResponseHandler } from "@azure/msal-common/src/response/ResponseHandler";
+import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
+import { CommonOnBehalfOfRequest } from "@azure/msal-common/src/request/CommonOnBehalfOfRequest";
+import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
+import { CredentialFilter, CredentialCache } from "@azure/msal-common/src/cache/utils/CacheTypes";
+import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity";
+import { IdTokenEntity } from "@azure/msal-common/src/cache/entities/IdTokenEntity";
+import { AccountEntity } from "@azure/msal-common/src/cache/entities/AccountEntity";
+import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
+import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
+import { RequestThumbprint } from "@azure/msal-common/src/network/RequestThumbprint";
+import { AccountInfo } from "@azure/msal-common/src/account/AccountInfo";
+import { UrlString } from "@azure/msal-common/src/url/UrlString";
 
 /**
  * On-Behalf-Of client
@@ -272,7 +272,7 @@ export class OnBehalfOfClient extends BaseClient {
         if (request.claims || (this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0)) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
-       
+
         return parameterBuilder.createQueryString();
     }
 }

@@ -11,17 +11,17 @@ import {
     CORS_SIMPLE_REQUEST_HEADERS,
     RANDOM_TEST_GUID,
     SERVER_UNEXPECTED_ERROR
-} from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { Authority } from "../../src/authority/Authority";
-import { AuthToken } from "../../src/account/AuthToken";
+} from "@azure/msal-common/test/test_kit/StringConstants";
+import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
+import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "@azure/msal-common/src/utils/Constants";
+import { ClientTestUtils } from "@azure/msal-common/test/client/ClientTestUtils";
+import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
+import { Authority } from "@azure/msal-common/src/authority/Authority";
+import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
 import { DeviceCodeClient } from "../../src/client/DeviceCodeClient";
-import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { AuthError } from "../../src";
+import { CommonDeviceCodeRequest } from "@azure/msal-common/src/request/CommonDeviceCodeRequest";
+import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
+import { AuthError } from "@azure/msal-common/src";
 
 describe("DeviceCodeClient unit tests", () => {
     let config: ClientConfiguration;
@@ -104,7 +104,7 @@ describe("DeviceCodeClient unit tests", () => {
                 headerNames.forEach((name) => {
                     expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(expect.arrayContaining([name.toLowerCase()]));
                 });
-    
+
                 done();
                 return AUTHENTICATION_RESULT;
             });
@@ -181,7 +181,7 @@ describe("DeviceCodeClient unit tests", () => {
                     done(error);
                 }
             });
-    
+
             // let deviceCodeResponse = null;
             const deviceCodeRequest: CommonDeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
@@ -194,7 +194,7 @@ describe("DeviceCodeClient unit tests", () => {
                 },
                 deviceCodeCallback: () => {},
             };
-    
+
             const client = new DeviceCodeClient(config);
             client.acquireToken(deviceCodeRequest).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
@@ -348,7 +348,7 @@ describe("DeviceCodeClient unit tests", () => {
                 correlationId: "test-correlationId",
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: () => {},
-                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint 
+                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint
             };
 
             const client = new DeviceCodeClient(config);

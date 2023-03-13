@@ -9,22 +9,22 @@ import {
     DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     ID_TOKEN_CLAIMS
-} from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
-import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
-import { Authority } from "../../src/authority/Authority";
+} from "@azure/msal-common/test/test_kit/StringConstants";
+import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
+import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "@azure/msal-common/src/utils/Constants";
+import { ClientTestUtils, mockCrypto } from "@azure/msal-common/test/client/ClientTestUtils";
+import { Authority } from "@azure/msal-common/src/authority/Authority";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
-import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest";
+import { CommonClientCredentialRequest } from "@azure/msal-common/src/request/CommonClientCredentialRequest";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
-import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
-import { TimeUtils } from "../../src/utils/TimeUtils";
-import { CredentialCache } from "../../src/cache/utils/CacheTypes";
-import { CacheManager } from "../../src/cache/CacheManager";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider, InteractionRequiredAuthError } from "../../src";
+import { CommonUsernamePasswordRequest } from "@azure/msal-common/src/request/CommonUsernamePasswordRequest";
+import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity"
+import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
+import { CredentialCache } from "@azure/msal-common/src/cache/utils/CacheTypes";
+import { CacheManager } from "@azure/msal-common/src/cache/CacheManager";
+import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
+import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
+import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider, InteractionRequiredAuthError } from "@azure/msal-common/src";
 
 describe("ClientCredentialClient unit tests", () => {
     let config: ClientConfiguration;
@@ -47,7 +47,7 @@ describe("ClientCredentialClient unit tests", () => {
             expect(client instanceof BaseClient).toBe(true);
         });
     });
-    
+
     it("acquires a token", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
@@ -110,7 +110,7 @@ describe("ClientCredentialClient unit tests", () => {
             // Catch errors thrown after the function call this test is testing
         });
     });
-    
+
     it("acquireToken's interactionRequiredAuthError error contains claims", async () => {
         const errorResponse = {
             error: "interaction_required",
@@ -153,7 +153,7 @@ describe("ClientCredentialClient unit tests", () => {
     it("Multiple access tokens would match, but one of them has a Home Account ID of \"\"", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-        
+
         const authenticationScopes = AUTHENTICATION_RESULT_DEFAULT_SCOPES;
         authenticationScopes.body.scope = "https://graph.microsoft.com/.default";
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(authenticationScopes);
@@ -441,7 +441,7 @@ describe("ClientCredentialClient unit tests", () => {
 
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER);
-            
+
         sinon.stub(ClientCredentialClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
@@ -492,16 +492,16 @@ describe("ClientCredentialClient unit tests", () => {
 
     it("Multiple access tokens matched, exception thrown", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        
+
         // mock access token
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedCredentialCache: CredentialCache = {
-            accessTokens: { 
+            accessTokens: {
                 "key1": mockedAtEntity,
                 "key2": mockedAtEntity2
             },
@@ -539,20 +539,20 @@ describe("ClientCredentialClient unit tests", () => {
         let callbackedCalledCount = 0;
 
         const appTokenProvider: IAppTokenProvider =  (appTokenProviderParameters) => {
-            
+
             callbackedCalledCount++;
 
             expect(appTokenProviderParameters.scopes).toEqual(expectedScopes);
             expect(appTokenProviderParameters.tenantId).toEqual("common");
             expect(appTokenProviderParameters.correlationId).toEqual(TEST_CONFIG.CORRELATION_ID);
             expect(appTokenProviderParameters.claims).toBeUndefined();
-                
+
             return new Promise<AppTokenProviderResult>(
-                (resolve) => resolve(appTokenProviderResult));                        
+                (resolve) => resolve(appTokenProviderResult));
         };
-    
+
         // client credentials not needed
-        config.clientCredentials = undefined;    
+        config.clientCredentials = undefined;
 
         const client = new ClientCredentialClient(config, appTokenProvider);
         const clientCredentialRequest: CommonClientCredentialRequest = {

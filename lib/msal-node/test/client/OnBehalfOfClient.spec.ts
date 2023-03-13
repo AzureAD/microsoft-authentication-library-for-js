@@ -12,27 +12,27 @@ import {
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_TOKENS,
     AUTHENTICATION_RESULT,
-} from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
-import { ClientTestUtils } from "./ClientTestUtils";
+} from "@azure/msal-common/test/test_kit/StringConstants";
+import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
+import { ClientTestUtils } from "@azure/msal-common/test/client/ClientTestUtils";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
-import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest";
-import { AuthToken } from "../../src/account/AuthToken";
-import { TimeUtils } from "../../src/utils/TimeUtils";
-import { Authority } from "../../src/authority/Authority";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { AuthenticationResult, IdTokenEntity } from "../../src";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { CommonOnBehalfOfRequest } from "@azure/msal-common/src/request/CommonOnBehalfOfRequest";
+import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
+import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
+import { Authority } from "@azure/msal-common/src/authority/Authority";
+import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
+import { AuthenticationResult, IdTokenEntity } from "@azure/msal-common/src";
+import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity";
+import { AccountEntity } from "@azure/msal-common/src/cache/entities/AccountEntity";
 import {
     AuthenticationScheme,
     CredentialType,
     AADServerParamKeys,
     Constants,
     ThrottlingConstants,
-} from "../../src/utils/Constants";
-import { CacheManager } from "../../src/cache/CacheManager";
-import { ScopeSet } from "../../src/request/ScopeSet";
+} from "@azure/msal-common/src/utils/Constants";
+import { CacheManager } from "@azure/msal-common/src/cache/CacheManager";
+import { ScopeSet } from "@azure/msal-common/src/request/ScopeSet";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
@@ -135,7 +135,7 @@ describe("OnBehalfOf unit tests", () => {
 
             const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
-            let config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration(); 
+            let config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new OnBehalfOfClient(config);
             const oboRequest: CommonOnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
@@ -148,7 +148,7 @@ describe("OnBehalfOf unit tests", () => {
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
             const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
-        
+
             expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
             expect(authResult.state).toBe("");
             expect(authResult.fromCache).toBe(false);
@@ -177,7 +177,7 @@ describe("OnBehalfOf unit tests", () => {
                     done(error);
                 }
             });
-    
+
             const client = new OnBehalfOfClient(config);
             const oboRequest: CommonOnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
@@ -192,7 +192,7 @@ describe("OnBehalfOf unit tests", () => {
                     testParam3: "testValue3",
                 },
             };
-    
+
             client.acquireToken(oboRequest).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
