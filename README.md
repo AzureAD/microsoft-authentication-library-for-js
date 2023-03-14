@@ -42,6 +42,12 @@ Please refer to each sample's README for sample-specific recommendations.
 | <img src="./1-Authentication/2-sign-in-angular/ReadmeFiles/topology.png" width="200"> | [**Sign-in using Angular SPA**](./1-Authentication/2-sign-in-angular/README.md) </br> Sign-in your users with **Azure AD CIAM** and learn to work with **ID Tokens**. Learn how **single sign-on (SSO)** works. Learn to integrate with **user-flows** and **external identity providers**. |
 | <img src="./1-Authentication/3-sign-in-electron/ReadmeFiles/topology.png" width="200"> | [**Sign-in using Electron desktop app**](./1-Authentication/3-sign-in-electron/README.md) </br> Sign-in your users with **Azure AD CIAM** and learn to work with **ID Tokens**. Learn how **single sign-on (SSO)** works. Learn to integrate with **user-flows** and **external identity providers**. |
 
+### Chapter 2: Protect an API and call the API from your client app
+
+|                 |               |
+|-----------------|---------------|
+| <img src="./2-Authorization/2-call-api-angular/ReadmeFiles/topology.png" width="200"> | [**Protect and call a web API on Azure AD CIAM**](./2-Authorization/2-call-api-angular/README.md) </br> Protect your web API with the **Azure AD CIAM**. Use a client application to sign-in a user, acquire an **Access Token** for your web API and call your protected web API. |
+
 ## We'd love your feedback
 
 Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_ivMYEeUKlEq8CxnMPgdNZUNDlUTTk2NVNYQkZSSjdaTk5KT1o4V1VVNS4u).
