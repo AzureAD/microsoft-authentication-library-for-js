@@ -1113,39 +1113,73 @@ export class StandardController implements IController {
         return this.config;
     }
 
+    /**
+     * Returns the performance client
+     */
     public getPerformanceClient(): IPerformanceClient {
         return this.performanceClient;
     }
 
+    /**
+     * Returns the browser storage
+     */
     public getBrowserStorage(): BrowserCacheManager  {
         return this.browserStorage;
     }
 
+    /**
+     * Returns the native internal storage
+     */
     public getNativeInternalStorage(): BrowserCacheManager  {
         return this.nativeInternalStorage;
     }
 
+    /**
+     * Returns the instance of interface for crypto functions
+     */
     public getBrowserCrypto(): ICrypto {
         return this.browserCrypto;
     }
 
+    /**
+     * Returns the browser env indicator
+     */
     public isBrowserEnv() : boolean {
         return this.isBrowserEnvironment;
     }
+
+    /**
+     * Returns the native message handler
+     */
     getNativeExtensionProvider(): NativeMessageHandler | undefined {
         return this.nativeExtensionProvider;
     }
 
+    /**
+     * Sets the native message handler
+     * @param provider {?NativeMessageHandler}
+     */
     setNativeExtensionProvider(provider: NativeMessageHandler | undefined): void {
         this.nativeExtensionProvider = provider;
     }
+
+    /**
+     * Returns the event handler
+     */
     getEventHandler(): EventHandler {
         return this.eventHandler;
     }
+
+    /**
+     * Returns the navigation client
+     */
     getNavigationClient(): INavigationClient {
         return this.navigationClient;
     }
 
+    /**
+     * Returns the redirect response map
+     */
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
         return this.redirectResponse;
     }
