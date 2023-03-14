@@ -443,6 +443,7 @@ Function ConfigureApplications
     Write-Host "  - Application 'service' publishes delegated permissions. Do remember to navigate to any client app(s) registration in the app portal and consent for those, (if required)" -ForegroundColor Red 
     Write-Host "- For client"
     Write-Host "  - Navigate to $clientPortalUrl"
+    Write-Host "  - Navigate to your tenant and create user flows to allow users to sign up for the application." -ForegroundColor Red 
     Write-Host "  - The delegated permissions for the 'client' application require admin consent. Do remember to navigate to the application registration in the app portal and consent for those." -ForegroundColor Red 
     Write-Host -ForegroundColor Green "------------------------------------------------------------------------------------------------" 
    
