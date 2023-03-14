@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { IPublicClientApplication } from "../app/IPublicClientApplication";
-
 import {
     AuthenticationResult,
     AccountInfo,
