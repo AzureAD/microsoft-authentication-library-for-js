@@ -64,7 +64,7 @@
             "SDK": "MsalAngular",
             "SampleSubPath": "2-Authorization\\2-call-api-angular\\SPA",
             "HomePage": "http://localhost:4200",
-            "ReplyUrls": "http://localhost:4200",
+            "ReplyUrls": "http://localhost:4200, http://localhost:4200/auth",
             "RequiredResourcesAccess": [
                 {
                     "Resource": "Microsoft Graph",
@@ -117,8 +117,8 @@
                     "value": "$tenantId"
                 },
                 {
-                    "key": "Enter_the_Web_Api_Application_Id_Here",
-                    "value": "service.AppId"
+                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
+                    "value": "$serviceIdentifierUri"
                 }
             ]
         }

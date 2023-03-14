@@ -351,7 +351,7 @@ Function ConfigureApplications
    $clientAadApplication = New-MgApplication -DisplayName "ciam-msal-angular-spa" `
                                                       -Spa `
                                                       @{ `
-                                                          RedirectUris = "http://localhost:4200"; `
+                                                          RedirectUris = "http://localhost:4200", "http://localhost:4200/auth"; `
                                                         } `
                                                        -SignInAudience AzureADMyOrg `
                                                       #end of command
@@ -428,7 +428,7 @@ Function ConfigureApplications
     # $configFile = $pwd.Path + "\..\SPA\src\app\auth-config.ts"
     $configFile = $(Resolve-Path ($pwd.Path + "\..\SPA\src\app\auth-config.ts"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Info_Here" = $tenantId;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Info_Here" = $tenantId;"Enter_the_Web_Api_App_Id_Uri_Here" = $serviceIdentifierUri };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
