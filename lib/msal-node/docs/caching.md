@@ -2,6 +2,8 @@
 
 When MSAL Node acquires a token, it caches it in memory for future usage. MSAL Node manages the token lifetime and refreshing for you. APIs like `acquireTokenSilent()` retrieves access tokens from the cache for a given account:
 
+> :information_source: MSAL does not expose refresh tokens for security reasons. Refresh tokens are cached like other types of tokens, but you should not build logic around them. Instead, use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary.
+
 ```javascript
 const msal = require('@azure/msal-node');
 
@@ -45,7 +47,7 @@ In production, you would most likely want to serialize and persist the token cac
 
 ## In-memory cache
 
-MSAL maintains an in-memory cache. The in-memory cache is representative of the application cache state. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. This affects user scenarios as users will have to re-authenticate, and although the browser will do most some of the work, the end user experience suffers. Service to service scenarios also suffer because getting a token from AAD involves HTTP requests, and is much slower than getting a token from a cache.
+MSAL maintains an in-memory cache. The in-memory cache is representative of the application cache state. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. If the in-memory cache is empty and there is no persistent cache to restore the cache from, users will have to re-authenticate. When this happens, if the user still has an active session with Azure AD, they might re-authenticate without any prompts, however this still degrades the user experience. Service-to-service scenarios (i.e. client credentials flow, on-behalf-of flow) also suffer because getting a token from Azure AD involves HTTP requests, and is much slower than getting a token from cache.
 
 Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
 
@@ -67,7 +69,7 @@ interface ICachePlugin {
 }
 ```
 
-A basic implementation of `ICachePlugin` interface might look as follows:
+A basic implementation of `ICachePlugin` interface might look as follows (see also [performance and security](#performance-and-security) if you are building a server-side app):
 
 ```typescript
 class MyCachePlugin implements ICachePlugin {
