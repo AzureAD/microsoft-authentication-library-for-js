@@ -45,18 +45,18 @@ In production, you would most likely want to serialize and persist the token cac
 
 ## In-memory cache
 
-MSAL maintains an in-memory cache. The in-memory cache is the single source of truth for all MSAL activities involving tokens and accounts. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. This affects user scenarios as users will have to re-authenticate, and although the browser will do most some of the work, the end user experience suffers. Service to service scenarios also suffer because getting a token from AAD involves HTTP requests, and is much slower than getting a token from a cache.
+MSAL maintains an in-memory cache. The in-memory cache is representative of the application cache state. The lifetime of in-memory cache is the same as the MSAL application object. If the process using MSAL restarts, the cache is erased when the process lifecycle finishes. This affects user scenarios as users will have to re-authenticate, and although the browser will do most some of the work, the end user experience suffers. Service to service scenarios also suffer because getting a token from AAD involves HTTP requests, and is much slower than getting a token from a cache.
 
 Note that the in-memory cache is not scalable for server-side applications and performance will degrade after holding a few 100 tokens in cache. For web app and web API scenarios, this approximates to serving a few 100 users. For daemon app scenarios using client credentials grant to call other apps, this means a few 100 tenants. See [performance](#performance-and-security) below for more.
 
-> :warning: We recommend persisting the cache with encryption for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
+> :warning: We recommend **persisting** the cache with **encryption** for all production applications both for security and desired cache longevity. If you choose not to persist the cache, the [TokenCache](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.tokencache.html) interface is still available to access the cached entities.
 
 ## Persistent cache
 
-MSAL Node fires events when the in-memory cache is accessed and apps can choose whether to serialize or deserialize the cache (see: [TokenCacheContext](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.tokencachecontext.html)) to persistence (e.g. a file, a SQL database and etc.). This constitutes two actions:
+MSAL Node fires events when the in-memory cache is accessed and apps can choose whether to persist the cache (see: [TokenCacheContext](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.tokencachecontext.html)) (e.g. to a file, a SQL database and etc.). This constitutes two actions:
 
-1. Deserialize the cache from persistence to MSAL's memory before accessing the cache
-2. If the in-memory cache has changed since last access, serialize the cache back to persistence
+1. Load the cache from persistence to MSAL's memory before accessing the cache
+2. If the in-memory cache has changed since last access, save the cache back to persistence
 
 For persisting the cache, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This plugin should implement the [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) interface:
 
