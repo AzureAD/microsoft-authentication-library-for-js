@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Expose controller artifacts for 1p lib #5794",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
