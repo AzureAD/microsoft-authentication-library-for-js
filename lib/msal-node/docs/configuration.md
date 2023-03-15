@@ -71,10 +71,12 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `clientId` | App ID of your application. Can be found in your [portal registration](../README.md#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}` (see [Authority](../../msal-common/docs/authority.md)) | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
-| `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
+| `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See [Performance](../../msal-common/docs/performance.md) for more info | string | Empty string `""` |
+| `authorityMetadata` | A string containing the .well-known/openid-configuration endpoint response. See [Performance](../../msal-common/docs/performance.md) for more info | string | Empty string `""` |
 | `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request (see: [Client capability in MSAL](../../msal-common/docs/client-capability.md)) | Array of strings | [] |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the AAD v2 endpoints; if `"OIDC"`, will function on OIDC-compliant endpoints. | string | `"AAD"` |
-| `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)
+| `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance) |
+| `skipAuthorityMetadataCache` | A flag to choose whether to use the local metadata cache during authority initialization. Metadata cache would be used if no authority metadata is provided and after a network call for metadata has failed (see [Authority](../../msal-common/docs/authority.md)) | boolean | `false` |
 
 ### Cache Config Options
 | Option | Description | Format | Default Value |
