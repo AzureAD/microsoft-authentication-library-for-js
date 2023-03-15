@@ -1,0 +1,131 @@
+{
+    "Sample": {
+        "Title": "Angular single-page application using MSAL Angular to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API",
+        "Level": 200,
+        "Client": "Angular SPA",
+        "Service": "ASP.NET Core web API",
+        "Languages": [
+            "javascript",
+            "typescript",
+            "csharp"
+        ],
+        "Products": [
+            "azure-active-directory",
+            "aspnet-core",
+            "msal-js",
+            "msal-angular",
+            "microsoft-identity-web"
+        ],
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Platform": "JavaScript",
+        "Endpoint": "AAD v2.0",
+        "Provider": "CIAM",
+        "description": "This sample demonstrates An Angular SPA using MSAL Angular to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+    },
+    "AADApps": [
+        {
+            "Id": "service",
+            "Name": "ciam-msal-dotnet-api",
+            "Kind": "WebApi",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MicrosoftIdentityWeb",
+            "SampleSubPath": "2-Authorization\\2-call-api-angular\\API",
+            "Scopes": [
+                "TodoList.Read",
+                "TodoList.ReadWrite"
+            ],
+            "AppRoles": [
+                {
+                    "AllowedMemberTypes": [
+                        "Application"
+                    ],
+                    "Name": "TodoList.Read.All",
+                    "Description": "Allow this application to read every users TodoList items"
+                },
+                {
+                    "AllowedMemberTypes": [
+                        "Application"
+                    ],
+                    "Name": "TodoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users TodoList items"
+                }
+            ],
+            "OptionalClaims": {
+                "AccessTokenClaims": [
+                    "idtyp"
+                ]
+            }
+        },
+        {
+            "Id": "client",
+            "Name": "ciam-msal-angular-spa",
+            "Kind": "SinglePageApplication",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalAngular",
+            "SampleSubPath": "2-Authorization\\2-call-api-angular\\SPA",
+            "HomePage": "http://localhost:4200",
+            "ReplyUrls": "http://localhost:4200, http://localhost:4200/auth",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": [
+                        "openid",
+                        "offline_access"
+                    ]
+                },
+                {
+                    "Resource": "service",
+                    "DelegatedPermissions": [
+                        "TodoList.Read",
+                        "TodoList.ReadWrite"
+                    ]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "service",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "Mappings": [
+                {
+                    "key": "Enter the domain of your Azure AD tenant, e.g. 'contoso.onmicrosoft.com'",
+                    "value": "$tenantName"
+                },
+                {
+                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter the tenant ID",
+                    "value": "$tenantId"
+                }
+            ]
+        },
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\SPA\\src\\app\\auth-config.ts",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
+                    "value": "$serviceIdentifierUri"
+                }
+            ]
+        }
+    ]
+}

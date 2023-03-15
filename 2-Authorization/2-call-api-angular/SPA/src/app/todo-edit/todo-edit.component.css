@@ -1,0 +1,14 @@
+.card-section {
+    margin: 10%;
+    padding: 5%;
+}
+
+.form-field {
+    min-width: 100px;
+    max-width: 800px;
+    width: 100%;
+}
+
+.input-field {
+    width: 100%;
+}

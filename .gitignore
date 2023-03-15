@@ -105,3 +105,9 @@ dist
 
 # Angular cache
 .angular/
+dist/
+
+# Visual Studio cache
+.vs/
+bin/
+obj/
