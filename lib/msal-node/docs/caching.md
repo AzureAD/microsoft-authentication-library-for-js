@@ -2,8 +2,6 @@
 
 When MSAL Node acquires a token, it caches it in memory for future usage. MSAL Node manages the token lifetime and refreshing for you. APIs like `acquireTokenSilent()` retrieves access tokens from the cache for a given account:
 
-> :information_source: MSAL does not expose refresh tokens for security reasons. Refresh tokens are cached like other types of tokens, but you should not build logic around them. Instead, use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary.
-
 ```javascript
 const msal = require('@azure/msal-node');
 
@@ -37,6 +35,8 @@ cca.acquireTokenSilent(silentTokenRequest).then((response) => {
     // catch and handle errors
 });
 ```
+
+> :information_source: MSAL does not expose refresh tokens for security reasons. Refresh tokens are cached like other types of tokens, but you should not build logic around them. Instead, use the appropriate `acquireToken*` API to obtain access tokens, and MSAL will ensure they are renewed if necessary. If you have a refresh token acquired by other means, you can use the [acquireTokenByRefreshToken](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html#acquiretokenbyrefreshtoken) API (see also: [Refresh Token sample](../../../samples/msal-node-samples/refresh-token/README.md))
 
 In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you can:
 
