@@ -26,7 +26,7 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
  */
 export class PublicClientApplication implements IPublicClientApplication {
 
-    private controller: IController;
+    protected controller: IController;
 
     public static async createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication> {
 
