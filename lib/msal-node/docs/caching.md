@@ -99,7 +99,7 @@ class MyCachePlugin implements ICachePlugin {
 
 On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensures performance and security for you.
 
-On confidential client apps that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. Our recommendation is to serialize one cache blob (see [CacheRecord](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/src/cache/entities/CacheRecord.ts)) per user. Use a key for partitioning the cache (*i.e.* **partition key**), such as:
+On confidential client apps that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users active concurrently for a given application. Our recommendation is to serialize one cache blob (see [CacheRecord](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/src/cache/entities/CacheRecord.ts)) per user. This would help with scaling the cache across a distributed system. Use a key for partitioning the cache (*i.e.* **partition key**), such as:
 
 * For web apps: `<userObjectId>.<tenantId>` (i.e. `homeAccountId`)
 * For multi-tenant daemon apps using client credentials grant: `<clientId>.<tenantId>`
