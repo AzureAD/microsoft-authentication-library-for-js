@@ -20,7 +20,6 @@ import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient"
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
-import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
@@ -499,19 +498,8 @@ describe("ClientCredentialClient unit tests", () => {
             
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
-            
-        const mockedCredentialCache: CredentialCache = {
-            accessTokens: { 
-                "key1": mockedAtEntity,
-                "key2": mockedAtEntity2
-            },
-            // @ts-ignore
-            refreshTokens: null,
-            // @ts-ignore
-            idTokens: null
-        }
 
-        sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
+        sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([mockedAtEntity, mockedAtEntity2]);
 
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {

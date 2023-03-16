@@ -101,7 +101,7 @@ const logger = new Logger(loggerOptions);
 const authority =  AuthorityFactory.createInstance(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
-    new MockStorageClass("client-id", mockCrypto),
+    new MockStorageClass("client-id", mockCrypto, logger),
     authorityOptions,
     logger
 );
@@ -257,7 +257,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority =  AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto),
+            new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
             logger
 		);
@@ -303,7 +303,7 @@ describe("AccountEntity.ts Unit Tests", () => {
         const authority =  AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto),
+            new MockStorageClass("client-id", mockCrypto, logger),
             {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
@@ -531,7 +531,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto), 
+            new MockStorageClass("client-id", mockCrypto, logger), 
             authorityOptions,
             logger
         );
@@ -579,7 +579,7 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto), 
+            new MockStorageClass("client-id", mockCrypto, logger), 
             authorityOptions,
             logger
         );

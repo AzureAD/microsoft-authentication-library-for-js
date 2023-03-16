@@ -251,14 +251,10 @@ describe("OnBehalfOf unit tests", () => {
             sinon.stub(CacheManager.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
-            sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns({
-                idTokens: {},
-                accessTokens: { "foo": testAccessTokenEntity },
-                refreshTokens: {},
-            });
+            sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([testAccessTokenEntity]);
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
-            expect(mockIdTokenCached.calledWith(oboRequest)).toBe(true);
+            expect(mockIdTokenCached.calledWith(testAccessTokenEntity.homeAccountId)).toBe(true);
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
