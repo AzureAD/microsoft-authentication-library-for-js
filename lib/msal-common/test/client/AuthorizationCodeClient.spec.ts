@@ -644,9 +644,9 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Throws error if null code request is passed", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            
+
             const client = new AuthorizationCodeClient(config);
-            
+
             // @ts-ignore
             await expect(client.acquireToken(null, null)).rejects.toMatchObject(ClientAuthError.createTokenRequestCannotBeMadeError());
             // @ts-ignore
@@ -657,12 +657,12 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Throws error if code response does not contain authorization code", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            
+
             if (!config.storageInterface) {
                 throw TestError.createTestSetupError("configuration storageInterface not initialized correctly.");
             }
             const client = new AuthorizationCodeClient(config);
-            
+
             const codeRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope"],
@@ -1309,7 +1309,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     done(error);
                 }
             });
-    
+
             const client = new AuthorizationCodeClient(config);
             const authorizationCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1326,7 +1326,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     testParam3: "testValue3",
                 },
             };
-    
+
             client.acquireToken(authorizationCodeRequest).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
@@ -1999,7 +1999,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it.skip('includes the http version in Authorization code client measurement(AT) when received in server response', async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT_WITH_HEADERS);
-            
+
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
             }
@@ -2021,7 +2021,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
                 incrementCounters: jest.fn(),
-                flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -2058,7 +2057,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         it.skip('does not add http version to the measurement when not received in server response', async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executeTokenRequest").resolves(AUTHENTICATION_RESULT);
-            
+
             if (!config.cryptoInterface) {
                 throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
             }
@@ -2080,7 +2079,6 @@ describe("AuthorizationCodeClient unit tests", () => {
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
                 incrementCounters: jest.fn(),
-                flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),

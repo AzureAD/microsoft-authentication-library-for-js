@@ -15,6 +15,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { ApiId } from "../../src";
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 describe("SilentIframeClient", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -27,6 +28,10 @@ describe("SilentIframeClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         // @ts-ignore
         silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient, pca.nativeInternalStorage);
     });
@@ -230,8 +235,12 @@ describe("SilentIframeClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(pca.logger);
+            const nativeMessageHandler = new NativeMessageHandler(pca.logger, 2000, getDefaultPerformanceClient());
             // @ts-ignore
             silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
             const testServerTokenResponse = {
@@ -302,6 +311,10 @@ describe("SilentIframeClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
             silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient, pca.nativeInternalStorage);
             const testServerTokenResponse = {

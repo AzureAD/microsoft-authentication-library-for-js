@@ -175,6 +175,69 @@ describe("CredentialEntity.ts Unit Tests", () => {
             expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
         });
 
+        it("Host name with suffix - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.education/common",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
+        it("Host name with port and suffix - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.education:40000/common",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
+        it("Host name with port and GUID suffix - Is access token", () => {
+            const atEntity = new AccessTokenEntity();
+            Object.assign(atEntity, {
+                homeAccountId,
+                environment: "test.domainname.education:40000/626ea03e-72d7-4033-8931-10b6ed62109a",
+                credentialType: "AccessToken",
+                clientId: "mock_client_id",
+                secret: "an access token sample",
+                realm: "microsoft",
+                target: "scope6 scope7",
+                cachedAt: "1000",
+                expiresOn: "4600",
+                extendedExpiresOn: "4600",
+                tokenType: "Bearer"
+            });
+
+            const atKey = atEntity.generateCredentialKey();
+
+            expect(CredentialEntity.getCredentialType(atKey)).toEqual(CredentialType.ACCESS_TOKEN);
+        });
+
         it("Metadata key - empty result", () => {
             const key = `authority-metadata-${clientId}-login.microsoftonline.com`;
             expect(CredentialEntity.getCredentialType(key)).toEqual(Constants.NOT_DEFINED);

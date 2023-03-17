@@ -4,12 +4,12 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
-import { 
+import {
     approveRemoteConnect,
     enterCredentials,
     enterDeviceCode,
@@ -31,20 +31,20 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/AAD.json");
 
-describe('Device Code AAD PPE Tests', () => {
+describe('Device Code AAD Prod Tests', () => {
     jest.setTimeout(45000);
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
-    
+
     let username: string;
     let accountPwd: string;
 
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/aad`;
-    
+
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
@@ -53,7 +53,7 @@ describe('Device Code AAD PPE Tests', () => {
 
         // Configure Lab API Query Parameters
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
         };
 
@@ -96,7 +96,7 @@ describe('Device Code AAD PPE Tests', () => {
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };
-            
+
             await getTokenDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);

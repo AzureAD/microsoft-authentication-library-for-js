@@ -17,7 +17,7 @@ describe("Browser tests", function () {
     beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 

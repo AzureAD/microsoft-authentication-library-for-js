@@ -1,9 +1,9 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration, InteractiveRequest } from './../../src/index';
-import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS } from '../utils/TestConstants';
+import { Configuration, ILoopbackClient, InteractiveRequest } from './../../src/index';
+import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS, TEST_DATA_CLIENT_INFO } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult, AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient,
-    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo
+    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo, ServerAuthorizationCodeResponse
 } from '@azure/msal-common';
 import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
@@ -13,7 +13,6 @@ import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlReque
 import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
 import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
-import { mocked } from 'ts-jest/utils';
 import http from "http";
 
 import * as msalCommon from '@azure/msal-common';
@@ -76,13 +75,12 @@ describe('PublicClientApplication', () => {
 
         const MockDeviceCodeClient2 = getMsalCommonAutoMock().DeviceCodeClient;
 
-
         jest.spyOn(msalCommon, 'DeviceCodeClient')
             .mockImplementation((conf) => new MockDeviceCodeClient2(conf));
 
         const fakeAuthResult = { "foo": "bar" }
-        mocked(MockDeviceCodeClient2.prototype.acquireToken)
-            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult))
+        jest.spyOn(MockDeviceCodeClient2.prototype, 'acquireToken')
+            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult));
 
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
@@ -197,7 +195,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('acquireTokenSilent', async () => {  
+    test('acquireTokenSilent', async () => {
         const account: AccountInfo = {
             homeAccountId: "",
             environment: "",
@@ -230,7 +228,7 @@ describe('PublicClientApplication', () => {
         const authApp = new PublicClientApplication(appConfig);
 
         let redirectUri: string;
-        
+
         const openBrowser = (url: string) => {
             expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
             http.get(`${redirectUri}?code=${TEST_CONSTANTS.AUTHORIZATION_CODE}`);
@@ -260,6 +258,62 @@ describe('PublicClientApplication', () => {
         expect(response.account).toEqual(mockAuthenticationResult.account);
     });
 
+    test("acquireTokenInteractive - with custom loopback client", async () => {
+        const authApp = new PublicClientApplication(appConfig);
+
+        const openBrowser = (url: string) => {
+            expect(url.startsWith("https://login.microsoftonline.com")).toBe(true);
+            return Promise.resolve();
+        };
+
+        const testServerCodeResponse: ServerAuthorizationCodeResponse = {
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
+            client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
+            state: "123"
+        };
+
+        const mockListenForAuthCode = jest.fn(() => {
+            return new Promise<ServerAuthorizationCodeResponse>((resolve) => {
+                resolve(testServerCodeResponse);
+            });
+        });
+        const mockGetRedirectUri = jest.fn(() => TEST_CONSTANTS.REDIRECT_URI);
+        const mockCloseServer = jest.fn(() => {});
+
+        const customLoopbackClient: ILoopbackClient = {
+            listenForAuthCode: mockListenForAuthCode,
+            getRedirectUri: mockGetRedirectUri,
+            closeServer: mockCloseServer
+        };
+
+        const request: InteractiveRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            openBrowser: openBrowser,
+            loopbackClient: customLoopbackClient,
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+        jest.spyOn(msalCommon, 'AuthorizationCodeClient').mockImplementation((config) => new MockAuthorizationCodeClient(config));
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "getAuthCodeUrl").mockImplementation((req) => {
+            expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
+            return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
+        });
+
+        jest.spyOn(MockAuthorizationCodeClient.prototype, "acquireToken").mockImplementation((tokenRequest) => {
+            expect(tokenRequest.scopes).toEqual([...TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE, ...TEST_CONSTANTS.DEFAULT_OIDC_SCOPES]);
+            return Promise.resolve(mockAuthenticationResult);
+        });
+
+        const response = await authApp.acquireTokenInteractive(request);
+        expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
+        expect(response.accessToken).toEqual(mockAuthenticationResult.accessToken);
+        expect(response.account).toEqual(mockAuthenticationResult.account);
+        expect(mockListenForAuthCode).toHaveBeenCalledTimes(1);
+        expect(mockGetRedirectUri).toHaveBeenCalledTimes(1);
+        expect(mockCloseServer).toHaveBeenCalledTimes(1);
+    });
+
     test('initializeBaseRequest passes a claims hash to acquireToken', async () => {
         const account: AccountInfo = {
             homeAccountId: "",
@@ -281,13 +335,13 @@ describe('PublicClientApplication', () => {
         jest.spyOn(msalCommon, 'SilentFlowClient')
             .mockImplementation((config) => new silentFlowClient(config));
 
-
+        const acquireTokenSpy = jest.spyOn(silentFlowClient.prototype, "acquireToken");
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenSilent(request);
         expect(silentFlowClient.prototype.acquireToken)
             .toHaveBeenCalledWith(expect.objectContaining({ requestedClaimsHash: expect.any(String) }))
 
-        const submittedRequest = mocked(silentFlowClient.prototype.acquireToken).mock.calls[0][0];
+        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
         expect((submittedRequest as any)?.requestedClaimsHash?.length)
             .toBeGreaterThan(0);
     })
@@ -345,7 +399,7 @@ describe('PublicClientApplication', () => {
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
-        await authApp.acquireTokenByRefreshToken(request);        
+        await authApp.acquireTokenByRefreshToken(request);
         expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
         expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
@@ -490,7 +544,7 @@ describe('PublicClientApplication', () => {
 
        expect(authApp.getLogger()).toBeDefined();
        expect(authApp.getLogger().info("Test logger")).toEqual(undefined);
-        
+
     });
 
     test("should throw an error if state is not provided", async () => {
@@ -530,7 +584,7 @@ describe('PublicClientApplication', () => {
 
         try {
             await authApp.acquireTokenByCode(request, authCodePayLoad);
-        } catch (e) {   
+        } catch (e) {
             expect(mockInfo).toBeCalledWith("acquireTokenByCode called");
             expect(mockInfo).toHaveBeenCalledWith(
                 "acquireTokenByCode - validating state"

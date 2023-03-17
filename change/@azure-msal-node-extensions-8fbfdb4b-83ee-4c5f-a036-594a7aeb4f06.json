@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Bump typescript version to 4.9.5 #5750",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
