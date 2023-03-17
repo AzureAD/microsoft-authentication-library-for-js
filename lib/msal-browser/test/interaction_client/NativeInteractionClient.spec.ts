@@ -15,6 +15,7 @@ import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { NativeAuthError, NativeAuthErrorMessage } from "../../src/error/NativeAuthError";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -60,12 +61,16 @@ testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
-    const pca = new PublicClientApplication({
+    let pca = new PublicClientApplication({
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
         }
     });
-    const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000);
+
+    //Implementation of PCA was moved to controller.
+    pca = (pca as any).controller;
+
+    const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000, getDefaultPerformanceClient());
     // @ts-ignore
     const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);
     let postMessageSpy: sinon.SinonSpy;

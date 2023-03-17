@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update discardCache in PerformanceClient #5645",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

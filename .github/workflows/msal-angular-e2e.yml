@@ -4,10 +4,6 @@
 name: msal-angular E2E Tests
 
 on:
-  push:
-    branches: 
-      - dev
-      - master
   pull_request:
     paths: 
       - 'lib/msal-angular/**/*'
@@ -18,6 +14,8 @@ on:
       - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-angular-e2e.yml'
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: angular-e2e-${{github.ref}}
@@ -28,17 +26,13 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
       matrix:
         sample:
-          - 'angular9-v2-sample-app'
-          - 'angular10-sample-app'
-          - 'angular11-sample-app'
-          - 'angular12-sample-app'
           - 'angular13-rxjs6-sample-app'
           - 'angular13-rxjs7-sample-app'
           - 'angular14-rxjs6-sample-app'
@@ -52,6 +46,8 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with:
+          node-version: 16
 
     - name: Clean Install
       env:

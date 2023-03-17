@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -33,9 +33,7 @@
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
   "beachball": {
-    "disallowedChangeTypes": [
-      "major"
-    ]
+    "disallowedChangeTypes": []
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^15.1.5",
@@ -69,18 +67,7 @@
     "zone.js": "~0.11.8"
   },
   "peerDependencies": {
-    "@angular-devkit/build-angular": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/animations": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/cli": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/common": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/compiler": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/compiler-cli": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/core": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/forms": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/platform-browser": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/platform-browser-dynamic": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@angular/router": "^13.0.0 || ^14.0.0 || ^15.0.0",
-    "@azure/msal-browser": "^2.32.2",
+    "@azure/msal-browser": "^2.33.0",
     "rxjs": "^7.0.0"
   }
 }

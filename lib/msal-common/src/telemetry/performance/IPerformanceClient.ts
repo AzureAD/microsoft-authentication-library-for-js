@@ -9,8 +9,7 @@ import { IPerformanceMeasurement } from "./IPerformanceMeasurement";
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type InProgressPerformanceEvent = {
-    endMeasurement: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null
-    flushMeasurement: () => void,
+    endMeasurement: (event?: Partial<PerformanceEvent>) => PerformanceEvent | null,
     discardMeasurement: () => void,
     addStaticFields: (staticFields: StaticFields) => void,
     increment: (counters: Counters) => void,
@@ -21,7 +20,6 @@ export type InProgressPerformanceEvent = {
 export interface IPerformanceClient {
     startMeasurement(measureName: PerformanceEvents, correlationId?: string): InProgressPerformanceEvent;
     endMeasurement(event: PerformanceEvent): PerformanceEvent | null;
-    flushMeasurements(measureName: PerformanceEvents, correlationId?: string): void;
     discardMeasurements(correlationId: string): void;
     addStaticFields(staticFields: StaticFields, correlationId: string): void;
     removePerformanceCallback(callbackId: string): boolean;
@@ -31,7 +29,7 @@ export interface IPerformanceClient {
     startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
-    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number): void;
+    addQueueMeasurement(eventName: PerformanceEvents, correlationId?: string, queueTime?: number, manuallyCompleted?: boolean): void;
     setPreQueueTime(eventName: PerformanceEvents, correlationId?: string): void;
 }
 
@@ -47,5 +45,10 @@ export type QueueMeasurement = {
     /**
      * Time spent in JS queue
      */
-    queueTime: number
+    queueTime: number,
+
+    /**
+     * Incomplete pre-queue events are instrumentation bugs that should be fixed.
+     */
+    manuallyCompleted?: boolean;
 };

@@ -5,6 +5,7 @@
 
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";
 import { BrowserConfigurationAuthErrorMessage } from "../../src/error/BrowserConfigurationAuthError";
+import { BrowserAuthError } from "../../lib";
 
 describe("IPublicClientApplication.ts Class Unit Tests", () => {
     describe("stubbedPublicClientApplication tests", () => {
@@ -91,8 +92,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
             try {
                 stubbedPublicClientApplication.getTokenCache();
             } catch (e) {
-                expect(e.errorCode).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
-                expect(e.errorMessage).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
+                const browserAuthError = e as BrowserAuthError;
+                expect(browserAuthError.errorCode).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
+                expect(browserAuthError.errorMessage).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
             };
         });
 
@@ -100,8 +102,9 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
             try {
                 stubbedPublicClientApplication.getLogger();
             } catch (e) {
-                expect(e.errorCode).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
-                expect(e.errorMessage).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
+                const browserAuthError = e as BrowserAuthError;
+                expect(browserAuthError.errorCode).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
+                expect(browserAuthError.errorMessage).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
             };
         });
     });

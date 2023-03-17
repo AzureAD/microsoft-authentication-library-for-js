@@ -2,6 +2,67 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 06 Feb 2023 18:51:50 GMT",
+      "tag": "@azure/msal-common_v10.0.0",
+      "version": "10.0.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d4612bfea17987566d24c4b6f4460f68dd814ce8",
+            "comment": "tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "860be0de8a95165a48eea8727708ea0a9ef1618a",
+            "comment": "Add JS Queue Measurements #5352"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0eb89e9ed73aac1d068cd82ff5ba3c9d604f2162",
+            "comment": "Truncate integral telemetry fields #5627"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "78a6b91695925b86dd69622554b5b03f30d17237",
+            "comment": "Track manually completed sub-measurements #5614"
+          }
+        ],
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "efb09924f26896a9620e8d89e1d2578169cdfaa9",
+            "comment": "Update discardCache in PerformanceClient #5645"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "12910a395f92d4209510b253b96a8bb458b1d179",
+            "comment": "Optimize credential regular expressions #5621"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a7a8d7089cb02f1a3c01ded86082d7b0b415accf",
+            "comment": "Added missing fields to InteractionRequiredAuthError #5566"
+          }
+        ],
+        "major": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "63a00b26dd212bb9e6236772bd73457221333c4f",
+            "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor #5599"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 19 Jan 2023 23:50:24 GMT",
       "tag": "@azure/msal-common_v9.1.1",
       "version": "9.1.1",

@@ -34,7 +34,7 @@ describe("LocalStorage Tests", function () {
         sampleHomeUrl = getHomeUrl();
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 

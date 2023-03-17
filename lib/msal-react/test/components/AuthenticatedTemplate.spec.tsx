@@ -8,13 +8,21 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, AuthenticatedTemplate } from "../../src/index";
-import { PublicClientApplication, IPublicClientApplication, Configuration } from "@azure/msal-browser";
+import {
+    PublicClientApplication,
+    IPublicClientApplication,
+    Configuration,
+    AuthenticationResult
+} from "@azure/msal-browser";
 
 describe("AuthenticatedTemplate tests", () => {
     let pca: IPublicClientApplication;
     const msalConfig: Configuration = {
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
+        },
+        system: {
+            allowNativeBroker: false
         }
     };
 
@@ -27,7 +35,7 @@ describe("AuthenticatedTemplate tests", () => {
         jest.clearAllMocks();
     });
 
-    test("Does not show child component if no account is signed in", async () => {        
+    test("Does not show child component if no account is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         render(
             <MsalProvider instance={pca}>
@@ -43,7 +51,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Shows child component if any account is signed in", async () => {        
+    test("Shows child component if any account is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -61,7 +69,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
     });
 
-    test("Shows child component if specific username is signed in", async () => {        
+    test("Shows child component if specific username is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -79,7 +87,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
     });
 
-    test("Shows child component if specific homeAccountId is signed in", async () => {        
+    test("Shows child component if specific homeAccountId is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -97,7 +105,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
     });
 
-    test("Shows child component if specific localAccountId is signed in", async () => {        
+    test("Shows child component if specific localAccountId is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -115,7 +123,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
     });
 
-    test("Does not show child component if specific username is not signed in", async () => {        
+    test("Does not show child component if specific username is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -133,7 +141,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Does not show child component if specific homeAccountId is not signed in", async () => {        
+    test("Does not show child component if specific homeAccountId is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -151,7 +159,7 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Does not show child component if specific localAccountId is not signed in", async () => {        
+    test("Does not show child component if specific localAccountId is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -170,11 +178,13 @@ describe("AuthenticatedTemplate tests", () => {
     });
 
     test("Does not show child component if inProgress value is startup", async () => {
-        let handleRedirectPromiseResolve = () => {};        
+        let handleRedirectPromiseResolve = (value?: AuthenticationResult | PromiseLike<AuthenticationResult | null> | null): void => {
+            console.log(value);
+        };
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
             // Prevent handleRedirectPromise from raising an event or resolving and updating inProgress
             return new Promise((resolve) => {
-                handleRedirectPromiseResolve = resolve;
+                handleRedirectPromiseResolve = resolve as (value?: AuthenticationResult | PromiseLike<AuthenticationResult | null> | null) => void;
             });
         });
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");

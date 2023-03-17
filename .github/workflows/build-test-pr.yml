@@ -11,7 +11,7 @@ on:
       - 'extensions/msal-node-extensions/**/*'
       - '!**.md'
       - '.github/workflows/build-test-pr.yml'
-
+      
 concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
@@ -88,6 +88,8 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v3
+      with:
+        node-version: 16
 
     - name: Restore node_modules
       uses: actions/cache@v3

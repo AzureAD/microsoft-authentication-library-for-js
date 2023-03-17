@@ -41,6 +41,10 @@ describe("StandardInteractionClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         // @ts-ignore
         testClient = new testStandardInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, null, pca.performanceClient);
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").returns(DEFAULT_OPENID_CONFIG_RESPONSE.body);

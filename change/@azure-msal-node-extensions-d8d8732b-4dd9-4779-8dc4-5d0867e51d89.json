@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Include packageMetadata in bundle #5638",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

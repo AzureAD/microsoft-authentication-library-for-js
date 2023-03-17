@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Track manually completed sub-measurements #5614",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

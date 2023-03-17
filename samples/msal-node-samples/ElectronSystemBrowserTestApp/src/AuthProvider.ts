@@ -7,13 +7,19 @@ import {
     InteractiveRequest,
     SilentFlowRequest,
 } from "@azure/msal-node";
+import { CustomLoopbackClient } from "./CustomLoopbackClient";
 import { cachePlugin } from "./CachePlugin";
 import * as fs from "fs";
+
+import { IpcMessages } from "./Constants";
 
 export default class AuthProvider {
     private clientApplication: PublicClientApplication;
     private account: AccountInfo;
     private authConfig: any;
+
+    // publishForTest is used only in the testing environment
+    public publishForTest: any;
 
     constructor(authConfig: any) {
         this.authConfig = authConfig;
@@ -48,7 +54,7 @@ export default class AuthProvider {
         try {
             if (!this.account) {
                 return;
-            } 
+            }
             await this.clientApplication
                 .getTokenCache()
                 .removeAccount(this.account);
@@ -111,10 +117,21 @@ export default class AuthProvider {
         tokenRequest: SilentFlowRequest
     ): Promise<AuthenticationResult> {
         try {
-            const openBrowser = async (url: any) => {
-                await shell.openExternal(url);
-            };
+            /**
+             * A loopback server of your own implementation, which can have custom logic
+             * such as attempting to listen on a given port if it is available.
+             */
+            const customLoopbackClient = await CustomLoopbackClient.initialize(3874);
 
+            // opens a browser instance via Electron shell API
+            const openBrowser = async (url: any) => {
+                if (process.env.automation >= "1") {
+                    // publishForTest is used only in the testing environment to listen to the AuthCodeURL
+                    this.publishForTest(IpcMessages.GET_AUTH_CODE_URL, url);
+                } else {
+                    await shell.openExternal(url);
+                }
+            };
             const interactiveRequest: InteractiveRequest = {
                 ...tokenRequest,
                 openBrowser,
@@ -124,6 +141,7 @@ export default class AuthProvider {
                 errorTemplate: fs
                     .readFileSync("./public/errorTemplate.html", "utf8")
                     .toString(),
+                loopbackClient: customLoopbackClient // overrides default loopback client
             };
 
             const authResponse =

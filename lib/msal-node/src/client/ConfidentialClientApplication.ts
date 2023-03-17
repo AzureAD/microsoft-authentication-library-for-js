@@ -58,11 +58,11 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         this.appTokenProvider = undefined;
     }
 
-    /**               
+    /**
      * This extensibility point only works for the client_credential flow, i.e. acquireTokenByClientCredential and
      * is meant for Azure SDK to enhance Managed Identity support.
-     * 
-     * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.     
+     *
+     * @param IAppTokenProvider  - Extensibility interface, which allows the app developer to return a token from a custom source.
      */
     SetAppTokenProvider(provider: IAppTokenProvider): void {
         this.appTokenProvider = provider;
