@@ -150,7 +150,8 @@ export class BrowserCacheManager extends CacheManager {
                         switch (credObj["credentialType"]) {
                             case CredentialType.ID_TOKEN:
                                 if (IdTokenEntity.isIdTokenEntity(credObj)) {
-                                    const newKey = this.updateCredentialCacheKey(key, credObj as IdTokenEntity);
+                                    const idTokenEntity = CacheManager.toObject(new IdTokenEntity(), credObj);
+                                    const newKey = this.updateCredentialCacheKey(key, idTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.ID_TOKEN);
                                     return;
                                 }
@@ -158,14 +159,16 @@ export class BrowserCacheManager extends CacheManager {
                             case CredentialType.ACCESS_TOKEN:
                             case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                                 if (AccessTokenEntity.isAccessTokenEntity(credObj)) {
-                                    const newKey = this.updateCredentialCacheKey(key, credObj as AccessTokenEntity);
+                                    const accessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), credObj);
+                                    const newKey = this.updateCredentialCacheKey(key, accessTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.ACCESS_TOKEN);
                                     return;
                                 }
                                 break;
                             case CredentialType.REFRESH_TOKEN:
                                 if (RefreshTokenEntity.isRefreshTokenEntity(credObj)) {
-                                    const newKey = this.updateCredentialCacheKey(key, credObj as RefreshTokenEntity);
+                                    const refreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), credObj);
+                                    const newKey = this.updateCredentialCacheKey(key, refreshTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.REFRESH_TOKEN);
                                     return;
                                 }
@@ -316,6 +319,33 @@ export class BrowserCacheManager extends CacheManager {
     async removeAccount(key: string): Promise<void> {
         super.removeAccount(key);
         this.removeAccountKeyFromMap(key);
+    }
+
+    /**
+     * Removes given idToken from the cache and from the key map
+     * @param key 
+     */
+    removeIdToken(key: string): void {
+        super.removeIdToken(key);
+        this.removeTokenKey(key, CredentialType.ID_TOKEN);
+    }
+
+    /**
+     * Removes given accessToken from the cache and from the key map
+     * @param key 
+     */
+    async removeAccessToken(key: string): Promise<void> {
+        super.removeAccessToken(key);
+        this.removeTokenKey(key, CredentialType.ACCESS_TOKEN);
+    }
+
+    /**
+     * Removes given refreshToken from the cache and from the key map
+     * @param key 
+     */
+    removeRefreshToken(key: string): void {
+        super.removeRefreshToken(key);
+        this.removeTokenKey(key, CredentialType.REFRESH_TOKEN);
     }
 
     /**
