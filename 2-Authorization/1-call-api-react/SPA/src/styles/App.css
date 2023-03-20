@@ -1,0 +1,71 @@
+footer {
+    position: fixed;
+    bottom: 0%;
+    width: 100%;
+}
+
+.App {
+    text-align: center;
+}
+
+.iconText {
+    margin: 0 .5rem;
+}
+
+.navbarStyle {
+    padding: .5rem 1rem !important;
+}
+
+.navbarButton {
+    color: #fff !important;
+    padding: .5rem 1rem !important;
+}
+
+.iconText {
+  margin: 0 .5rem
+}
+
+.navbarStyle {
+  padding: .5rem 1rem
+}
+
+.navbarButton {
+  color: #fff !important
+}
+
+.data-area-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly
+}
+
+.todo-form {
+    width: 60%;
+}
+
+.todo-list {
+    width: 60%;
+}
+
+.todo-label {
+    font-size: large;
+    margin-right: 22%;
+    margin-left: 3%;
+}
+
+.todo-view-btn {
+    float: right;
+}
+
+.tableColumn {
+    word-break: break-all
+}
+
+.table {
+    max-height: 37rem;
+}
+
+.warningMessage {
+    color: red;
+}
