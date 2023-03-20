@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "fixing get account entity from cache using native account id #5695",
+  "comment": "Added tenant_region_scope and tenant_region_sub_scope to TokenClaims #5789",
   "packageName": "@azure/msal-common",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"

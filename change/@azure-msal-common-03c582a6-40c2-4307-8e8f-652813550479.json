@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Reduce preQueueTimeByCorrelationId RAM footprint #5681",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

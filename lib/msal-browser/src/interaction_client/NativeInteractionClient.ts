@@ -231,25 +231,130 @@ export class NativeInteractionClient extends BaseInteractionClient {
     protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
 
-        // Add Native Broker fields to Telemetry
-        const mats = this.addTelemetryFromNativeResponse(response);
-
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
             throw NativeAuthError.createUserSwitchError();
         }
 
-        // create an idToken object (not entity)
-        const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
-
         // Get the preferred_cache domain for the given authority
         const authority = await this.getDiscoveredAuthority(request.authority);
         const authorityPreferredCache = authority.getPreferredCache();
 
+        // generate identifiers
+        const idTokenObj = this.createIdTokenObj(response);
+        const homeAccountIdentifier = this.createHomeAccountIdentifier(response, idTokenObj);
+        const accountEntity = this.createAccountEntity(response, homeAccountIdentifier, idTokenObj, authorityPreferredCache);
+
+        // generate authenticationResult
+        const result = await this.generateAuthenticationResult(response, request, idTokenObj, accountEntity, authority.canonicalAuthority, reqTimestamp);
+
+        // cache accounts and tokens in the appropriate storage
+        this.cacheAccount(accountEntity);
+        this.cacheNativeTokens(response, request, homeAccountIdentifier, idTokenObj, result.accessToken, result.tenantId, reqTimestamp);
+        
+        return result;
+    }
+
+    /**
+     * Create an idToken Object (not entity)
+     * @param response 
+     * @returns 
+     */
+    protected createIdTokenObj(response: NativeResponse): AuthToken {
+        return new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
+    }
+
+    /**
+     * creates an homeAccountIdentifier for the account
+     * @param response 
+     * @param idTokenObj 
+     * @returns 
+     */
+    protected createHomeAccountIdentifier(response: NativeResponse, idTokenObj: AuthToken): string {
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
-        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authorityPreferredCache, response.account.id);
-        this.browserStorage.setAccount(accountEntity);
+
+        return homeAccountIdentifier;
+    }
+
+    /**
+     * Creates account entity
+     * @param response 
+     * @param homeAccountIdentifier 
+     * @param idTokenObj 
+     * @param authority 
+     * @returns 
+     */
+    protected createAccountEntity(response: NativeResponse, homeAccountIdentifier: string, idTokenObj: AuthToken, authority: string): AccountEntity {
+
+        return AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, authority, response.account.id);
+    }
+
+    /**
+     * Helper to generate scopes
+     * @param response 
+     * @param request 
+     * @returns 
+     */
+    generateScopes(response: NativeResponse, request: NativeTokenRequest): ScopeSet {
+        return response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
+    }
+
+    /**
+     * If PoP token is requesred, records the PoP token if returned from the WAM, else generates one in the browser
+     * @param request 
+     * @param response 
+     */
+    async generatePopAccessToken(response: NativeResponse, request: NativeTokenRequest): Promise<string> {
+        
+        if(request.tokenType === AuthenticationScheme.POP) {
+            /** 
+             * This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT 
+             * is still received, SHR is calculated locally
+             */
+        
+            // Check if native layer returned an SHR token
+            if (response.shr) {
+                this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
+                return response.shr;
+            }
+
+            // Generate SHR in msal js if WAM does not compute it when POP is enabled
+            const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.browserCrypto);
+            const shrParameters: SignedHttpRequestParameters = {
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+                shrClaims: request.shrClaims,
+                shrNonce: request.shrNonce
+            };
+
+            /**
+             * KeyID must be present in the native request from when the PoP key was generated in order for
+             * PopTokenGenerator to query the full key for signing
+             */
+            if (!request.keyId) {
+                throw ClientAuthError.createKeyIdMissingError();
+            }
+            return await popTokenGenerator.signPopToken(response.access_token, request.keyId, shrParameters);
+        } else {
+            return response.access_token;
+        }
+    }
+
+    /**
+     * Generates authentication result
+     * @param response 
+     * @param request 
+     * @param idTokenObj 
+     * @param accountEntity 
+     * @param authority 
+     * @param reqTimestamp 
+     * @returns 
+     */
+    protected async generateAuthenticationResult(response: NativeResponse, request: NativeTokenRequest, idTokenObj: AuthToken, accountEntity: AccountEntity, authority: string, reqTimestamp: number): Promise<AuthenticationResult> {
+
+        // Add Native Broker fields to Telemetry
+        const mats = this.addTelemetryFromNativeResponse(response);
 
         // If scopes not returned in server response, use request scopes
         const responseScopes = response.scope ? ScopeSet.fromString(response.scope) : ScopeSet.fromString(request.scope);
@@ -258,50 +363,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
         const uid = accountProperties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
         const tid = accountProperties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
 
-        // This code prioritizes SHR returned from the native layer. In case of error/SHR not calculated from WAM and the AT is still received, SHR is calculated locally
-        let responseAccessToken;
-        let responseTokenType: AuthenticationScheme = AuthenticationScheme.BEARER;
-        switch (request.tokenType) {
-            case AuthenticationScheme.POP: {
-                // Set the token type to POP in the response
-                responseTokenType = AuthenticationScheme.POP;
-
-                // Check if native layer returned an SHR token
-                if (response.shr) {
-                    this.logger.trace("handleNativeServerResponse: SHR is enabled in native layer");
-                    responseAccessToken = response.shr;
-                    break;
-                }
-
-                // Generate SHR in msal js if WAM does not compute it when POP is enabled
-                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-                const shrParameters: SignedHttpRequestParameters = {
-                    resourceRequestMethod: request.resourceRequestMethod,
-                    resourceRequestUri: request.resourceRequestUri,
-                    shrClaims: request.shrClaims,
-                    shrNonce: request.shrNonce
-                };
-
-                /**
-                 * KeyID must be present in the native request from when the PoP key was generated in order for
-                 * PopTokenGenerator to query the full key for signing
-                 */
-                if (!request.keyId) {
-                    throw ClientAuthError.createKeyIdMissingError();
-                }
-
-                responseAccessToken = await popTokenGenerator.signPopToken(response.access_token, request.keyId, shrParameters);
-                break;
-
-            }
-            // assign the access token to the response for all non-POP cases (Should be Bearer only today)
-            default: {
-                responseAccessToken = response.access_token;
-            }
-        }
+        // generate PoP token as needed
+        const responseAccessToken = await this.generatePopAccessToken(response, request);
+        const tokenType = (request.tokenType === AuthenticationScheme.POP) ? AuthenticationScheme.POP : AuthenticationScheme.BEARER;
 
         const result: AuthenticationResult = {
-            authority: authority.canonicalAuthority,
+            authority: authority,
             uniqueId: uid,
             tenantId: tid,
             scopes: responseScopes.asArray(),
@@ -311,11 +378,40 @@ export class NativeInteractionClient extends BaseInteractionClient {
             accessToken: responseAccessToken,
             fromCache: mats ? this.isResponseFromCache(mats) : false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
-            tokenType: responseTokenType,
+            tokenType: tokenType,
             correlationId: this.correlationId,
             state: response.state,
             fromNativeBroker: true
         };
+
+        return result;
+    }
+
+    /**
+     * cache the account entity in browser storage
+     * @param accountEntity 
+     */
+    cacheAccount(accountEntity: AccountEntity): void{
+        // Store the account info and hence `nativeAccountId` in browser cache
+        this.browserStorage.setAccount(accountEntity);
+
+        // Remove any existing cached tokens for this account in browser storage
+        this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
+            this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
+        });
+    }
+
+    /**
+     * Stores the access_token and id_token in inmemory storage
+     * @param response 
+     * @param request 
+     * @param homeAccountIdentifier 
+     * @param idTokenObj 
+     * @param responseAccessToken 
+     * @param tenantId 
+     * @param reqTimestamp 
+     */
+    cacheNativeTokens(response: NativeResponse, request: NativeTokenRequest, homeAccountIdentifier: string, idTokenObj: AuthToken, responseAccessToken: string, tenantId: string, reqTimestamp: number): void {
 
         // cache idToken in inmemory storage
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(
@@ -328,7 +424,7 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.nativeStorageManager.setIdTokenCredential(idTokenEntity);
 
         // cache accessToken in inmemory storage
-        const expiresIn: number = (responseTokenType === AuthenticationScheme.POP)
+        const expiresIn: number = (request.tokenType === AuthenticationScheme.POP)
             ? Constants.SHR_NONCE_VALIDITY
             : (
                 typeof response.expires_in === "string"
@@ -336,25 +432,19 @@ export class NativeInteractionClient extends BaseInteractionClient {
                     : response.expires_in
             ) || 0;
         const tokenExpirationSeconds = reqTimestamp + expiresIn;
+        const responseScopes = this.generateScopes(response, request);
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             homeAccountIdentifier,
             request.authority,
             responseAccessToken,
             request.clientId,
-            tid,
+            tenantId,
             responseScopes.printScopes(),
             tokenExpirationSeconds,
             0,
             this.browserCrypto
         );
         this.nativeStorageManager.setAccessTokenCredential(accessTokenEntity);
-
-        // Remove any existing cached tokens for this account in browser storage
-        this.browserStorage.removeAccountContext(accountEntity).catch((e) => {
-            this.logger.error(`Error occurred while removing account context from browser storage. ${e}`);
-        });
-
-        return result;
     }
 
     protected addTelemetryFromNativeResponse(response: NativeResponse): MATS | null {
