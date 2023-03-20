@@ -211,6 +211,10 @@ export const ClientAuthErrorMessage = {
     userCanceledError: {
         code: "user_canceled",
         desc: "User canceled the flow."
+    },
+    missingTenantIdError: {
+        code: "missing_tenant_id_error",
+        desc: "TenantId was set to  \"common\" or \"organization\". AAD will try to guess the correct TenantId, which is undesired behavior."
     }
 };
 
@@ -575,5 +579,12 @@ export class ClientAuthError extends AuthError {
      */
     static createUserCanceledError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userCanceledError.code, ClientAuthErrorMessage.userCanceledError.desc);
+    }
+
+    /**
+     * Creates an error for during acquireTokenByClientCredential when TenantId is set to "common" or "organization"
+     */
+    static createMissingTenantIdError(): ClientAuthError {
+        return new AuthError(ClientAuthErrorMessage.missingTenantIdError.code, ClientAuthErrorMessage.missingTenantIdError.desc);
     }
 }
