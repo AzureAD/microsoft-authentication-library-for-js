@@ -92,7 +92,7 @@ describe("SilentCacheClient", () => {
             }
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
             sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
             sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 

@@ -741,7 +741,7 @@ export abstract class CacheManager implements ICacheManager {
 
         const idTokens: IdTokenEntity[] = [];
         idTokenKeys.forEach((key) => {
-            if (!key.includes(this.clientId) || (filter.homeAccountId && !key.includes(filter.homeAccountId))) {
+            if (!this.idTokenKeyMatchesFilter(key, {clientId: this.clientId, ...filter})) {
                 return;
             }
 
@@ -752,6 +752,25 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         return idTokens;
+    }
+
+    /**
+     * Validate the cache key against filter before retrieving and parsing cache value
+     * @param key 
+     * @param filter
+     * @returns 
+     */
+    idTokenKeyMatchesFilter(inputKey: string, filter: CredentialFilter): boolean {
+        const key = inputKey.toLowerCase();
+        if (filter.clientId && key.indexOf(filter.clientId.toLowerCase()) === -1) {
+            return false;
+        }
+
+        if (filter.homeAccountId && key.indexOf(filter.homeAccountId.toLowerCase()) === -1) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
