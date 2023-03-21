@@ -158,7 +158,7 @@ Please refer to:
     1. For **Admin consent description** type in *e.g. Allows the app to read the signed-in user's files.*.
     1. Keep **State** as **Enabled**.
     1. Select the **Add scope** button on the bottom to save this scope.
-    > Repeat the steps above for another scope named **TodoList.ReadWrite**
+    > :warning: Repeat the steps above for another scope named **TodoList.ReadWrite**
 1. Select the **Manifest** blade on the left.
     1. Set `accessTokenAcceptedVersion` property to **2**.
     1. Select on **Save**.
@@ -175,7 +175,7 @@ Please refer to:
     1. For **Value**, enter **TodoList.Read.All**.
     1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
     1. Select **Apply** to save your changes.
-    > Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
+    > :warning: Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
 
 ##### Configure Optional Claims
 
