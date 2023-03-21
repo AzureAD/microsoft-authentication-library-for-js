@@ -6,6 +6,8 @@
 import { ICacheClient } from "@azure/msal-node";
 import { RedisClientType } from "redis";
 
+const EMPTY_STRING = "";
+
 /**
 * Simple persistence client helper, using Redis (node-redis). You must have redis installed
 * on your machine and have redis server listening. Note that this is only for illustration,
@@ -20,27 +22,23 @@ class RedisClientWrapper implements ICacheClient {
     }
 
     public async get(key: string): Promise<string> {
-        let value = "";
-
         try {
-            value = await this.cacheClient.get(key) || value;
+            return await this.cacheClient.get(key) || EMPTY_STRING;
         } catch (error) {
             console.log(error);
         }
 
-        return value;
+        return EMPTY_STRING;
     }
 
     public async set(key: string, value: string): Promise<string> {
-        let result = "";
-
         try {
-            result = await this.cacheClient.set(key, value) || result;
+            return await this.cacheClient.set(key, value) || EMPTY_STRING;
         } catch (error) {
             console.log(error);
         }
 
-        return result;
+        return EMPTY_STRING;
     }
 }
 
