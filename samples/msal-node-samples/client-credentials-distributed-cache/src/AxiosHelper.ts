@@ -12,16 +12,18 @@ class AxiosHelper {
      * @param endpoint
      * @param accessToken
      */
-    static async callEndpointWithToken(endpoint: string, accessToken: string | undefined): Promise<any> {
-        const options = {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        };
-
+    static async callEndpointWithToken(endpoint: string, accessToken?: string, params?: Record<string, string>): Promise<any> {
         console.log(`Request to ${endpoint} made at: ${new Date().toString()}`);
 
-        const response = await axios.get(endpoint, options);
+        const response = await axios.get(endpoint, {
+            headers: (accessToken && { Authorization: `Bearer ${accessToken}`}) || undefined,
+            params: params || undefined
+        });
+
+        if (response.status !== 200) {
+            throw new Error(`Response: ${response.status}`);
+        }
+
         return (await response.data);
     }
 }

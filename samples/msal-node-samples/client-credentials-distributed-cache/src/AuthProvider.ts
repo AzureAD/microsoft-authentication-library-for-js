@@ -16,6 +16,7 @@ import {
 
 import CustomCachePlugin from "./CustomCachePlugin";
 import RedisClientWrapper from "./RedisClientWrapper";
+import AxiosHelper from './AxiosHelper';
 
 export type AppConfig = {
     instance: string;
@@ -123,13 +124,12 @@ export class AuthProvider {
         const endpoint = 'https://login.microsoftonline.com/common/discovery/instance';
 
         try {
-            const response = await axios.get(endpoint, {
-                params: {
-                    'api-version': '1.1',
-                    'authorization_endpoint': `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
-                }
+            const response = await AxiosHelper.callEndpointWithToken(endpoint, undefined, {
+                'api-version': '1.1',
+                'authorization_endpoint': `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
             });
-            return await response.data;
+
+            return response;
         } catch (error) {
             console.log(error);
         }
@@ -139,8 +139,8 @@ export class AuthProvider {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
         try {
-            const response = await axios.get(endpoint);
-            return await response.data;
+            const response = await AxiosHelper.callEndpointWithToken(endpoint)
+            return response;
         } catch (error) {
             console.log(error);
         }
