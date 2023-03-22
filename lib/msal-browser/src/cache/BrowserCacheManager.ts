@@ -6,7 +6,7 @@
 import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, ActiveAccountFilters, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys, StaticCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
@@ -43,8 +43,11 @@ export class BrowserCacheManager extends CacheManager {
         this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
         this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
 
-        // Migrate any cache entries from older versions of MSAL.
-        this.migrateCacheEntries();
+        // Migrate cache entries from older versions of MSAL.
+        if (cacheConfig.cacheMigrationEnabled) {
+            this.migrateCacheEntries();
+            this.createAccountKeyMap();
+        }
     }
 
     /**
@@ -125,6 +128,36 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Searches all cache entries for MSAL accounts and creates the account key map
+     * This is used to migrate users from older versions of MSAL which did not create the map.
+     * @returns 
+     */
+    private createAccountKeyMap(): void {
+        const accountKeys = this.getItem(StaticCacheKeys.ACCOUNT_KEYS);
+        if (accountKeys) {
+            // Account key map already exists, no need to iterate through cache
+            return;
+        }
+
+        const allKeys = this.browserStorage.getKeys();
+        allKeys.forEach((key) => {
+            if (this.isAccountKey(key)) {
+                const value = this.getItem(key);
+                if (value) {
+                    try {
+                        const accountObj = JSON.parse(value);
+                        if (AccountEntity.isAccountEntity(accountObj)) {
+                            this.addAccountKeyToMap(key);
+                        }
+                    } catch (e) {
+                        return;
+                    }
+                }
+            }
+        });
+    }
+
+    /**
      * Parses passed value as JSON object, JSON.parse() will throw an error.
      * @param input
      */
@@ -165,13 +198,16 @@ export class BrowserCacheManager extends CacheManager {
      * @param accountKey
      */
     getAccount(accountKey: string): AccountEntity | null {
+        this.logger.trace("BrowserCacheManager.getAccount called");
         const account = this.getItem(accountKey);
         if (!account) {
+            this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
         const parsedAccount = this.validateAndParseJson(account);
         if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
+            this.removeAccountKeyFromMap(accountKey);
             return null;
         }
 
@@ -187,6 +223,67 @@ export class BrowserCacheManager extends CacheManager {
         this.logger.trace("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
         this.setItem(key, JSON.stringify(account));
+        this.addAccountKeyToMap(key);
+    }
+
+    /**
+     * Returns the array of account keys currently cached
+     * @returns 
+     */
+    getAccountKeys(): Array<string> {
+        this.logger.trace("BrowserCacheManager.getAccountKeys called");
+        const accountKeys = this.getItem(StaticCacheKeys.ACCOUNT_KEYS);
+        if (accountKeys) {
+            return JSON.parse(accountKeys);
+        }
+
+        this.logger.verbose("BrowserCacheManager.getAccountKeys - No account keys found");
+        return [];
+    }
+
+    /**
+     * Add a new account to the key map
+     * @param key 
+     */
+    addAccountKeyToMap(key: string): void {
+        this.logger.trace("BrowserCacheManager.addAccountKeyToMap called");
+        this.logger.tracePii(`BrowserCacheManager.addAccountKeyToMap called with key: ${key}`);
+        const accountKeys = this.getAccountKeys();
+        if (accountKeys.indexOf(key) === -1) {
+            // Only add key if it does not already exist in the map
+            accountKeys.push(key);
+            this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
+            this.logger.verbose("BrowserCacheManager.addAccountKeyToMap account key added");
+        } else {
+            this.logger.verbose("BrowserCacheManager.addAccountKeyToMap account key already exists in map");
+        }
+    }
+
+    /**
+     * Remove an account from the key map
+     * @param key 
+     */
+    removeAccountKeyFromMap(key: string): void {
+        this.logger.trace("BrowserCacheManager.removeAccountKeyFromMap called");
+        this.logger.tracePii(`BrowserCacheManager.removeAccountKeyFromMap called with key: ${key}`);
+        const accountKeys = this.getAccountKeys();
+        const removalIndex = accountKeys.indexOf(key);
+        if (removalIndex > -1) {
+            accountKeys.splice(removalIndex, 1);
+            this.setItem(StaticCacheKeys.ACCOUNT_KEYS, JSON.stringify(accountKeys));
+            this.logger.trace("BrowserCacheManager.removeAccountKeyFromMap account key removed");
+        } else {
+            this.logger.trace("BrowserCacheManager.removeAccountKeyFromMap key not found in existing map");
+        }
+    }
+
+    /**
+     * Extends inherited removeAccount function to include removal of the account key from the map
+     * @param key 
+     */
+    async removeAccount(key: string): Promise<void> {
+        super.removeAccount(key);
+        this.removeAccountKeyFromMap(key);
     }
 
     /**
@@ -1082,10 +1179,11 @@ export class BrowserCacheManager extends CacheManager {
 }
 
 export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger): BrowserCacheManager => {
-    const cacheOptions = {
+    const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false
+        secureCookies: false,
+        cacheMigrationEnabled: false
     };
     return new BrowserCacheManager(clientId, cacheOptions, DEFAULT_CRYPTO_IMPLEMENTATION, logger);
 };

@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
+import { AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme } from "../utils/Constants";
+import { CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme, Separators } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -144,7 +144,7 @@ export abstract class CacheManager implements ICacheManager {
      * Function to remove an item from cache given its key.
      * @param key
      */
-    abstract removeItem(key: string, type?: string): boolean;
+    abstract removeItem(key: string): boolean;
 
     /**
      * Function which returns boolean whether cache contains a specific key.
@@ -156,6 +156,11 @@ export abstract class CacheManager implements ICacheManager {
      * Function which retrieves all current keys from the cache.
      */
     abstract getKeys(): string[];
+
+    /**
+     * Function which retrieves all account keys from the cache
+     */
+    abstract getAccountKeys(): string[];
 
     /**
      * Function which clears cache.
@@ -171,26 +176,51 @@ export abstract class CacheManager implements ICacheManager {
      * Returns all accounts in cache
      */
     getAllAccounts(): AccountInfo[] {
-        const currentAccounts: AccountCache = this.getAccountsFilteredBy();
-        const accountValues: AccountEntity[] = Object.keys(currentAccounts).map(accountKey => currentAccounts[accountKey]);
-        const numAccounts = accountValues.length;
-        if (numAccounts < 1) {
+        const allAccountKeys = this.getAccountKeys();
+        if (allAccountKeys.length < 1) {
+            return [];
+        }
+
+        const accountEntities: AccountEntity[] = allAccountKeys.reduce((accounts: AccountEntity[], key: string) => {
+            const entity: AccountEntity | null = this.getAccount(key);
+
+            if (!entity) {
+                return accounts;
+            }
+            accounts.push(entity);
+            return accounts;
+        }, []);
+
+        if (accountEntities.length < 1) {
             return [];
         } else {
-            const allAccounts = accountValues.map<AccountInfo>((value) => {
-                const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), value);
-                const accountInfo = accountEntity.getAccountInfo();
-                const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
-                if (idToken && !accountInfo.idTokenClaims) {
-                    accountInfo.idToken = idToken.secret;
-                    accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
-                }
-
-                return accountInfo;
-
+            const allAccounts = accountEntities.map<AccountInfo>((accountEntity) => {
+                return this.getAccountInfoFromEntity(accountEntity);
             });
             return allAccounts;
         }
+    }
+
+    /** 
+     * Gets accountInfo object based on provided filters
+     */
+    getAccountInfoFilteredBy(accountFilter: AccountFilter): AccountInfo | null{
+        const allAccounts = this.getAccountsFilteredBy(accountFilter);
+        if (allAccounts.length > 0) {
+            return this.getAccountInfoFromEntity(allAccounts[0]);
+        } else {
+            return null;
+        }
+    }
+
+    private getAccountInfoFromEntity(accountEntity: AccountEntity): AccountInfo {
+        const accountInfo = accountEntity.getAccountInfo();
+        const idToken = this.readIdTokenFromCache(this.clientId, accountInfo);
+        if (idToken) {
+            accountInfo.idToken = idToken.secret;
+            accountInfo.idTokenClaims = new AuthToken(idToken.secret, this.cryptoImpl).claims;
+        }
+        return accountInfo;
     }
 
     /**
@@ -261,58 +291,76 @@ export abstract class CacheManager implements ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(accountFilter?: AccountFilter): AccountCache {
-        return this.getAccountsFilteredByInternal(
-            accountFilter ? accountFilter.homeAccountId : Constants.EMPTY_STRING,
-            accountFilter ? accountFilter.environment : Constants.EMPTY_STRING,
-            accountFilter ? accountFilter.realm : Constants.EMPTY_STRING,
-            accountFilter ? accountFilter.nativeAccountId: Constants.EMPTY_STRING,
-        );
-    }
+    getAccountsFilteredBy(accountFilter: AccountFilter): AccountEntity[] {
+        const allAccountKeys = this.getAccountKeys();
+        const matchingAccounts: AccountEntity[] = [];
 
-    /**
-     * retrieve accounts matching all provided filters; if no filter is set, get all accounts
-     * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
-     * @param homeAccountId
-     * @param environment
-     * @param realm
-     */
-    private getAccountsFilteredByInternal(
-        homeAccountId?: string,
-        environment?: string,
-        realm?: string,
-        nativeAccountId?: string,
-    ): AccountCache {
-        const allCacheKeys = this.getKeys();
-        const matchingAccounts: AccountCache = {};
+        allAccountKeys.forEach((cacheKey) => {
+            if (!this.isAccountKey(cacheKey, accountFilter.homeAccountId, accountFilter.realm)) {
+                // Don't parse value if the key doesn't match the account filters
+                return;
+            }
 
-        allCacheKeys.forEach((cacheKey) => {
             const entity: AccountEntity | null = this.getAccount(cacheKey);
 
             if (!entity) {
                 return;
             }
 
-            if (!!homeAccountId && !this.matchHomeAccountId(entity, homeAccountId)) {
+            if (!!accountFilter.homeAccountId && !this.matchHomeAccountId(entity, accountFilter.homeAccountId)) {
                 return;
             }
 
-            if (!!environment && !this.matchEnvironment(entity, environment)) {
+            if (!!accountFilter.localAccountId && !this.matchLocalAccountId(entity, accountFilter.localAccountId)) {
                 return;
             }
 
-            if (!!realm && !this.matchRealm(entity, realm)) {
+            if (!!accountFilter.username && !this.matchUsername(entity, accountFilter.username)) {
                 return;
             }
 
-            if (!!nativeAccountId && !this.matchNativeAccountId(entity, nativeAccountId)) {
+            if (!!accountFilter.environment && !this.matchEnvironment(entity, accountFilter.environment)) {
                 return;
             }
 
-            matchingAccounts[cacheKey] = entity;
+            if (!!accountFilter.realm && !this.matchRealm(entity, accountFilter.realm)) {
+                return;
+            }
+
+            if (!!accountFilter.nativeAccountId && !this.matchNativeAccountId(entity, accountFilter.nativeAccountId)) {
+                return;
+            }
+
+            matchingAccounts.push(entity);
         });
 
         return matchingAccounts;
+    }
+
+    /**
+     * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
+     * @param key 
+     * @param homeAccountId 
+     * @param tenantId 
+     * @returns 
+     */
+    isAccountKey(key: string, homeAccountId?: string, tenantId?: string): boolean {
+        if (key.split(Separators.CACHE_KEY_SEPARATOR).length < 3) {
+            // Account cache keys contain 3 items separated by '-' (each item may also contain '-')
+            return false;
+        }
+
+        if (homeAccountId && !key.toLowerCase().includes(homeAccountId.toLowerCase())) {
+            return false;
+        }
+
+        if (tenantId && !key.toLowerCase().includes(tenantId.toLowerCase())) {
+            return false;
+        }
+
+        // Do not check environment as aliasing can cause false negatives
+
+        return true;
     }
 
     /**
@@ -555,39 +603,35 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    async removeAllAccounts(): Promise<boolean> {
-        const allCacheKeys = this.getKeys();
-        const removedAccounts: Array<Promise<boolean>> = [];
+    async removeAllAccounts(): Promise<void> {
+        const allAccountKeys = this.getAccountKeys();
+        const removedAccounts: Array<Promise<void>> = [];
 
-        allCacheKeys.forEach((cacheKey) => {
-            const entity = this.getAccount(cacheKey);
-            if (!entity) {
-                return;
-            }
+        allAccountKeys.forEach((cacheKey) => {
             removedAccounts.push(this.removeAccount(cacheKey));
         });
 
         await Promise.all(removedAccounts);
-        return true;
     }
 
     /**
-     * returns a boolean if the given account is removed
+     * Removes the account and related tokens for a given account key
      * @param account
      */
-    async removeAccount(accountKey: string): Promise<boolean> {
+    async removeAccount(accountKey: string): Promise<void> {
         const account = this.getAccount(accountKey);
         if (!account) {
             throw ClientAuthError.createNoAccountFoundError();
         }
-        return (await this.removeAccountContext(account) && this.removeItem(accountKey, CacheSchemaType.ACCOUNT));
+        await this.removeAccountContext(account);
+        this.removeItem(accountKey);
     }
 
     /**
      * Removes credentials associated with the provided account
      * @param account
      */
-    async removeAccountContext(account: AccountEntity): Promise<boolean> {
+    async removeAccountContext(account: AccountEntity): Promise<void> {
         const allCacheKeys = this.getKeys();
         const accountId = account.generateAccountId();
         const removedCredentials: Array<Promise<boolean>> = [];
@@ -606,7 +650,6 @@ export abstract class CacheManager implements ICacheManager {
         });
 
         await Promise.all(removedCredentials);
-        return true;
     }
 
     /**
@@ -632,7 +675,7 @@ export abstract class CacheManager implements ICacheManager {
             }
         }
 
-        return this.removeItem(key, CacheSchemaType.CREDENTIAL);
+        return this.removeItem(key);
     }
 
     /**
@@ -642,7 +685,7 @@ export abstract class CacheManager implements ICacheManager {
         const allCacheKeys = this.getKeys();
         allCacheKeys.forEach((cacheKey) => {
             if (this.isAppMetadata(cacheKey)) {
-                this.removeItem(cacheKey, CacheSchemaType.APP_METADATA);
+                this.removeItem(cacheKey);
             }
         });
 
@@ -685,28 +728,6 @@ export abstract class CacheManager implements ICacheManager {
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
         const accountKey: string = AccountEntity.generateAccountCacheKey(account);
         return this.getAccount(accountKey);
-    }
-
-    /**
-     * Retrieve AccountEntity from cache
-     * @param nativeAccountId
-     * @returns AccountEntity or Null
-     */
-    readAccountFromCacheWithNativeAccountId(nativeAccountId: string): AccountEntity | null {
-        // fetch account from memory
-        const accountFilter: AccountFilter = {
-            nativeAccountId
-        };
-        const accountCache: AccountCache = this.getAccountsFilteredBy(accountFilter);
-        const accounts = Object.keys(accountCache).map((key) => accountCache[key]);
-
-        if (accounts.length < 1) {
-            return null;
-        } else if (accounts.length > 1) {
-            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
-        }
-
-        return accounts[0];
     }
 
     /**
@@ -846,6 +867,26 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchHomeAccountId(entity: AccountEntity | CredentialEntity, homeAccountId: string): boolean {
         return !!((typeof entity.homeAccountId === "string") && (homeAccountId === entity.homeAccountId));
+    }
+
+    /**
+     * helper to match account ids
+     * @param entity 
+     * @param localAccountId 
+     * @returns 
+     */
+    private matchLocalAccountId(entity: AccountEntity, localAccountId: string): boolean {
+        return !!((typeof entity.localAccountId === "string") && (localAccountId === entity.localAccountId));
+    }
+
+    /**
+     * helper to match usernames
+     * @param entity 
+     * @param username 
+     * @returns 
+     */
+    private matchUsername(entity: AccountEntity, username: string): boolean {
+        return !!((typeof entity.username === "string") && (username.toLowerCase() === entity.username.toLowerCase()));
     }
 
     /**
@@ -1094,6 +1135,10 @@ export class DefaultStorageClass extends CacheManager {
         throw AuthError.createUnexpectedError(notImplErr);
     }
     getKeys(): string[] {
+        const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAccountKeys(): string[] {
         const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
