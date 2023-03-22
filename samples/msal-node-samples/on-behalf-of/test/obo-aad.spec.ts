@@ -16,7 +16,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
-const { acquireTokenByCode, acquireTokenObo } = require("../index");
+const { acquireTokenByCode, acquireTokenObo } = require("./index");
 
 const webAppConfig = require("../config/WEB-APP.json");
 webAppConfig.authOptions.clientId = process.env.OBO_WEB_APP_CLIENT_ID;

@@ -16,13 +16,13 @@ const jwksClient = require("jwks-rsa");
  * - The cache file location
  * - The authentication scenario/configuration file name
  */
-const argv = require("../cliArgs");
+const argv = require("../../cliArgs");
 
 const TEST_CACHE_LOCATION = argv.c || "./data/cache.json";
-const cachePlugin = require("../cachePlugin")(TEST_CACHE_LOCATION);
+const cachePlugin = require("../../cachePlugin")(TEST_CACHE_LOCATION);
 
-const webAppConfig = require("./config/WEB-APP.json");
-const webApiConfig = require("./config/WEB-API.json");
+const webAppConfig = require("../config/WEB-APP.json");
+const webApiConfig = require("../config/WEB-API.json");
 
 const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiUrl) => {
     const app = express();
@@ -168,7 +168,7 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
     return app.listen(webApiPort, () => console.log(`Msal Node Web API listening on port ${webApiPort}!`))
 };
 
-if(argv.$0 === "index.js") {
+if(argv.$0 === "test/index.js") {
     const loggerOptions = {
         loggerCallback(loglevel, message, containsPii) {
             console.log(message);
