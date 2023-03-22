@@ -6,13 +6,14 @@
 import { ICacheClient } from "@azure/msal-node";
 import { RedisClientType } from "redis";
 
+const EMPTY_STRING = "";
+
 /**
- * Simple persistence client helper, using Redis (node-redis). You must have redis installed
- * on your machine and have redis server listening. Note that this is only for illustration,
- * and you'll likely need to consider cache eviction policies and handle cache server connection
- * issues. For more information, visit:
- * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
- */
+* Simple persistence client helper, using Redis (node-redis). You must have redis installed
+* on your machine and have redis server listening. Note that this is only for illustration,
+* and you'll likely need to consider cache eviction policies and handle cache server connection
+* issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
+*/
 class RedisClientWrapper implements ICacheClient {
     cacheClient: RedisClientType;
 
@@ -20,28 +21,35 @@ class RedisClientWrapper implements ICacheClient {
         this.cacheClient = cacheClient;
     }
 
+    /**
+     * Get the data from cache given partition key
+     * @param key cache partition key
+     * @returns
+     */
     public async get(key: string): Promise<string> {
-        let value = "";
-
         try {
-            value = await this.cacheClient.get(key) || value;
+            return await this.cacheClient.get(key) || EMPTY_STRING;
         } catch (error) {
             console.log(error);
         }
 
-        return value;
+        return EMPTY_STRING;
     }
 
+    /**
+     * Set the data in cache given partition key and value
+     * @param key cache partition key
+     * @param value value to be set in cache
+     * @returns
+     */
     public async set(key: string, value: string): Promise<string> {
-        let result = "";
-
         try {
-            result = await this.cacheClient.set(key, value) || result;
+            return await this.cacheClient.set(key, value) || EMPTY_STRING;
         } catch (error) {
             console.log(error);
         }
 
-        return result;
+        return EMPTY_STRING;
     }
 }
 

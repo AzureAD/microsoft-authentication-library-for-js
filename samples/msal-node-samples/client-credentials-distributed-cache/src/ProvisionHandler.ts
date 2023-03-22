@@ -7,6 +7,10 @@ import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { CryptoProvider } from "@azure/msal-node";
 import open from "open";
 
+/**
+ * This class helps with granting admin consent to provision a
+ * multi-tenant application into other tenants.
+ */
 class ProvisionHandler {
     private server: Server;
     private cryptoProvider: CryptoProvider;

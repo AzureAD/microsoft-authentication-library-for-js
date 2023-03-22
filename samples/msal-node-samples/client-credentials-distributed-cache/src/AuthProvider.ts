@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import axios from 'axios';
 import { performance } from "perf_hooks";
 import { RedisClientType } from "redis";
 import {
@@ -22,18 +21,27 @@ export type AppConfig = {
     instance: string;
     tenantId: string;
     clientId: string;
-    clientSecret: string;
+    clientSecret: string; // in production, use a certificate instead
 };
 
 export class AuthProvider {
     private msalConfig: Configuration;
     private cacheClientWrapper: RedisClientWrapper;
+    private partitionKey: string;
 
-    private constructor(msalConfig: Configuration, cacheClient: RedisClientType) {
+    private constructor(msalConfig: Configuration, cacheClient: RedisClientType, partitionKey: string) {
         this.msalConfig = msalConfig;
         this.cacheClientWrapper = new RedisClientWrapper(cacheClient);
+        this.partitionKey = partitionKey;
     }
 
+    /**
+     * Instantiates an MSAL CCA object with the metadata required for token acquisition, either to
+     * be retrieved from the cache or from the network call to the relevant endpoints.
+     * @param appConfig
+     * @param cacheClient
+     * @returns
+     */
     static async initialize(appConfig: AppConfig, cacheClient: RedisClientType): Promise<AuthProvider> {
         const msalConfig = {
             auth: {
@@ -53,9 +61,10 @@ export class AuthProvider {
             }
         } as Configuration;
 
-        const msalConfigWithMetadata = await AuthProvider.getMetadata(msalConfig, cacheClient);
+        const partitionKey = `${appConfig.clientId}.${appConfig.tenantId}`;
+        const msalConfigWithMetadata = await AuthProvider.getMetadata(msalConfig, cacheClient, partitionKey);
 
-        return new AuthProvider(msalConfigWithMetadata, cacheClient);
+        return new AuthProvider(msalConfigWithMetadata, cacheClient, partitionKey);
     }
 
     async getToken(tokenRequest: ClientCredentialRequest): Promise<AuthenticationResult | null> {
@@ -64,7 +73,7 @@ export class AuthProvider {
             cache: {
                 cachePlugin: new CustomCachePlugin(
                     this.cacheClientWrapper,
-                    `${this.msalConfig.auth.clientId}.${this.msalConfig.auth.authority!.split("/").pop()!}` // partitionKey <clientId>.<tenantId>
+                    this.partitionKey // partitionKey <clientId>.<tenantId>
                 )
             }
         });
@@ -82,32 +91,30 @@ export class AuthProvider {
                 "acquireTokenByClientCredential-end"
             );
         } catch (error) {
-            throw error;
+            console.log(error); // catch and handle any errors
         }
 
         return tokenResponse;
     }
 
-    private static async getMetadata(msalConfig: Configuration, cacheClient: RedisClientType): Promise<Configuration> {
+    private static async getMetadata(msalConfig: Configuration, cacheClient: RedisClientType, partitionKey: string): Promise<Configuration> {
         const msalConfigWithMetadata = msalConfig;
-        const clientId = msalConfigWithMetadata.auth.clientId;
-        const tenantId = msalConfigWithMetadata.auth.authority!.split("/").pop()!;
 
         try {
             let [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
-                cacheClient.get(`${clientId}.${tenantId}.discovery-metadata`),
-                cacheClient.get(`${clientId}.${tenantId}.authority-metadata`)
+                cacheClient.get(`${partitionKey}.discovery-metadata`),
+                cacheClient.get(`${partitionKey}.authority-metadata`)
             ]);
 
             if (!cloudDiscoveryMetadata || !authorityMetadata) {
                 [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
-                    AuthProvider.fetchCloudDiscoveryMetadata(tenantId),
-                    AuthProvider.fetchAuthorityMetadata(tenantId)
+                    AuthProvider.fetchCloudDiscoveryMetadata(partitionKey.split('.')[1]),
+                    AuthProvider.fetchOIDCMetadata(partitionKey.split('.')[1])
                 ]);
 
                 if (cloudDiscoveryMetadata && authorityMetadata) {
-                    await cacheClient.set(`${clientId}.${tenantId}.discovery-metadata`, JSON.stringify(cloudDiscoveryMetadata));
-                    await cacheClient.set(`${clientId}.${tenantId}.authority-metadata`, JSON.stringify(authorityMetadata));
+                    await cacheClient.set(`${partitionKey}.discovery-metadata`, JSON.stringify(cloudDiscoveryMetadata));
+                    await cacheClient.set(`${partitionKey}.authority-metadata`, JSON.stringify(authorityMetadata));
                 }
             }
 
@@ -124,7 +131,7 @@ export class AuthProvider {
         const endpoint = 'https://login.microsoftonline.com/common/discovery/instance';
 
         try {
-            const response = await AxiosHelper.callEndpointWithToken(endpoint, undefined, {
+            const response = await AxiosHelper.callDownstreamApi(endpoint, undefined, {
                 'api-version': '1.1',
                 'authorization_endpoint': `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
             });
@@ -135,11 +142,11 @@ export class AuthProvider {
         }
     }
 
-    private static async fetchAuthorityMetadata(tenantId: string): Promise<any> {
+    private static async fetchOIDCMetadata(tenantId: string): Promise<any> {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
         try {
-            const response = await AxiosHelper.callEndpointWithToken(endpoint)
+            const response = await AxiosHelper.callDownstreamApi(endpoint)
             return response;
         } catch (error) {
             console.log(error);

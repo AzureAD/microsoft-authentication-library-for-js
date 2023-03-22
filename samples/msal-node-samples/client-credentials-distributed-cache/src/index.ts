@@ -26,7 +26,7 @@ const appConfig: AppConfig = {
     instance: options.instance || process.env.INSTANCE || "ENTER_CLOUD_INSTANCE_HERE", // if instance is provided as a command line arg, use that first
     tenantId: options.tenant || process.env.TENANT_ID || "ENTER_TENANT_ID_HERE", // if tenantId is provided as a command line arg, use that first
     clientId: process.env.CLIENT_ID || "ENTER_CLIENT_ID_HERE",
-    clientSecret: process.env.CLIENT_SECRET || "ENTER_CLIENT_SECRET_HERE",
+    clientSecret: process.env.CLIENT_SECRET || "ENTER_CLIENT_SECRET_HERE", // in production, use a certificate instead
 };
 
 async function main() {
@@ -59,7 +59,7 @@ async function main() {
                     scopes: ["https://graph.microsoft.com/.default"],
                 });
 
-                const graphResponse = await AxiosHelper.callEndpointWithToken(
+                const graphResponse = await AxiosHelper.callDownstreamApi(
                     "https://graph.microsoft.com/v1.0/users",
                     tokenResponse?.accessToken
                 );
