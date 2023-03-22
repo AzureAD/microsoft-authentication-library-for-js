@@ -23,7 +23,8 @@ describe("BrowserCacheManager tests", () => {
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false
+            secureCookies: false,
+            cacheMigrationEnabled: false
         };
         logger = new Logger({
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
@@ -82,6 +83,7 @@ describe("BrowserCacheManager tests", () => {
         );
 
         it("Migrates cache entries from the old cache format", () => {
+            const migrationCacheConfig = {...cacheConfig, cacheMigrationEnabled: true };
             const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
             const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
             const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
@@ -93,7 +95,7 @@ describe("BrowserCacheManager tests", () => {
             window.sessionStorage.setItem(errorKey, errorKeyVal);
             window.sessionStorage.setItem(errorDescKey, errorDescVal);
 
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, migrationCacheConfig, browserCrypto, logger);
             expect(window.sessionStorage.getItem(idTokenKey)).toBe(TEST_TOKENS.IDTOKEN_V2);
             expect(window.sessionStorage.getItem(clientInfoKey)).toBe(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(window.sessionStorage.getItem(errorKey)).toBe(errorKeyVal);
@@ -1093,7 +1095,8 @@ describe("BrowserCacheManager tests", () => {
             cacheConfig = {
                 cacheLocation: BrowserCacheLocation.SessionStorage,
                 storeAuthStateInCookie: false,
-                secureCookies: false
+                secureCookies: false,
+                cacheMigrationEnabled: false
             };
             logger = new Logger({
                 loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
@@ -1148,6 +1151,8 @@ describe("BrowserCacheManager tests", () => {
             beforeEach(() => {
                 browserStorage.setItem(cacheKey1, JSON.stringify(accountEntity1));
                 browserStorage.setItem(cacheKey2, JSON.stringify(accountEntity2));
+                browserStorage.addAccountKeyToMap(cacheKey1);
+                browserStorage.addAccountKeyToMap(cacheKey2);
             });
 
             afterEach(() => {
@@ -1219,7 +1224,8 @@ describe("BrowserCacheManager tests", () => {
             cacheConfig = {
                 cacheLocation: BrowserCacheLocation.SessionStorage,
                 storeAuthStateInCookie: false,
-                secureCookies: false
+                secureCookies: false,
+                cacheMigrationEnabled: false
             };
             logger = new Logger({
                 loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
@@ -1280,6 +1286,8 @@ describe("BrowserCacheManager tests", () => {
             beforeEach(() => {
                 browserStorage.setItem(cacheKey1, JSON.stringify(accountEntity1));
                 browserStorage.setItem(cacheKey2, JSON.stringify(accountEntity2));
+                browserStorage.addAccountKeyToMap(cacheKey1);
+                browserStorage.addAccountKeyToMap(cacheKey2);
             });
 
             afterEach(() => {
@@ -1321,6 +1329,7 @@ describe("BrowserCacheManager tests", () => {
 
                 const cacheKey3 = AccountEntity.generateAccountCacheKey(account3);
                 browserStorage.setItem(cacheKey3, JSON.stringify(accountEntity3));
+                browserStorage.addAccountKeyToMap(cacheKey3);
 
                 try {
                     browserStorage.getAccountInfoByHints(accountEntity3.username);
@@ -1356,6 +1365,7 @@ describe("BrowserCacheManager tests", () => {
 
                 const cacheKey3 = AccountEntity.generateAccountCacheKey(account3);
                 browserStorage.setItem(cacheKey3, JSON.stringify(accountEntity3));
+                browserStorage.addAccountKeyToMap(cacheKey3);
 
                 try {
                     browserStorage.getAccountInfoByHints(undefined, accountEntity3.idTokenClaims!.sid);

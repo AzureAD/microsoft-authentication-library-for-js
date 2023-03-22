@@ -5,7 +5,6 @@
 
 import { CredentialEntity } from "../entities/CredentialEntity";
 import {
-    AccountCache,
     CredentialCache,
     AccountFilter,
     CredentialFilter
@@ -34,6 +33,15 @@ export interface ICacheManager {
      * @param account
      */
     setAccount(account: AccountEntity): void;
+
+    /**
+     * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
+     * @param key 
+     * @param homeAccountId 
+     * @param tenantId 
+     * @returns 
+     */
+    isAccountKey(key: string, homeAccountId?: string, tenantId?: string): boolean
 
     /**
      * fetch the idToken entity from the platform cache
@@ -156,7 +164,13 @@ export interface ICacheManager {
      * @param environment
      * @param realm
      */
-    getAccountsFilteredBy(filter: AccountFilter): AccountCache;
+    getAccountsFilteredBy(filter: AccountFilter): AccountEntity[];
+
+    /**
+     * Get AccountInfo object based on provided filters
+     * @param filter 
+     */
+    getAccountInfoFilteredBy(filter: AccountFilter): AccountInfo | null;
 
     /**
      * retrieve credentials matching all provided filters; if no filter is set, get all credentials
@@ -172,19 +186,19 @@ export interface ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    removeAllAccounts(): Promise<boolean>;
+    removeAllAccounts(): Promise<void>;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(accountKey: string): Promise<boolean>;
+    removeAccount(accountKey: string): Promise<void>;
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(account: AccountEntity): Promise<boolean>;
+    removeAccountContext(account: AccountEntity): Promise<void>;
 
     /**
      * returns a boolean if the given credential is removed
