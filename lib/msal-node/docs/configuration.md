@@ -81,7 +81,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 ### Cache Config Options
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache file| [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null
+| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache persistence (see also: [caching](caching.md)) | [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null
 
 ### System Config Options
 | Option | Description | Format | Default Value |
@@ -94,7 +94,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 #### Logger Config Options
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `loggerCallback` | Callback function which handles the logging of MSAL statements. | Function - `loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void` | See [above](#using-the-config-object). |
+| `loggerCallback` | Callback function which handles the logging of MSAL statements. | Function - `loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void` | See [above](#usage). |
 | `piiLoggingEnabled` | If true, personally identifiable information (PII) is included in logs. | boolean | `false` |
 
 ### Telemetry Config Options
