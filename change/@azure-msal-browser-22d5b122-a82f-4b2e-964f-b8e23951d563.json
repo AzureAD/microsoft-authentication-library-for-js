@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix missing telemetry queue information #5809",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
