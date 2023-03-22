@@ -37,7 +37,8 @@ export class AuthProvider {
 
     /**
      * Instantiates an MSAL CCA object with the metadata required for token acquisition, either to
-     * be retrieved from the cache or from the network call to the relevant endpoints.
+     * be retrieved from the cache or from the network call to the relevant endpoints. For more, see:
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/performance.md
      * @param appConfig
      * @param cacheClient
      * @returns
