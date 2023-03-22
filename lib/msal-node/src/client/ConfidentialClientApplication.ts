@@ -19,7 +19,8 @@ import {
     AuthError,
     Constants,
     IAppTokenProvider,
-    OIDC_DEFAULT_SCOPES
+    OIDC_DEFAULT_SCOPES,
+    UrlString
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -98,11 +99,12 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         };
 
         /*
-         * valid request should not have "common" or "organization" in lieu of the tenant_id in the authority in the auth configuration
+         * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
          * example authority: "https://login.microsoftonline.com/TenantId",
          */
-        const tenantId = validRequest.authority.split("/")[3];
-        if ((tenantId === "common") || (tenantId === "organization")) {
+        const authority = new UrlString(validRequest.authority);
+        const tenantId = authority.getUrlComponents().PathSegments[0];
+        if ((tenantId === "common") || (tenantId === "organizations")) {
             throw ClientAuthError.createMissingTenantIdError();
         }
 

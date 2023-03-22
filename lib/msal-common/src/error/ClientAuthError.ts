@@ -214,7 +214,7 @@ export const ClientAuthErrorMessage = {
     },
     missingTenantIdError: {
         code: "missing_tenant_id_error",
-        desc: "TenantId was set to  \"common\" or \"organization\". AAD will try to guess the correct TenantId, which is undesired behavior."
+        desc: "A tenant id - not common or organizations - must be specified when using the client_credentials flow."
     }
 };
 
@@ -582,7 +582,7 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error for during acquireTokenByClientCredential when TenantId is set to "common" or "organization"
+     * Creates an error for during acquireTokenByClientCredential when TenantId is set to "common" or "organizations"
      */
     static createMissingTenantIdError(): ClientAuthError {
         return new AuthError(ClientAuthErrorMessage.missingTenantIdError.code, ClientAuthErrorMessage.missingTenantIdError.desc);
