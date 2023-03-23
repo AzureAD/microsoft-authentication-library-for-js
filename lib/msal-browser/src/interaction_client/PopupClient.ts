@@ -193,7 +193,7 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-
+            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
@@ -258,7 +258,7 @@ export class PopupClient extends StandardInteractionClient {
                 (e as AuthError).setCorrelationId(this.correlationId);
                 serverTelemetryManager.cacheFailedRequest(e);
             }
-
+            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.setInteractionInProgress(false);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e as EventError);
             this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
