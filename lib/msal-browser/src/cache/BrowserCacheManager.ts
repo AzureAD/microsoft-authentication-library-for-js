@@ -132,9 +132,11 @@ export class BrowserCacheManager extends CacheManager {
      * @returns 
      */
     private createKeyMaps(): void {
+        this.logger.trace("BrowserCacheManager - createKeyMaps called.");
         const accountKeys = this.getItem(StaticCacheKeys.ACCOUNT_KEYS);
         const tokenKeys = this.getItem(`${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`);
         if (accountKeys && tokenKeys) {
+            this.logger.verbose("BrowserCacheManager:createKeyMaps - account and token key maps already exist, skipping migration.");
             // Key maps already exist, no need to iterate through cache
             return;
         }
@@ -150,6 +152,8 @@ export class BrowserCacheManager extends CacheManager {
                         switch (credObj["credentialType"]) {
                             case CredentialType.ID_TOKEN:
                                 if (IdTokenEntity.isIdTokenEntity(credObj)) {
+                                    this.logger.trace("BrowserCacheManager:createKeyMaps - idToken found, saving key to token key map");
+                                    this.logger.tracePii(`BrowserCacheManager:createKeyMaps - idToken with key: ${key} found, saving key to token key map`);
                                     const idTokenEntity = CacheManager.toObject(new IdTokenEntity(), credObj);
                                     const newKey = this.updateCredentialCacheKey(key, idTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.ID_TOKEN);
@@ -159,6 +163,8 @@ export class BrowserCacheManager extends CacheManager {
                             case CredentialType.ACCESS_TOKEN:
                             case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                                 if (AccessTokenEntity.isAccessTokenEntity(credObj)) {
+                                    this.logger.trace("BrowserCacheManager:createKeyMaps - accessToken found, saving key to token key map");
+                                    this.logger.tracePii(`BrowserCacheManager:createKeyMaps - accessToken with key: ${key} found, saving key to token key map`);
                                     const accessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), credObj);
                                     const newKey = this.updateCredentialCacheKey(key, accessTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.ACCESS_TOKEN);
@@ -167,6 +173,8 @@ export class BrowserCacheManager extends CacheManager {
                                 break;
                             case CredentialType.REFRESH_TOKEN:
                                 if (RefreshTokenEntity.isRefreshTokenEntity(credObj)) {
+                                    this.logger.trace("BrowserCacheManager:createKeyMaps - refreshToken found, saving key to token key map");
+                                    this.logger.tracePii(`BrowserCacheManager:createKeyMaps - refreshToken with key: ${key} found, saving key to token key map`);
                                     const refreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), credObj);
                                     const newKey = this.updateCredentialCacheKey(key, refreshTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.REFRESH_TOKEN);
@@ -185,6 +193,8 @@ export class BrowserCacheManager extends CacheManager {
                 if (value) {
                     const accountObj = this.validateAndParseJson(value);
                     if (accountObj && AccountEntity.isAccountEntity(accountObj)) {
+                        this.logger.trace("BrowserCacheManager:createKeyMaps - account found, saving key to account key map");
+                        this.logger.tracePii(`BrowserCacheManager:createKeyMaps - account with key: ${key} found, saving key to account key map`);
                         this.addAccountKeyToMap(key);
                     }
                 }
