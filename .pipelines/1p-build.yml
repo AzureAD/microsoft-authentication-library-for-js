@@ -16,7 +16,7 @@ jobs:
 
       - script: |
           cd ./microsoft-authentication-library-for-js
-          git checkout $(Build.SourceBranch)
+          git checkout $(Build.SourceVersion)
           git pull
         displayName: 'Pull latest changes from 3P feature branch'
 
