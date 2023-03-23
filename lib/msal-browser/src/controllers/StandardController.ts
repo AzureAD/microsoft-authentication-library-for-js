@@ -13,7 +13,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { EventCallbackFunction } from "../event/EventMessage";
+import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -43,7 +43,7 @@ import { version, name } from "../packageMetadata";
 export class StandardController implements IController {
 
     // OperatingContext
-    protected operatingContext: StandardOperatingContext;
+    protected readonly operatingContext: StandardOperatingContext;
 
     // Crypto interface implementation
     protected readonly browserCrypto: ICrypto;
@@ -61,7 +61,7 @@ export class StandardController implements IController {
     protected navigationClient: INavigationClient;
 
     // Input configuration by developer/user
-    protected config: BrowserConfiguration;
+    protected readonly config: BrowserConfiguration;
 
     // Token cache implementation
     private tokenCache: TokenCache;
@@ -72,10 +72,10 @@ export class StandardController implements IController {
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
-    protected eventHandler: EventHandler;
+    protected readonly eventHandler: EventHandler;
 
     // Redirect Response Object
-    protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+    protected readonly redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
     // Native Extension Provider
     protected nativeExtensionProvider: NativeMessageHandler | undefined;
@@ -84,7 +84,7 @@ export class StandardController implements IController {
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
     // Performance telemetry client
-    protected performanceClient: IPerformanceClient;
+    protected readonly performanceClient: IPerformanceClient;
 
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
@@ -208,7 +208,7 @@ export class StandardController implements IController {
             try {
                 this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
-                this.logger.verbose(e);
+                this.logger.verbose(e as string);
             }
         }
         this.initialized = true;
@@ -276,9 +276,9 @@ export class StandardController implements IController {
                 }).catch((e) => {
                     // Emit login event if there is an account
                     if (loggedInAccounts.length > 0) {
-                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e as EventError);
                     } else {
-                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e as EventError);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
@@ -617,7 +617,7 @@ export class StandardController implements IController {
             }
 
         } catch (e) {
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e as EventError);
             atbcMeasurement.endMeasurement({
                 errorCode: e instanceof AuthError && e.errorCode || undefined,
                 subErrorCode: e instanceof AuthError && e.subError || undefined,
@@ -690,7 +690,7 @@ export class StandardController implements IController {
      * @param silentRequest SilentRequest
      * @returns A promise that, when resolved, returns the access token
      */
-    protected async acquireTokenByRefreshToken(
+    public async acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
@@ -871,7 +871,7 @@ export class StandardController implements IController {
      * @param {InteractionType} interactionType What kind of interaction is being used
      * @param {boolean} [setInteractionInProgress=true] Whether to set interaction in progress temp cache flag
      */
-    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
+    public preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
@@ -921,7 +921,7 @@ export class StandardController implements IController {
      * Acquire a token from native device (e.g. WAM)
      * @param request
      */
-    protected async acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult> {
+    public async acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
@@ -936,7 +936,7 @@ export class StandardController implements IController {
      * Returns boolean indicating if this request can use the native broker
      * @param request
      */
-    protected canUseNative(request: RedirectRequest | PopupRequest | SsoSilentRequest, accountId?: string): boolean {
+    public canUseNative(request: RedirectRequest | PopupRequest | SsoSilentRequest, accountId?: string): boolean {
         this.logger.trace("canUseNative called");
         if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme)) {
             this.logger.trace("canUseNative: isNativeAvailable returned false, returning false");
@@ -969,7 +969,7 @@ export class StandardController implements IController {
      * @param request
      * @returns
      */
-    protected getNativeAccountId(request: RedirectRequest | PopupRequest | SsoSilentRequest): string {
+    public getNativeAccountId(request: RedirectRequest | PopupRequest | SsoSilentRequest): string {
         const account = request.account || this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid) || this.getActiveAccount();
 
         return account && account.nativeAccountId || "";
@@ -979,7 +979,7 @@ export class StandardController implements IController {
      * Returns new instance of the Popup Interaction Client
      * @param correlationId
      */
-    protected createPopupClient(correlationId?: string): PopupClient {
+    public createPopupClient(correlationId?: string): PopupClient {
         return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
@@ -995,7 +995,7 @@ export class StandardController implements IController {
      * Returns new instance of the Silent Iframe Interaction Client
      * @param correlationId
      */
-    protected createSilentIframeClient(correlationId?: string): SilentIframeClient {
+    public createSilentIframeClient(correlationId?: string): SilentIframeClient {
         return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
@@ -1080,7 +1080,7 @@ export class StandardController implements IController {
     /**
      * Returns the logger instance
      */
-    getLogger(): Logger {
+    public getLogger(): Logger {
         return this.logger;
     }
 
@@ -1113,8 +1113,79 @@ export class StandardController implements IController {
     /**
      * Returns the configuration object
      */
-    getConfiguration(): BrowserConfiguration {
+    public getConfiguration(): BrowserConfiguration {
         return this.config;
+    }
+
+    /**
+     * Returns the performance client
+     */
+    public getPerformanceClient(): IPerformanceClient {
+        return this.performanceClient;
+    }
+
+    /**
+     * Returns the browser storage
+     */
+    public getBrowserStorage(): BrowserCacheManager  {
+        return this.browserStorage;
+    }
+
+    /**
+     * Returns the native internal storage
+     */
+    public getNativeInternalStorage(): BrowserCacheManager  {
+        return this.nativeInternalStorage;
+    }
+
+    /**
+     * Returns the instance of interface for crypto functions
+     */
+    public getBrowserCrypto(): ICrypto {
+        return this.browserCrypto;
+    }
+
+    /**
+     * Returns the browser env indicator
+     */
+    public isBrowserEnv() : boolean {
+        return this.isBrowserEnvironment;
+    }
+
+    /**
+     * Returns the native message handler
+     */
+    getNativeExtensionProvider(): NativeMessageHandler | undefined {
+        return this.nativeExtensionProvider;
+    }
+
+    /**
+     * Sets the native message handler
+     * @param provider {?NativeMessageHandler}
+     */
+    setNativeExtensionProvider(provider: NativeMessageHandler | undefined): void {
+        this.nativeExtensionProvider = provider;
+    }
+
+    /**
+     * Returns the event handler
+     */
+    getEventHandler(): EventHandler {
+        return this.eventHandler;
+    }
+
+    /**
+     * Returns the navigation client
+     */
+    getNavigationClient(): INavigationClient {
+        return this.navigationClient;
+    }
+
+    /**
+     * Returns the redirect response map
+     */
+    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
+        return this.redirectResponse;
     }
 
     /**

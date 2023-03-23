@@ -394,10 +394,7 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
-            const testError = {
-                errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
-            };
+            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             sinon.stub(PopupClient.prototype, "initiateAuthRequest").throws(testError);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -475,11 +472,7 @@ describe("PopupClient", () => {
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
-            const testError = {
-                errorCode: "create_logout_url_error",
-                errorMessage: "Error in creating a logout url"
-            };
-            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
+            const testError: AuthError = new AuthError("create_logout_url_error", "Error in creating a logout url");
 
             try {
                 await popupClient.logout();
@@ -1127,8 +1120,8 @@ describe("PopupClient", () => {
                 return;
             };
 
-            window.open = (url?: string, target?: string, features?: string, replace?: boolean): Window => {
-                expect(url?.startsWith(TEST_URIS.ALTERNATE_INSTANCE)).toBe(true);
+            window.open = (url?: string | URL, target?: string, features?: string, replace?: boolean): Window => {
+                expect((url as string)?.startsWith(TEST_URIS.ALTERNATE_INSTANCE)).toBe(true);
                 done();
                 return window;
             };
