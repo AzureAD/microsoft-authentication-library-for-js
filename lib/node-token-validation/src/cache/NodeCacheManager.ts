@@ -132,7 +132,7 @@ export class NodeCacheManager extends CacheManager {
         });
     }
 
-    getAccountKeys(): null {
+    getAccountKeys(): string[] {
         throw new Error("Method not implemented. getAccountKeys");
     }
 
