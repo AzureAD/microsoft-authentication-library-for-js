@@ -47,7 +47,7 @@
     {
       "App": "client",
       "SettingKind": "Replace",
-      "SettingFile": "\\..\\App\\authConfig.json",
+      "SettingFile": "\\..\\App\\authConfig.js",
       "Mappings": [
         {
           "key": "Enter_the_Application_Id_Here",

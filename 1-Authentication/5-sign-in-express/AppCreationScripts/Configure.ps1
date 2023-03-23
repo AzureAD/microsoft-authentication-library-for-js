@@ -271,8 +271,8 @@ Function ConfigureApplications
     Write-Host "Successfully registered and configured that app registration for 'ciam-msal-node-webapp' at `n $clientPortalUrl" -ForegroundColor Green 
     
     # Update config file for 'client'
-    # $configFile = $pwd.Path + "\..\App\authConfig.json"
-    $configFile = $(Resolve-Path ($pwd.Path + "\..\App\authConfig.json"))
+    # $configFile = $pwd.Path + "\..\App\authConfig.js"
+    $configFile = $(Resolve-Path ($pwd.Path + "\..\App\authConfig.js"))
     
     $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Info_Here" = $tenantId;"Enter_the_Client_Secret_Here" = $clientAppKey };
 

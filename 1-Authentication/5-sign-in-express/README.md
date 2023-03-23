@@ -166,7 +166,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `App\authConfig.json` file.
+1. Open the `App\authConfig.js` file.
 1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-webapp` app copied from the Azure portal.
 1. Find the key `Enter_the_Tenant_Info_Here` and replace the existing value with your Azure AD tenant/directory ID.
 1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-webapp` copied from the Azure portal.
@@ -216,7 +216,10 @@ To provide feedback on or suggest features for Azure Active Directory, visit [Us
 
 ### Sign-out
 
-// Explain how the app signs out users
+To sing-out the current user, the app destroys the session that holds user data and navigates the browser to the Azure AD logout endpoint to end the session with Azure AD. This is shown in [auth.js](./App/routes/auth.js):
+
+```javascript
+```
 
 ### Deploying Web app to Azure App Service
 
