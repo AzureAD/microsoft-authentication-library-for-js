@@ -26,7 +26,7 @@
     "dist"
   ],
   "scripts": {
-    "start": "tsdx watch --tsconfig ./tsconfig.build.json",
+    "start": "rollup -c --bundleConfigAsCjs -w",
     "build": "rollup -c --bundleConfigAsCjs",
     "build:modules:watch": "tsdx watch --verbose",
     "test": "jest",
