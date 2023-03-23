@@ -74,7 +74,7 @@ export class AuthProvider {
             cache: {
                 cachePlugin: new CustomCachePlugin(
                     this.cacheClientWrapper,
-                    this.partitionKey // partitionKey <clientId>.<tenantId>
+                    this.partitionKey // <clientId>.<tenantId>
                 )
             }
         });

@@ -9,7 +9,8 @@ import open from "open";
 
 /**
  * This class helps with granting admin consent to provision a
- * multi-tenant application into other tenants.
+ * multi-tenant application into other tenants. For more information, visit:
+ * https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps
  */
 class ProvisionHandler {
     private server: Server;
@@ -22,8 +23,7 @@ class ProvisionHandler {
 
     /**
      * Opens a browser window to grant admin consent to the application. This is required
-     * to provision the application into another tenant. For more information, visit:
-     * https://learn.microsoft.com/azure/active-directory/develop/single-and-multi-tenant-apps
+     * to provision the application into another tenant.
      *
      * @param instance
      * @param tenantId
@@ -82,15 +82,15 @@ class ProvisionHandler {
                  */
                 const isGranted = responseUri.searchParams.get('admin_consent') === "True";
                 const doesStateMatch = responseUri.searchParams.get('state') === this.state;
-                const hasErrorOccurred = responseUri.searchParams.has('error');
+                const hasAnyErrors = responseUri.searchParams.has('error');
 
-                if (isGranted && doesStateMatch && !hasErrorOccurred) {
+                if (isGranted && doesStateMatch && !hasAnyErrors) {
                     res.end("Admin consent was successfully acquired. You can close this window now.");
                 } else {
                     res.end("Admin consent was not acquired. Make sure the account has admin privileges in the tenant and try again.");
                 }
 
-                resolve(isGranted && doesStateMatch && !hasErrorOccurred);
+                resolve(isGranted && doesStateMatch && !hasAnyErrors);
             });
 
             this.server.listen(0);

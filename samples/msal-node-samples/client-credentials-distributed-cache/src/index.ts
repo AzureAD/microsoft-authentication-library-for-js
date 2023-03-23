@@ -26,7 +26,7 @@ const appConfig: AppConfig = {
     instance: options.instance || process.env.INSTANCE || "ENTER_CLOUD_INSTANCE_HERE", // if instance is provided as a command line arg, use that first
     tenantId: options.tenant || process.env.TENANT_ID || "ENTER_TENANT_ID_HERE", // if tenantId is provided as a command line arg, use that first
     clientId: process.env.CLIENT_ID || "ENTER_CLIENT_ID_HERE",
-    clientSecret: process.env.CLIENT_SECRET || "ENTER_CLIENT_SECRET_HERE", // in production, use a certificate instead
+    clientSecret: process.env.CLIENT_SECRET || "ENTER_CLIENT_SECRET_HERE", // in production, use a certificate instead -see the README for more
 };
 
 async function main() {
@@ -108,11 +108,9 @@ function initializePerformanceObserver(): void {
                 durationInHttpInMs: tokenSource === "network" ? durationTotalInMs - durationInCacheInMs : 0,
             };
 
-            console.log(results);
-
             fs.appendFile(
-                "benchmarks.txt",
-                `${results.tokenSource} ${results.durationTotalInMs} ${results.durationInCacheInMs} ${results.durationInHttpInMs}\n`,
+                "benchmarks.json",
+                `${JSON.stringify(results)}\n`,
                 function (err) {
                     if (err) {
                         throw err;
@@ -126,8 +124,19 @@ function initializePerformanceObserver(): void {
 }
 
 async function initializeRedisClient(): Promise<RedisClientType> {
-    const redis = createClient();
+
+    /**
+     * Configure connection strategy and other settings. See:
+     * https://github.com/redis/node-redis/blob/master/docs/client-configuration.md
+     */
+    const redis = createClient({
+        socket: {
+            reconnectStrategy: false
+        }
+    });
+
     redis.on('error', (err: any) => console.log('Redis Client Error', err));
+
     await redis.connect();
     return redis as RedisClientType;
 }
