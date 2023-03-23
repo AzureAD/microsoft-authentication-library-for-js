@@ -1,0 +1,12 @@
+jobs:
+  - job: Build_1P
+    displayName: 'Build with 1P library'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: NodeTool@0
+        displayName: 'Install Node.js'
+        inputs:
+          versionSpec: '16.x'
+          
+      - checkout: git://IDDP/msal-javascript-1p
