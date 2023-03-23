@@ -5,9 +5,21 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 jobs:
-  - job: Windows
-    displayName: 'Build Job for JS (VS2019)'
+  - job: SDL
+    displayName: 'SDL Job for JS'
     pool:
       vmImage: 'windows-2019'
     steps:
       - template: build/sdl-tasks.yml
+
+  - job: 1P-Build
+    displayName: 'Build with 1P library'
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+      - task: NodeTool@0
+        displayName: 'Install Node.js'
+        inputs:
+          versionSpec: '16.x'
+          
+      - checkout: git://IDDP/msal-javascript-1p
