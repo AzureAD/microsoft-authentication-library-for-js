@@ -12,7 +12,7 @@ jobs:
     steps:
       - template: build/sdl-tasks.yml
 
-  - job: 1P_Build
+  - job: Build_1P
     displayName: 'Build with 1P library'
     pool:
       vmImage: 'ubuntu-latest'
