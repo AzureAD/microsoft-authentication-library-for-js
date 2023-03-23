@@ -26,12 +26,11 @@
     "dist"
   ],
   "scripts": {
-    "start": "rollup -c --bundleConfigAsCjs -w",
-    "build": "rollup -c --bundleConfigAsCjs",
-    "build:modules:watch": "tsdx watch --verbose",
+    "build": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:watch": "rollup -c --watch --strictDeprecations --bundleConfigAsCjs",
     "test": "jest",
-    "test:watch": "tsdx test .*.spec.* --watch",
-    "test:coverage": "tsdx test .*.spec.* --coverage",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "cd ../../ && npm run lint:node",
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build",
@@ -46,7 +45,6 @@
   "devDependencies": {
     "@microsoft/api-extractor": "^7.19.4",
     "@rollup/plugin-node-resolve": "^15.0.1",
-    "@rollup/plugin-terser": "^0.4.0",
     "@rollup/plugin-typescript": "^11.0.0",
     "@types/jest": "^25.2.3",
     "@types/jsonwebtoken": "^8.5.5",
