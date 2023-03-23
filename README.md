@@ -46,6 +46,7 @@ Please refer to each sample's README for sample-specific recommendations.
 
 |                 |               |
 |-----------------|---------------|
+| <img src="./2-Authorization/1-call-api-react/ReadmeFiles/topology.png" width="200"> | [**Protect and call a web API on Azure AD CIAM**](./2-Authorization/1-call-api-react/README.md) </br> Protect your web API with the **Azure AD CIAM**. Use a client application to sign-in a user, acquire an **Access Token** for your web API and call your protected web API. |
 | <img src="./2-Authorization/2-call-api-angular/ReadmeFiles/topology.png" width="200"> | [**Protect and call a web API on Azure AD CIAM**](./2-Authorization/2-call-api-angular/README.md) </br> Protect your web API with the **Azure AD CIAM**. Use a client application to sign-in a user, acquire an **Access Token** for your web API and call your protected web API. |
 
 ## We'd love your feedback
