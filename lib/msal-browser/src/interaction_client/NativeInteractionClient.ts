@@ -118,13 +118,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @returns authenticationResult
      */
     protected async acquireTokensFromCache(nativeAccountId: string, request: NativeTokenRequest): Promise<AuthenticationResult> {
-
-        // fetch the account from in-memory cache
-        const accountEntity = this.browserStorage.readAccountFromCacheWithNativeAccountId(nativeAccountId);
-        if (!accountEntity) {
+        if (!nativeAccountId) {
+            this.logger.warning("NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided");
             throw ClientAuthError.createNoAccountFoundError();
         }
-        const account = accountEntity.getAccountInfo();
+        // fetch the account from in-memory cache
+        const account = this.browserStorage.getAccountInfoFilteredBy({nativeAccountId});
+        if (!account) {
+            throw ClientAuthError.createNoAccountFoundError();
+        }
 
         // leverage silent flow for cached tokens retrieval
         try {
@@ -230,11 +232,6 @@ export class NativeInteractionClient extends BaseInteractionClient {
      */
     protected async handleNativeResponse(response: NativeResponse, request: NativeTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("NativeInteractionClient - handleNativeResponse called.");
-
-        if (response.account.id !== request.accountId) {
-            // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync
-            throw NativeAuthError.createUserSwitchError();
-        }
 
         if (response.account.id !== request.accountId) {
             // User switch in native broker prompt is not supported. All users must first sign in through web flow to ensure server state is in sync

@@ -89,6 +89,10 @@ export enum TemporaryCacheKeys {
     REDIRECT_CONTEXT = "request.redirect.context"
 }
 
+export enum StaticCacheKeys {
+    ACCOUNT_KEYS = "account.keys"
+}
+
 /**
  * Cache keys stored in-memory
  */

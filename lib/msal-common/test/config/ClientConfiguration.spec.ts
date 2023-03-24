@@ -176,7 +176,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.storageInterface.getAccount).not.toBeNull();
         expect(newConfig.storageInterface.getAccount(MockCache.acc.generateAccountKey())).toBe(MockCache.acc);
         expect(newConfig.storageInterface.getKeys).not.toBeNull();
-        expect(newConfig.storageInterface.getKeys()).toEqual([MockCache.acc.generateAccountKey()]);
+        expect(newConfig.storageInterface.getKeys()).toEqual([MockCache.acc.generateAccountKey(), "ACCOUNT_KEYS"]);
         expect(newConfig.storageInterface.removeItem).not.toBeNull();
         expect(newConfig.storageInterface.removeItem).toBe(cacheStorageMock.removeItem);
         expect(newConfig.storageInterface.setAccount).not.toBeNull();

@@ -520,7 +520,7 @@ describe("CacheManager.ts test cases", () => {
         await mockCache.cacheManager.removeAllAccounts();
 
         // Only app metadata remaining
-        expect(mockCache.cacheManager.getKeys().length === 1).toBe(true);
+        expect(mockCache.cacheManager.getAllAccounts().length === 0).toBe(true);
     });
 
     it("removeAccount", async () => {
@@ -873,12 +873,12 @@ describe("CacheManager.ts test cases", () => {
         expect(account.homeAccountId).toBe(CACHE_MOCKS.MOCK_ACCOUNT_INFO.homeAccountId);
     });
 
-    it("readAccountFromCacheWithNativeAccountId", () => {
-        const account = mockCache.cacheManager.readAccountFromCacheWithNativeAccountId(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID.nativeAccountId) as AccountEntity;
-        if (!account) {
+    it("getAccountsFilteredBy nativeAccountId", () => {
+        const account = mockCache.cacheManager.getAccountsFilteredBy({ nativeAccountId: CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID.nativeAccountId }) as AccountEntity[];
+        if (account.length < 1) {
             throw TestError.createTestSetupError("account does not have a value");
         }
-        expect(account.nativeAccountId).toBe(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID.nativeAccountId);
+        expect(account[0].nativeAccountId).toBe(CACHE_MOCKS.MOCK_ACCOUNT_INFO_WITH_NATIVE_ACCOUNT_ID.nativeAccountId);
     });
 
     it("readIdTokenFromCache", () => {
