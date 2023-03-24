@@ -1,0 +1,26 @@
+table {
+    min-width: 100px;
+    width: 100%;
+}
+
+.form-field {
+    min-width: 100px;
+    width: 90%;
+}
+
+.input-field {
+    width: 90%;
+}
+
+.card-section {
+    margin-top: 5%;
+}
+
+#submit-button {
+    margin-left: 1%;
+}
+
+.material-icons:hover {
+    color: orange !important;
+    cursor: pointer
+}

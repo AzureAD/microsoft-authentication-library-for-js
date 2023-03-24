@@ -1,0 +1,14 @@
+<mat-card class='card-section'>
+    <div>
+        <h1>Edit a task</h1>
+        <hr>
+        <br>
+    </div>
+    <form #edit="ngForm" (ngSubmit)="editTodo(edit.value)">
+        <mat-form-field appearance="fill" class="form-field">
+            <input matInput type="text" name="description" placeholder="task" class="input-field"
+                [(ngModel)]="todo.description">
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" value="submit" class="submit-button">Edit</button>
+    </form>
+</mat-card>

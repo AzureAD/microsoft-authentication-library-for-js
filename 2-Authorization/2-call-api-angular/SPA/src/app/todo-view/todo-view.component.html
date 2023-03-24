@@ -1,0 +1,45 @@
+<mat-card class='card-section'>
+    <form #add="ngForm" (ngSubmit)="addTodo(add)">
+        <mat-form-field appearance="fill" class="form-field">
+            <mat-label>Enter a task</mat-label>
+            <input matInput type="text" name="description" placeholder="task" class="input-field" [(ngModel)]="todo">
+        </mat-form-field>
+        <button mat-raised-button id="submit-button" color="primary" type="submit" value="submit">Add</button>
+    </form>
+</mat-card>
+<br>
+<hr>
+<br>
+<div class="mat-elevation-z8">
+    <table mat-table [dataSource]="todos">
+
+        <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef> Status </th>
+            <td mat-cell *matCellDef="let todo">
+                <mat-checkbox [(ngModel)]="todo.status" (change)="checkTodo(todo)"></mat-checkbox>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef> Description </th>
+            <td mat-cell *matCellDef="let todo"> {{todo.description}} </td>
+        </ng-container>
+
+        <ng-container matColumnDef="edit">
+            <th mat-header-cell *matHeaderCellDef> Edit </th>
+            <td mat-cell *matCellDef="let todo">
+                <mat-icon class="material-icons" [routerLink]="['/todo-edit', todo.id]">edit</mat-icon>
+            </td>
+        </ng-container>
+
+        <ng-container matColumnDef="remove">
+            <th mat-header-cell *matHeaderCellDef> Remove </th>
+            <td mat-cell *matCellDef="let todo">
+                <mat-icon class="material-icons" (click)="removeTodo(todo.id)">delete</mat-icon>
+            </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+</div>
