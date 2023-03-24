@@ -1,0 +1,103 @@
+{
+    "Sample": {
+        "Title": "React single-page application using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API",
+        "Level": 200,
+        "Client": "React SPA",
+        "Service": "ASP.NET Core web API",
+        "Languages": ["javascript", "csharp"],
+        "Products": ["azure-active-directory", "aspnet-core", "msal-js", "msal-react", "microsoft-identity-web"],
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Platform": "JavaScript",
+        "Endpoint": "AAD v2.0",
+        "Provider": "CIAM",
+        "description": "This sample demonstrates An React SPA using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+    },
+    "AADApps": [
+        {
+            "Id": "service",
+            "Name": "ciam-msal-dotnet-api",
+            "Kind": "WebApi",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MicrosoftIdentityWeb",
+            "SampleSubPath": "2-Authorization\\1-call-api-react\\API",
+            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "AppRoles": [
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.Read.All",
+                    "Description": "Allow this application to read every users TodoList items"
+                },
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users TodoList items"
+                }
+            ],
+            "OptionalClaims": {
+                "AccessTokenClaims": ["idtyp"]
+            }
+        },
+        {
+            "Id": "client",
+            "Name": "ciam-msal-react-spa",
+            "Kind": "SinglePageApplication",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalJs",
+            "SampleSubPath": "2-Authorization\\1-call-api-react\\SPA",
+            "HomePage": "http://localhost:3000",
+            "ReplyUrls": "http://localhost:3000, http://localhost:3000/redirect.html",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                },
+                {
+                    "Resource": "service",
+                    "DelegatedPermissions": ["TodoList.Read", "TodoList.ReadWrite"]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "service",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "Mappings": [
+                {
+                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter the tenant ID",
+                    "value": "$tenantId"
+                }
+            ]
+        },
+         {
+             "App": "client",
+             "SettingKind": "Replace",
+             "SettingFile": "\\..\\SPA\\src\\authConfig.js",
+             "Mappings": [
+                 {
+                     "key": "Enter_the_Application_Id_Here",
+                     "value": ".AppId"
+                 },
+                 {
+                     "key": "Enter_the_Tenant_Id_Here",
+                     "value": "$tenantId"
+                 },
+                 {
+                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
+                    "value": "$serviceIdentifierUri"
+                 }
+                 
+             ]
+         }
+    ]   
+}
