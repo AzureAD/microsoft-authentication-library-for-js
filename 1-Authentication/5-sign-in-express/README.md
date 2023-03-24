@@ -137,7 +137,7 @@ Please refer to:
     1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-node-webapp`.
     1. Under **Supported account types**, select **Accounts in this organizational directory only**
     1. Select **Register** to create the application.
-1. In the **Overview** blade, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
+1. In the **Overview** blade, find and note the **Application (client) ID** and *Directory (tenant) ID**. You use these values in your app's configuration file(s) later in your code.
 1. In the app's registration screen, select the **Authentication** blade to the left.
 1. If you don't have a platform added, select **Add a platform** and select the **Web** option.
     1. In the **Redirect URI** section enter the following redirect URI:
