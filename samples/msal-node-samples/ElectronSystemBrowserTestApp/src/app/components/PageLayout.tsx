@@ -1,13 +1,14 @@
-import { AccountInfo } from '@azure/msal-common';
-import React from 'react';
-import { NavigationBar } from './NavigationBar';
+import React from "react";
+import { AccountInfo } from "@azure/msal-common";
+import { NavigationBar } from "./NavigationBar";
 
 type PageLayoutProps = {
     account: AccountInfo;
     children: JSX.Element;
+
 };
 
-function PageLayout(props: PageLayoutProps) {
+export const PageLayout = (props: PageLayoutProps) => {
     return (
         <>
             <NavigationBar account={props.account} />
@@ -18,5 +19,3 @@ function PageLayout(props: PageLayoutProps) {
         </>
     );
 }
-
-export default PageLayout;
