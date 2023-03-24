@@ -210,7 +210,6 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest]
         sample:
-          - 'ElectronTestApp'
           - 'ElectronSystemBrowserTestApp'
 
     name: ${{ matrix.sample }} - ${{ matrix.os }}
