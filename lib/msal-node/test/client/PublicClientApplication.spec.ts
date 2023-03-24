@@ -524,7 +524,7 @@ describe('PublicClientApplication', () => {
         const logger = new Logger({
             loggerCallback: (level, message, containsPii) => {
                 expect(message).toContain("Message");
-                expect(message).toContain("Info");
+                expect(message).toContain(LogLevel.Info.toString());
 
                 expect(level).toEqual(LogLevel.Info);
                 expect(containsPii).toEqual(false);
