@@ -247,6 +247,28 @@ describe("CacheManager.ts test cases", () => {
         });
     });
 
+    describe("isCredentialKey", () => {
+        it("Returns false if key doesn't contain enough '-' deliniated sections", () => {
+            expect(mockCache.cacheManager.isCredentialKey("clientid-idToken-homeId")).toBe(false);
+        });
+
+        it("Returns false if key doesn't contain a valid credential type", () => {
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-credentialType-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`)).toBe(false);
+        });
+
+        it("Returns false if key doesn't contain clientId", () => {
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-accessToken-clientId-realm-target-requestedClaimsHash-scheme`)).toBe(false);
+        });
+
+        it("Returns true if key matches credential", () => {
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-${CredentialType.ID_TOKEN}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm---`)).toBe(true);
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-${CredentialType.ACCESS_TOKEN}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target--`)).toBe(true);
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-${CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm-target-requestedClaimsHash-scheme`)).toBe(true);
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-${CredentialType.REFRESH_TOKEN}-${CACHE_MOCKS.MOCK_CLIENT_ID}-realm---`)).toBe(true);
+            expect(mockCache.cacheManager.isCredentialKey(`homeAccountId-environment-${CredentialType.REFRESH_TOKEN}-1-realm---`)).toBe(true); // FamilyId test
+        });
+    });
+
     describe("credentialMatchesFilter", () => {
         let testIdToken: IdTokenEntity;
         let testAccessToken: AccessTokenEntity;

@@ -399,8 +399,15 @@ export abstract class CacheManager implements ICacheManager {
             return false;
         }
 
-        // Tokens other than Refresh tokens must contain the clientId
-        if (lowerCaseKey.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) === -1 && lowerCaseKey.indexOf(this.clientId.toLowerCase()) === -1) {
+        if (lowerCaseKey.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) > -1) {
+            // Refresh tokens must contain the client id or family id
+            const clientIdValidation = `${CredentialType.REFRESH_TOKEN}${Separators.CACHE_KEY_SEPARATOR}${this.clientId}${Separators.CACHE_KEY_SEPARATOR}`;
+            const familyIdValidation = `${CredentialType.REFRESH_TOKEN}${Separators.CACHE_KEY_SEPARATOR}${THE_FAMILY_ID}${Separators.CACHE_KEY_SEPARATOR}`;
+            if (lowerCaseKey.indexOf(clientIdValidation.toLowerCase()) === -1 && lowerCaseKey.indexOf(familyIdValidation.toLowerCase()) === -1) {
+                return false;
+            }
+        } else if (lowerCaseKey.indexOf(this.clientId.toLowerCase()) === -1) {
+            // Tokens must contain the clientId
             return false;
         }
 
