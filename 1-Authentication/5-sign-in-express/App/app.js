@@ -23,7 +23,7 @@ var app = express();
  * Using express-session middleware for persistent user session. Be sure to
  * familiarize yourself with available options. Visit: https://www.npmjs.com/package/express-session
  */
- app.use(session({
+app.use(session({
     secret: process.env.EXPRESS_SESSION_SECRET || "Enter_the_Express_Session_Secret_Here",
     resave: false,
     saveUninitialized: false,
