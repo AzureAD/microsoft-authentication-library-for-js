@@ -9,6 +9,8 @@ import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
+const ACCOUNT_KEYS = "ACCOUNT_KEYS";
+
 export class MockStorageClass extends CacheManager {
     store = {};
 
@@ -20,9 +22,30 @@ export class MockStorageClass extends CacheManager {
         }
         return null;
     }
+
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
+
+        const currentAccounts = this.getAccountKeys();
+        if (!currentAccounts.includes(key)) {
+            currentAccounts.push(key);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    async removeAccount(key: string): Promise<void> {
+        await super.removeAccount(key);
+        const currentAccounts = this.getAccountKeys();
+        const removalIndex = currentAccounts.indexOf(key);
+        if (removalIndex > -1) {
+            currentAccounts.splice(removalIndex, 1);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    getAccountKeys(): string[] {
+        return this.store[ACCOUNT_KEYS] || [];
     }
 
     // Credentials (idtokens)

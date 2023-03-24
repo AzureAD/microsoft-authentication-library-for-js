@@ -179,6 +179,13 @@ export class NodeStorage extends CacheManager {
         this.setCache(cache);
     }
 
+    getAccountKeys(): string[] {
+        const inMemoryCache = this.getInMemoryCache();
+        const accountKeys = Object.keys(inMemoryCache.accounts);
+
+        return accountKeys;
+    }
+
     /**
      * fetch the account entity
      * @param accountKey - lookup key to fetch cache type AccountEntity
