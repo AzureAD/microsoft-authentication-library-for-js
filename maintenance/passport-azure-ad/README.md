@@ -432,7 +432,7 @@ Passport framework uses session to keep a persistent login session. As a plug in
 
 ```javascript
 
-// We pass these options in to the ODICBearerStrategy.
+// We pass these options in to the BearerStrategy.
 
 var options = {
   identityMetadata: config.creds.identityMetadata,
