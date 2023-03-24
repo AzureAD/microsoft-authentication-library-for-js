@@ -14,7 +14,7 @@ export class NodeCacheManager extends CacheManager {
     private cache: CacheKVStore = new Map();
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
-        super(clientId, cryptoImpl);
+        super(clientId, cryptoImpl, logger);
         this.logger = logger;
     }
 
