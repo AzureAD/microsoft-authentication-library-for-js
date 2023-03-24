@@ -39,6 +39,8 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
  */
 export type AccountFilter = {
     homeAccountId?: string;
+    localAccountId?: string;
+    username?: string;
     environment?: string;
     realm?: string;
     nativeAccountId?: string;
