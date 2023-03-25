@@ -1,0 +1,9 @@
+.navbarStyle {
+    padding: .5rem 1rem !important;
+}
+
+.table-responsive-ms {
+    max-height: 39rem !important;
+    padding-left: 10%;
+    padding-right: 10%;
+}
