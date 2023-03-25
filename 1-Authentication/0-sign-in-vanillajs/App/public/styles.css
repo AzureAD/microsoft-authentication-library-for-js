@@ -4,6 +4,6 @@
 
 .table-responsive-ms {
     max-height: 39rem !important;
-    margin-left: 1.5rem;
-    margin-right: 1.5rem;
+    padding-left: 10%;
+    padding-right: 10%;
 }

@@ -4,7 +4,6 @@ const signOutButton = document.getElementById('signOut');
 const titleDiv = document.getElementById('title-div');
 const welcomeDiv = document.getElementById('welcome-div');
 const tableDiv = document.getElementById('table-div');
-// const footerDiv = document.getElementById('footer');
 const tableBody = document.getElementById('table-body-div');
 
 function welcomeUser(username) {
@@ -13,22 +12,22 @@ function welcomeUser(username) {
     titleDiv.classList.add('d-none');
     welcomeDiv.classList.remove('d-none');
     welcomeDiv.innerHTML = `Welcome ${username}!`;
-}
+};
 
 function updateTable() {
     /**
      * In order to obtain the ID Token in the cached obtained previously, you can initiate a
      * silent token request by passing the current user's account and the scope "openid".
      */
-    myMSALObj
-        .acquireTokenSilent({
+    myMSALObj.acquireTokenSilent({
             account: myMSALObj.getAccountByUsername(username),
-            scopes: ['openid'],
+            scopes: [],
         })
         .then((response) => {
             tableDiv.classList.remove('d-none');
-            // footerDiv.classList.remove('d-none');
+
             const tokenClaims = createClaimsTable(response.idTokenClaims);
+
             Object.keys(tokenClaims).forEach((key) => {
                 let row = tableBody.insertRow(0);
                 let cell1 = row.insertCell(0);
@@ -39,4 +38,4 @@ function updateTable() {
                 cell3.innerHTML = tokenClaims[key][2];
             });
         });
-}
+};

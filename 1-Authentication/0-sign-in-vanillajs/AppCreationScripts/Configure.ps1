@@ -1,3 +1,4 @@
+#Requires -Version 7
  
 [CmdletBinding()]
 param(
@@ -209,9 +210,9 @@ Function ConfigureApplications
     Write-Host ("Connected to Tenant {0} ({1}) as account '{2}'. Domain is '{3}'" -f  $Tenant.DisplayName, $Tenant.Id, $currentUserPrincipalName, $verifiedDomainName)
 
    # Create the client AAD application
-   Write-Host "Creating the AAD application (msal-javascript-spa)"
+   Write-Host "Creating the AAD application (ciam-msal-javascript-spa)"
    # create the application 
-   $clientAadApplication = New-MgApplication -DisplayName "msal-javascript-spa" `
+   $clientAadApplication = New-MgApplication -DisplayName "ciam-msal-javascript-spa" `
                                                       -Spa `
                                                       @{ `
                                                           RedirectUris = "http://localhost:3000", "http://localhost:3000/redirect"; `
@@ -223,7 +224,7 @@ Function ConfigureApplications
     $currentAppObjectId = $clientAadApplication.Id
 
     $tenantName = (Get-MgApplication -ApplicationId $currentAppObjectId).PublisherDomain
-    #Update-MgApplication -ApplicationId $currentAppObjectId -IdentifierUris @("https://$tenantName/msal-javascript-spa")
+    #Update-MgApplication -ApplicationId $currentAppObjectId -IdentifierUris @("https://$tenantName/ciam-msal-javascript-spa")
     
     # create the service principal of the newly created application     
     $clientServicePrincipal = New-MgServicePrincipal -AppId $currentAppId -Tags {WindowsAzureActiveDirectoryIntegratedApp}
@@ -248,13 +249,13 @@ Function ConfigureApplications
     $newClaim =  CreateOptionalClaim  -name "acct" 
     $optionalClaims.IdToken += ($newClaim)
     Update-MgApplication -ApplicationId $currentAppObjectId -OptionalClaims $optionalClaims
-    Write-Host "Done creating the client application (msal-javascript-spa)"
+    Write-Host "Done creating the client application (ciam-msal-javascript-spa)"
 
     # URL of the AAD application in the Azure portal
     # Future? $clientPortalUrl = "https://portal.azure.com/#@"+$tenantName+"/blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/"+$currentAppId+"/objectId/"+$currentAppObjectId+"/isMSAApp/"
     $clientPortalUrl = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/"+$currentAppId+"/isMSAApp~/false"
 
-    Add-Content -Value "<tr><td>client</td><td>$currentAppId</td><td><a href='$clientPortalUrl'>msal-javascript-spa</a></td></tr>" -Path createdApps.html
+    Add-Content -Value "<tr><td>client</td><td>$currentAppId</td><td><a href='$clientPortalUrl'>ciam-msal-javascript-spa</a></td></tr>" -Path createdApps.html
     # Declare a list to hold RRA items    
     $requiredResourcesAccess = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphRequiredResourceAccess]
 
@@ -274,11 +275,11 @@ Function ConfigureApplications
     
 
     # print the registered app portal URL for any further navigation
-    Write-Host "Successfully registered and configured that app registration for 'msal-javascript-spa' at `n $clientPortalUrl" -ForegroundColor Green 
+    Write-Host "Successfully registered and configured that app registration for 'ciam-msal-javascript-spa' at `n $clientPortalUrl" -ForegroundColor Green 
     
     # Update config file for 'client'
-    # $configFile = $pwd.Path + "\..\App\authConfig.js"
-    $configFile = $(Resolve-Path ($pwd.Path + "\..\App\authConfig.js"))
+    # $configFile = $pwd.Path + "\..\App\public\authConfig.js"
+    $configFile = $(Resolve-Path ($pwd.Path + "\..\App\public\authConfig.js"))
     
     $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Id_Here" = $tenantId };
 

@@ -5,29 +5,40 @@
         "Client": "Vanilla JavaScript SPA",
         "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
         "Endpoint": "AAD v2.0",
-        "Languages": ["javascript"],
+        "Languages": [
+            "javascript"
+        ],
         "Description": "Vanilla JavaScript single-page application using MSAL.js to authenticate users against Customer Identity Access Management (CIAM)",
-        "Products": ["azure-active-directory", "msal-js", "msal-browser"],
+        "Products": [
+            "azure-active-directory",
+            "msal-js",
+            "msal-browser"
+        ],
         "Platform": "JavaScript",
         "Provider": "CIAM"
     },
     "AADApps": [
         {
             "Id": "client",
-            "Name": "msal-javascript-spa",
+            "Name": "ciam-msal-javascript-spa",
             "Kind": "SinglePageApplication",
             "Audience": "AzureADMyOrg",
             "SDK": "MsalJs",
             "HomePage": "http://localhost:3000",
-            "SampleSubPath": "1-Authorization\\5-sign-in-javascript",
+            "SampleSubPath": "1-Authorization\\0-sign-in-vanillajs\\App",
             "ReplyUrls": "http://localhost:3000, http://localhost:3000/redirect",
             "OptionalClaims": {
-                "IdTokenClaims": ["acct"]
+                "IdTokenClaims": [
+                    "acct"
+                ]
             },
             "RequiredResourcesAccess": [
                 {
                     "Resource": "Microsoft Graph",
-                    "DelegatedPermissions": ["openid", "offline_access"]
+                    "DelegatedPermissions": [
+                        "openid",
+                        "offline_access"
+                    ]
                 }
             ],
             "ManualSteps": [
@@ -41,7 +52,7 @@
         {
             "App": "client",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\App\\authConfig.js",
+            "SettingFile": "\\..\\App\\public\\authConfig.js",
             "Mappings": [
                 {
                     "key": "Enter_the_Application_Id_Here",

@@ -7,7 +7,7 @@ let username = "";
 /**
  * A promise handler needs to be registered for handling the
  * response returned from redirect flow. For more information, visit:
- * 
+ * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis
  */
 myMSALObj.handleRedirectPromise()
     .then(handleResponse)
@@ -15,7 +15,7 @@ myMSALObj.handleRedirectPromise()
         console.error(error);
     });
 
-function selectAccount () {
+function selectAccount() {
 
     /**
      * See here for more info on account retrieval: 
@@ -48,7 +48,6 @@ function handleResponse(response) {
         welcomeUser(username);
         updateTable();
     } else {
-        
         selectAccount();
 
         /**
@@ -92,7 +91,7 @@ function signOut() {
     // Choose which account to logout from by passing a username.
     const logoutRequest = {
         account: myMSALObj.getAccountByUsername(username),
-        postLogoutRedirectUri: 'http://localhost:3000/signout', // Simply remove this line if you would like navigate to index page after logout.
+        postLogoutRedirectUri: '/signout', // remove this line if you would like navigate to index page after logout.
 
     };
 

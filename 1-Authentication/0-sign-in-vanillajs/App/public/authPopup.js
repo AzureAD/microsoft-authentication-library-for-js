@@ -37,7 +37,6 @@ function handleResponse(response) {
         welcomeUser(username);
         updateTable();
     } else {
-
         selectAccount();
 
         /**
@@ -85,8 +84,7 @@ function signOut() {
     // Choose which account to logout from by passing a username.
     const logoutRequest = {
         account: myMSALObj.getAccountByUsername(username),
-        mainWindowRedirectUri: 'http://localhost:3000/signout',
-        redirectUri: 'http://localhost:3000/redirect',
+        mainWindowRedirectUri: '/signout'
     };
 
     myMSALObj.logoutPopup(logoutRequest);

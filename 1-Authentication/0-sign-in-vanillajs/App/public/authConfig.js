@@ -3,7 +3,6 @@
  * For a full list of MSAL.js configuration parameters, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md 
  */
-
 const msalConfig = {
     auth: {
         clientId: 'Enter_the_Application_Id_Here', // This is the ONLY mandatory field that you need to supply.
@@ -47,7 +46,7 @@ const msalConfig = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 const loginRequest = {
-  scopes: [],
+    scopes: [],
 };
 
 /**
@@ -62,8 +61,8 @@ const loginRequest = {
 
 // exporting config object for jest
 if (typeof exports !== 'undefined') {
-  module.exports = {
-      msalConfig: msalConfig,
-      loginRequest: loginRequest,
-  };
+    module.exports = {
+        msalConfig: msalConfig,
+        loginRequest: loginRequest,
+    };
 }

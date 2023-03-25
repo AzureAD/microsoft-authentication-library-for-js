@@ -199,10 +199,10 @@ const createClaimsTable = (claims) => {
 
 /**
  * Populates claim, description, and value into an claimsObject
- * @param {String} claim
- * @param {String} value
- * @param {String} description
- * @param {Number} index
+ * @param {string} claim
+ * @param {string} value
+ * @param {string} description
+ * @param {number} index
  * @param {Object} claimsObject
  */
 const populateClaim = (claim, value, description, index, claimsObject) => {
@@ -215,7 +215,7 @@ const populateClaim = (claim, value, description, index, claimsObject) => {
 
 /**
  * Transforms Unix timestamp to date and returns a string value of that date
- * @param {String} date Unix timestamp
+ * @param {string} date Unix timestamp
  * @returns
  */
 const changeDateFormat = (date) => {

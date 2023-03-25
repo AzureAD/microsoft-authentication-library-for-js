@@ -1,7 +1,7 @@
 {
-    "name": "5-sign-in-javascript",
+    "name": "ciam-sign-in-javascript",
     "version": "1.0.0",
-    "description": "Vanilla JavaScript single-page application (SPA) using MSAL.js to authenticate users against Customer Identity Access Management (CIAM)",
+    "description": "Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD Customer Identity Access Management (Azure AD CIAM)",
     "main": "server.js",
     "scripts": {
         "start": "node server.js",

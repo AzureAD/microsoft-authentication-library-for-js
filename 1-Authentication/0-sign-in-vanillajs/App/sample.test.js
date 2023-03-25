@@ -52,7 +52,7 @@ describe('Ensure pages served', () => {
         const res = await request(app)
             .get('/');
 
-        const data = await fs.promises.readFile(path.join(__dirname, './App/index.html'), 'utf8');
+        const data = await fs.promises.readFile(path.join(__dirname, './index.html'), 'utf8');
         expect(res.statusCode).toEqual(200);
         expect(res.text).toEqual(data);
     });
@@ -61,7 +61,7 @@ describe('Ensure pages served', () => {
         const res = await request(app)
             .get('/signout');
 
-        const data = await fs.promises.readFile(path.join(__dirname, './App/signout.html'), 'utf8');
+        const data = await fs.promises.readFile(path.join(__dirname, './signout.html'), 'utf8');
         expect(res.statusCode).toEqual(200);
         expect(res.text).toEqual(data);
     });

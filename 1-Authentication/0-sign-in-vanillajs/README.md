@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: Vanilla JavaScript single-page application using MSAL.js to authenticate users against Customer Identity Access Management (CIAM)
-description: Vanilla JavaScript single-page application using MSAL.js to authenticate users against Customer Identity Access Management (CIAM)
+name: Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD CIAM
+description: This sample demonstrates a Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM)
 languages:
  - javascript
 products:
@@ -17,9 +17,7 @@ extensions:
 - client: Vanilla JavaScript SPA
 ---
 
-# Vanilla JavaScript single-page application using MSAL.js to authenticate users against Customer Identity Access Management (CIAM)
-
-[![Build status](https://identitydivision.visualstudio.com/IDDP/_apis/build/status/AAD%20Samples/.NET%20client%20samples/ASP.NET%20Core%20Web%20App%20tutorial)](https://identitydivision.visualstudio.com/IDDP/_build/latest?definitionId=XXX)
+# Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD CIAM
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -29,13 +27,13 @@ extensions:
 * [Explore the sample](#explore-the-sample)
 * [Troubleshooting](#troubleshooting)
 * [About the code](#about-the-code)
-* [Next Steps](#next-steps)
 * [Contributing](#contributing)
 * [Learn More](#learn-more)
 
 ## Overview
 
-This sample demonstrates a Vanilla JavaScript single-page application (SPA) that lets users authenticate to [Azure Active Directory CIAM](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md) (Azure AD CIAM) using the [Microsoft Authentication Library for JavaScript](https://github.com/AzureAD/microsoft-authentication-library-for-js) (MSAL.js). In doing so, it also illustrates various authentication concepts, such as [ID Tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens), [OIDC scopes](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes), [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso), **account selection**, **silent requests** and more.
+This sample demonstrates a Vanilla JavaScript single-page application (SPA) that lets users authenticate to [Azure Active Directory CIAM](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md) (Azure AD CIAM) using the [Microsoft Authentication Library for JavaScript](https://github.com/AzureAD/microsoft-authentication-library-for-js) (MSAL.js). 
+Here you'll learn about [ID Tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens), [OIDC scopes](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes), [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso), **silent requests** and more.
 
 ## Scenario
 
@@ -49,10 +47,10 @@ This sample demonstrates a Vanilla JavaScript single-page application (SPA) that
 | File/folder           | Description                                                               |
 |-----------------------|---------------------------------------------------------------------------|
 | `AppCreationScripts/` | Contains Powershell scripts to automate app registration.                 |
-| `App/authPopup.js`    | Main authentication logic resides here (using Popup flow).                |
-| `App/authRedirect.js` | Use this instead of `authPopup.js` for authentication with redirect flow. |
-| `App/authConfig.js`   | Contains configuration parameters for the sample.                         |
-| `App/ui.js`           | Contains UI logic.                                                        |
+| `public/authPopup.js`    | Main authentication logic resides here (using Popup flow).                |
+| `public/authRedirect.js` | Use this instead of `authPopup.js` for authentication with redirect flow. |
+| `public/authConfig.js`   | Contains configuration parameters for the sample.                         |
+| `public/ui.js`           | Contains UI logic.                                                        |
 | `server.js`           | Simple Express server for `index.html`.                                   |
 
 ## Prerequisites
@@ -62,9 +60,7 @@ This sample demonstrates a Vanilla JavaScript single-page application (SPA) that
 * [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 * A modern web browser.
 * An **Azure AD CIAM** tenant. For more information, see: [How to get an Azure AD CIAM tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
-* A user account in your **Azure AD CIAM** tenant.
-
->This sample will not work with a **personal Microsoft account**. If you're signed in to the [Azure portal](https://portal.azure.com) with a personal Microsoft account and have not created a user account in your directory before, you will need to create one before proceeding.
+* A user account with permissions to create applications in your **Azure AD CIAM** tenant.
 
 ## Setup the sample
 
@@ -83,7 +79,7 @@ or download and extract the repository *.zip* file.
 ### Step 2: Install project dependencies
 
 ```console
-    cd 1-Authorization\5-sign-in-javascript
+    cd 1-Authorization\0-sign-in-vanillajs\App
     npm install
 ```
 
@@ -101,12 +97,7 @@ There is one project in this sample. To register it, you can:
 
 > :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that your environment is prepared correctly for this step.
   
-1. On Windows, run PowerShell as **Administrator** and navigate to the root of the cloned directory
-1. In PowerShell run:
-
-    ```PowerShell
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-    ```
+1. Ensure that you have PowerShell 7 or later installed.
 
 1. Run the script to create your Azure AD application and configure the code of the sample application accordingly.
 1. For interactive process -in PowerShell, run:
@@ -140,12 +131,12 @@ Please refer to:
 * [Tutorial: Add Google as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/6-Add-Google-identity-provider.md)
 * [Tutorial: Add Facebook as an identity provider](https://github.com/microsoft/entra-previews/blob/PP2/docs/7-Add-Facebook-identity-provider.md)
 
-#### Register the client app (msal-javascript-spa)
+#### Register the client app (ciam-msal-javascript-spa)
 
 1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-javascript-spa`.
+    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-javascript-spa`.
     1. Under **Supported account types**, select **Accounts in this organizational directory only**
     1. Select **Register** to create the application.
 1. In the **Overview** blade, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
@@ -164,29 +155,20 @@ Please refer to:
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
-##### Configure Optional Claims
-
-1. Still on the same app registration, select the **Token configuration** blade to the left.
-1. Select **Add optional claim**:
-    1. Select **optional claim type**, then choose **ID**.
-    1. Select the optional claim **acct**.
-    > Provides user's account status in tenant. If the user is a **member** of the tenant, the value is *0*. If they're a **guest**, the value is *1*.
-    1. Select **Add** to save your changes.
-
-##### Configure the client app (msal-javascript-spa) to use your app registration
+##### Configure the client app (ciam-msal-javascript-spa) to use your app registration
 
 Open the project in your IDE (like Visual Studio or Visual Studio Code) to configure the code.
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `App\authConfig.js` file.
-1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `msal-javascript-spa` app copied from the Azure portal.
+1. Open the `App\public\authConfig.js` file.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-javascript-spa` app copied from the Azure portal.
 1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
 
 ### Step 4: Running the sample
 
 ```console
-    cd 1-Authorization\5-sign-in-javascript
+    cd 1-Authorization\0-sign-in-vanillajs\App
     npm start
 ```
 
@@ -199,8 +181,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 ## We'd love your feedback!
 
-Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR73pcsbpbxNJuZCMKN0lURpUNDVHTkg2VVhWMTNYUTZEM05YS1hSN01EOSQlQCN0PWcu).
-
+Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_ivMYEeUKlEq8CxnMPgdNZUNDlUTTk2NVNYQkZSSjdaTk5KT1o4V1VVNS4u).
 
 ## Troubleshooting
 
@@ -280,11 +261,44 @@ The Application redirects the user to the **Microsoft identity platform** logout
 
 When you receive an [ID token](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) directly from the IdP on a secure channel (e.g. HTTPS), such is the case with SPAs, there’s no need to validate it. If you were to do it, you would validate it by asking the same server that gave you the ID token to give you the keys needed to validate it, which renders it pointless, as if one is compromised so is the other.
 
-## Next Steps
+### Deploying SPA to Azure Storage
 
-Learn how to:
+There is one single-page application in this sample. To deploy it to **Azure Storage**, you'll need to:
 
-> * Enter next steps (samples, docs) for your platform here
+- create an Azure Storage blob and obtain website coordinates
+- build your project and upload it to Azure Storage blob
+- update config files with website coordinates
+
+> :information_source: If you would like to use **VS Code Azure Tools** extension for deployment, [watch the tutorial](https://docs.microsoft.com/azure/developer/javascript/tutorial-vscode-static-website-node-01) offered by Microsoft Docs.
+
+#### Build and upload (ciam-msal-javascript-spa) to an Azure Storage blob
+
+> :information_source: If you don't have an account already, see: [How to create a storage account](https://docs.microsoft.com/azure/storage/common/storage-account-create).
+
+1. Sign in to the [Azure portal](https://portal.azure.com).
+1. Locate your storage account and display the account overview.
+1. Select **Static website** to display the configuration page for static websites.
+1. Select **Enabled** to enable static website hosting for the storage account.
+1. In the **Index document name** field, specify a default index page (For example: `index.html`).
+1. The default **index page** is displayed when a user navigates to the root of your static website.
+1. Select **Save**. The Azure portal now displays your static website endpoint. Make a note of the **Primary endpoint field**.
+1. In the `ciam-msal-javascript-spa` project source code, update your configuration file with the **Primary endpoint field** as your new **Redirect URI** (you will register this URI later).
+1. Next, select **Storage Explorer**.
+1. Expand the **BLOB CONTAINERS** node, and then select the `$web` container.
+1. Choose the **Upload** button to upload files.
+1. If you intend for the browser to display the contents of file, make sure that the content type of that file is set to `text/html`.
+1. In the pane that appears beside the **account overview page** of your storage account, select **Static Website**. The URL of your site appears in the **Primary endpoint field**. In the next section, you will register this URI.
+
+#### Update the CIAM app registration for ciam-msal-javascript-spa
+
+1. Navigate back to to the [Azure portal](https://portal.azure.com).
+1. In the left-hand navigation pane, select the **Azure Active Directory** service, and then select **App registrations**.
+1. In the resulting screen, select `ciam-msal-javascript-spa`.
+1. In the app's registration screen, select **Authentication** in the menu.
+   1. In the **Redirect URIs** section, update the reply URLs to match the site URL of your Azure deployment. For example:
+        1. `https://ciam-msal-javascript-spa.azurewebsites.net/`
+        1. `https://ciam-msal-javascript-spa.azurewebsites.net/redirect`
+</details>
 
 ## Contributing
 
