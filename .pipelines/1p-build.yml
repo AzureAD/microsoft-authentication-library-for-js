@@ -1,3 +1,8 @@
+trigger: none # Disable push triggers
+
+pr:
+- dev
+
 jobs:
   - job: Build_1P
     displayName: 'Build with 1P library'
@@ -13,10 +18,10 @@ jobs:
       - script: |
           npm run submodule:init
         displayName: Initialize submodule
-
+      
       - script: |
           cd ./microsoft-authentication-library-for-js
-          git checkout $(Build.SourceBranchName)
+          git checkout $(System.PullRequest.SourceBranch)
           git pull
         displayName: 'Pull latest changes from 3P feature branch'
 
