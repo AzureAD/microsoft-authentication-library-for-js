@@ -163,7 +163,7 @@ export abstract class ClientApplication {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
@@ -201,7 +201,7 @@ export abstract class ClientApplication {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
@@ -276,7 +276,7 @@ export abstract class ClientApplication {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
