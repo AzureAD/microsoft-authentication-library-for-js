@@ -158,6 +158,9 @@ export class BrowserCacheManager extends CacheManager {
                                     const newKey = this.updateCredentialCacheKey(key, idTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.ID_TOKEN);
                                     return;
+                                } else {
+                                    this.logger.trace("BrowserCacheManager:createKeyMaps - key found matching idToken schema with value containing idToken credentialType field but value failed IdTokenEntity validation, skipping.");
+                                    this.logger.tracePii(`BrowserCacheManager:createKeyMaps - failed idToken validation on key: ${key}`);
                                 }
                                 break;
                             case CredentialType.ACCESS_TOKEN:
@@ -169,6 +172,9 @@ export class BrowserCacheManager extends CacheManager {
                                     const newKey = this.updateCredentialCacheKey(key, accessTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.ACCESS_TOKEN);
                                     return;
+                                } else {
+                                    this.logger.trace("BrowserCacheManager:createKeyMaps - key found matching accessToken schema with value containing accessToken credentialType field but value failed AccessTokenEntity validation, skipping.");
+                                    this.logger.tracePii(`BrowserCacheManager:createKeyMaps - failed accessToken validation on key: ${key}`);
                                 }
                                 break;
                             case CredentialType.REFRESH_TOKEN:
@@ -179,6 +185,9 @@ export class BrowserCacheManager extends CacheManager {
                                     const newKey = this.updateCredentialCacheKey(key, refreshTokenEntity);
                                     this.addTokenKey(newKey, CredentialType.REFRESH_TOKEN);
                                     return;
+                                } else {
+                                    this.logger.trace("BrowserCacheManager:createKeyMaps - key found matching refreshToken schema with value containing refreshToken credentialType field but value failed RefreshTokenEntity validation, skipping.");
+                                    this.logger.tracePii(`BrowserCacheManager:createKeyMaps - failed refreshToken validation on key: ${key}`);
                                 }
                                 break;
                             default:
@@ -433,24 +442,33 @@ export class BrowserCacheManager extends CacheManager {
 
         switch (type) {
             case CredentialType.ID_TOKEN:
+                this.logger.infoPii(`BrowserCacheManager: removeTokenKey - attempting to remove idToken with key: ${key} from map`);
                 const idRemoval = tokenKeys.idToken.indexOf(key);
                 if (idRemoval > -1) {
                     this.logger.info("BrowserCacheManager: removeTokenKey - idToken removed from map");
                     tokenKeys.idToken.splice(idRemoval, 1);
+                } else {
+                    this.logger.info("BrowserCacheManager: removeTokenKey - idToken does not exist in map. Either it was previously removed or it was never added.");
                 }
                 break;
             case CredentialType.ACCESS_TOKEN:
+                this.logger.infoPii(`BrowserCacheManager: removeTokenKey - attempting to remove accessToken with key: ${key} from map`);
                 const accessRemoval = tokenKeys.accessToken.indexOf(key);
                 if (accessRemoval > -1) {
                     this.logger.info("BrowserCacheManager: removeTokenKey - accessToken removed from map");
                     tokenKeys.idToken.splice(accessRemoval, 1);
+                } else {
+                    this.logger.info("BrowserCacheManager: removeTokenKey - accessToken does not exist in map. Either it was previously removed or it was never added.");
                 }
                 break;
             case CredentialType.REFRESH_TOKEN:
+                this.logger.infoPii(`BrowserCacheManager: removeTokenKey - attempting to remove refreshToken with key: ${key} from map`);
                 const refreshRemoval = tokenKeys.refreshToken.indexOf(key);
                 if (refreshRemoval > -1) {
                     this.logger.info("BrowserCacheManager: removeTokenKey - refreshToken removed from map");
                     tokenKeys.idToken.splice(refreshRemoval, 1);
+                } else {
+                    this.logger.info("BrowserCacheManager: removeTokenKey - refreshToken does not exist in map. Either it was previously removed or it was never added.");
                 }
                 break;
             default:
