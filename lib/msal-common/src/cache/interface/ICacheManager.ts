@@ -3,12 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CredentialEntity } from "../entities/CredentialEntity";
-import {
-    CredentialCache,
-    AccountFilter,
-    CredentialFilter
-} from "../utils/CacheTypes";
+import { AccountFilter } from "../utils/CacheTypes";
 import { CacheRecord } from "../entities/CacheRecord";
 import { AccountEntity } from "../entities/AccountEntity";
 import { AccountInfo } from "../../account/AccountInfo";
@@ -173,17 +168,6 @@ export interface ICacheManager {
     getAccountInfoFilteredBy(filter: AccountFilter): AccountInfo | null;
 
     /**
-     * retrieve credentials matching all provided filters; if no filter is set, get all credentials
-     * @param homeAccountId
-     * @param environment
-     * @param credentialType
-     * @param clientId
-     * @param realm
-     * @param target
-     */
-    getCredentialsFilteredBy(filter: CredentialFilter): CredentialCache;
-
-    /**
      * Removes all accounts and related tokens from cache.
      */
     removeAllAccounts(): Promise<void>;
@@ -201,8 +185,17 @@ export interface ICacheManager {
     removeAccountContext(account: AccountEntity): Promise<void>;
 
     /**
-     * returns a boolean if the given credential is removed
-     * @param credential
+     * @param key
      */
-    removeCredential(credential: CredentialEntity): Promise<boolean>;
+    removeIdToken(key: string): void;
+
+    /**
+     * @param key
+     */
+    removeAccessToken(key:string): Promise<void>;
+
+    /**
+     * @param key 
+     */
+    removeRefreshToken(key: string): void;
 }

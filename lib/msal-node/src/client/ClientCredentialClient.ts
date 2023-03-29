@@ -96,7 +96,6 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Reads access token from the cache
-     * TODO: Move this call to cacheManager instead
      */
     private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
@@ -105,10 +104,10 @@ export class ClientCredentialClient extends BaseClient {
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
-            target: this.scopeSet.printScopesLowerCase()
+            target: ScopeSet.createSearchScopes(this.scopeSet.asArray())
         };
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
+
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
