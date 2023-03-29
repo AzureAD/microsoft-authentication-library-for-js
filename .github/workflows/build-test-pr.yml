@@ -114,6 +114,10 @@ jobs:
         path: ~/.npm/_logs/**/*
         retention-days: 2
 
+    - name: Link packages
+      working-directory: lib/${{ matrix.library }}
+      run: npm run link:localDeps
+
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
       run: npm run build:all
