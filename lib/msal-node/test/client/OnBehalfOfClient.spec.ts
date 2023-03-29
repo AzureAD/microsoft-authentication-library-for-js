@@ -5,34 +5,34 @@
 
 import sinon from "sinon";
 import {
+    AADServerParamKeys,
+    AccessTokenEntity,
+    AccountEntity,
+    AuthenticationScheme,
+    Authority,
+    AuthToken,
+    BaseClient,
+    CacheManager,
+    ClientConfiguration,
+    CommonOnBehalfOfRequest,
+    Constants,
+    CredentialType,
+    IdTokenEntity, ScopeSet,
+    ThrottlingConstants,
+    TimeUtils
+} from "@azure/msal-common";
+import { AuthenticationResult, OnBehalfOfClient } from "../../src";
+import {
+    AUTHENTICATION_RESULT,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS,
-    ID_TOKEN_CLAIMS,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_TOKENS,
-    AUTHENTICATION_RESULT,
-} from "@azure/msal-common/test/test_kit/StringConstants";
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { ClientTestUtils } from "@azure/msal-common/test/client/ClientTestUtils";
-import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
-import { CommonOnBehalfOfRequest } from "@azure/msal-common/src/request/CommonOnBehalfOfRequest";
-import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
-import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
-import { Authority } from "@azure/msal-common/src/authority/Authority";
-import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
-import { AuthenticationResult, IdTokenEntity } from "@azure/msal-common/src";
-import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity";
-import { AccountEntity } from "@azure/msal-common/src/cache/entities/AccountEntity";
-import {
-    AuthenticationScheme,
-    CredentialType,
-    AADServerParamKeys,
-    Constants,
-    ThrottlingConstants,
-} from "@azure/msal-common/src/utils/Constants";
-import { CacheManager } from "@azure/msal-common/src/cache/CacheManager";
-import { ScopeSet } from "@azure/msal-common/src/request/ScopeSet";
+    TEST_URIS
+} from "../test_kit/StringConstants";
+import { ID_TOKEN_CLAIMS } from "../utils/TestConstants";
+import { ClientTestUtils } from "./ClientTestUtils";
+
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
@@ -193,7 +193,7 @@ describe("OnBehalfOf unit tests", () => {
                 },
             };
 
-            client.acquireToken(oboRequest).catch((error) => {
+            client.acquireToken(oboRequest).catch(() => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -258,7 +258,7 @@ describe("OnBehalfOf unit tests", () => {
             });
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
-            expect(mockIdTokenCached.calledWith(oboRequest)).toBe(true);
+            expect(mockIdTokenCached.calledWith('home_account_id')).toBe(true);
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);

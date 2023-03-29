@@ -3,21 +3,25 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeResponse, ServerDeviceCodeResponse } from "@azure/msal-common/src/response/DeviceCodeResponse";
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { CommonDeviceCodeRequest } from "@azure/msal-common/src/request/CommonDeviceCodeRequest";
-import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
-import { RequestParameterBuilder } from "@azure/msal-common/src/request/RequestParameterBuilder";
-import { Constants, GrantType } from "@azure/msal-common/src/utils/Constants";
-import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
-import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
-import { ServerAuthorizationTokenResponse } from "@azure/msal-common/src/response/ServerAuthorizationTokenResponse";
-import { ResponseHandler } from "@azure/msal-common/src/response/ResponseHandler";
-import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
-import { StringUtils } from "@azure/msal-common/src/utils/StringUtils";
-import { RequestThumbprint } from "@azure/msal-common/src/network/RequestThumbprint";
-import { ServerError } from "@azure/msal-common/src/error/ServerError";
-import { UrlString } from "@azure/msal-common/src/url/UrlString";
+import {
+    AuthenticationResult,
+    BaseClient,
+    ClientAuthError,
+    ClientConfiguration,
+    CommonDeviceCodeRequest,
+    Constants,
+    DeviceCodeResponse,
+    GrantType,
+    RequestParameterBuilder,
+    RequestThumbprint,
+    ResponseHandler,
+    ServerAuthorizationTokenResponse,
+    ServerDeviceCodeResponse,
+    ServerError,
+    StringUtils,
+    TimeUtils,
+    UrlString
+} from "@azure/msal-common";
 
 /**
  * OAuth2.0 Device code client

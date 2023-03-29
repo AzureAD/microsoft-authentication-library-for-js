@@ -3,25 +3,32 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { Authority } from "@azure/msal-common/src/authority/Authority";
-import { RequestParameterBuilder } from "@azure/msal-common/src/request/RequestParameterBuilder";
-import { ScopeSet } from "@azure/msal-common/src/request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, AuthenticationScheme } from "@azure/msal-common/src/utils/Constants";
-import { ResponseHandler } from "@azure/msal-common/src/response/ResponseHandler";
-import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
-import { CommonOnBehalfOfRequest } from "@azure/msal-common/src/request/CommonOnBehalfOfRequest";
-import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
-import { CredentialFilter, CredentialCache } from "@azure/msal-common/src/cache/utils/CacheTypes";
-import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity";
-import { IdTokenEntity } from "@azure/msal-common/src/cache/entities/IdTokenEntity";
-import { AccountEntity } from "@azure/msal-common/src/cache/entities/AccountEntity";
-import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
-import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
-import { RequestThumbprint } from "@azure/msal-common/src/network/RequestThumbprint";
-import { AccountInfo } from "@azure/msal-common/src/account/AccountInfo";
-import { UrlString } from "@azure/msal-common/src/url/UrlString";
+import {
+    AADServerParamKeys,
+    AccessTokenEntity,
+    AccountEntity,
+    AccountInfo,
+    AuthenticationResult,
+    AuthenticationScheme,
+    Authority,
+    AuthToken,
+    BaseClient,
+    CacheOutcome,
+    ClientAuthError,
+    ClientConfiguration,
+    CommonOnBehalfOfRequest,
+    Constants,
+    CredentialCache,
+    CredentialFilter,
+    CredentialType, GrantType,
+    IdTokenEntity,
+    RequestParameterBuilder,
+    RequestThumbprint,
+    ResponseHandler,
+    ScopeSet,
+    TimeUtils,
+    UrlString
+} from "@azure/msal-common";
 
 /**
  * On-Behalf-Of client
@@ -82,7 +89,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         // fetch the idToken from cache
-        const cachedIdToken = this.readIdTokenFromCacheForOBO(request, cachedAccessToken.homeAccountId);
+        const cachedIdToken = this.readIdTokenFromCacheForOBO(cachedAccessToken.homeAccountId);
         let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
@@ -122,9 +129,9 @@ export class OnBehalfOfClient extends BaseClient {
     /**
      * read idtoken from cache, this is a specific implementation for OBO as the requirements differ from a generic lookup in the cacheManager
      * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
-     * @param request
+     * @param atHomeAccountId {string}
      */
-    private readIdTokenFromCacheForOBO(request: CommonOnBehalfOfRequest, atHomeAccountId: string): IdTokenEntity | null {
+    private readIdTokenFromCacheForOBO(atHomeAccountId: string): IdTokenEntity | null {
 
         const idTokenFilter: CredentialFilter = {
             homeAccountId: atHomeAccountId,

@@ -1,6 +1,20 @@
 import sinon from "sinon";
 import {
-    AUTHENTICATION_RESULT, AUTHORIZATION_PENDING_RESPONSE,
+    AADServerParamKeys,
+    AuthError,
+    Authority,
+    AuthToken,
+    BaseClient,
+    ClientAuthError,
+    ClientConfiguration,
+    CommonDeviceCodeRequest,
+    Constants,
+    GrantType,
+    ThrottlingConstants
+} from "@azure/msal-common";
+import {
+    AUTHENTICATION_RESULT,
+    AUTHORIZATION_PENDING_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DEVICE_CODE_EXPIRED_RESPONSE,
     DEVICE_CODE_RESPONSE,
@@ -11,17 +25,9 @@ import {
     CORS_SIMPLE_REQUEST_HEADERS,
     RANDOM_TEST_GUID,
     SERVER_UNEXPECTED_ERROR
-} from "@azure/msal-common/test/test_kit/StringConstants";
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "@azure/msal-common/src/utils/Constants";
-import { ClientTestUtils } from "@azure/msal-common/test/client/ClientTestUtils";
-import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
-import { Authority } from "@azure/msal-common/src/authority/Authority";
-import { AuthToken } from "@azure/msal-common/src/account/AuthToken";
-import { DeviceCodeClient } from "../../src/client/DeviceCodeClient";
-import { CommonDeviceCodeRequest } from "@azure/msal-common/src/request/CommonDeviceCodeRequest";
-import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
-import { AuthError } from "@azure/msal-common/src";
+} from "../test_kit/StringConstants";
+import { ClientTestUtils } from "./ClientTestUtils";
+import { DeviceCodeClient } from "../../src";
 
 describe("DeviceCodeClient unit tests", () => {
     let config: ClientConfiguration;
@@ -99,6 +105,7 @@ describe("DeviceCodeClient unit tests", () => {
             jest.setTimeout(6000);
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            // @ts-ignore
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
@@ -196,7 +203,7 @@ describe("DeviceCodeClient unit tests", () => {
             };
 
             const client = new DeviceCodeClient(config);
-            client.acquireToken(deviceCodeRequest).catch((error) => {
+            client.acquireToken(deviceCodeRequest).catch(() => {
                 // Catch errors thrown after the function call this test is testing
             });
         });

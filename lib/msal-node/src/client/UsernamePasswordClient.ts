@@ -3,21 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
-import { CommonUsernamePasswordRequest } from "@azure/msal-common/src/request/CommonUsernamePasswordRequest";
-import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
-import { ResponseHandler } from "@azure/msal-common/src/response/ResponseHandler";
-import { Authority } from "@azure/msal-common/src/authority/Authority";
-import { NetworkResponse } from "@azure/msal-common/src/network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "@azure/msal-common/src/response/ServerAuthorizationTokenResponse";
-import { RequestParameterBuilder } from "@azure/msal-common/src/request/RequestParameterBuilder";
-import { GrantType, HeaderNames } from "@azure/msal-common/src/utils/Constants";
-import { StringUtils } from "@azure/msal-common/src/utils/StringUtils";
-import { RequestThumbprint } from "@azure/msal-common/src/network/RequestThumbprint";
-import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
-import { CcsCredentialType } from "@azure/msal-common/src/account/CcsCredential";
-import { UrlString } from "@azure/msal-common/src/url/UrlString";
+import {
+    AuthenticationResult,
+    Authority,
+    BaseClient,
+    CcsCredentialType,
+    ClientConfiguration,
+    CommonUsernamePasswordRequest,
+    GrantType,
+    HeaderNames,
+    NetworkResponse,
+    RequestParameterBuilder,
+    RequestThumbprint,
+    ResponseHandler,
+    ServerAuthorizationTokenResponse,
+    StringUtils,
+    TimeUtils,
+    UrlString
+} from "@azure/msal-common";
 
 /**
  * Oauth2.0 Password grant client

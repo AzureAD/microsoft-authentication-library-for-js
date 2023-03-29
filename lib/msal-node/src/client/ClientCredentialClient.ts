@@ -3,24 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration } from "@azure/msal-common/src/config/ClientConfiguration";
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { Authority } from "@azure/msal-common/src/authority/Authority";
-import { RequestParameterBuilder } from "@azure/msal-common/src/request/RequestParameterBuilder";
-import { ScopeSet } from "@azure/msal-common/src/request/ScopeSet";
-import { GrantType , CredentialType, CacheOutcome, Constants, AuthenticationScheme } from "@azure/msal-common/src/utils/Constants";
-import { ResponseHandler } from "@azure/msal-common/src/response/ResponseHandler";
-import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
-import { CommonClientCredentialRequest } from "@azure/msal-common/src/request/CommonClientCredentialRequest";
-import { CredentialFilter, CredentialCache } from "@azure/msal-common/src/cache/utils/CacheTypes";
-import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity";
-import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
-import { StringUtils } from "@azure/msal-common/src/utils/StringUtils";
-import { RequestThumbprint } from "@azure/msal-common/src/network/RequestThumbprint";
-import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
-import { ServerAuthorizationTokenResponse } from "@azure/msal-common/src/response/ServerAuthorizationTokenResponse";
-import { IAppTokenProvider } from "@azure/msal-common/src/config/AppTokenProvider";
-import { UrlString } from "@azure/msal-common/src/url/UrlString";
+import {
+    AccessTokenEntity,
+    AuthenticationResult, AuthenticationScheme, Authority, BaseClient, CacheOutcome, ClientAuthError,
+    ClientConfiguration,
+    CommonClientCredentialRequest, Constants, CredentialCache, CredentialFilter, CredentialType, GrantType,
+    IAppTokenProvider, RequestParameterBuilder, RequestThumbprint, ResponseHandler,
+    ScopeSet, ServerAuthorizationTokenResponse, StringUtils, TimeUtils, UrlString
+} from "@azure/msal-common";
 
 /**
  * OAuth2.0 client credential grant
@@ -138,7 +128,7 @@ export class ClientCredentialClient extends BaseClient {
                 access_token: appTokenProviderResult.accessToken,
                 expires_in: appTokenProviderResult.expiresInSeconds,
                 refresh_in: appTokenProviderResult.refreshInSeconds,
-                token_type : AuthenticationScheme.BEARER
+                token_type: AuthenticationScheme.BEARER
             };
         } else {
             const queryParametersString = this.createTokenQueryParameters(request);

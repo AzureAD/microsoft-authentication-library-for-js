@@ -1,30 +1,39 @@
 import sinon from "sinon";
 import {
-    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-    TEST_CONFIG,
-    TEST_TOKENS,
-    CORS_SIMPLE_REQUEST_HEADERS,
-    DSTS_OPENID_CONFIG_RESPONSE,
-    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    AADServerParamKeys,
+    AccessTokenEntity,
+    AppTokenProviderResult,
+    AuthenticationResult,
+    AuthenticationScheme,
+    Authority, AuthToken,
+    BaseClient,
+    CacheManager,
+    ClientAuthError,
+    ClientConfiguration,
+    CommonClientCredentialRequest,
+    CommonUsernamePasswordRequest,
+    Constants,
+    CredentialCache,
+    GrantType,
+    IAppTokenProvider, InteractionRequiredAuthError,
+    ThrottlingConstants,
+    TimeUtils
+} from "@azure/msal-common";
+import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
+import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
-    ID_TOKEN_CLAIMS
-} from "@azure/msal-common/test/test_kit/StringConstants";
-import { BaseClient } from "@azure/msal-common/src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "@azure/msal-common/src/utils/Constants";
-import { ClientTestUtils, mockCrypto } from "@azure/msal-common/test/client/ClientTestUtils";
-import { Authority } from "@azure/msal-common/src/authority/Authority";
-import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
-import { CommonClientCredentialRequest } from "@azure/msal-common/src/request/CommonClientCredentialRequest";
-import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
-import { CommonUsernamePasswordRequest } from "@azure/msal-common/src/request/CommonUsernamePasswordRequest";
-import { AccessTokenEntity } from "@azure/msal-common/src/cache/entities/AccessTokenEntity"
-import { TimeUtils } from "@azure/msal-common/src/utils/TimeUtils";
-import { CredentialCache } from "@azure/msal-common/src/cache/utils/CacheTypes";
-import { CacheManager } from "@azure/msal-common/src/cache/CacheManager";
-import { ClientAuthError } from "@azure/msal-common/src/error/ClientAuthError";
-import { AuthenticationResult } from "@azure/msal-common/src/response/AuthenticationResult";
-import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider, InteractionRequiredAuthError } from "@azure/msal-common/src";
+    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    CORS_SIMPLE_REQUEST_HEADERS,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    DSTS_OPENID_CONFIG_RESPONSE,
+    ID_TOKEN_CLAIMS,
+    TEST_CONFIG,
+    TEST_TOKENS
+} from "../test_kit/StringConstants";
+import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
+
+
 
 describe("ClientCredentialClient unit tests", () => {
     let config: ClientConfiguration;
@@ -106,7 +115,7 @@ describe("ClientCredentialClient unit tests", () => {
         };
 
         const client = new ClientCredentialClient(config);
-        client.acquireToken(clientCredentialRequest).catch((error) => {
+        client.acquireToken(clientCredentialRequest).catch(() => {
             // Catch errors thrown after the function call this test is testing
         });
     });
@@ -414,6 +423,7 @@ describe("ClientCredentialClient unit tests", () => {
         // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
         let stubCalled = false;
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        // @ts-ignore
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
             const headerNames = Object.keys(headers);
             headerNames.forEach((name) => {
