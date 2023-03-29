@@ -18,7 +18,7 @@
             "Kind": "WebApi",
             "Audience": "AzureADMyOrg",
             "SDK": "MicrosoftIdentityWeb",
-            "SampleSubPath": "2-Authorization\\0-call-api-vanillajs\\API",
+            "SampleSubPath": "2-Authorization\\0-call-api-vanillajs\\API\\TodoListAPI",
             "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
             "AppRoles": [
                 {

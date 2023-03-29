@@ -3,7 +3,6 @@
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
 let username = '';
-let todolistData = [];
 
 /**
  * A promise handler needs to be registered for handling the
@@ -57,88 +56,6 @@ function handleResponse(response) {
         updateTable();
     } else {
         selectAccount();
-
-        /**
-         * If you already have a session that exists with the authentication server, you can use the ssoSilent() API
-         * to make request for tokens without interaction, by providing a "login_hint" property. To try this, comment the
-         * line above and uncomment the section below.
-         */
-
-        // myMSALObj.ssoSilent(silentRequest).
-        //     then(() => {
-        //         const currentAccounts = myMSALObj.getAllAccounts();
-        //         username = currentAccounts[0].username;
-        //         welcomeUser(username);
-        //         updateTable();
-        //     }).catch(error => {
-        //         console.error("Silent Error: " + error);
-        //         if (error instanceof msal.InteractionRequiredAuthError) {
-        //             signIn();
-        //         }
-        //     });
-    }
-}
-
-function getTokenRedirect(request) {
-    /**
-     * See here for more info on account retrieval:
-     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
-     */
-    request.account = myMSALObj.getAccountByUsername(username);
-
-    return myMSALObj.acquireTokenSilent(request).catch((error) => {
-        console.error(error);
-        console.warn('silent token acquisition fails. acquiring token using popup');
-        if (error instanceof msal.InteractionRequiredAuthError) {
-            // fallback to interaction when silent call fails
-            return myMSALObj.acquireTokenRedirect(request);
-        } else {
-            console.error(error);
-        }
-    });
-}
-
-async function passTokenToApi() {
-    try {
-        const tokenRequest = {
-            scopes: [...protectedResources.apiTodoList.scopes.read],
-        };
-        const tokenResponse = await getTokenRedirect(tokenRequest);
-        if (tokenResponse && tokenResponse.accessToken) {
-            const apiResponse = await callApi(
-                'GET',
-                protectedResources.apiTodoList.endpoint,
-                tokenResponse.accessToken
-            );
-            const data = await apiResponse.json();
-            if (data.errors) throw data;
-            if (data) {
-                todolistData = data;
-                showTodoListItems(data);
-            }
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function handleTodoList(todolist, method, endpoint) {
-    try {
-        let tokenRequest = {
-            scopes: [...protectedResources.apiTodoList.scopes.write],
-        };
-        const tokenResponse = await getTokenRedirect(tokenRequest);
-        if (tokenResponse && tokenResponse.accessToken) {
-            const apiResponse = await callApi(method, endpoint, tokenResponse.accessToken, todolist);
-            if ((method === 'POST' && apiResponse.status === 200) || apiResponse.status === 201) {
-                const data = await apiResponse.json();
-                AddTaskToList(data);
-            } else if (method === 'DELETE' && apiResponse.status === 204) {
-                RemoveTaskFromList(todolist);
-            }
-        }
-    } catch (error) {
-        console.error(error);
     }
 }
 
@@ -149,6 +66,27 @@ function signIn() {
      */
 
     myMSALObj.loginRedirect(loginRequest);
+}
+
+function getTokenRedirect() {
+    /**
+     * See here for more info on account retrieval:
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
+     */
+    const request = {
+        scopes: [...protectedResources.apiTodoList.scopes.read],
+        account:  myMSALObj.getAccountByUsername(username),
+    };
+    return myMSALObj.acquireTokenSilent(request).catch((error) => {
+        console.error(error);
+        console.warn('silent token acquisition fails. acquiring token using popup');
+        if (error instanceof msal.InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            return myMSALObj.acquireTokenRedirect(request);
+        } else {
+            console.error(error);
+        }
+    });
 }
 
 function signOut() {

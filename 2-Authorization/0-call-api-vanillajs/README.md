@@ -239,7 +239,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 ### Step 4: Running the sample
 
 ```console
-    cd 2-Authorization\0-call-api-vanillajs\API
+    cd 2-Authorization\0-call-api-vanillajs\API\TodoListAPI
     dotnet run
 ```
 
@@ -254,12 +254,13 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Select the **Sign In** button on the top right corner.
 1. Select the **TodoList** button on the navigation bar. This will make a call to the TodoList web API.
 
+![Screenshot](./ReadmeFiles/screenshot.png)
+
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
 
 ## We'd love your feedback!
 
 Were we successful in addressing your learning objective? Consider taking a moment to [share your experience with us](https://forms.office.com/Pages/ResponsePage.aspx?id=v4j5cvGGr0GRqy180BHbR_ivMYEeUKlEq8CxnMPgdNZUNDlUTTk2NVNYQkZSSjdaTk5KT1o4V1VVNS4u).
-
 
 ## Troubleshooting
 

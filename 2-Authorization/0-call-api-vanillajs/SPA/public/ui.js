@@ -19,7 +19,7 @@ todoForm.addEventListener('submit', (e) => {
         description: textInput.value,
         status: false,
     };
-    createTodo(task);
+    handleTodoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
     todoForm.reset();
 });
 
@@ -67,7 +67,7 @@ function AddTaskToTodoList(task) {
     button.innerHTML = 'Delete';
     button.classList.add('btn', 'btn-danger');
     button.addEventListener('click', () => {
-        deleteTodo(task);
+        handleTodoListActions(task, 'DELETE', protectedResources.apiTodoList.endpoint + `/${task.id}`);
     });
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
     li.innerHTML = task.description;
