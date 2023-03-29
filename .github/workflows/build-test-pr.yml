@@ -91,14 +91,14 @@ jobs:
       with:
         node-version: 16
 
-    - name: Restore node_modules
-      uses: actions/cache@v3
-      id: cache
-      with:
-        path: |
-          node_modules
-          lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+    # - name: Restore node_modules
+    #   uses: actions/cache@v3
+    #   id: cache
+    #   with:
+    #     path: |
+    #       node_modules
+    #       lib/*/node_modules
+    #     key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
 
     - name: Clean Install
       if: steps.cache.outputs.cache-hit != 'true'
@@ -113,10 +113,6 @@ jobs:
         name: npm_logs_${{ matrix.library }}
         path: ~/.npm/_logs/**/*
         retention-days: 2
-
-    - name: Link packages
-      working-directory: lib/${{ matrix.library }}
-      run: npm run link:localDeps
 
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
