@@ -116,7 +116,7 @@ MSAL can be configured to acquire tokens from any OIDC-compliant IdP. See [initi
 ## Remarks
 
 - You can obtain the authority URL required for your app via the **Endpoints** panel on the Azure portal [App Registration](https://aka.ms/appregistrations) experience.
-- You can improve MSAL's performance during token acquisition by providing authority information out-of-band. See [Performance](../../msal-browser/docs/performance.md) for how to do so.
+- You can improve MSAL's performance during token acquisition by providing authority information out-of-band. See [Performance](./performance.md) for how to do so.
 - When working with national clouds, consider using the [instance-aware](../../msal-browser/docs/instance-aware.md) flow, which indicates the particular instance the tokens are obtained from and Microsoft Graph hosts that they can be used with.
 
 ## More information

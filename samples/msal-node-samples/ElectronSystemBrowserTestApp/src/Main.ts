@@ -174,30 +174,11 @@ export default class Main {
             scopes: ["User.Read"],
         };
         const tokenResponse = await Main.authProvider.getToken(tokenRequest);
-        const account = Main.authProvider.currentAccount();
-        await Main.loadBaseUI();
-        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
         const graphResponse = await Main.fetchManager.callEndpointWithToken(
             `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_ME_ENDPT}`,
             tokenResponse.accessToken
         );
         Main.publish(IpcMessages.SET_PROFILE, graphResponse);
-    }
-
-    private static async getMail(): Promise<void> {
-        const tokenRequest = {
-            account: null as AccountInfo,
-            scopes: ["Mail.Read"],
-        };
-        const tokenResponse = await Main.authProvider.getToken(tokenRequest);
-        const account = Main.authProvider.currentAccount();
-        await Main.loadBaseUI();
-        Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
-        const graphResponse = await Main.fetchManager.callEndpointWithToken(
-            `${Main.authConfig.resourceApi.endpoint}${GRAPH_CONFIG.GRAPH_MAIL_ENDPT}`,
-            tokenResponse.accessToken
-        );    
-        Main.publish(IpcMessages.SET_MAIL, graphResponse);
     }
 
     private static async logout(): Promise<void> {
@@ -206,11 +187,18 @@ export default class Main {
         Main.mainWindow.focus();
     }
 
+    private static async getAccount(): Promise<void> {
+        const account = Main.authProvider.currentAccount();
+        if (account) {
+            Main.publish(IpcMessages.SHOW_WELCOME_MESSAGE, account);
+        }
+    }
+
     // Router that maps callbacks/actions to specific messages received from the Renderer
     private static registerSubscriptions(): void {
         ipcMain.on(IpcMessages.LOGIN, Main.login);
         ipcMain.on(IpcMessages.GET_PROFILE, Main.getProfile);
-        ipcMain.on(IpcMessages.GET_MAIL, Main.getMail);
         ipcMain.on(IpcMessages.LOGOUT, Main.logout);
+        ipcMain.on(IpcMessages.GET_ACCOUNT, Main.getAccount);
     }
 }
