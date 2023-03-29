@@ -2,8 +2,8 @@
   "name": "microsoft-authentication-libraries-for-js",
   "private": true,
   "devDependencies": {
-    "@angular-eslint/eslint-plugin": "^2.0.2",
-    "@angular/compiler": "^11.2.8",
+    "@angular-eslint/eslint-plugin": "^15.2.1",
+    "@angular/compiler": "^15.2.4",
     "@babel/core": "^7.7.2",
     "@babel/plugin-proposal-class-properties": "^7.7.0",
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
