@@ -30,7 +30,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Type a key description (for instance `app secret`),
    - Select one of the available key durations (**In 1 year**, **In 2 years**, or **Never Expires**) as per your security posture.
    - The generated key value will be displayed when you select the **Add** button. Copy the generated value for use in the steps later.
-   - You'll need this key later in your code's configuration files. This key value will not be displayed again, and is not retrievable by any other means, so make sure to note it from the Azure portal before navigating to any other screen or blade.
+    > :warning: In production, use certificates with Azure Key Vault instead of secrets. See [certificate-credentials.md](../../../lib/msal-node/docs/certificate-credentials.md) and [key-vault.md](../../../lib/msal-node/docs/key-vault-managed-identity.md) for more information and examples.
 1. (Optional) In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs.
    - Select the **Add a permission** button and then,
    - Ensure that the **My APIs** tab is selected.
