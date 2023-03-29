@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import axios from 'axios';
 import { performance } from "perf_hooks";
 import { RedisClientType } from "redis";
 import {
@@ -153,7 +152,7 @@ export class AuthProvider {
             if (!cloudDiscoveryMetadata || !authorityMetadata) {
                 [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
                     AuthProvider.fetchCloudDiscoveryMetadata(tenantId),
-                    AuthProvider.fetchAuthorityMetadata(tenantId)
+                    AuthProvider.fetchOIDCMetadata(tenantId)
                 ]);
 
                 if (cloudDiscoveryMetadata && authorityMetadata) {
@@ -175,7 +174,7 @@ export class AuthProvider {
         const endpoint = 'https://login.microsoftonline.com/common/discovery/instance';
 
         try {
-            const response = await AxiosHelper.callEndpointWithToken(endpoint, undefined, {
+            const response = await AxiosHelper.callDownstreamApi(endpoint, undefined, {
                 'api-version': '1.1',
                 'authorization_endpoint': `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/authorize`
             });
@@ -186,11 +185,11 @@ export class AuthProvider {
         }
     }
 
-    private static async fetchAuthorityMetadata(tenantId: string): Promise<any> {
+    private static async fetchOIDCMetadata(tenantId: string): Promise<any> {
         const endpoint = `https://login.microsoftonline.com/${tenantId}/v2.0/.well-known/openid-configuration`;
 
         try {
-            const response = await AxiosHelper.callEndpointWithToken(endpoint)
+            const response = await AxiosHelper.callDownstreamApi(endpoint);
             return response;
         } catch (error) {
             console.log(error);

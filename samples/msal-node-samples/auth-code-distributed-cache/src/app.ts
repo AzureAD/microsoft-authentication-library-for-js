@@ -86,7 +86,7 @@ async function main() {
 
     app.get('/call-graph-direct', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const graphResponse = await AxiosHelper.callEndpointWithToken(
+            const graphResponse = await AxiosHelper.callDownstreamApi(
                 "https://graph.microsoft.com/v1.0/me",
                 req.session.protectedResources ? req.session.protectedResources["https://graph.microsoft.com/v1.0/me"].accessToken : undefined
             );
@@ -99,7 +99,7 @@ async function main() {
 
     app.get('/call-graph-on-behalf', async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const graphResponse = await AxiosHelper.callEndpointWithToken(
+            const graphResponse = await AxiosHelper.callDownstreamApi(
                 "http://localhost:5000/obo",
                 req.session.protectedResources ? req.session.protectedResources["http://localhost:5000/obo"].accessToken : undefined
             );
@@ -118,7 +118,7 @@ async function main() {
         });
     });
 
-    app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
+    app.use((err: any, req: Request, res: Response, next: NextFunction) => {
         // set locals, only providing error in development
         res.locals.message = err.message;
         res.locals.error = req.app.get('env') === 'development' ? err : {};
@@ -153,11 +153,9 @@ function initializePerformanceObserver(): void {
             durationTotalInMs
         };
 
-        console.log(results);
-
         fs.appendFile(
-            "benchmarks.txt",
-            `${results.tokenSource} ${results.durationTotalInMs}\n`,
+            "benchmarks.json",
+            `${JSON.stringify(results)}\n`,
             function (err) {
                 if (err) {
                     throw err;
@@ -170,8 +168,18 @@ function initializePerformanceObserver(): void {
 }
 
 async function initializeRedisClient(): Promise<RedisClientType> {
-    const redis = createClient();
+    /**
+     * Configure connection strategy and other settings. See:
+     * https://github.com/redis/node-redis/blob/master/docs/client-configuration.md
+     */
+    const redis = createClient({
+        socket: {
+            reconnectStrategy: false
+        }
+    });
+
     redis.on('error', (err: any) => console.log('Redis Client Error', err));
+
     await redis.connect();
     return redis as RedisClientType;
 }

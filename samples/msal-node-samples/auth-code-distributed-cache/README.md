@@ -4,6 +4,8 @@ This sample demonstrates how to implement an MSAL Node [confidential client appl
 
 In addition, this sample uses the MSAL Node [DistributedCachePlugin](../../../lib/msal-node/src/cache/distributed/DistributedCachePlugin.ts) to implement the [distributed token caching](../../../lib/msal-node/docs/caching.md#performance-and-security) pattern. Here, the cache is persisted via [Redis](https://redis.io/) and [node-redis](https://github.com/NodeRedis/node-redis).
 
+See [caching doc](../../../lib/msal-node/docs/caching.md) for more information.
+
 ## Setup
 
 Locate the folder where `package.json` resides in your terminal. Then type:
