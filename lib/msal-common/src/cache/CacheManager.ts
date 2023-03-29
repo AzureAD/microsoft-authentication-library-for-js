@@ -138,7 +138,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param throttlingCacheKey
      * @param throttlingCache
      */
-    abstract setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;
+    abstract setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;;
 
     /**
      * Function to remove an item from cache given its key.
