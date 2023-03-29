@@ -7,6 +7,11 @@ import { ICachePlugin, TokenCacheContext } from "@azure/msal-common";
 import { ICacheClient } from "@azure/msal-node";
 import { performance } from "perf_hooks";
 
+/**
+ * This class implements the ICachePlugin interface, which allows for the
+ * customization of the token cache. For more information, visit:
+ * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
+ */
 class CustomCachePlugin implements ICachePlugin {
     private client: ICacheClient;
     private partitionKey: string;

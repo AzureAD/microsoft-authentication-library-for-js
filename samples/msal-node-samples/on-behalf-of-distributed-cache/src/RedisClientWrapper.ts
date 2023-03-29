@@ -6,10 +6,16 @@
 import { ICacheClient } from "@azure/msal-node";
 import { RedisClientType } from "redis";
 
+const CACHE_TTL = 60 * 60 * 24; // 24 hours
+const MAX_MEMORY = "4000mb";
+const EVICTION_POLICY = "volatile-lru";
+
+const EMPTY_STRING = "";
+
 /**
 * Simple persistence client helper, using Redis (node-redis). You must have redis installed
 * on your machine and have redis server listening. Note that this is only for illustration,
-* and you'll likely need to consider cache eviction policies and handle cache server connection
+* and you'll need to consider cache eviction policies and handle cache server connection
 * issues. For more information, visit: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/caching.md
 */
 class RedisClientWrapper implements ICacheClient {
@@ -17,30 +23,46 @@ class RedisClientWrapper implements ICacheClient {
 
     constructor(cacheClient: RedisClientType) {
         this.cacheClient = cacheClient;
+
+        /**
+         * Example eviction policy. If you are using Azure Redis, follow the best practices
+         * outlined at: https://learn.microsoft.com/azure/azure-cache-for-redis/cache-best-practices-memory-management
+         */
+        this.cacheClient.configSet("maxmemory", MAX_MEMORY);
+        this.cacheClient.configSet("maxmemory-policy", EVICTION_POLICY);
     }
 
+    /**
+     * Get the data from cache given partition key
+     * @param key cache partition key
+     * @returns
+     */
     public async get(key: string): Promise<string> {
-        let value = "";
-
         try {
-            value = await this.cacheClient.get(key) || value;
+            return await this.cacheClient.get(key) || EMPTY_STRING;
         } catch (error) {
             console.log(error);
         }
 
-        return value;
+        return EMPTY_STRING;
     }
 
+    /**
+     * Set the data in cache given partition key and value
+     * @param key cache partition key
+     * @param value value to be set in cache
+     * @returns
+     */
     public async set(key: string, value: string): Promise<string> {
-        let result = "";
-
         try {
-            result = await this.cacheClient.set(key, value) || result;
+            return await this.cacheClient.set(key, value, {
+                EX: CACHE_TTL // Expire in 24 hours
+            }) || EMPTY_STRING;
         } catch (error) {
             console.log(error);
         }
 
-        return result;
+        return EMPTY_STRING;
     }
 }
 

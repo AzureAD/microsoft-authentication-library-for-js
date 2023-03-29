@@ -28,7 +28,7 @@ async function main() {
 
     app.get(
         '/obo',
-        isAuthorized(appConfig),
+        isAuthorized(appConfig), // check if the access token is valid
         async (req: Request, res: Response, next: NextFunction) => {
             try {
                 const tokenResponse = await authProvider.getToken({
@@ -36,7 +36,7 @@ async function main() {
                     scopes: ['User.Read'],
                 });
 
-                const graphResponse = await AxiosHelper.callEndpointWithToken(
+                const graphResponse = await AxiosHelper.callDownstreamApi(
                     "https://graph.microsoft.com/v1.0/me",
                     tokenResponse?.accessToken
                 );
@@ -101,8 +101,8 @@ function initializePerformanceObserver(): void {
             console.log(results);
 
             fs.appendFile(
-                "benchmarks.txt",
-                `${results.tokenSource} ${results.durationTotalInMs} ${results.durationInCacheInMs} ${results.durationInHttpInMs}\n`,
+                "benchmarks.json",
+                `${JSON.stringify(results)}\n`,
                 function (err) {
                     if (err) {
                         throw err;
@@ -116,8 +116,18 @@ function initializePerformanceObserver(): void {
 }
 
 async function initializeRedisClient(): Promise<RedisClientType> {
-    const redis = createClient();
+    /**
+     * Configure connection strategy and other settings. See:
+     * https://github.com/redis/node-redis/blob/master/docs/client-configuration.md
+     */
+    const redis = createClient({
+        socket: {
+            reconnectStrategy: false
+        }
+    });
+
     redis.on('error', (err: any) => console.log('Redis Client Error', err));
+
     await redis.connect();
     return redis as RedisClientType;
 }

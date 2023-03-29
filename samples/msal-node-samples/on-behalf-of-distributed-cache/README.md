@@ -4,6 +4,8 @@ This sample demonstrates how to implement an MSAL Node [confidential client appl
 
 In addition, this sample uses a custom cache plugin to implement the [distributed token caching](../../../lib/msal-node/docs/caching.md#performance-and-security) pattern. Here, the cache is persisted via [Redis](https://redis.io/) and [node-redis](https://github.com/NodeRedis/node-redis).
 
+See [caching doc](../../../lib/msal-node/docs/caching.md) for more information.
+
 ## Setup
 
 Locate the folder where `package.json` resides in your terminal. Then type:
@@ -27,7 +29,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Type a key description (for instance `app secret`),
    - Select one of the available key durations (**In 1 year**, **In 2 years**, or **Never Expires**) as per your security posture.
    - The generated key value will be displayed when you select the **Add** button. Copy the generated value for use in the steps later.
-   - You'll need this key later in your code's configuration files. This key value will not be displayed again, and is not retrievable by any other means, so make sure to note it from the Azure portal before navigating to any other screen or blade.
+    > :warning: In production, use certificates with Azure Key Vault instead of secrets. See [certificate-credentials.md](../../../lib/msal-node/docs/certificate-credentials.md) and [key-vault.md](../../../lib/msal-node/docs/key-vault-managed-identity.md) for more information and examples.
 1. In the app's registration screen, select the **Expose an API** blade to the left to open the page where you can declare the parameters to expose this app as an API for which client applications can obtain [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) for.
 The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this API. To declare an resource URI, follow the following steps:
    - Select `Set` next to the **Application ID URI** to generate a URI that is unique for this app.
