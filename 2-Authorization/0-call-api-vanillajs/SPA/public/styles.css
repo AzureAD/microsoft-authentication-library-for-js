@@ -1,0 +1,21 @@
+.navbarStyle {
+    padding: .5rem 1rem !important;
+}
+
+.table-responsive-ms {
+    max-height: 39rem !important;
+    padding-left: 10%;
+    padding-right: 10%;
+}
+
+form, .group-div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.input-group, ul {
+    width: 50% !important;
+}
+
+

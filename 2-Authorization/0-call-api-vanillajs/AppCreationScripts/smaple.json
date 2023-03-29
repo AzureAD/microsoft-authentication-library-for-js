@@ -1,0 +1,101 @@
+{
+    "Sample": {
+        "Title": "Vanilla JavaScript single-page application using MSAL.js to authentication users against Customer Identity Access Management (CIAM) and call a protected ASP.NET Core web API",
+        "Level": 200,
+        "Client": "Vanilla JavaScript SPA",
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Endpoint": "AAD v2.0",
+        "Languages": ["javascript", "csharp"],
+        "Products": ["azure-active-directory", "aspnet-core", "msal-js", "microsoft-identity-web"],
+        "Platform": "JavaScript",
+        "Provider": "CIAM",
+        "description": "This sample demonstrates a Vanilla JavaScript using MSAL.js to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+    },
+    "AADApps": [
+        {
+            "Id": "service",
+            "Name": "ciam-msal-dotnet-api",
+            "Kind": "WebApi",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MicrosoftIdentityWeb",
+            "SampleSubPath": "2-Authorization\\0-call-api-vanillajs\\API",
+            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "AppRoles": [
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.Read.All",
+                    "Description": "Allow this application to read every users TodoList items"
+                },
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users TodoList items"
+                }
+            ],
+            "OptionalClaims": {
+                "AccessTokenClaims": ["idtyp"]
+            }
+        },
+        {
+            "Id": "client",
+            "Name": "ciam-msal-javascript-spa",
+            "Kind": "SinglePageApplication",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalJs",
+            "SampleSubPath": "2-Authorization\\0-call-api-vanillajs\\SPA",
+            "HomePage": "http://localhost:3000",
+            "ReplyUrls": "http://localhost:3000, http://localhost:3000/redirect",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                },
+                {
+                    "Resource": "service",
+                    "DelegatedPermissions": ["TodoList.Read", "TodoList.ReadWrite"]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "service",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "Mappings": [
+                {
+                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter the tenant ID",
+                    "value": "$tenantId"
+                }
+            ]
+        },
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\SPA\\public\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Id_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
+                    "value": "$serviceIdentifierUri"
+                }
+            ]
+        }
+    ]
+}
