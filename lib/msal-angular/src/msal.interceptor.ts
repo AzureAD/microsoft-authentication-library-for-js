@@ -3,12 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import {
-    HttpRequest,
-    HttpHandler,
-    HttpEvent,
-    HttpInterceptor
-} from "@angular/common/http";
+// eslint-disable-next-line import/no-unresolved
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from "@angular/common/http";
 import { Location, DOCUMENT } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError, take, filter } from "rxjs/operators";
