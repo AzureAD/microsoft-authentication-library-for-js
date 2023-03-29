@@ -96,7 +96,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
     }
 
     /**
-     * Helper which checks for the correct interaction type, prevents page with Guard to be set as reidrect, and calls handleRedirectObservable
+     * Helper which checks for the correct interaction type, prevents page with Guard to be set as redirect, and calls handleRedirectObservable
      * @param state 
      */
     private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
@@ -129,8 +129,11 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         // Capture current path before it gets changed by handleRedirectObservable
         const currentPath = this.location.path(true);
 
-        return this.authService.handleRedirectObservable()
+        return this.authService.initialize()
             .pipe(
+                concatMap(() => {
+                    return this.authService.handleRedirectObservable();
+                }),
                 concatMap(() => {
                     if (!this.authService.instance.getAllAccounts().length) {
                         if (state) {
