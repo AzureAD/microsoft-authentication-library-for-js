@@ -37,7 +37,7 @@ const logger = new Logger(loggerOptions);
 
 describe("Authority.ts Class Unit Tests", () => {
     beforeEach(() => {
-        mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+        mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, logger);
     });
     afterEach(() => {
         jest.restoreAllMocks();

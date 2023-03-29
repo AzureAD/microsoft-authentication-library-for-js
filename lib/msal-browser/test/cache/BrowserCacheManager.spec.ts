@@ -105,7 +105,60 @@ describe("BrowserCacheManager tests", () => {
             expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ERROR, true)).toBe(errorKeyVal);
             expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ERROR_DESC, true)).toBe(errorDescVal);
         });
+        
+        it("Adds existing tokens to token key map on initialization", () => {
+            // Pre-populate localstorage with tokens
+            const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, TEST_CONFIG.MSAL_CLIENT_ID, "tenantId");
+            const testAccessToken = AccessTokenEntity.createAccessTokenEntity("homeAccountId", "environment", TEST_TOKENS.ACCESS_TOKEN, TEST_CONFIG.MSAL_CLIENT_ID, "tenantId", "scope", 1000, 1000, browserCrypto);
+            const testRefreshToken = RefreshTokenEntity.createRefreshTokenEntity("homeAccountId", "environment", TEST_TOKENS.REFRESH_TOKEN, TEST_CONFIG.MSAL_CLIENT_ID);
+            window.localStorage.setItem(testIdToken.generateCredentialKey(), JSON.stringify(testIdToken));
+            window.localStorage.setItem(testAccessToken.generateCredentialKey(), JSON.stringify(testAccessToken));
+            window.localStorage.setItem(testRefreshToken.generateCredentialKey(), JSON.stringify(testRefreshToken));
+
+            // Validate that tokens are not added to token key map when cacheMigration is false
+            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false}, browserCrypto, logger);
+            expect(initialStorage.getTokenKeys().idToken.length).toBe(0);
+            expect(initialStorage.getTokenKeys().accessToken.length).toBe(0);
+            expect(initialStorage.getTokenKeys().refreshToken.length).toBe(0);
+
+            // Validate that tokens are added to token key map when cacheMigration is true
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            expect(migrationStorage.getTokenKeys().idToken.length).toBe(1);
+            expect(migrationStorage.getTokenKeys().accessToken.length).toBe(1);
+            expect(migrationStorage.getTokenKeys().refreshToken.length).toBe(1);
+        });
+
+        it("Does not add tokens for other clientIds to token key map", () => {
+            // Pre-populate localstorage with tokens
+            const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, "other-client-id", "tenantId");
+            const testAccessToken = AccessTokenEntity.createAccessTokenEntity("homeAccountId", "environment", TEST_TOKENS.ACCESS_TOKEN, "other-client-id", "tenantId", "scope", 1000, 1000, browserCrypto);
+            const testRefreshToken = RefreshTokenEntity.createRefreshTokenEntity("homeAccountId", "environment", TEST_TOKENS.REFRESH_TOKEN, "other-client-id");
+            window.localStorage.setItem(testIdToken.generateCredentialKey(), JSON.stringify(testIdToken));
+            window.localStorage.setItem(testAccessToken.generateCredentialKey(), JSON.stringify(testAccessToken));
+            window.localStorage.setItem(testRefreshToken.generateCredentialKey(), JSON.stringify(testRefreshToken));
+
+            // Validate that tokens are added to token key map when cacheMigration is true
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            expect(migrationStorage.getTokenKeys().idToken.length).toBe(0);
+            expect(migrationStorage.getTokenKeys().accessToken.length).toBe(0);
+            expect(migrationStorage.getTokenKeys().refreshToken.length).toBe(0);
+        });
+
+        it("Adds existing accounts to account key map on initialization", () => {
+            // Pre-populate localstorage with accounts
+            const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,  new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), undefined, undefined, undefined, "environment");
+            window.localStorage.setItem(testAccount.generateAccountKey(), JSON.stringify(testAccount));
+
+            // Validate that accounts are not added to account key map when cacheMigration is false
+            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false}, browserCrypto, logger);
+            expect(initialStorage.getAccountKeys().length).toBe(0);
+
+            // Validate that accounts are added to account key map when cacheMigration is true
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            expect(migrationStorage.getAccountKeys().length).toBe(1);
+        });
     });
+
 
     describe("Interface functions", () => {
 
