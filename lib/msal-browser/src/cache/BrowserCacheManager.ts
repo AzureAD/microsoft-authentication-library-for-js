@@ -425,7 +425,8 @@ export class BrowserCacheManager extends CacheManager {
                 }
                 break;
             default:
-                this.logger.error("BrowserCacheManager:addTokenKey - CredentialType provided invalid. Doing nothing.");
+                this.logger.error(`BrowserCacheManager:addTokenKey - CredentialType provided invalid. CredentialType: ${type}`);
+                ClientAuthError.createUnexpectedCredentialTypeError();
         }
 
         this.setItem(`${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`, JSON.stringify(tokenKeys));
@@ -472,7 +473,8 @@ export class BrowserCacheManager extends CacheManager {
                 }
                 break;
             default:
-                this.logger.error("BrowserCacheManager:addTokenKey - CredentialType provided invalid. Doing nothing.");
+                this.logger.error(`BrowserCacheManager:removeTokenKey - CredentialType provided invalid. CredentialType: ${type}`);
+                ClientAuthError.createUnexpectedCredentialTypeError();
         }
 
         this.setItem(`${StaticCacheKeys.TOKEN_KEYS}.${this.clientId}`, JSON.stringify(tokenKeys));
