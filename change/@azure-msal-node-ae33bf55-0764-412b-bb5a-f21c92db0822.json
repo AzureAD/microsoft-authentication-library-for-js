@@ -1,6 +1,6 @@
 {
   "type": "major",
-  "comment": "Migrate from tsdx to use rollup and jest directly for msal-node #5818",
+  "comment": "Migrate from tsdx to use rollup and jest directly for msal-node #5825",
   "packageName": "@azure/msal-node",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
