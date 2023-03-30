@@ -9,7 +9,7 @@ import {
     AuthorizationCodeClient,
     RefreshTokenClient,
     AuthenticationResult,
-    OIDC_DEFAULT_SCOPES
+    OIDC_DEFAULT_SCOPES, CommonClientCredentialRequest
 } from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import {
@@ -149,7 +149,7 @@ describe('ConfidentialClientApplication', () => {
         };
         setupAuthorityFactory_createDiscoveredInstance_mock();
 
-        ClientCredentialClient.prototype.acquireToken = jest.fn((request: ClientCredentialRequest) => {
+        ClientCredentialClient.prototype.acquireToken = jest.fn((request: CommonClientCredentialRequest) => {
             expect(request.clientAssertion).not.toBe(undefined);
             expect(request.clientAssertion?.assertion).toBe("testAssertion");
             expect(request.clientAssertion?.assertionType).toBe("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
@@ -232,7 +232,7 @@ describe('ConfidentialClientApplication', () => {
         setupAuthorityFactory_createDiscoveredInstance_mock();
 
         jest.spyOn(ClientCredentialClient.prototype, 'acquireToken')
-            .mockImplementation((request: ClientCredentialRequest) => {
+            .mockImplementation((request: CommonClientCredentialRequest) => {
             OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                 expect(request.scopes).not.toContain(scope);
             });
