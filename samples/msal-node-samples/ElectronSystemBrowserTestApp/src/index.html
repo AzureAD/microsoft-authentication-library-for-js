@@ -7,47 +7,6 @@
     <title>MSAL Node Electron Sample App</title>    
   </head>
   <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-      <a class="navbar-brand" href="/">MS Identity Platform</a>
-      <div class="btn-group ml-auto dropleft">
-          <button type="button" id="SignIn" class="btn btn-secondary" aria-expanded="false">
-            Sign In
-          </button>
-          <button type="button" id="SignOut" class="btn btn-success" hidden aria-expanded="false">
-            Sign Out
-          </button>
-      </div>
-    </nav>
-    <br>
-    <h5 class="card-header text-center">Electron App Calling Microsoft Graph using MSAL Node</h5>
-    <br>
-    <div class="row" style="margin:auto" >
-    <div id="card-div" class="col-md-3" style="display:none">
-    <div class="card text-center">
-      <div class="card-body">
-        <h5 class="card-title" id="WelcomeMessage">Please sign-in to see your profile and read your mails</h5>
-        <div id="profile-div"></div>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="seeProfile">See Profile</button>
-        <br>
-        <br>
-        <button class="btn btn-primary" id="readMail">Read Mails</button>
-      </div>
-    </div>
-    </div>
-    <br>
-    <br>
-      <div class="col-md-4">
-        <div class="list-group" id="list-tab" role="tablist">
-        </div>
-      </div>
-      <div class="col-md-5">
-        <div class="tab-content" id="nav-tabContent">
-        </div>
-      </div>
-    </div>
-    <br>
-    <br>
+    <div id="root"></div>
   </body>
 </html>

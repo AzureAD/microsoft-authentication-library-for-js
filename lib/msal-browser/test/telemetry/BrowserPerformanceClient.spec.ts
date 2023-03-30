@@ -28,9 +28,25 @@ jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
 });
 
 describe("BrowserPerformanceClient.ts", () => {
+
     afterAll(() => {
         jest.resetAllMocks();
         jest.restoreAllMocks();
+    });
+
+    it("sets pre-queue time", () => {
+        const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+        const eventName = PerformanceEvents.AcquireTokenSilent;
+        const correlationId = 'test-correlation-id';
+        const perfTimeNow = 1234567890;
+
+        jest.spyOn(window.performance, "now").mockReturnValue(perfTimeNow);
+
+        browserPerfClient.setPreQueueTime(eventName, correlationId);
+        // @ts-ignore
+        expect(browserPerfClient.getPreQueueTime(eventName, correlationId)).toEqual(perfTimeNow);
+        // @ts-ignore
+        expect(browserPerfClient.preQueueTimeByCorrelationId.get(correlationId)).toEqual({name: eventName, time: perfTimeNow});
     });
 
     describe("generateId", () => {

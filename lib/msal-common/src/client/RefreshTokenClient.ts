@@ -112,7 +112,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         // try checking if FOCI is enabled for the given application
-        const isFOCI = this.cacheManager.isAppMetadataFOCI(request.account.environment, this.config.authOptions.clientId);
+        const isFOCI = this.cacheManager.isAppMetadataFOCI(request.account.environment);
 
         // if the app is part of the family, retrive a Family refresh token if present and make a refreshTokenRequest
         if (isFOCI) {
@@ -150,7 +150,7 @@ export class RefreshTokenClient extends BaseClient {
 
         const atsMeasurement = this.performanceClient?.startMeasurement(PerformanceEvents.RefreshTokenClientAcquireTokenWithCachedRefreshToken, request.correlationId);
         this.logger.verbose("RefreshTokenClientAcquireTokenWithCachedRefreshToken called", request.correlationId);
-        const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
+        const refreshToken = this.cacheManager.getRefreshToken(request.account, foci);
 
         if (!refreshToken) {
             atsMeasurement?.discardMeasurement();

@@ -2,6 +2,8 @@
 
 An Electron application built with TypeScript that uses the MSAL Node library to acquire and store access tokens to authenticate with the Microsoft Graph API. 
 
+> :warning: This sample doesn't follow the best practices for native application authentication using an external user agent for handling the authentication/authorization requests. To follow the best practices, please see the [Electron System Browser Sample](../ElectronSystemBrowserTestApp/README.md).
+
 ## Should I use this sample:
 
 Understanding the way MSAL Node is used in this sample will help you if you're interested in building an Electron.js application to authenticate and acquire tokens using AzureAD.
