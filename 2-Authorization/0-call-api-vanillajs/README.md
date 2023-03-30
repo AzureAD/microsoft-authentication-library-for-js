@@ -31,7 +31,6 @@ extensions:
 * [Troubleshooting](#troubleshooting)
 * [About the code](#about-the-code)
 * [How to deploy this sample to Azure](#how-to-deploy-this-sample-to-azure)
-* [Next Steps](#next-steps)
 * [Contributing](#contributing)
 * [Learn More](#learn-more)
 
@@ -51,11 +50,13 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 
 ## Contents
 
-| File/folder       | Description                                |
-|-------------------|--------------------------------------------|
-| `CHANGELOG.md`    | List of changes to the sample.             |
-| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
-| `LICENSE`         | The license for the sample.                |
+| File/folder         | Description                                         |
+|---------------------|-----------------------------------------------------|
+| `SPA/public/authPopup.js`    | Main authentication and authorization logic resides here (using Popup flow).  |
+| `SPA/public/authRedirect.js` | Use this instead of `authPopup.js` for authentication and authorization with redirect flow. |
+| `SPA/public/authConfig.js` | Contains authentication parameters for SPA project. |
+| `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
+| `API/TodoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
 
 ## Prerequisites
 
@@ -65,8 +66,6 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 * A modern web browser.
 * An **Azure AD CIAM** tenant. For more information, see: [How to get an Azure AD CIAM tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * A user account in your **Azure AD CIAM** tenant.
-
->This sample will not work with a **personal Microsoft account**. If you're signed in to the [Azure portal](https://portal.azure.com) with a personal Microsoft account and have not created a user account in your directory before, you will need to create one before proceeding.
 
 ## Setup the sample
 
@@ -158,7 +157,7 @@ Please refer to:
     1. For **Admin consent description** type in *e.g. Allows the app to read the signed-in user's files.*.
     1. Keep **State** as **Enabled**.
     1. Select the **Add scope** button on the bottom to save this scope.
-    > Repeat the steps above for another scope named **TodoList.ReadWrite**
+    > :warning: Repeat the steps above for another scope named **TodoList.ReadWrite**
 1. Select the **Manifest** blade on the left.
     1. Set `accessTokenAcceptedVersion` property to **2**.
     1. Select on **Save**.
@@ -175,7 +174,7 @@ Please refer to:
     1. For **Value**, enter **TodoList.Read.All**.
     1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
     1. Select **Apply** to save your changes.
-    > Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
+    > :warning: Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
 
 ##### Configure Optional Claims
 
