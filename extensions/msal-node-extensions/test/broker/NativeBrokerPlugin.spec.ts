@@ -1,59 +1,26 @@
 import { NativeBrokerPlugin } from "../../src/broker/NativeBrokerPlugin";
-import { Account, AsyncHandle, ErrorStatus, msalNodeRuntime, MsalRuntimeError, ReadAccountResult } from "@azure/msal-node-runtime";
+import { AsyncHandle, DiscoverAccountsResult, ErrorStatus, msalNodeRuntime, ReadAccountResult } from "@azure/msal-node-runtime";
 import { AccountInfo } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
-
-const testAccount: Account = {
-    accountId: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
-    homeAccountId: "123-test-uid.456-test-utid",
-    environment: "login.windows.net",
-    realm: "456-test-utid",
-    localAccountId: "123-test-uid",
-    username: "JohnSmith@contoso.com",
-    givenName: "John",
-    familyName: "Smith",
-    middleName: "M",
-    displayName: "John Smith",
-    additionalFieldsJson: "",
-    homeEnvironment: "login.windows.net",
-    clientInfo: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9"
-}
-
-const testAccountInfo: AccountInfo = {
-    homeAccountId: testAccount.homeAccountId,
-    environment: testAccount.environment,
-    tenantId: testAccount.realm,
-    username: testAccount.username,
-    localAccountId: testAccount.localAccountId,
-    idTokenClaims: undefined,
-    name: testAccount.displayName,
-    nativeAccountId: testAccount.accountId
-};
-
-const testError: MsalRuntimeError = {
-    errorCode: 0,
-    errorStatus: ErrorStatus.Unexpected,
-    errorContext: "Test Error",
-    errorTag: 0
-};
-
-const testNativeAuthError = new NativeAuthError(ErrorStatus[testError.errorStatus], testError.errorContext, testError.errorCode, testError.errorTag);
-
-const generateCorrelationId = () => {
-    return randomUUID();
-};
-
-const asyncHandle: AsyncHandle = {
-    CancelAsyncOperation: () => {}
-}
+import { testMsalRuntimeAccount, testAccountInfo, msalRuntimeExampleError, TEST_CLIENT_ID } from "../util/TestContstants";
 
 describe("NativeBrokerPlugin", () => {
+    const testNativeAuthError = new NativeAuthError(ErrorStatus[msalRuntimeExampleError.errorStatus], msalRuntimeExampleError.errorContext, msalRuntimeExampleError.errorCode, msalRuntimeExampleError.errorTag);
+    
+    const generateCorrelationId = () => {
+        return randomUUID();
+    };
+    
+    const asyncHandle: AsyncHandle = {
+        CancelAsyncOperation: () => {}
+    }
+
     afterEach(() => {
         jest.restoreAllMocks();
     });
 
-    describe("constructor", () => {
+    describe("constructor tests", () => {
         it("Sets isBrokerAvailable to true if the broker is available", () => {
             jest.replaceProperty(msalNodeRuntime, 'StartupError', undefined);
             const nativeBrokerPlugin = new NativeBrokerPlugin();
@@ -72,16 +39,16 @@ describe("NativeBrokerPlugin", () => {
         });
     });
 
-    describe("getAccountById", () => {
+    describe("getAccountById tests", () => {
         it("Returns account", async () => {
             const testCorrelationId = generateCorrelationId();
             jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
                 const result: ReadAccountResult = {
-                    account: testAccount,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {},
                     telemetryData: ""
                 };
-                expect(accountId).toEqual(testAccount.accountId);
+                expect(accountId).toEqual(testMsalRuntimeAccount.accountId);
                 expect(correlationId).toEqual(testCorrelationId);
                 callback(result);
 
@@ -89,18 +56,18 @@ describe("NativeBrokerPlugin", () => {
             });
 
             const nativeBrokerPlugin = new NativeBrokerPlugin();
-            const account = await nativeBrokerPlugin.getAccountById(testAccount.accountId, testCorrelationId);
+            const account = await nativeBrokerPlugin.getAccountById(testMsalRuntimeAccount.accountId, testCorrelationId);
             expect(account).toStrictEqual<AccountInfo>(testAccountInfo);
         });
 
         it("Rejects with error if Msal-Node-Runtime ReadAccountByIdAsync API throws", async () => {
             const testCorrelationId = generateCorrelationId();
             jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation(() => {
-                throw testError;
+                throw msalRuntimeExampleError;
             });
 
             const nativeBrokerPlugin = new NativeBrokerPlugin();
-            await nativeBrokerPlugin.getAccountById(testAccount.accountId, testCorrelationId).catch((error) => {
+            await nativeBrokerPlugin.getAccountById(testMsalRuntimeAccount.accountId, testCorrelationId).catch((error) => {
                 expect(error).toStrictEqual<NativeAuthError>(testNativeAuthError);
             });
         });
@@ -109,13 +76,13 @@ describe("NativeBrokerPlugin", () => {
             const testCorrelationId = generateCorrelationId();
             jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
                 const result: ReadAccountResult = {
-                    account: testAccount,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
-                        throw testError;
+                        throw msalRuntimeExampleError;
                     },
                     telemetryData: ""
                 };
-                expect(accountId).toEqual(testAccount.accountId);
+                expect(accountId).toEqual(testMsalRuntimeAccount.accountId);
                 expect(correlationId).toEqual(testCorrelationId);
                 callback(result);
 
@@ -123,10 +90,77 @@ describe("NativeBrokerPlugin", () => {
             });
 
             const nativeBrokerPlugin = new NativeBrokerPlugin();
-            await nativeBrokerPlugin.getAccountById(testAccount.accountId, testCorrelationId).catch((error) => {
+            await nativeBrokerPlugin.getAccountById(testMsalRuntimeAccount.accountId, testCorrelationId).catch((error) => {
                 expect(error).toStrictEqual<NativeAuthError>(testNativeAuthError);
             });
         });
+    });
+
+    describe("getAllAccounts tests", () => {
+        it("Returns accounts", async () => {
+            const testCorrelationId = generateCorrelationId();
+            jest.spyOn(msalNodeRuntime, "DiscoverAccountsAsync").mockImplementation((clientId: string, correlationId: string, callback: (result: DiscoverAccountsResult) => void) => {
+                const result: DiscoverAccountsResult = {
+                    accounts: [testMsalRuntimeAccount],
+                    CheckError: () => {},
+                    telemetryData: ""
+                };
+                expect(clientId).toEqual(TEST_CLIENT_ID);
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const accounts = await nativeBrokerPlugin.getAllAccounts(TEST_CLIENT_ID, testCorrelationId);
+            expect(accounts).toStrictEqual<AccountInfo[]>([testAccountInfo]);
+        });
+
+        it("Rejects with error if Msal-Node-Runtime DiscoverAccountsAsync API throws", async () => {
+            const testCorrelationId = generateCorrelationId();
+            jest.spyOn(msalNodeRuntime, "DiscoverAccountsAsync").mockImplementation(() => {
+                throw msalRuntimeExampleError;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            await nativeBrokerPlugin.getAllAccounts(TEST_CLIENT_ID, testCorrelationId).catch((error) => {
+                expect(error).toStrictEqual<NativeAuthError>(testNativeAuthError);
+            });
+        });
+
+        it("Rejects with error if callback is invoked with error response", async () => {
+            const testCorrelationId = generateCorrelationId();
+            jest.spyOn(msalNodeRuntime, "DiscoverAccountsAsync").mockImplementation((clientId: string, correlationId: string, callback: (result: DiscoverAccountsResult) => void) => {
+                const result: DiscoverAccountsResult = {
+                    accounts: [testMsalRuntimeAccount],
+                    CheckError: () => {
+                        throw msalRuntimeExampleError;
+                    },
+                    telemetryData: ""
+                };
+                expect(clientId).toEqual(TEST_CLIENT_ID);
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            await nativeBrokerPlugin.getAllAccounts(TEST_CLIENT_ID, testCorrelationId).catch((error) => {
+                expect(error).toStrictEqual<NativeAuthError>(testNativeAuthError);
+            });
+        });
+    });
+
+    describe("acquireTokenSilent tests", () => {
+        
+    });
+
+    describe("acquireTokenInteractive tests", () => {
+    });
+
+    describe("signOut tests", () => {
 
     });
 });
