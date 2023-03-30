@@ -6,13 +6,13 @@
 import { ModuleWithProviders, NgModule } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import { IPublicClientApplication } from "@azure/msal-browser";
+import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MsalGuard } from "./msal.guard";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
-import { MsalGuard } from "./msal.guard";
-import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MsalRedirectComponent } from "./msal.redirect.component";
 import { MsalService } from "./msal.service";
 import { MSAL_INSTANCE , MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalRedirectComponent } from "./msal.redirect.component";
 
 @NgModule({
     declarations: [MsalRedirectComponent],

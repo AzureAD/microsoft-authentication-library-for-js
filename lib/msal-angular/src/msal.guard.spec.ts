@@ -1,12 +1,12 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { UrlTree } from '@angular/router';
+import { RouterTestingModule } from '@angular/router/testing';
 import { Location } from "@angular/common";
 import { BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
-import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
-import { RouterTestingModule } from '@angular/router/testing';
+import { MsalGuardConfiguration } from './msal.guard.config';
 
 let guard: MsalGuard;
 let authService: MsalService;
