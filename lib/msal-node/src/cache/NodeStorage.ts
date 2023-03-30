@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import {
+import { TokenKeys ,
     AccountEntity,
     IdTokenEntity,
     AccessTokenEntity,
@@ -18,6 +18,7 @@ import {
     AuthorityMetadataEntity,
     ValidCredentialType
 } from "@azure/msal-common";
+
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
@@ -33,7 +34,7 @@ export class NodeStorage extends CacheManager {
     private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
-        super(clientId, cryptoImpl);
+        super(clientId, cryptoImpl, logger);
         this.logger = logger;
     }
 
@@ -184,6 +185,17 @@ export class NodeStorage extends CacheManager {
         const accountKeys = Object.keys(inMemoryCache.accounts);
 
         return accountKeys;
+    }
+
+    getTokenKeys(): TokenKeys {
+        const inMemoryCache = this.getInMemoryCache();
+        const tokenKeys = {
+            idToken: Object.keys(inMemoryCache.idTokens),
+            accessToken: Object.keys(inMemoryCache.accessTokens),
+            refreshToken: Object.keys(inMemoryCache.refreshTokens)
+        };
+
+        return tokenKeys;
     }
 
     /**

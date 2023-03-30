@@ -90,7 +90,8 @@ export enum TemporaryCacheKeys {
 }
 
 export enum StaticCacheKeys {
-    ACCOUNT_KEYS = "account.keys"
+    ACCOUNT_KEYS = "msal.account.keys",
+    TOKEN_KEYS = "msal.token.keys"
 }
 
 /**
