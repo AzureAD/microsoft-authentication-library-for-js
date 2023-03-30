@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { EventType, InteractionStatus, InteractionType, PublicClientApplication } from '@azure/msal-browser';
-import { MsalBroadcastService } from './msal.broadcast.service';
+import { Subscription } from "rxjs";
 import { MsalModule, MSAL_BROADCAST_CONFIG } from './public-api';
-import { ReplaySubject, Subject, Subscription } from "rxjs";
-import { Logger } from '@azure/msal-browser';
+import { MsalBroadcastService } from './msal.broadcast.service';
 
 let broadcastService: MsalBroadcastService;
 let subscription: Subscription;
