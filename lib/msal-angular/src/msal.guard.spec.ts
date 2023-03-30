@@ -450,7 +450,7 @@ describe('MsalGuard', () => {
       username: "test"
     }]);
 
-    guard.canLoad()
+    guard.canMatch()
       .subscribe(result => {
         expect(result).toBeTrue();
         done();
@@ -465,7 +465,7 @@ describe('MsalGuard', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([]);
 
-    guard.canLoad()
+    guard.canMatch()
       .subscribe(result => {
         expect(result).toBeFalse();
         done();
