@@ -7,11 +7,12 @@ import { UsernamePasswordRequest } from '../../src';
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock } from './test-fixtures';
 
-import * as msalCommon from '@azure/msal-common';
 import { ClientCredentialRequest } from '../../src/request/ClientCredentialRequest';
 import { OnBehalfOfRequest } from '../../src';
-import { getMsalCommonAutoMock } from '../utils/MockUtils';
+import { getMsalCommonAutoMock, MSALCommonModule } from '../utils/MockUtils';
 import { AuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+
+const msalCommon: MSALCommonModule = jest.requireActual('@azure/msal-common');
 
 describe('ConfidentialClientApplication', () => {
     let appConfig: Configuration = {
@@ -92,7 +93,9 @@ describe('ConfidentialClientApplication', () => {
 
     test('acquireTokenByClientCredential', async () => {
 
+        // @ts-ignore
         const testProvider: msalCommon.IAppTokenProvider = () => {
+            // @ts-ignore
             return new Promise<msalCommon.AppTokenProviderResult>(
                 (resolve) => resolve({
                     accessToken: "accessToken",
@@ -137,6 +140,7 @@ describe('ConfidentialClientApplication', () => {
         jest.spyOn(msalCommon, 'ClientCredentialClient')
             .mockImplementation((conf) => new MockClientCredentialClient(conf));
 
+        // @ts-ignore
         MockClientCredentialClient.prototype.acquireToken = jest.fn((request: msalCommon.CommonClientCredentialRequest) => {
             expect(request.clientAssertion).not.toBe(undefined);
             expect(request.clientAssertion?.assertion).toBe("testAssertion");
@@ -234,6 +238,7 @@ describe('ConfidentialClientApplication', () => {
         jest.spyOn(msalCommon, 'ClientCredentialClient')
             .mockImplementation((conf) => new MockClientCredentialClient(conf));
 
+        // @ts-ignore
         MockClientCredentialClient.prototype.acquireToken = jest.fn((request: msalCommon.CommonClientCredentialRequest) => {
             OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                 expect(request.scopes).not.toContain(scope);
