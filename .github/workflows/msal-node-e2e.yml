@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ 14, 16, 18 ]
+        node: [ 16, 18 ]
         sample:
           - 'auth-code'
           - 'client-credentials'
