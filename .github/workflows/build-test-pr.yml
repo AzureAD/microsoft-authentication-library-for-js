@@ -11,7 +11,7 @@ on:
       - 'extensions/msal-node-extensions/**/*'
       - '!**.md'
       - '.github/workflows/build-test-pr.yml'
-      
+
 concurrency:
   group: ci-${{github.ref}}
   cancel-in-progress: true
@@ -25,7 +25,7 @@ jobs:
       contents: read  # for dorny/paths-filter to fetch a list of changed files
       pull-requests: read  # for dorny/paths-filter to read pull requests
     runs-on: ubuntu-latest
-    outputs: 
+    outputs:
       # Expose matched filters as job 'packages' output variable
       packages: ${{ steps.lib-filter.outputs.changes }}
       extensions: ${{ steps.extensions-filter.outputs.node-extensions }}
@@ -80,9 +80,9 @@ jobs:
           # Parse JSON array containing names of all filters matching any of changed files
           # e.g. ['package1', 'package2'] if both package folders contains changes
           library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
-  
+
     name: ${{ matrix.library }}
-    
+
     steps:
     - uses: actions/checkout@v3
 
@@ -114,6 +114,11 @@ jobs:
         path: ~/.npm/_logs/**/*
         retention-days: 2
 
+    # Run lerna bootstrap to symlink local packages
+    - name: Link packages
+      working-directory: lib/${{ matrix.library }}
+      run: npx lerna bootstrap
+
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
       run: npm run build:all
@@ -137,9 +142,9 @@ jobs:
     needs: pre-check
     runs-on: windows-2019
     if: needs.pre-check.outputs.extensions == 'true'
-  
+
     name: msal-node-extensions
-    
+
     steps:
     - uses: actions/checkout@v3
 
