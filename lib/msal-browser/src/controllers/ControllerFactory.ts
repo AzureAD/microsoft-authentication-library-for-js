@@ -27,21 +27,22 @@ export class ControllerFactory {
     async createController(): Promise<IController> {
 
         const standard = new StandardOperatingContext(this.config);
-        const metaOS = new TeamsAppOperatingContext(this.config);
+        const teamsApp = new TeamsAppOperatingContext(this.config);
 
         const operatingContexts = [
             standard.initialize(),
-            metaOS.initialize()
+            teamsApp.initialize()
         ];
 
         return Promise.all(operatingContexts).then(async ()=> {
 
-            if(metaOS.isAvailable()){
+            if(teamsApp.isAvailable()){
                 /*
                  * pull down metaos module
                  * create associated controller
                  */
                 // return await StandardController.createController(standard);
+                console.log("teamsApp is available; but the controller is not yet implemented.");
                 const controller = await import("./StandardController");
                 return await controller.StandardController.createController(standard);
             }else if(standard.isAvailable()){

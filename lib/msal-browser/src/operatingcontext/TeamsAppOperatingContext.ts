@@ -4,8 +4,12 @@
  */
 
 import { BaseOperatingContext } from "./BaseOperatingContext";
+import { IBridgeProxy } from "../naa/IBridgeProxy";
+import { BridgeProxy } from "../naa/BridgeProxy";
 
 export class TeamsAppOperatingContext extends BaseOperatingContext {
+
+    protected bridgeProxy: IBridgeProxy | undefined = undefined;
 
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
@@ -21,7 +25,7 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
     /**
      * Return the module name.  Intended for use with import() to enable dynamic import
      * of the implementation associated with this operating context
-     * @returns 
+     * @returns
      */
     getModuleName(): string {
         return TeamsAppOperatingContext.MODULE_NAME;
@@ -35,16 +39,29 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
     }
 
     /**
-     * Checks whether the operating context is available.  
+     * Checks whether the operating context is available.
      * Confirms that the code is running a browser rather.  This is required.
      * @returns Promise<boolean> indicating whether this operating context is currently available.
      */
     async initialize(): Promise<boolean> {
         /*
-         * TODO: Add implementation to check for presence of inject MetaOSHub JavaScript interface
-         * TODO: Make pre-flight token request to ensure that App is eligible to use Nested App Auth
+         * TODO: Add implementation to check for presence of inject Nested App Auth Bridge JavaScript interface
+         *
          */
-        return false;
+        try {
+            if (typeof window !== "undefined") {
+                const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
+                this.bridgeProxy = bridgeProxy;
+                this.available = bridgeProxy !== undefined;
+            } else {
+                console.log("window is undefined");
+                this.available = false;
+            }
+        } catch (e) {
+            console.log(e);
+            this.available = false;
+        } finally {
+            return this.available;
+        }
     }
-
 }

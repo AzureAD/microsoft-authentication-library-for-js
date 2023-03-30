@@ -263,3 +263,5 @@ typings/
 lib/
 dist/
 ref/
+
+tsconfig.build.tsbuildinfo
