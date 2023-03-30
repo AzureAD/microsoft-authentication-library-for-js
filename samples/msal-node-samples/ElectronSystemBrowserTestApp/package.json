@@ -31,6 +31,8 @@
         "@electron-forge/plugin-webpack": "^6.0.4",
         "@electron/asar": "^3.2.3",
         "@playwright/test": "^1.31.1",
+        "@types/react": "^18.0.28",
+        "@types/react-dom": "^18.0.11",
         "@typescript-eslint/eslint-plugin": "^5.0.0",
         "@typescript-eslint/parser": "^5.0.0",
         "@vercel/webpack-asset-relocator-loader": "1.7.3",
@@ -54,8 +56,12 @@
         "@azure/msal-common": "file:../../../lib/msal-common",
         "@azure/msal-node": "file:../../../lib/msal-node",
         "axios": "^1.1.3",
-        "bootstrap": "^5.2.2",
-        "electron-squirrel-startup": "^1.0.0"
+        "bootstrap": "^5.2.3",
+        "electron-squirrel-startup": "^1.0.0",
+        "react": "^18.2.0",
+        "react-bootstrap": "^2.7.2",
+        "react-dom": "^18.2.0",
+        "react-router-dom": "^6.9.0"
     },
     "config": {
         "forge": {

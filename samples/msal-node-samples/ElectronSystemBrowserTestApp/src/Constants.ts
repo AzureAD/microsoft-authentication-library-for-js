@@ -17,8 +17,8 @@ export enum IpcMessages {
     GET_PROFILE = "GET_PROFILE",
     SET_PROFILE = "SET_PROFILE",
     GET_MAIL = "GET_MAIL",
-    SET_MAIL = "SET_MAIL",
     GET_AUTH_CODE_URL = "GET_AUTH_CODE_URL",
+    GET_ACCOUNT = "GET_ACCOUNT",
 }
 
 export const APPLICATION_DIMENSIONS = {

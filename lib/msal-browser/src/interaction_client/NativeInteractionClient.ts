@@ -118,13 +118,15 @@ export class NativeInteractionClient extends BaseInteractionClient {
      * @returns authenticationResult
      */
     protected async acquireTokensFromCache(nativeAccountId: string, request: NativeTokenRequest): Promise<AuthenticationResult> {
-
-        // fetch the account from in-memory cache
-        const accountEntity = this.browserStorage.readAccountFromCacheWithNativeAccountId(nativeAccountId);
-        if (!accountEntity) {
+        if (!nativeAccountId) {
+            this.logger.warning("NativeInteractionClient:acquireTokensFromCache - No nativeAccountId provided");
             throw ClientAuthError.createNoAccountFoundError();
         }
-        const account = accountEntity.getAccountInfo();
+        // fetch the account from in-memory cache
+        const account = this.browserStorage.getAccountInfoFilteredBy({nativeAccountId});
+        if (!account) {
+            throw ClientAuthError.createNoAccountFoundError();
+        }
 
         // leverage silent flow for cached tokens retrieval
         try {

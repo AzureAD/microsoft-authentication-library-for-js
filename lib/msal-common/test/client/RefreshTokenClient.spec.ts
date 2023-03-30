@@ -218,7 +218,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
@@ -620,7 +620,7 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_FOCI);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testFamilyRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
