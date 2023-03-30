@@ -114,6 +114,11 @@ jobs:
         path: ~/.npm/_logs/**/*
         retention-days: 2
 
+    # Run lerna bootstrap to symlink local packages
+    - name: Link packages
+      working-directory: lib/${{ matrix.library }}
+      run: npm run link:localDeps --if-present
+
     - name: Build packages
       working-directory: lib/${{ matrix.library }}
       run: npm run build:all

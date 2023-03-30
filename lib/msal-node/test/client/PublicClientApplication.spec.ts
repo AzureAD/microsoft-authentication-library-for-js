@@ -14,16 +14,16 @@ import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordReque
 import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
 import { HttpClient } from '../../src/network/HttpClient';
 import http from "http";
-
-import * as msalCommon from '@azure/msal-common';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
-import { getMsalCommonAutoMock } from '../utils/MockUtils';
-
+import { getMsalCommonAutoMock, MSALCommonModule } from '../utils/MockUtils';
 import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
 
+const msalCommon: MSALCommonModule = jest.requireActual('@azure/msal-common');
+
 describe('PublicClientApplication', () => {
 
+    // @ts-ignore
     const mockTelemetryManager: msalCommon.ServerTelemetryManager = setupServerTelemetryManagerMock();
 
     let appConfig: Configuration = {

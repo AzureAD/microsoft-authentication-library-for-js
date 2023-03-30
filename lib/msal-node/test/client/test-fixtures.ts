@@ -1,6 +1,6 @@
 import { ServerTelemetryManager, Authority, AuthorityFactory } from '@azure/msal-common';
 
-import * as msalCommon from '@azure/msal-common';
+const msalCommon = jest.requireActual('@azure/msal-common');
 
 // @ts-ignore
 const mockServerTelemetryManager: ServerTelemetryManager = {
