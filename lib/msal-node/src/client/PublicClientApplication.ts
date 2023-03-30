@@ -96,7 +96,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
+            serverTelemetryManager.cacheFailedRequest(e as AuthError);
             throw e;
         }
     }
