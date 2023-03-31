@@ -341,26 +341,6 @@ The **MSAL.js** exposes the `acquireTokenSilent()` API which is meant to retriev
         });
 ```
 
-### Dynamic Scopes and Incremental Consent
-
-In **Azure AD CIAM**, the scopes (permissions) set directly on the application registration are called static scopes. Other scopes that are only defined within the code are called dynamic scopes. This has implications on the **login** (i.e. loginPopup, loginRedirect) and **acquireToken** (i.e. `acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`) methods of **MSAL.js**. Consider:
-
-```javascript
-     const loginRequest = {
-          scopes: [ "openid", "profile", "TodoList.Read" ]
-     };
-     const tokenRequest = {
-          scopes: [ "TodoList.ReadWrite" ]
-     };
-
-     // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
-     myMSALObj.loginPopup(loginRequest);
-
-     // The received token will be issued for "openid", "profile" ,"User.Read" and "TodoList.Read" combined
-     myMSALObj.acquireTokenSilent(tokenRequest);
-```
-
-In the code snippet above, the user will receive an **ID Token** and an **Access Token** with the scope `TodoList.Read`. Later, if they request an **Access Token** for `TodoList.ReadWrite`, they will receive a new  **Access Token** with scopes `TodoList.Read` and `TodoList.ReadWrite`. In **Azure AD CIAM**, the admin must consent for both static and dynamic scopes for the users to receive an **ID Token** and an **Access Token** this will bypass the consent screen for the users due to the admin consenting on behalf of the users in the tenant.
 
 ### Access token validation
 
