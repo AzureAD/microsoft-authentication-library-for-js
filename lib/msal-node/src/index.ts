@@ -20,6 +20,11 @@ export { ILoopbackClient } from "./network/ILoopbackClient";
 export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
 export { ClientApplication } from "./client/ClientApplication";
+export { ClientCredentialClient } from "./client/ClientCredentialClient";
+export { DeviceCodeClient } from "./client/DeviceCodeClient";
+export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
+export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
+
 export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOptions, CacheOptions } from "./config/Configuration";
 export { ClientAssertion } from "./client/ClientAssertion";
 

@@ -1,29 +1,39 @@
 import sinon from "sinon";
 import {
-    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
-    TEST_CONFIG,
-    TEST_TOKENS,
-    CORS_SIMPLE_REQUEST_HEADERS,
-    DSTS_OPENID_CONFIG_RESPONSE,
-    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    AADServerParamKeys,
+    AccessTokenEntity,
+    AppTokenProviderResult,
+    AuthenticationResult,
+    AuthenticationScheme,
+    Authority, AuthToken,
+    BaseClient,
+    CacheManager,
+    ClientAuthError,
+    ClientConfiguration,
+    CommonClientCredentialRequest,
+    CommonUsernamePasswordRequest,
+    Constants,
+    CredentialCache,
+    GrantType,
+    IAppTokenProvider, InteractionRequiredAuthError,
+    ThrottlingConstants,
+    TimeUtils
+} from "@azure/msal-common";
+import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
+import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
-    ID_TOKEN_CLAIMS
+    CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    CORS_SIMPLE_REQUEST_HEADERS,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+    DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
+    DSTS_OPENID_CONFIG_RESPONSE,
+    ID_TOKEN_CLAIMS,
+    TEST_CONFIG,
+    TEST_TOKENS
 } from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
-import { Authority } from "../../src/authority/Authority";
-import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
-import { CommonClientCredentialRequest } from "../../src/request/CommonClientCredentialRequest";
-import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
-import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
-import { TimeUtils } from "../../src/utils/TimeUtils";
-import { CacheManager } from "../../src/cache/CacheManager";
-import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider, InteractionRequiredAuthError } from "../../src";
+
+
 
 describe("ClientCredentialClient unit tests", () => {
     let config: ClientConfiguration;
@@ -46,7 +56,7 @@ describe("ClientCredentialClient unit tests", () => {
             expect(client instanceof BaseClient).toBe(true);
         });
     });
-    
+
     it("acquires a token", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
@@ -105,11 +115,11 @@ describe("ClientCredentialClient unit tests", () => {
         };
 
         const client = new ClientCredentialClient(config);
-        client.acquireToken(clientCredentialRequest).catch((error) => {
+        client.acquireToken(clientCredentialRequest).catch(() => {
             // Catch errors thrown after the function call this test is testing
         });
     });
-    
+
     it("acquireToken's interactionRequiredAuthError error contains claims", async () => {
         const errorResponse = {
             error: "interaction_required",
@@ -152,7 +162,7 @@ describe("ClientCredentialClient unit tests", () => {
     it("Multiple access tokens would match, but one of them has a Home Account ID of \"\"", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
-        
+
         const authenticationScopes = AUTHENTICATION_RESULT_DEFAULT_SCOPES;
         authenticationScopes.body.scope = "https://graph.microsoft.com/.default";
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(authenticationScopes);
@@ -413,6 +423,7 @@ describe("ClientCredentialClient unit tests", () => {
         // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
         let stubCalled = false;
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        // @ts-ignore
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
             const headerNames = Object.keys(headers);
             headerNames.forEach((name) => {
@@ -440,7 +451,7 @@ describe("ClientCredentialClient unit tests", () => {
 
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER);
-            
+
         sinon.stub(ClientCredentialClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
@@ -491,11 +502,11 @@ describe("ClientCredentialClient unit tests", () => {
 
     it("Multiple access tokens matched, exception thrown", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        
+
         // mock access token
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
-            
+
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
@@ -527,20 +538,20 @@ describe("ClientCredentialClient unit tests", () => {
         let callbackedCalledCount = 0;
 
         const appTokenProvider: IAppTokenProvider =  (appTokenProviderParameters) => {
-            
+
             callbackedCalledCount++;
 
             expect(appTokenProviderParameters.scopes).toEqual(expectedScopes);
             expect(appTokenProviderParameters.tenantId).toEqual("common");
             expect(appTokenProviderParameters.correlationId).toEqual(TEST_CONFIG.CORRELATION_ID);
             expect(appTokenProviderParameters.claims).toBeUndefined();
-                
+
             return new Promise<AppTokenProviderResult>(
-                (resolve) => resolve(appTokenProviderResult));                        
+                (resolve) => resolve(appTokenProviderResult));
         };
-    
+
         // client credentials not needed
-        config.clientCredentials = undefined;    
+        config.clientCredentials = undefined;
 
         const client = new ClientCredentialClient(config, appTokenProvider);
         const clientCredentialRequest: CommonClientCredentialRequest = {
