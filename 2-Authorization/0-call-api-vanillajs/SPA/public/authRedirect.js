@@ -68,15 +68,12 @@ function signIn() {
     myMSALObj.loginRedirect(loginRequest);
 }
 
-function getTokenRedirect() {
+function getTokenRedirect(request) {
     /**
      * See here for more info on account retrieval:
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
      */
-    const request = {
-        scopes: [...protectedResources.apiTodoList.scopes.read],
-        account:  myMSALObj.getAccountByUsername(username),
-    };
+    request.account = myMSALObj.getAccountByUsername(username);
     return myMSALObj.acquireTokenSilent(request).catch((error) => {
         console.error(error);
         console.warn('silent token acquisition fails. acquiring token using popup');

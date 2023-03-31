@@ -10,10 +10,14 @@ async function handleTodoListActions(task, method, endpoint) {
     try {
         let tokenResponse;
         if (typeof getTokenPopup === 'function') {
-    
-            tokenResponse = await getTokenPopup();
+            tokenResponse = await getTokenPopup({
+                scopes: [...protectedResources.apiTodoList.scopes.write],
+                redirectUri: '/redirect',
+            });
         } else {
-            tokenResponse = await getTokenRedirect();
+            tokenResponse = await getTokenRedirect({
+                scopes: [...protectedResources.apiTodoList.scopes.write],
+            });
         }
 
         if (tokenResponse && tokenResponse.accessToken) {
@@ -40,9 +44,14 @@ async function getTodos() {
     try {
         let tokenResponse;
         if (typeof getTokenPopup === 'function') {
-            tokenResponse = await getTokenPopup();
+            tokenResponse = await getTokenPopup({
+                scopes: [ ...protectedResources.apiTodoList.scopes.read],
+                redirectUri: '/redirect'
+            });
         } else {
-            tokenResponse = await getTokenRedirect();
+            tokenResponse = await getTokenRedirect({
+                scopes: [ ...protectedResources.apiTodoList.scopes.read],
+            });
         }
 
         if (tokenResponse && tokenResponse.accessToken) {

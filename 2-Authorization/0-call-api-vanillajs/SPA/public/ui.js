@@ -17,7 +17,6 @@ todoForm.addEventListener('submit', (e) => {
     let task = {
         owner: account.idTokenClaims?.oid,
         description: textInput.value,
-        status: false,
     };
     handleTodoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
     todoForm.reset();
@@ -53,8 +52,7 @@ function showTodoListItems(response) {
     tableDiv.classList.add('d-none');
     todoForm.classList.remove('d-none');
     todolistDiv.classList.remove('d-none');
-
-    if (response.length > 0) {
+    if (!!response.length) {
         response.forEach((task) => {
             AddTaskToTodoList(task);
         });

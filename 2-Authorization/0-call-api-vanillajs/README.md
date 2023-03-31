@@ -290,6 +290,78 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+### Acquire a token
+
+**Access Token** requests in **MSAL.js** are meant to be *per-resource-per-scope(s)*. This means that an **Access Token** requested for resource **A** with scope `scp1`:
+
+* cannot be used for accessing resource **A** with scope `scp2`, and,
+* cannot be used for accessing resource **B** of any scope.
+
+The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not mach the resource APP ID URI, the token should be considered invalid. Likewise, the permissions that an Access Token grants is represented by the `scp` claim. See [Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
+
+**MSAL.js** exposes 3 APIs for acquiring a token: `acquireTokenPopup()`, `acquireTokenRedirect()` and `acquireTokenSilent()`:
+
+```javascript
+    myMSALObj.acquireTokenPopup(request)
+        .then(response => {
+            // do something with response
+        })
+        .catch(error => {
+            console.log(error)
+        });
+```
+
+For `acquireTokenRedirect()`, you must register a redirect promise handler:
+
+```javascript
+    myMSALObj.handleRedirectPromise()
+        .then(response => {
+            // do something with response
+        })
+        .catch(error => {
+            console.log(error);
+        });
+
+    myMSALObj.acquireTokenRedirect(request);
+```
+
+The **MSAL.js** exposes the `acquireTokenSilent()` API which is meant to retrieve non-expired token silently.
+
+```javascript
+    myMSALObj.acquireTokenSilent(request)
+        .then(tokenResponse => {
+        // Do something with the tokenResponse
+        }).catch(async (error) => {
+            if (error instanceof InteractionRequiredAuthError) {
+                // fallback to interaction when silent call fails
+                return myMSALObj.acquireTokenPopup(request);
+            }
+        }).catch(error => {
+            handleError(error);
+        });
+```
+
+### Dynamic Scopes and Incremental Consent
+
+In **Azure AD CIAM**, the scopes (permissions) set directly on the application registration are called static scopes. Other scopes that are only defined within the code are called dynamic scopes. This has implications on the **login** (i.e. loginPopup, loginRedirect) and **acquireToken** (i.e. `acquireTokenPopup`, `acquireTokenRedirect`, `acquireTokenSilent`) methods of **MSAL.js**. Consider:
+
+```javascript
+     const loginRequest = {
+          scopes: [ "openid", "profile", "TodoList.Read" ]
+     };
+     const tokenRequest = {
+          scopes: [ "TodoList.ReadWrite" ]
+     };
+
+     // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
+     myMSALObj.loginPopup(loginRequest);
+
+     // The received token will be issued for "openid", "profile" ,"User.Read" and "TodoList.Read" combined
+     myMSALObj.acquireTokenSilent(tokenRequest);
+```
+
+In the code snippet above, the user will receive an **ID Token** and an **Access Token** with the scope `TodoList.Read`. Later, if they request an **Access Token** for `TodoList.ReadWrite`, they will receive a new  **Access Token** with scopes `TodoList.Read` and `TodoList.ReadWrite`. In **Azure AD CIAM**, the admin must consent for both static and dynamic scopes for the users to receive an **ID Token** and an **Access Token** this will bypass the consent screen for the users due to the admin consenting on behalf of the users in the tenant.
+
 ### Access token validation
 
 On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Startup.cs](./API/TodoListAPI/Startup.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:

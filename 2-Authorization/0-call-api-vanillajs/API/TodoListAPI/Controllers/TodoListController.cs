@@ -169,7 +169,6 @@ namespace TodoListAPI.Controllers
             }
 
             todoItem.Owner = owner;
-            todoItem.Status = false;
 
             _context.TodoItems.Add(todoItem);
             await _context.SaveChangesAsync();
