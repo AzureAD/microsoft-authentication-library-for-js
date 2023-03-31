@@ -5,7 +5,6 @@
 
 import { ApiId, Constants } from "../utils/Constants";
 import {
-    DeviceCodeClient,
     AuthenticationResult,
     CommonDeviceCodeRequest,
     AuthError,
@@ -31,6 +30,7 @@ import { LoopbackClient } from "../network/LoopbackClient";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { SignOutRequest } from "../request/SignOutRequest";
 import { ILoopbackClient } from "../network/ILoopbackClient";
+import { DeviceCodeClient } from "./DeviceCodeClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
