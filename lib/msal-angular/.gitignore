@@ -49,3 +49,5 @@ Thumbs.db
 ref/
 
 __ivy_ngcc__
+
+.angular/cache/
