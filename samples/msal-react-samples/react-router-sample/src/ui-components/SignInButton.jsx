@@ -13,11 +13,18 @@ export const SignInButton = () => {
 
     const handleLogin = (loginType) => {
         setAnchorEl(null);
+        const authRequest = {
+            ...loginRequest,
+        };
+
+        if (process.env.NODE_ENV === "development") {
+            authRequest.redirectUri = "/redirect.html";
+        }
 
         if (loginType === "popup") {
-            instance.loginPopup(loginRequest);
+            instance.loginPopup(authRequest);
         } else if (loginType === "redirect") {
-            instance.loginRedirect(loginRequest);
+            instance.loginRedirect(authRequest);
         }
     }
 

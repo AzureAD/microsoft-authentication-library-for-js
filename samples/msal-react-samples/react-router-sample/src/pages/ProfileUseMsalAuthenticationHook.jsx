@@ -15,7 +15,15 @@ import Paper from "@mui/material/Paper";
 
 const ProfileContent = () => {
     const [graphData, setGraphData] = useState(null);
-    const { result, error } = useMsalAuthentication(InteractionType.Popup, loginRequest);
+    const authRequest = {
+        ...loginRequest,
+    };
+
+    if (process.env.NODE_ENV === "development") {
+        authRequest.redirectUri = "/redirect.html";
+    }
+
+    const { result, error } = useMsalAuthentication(InteractionType.Popup, authRequest);
 
     useEffect(() => {
         if (!!graphData) {

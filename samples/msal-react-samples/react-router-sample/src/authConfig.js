@@ -14,14 +14,14 @@ const isFirefox = firefox > 0; // Only needed if you need to support the redirec
 // Config object to be passed to Msal on creation
 export const msalConfig = {
     auth: {
-        clientId: "b5c2e510-4a17-4feb-b219-e55aa5b74144",
-        authority: "https://login.microsoftonline.com/common",
+        clientId: process.env.REACT_APP_CLIENT_ID,
+        authority: process.env.REACT_APP_AUTHORITY,
         redirectUri: "/",
-        postLogoutRedirectUri: "/"
+        postLogoutRedirectUri: "/",
     },
     cache: {
         cacheLocation: "localStorage",
-        storeAuthStateInCookie: isIE || isEdge || isFirefox
+        storeAuthStateInCookie: isIE || isEdge || isFirefox,
     },
     system: {
         loggerOptions: {
@@ -45,9 +45,9 @@ export const msalConfig = {
                     default:
                         return;
                 }
-            }
-        }
-    }
+            },
+        },
+    },
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
@@ -57,5 +57,5 @@ export const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
 };
