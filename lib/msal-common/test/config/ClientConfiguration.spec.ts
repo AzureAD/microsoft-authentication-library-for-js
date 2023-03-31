@@ -2,7 +2,7 @@ import { CommonClientConfiguration, buildClientConfiguration } from "../../src/c
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { LogLevel } from "../../src/logger/Logger";
+import { Logger, LogLevel } from "../../src/logger/Logger";
 import { version } from "../../src/packageMetadata";
 import {TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES} from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
@@ -84,7 +84,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.telemetry.application.appVersion).toHaveLength(0);
     });
 
-    const cacheStorageMock = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+    const cacheStorageMock = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
 
     const testPkceCodes = {
         challenge: "TestChallenge",

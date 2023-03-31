@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType } from "@azure/msal-common";
+import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType, TokenKeys } from "@azure/msal-common";
 import { CacheKVStore } from "./CacheTypes";
 
 /**
@@ -14,7 +14,7 @@ export class NodeCacheManager extends CacheManager {
     private cache: CacheKVStore = new Map();
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
-        super(clientId, cryptoImpl);
+        super(clientId, cryptoImpl, logger);
         this.logger = logger;
     }
 
@@ -134,6 +134,10 @@ export class NodeCacheManager extends CacheManager {
 
     getAccountKeys(): string[] {
         throw new Error("Method not implemented. getAccountKeys");
+    }
+
+    getTokenKeys(): TokenKeys {
+        throw new Error("Method not implemented. getTokenKeys");
     }
 
     getAccessTokenCredential(): null {

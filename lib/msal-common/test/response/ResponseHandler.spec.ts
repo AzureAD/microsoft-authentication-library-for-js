@@ -83,8 +83,6 @@ const cryptoInterface: ICrypto = {
     }
 };
 
-const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, cryptoInterface);
-
 const testServerTokenResponse = {
     headers: null,
     status: 200,
@@ -133,6 +131,8 @@ const loggerOptions = {
     loggerCallback: testLoggerCallback,
 }
 const logger = new Logger(loggerOptions);
+
+const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, cryptoInterface, logger);
 
 const testAuthority = new Authority("https://login.microsoftonline.com/common", networkInterface, testCacheManager, authorityOptions, logger);
 
