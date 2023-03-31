@@ -30,8 +30,9 @@
             "@azure/msal-node",
             "@azure/msal-react",
             "@azure/msal-angular",
-            "@azure/msal-node-extensions"
-      ],
+            "@azure/msal-node-extensions",
+            "@azure/node-token-validation"
+        ],
       "stream": true
     }
   },

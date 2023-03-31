@@ -13,9 +13,9 @@ import {
     CommonClientCredentialRequest,
     CommonUsernamePasswordRequest,
     Constants,
-    CredentialCache,
     GrantType,
-    IAppTokenProvider, InteractionRequiredAuthError,
+    IAppTokenProvider,
+    InteractionRequiredAuthError,
     ThrottlingConstants,
     TimeUtils
 } from "@azure/msal-common";

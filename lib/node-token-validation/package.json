@@ -49,6 +49,7 @@
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build:common && npm run build",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/node-token-validation",
     "prepack": "npm run build:all"
   },
   "bugs": {

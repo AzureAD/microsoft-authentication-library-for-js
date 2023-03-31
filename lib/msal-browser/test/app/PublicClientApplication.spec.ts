@@ -3442,17 +3442,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            pca.controller.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            pca.controller.getBrowserStorage().setAccount(testAccount2);
 
             const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            pca.controller.getBrowserStorage().setIdTokenCredential(idToken1);
 
             const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            pca.controller.getBrowserStorage().setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -3608,14 +3608,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         beforeEach(() => {
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount1);
+            pca.controller.getBrowserStorage().setAccount(testAccount1);
             // @ts-ignore
-            pca.browserStorage.setAccount(testAccount2);
+            pca.controller.getBrowserStorage().setAccount(testAccount2);
 
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken1);
+            pca.controller.getBrowserStorage().setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.browserStorage.setIdTokenCredential(idToken2);
+            pca.controller.getBrowserStorage().setIdTokenCredential(idToken2);
 
             sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
                 const authorityMetadata = new AuthorityMetadataEntity();

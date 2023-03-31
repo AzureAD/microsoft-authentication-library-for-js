@@ -11,20 +11,19 @@ import {
     PkceCodes,
     ClientAuthError,
     AccountEntity,
-    CredentialEntity,
     AppMetadataEntity,
     ThrottlingEntity,
     IdTokenEntity,
     AccessTokenEntity,
     RefreshTokenEntity,
-    CredentialType,
     ProtocolMode,
     AuthorityFactory,
     AuthorityOptions,
     AuthorityMetadataEntity,
     ValidCredentialType,
     Logger,
-    LogLevel
+    LogLevel,
+    TokenKeys
 } from "@azure/msal-common";
 import {
     AUTHENTICATION_RESULT,
@@ -35,6 +34,9 @@ import {
     TEST_POP_VALUES,
     TEST_TOKENS
 } from "../test_kit/StringConstants";
+
+const ACCOUNT_KEYS = "ACCOUNT_KEYS";
+const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
     store = {};
@@ -51,55 +53,85 @@ export class MockStorageClass extends CacheManager {
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
+
+        const currentAccounts = this.getAccountKeys();
+        if (!currentAccounts.includes(key)) {
+            currentAccounts.push(key);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    async removeAccount(key: string): Promise<void> {
+        await super.removeAccount(key);
+        const currentAccounts = this.getAccountKeys();
+        const removalIndex = currentAccounts.indexOf(key);
+        if (removalIndex > -1) {
+            currentAccounts.splice(removalIndex, 1);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    getAccountKeys(): string[] {
+        return this.store[ACCOUNT_KEYS] || [];
+    }
+
+    getTokenKeys(): TokenKeys {
+        return this.store[TOKEN_KEYS] || {
+            idToken: [],
+            accessToken: [],
+            refreshToken: []
+        }
     }
 
     // Credentials (idtokens)
     getIdTokenCredential(key: string): IdTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ID_TOKEN) {
-            return this.store[key] as IdTokenEntity;
-        }
-        return null;
+        return this.store[key] as IdTokenEntity || null;
     }
-
     setIdTokenCredential(value: IdTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+
+        const tokenKeys = this.getTokenKeys();
+        if (!tokenKeys.idToken.includes(key)) {
+            tokenKeys.idToken.push(key);
+            this.store[TOKEN_KEYS] = tokenKeys;
+        }
     }
 
     // Credentials (accesstokens)
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ACCESS_TOKEN || credType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
-            return this.store[key] as AccessTokenEntity;
-        }
-        return null;
+        return this.store[key] as AccessTokenEntity || null;
     }
-
     setAccessTokenCredential(value: AccessTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+
+        const tokenKeys = this.getTokenKeys();
+        if (!tokenKeys.accessToken.includes(key)) {
+            tokenKeys.accessToken.push(key);
+            this.store[TOKEN_KEYS] = tokenKeys;
+        }
     }
 
     // Credentials (accesstokens)
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.REFRESH_TOKEN) {
-            return this.store[key] as RefreshTokenEntity;
-        }
-        return null;
+        return this.store[key] as RefreshTokenEntity || null;
     }
-
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+
+        const tokenKeys = this.getTokenKeys();
+        if (!tokenKeys.refreshToken.includes(key)) {
+            tokenKeys.refreshToken.push(key);
+            this.store[TOKEN_KEYS] = tokenKeys;
+        }
     }
 
     // AppMetadata
     getAppMetadata(key: string): AppMetadataEntity | null {
         return this.store[key] as AppMetadataEntity;
     }
-
     setAppMetadata(value: AppMetadataEntity): void {
         const key = value.generateAppMetadataKey();
         this.store[key] = value;
@@ -109,7 +141,6 @@ export class MockStorageClass extends CacheManager {
     getServerTelemetry(key: string): ServerTelemetryEntity | null {
         return this.store[key] as ServerTelemetryEntity;
     }
-
     setServerTelemetry(key: string, value: ServerTelemetryEntity): void {
         this.store[key] = value;
     }
@@ -118,7 +149,6 @@ export class MockStorageClass extends CacheManager {
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
         return this.store[key] as AuthorityMetadataEntity;
     }
-
     setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
         this.store[key] = value;
     }
@@ -127,36 +157,27 @@ export class MockStorageClass extends CacheManager {
     getThrottlingCache(key: string): ThrottlingEntity | null {
         return this.store[key] as ThrottlingEntity;
     }
-
     setThrottlingCache(key: string, value: ThrottlingEntity): void {
         this.store[key] = value;
     }
 
-    removeItem(key: string): boolean {
-        let result: boolean = false;
+    removeItem(key: string): void {
         if (!!this.store[key]) {
             delete this.store[key];
-            result = true;
         }
-        return result;
     }
-
     containsKey(key: string): boolean {
         return !!this.store[key];
     }
-
     getKeys(): string[] {
         return Object.keys(this.store);
     }
-
     getAuthorityMetadataKeys(): string[] {
         return this.getKeys();
     }
-
     async clear(): Promise<void> {
         this.store = {};
     }
-
     updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
         const updatedCacheKey = credential.generateCredentialKey();
 
@@ -207,8 +228,7 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    // @ts-ignore
-    async removeTokenBindingKey(keyId: string): Promise<boolean> {
+    async removeTokenBindingKey(): Promise<boolean> {
         return Promise.resolve(true);
     },
     async signJwt(): Promise<string> {
@@ -224,8 +244,8 @@ export const mockCrypto = {
 
 export class ClientTestUtils {
 
-    static async createTestClientConfiguration(): Promise<ClientConfiguration> {
-        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+    static async createTestClientConfiguration(): Promise<ClientConfiguration>{
+        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
 
         const testLoggerCallback = (): void => {
             return;
@@ -248,14 +268,13 @@ export class ClientTestUtils {
         };
 
         const loggerOptions = {
-            loggerCallback: (): void => {
-            },
+            loggerCallback: (): void => {},
             piiLoggingEnabled: true,
             logLevel: LogLevel.Verbose
         };
         const logger = new Logger(loggerOptions);
 
-        const authority = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions, logger);
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions, logger);
 
         await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);

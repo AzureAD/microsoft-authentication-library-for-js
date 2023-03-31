@@ -14,7 +14,6 @@ import {
     ClientConfiguration,
     CommonClientCredentialRequest,
     Constants,
-    CredentialCache,
     CredentialFilter,
     CredentialType,
     GrantType,
