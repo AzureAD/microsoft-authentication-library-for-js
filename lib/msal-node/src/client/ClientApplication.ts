@@ -20,7 +20,6 @@ import {
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     CommonUsernamePasswordRequest,
-    UsernamePasswordClient,
     AuthenticationScheme,
     ResponseMode,
     AuthorityOptions,
@@ -45,6 +44,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
+import { UsernamePasswordClient } from "./UsernamePasswordClient";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
