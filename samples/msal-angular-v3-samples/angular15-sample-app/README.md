@@ -1,7 +1,5 @@
 # Angular 15 MSAL Angular v3 Sample
 
-**IMPORTANT NOTE: THIS SAMPLE IS FOR TESTING PURPOSES ONLY. MSAL ANGULAR V3 HAS NOT YET BEEN RELEASED**
-
 This developer sample is used to demonstrate how to use `@azure/msal-angular`.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 15.1.4.

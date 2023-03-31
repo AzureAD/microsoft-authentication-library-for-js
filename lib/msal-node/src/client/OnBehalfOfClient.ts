@@ -3,25 +3,32 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration } from "../config/ClientConfiguration";
-import { BaseClient } from "./BaseClient";
-import { Authority } from "../authority/Authority";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome, AuthenticationScheme } from "../utils/Constants";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
-import { TimeUtils } from "../utils/TimeUtils";
-import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
-import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
-import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
-import { AccountEntity } from "../cache/entities/AccountEntity";
-import { AuthToken } from "../account/AuthToken";
-import { ClientAuthError } from "../error/ClientAuthError";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { AccountInfo } from "../account/AccountInfo";
-import { UrlString } from "../url/UrlString";
+import {
+    AADServerParamKeys,
+    AccessTokenEntity,
+    AccountEntity,
+    AccountInfo,
+    AuthenticationResult,
+    AuthenticationScheme,
+    Authority,
+    AuthToken,
+    BaseClient,
+    CacheOutcome,
+    ClientAuthError,
+    ClientConfiguration,
+    CommonOnBehalfOfRequest,
+    Constants,
+    CredentialCache,
+    CredentialFilter,
+    CredentialType, GrantType,
+    IdTokenEntity,
+    RequestParameterBuilder,
+    RequestThumbprint,
+    ResponseHandler,
+    ScopeSet,
+    TimeUtils,
+    UrlString
+} from "@azure/msal-common";
 
 /**
  * On-Behalf-Of client
@@ -82,7 +89,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         // fetch the idToken from cache
-        const cachedIdToken = this.readIdTokenFromCacheForOBO(request, cachedAccessToken.homeAccountId);
+        const cachedIdToken = this.readIdTokenFromCacheForOBO(cachedAccessToken.homeAccountId);
         let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
@@ -122,9 +129,9 @@ export class OnBehalfOfClient extends BaseClient {
     /**
      * read idtoken from cache, this is a specific implementation for OBO as the requirements differ from a generic lookup in the cacheManager
      * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
-     * @param request
+     * @param atHomeAccountId {string}
      */
-    private readIdTokenFromCacheForOBO(request: CommonOnBehalfOfRequest, atHomeAccountId: string): IdTokenEntity | null {
+    private readIdTokenFromCacheForOBO(atHomeAccountId: string): IdTokenEntity | null {
 
         const idTokenFilter: CredentialFilter = {
             homeAccountId: atHomeAccountId,
@@ -272,7 +279,7 @@ export class OnBehalfOfClient extends BaseClient {
         if (request.claims || (this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0)) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
-       
+
         return parameterBuilder.createQueryString();
     }
 }

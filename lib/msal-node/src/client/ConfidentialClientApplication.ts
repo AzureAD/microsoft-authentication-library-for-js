@@ -8,8 +8,6 @@ import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
 import { Constants as NodeConstants, ApiId, REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
-    ClientCredentialClient,
-    OnBehalfOfClient,
     CommonClientCredentialRequest,
     CommonOnBehalfOfRequest,
     AuthenticationResult,
@@ -24,6 +22,8 @@ import {
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { ClientCredentialClient } from "./ClientCredentialClient";
+import { OnBehalfOfClient } from "./OnBehalfOfClient";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
