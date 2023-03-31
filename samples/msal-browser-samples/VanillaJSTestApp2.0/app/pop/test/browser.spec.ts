@@ -85,6 +85,6 @@ describe("Browser tests", function () {
 
         // Expected 5 since the pop request will fail
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(5);
+        expect(Object.keys(storage).length).toEqual(7);
     });
 });

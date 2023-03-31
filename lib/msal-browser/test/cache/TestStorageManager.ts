@@ -15,8 +15,12 @@ import {
     CredentialEntity,
     CredentialType,
     AuthorityMetadataEntity,
-    ValidCredentialType
+    ValidCredentialType,
+    TokenKeys
 } from "@azure/msal-common";
+
+const ACCOUNT_KEYS = "ACCOUNT_KEYS";
+const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class TestStorageManager extends CacheManager {
     store = {};
@@ -30,50 +34,78 @@ export class TestStorageManager extends CacheManager {
         return null;
     }
 
-    setAccount(account: AccountEntity): void {
-        const key = account.generateAccountKey();
-        this.store[key] = account;
+    setAccount(value: AccountEntity): void {
+        const key = value.generateAccountKey();
+        this.store[key] = value;
+
+        const currentAccounts = this.getAccountKeys();
+        if (!currentAccounts.includes(key)) {
+            currentAccounts.push(key);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
     }
 
+    async removeAccount(key: string): Promise<void> {
+        await super.removeAccount(key);
+        const currentAccounts = this.getAccountKeys();
+        const removalIndex = currentAccounts.indexOf(key);
+        if (removalIndex > -1) {
+            currentAccounts.splice(removalIndex, 1);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    getAccountKeys(): string[] {
+        return this.store[ACCOUNT_KEYS] || [];
+    }
+
+    getTokenKeys(): TokenKeys {
+        return this.store[TOKEN_KEYS] || {
+            idToken: [],
+            accessToken: [],
+            refreshToken: []
+        }
+    }
+    
     // Credentials (idtokens)
     getIdTokenCredential(key: string): IdTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ID_TOKEN) {
-            return this.store[key] as IdTokenEntity;
-        }
-        return null;
+        return this.store[key] as IdTokenEntity || null;
     }
 
     setIdTokenCredential(idToken: IdTokenEntity): void {
         const idTokenKey = idToken.generateCredentialKey();
         this.store[idTokenKey] = idToken;
+
+        const tokenKeys = this.getTokenKeys();
+        tokenKeys.idToken.push(idTokenKey);
+        this.store[TOKEN_KEYS] = tokenKeys;
     }
 
     // Credentials (accesstokens)
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ACCESS_TOKEN) {
-            return this.store[key] as AccessTokenEntity;
-        }
-        return null;
+        return this.store[key] as AccessTokenEntity || null;
     }
 
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
         const accessTokenKey = accessToken.generateCredentialKey();
         this.store[accessTokenKey] = accessToken;
+
+        const tokenKeys = this.getTokenKeys();
+        tokenKeys.accessToken.push(accessTokenKey);
+        this.store[TOKEN_KEYS] = tokenKeys;
     }
 
     // Credentials (accesstokens)
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.REFRESH_TOKEN) {
-            return this.store[key] as RefreshTokenEntity;
-        }
-        return null;
+        return this.store[key] as RefreshTokenEntity || null;
     }
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
         const refreshTokenKey = refreshToken.generateCredentialKey();
         this.store[refreshTokenKey] = refreshToken;
+
+        const tokenKeys = this.getTokenKeys();
+        tokenKeys.refreshToken.push(refreshTokenKey);
+        this.store[TOKEN_KEYS] = tokenKeys;
     }
 
     // AppMetadata

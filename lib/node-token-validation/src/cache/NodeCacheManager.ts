@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType } from "@azure/msal-common";
+import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType, TokenKeys } from "@azure/msal-common";
 import { CacheKVStore } from "./CacheTypes";
 
 /**
@@ -14,12 +14,13 @@ export class NodeCacheManager extends CacheManager {
     private cache: CacheKVStore = new Map();
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
-        super(clientId, cryptoImpl);
+        super(clientId, cryptoImpl, logger);
         this.logger = logger;
     }
 
     /**
      * Gets the current cache key-value store
+     *
      * @returns {CacheKVStore} Key Value store for in-memory storage
      */
     getCache(): CacheKVStore {
@@ -29,6 +30,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Sets the current cache key-value store
+     *
      * @param {CacheKVStore} cache 
      */
     setCache(cache: CacheKVStore): void {
@@ -38,6 +40,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Gets cache item with given key-value
+     *
      * @param {string} key Lookup key for the cache entry
      * @returns {ValidCacheType} Cache entry
      */
@@ -51,6 +54,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Sets cache item with given key-value
+     *
      * @param {string} key Lookup key for the cache entry
      * @param {ValidCacheType} value Value for the cache entry
      */
@@ -67,6 +71,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Removes the cache item from memory with the given key
+     *
      * @param {string} key Lookup key to remove a cache entity
      * @returns {boolean} Boolean indicating whether cache item was deleted
      */
@@ -91,6 +96,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Checks whether key is in cache
+     *
      * @param {string} key Lookup key for a cache entity
      * @returns {boolean} Boolean indicating whether cache contains key
      */
@@ -100,6 +106,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Gets all cache keys
+     *
      * @returns {string[]} Array of cache keys
      */
     getKeys(): string[] {
@@ -123,6 +130,14 @@ export class NodeCacheManager extends CacheManager {
         cacheKeys.forEach(key => {
             this.removeItem(key);
         });
+    }
+
+    getAccountKeys(): string[] {
+        throw new Error("Method not implemented. getAccountKeys");
+    }
+
+    getTokenKeys(): TokenKeys {
+        throw new Error("Method not implemented. getTokenKeys");
     }
 
     getAccessTokenCredential(): null {
@@ -167,6 +182,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Fetch authority metadata entity from the cache
+     *
      * @param {string} key Lookup key to fetch cache type AuthorityMetadataEntity
      * @returns {AuthorityMetadataEntity} Authority metadata entity 
      */
@@ -181,6 +197,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Get authority metadata keys
+     *
      * @returns {string[]} Array of authority metadata keys
      */
     getAuthorityMetadataKeys(): string[] {
@@ -192,6 +209,7 @@ export class NodeCacheManager extends CacheManager {
 
     /**
      * Set authority metadata entity to the cache
+     *
      * @param {string} key Lookup key to fetch cache type AuthorityMetadataEntity
      * @param {AuthorityMetadataEntity} metadata Cache value to be set type AuthorityMetadataEntity
      */

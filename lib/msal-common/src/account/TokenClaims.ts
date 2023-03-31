@@ -62,4 +62,9 @@ export type TokenClaims = {
     amr?: string[],
     idp?: string,
     auth_time?: number,
+    /**
+     * 	Region of the resource tenant
+     */
+    tenant_region_scope?: string,
+    tenant_region_sub_scope?: string
 };

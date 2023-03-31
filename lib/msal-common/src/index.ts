@@ -36,7 +36,7 @@ export { ProtocolMode } from "./authority/ProtocolMode";
 export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType, TokenKeys } from "./cache/utils/CacheTypes";
 export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
@@ -95,7 +95,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
