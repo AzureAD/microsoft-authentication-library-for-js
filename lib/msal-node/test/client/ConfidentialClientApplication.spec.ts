@@ -1,10 +1,4 @@
 import {
-    AuthError,
-    ConfidentialClientApplication,
-    OnBehalfOfRequest,
-    UsernamePasswordRequest
-} from '../../src';
-import {
     ClientConfiguration,
     AuthorizationCodeClient,
     RefreshTokenClient,
@@ -14,6 +8,10 @@ import {
 } from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import {
+    AuthError,
+    ConfidentialClientApplication,
+    OnBehalfOfRequest,
+    UsernamePasswordRequest,
     ClientCredentialRequest,
     Configuration,
     AuthorizationCodeRequest,

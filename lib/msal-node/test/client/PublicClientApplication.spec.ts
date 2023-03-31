@@ -1,5 +1,3 @@
-import { PublicClientApplication } from '../../src';
-import { Configuration, DeviceCodeClient, ILoopbackClient, InteractiveRequest } from '../../src';
 import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS, TEST_DATA_CLIENT_INFO } from '../utils/TestConstants';
 import {
     ClientConfiguration,
@@ -15,13 +13,19 @@ import {
     ServerAuthorizationCodeResponse
 } from '@azure/msal-common';
 import {
+    Configuration,
+    DeviceCodeClient,
+    ILoopbackClient,
+    InteractiveRequest,
+    PublicClientApplication,
     CryptoProvider,
     DeviceCodeRequest,
     AuthorizationCodeRequest,
     RefreshTokenRequest,
     AuthorizationUrlRequest,
     UsernamePasswordRequest,
-    SilentFlowRequest
+    SilentFlowRequest,
+    NodeStorage
 } from '../../src';
 import { HttpClient } from '../../src/network/HttpClient';
 import http from "http";
@@ -30,7 +34,6 @@ import * as msalNode from '../../src';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
 import { getMsalCommonAutoMock, MSALCommonModule } from '../utils/MockUtils';
 
-import { NodeStorage } from '../../src'
 import { version, name } from '../../package.json'
 
 const msalCommon: MSALCommonModule = jest.requireActual('@azure/msal-common');

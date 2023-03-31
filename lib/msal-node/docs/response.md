@@ -1,3 +1,5 @@
+# Response
+
 MSAL will return an `AuthenticationResult.ts` object as a response to all acquire token APIs:
 
 #### `msal-browser` public APIs for token acquisition:
