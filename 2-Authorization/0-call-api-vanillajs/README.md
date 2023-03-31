@@ -174,7 +174,7 @@ Please refer to:
     1. For **Value**, enter **TodoList.Read.All**.
     1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
     1. Select **Apply** to save your changes.
-    > :warning: Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
+   1. Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
 
 ##### Configure Optional Claims
 
