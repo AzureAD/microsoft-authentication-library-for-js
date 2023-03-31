@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update comments in IPartitionManager #5773",
+  "packageName": "@azure/msal-node",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "none"
+}
