@@ -14,13 +14,15 @@ import {
     AccountInfo,
     ServerAuthorizationCodeResponse
 } from '@azure/msal-common';
-import { CryptoProvider } from '../../src';
-import { DeviceCodeRequest } from '../../src';
-import { AuthorizationCodeRequest } from '../../src';
-import { RefreshTokenRequest } from '../../src';
-import { AuthorizationUrlRequest } from "../../src";
-import { UsernamePasswordRequest } from '../../src';
-import { SilentFlowRequest } from '../../src';
+import {
+    CryptoProvider,
+    DeviceCodeRequest,
+    AuthorizationCodeRequest,
+    RefreshTokenRequest,
+    AuthorizationUrlRequest,
+    UsernamePasswordRequest,
+    SilentFlowRequest
+} from '../../src';
 import { HttpClient } from '../../src/network/HttpClient';
 import http from "http";
 

@@ -9,7 +9,8 @@ import {
     AuthorizationCodeClient,
     RefreshTokenClient,
     AuthenticationResult,
-    OIDC_DEFAULT_SCOPES, CommonClientCredentialRequest
+    OIDC_DEFAULT_SCOPES,
+    CommonClientCredentialRequest
 } from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import {

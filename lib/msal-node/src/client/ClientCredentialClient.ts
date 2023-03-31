@@ -5,11 +5,28 @@
 
 import {
     AccessTokenEntity,
-    AuthenticationResult, AuthenticationScheme, Authority, BaseClient, CacheOutcome, ClientAuthError,
+    AuthenticationResult,
+    AuthenticationScheme,
+    Authority,
+    BaseClient,
+    CacheOutcome,
+    ClientAuthError,
     ClientConfiguration,
-    CommonClientCredentialRequest, Constants, CredentialCache, CredentialFilter, CredentialType, GrantType,
-    IAppTokenProvider, RequestParameterBuilder, RequestThumbprint, ResponseHandler,
-    ScopeSet, ServerAuthorizationTokenResponse, StringUtils, TimeUtils, UrlString
+    CommonClientCredentialRequest,
+    Constants,
+    CredentialCache,
+    CredentialFilter,
+    CredentialType,
+    GrantType,
+    IAppTokenProvider,
+    RequestParameterBuilder,
+    RequestThumbprint,
+    ResponseHandler,
+    ScopeSet,
+    ServerAuthorizationTokenResponse,
+    StringUtils,
+    TimeUtils,
+    UrlString
 } from "@azure/msal-common";
 
 /**
