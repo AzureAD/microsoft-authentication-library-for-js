@@ -1,9 +1,9 @@
-import { ComponentFixtureAutoDetect, fakeAsync, TestBed } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { IPublicClientApplication, PublicClientApplication } from "@azure/msal-browser";
-import { MsalModule } from './msal.module';
-import { MsalService } from './msal.service';
-import { MsalRedirectComponent } from './msal.redirect.component';
 import { MsalBroadcastService } from './msal.broadcast.service';
+import { MsalModule } from './msal.module';
+import { MsalRedirectComponent } from './msal.redirect.component';
+import { MsalService } from './msal.service';
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
