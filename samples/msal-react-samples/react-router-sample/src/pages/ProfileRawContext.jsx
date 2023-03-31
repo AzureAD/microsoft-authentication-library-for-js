@@ -72,11 +72,11 @@ class Profile extends Component {
         const authRequest = {
             ...loginRequest
         };
-        
-        if(process.env.NODE_ENV === "development") {
-            authRequest.redirectUri = "/redirect.html";
-        }
 
+        if (process.env.REACT_APP_POPUP_REDIRECT_URI) {
+            authRequest.redirectUri = process.env.REACT_APP_POPUP_REDIRECT_URI;
+        }
+        
         return (
             <MsalAuthenticationTemplate 
                 interactionType={InteractionType.Popup} 

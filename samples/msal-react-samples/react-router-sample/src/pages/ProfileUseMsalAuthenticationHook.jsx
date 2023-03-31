@@ -19,8 +19,8 @@ const ProfileContent = () => {
         ...loginRequest,
     };
 
-    if (process.env.NODE_ENV === "development") {
-        authRequest.redirectUri = "/redirect.html";
+    if (process.env.REACT_APP_POPUP_REDIRECT_URI) {
+        authRequest.redirectUri = process.env.REACT_APP_POPUP_REDIRECT_URI;
     }
 
     const { result, error } = useMsalAuthentication(InteractionType.Popup, authRequest);
