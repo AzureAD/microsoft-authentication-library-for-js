@@ -44,7 +44,7 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 
 1. The client Vanilla JavaScript SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**..
 1. The **access token** is used as a *bearer* token to authorize the user to call the ASP.NET Core web API protected by **Azure AD CIAM**.
-1. The service uses the [Microsoft.Identity.Web](https://aka.ms/microsoft-identity-web) to protect the Web api, check permissions and validate tokens.
+1. ASP.NET Core web API uses the [Microsoft.Identity.Web](https://aka.ms/microsoft-identity-web) to protect the Web api, check permissions and validate tokens.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
 
