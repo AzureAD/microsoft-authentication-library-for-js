@@ -4,9 +4,11 @@ import { TokenCache } from '../../src/cache/TokenCache';
 import { promises as fs } from 'fs';
 import { version, name } from '../../package.json';
 import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
-import * as msalCommon from '@azure/msal-common';
 import { Deserializer } from '../../src/cache/serializer/Deserializer';
 import { JsonCache } from '../../src';
+import { MSALCommonModule } from "../utils/MockUtils";
+
+const msalCommon: MSALCommonModule = jest.requireActual('@azure/msal-common');
 
 describe("TokenCache tests", () => {
 
