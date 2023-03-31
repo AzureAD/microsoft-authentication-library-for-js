@@ -209,7 +209,8 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     1. In the **Redirect URI** section enter the following redirect URIs:
         1. `http://localhost:3000`
         1. `http://localhost:3000/redirect`
-    1. Click **Save** to save your changes.
+    1. Select **Configure**
+    1. Select **Save** to save your changes.
 1. Since this app signs-in users, we will now proceed to select **delegated permissions**, which is is required by apps signing-in users.
     1. In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs:
     1. Select the **Add a permission** button and then:
