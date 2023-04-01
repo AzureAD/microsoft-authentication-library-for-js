@@ -5,34 +5,34 @@
 
 import sinon from "sinon";
 import {
+    AADServerParamKeys,
+    AccessTokenEntity,
+    AccountEntity,
+    AuthenticationScheme,
+    Authority,
+    AuthToken,
+    BaseClient,
+    CacheManager,
+    ClientConfiguration,
+    CommonOnBehalfOfRequest,
+    Constants,
+    CredentialType,
+    IdTokenEntity, ScopeSet,
+    ThrottlingConstants,
+    TimeUtils
+} from "@azure/msal-common";
+import { AuthenticationResult, OnBehalfOfClient } from "../../src";
+import {
+    AUTHENTICATION_RESULT,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS,
-    ID_TOKEN_CLAIMS,
-    DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_TOKENS,
-    AUTHENTICATION_RESULT,
+    TEST_URIS
 } from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
+import { ID_TOKEN_CLAIMS } from "../utils/TestConstants";
 import { ClientTestUtils } from "./ClientTestUtils";
-import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
-import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest";
-import { AuthToken } from "../../src/account/AuthToken";
-import { TimeUtils } from "../../src/utils/TimeUtils";
-import { Authority } from "../../src/authority/Authority";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { AuthenticationResult, IdTokenEntity } from "../../src";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import {
-    AuthenticationScheme,
-    CredentialType,
-    AADServerParamKeys,
-    Constants,
-    ThrottlingConstants,
-} from "../../src/utils/Constants";
-import { CacheManager } from "../../src/cache/CacheManager";
-import { ScopeSet } from "../../src/request/ScopeSet";
+
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
@@ -135,7 +135,7 @@ describe("OnBehalfOf unit tests", () => {
 
             const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
-            let config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration(); 
+            let config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new OnBehalfOfClient(config);
             const oboRequest: CommonOnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
@@ -148,7 +148,7 @@ describe("OnBehalfOf unit tests", () => {
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
             const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
-        
+
             expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
             expect(authResult.state).toBe("");
             expect(authResult.fromCache).toBe(false);
@@ -177,7 +177,7 @@ describe("OnBehalfOf unit tests", () => {
                     done(error);
                 }
             });
-    
+
             const client = new OnBehalfOfClient(config);
             const oboRequest: CommonOnBehalfOfRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
@@ -192,8 +192,8 @@ describe("OnBehalfOf unit tests", () => {
                     testParam3: "testValue3",
                 },
             };
-    
-            client.acquireToken(oboRequest).catch((error) => {
+
+            client.acquireToken(oboRequest).catch(() => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -258,7 +258,7 @@ describe("OnBehalfOf unit tests", () => {
             });
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
-            expect(mockIdTokenCached.calledWith(oboRequest)).toBe(true);
+            expect(mockIdTokenCached.calledWith('home_account_id')).toBe(true);
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);

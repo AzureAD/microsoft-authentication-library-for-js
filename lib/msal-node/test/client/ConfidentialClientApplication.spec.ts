@@ -1,17 +1,33 @@
-import { ConfidentialClientApplication } from './../../src/client/ConfidentialClientApplication';
-import { ClientConfiguration, AuthorizationCodeClient, RefreshTokenClient, AuthenticationResult, ClientCredentialClient, OnBehalfOfClient, UsernamePasswordClient } from '@azure/msal-common';
+import {
+    ClientConfiguration,
+    AuthorizationCodeClient,
+    RefreshTokenClient,
+    AuthenticationResult,
+    OIDC_DEFAULT_SCOPES,
+    CommonClientCredentialRequest
+} from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
-import { Configuration } from "../../src/config/Configuration";
-import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
-import { UsernamePasswordRequest } from '../../src';
-import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
+import {
+    AuthError,
+    ConfidentialClientApplication,
+    OnBehalfOfRequest,
+    UsernamePasswordRequest,
+    ClientCredentialRequest,
+    Configuration,
+    AuthorizationCodeRequest,
+    ClientCredentialClient,
+    RefreshTokenRequest
+} from "../../src";
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock } from './test-fixtures';
 
-import * as msalCommon from '@azure/msal-common';
-import { ClientCredentialRequest } from '../../src/request/ClientCredentialRequest';
-import { OnBehalfOfRequest } from '../../src';
-import { getMsalCommonAutoMock } from '../utils/MockUtils';
-import { AuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import * as msalNode from '../../src';
+import { getMsalCommonAutoMock, MSALCommonModule } from '../utils/MockUtils';
+
+const msalCommon: MSALCommonModule = jest.requireActual('@azure/msal-common');
+
+jest.mock('../../src/client/ClientCredentialClient');
+jest.mock('../../src/client/OnBehalfOfClient');
+jest.mock('../../src/client/UsernamePasswordClient');
 
 describe('ConfidentialClientApplication', () => {
     let appConfig: Configuration = {
@@ -72,7 +88,7 @@ describe('ConfidentialClientApplication', () => {
         setupAuthorityFactory_createDiscoveredInstance_mock();
 
 
-        const { RefreshTokenClient: mockRefreshTokenClient } = getMsalCommonAutoMock();
+        const {RefreshTokenClient: mockRefreshTokenClient} = getMsalCommonAutoMock();
 
 
         jest.spyOn(msalCommon, 'RefreshTokenClient')
@@ -92,13 +108,16 @@ describe('ConfidentialClientApplication', () => {
 
     test('acquireTokenByClientCredential', async () => {
 
+        // @ts-ignore
         const testProvider: msalCommon.IAppTokenProvider = () => {
+            // @ts-ignore
             return new Promise<msalCommon.AppTokenProviderResult>(
                 (resolve) => resolve({
                     accessToken: "accessToken",
                     expiresInSeconds: 3601,
                     refreshInSeconds: 1801,
-                }))};
+                }))
+        };
 
         const configWithExtensibility: Configuration = {
             auth: {
@@ -113,10 +132,6 @@ describe('ConfidentialClientApplication', () => {
             skipCache: false
         };
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
-
-        jest.spyOn(msalCommon, 'ClientCredentialClient')
-            .mockImplementation((conf) => new MockClientCredentialClient(conf));
 
         const authApp = new ConfidentialClientApplication(configWithExtensibility);
         authApp.SetAppTokenProvider(testProvider);
@@ -132,12 +147,8 @@ describe('ConfidentialClientApplication', () => {
             clientAssertion: "testAssertion"
         };
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
 
-        jest.spyOn(msalCommon, 'ClientCredentialClient')
-            .mockImplementation((conf) => new MockClientCredentialClient(conf));
-
-        MockClientCredentialClient.prototype.acquireToken = jest.fn((request: msalCommon.CommonClientCredentialRequest) => {
+        ClientCredentialClient.prototype.acquireToken = jest.fn((request: CommonClientCredentialRequest) => {
             expect(request.clientAssertion).not.toBe(undefined);
             expect(request.clientAssertion?.assertion).toBe("testAssertion");
             expect(request.clientAssertion?.assertionType).toBe("urn:ietf:params:oauth:client-assertion-type:jwt-bearer");
@@ -149,7 +160,6 @@ describe('ConfidentialClientApplication', () => {
     });
 
 
-
     test('acquireTokenOnBehalfOf', async () => {
         const request: OnBehalfOfRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -158,18 +168,15 @@ describe('ConfidentialClientApplication', () => {
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
 
-        const { OnBehalfOfClient: MockOnBehalfOfClient } = getMsalCommonAutoMock();
-
-        jest.spyOn(msalCommon, 'OnBehalfOfClient').mockImplementation((conf) => new MockOnBehalfOfClient(conf));
+        const onBehalfOfClientSpy = jest.spyOn(msalNode, 'OnBehalfOfClient');
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenOnBehalfOf(request);
-        expect(OnBehalfOfClient).toHaveBeenCalledTimes(1);
-        expect(OnBehalfOfClient).toHaveBeenCalledWith(
+        expect(onBehalfOfClientSpy).toHaveBeenCalledTimes(1);
+        expect(onBehalfOfClientSpy).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });
-
 
 
     test('acquireTokenByUsernamePassword', async () => {
@@ -181,14 +188,12 @@ describe('ConfidentialClientApplication', () => {
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
 
-        const { UsernamePasswordClient: MockUsernamePasswordClient } = getMsalCommonAutoMock();
-
-        jest.spyOn(msalCommon, 'UsernamePasswordClient').mockImplementation((conf) => new MockUsernamePasswordClient(conf));
+        const usernamePasswordClientSpy = jest.spyOn(msalNode, 'UsernamePasswordClient')
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByUsernamePassword(request);
-        expect(UsernamePasswordClient).toHaveBeenCalledTimes(1);
-        expect(UsernamePasswordClient).toHaveBeenCalledWith(
+        expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
+        expect(usernamePasswordClientSpy).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });
@@ -200,18 +205,13 @@ describe('ConfidentialClientApplication', () => {
         };
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
-
-        jest.spyOn(msalCommon, 'ClientCredentialClient')
-            .mockImplementation((conf) => new MockClientCredentialClient(conf));
 
         jest.spyOn(AuthError.prototype, 'setCorrelationId');
 
-        jest.spyOn(MockClientCredentialClient.prototype, 'acquireToken')
+        jest.spyOn(ClientCredentialClient.prototype, 'acquireToken')
             .mockImplementation(() => {
                 throw new AuthError();
             });
-
 
         try {
             const authApp = new ConfidentialClientApplication(appConfig);
@@ -229,12 +229,9 @@ describe('ConfidentialClientApplication', () => {
         };
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
 
-        jest.spyOn(msalCommon, 'ClientCredentialClient')
-            .mockImplementation((conf) => new MockClientCredentialClient(conf));
-
-        MockClientCredentialClient.prototype.acquireToken = jest.fn((request: msalCommon.CommonClientCredentialRequest) => {
+        jest.spyOn(ClientCredentialClient.prototype, 'acquireToken')
+            .mockImplementation((request: CommonClientCredentialRequest) => {
             OIDC_DEFAULT_SCOPES.forEach((scope: string) => {
                 expect(request.scopes).not.toContain(scope);
             });

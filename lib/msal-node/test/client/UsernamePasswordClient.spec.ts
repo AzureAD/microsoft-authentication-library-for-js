@@ -5,22 +5,28 @@
 
 import sinon from "sinon";
 import {
+    AADServerParamKeys,
+    AuthenticationResult,
+    Authority,
+    AuthToken,
+    BaseClient,
+    ClientConfiguration,
+    CommonUsernamePasswordRequest,
+    Constants,
+    GrantType,
+    PasswordGrantConstants,
+    ThrottlingConstants
+} from "@azure/msal-common";
+import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
+    RANDOM_TEST_GUID,
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS,
-    RANDOM_TEST_GUID
+    TEST_URIS
 } from "../test_kit/StringConstants";
-import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, PasswordGrantConstants, ThrottlingConstants } from "../../src/utils/Constants";
+import { UsernamePasswordClient } from "../../src";
 import { ClientTestUtils } from "./ClientTestUtils";
-import { Authority } from "../../src/authority/Authority";
-import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
-import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
-import { AuthToken } from "../../src/account/AuthToken";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 describe("Username Password unit tests", () => {
     let config: ClientConfiguration;
@@ -152,7 +158,7 @@ describe("Username Password unit tests", () => {
             },
         };
 
-        client.acquireToken(usernamePasswordRequest).catch((error) => {
+        client.acquireToken(usernamePasswordRequest).catch(() => {
             // Catch errors thrown after the function call this test is testing
         });
     });
