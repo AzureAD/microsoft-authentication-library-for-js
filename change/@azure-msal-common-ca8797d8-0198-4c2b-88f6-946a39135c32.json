@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Move node clients from msal-common to msal-node #5788",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

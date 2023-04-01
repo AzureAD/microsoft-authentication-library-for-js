@@ -3,21 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import { BaseClient } from "./BaseClient";
-import { ClientConfiguration } from "../config/ClientConfiguration";
-import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest";
-import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ResponseHandler } from "../response/ResponseHandler";
-import { Authority } from "../authority/Authority";
-import { NetworkResponse } from "../network/NetworkManager";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, HeaderNames } from "../utils/Constants";
-import { StringUtils } from "../utils/StringUtils";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { TimeUtils } from "../utils/TimeUtils";
-import { CcsCredentialType } from "../account/CcsCredential";
-import { UrlString } from "../url/UrlString";
+import {
+    AuthenticationResult,
+    Authority,
+    BaseClient,
+    CcsCredentialType,
+    ClientConfiguration,
+    CommonUsernamePasswordRequest,
+    GrantType,
+    HeaderNames,
+    NetworkResponse,
+    RequestParameterBuilder,
+    RequestThumbprint,
+    ResponseHandler,
+    ServerAuthorizationTokenResponse,
+    StringUtils,
+    TimeUtils,
+    UrlString
+} from "@azure/msal-common";
 
 /**
  * Oauth2.0 Password grant client
@@ -46,7 +49,7 @@ export class UsernamePasswordClient extends BaseClient {
         atsMeasurement?.addStaticFields({
             httpVerToken
         });
-    
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
