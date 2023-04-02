@@ -15,7 +15,10 @@ export const SignInButton = () => {
         setAnchorEl(null);
 
         if (loginType === "popup") {
-            instance.loginPopup(loginRequest);
+            instance.loginPopup({
+                ...loginRequest,
+                redirectUri: process.env.REACT_APP_POPUP_REDIRECT_URI,
+            });
         } else if (loginType === "redirect") {
             instance.loginRedirect(loginRequest);
         }
