@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Optimize account lookups in cache #5792",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
