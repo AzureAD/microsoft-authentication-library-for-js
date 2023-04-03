@@ -1,7 +1,7 @@
 {
-  "type": "none",
-  "comment": "Mitigate ua-parser-js vulnerability in msal-angular #5686",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
+    "type": "none",
+    "comment": "Mitigate ua-parser-js vulnerability in msal-angular #5686",
+    "packageName": "@azure/msal-angular",
+    "email": "hemoral@microsoft.com",
+    "dependentChangeType": "patch"
 }
