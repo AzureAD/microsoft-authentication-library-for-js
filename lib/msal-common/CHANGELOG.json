@@ -2,7 +2,7 @@
   "name": "@azure/msal-common",
   "entries": [
     {
-      "date": "Mon, 03 Apr 2023 19:59:22 GMT",
+      "date": "Mon, 03 Apr 2023 21:29:31 GMT",
       "tag": "@azure/msal-common_v12.0.0",
       "version": "12.0.0",
       "comments": {
@@ -10,14 +10,14 @@
           {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-common",
-            "commit": "c4432b9cc711cc037261c815410433346836c95d",
-            "comment": "Optimize account lookups in cache #5792"
+            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
+            "comment": "Optimize token lookups in cache #5806"
           },
           {
             "author": "thomas.norling@microsoft.com",
             "package": "@azure/msal-common",
-            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
-            "comment": "Optimize token lookups in cache #5806"
+            "commit": "c4432b9cc711cc037261c815410433346836c95d",
+            "comment": "Optimize account lookups in cache #5792"
           }
         ],
         "patch": [

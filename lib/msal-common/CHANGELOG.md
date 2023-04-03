@@ -1,17 +1,17 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 03 Apr 2023 19:59:22 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
 
 <!-- Start content -->
 
 ## 12.0.0
 
-Mon, 03 Apr 2023 19:59:22 GMT
+Mon, 03 Apr 2023 21:29:31 GMT
 
 ### Major changes
 
-- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
 - Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
 
 ### Patches
 

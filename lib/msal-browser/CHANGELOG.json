@@ -2,10 +2,30 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
-      "date": "Mon, 03 Apr 2023 19:59:22 GMT",
+      "date": "Mon, 03 Apr 2023 21:29:32 GMT",
       "tag": "@azure/msal-browser_v2.35.0",
       "version": "2.35.0",
       "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c4432b9cc711cc037261c815410433346836c95d",
+            "comment": "Optimize account lookups in cache #5792"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
+            "comment": "Optimize token lookups in cache #5806"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v12.0.0",
+            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
+          }
+        ],
         "patch": [
           {
             "author": "kshabelko@microsoft.com",
@@ -18,26 +38,6 @@
             "package": "@azure/msal-browser",
             "commit": "112abff69ebb68d4c8a88e86af6d056cf650e492",
             "comment": "Dup code removal in NativeInteractionClient (#5768)"
-          }
-        ],
-        "minor": [
-          {
-            "author": "thomas.norling@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
-            "comment": "Optimize token lookups in cache #5806"
-          },
-          {
-            "author": "thomas.norling@microsoft.com",
-            "package": "@azure/msal-browser",
-            "commit": "c4432b9cc711cc037261c815410433346836c95d",
-            "comment": "Optimize account lookups in cache #5792"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-browser",
-            "comment": "Bump @azure/msal-common to v12.0.0",
-            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
           }
         ]
       }
