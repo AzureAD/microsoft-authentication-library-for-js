@@ -2,6 +2,43 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 03 Apr 2023 19:59:22 GMT",
+      "tag": "@azure/msal-node_v1.17.0",
+      "version": "1.17.0",
+      "comments": {
+        "none": [
+          {
+            "author": "dogan.erisen@gmail.com",
+            "package": "@azure/msal-node",
+            "commit": "176635ec210fa0eed51a4b774dcd42d972816498",
+            "comment": "Update comments in IPartitionManager #5773"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c4432b9cc711cc037261c815410433346836c95d",
+            "comment": "Optimize account lookups in cache #5792"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
+            "comment": "Optimize token lookups in cache #5806"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v12.0.0",
+            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Mar 2023 16:48:52 GMT",
       "tag": "@azure/msal-node_v1.16.0",
       "version": "1.16.0",
