@@ -13,7 +13,8 @@ mock.msalNodeRuntime = {
     SignOutSilentlyAsync: (clientId, correlationId, account, callback) => asyncHandle,
     RegisterLogger: (callback, isPiiEnabled) => {},
     DiscoverAccountsAsync: (clientId, correlationId, callback) => asyncHandle,
-    StartupError: undefined
+    StartupError: undefined,
+    AuthParameters: mock.msalNodeRuntime.AuthParameters
 }
 
 module.exports = mock;
