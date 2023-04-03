@@ -1,7 +1,7 @@
 {
-    "type": "prerelease",
-    "comment": "Expose NativeBrokerPlugin #5485",
-    "packageName": "@azure/msal-node-extensions",
-    "email": "thomas.norling@microsoft.com",
-    "dependentChangeType": "patch"
+  "type": "prerelease",
+  "comment": "Expose NativeBrokerPlugin #5485",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
 }
