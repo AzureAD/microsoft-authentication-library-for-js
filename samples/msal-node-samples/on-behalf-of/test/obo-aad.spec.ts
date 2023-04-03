@@ -10,13 +10,14 @@ import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
 import { enterCredentials, SCREENSHOT_BASE_FOLDER_NAME, validateCacheLocation, SAMPLE_HOME_URL } from "../../testUtils";
-import { ConfidentialClientApplication } from "@azure/msal-node";
+import { ConfidentialClientApplication, LogLevel } from "@azure/msal-node";
 import path from "path";
 import * as dotenv from "dotenv";
 
 dotenv.config({ path: path.resolve(__dirname, "../../../../.env") });
 
-const { acquireTokenByCode, acquireTokenObo } = require("./index");
+const { acquireTokenByCode } = require("../web-app/index");
+const { acquireTokenObo } = require("../web-api/index");
 
 const webAppConfig = require("../config/WEB-APP.json");
 webAppConfig.authOptions.clientId = process.env.OBO_WEB_APP_CLIENT_ID;
@@ -73,9 +74,17 @@ describe("OBO AAD Tests", () => {
         let webAppServer: any;
         let webApiServer: any;
 
+        const loggerOptions = {
+            loggerCallback(loglevel: LogLevel, message: String, containsPii: Boolean) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: LogLevel.Verbose,
+        };
+
         beforeAll(async () => {
-            webAppConfidentialClient = new ConfidentialClientApplication({auth: webAppConfig.authOptions, cache: { cachePlugin }});
-            webApiConfidentialClient = new ConfidentialClientApplication({auth: webApiConfig.authOptions, cache: { cachePlugin }});
+            webAppConfidentialClient = new ConfidentialClientApplication({auth: webAppConfig.authOptions, cache: { cachePlugin }, system: { loggerOptions }});
+            webApiConfidentialClient = new ConfidentialClientApplication({auth: webApiConfig.authOptions, cache: { cachePlugin }, system: { loggerOptions }});
             webAppServer = acquireTokenByCode(webAppConfidentialClient, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
             webApiServer = acquireTokenObo(webApiConfidentialClient, webApiConfig.serverPort, webApiConfig.authOptions.clientId, webApiConfig.authOptions.authority, webApiConfig.discoveryKeysEndpoint);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
@@ -112,8 +121,10 @@ describe("OBO AAD Tests", () => {
             await page.goto(HOME_ROUTE);
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
-
+            
+            console.log("1111111111", TEST_CACHE_LOCATION);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            console.log("done checking cache");
             expect(cachedTokens.accessTokens.length).toBe(2);
             expect(cachedTokens.idTokens.length).toBe(2);
             expect(cachedTokens.refreshTokens.length).toBe(2);
