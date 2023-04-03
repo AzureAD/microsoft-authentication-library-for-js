@@ -7,13 +7,12 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, ClientAuthError, AuthError } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo, AuthError, ClientAuthErrorMessage } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
-import { ClientAuthErrorMessage } from "@azure/msal-common";
 
 describe("BrowserCacheManager tests", () => {
 
@@ -24,7 +23,8 @@ describe("BrowserCacheManager tests", () => {
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false
+            secureCookies: false,
+            cacheMigrationEnabled: false
         };
         logger = new Logger({
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
@@ -83,6 +83,7 @@ describe("BrowserCacheManager tests", () => {
         );
 
         it("Migrates cache entries from the old cache format", () => {
+            const migrationCacheConfig = {...cacheConfig, cacheMigrationEnabled: true };
             const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
             const clientInfoKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.CLIENT_INFO}`;
             const errorKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ERROR}`;
@@ -94,7 +95,7 @@ describe("BrowserCacheManager tests", () => {
             window.sessionStorage.setItem(errorKey, errorKeyVal);
             window.sessionStorage.setItem(errorDescKey, errorDescVal);
 
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, migrationCacheConfig, browserCrypto, logger);
             expect(window.sessionStorage.getItem(idTokenKey)).toBe(TEST_TOKENS.IDTOKEN_V2);
             expect(window.sessionStorage.getItem(clientInfoKey)).toBe(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO);
             expect(window.sessionStorage.getItem(errorKey)).toBe(errorKeyVal);
@@ -104,7 +105,60 @@ describe("BrowserCacheManager tests", () => {
             expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ERROR, true)).toBe(errorKeyVal);
             expect(browserStorage.getTemporaryCache(PersistentCacheKeys.ERROR_DESC, true)).toBe(errorDescVal);
         });
+        
+        it("Adds existing tokens to token key map on initialization", () => {
+            // Pre-populate localstorage with tokens
+            const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, TEST_CONFIG.MSAL_CLIENT_ID, "tenantId");
+            const testAccessToken = AccessTokenEntity.createAccessTokenEntity("homeAccountId", "environment", TEST_TOKENS.ACCESS_TOKEN, TEST_CONFIG.MSAL_CLIENT_ID, "tenantId", "scope", 1000, 1000, browserCrypto);
+            const testRefreshToken = RefreshTokenEntity.createRefreshTokenEntity("homeAccountId", "environment", TEST_TOKENS.REFRESH_TOKEN, TEST_CONFIG.MSAL_CLIENT_ID);
+            window.localStorage.setItem(testIdToken.generateCredentialKey(), JSON.stringify(testIdToken));
+            window.localStorage.setItem(testAccessToken.generateCredentialKey(), JSON.stringify(testAccessToken));
+            window.localStorage.setItem(testRefreshToken.generateCredentialKey(), JSON.stringify(testRefreshToken));
+
+            // Validate that tokens are not added to token key map when cacheMigration is false
+            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false}, browserCrypto, logger);
+            expect(initialStorage.getTokenKeys().idToken.length).toBe(0);
+            expect(initialStorage.getTokenKeys().accessToken.length).toBe(0);
+            expect(initialStorage.getTokenKeys().refreshToken.length).toBe(0);
+
+            // Validate that tokens are added to token key map when cacheMigration is true
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            expect(migrationStorage.getTokenKeys().idToken.length).toBe(1);
+            expect(migrationStorage.getTokenKeys().accessToken.length).toBe(1);
+            expect(migrationStorage.getTokenKeys().refreshToken.length).toBe(1);
+        });
+
+        it("Does not add tokens for other clientIds to token key map", () => {
+            // Pre-populate localstorage with tokens
+            const testIdToken = IdTokenEntity.createIdTokenEntity("homeAccountId", "environment", TEST_TOKENS.IDTOKEN_V2, "other-client-id", "tenantId");
+            const testAccessToken = AccessTokenEntity.createAccessTokenEntity("homeAccountId", "environment", TEST_TOKENS.ACCESS_TOKEN, "other-client-id", "tenantId", "scope", 1000, 1000, browserCrypto);
+            const testRefreshToken = RefreshTokenEntity.createRefreshTokenEntity("homeAccountId", "environment", TEST_TOKENS.REFRESH_TOKEN, "other-client-id");
+            window.localStorage.setItem(testIdToken.generateCredentialKey(), JSON.stringify(testIdToken));
+            window.localStorage.setItem(testAccessToken.generateCredentialKey(), JSON.stringify(testAccessToken));
+            window.localStorage.setItem(testRefreshToken.generateCredentialKey(), JSON.stringify(testRefreshToken));
+
+            // Validate that tokens are added to token key map when cacheMigration is true
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            expect(migrationStorage.getTokenKeys().idToken.length).toBe(0);
+            expect(migrationStorage.getTokenKeys().accessToken.length).toBe(0);
+            expect(migrationStorage.getTokenKeys().refreshToken.length).toBe(0);
+        });
+
+        it("Adds existing accounts to account key map on initialization", () => {
+            // Pre-populate localstorage with accounts
+            const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,  new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), undefined, undefined, undefined, "environment");
+            window.localStorage.setItem(testAccount.generateAccountKey(), JSON.stringify(testAccount));
+
+            // Validate that accounts are not added to account key map when cacheMigration is false
+            const initialStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: false}, browserCrypto, logger);
+            expect(initialStorage.getAccountKeys().length).toBe(0);
+
+            // Validate that accounts are added to account key map when cacheMigration is true
+            const migrationStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {cacheLocation: BrowserCacheLocation.LocalStorage, storeAuthStateInCookie: false, secureCookies: false, cacheMigrationEnabled: true}, browserCrypto, logger);
+            expect(migrationStorage.getAccountKeys().length).toBe(1);
+        });
     });
+
 
     describe("Interface functions", () => {
 
@@ -121,7 +175,7 @@ describe("BrowserCacheManager tests", () => {
                 authorityMetadata: "",
                 cloudDiscoveryMetadata: "",
                 knownAuthorities: []
-            });
+            }, logger);
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -620,6 +674,19 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getThrottlingCache(testKey)).toBeInstanceOf(ThrottlingEntity);
                 });
             });
+
+            describe("RedirectRequestContext", () => {
+                it("Returns redirect request context as null if context not set in browser cache", () => {
+                    expect(browserSessionStorage.getRedirectRequestContext()).toEqual(null);
+                });
+    
+                it("Returns redirect request context if context set in browser cache", () => {
+                    const testVal = "testId";
+                    browserSessionStorage.setRedirectRequestContext(testVal);
+                    expect(browserSessionStorage.getRedirectRequestContext()).toEqual(testVal);
+                });
+    
+            });
         });
     });
 
@@ -1081,7 +1148,8 @@ describe("BrowserCacheManager tests", () => {
             cacheConfig = {
                 cacheLocation: BrowserCacheLocation.SessionStorage,
                 storeAuthStateInCookie: false,
-                secureCookies: false
+                secureCookies: false,
+                cacheMigrationEnabled: false
             };
             logger = new Logger({
                 loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
@@ -1136,6 +1204,8 @@ describe("BrowserCacheManager tests", () => {
             beforeEach(() => {
                 browserStorage.setItem(cacheKey1, JSON.stringify(accountEntity1));
                 browserStorage.setItem(cacheKey2, JSON.stringify(accountEntity2));
+                browserStorage.addAccountKeyToMap(cacheKey1);
+                browserStorage.addAccountKeyToMap(cacheKey2);
             });
 
             afterEach(() => {
@@ -1207,7 +1277,8 @@ describe("BrowserCacheManager tests", () => {
             cacheConfig = {
                 cacheLocation: BrowserCacheLocation.SessionStorage,
                 storeAuthStateInCookie: false,
-                secureCookies: false
+                secureCookies: false,
+                cacheMigrationEnabled: false
             };
             logger = new Logger({
                 loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
@@ -1268,6 +1339,8 @@ describe("BrowserCacheManager tests", () => {
             beforeEach(() => {
                 browserStorage.setItem(cacheKey1, JSON.stringify(accountEntity1));
                 browserStorage.setItem(cacheKey2, JSON.stringify(accountEntity2));
+                browserStorage.addAccountKeyToMap(cacheKey1);
+                browserStorage.addAccountKeyToMap(cacheKey2);
             });
 
             afterEach(() => {
@@ -1309,6 +1382,7 @@ describe("BrowserCacheManager tests", () => {
 
                 const cacheKey3 = AccountEntity.generateAccountCacheKey(account3);
                 browserStorage.setItem(cacheKey3, JSON.stringify(accountEntity3));
+                browserStorage.addAccountKeyToMap(cacheKey3);
 
                 try {
                     browserStorage.getAccountInfoByHints(accountEntity3.username);
@@ -1344,6 +1418,7 @@ describe("BrowserCacheManager tests", () => {
 
                 const cacheKey3 = AccountEntity.generateAccountCacheKey(account3);
                 browserStorage.setItem(cacheKey3, JSON.stringify(accountEntity3));
+                browserStorage.addAccountKeyToMap(cacheKey3);
 
                 try {
                     browserStorage.getAccountInfoByHints(undefined, accountEntity3.idTokenClaims!.sid);

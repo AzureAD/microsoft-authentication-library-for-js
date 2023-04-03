@@ -1,5 +1,5 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, setupCredentials, enterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
@@ -15,11 +15,11 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(6);
+    expect(Object.keys(storage).length).toBe(8);
 }
 
 describe('/ (Lazy Loading Page)', () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -35,7 +35,7 @@ describe('/ (Lazy Loading Page)', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
@@ -71,7 +71,7 @@ describe('/ (Lazy Loading Page)', () => {
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
-        
+
         // Verify UI now displays logged in content
         await page.waitForXPath("//button[contains(., 'Logout')]");
         await screenshot.takeScreenshot(page, "Page signed in");

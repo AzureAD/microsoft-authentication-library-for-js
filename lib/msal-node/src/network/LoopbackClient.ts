@@ -7,15 +7,16 @@ import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlStrin
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
+import { ILoopbackClient } from "./ILoopbackClient";
 
-export class LoopbackClient {
+export class LoopbackClient implements ILoopbackClient {
     private server: Server;
 
     /**
      * Spins up a loopback server which returns the server response when the localhost redirectUri is hit
-     * @param successTemplate 
-     * @param errorTemplate 
-     * @returns 
+     * @param successTemplate
+     * @param errorTemplate
+     * @returns
      */
     async listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse> {
         if (!!this.server) {
@@ -33,7 +34,7 @@ export class LoopbackClient {
                     res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
                     return;
                 }
-    
+
                 const authCodeResponse = UrlString.getDeserializedQueryString(url);
                 if (authCodeResponse.code) {
                     const redirectUri = await this.getRedirectUri();
@@ -52,7 +53,7 @@ export class LoopbackClient {
                 if ((LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS / LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS) < ticks) {
                     throw NodeAuthError.createLoopbackServerTimeoutError();
                 }
-                
+
                 if (this.server.listening) {
                     clearInterval(id);
                     resolve();
@@ -66,18 +67,18 @@ export class LoopbackClient {
 
     /**
      * Get the port that the loopback server is running on
-     * @returns 
+     * @returns
      */
     getRedirectUri(): string {
         if (!this.server) {
             throw NodeAuthError.createNoLoopbackServerExistsError();
         }
-                
+
         const address = this.server.address();
         if (!address || typeof address === "string" || !address.port) {
             this.closeServer();
             throw NodeAuthError.createInvalidLoopbackAddressTypeError();
-        } 
+        }
 
         const port = address && address.port;
 

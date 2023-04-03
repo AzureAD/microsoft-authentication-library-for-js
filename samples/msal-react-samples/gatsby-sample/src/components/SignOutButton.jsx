@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import { IconButton } from "gatsby-material-ui-components";
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
 
 export const SignOutButton = () => {
     const { instance } = useMsal();

@@ -1,8 +1,61 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 07 Nov 2022 22:46:55 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.5.5
+
+Mon, 03 Apr 2023 21:29:32 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.35.0
+
+## 1.5.4
+
+Tue, 07 Mar 2023 16:48:52 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.34.0
+
+## 1.5.3
+
+Mon, 06 Feb 2023 18:51:51 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.33.0
+
+## 1.5.2
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.32.2
+
+## 1.5.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.32.1
+
+## 1.5.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v2.32.0
+
+### Patches
+
+- Fix SSR hydration errors #5399 (thomas.norling@microsoft.com)
+- Fix state update on unmounted component #5396 (thomas.norling@microsoft.com)
 
 ## 1.4.10
 

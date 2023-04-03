@@ -10,7 +10,8 @@ import {
     TEST_URIS,
     ID_TOKEN_CLAIMS,
     DEFAULT_OPENID_CONFIG_RESPONSE,
-    TEST_TOKENS
+    TEST_TOKENS,
+    AUTHENTICATION_RESULT,
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { ClientTestUtils } from "./ClientTestUtils";
@@ -23,7 +24,13 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { AuthenticationResult, IdTokenEntity } from "../../src";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
-import { AuthenticationScheme, CredentialType } from "../../src/utils/Constants";
+import {
+    AuthenticationScheme,
+    CredentialType,
+    AADServerParamKeys,
+    Constants,
+    ThrottlingConstants,
+} from "../../src/utils/Constants";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ScopeSet } from "../../src/request/ScopeSet";
 
@@ -123,6 +130,108 @@ describe("OnBehalfOf unit tests", () => {
             sinon.restore();
         });
 
+        it("Adds claims when provided", async () => {
+            sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+
+            const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
+
+            let config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration(); 
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: TEST_CONFIG.CLAIMS,
+            };
+
+            const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
+            const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+        
+            expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            expect(authResult.state).toBe("");
+            expect(authResult.fromCache).toBe(false);
+
+            expect(createTokenRequestBodySpy.calledWith(oboRequest)).toBe(true);
+
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(true);
+        });
+
+        it("Adds tokenQueryParameters to the /token request", (done) => {
+            sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+                try {
+                    expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+    
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: TEST_CONFIG.CLAIMS,
+                tokenQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+            };
+    
+            client.acquireToken(oboRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
+
+        it("Does not add claims when empty object provided", async () => {
+            sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: "{}",
+            };
+
+            const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
+            const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+
+            expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            expect(authResult.state).toBe("");
+            expect(authResult.fromCache).toBe(false);
+
+            expect(createTokenRequestBodySpy.calledWith(oboRequest)).toBe(true);
+
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_APP_NAME}=${TEST_CONFIG.applicationName}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(false);
+        });
+
         it("acquireToken returns token from cache", async () => {
 
             const oboRequest: CommonOnBehalfOfRequest = {
@@ -142,14 +251,10 @@ describe("OnBehalfOf unit tests", () => {
             sinon.stub(CacheManager.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
-            sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns({
-                idTokens: {},
-                accessTokens: { "foo": testAccessTokenEntity },
-                refreshTokens: {},
-            });
+            sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([testAccessTokenEntity]);
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
-            expect(mockIdTokenCached.calledWith(oboRequest)).toBe(true);
+            expect(mockIdTokenCached.calledWith(testAccessTokenEntity.homeAccountId)).toBe(true);
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);

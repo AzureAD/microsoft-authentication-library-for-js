@@ -85,7 +85,13 @@ export enum TemporaryCacheKeys {
     INTERACTION_STATUS_KEY = "interaction.status",
     CCS_CREDENTIAL = "ccs.credential",
     CORRELATION_ID = "request.correlationId",
-    NATIVE_REQUEST = "request.native"
+    NATIVE_REQUEST = "request.native",
+    REDIRECT_CONTEXT = "request.redirect.context"
+}
+
+export enum StaticCacheKeys {
+    ACCOUNT_KEYS = "msal.account.keys",
+    TOKEN_KEYS = "msal.token.keys"
 }
 
 /**

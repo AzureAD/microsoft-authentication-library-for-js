@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
+import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity, Logger } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { TEST_TOKENS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 
@@ -11,7 +11,7 @@ export class MockCache {
     cacheManager: MockStorageClass;
 
     constructor(clientId: string, cryptoImpl: ICrypto) {
-        this.cacheManager = new MockStorageClass(clientId, cryptoImpl);
+        this.cacheManager = new MockStorageClass(clientId, cryptoImpl, new Logger({}));
     }
 
     // initialize the cache
@@ -123,6 +123,23 @@ export class MockCache {
 
         const atThree = CacheManager.toObject(new AccessTokenEntity(), atThreeData);
         this.cacheManager.setAccessTokenCredential(atThree);
+
+        // BEARER with AuthScheme Token
+        const bearerAtWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken_With_AuthScheme",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "Bearer"
+        };
+        const bearerAtWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), bearerAtWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(bearerAtWithAuthScheme);
 
         // POP Token
         const popAtWithAuthSchemeData = {

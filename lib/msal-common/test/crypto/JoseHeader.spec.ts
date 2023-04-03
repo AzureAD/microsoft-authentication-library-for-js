@@ -11,7 +11,7 @@ describe("JoseHeader.ts Unit Tests", () => {
 				kid: TEST_POP_VALUES.KID
 			});
 
-			expect(shrHeaderString).toBe(`{"typ":"${JsonTypes.Jwt}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`);
+			expect(shrHeaderString).toBe(`{"typ":"${JsonTypes.Pop}","alg":"${TEST_CRYPTO_ALGORITHMS.rsa}","kid":"${TEST_POP_VALUES.KID}"}`);
 		});
 
 		it("should throw if kid header is missing", () => {

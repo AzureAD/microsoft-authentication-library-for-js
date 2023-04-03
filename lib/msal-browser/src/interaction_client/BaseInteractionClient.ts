@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, IPerformanceClient } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils, Authority, AuthorityOptions, AuthorityFactory, IPerformanceClient, PerformanceEvents } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -78,6 +78,7 @@ export abstract class BaseInteractionClient {
      * @param request
      */
     protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
@@ -163,10 +164,10 @@ export abstract class BaseInteractionClient {
 
         if (requestAuthority) {
             this.logger.verbose("Creating discovered authority with request authority");
-            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger);
         }
 
         this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions, this.logger);
     }
 }

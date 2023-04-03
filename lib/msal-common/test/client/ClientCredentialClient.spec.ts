@@ -20,13 +20,18 @@ import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient"
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
-import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
-import { AppTokenProviderResult, AuthToken, IAppTokenProvider } from "../../src";
+import { AppTokenProviderResult, AuthToken, ClientConfiguration, IAppTokenProvider, InteractionRequiredAuthError } from "../../src";
 
 describe("ClientCredentialClient unit tests", () => {
+    let config: ClientConfiguration;
+
+    beforeEach(async () => {
+        config = await ClientTestUtils.createTestClientConfiguration();
+    });
+
     afterEach(() => {
         sinon.restore();
     });
@@ -35,21 +40,19 @@ describe("ClientCredentialClient unit tests", () => {
 
         it("creates a ClientCredentialClient", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new ClientCredentialClient(config);
             expect(client).not.toBeNull();
             expect(client instanceof ClientCredentialClient).toBe(true);
             expect(client instanceof BaseClient).toBe(true);
         });
     });
-
+    
     it("acquires a token", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -79,6 +82,72 @@ describe("ClientCredentialClient unit tests", () => {
         expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
     });
 
+    it("Adds tokenQueryParameters to the /token request", (done) => {
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+            try {
+                expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                done();
+            } catch (error) {
+                done(error);
+            }
+        });
+
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            tokenQueryParameters: {
+                testParam1: "testValue1",
+                testParam2: "",
+                testParam3: "testValue3",
+            },
+        };
+
+        const client = new ClientCredentialClient(config);
+        client.acquireToken(clientCredentialRequest).catch((error) => {
+            // Catch errors thrown after the function call this test is testing
+        });
+    });
+    
+    it("acquireToken's interactionRequiredAuthError error contains claims", async () => {
+        const errorResponse = {
+            error: "interaction_required",
+            error_description: "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
+            error_codes: [50079],
+            timestamp: "2017-05-01 22:43:20Z",
+            trace_id: "b72a68c3-0926-4b8e-bc35-3150069c2800",
+            correlation_id: "73d656cf-54b1-4eb2-b429-26d8165a52d7",
+            claims: "{\"access_token\":{\"polids\":{\"essential\":true,\"values\":[\"9ab03e19-ed42-4168-b6b7-7001fb3e933a\"]}}}",
+        };
+
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves({
+            headers: [],
+            body: errorResponse,
+            status: 400,
+        });
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        const interactionRequiredAuthError = new InteractionRequiredAuthError(
+            "interaction_required",
+            "AADSTS50079: Due to a configuration change made by your administrator, or because you moved to a new location, you must enroll in multifactor authentication to access 'bf8d80f9-9098-4972-b203-500f535113b1'.\r\nTrace ID: b72a68c3-0926-4b8e-bc35-3150069c2800\r\nCorrelation ID: 73d656cf-54b1-4eb2-b429-26d8165a52d7\r\nTimestamp: 2017-05-01 22:43:20Z",
+            "",
+            "2017-05-01 22:43:20Z",
+            "b72a68c3-0926-4b8e-bc35-3150069c2800",
+            "73d656cf-54b1-4eb2-b429-26d8165a52d7",
+            "{\"access_token\":{\"polids\":{\"essential\":true,\"values\":[\"9ab03e19-ed42-4168-b6b7-7001fb3e933a\"]}}}"
+        );
+        await expect(client.acquireToken(clientCredentialRequest)).rejects.toEqual(interactionRequiredAuthError);
+    });
+
     // regression test for https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/5134
     it("Multiple access tokens would match, but one of them has a Home Account ID of \"\"", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -93,8 +162,6 @@ describe("ClientCredentialClient unit tests", () => {
             tid: "common",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-
-        const config = await ClientTestUtils.createTestClientConfiguration();
 
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
@@ -125,7 +192,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
@@ -159,7 +225,6 @@ describe("ClientCredentialClient unit tests", () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DSTS_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(DSTS_CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.DSTS_VALID_AUTHORITY,
@@ -183,7 +248,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -220,7 +284,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -257,7 +320,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         config.clientCredentials = {
             ...config.clientCredentials,
             clientAssertion: {
@@ -303,7 +365,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         config.clientCredentials = {
             ...config.clientCredentials,
             clientAssertion: {
@@ -362,7 +423,6 @@ describe("ClientCredentialClient unit tests", () => {
             return CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT;
         });
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -376,7 +436,6 @@ describe("ClientCredentialClient unit tests", () => {
 
     it("acquires a token, returns token from the cache", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
 
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
@@ -407,7 +466,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
@@ -433,7 +491,6 @@ describe("ClientCredentialClient unit tests", () => {
 
     it("Multiple access tokens matched, exception thrown", async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        const config = await ClientTestUtils.createTestClientConfiguration();
         
         // mock access token
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
@@ -441,19 +498,8 @@ describe("ClientCredentialClient unit tests", () => {
             
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
-            
-        const mockedCredentialCache: CredentialCache = {
-            accessTokens: { 
-                "key1": mockedAtEntity,
-                "key2": mockedAtEntity2
-            },
-            // @ts-ignore
-            refreshTokens: null,
-            // @ts-ignore
-            idTokens: null
-        }
 
-        sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
+        sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([mockedAtEntity, mockedAtEntity2]);
 
         const client = new ClientCredentialClient(config);
         const clientCredentialRequest: CommonClientCredentialRequest = {
@@ -469,7 +515,6 @@ describe("ClientCredentialClient unit tests", () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         // no need to stub out the token response, MSAL will use the AppTokenProvider instead
 
-        const config = await ClientTestUtils.createTestClientConfiguration();
         const accessToken = "some_token";
         const appTokenProviderResult: AppTokenProviderResult = {
             accessToken: accessToken,

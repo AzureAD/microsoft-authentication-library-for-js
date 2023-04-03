@@ -1,6 +1,5 @@
-import "mocha";
 import puppeteer from "puppeteer";
-import { expect } from "chai";
+import { getBrowser, getHomeUrl } from "../../testUtils";
 import { Screenshot, createFolder, setupCredentials, enterCredentials, ONE_SECOND_IN_MS } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
@@ -8,30 +7,25 @@ import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constan
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-const SAMPLE_HOME_URL = "http://localhost:30662/";
+let sampleHomeUrl = "";
 let username = "";
 let accountPwd = "";
 
 describe("On Page Load tests", function () {
-    this.timeout(0);
-    this.retries(1);
-
     let browser: puppeteer.Browser;
-    before(async () => {
+    beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
+        browser = await getBrowser();
+        sampleHomeUrl = getHomeUrl();
+
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParams);
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-        
-        browser = await puppeteer.launch({
-            headless: true,
-            ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
-        });
     });
 
     let context: puppeteer.BrowserContext;
@@ -48,13 +42,13 @@ describe("On Page Load tests", function () {
         await page.close();
     });
 
-    after(async () => {
+    afterAll(async () => {
         await context.close();
         await browser.close();
     });
 
     it("Performs loginRedirect on page load", async () => {
-        await page.goto(SAMPLE_HOME_URL);
+        await page.goto(sampleHomeUrl);
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
@@ -66,17 +60,17 @@ describe("On Page Load tests", function () {
         await page.waitForSelector("#signOutButton");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         const tokenStore = await BrowserCache.getTokens();
-        expect(tokenStore.idTokens).to.be.length(1);
-        expect(tokenStore.accessTokens).to.be.length(1);
-        expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        expect(tokenStore.idTokens).toHaveLength(1);
+        expect(tokenStore.accessTokens).toHaveLength(1);
+        expect(tokenStore.refreshTokens).toHaveLength(1);
+        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).to.be.eq(5);
-    });
+        expect(Object.keys(storage).length).toEqual(7);
+    }, 60000);
 
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
-        await page.goto(SAMPLE_HOME_URL + "?testPage");
+        await page.goto(sampleHomeUrl + "?testPage");
         const testName = "navigateToLoginRequestUrl";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
@@ -88,12 +82,12 @@ describe("On Page Load tests", function () {
         await page.waitForSelector("#signOutButton");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         const tokenStore = await BrowserCache.getTokens();
-        expect(tokenStore.idTokens).to.be.length(1);
-        expect(tokenStore.accessTokens).to.be.length(1);
-        expect(tokenStore.refreshTokens).to.be.length(1);
-        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).to.not.be.null;
-        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).to.be.true;
+        expect(tokenStore.idTokens).toHaveLength(1);
+        expect(tokenStore.accessTokens).toHaveLength(1);
+        expect(tokenStore.refreshTokens).toHaveLength(1);
+        expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
+        expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).to.be.eq(5);
-    });
+        expect(Object.keys(storage).length).toEqual(7);
+    }, 60000);
 });

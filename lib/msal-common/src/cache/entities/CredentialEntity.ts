@@ -104,27 +104,6 @@ export class CredentialEntity {
     }
 
     /**
-     * helper function to return `CredentialType`
-     * @param key
-     */
-    static getCredentialType(key: string): string {
-        // First keyword search will match all "AccessToken" and "AccessToken_With_AuthScheme" credentials
-        if (key.indexOf(CredentialType.ACCESS_TOKEN.toLowerCase()) !== -1) {
-            // Perform second search to differentiate between "AccessToken" and "AccessToken_With_AuthScheme" credential types
-            if (key.indexOf(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) !== -1) {
-                return CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-            }
-            return CredentialType.ACCESS_TOKEN;
-        } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
-            return CredentialType.ID_TOKEN;
-        } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
-            return CredentialType.REFRESH_TOKEN;
-        }
-
-        return Constants.NOT_DEFINED;
-    }
-
-    /**
      * generates credential key
      * <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
      */

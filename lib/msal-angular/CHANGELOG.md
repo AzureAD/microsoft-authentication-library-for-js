@@ -1,8 +1,58 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 07 Nov 2022 22:46:55 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.5
+
+Mon, 03 Apr 2023 21:29:32 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.35.0
+
+## 2.5.4
+
+Tue, 07 Mar 2023 16:48:51 GMT
+
+### Patches
+
+- Avoid throwing 'Interaction is currently in progress' error in msal interceptor #5146 (ykshtein@gmail.com)
+- Bump @azure/msal-browser to v2.34.0
+
+## 2.5.3
+
+Mon, 06 Feb 2023 18:51:51 GMT
+
+### Patches
+
+- Update ProtectedResourceScopes type to allow unprotected resource for concrete request type (#5563) (milos.buda@hotmail.com)
+- Bump @azure/msal-browser to v2.33.0
+
+## 2.5.2
+
+Mon, 09 Jan 2023 22:44:57 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.32.2
+
+## 2.5.1
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.32.1
+
+## 2.5.0
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Minor changes
+
+- Bump @azure/msal-browser to v2.32.0
 
 ## 2.4.6
 

@@ -1,5 +1,5 @@
 import * as puppeteer from "puppeteer";
-import { Screenshot, setupCredentials, enterCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, setupCredentials, enterCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
@@ -15,11 +15,11 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(7);
+    expect(Object.keys(storage).length).toBe(9);
 }
 
 describe('/ (Profile Page)', () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -35,7 +35,7 @@ describe('/ (Profile Page)', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 
@@ -76,11 +76,11 @@ describe('/ (Profile Page)', () => {
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
-        
+
         // Verify displays profile page without activating MsalGuard
         await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });
-    
+
     it("Profile page - children are rendered after initial navigation to profile before login ", async () => {
         // Initiate login via MsalGuard by navigating directly to profile route
         await page.goto(`http://localhost:${port}/#/profile`);
@@ -97,7 +97,7 @@ describe('/ (Profile Page)', () => {
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
-        
+
         // Verify displays profile page without activating MsalGuard
         await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });
