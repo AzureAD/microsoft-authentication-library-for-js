@@ -119,7 +119,6 @@ extends:
             jobName: 'publish_msal_core'
             path: 'lib'
             libName: 'msal-core'
-            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalCore'
             publishOverride: ${{ parameters.overrideMsalCore }}
             testMode: ${{ parameters.testMode }}
@@ -129,7 +128,6 @@ extends:
             jobName: 'publish_msal_common'
             path: 'lib'
             libName: 'msal-common'
-            cdn: false
             publishFlagName: 'MsalCommon'
             publishOverride: ${{ parameters.overrideMsalCommon }}
             testMode: ${{ parameters.testMode }}
@@ -139,7 +137,6 @@ extends:
             jobName: 'publish_msal_browser'
             path: 'lib'
             libName: 'msal-browser'
-            cdn: false # Change to true when CDN release automation is working
             publishFlagName: 'MsalBrowser'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalBrowser }}
@@ -150,7 +147,6 @@ extends:
             jobName: 'publish_msal_react'
             path: 'lib'
             libName: 'msal-react'
-            cdn: false
             publishFlagName: 'MsalReact'
             dependsOn: 'publish_msal_browser'
             publishOverride: ${{ parameters.overrideMsalReact }}
@@ -160,7 +156,6 @@ extends:
             jobName: 'publish_msal_angular'
             path: 'lib'
             libName: 'msal-angular'
-            cdn: false
             publishFlagName: 'MsalAngular'
             dependsOn: 'publish_msal_browser'
             publishOverride: ${{ parameters.overrideMsalAngular }}
@@ -171,7 +166,6 @@ extends:
             jobName: 'publish_msal_node'
             path: 'lib'
             libName: 'msal-node'
-            cdn: false
             publishFlagName: 'MsalNode'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNode }}
@@ -182,7 +176,6 @@ extends:
             jobName: 'publish_msal_node_extensions'
             path: 'extensions'
             libName: 'msal-node-extensions'
-            cdn: false
             publishFlagName: 'MsalNodeExtensions'
             dependsOn: 'publish_msal_common'
             publishOverride: ${{ parameters.overrideMsalNodeExtensions }}
