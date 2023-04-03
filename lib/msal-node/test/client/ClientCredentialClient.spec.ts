@@ -13,7 +13,6 @@ import {
     CommonClientCredentialRequest,
     CommonUsernamePasswordRequest,
     Constants,
-    CredentialCache,
     GrantType,
     IAppTokenProvider,
     InteractionRequiredAuthError,

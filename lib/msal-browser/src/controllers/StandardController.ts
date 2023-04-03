@@ -4,10 +4,40 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
+import {
+    InteractionRequiredAuthError,
+    AccountInfo,
+    Constants,
+    INetworkModule,
+    AuthenticationResult,
+    Logger,
+    CommonSilentFlowRequest,
+    ICrypto,
+    DEFAULT_CRYPTO_IMPLEMENTATION,
+    AuthError,
+    PerformanceEvents,
+    PerformanceCallbackFunction,
+    StubPerformanceClient,
+    IPerformanceClient,
+    BaseAuthRequest,
+    PromptValue,
+    ClientAuthError,
+    InProgressPerformanceEvent,
+    RequestThumbprint,
+    ServerError
+} from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
-import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
+import { BrowserConfiguration, CacheOptions } from "../config/Configuration";
+import {
+    InteractionType,
+    ApiId,
+    BrowserCacheLocation,
+    WrapperSKU,
+    TemporaryCacheKeys,
+    CacheLookupPolicy,
+    DEFAULT_REQUEST,
+    BrowserConstants
+} from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -38,6 +68,7 @@ import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient"
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { version, name } from "../packageMetadata";
+import { IController } from "./IController";
 
 export class StandardController implements IController {
 

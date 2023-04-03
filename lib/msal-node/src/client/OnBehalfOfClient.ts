@@ -18,7 +18,6 @@ import {
     ClientConfiguration,
     CommonOnBehalfOfRequest,
     Constants,
-    CredentialCache,
     CredentialFilter,
     CredentialType, GrantType,
     IdTokenEntity,
