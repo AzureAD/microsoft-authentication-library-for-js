@@ -1,8 +1,80 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 07 Nov 2022 22:46:55 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.17.0
+
+Mon, 03 Apr 2023 21:29:31 GMT
+
+### Minor changes
+
+- Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v12.0.0
+
+### Patches
+
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
+
+## 1.16.0
+
+Tue, 07 Mar 2023 16:48:52 GMT
+
+### Minor changes
+
+- Add support for NativeBrokerPlugin #5550 (thomas.norling@microsoft.com)
+- Allow adding custom loopback client in acquireTokenInteractive #5578 (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v11.0.0
+
+### Patches
+
+- Fixed bug in msal-node's httpClient #5722 (rginsburg@microsoft.com)
+
+## 1.15.0
+
+Mon, 06 Feb 2023 18:51:50 GMT
+
+### Minor changes
+
+- proxyUrl is now passed to msal-node's httpClient via it's constructor #5599 (rginsburg@microsoft.com)
+- Add support for custom http(s) agents #5472 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v10.0.0
+
+### Patches
+
+- tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573 (rginsburg@microsoft.com)
+
+## 1.14.6
+
+Mon, 09 Jan 2023 22:44:58 GMT
+
+### Patches
+
+- fix logger undefined error #5355 (bmahal@microsoft.com)
+- Upgrade jsonwebtoken to v9 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.2
+
+## 1.14.5
+
+Wed, 07 Dec 2022 16:53:07 GMT
+
+### Patches
+
+- Serialize/deserialize access token userAssertionHash property to fix cache persistence issue in OBO flow #5398 (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v9.0.1
+
+## 1.14.4
+
+Mon, 21 Nov 2022 19:14:45 GMT
+
+### Patches
+
+- Added logging to Authority class (rginsburg@microsoft.com)
+- Fixed msal-node HttpClient server error bug #5342 (rginsburg@microsoft.com)
+- Include original request params on /token request in acquireTokenInteractive #5403 (thomas.norling@microsoft.com)
+- Fix circular dependency #5402 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v9.0.0
 
 ## 1.14.3
 

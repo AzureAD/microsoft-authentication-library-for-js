@@ -14,20 +14,11 @@ export const AppStages = {
 };
 
 /**
- * OpenID Connect scopes
- */
-export const OIDCScopes = {
-    OPENID: "openid",
-    PROFILE: "profile",
-    OFFLINE_ACCESS: "offline_access"
-}
-
-/**
  * String constants related to AAD Authority
  */
-export const AADAuthorityConstants = {
+export const AuthorityConstants = {
     COMMON: "common",
-    ORGANIZATIONS: "organizations",  
+    ORGANIZATIONS: "organizations",
     CONSUMERS: "consumers"
 }
 

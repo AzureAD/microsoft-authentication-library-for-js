@@ -1,0 +1,21 @@
+.App {
+    text-align: center;
+}
+.data-area-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.nav-link:link {
+    color: #ffff;
+}
+
+.nav-link:visited {
+    color: #ffff;
+}
+
+.nav-link:active {
+    color: #ffff;
+}

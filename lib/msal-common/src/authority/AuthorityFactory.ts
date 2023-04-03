@@ -10,6 +10,9 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
+import { Logger } from "../logger/Logger";
+import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient";
+import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 export class AuthorityFactory {
 
@@ -28,18 +31,25 @@ export class AuthorityFactory {
         networkClient: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        proxyUrl?: string
+        logger: Logger,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): Promise<Authority> {
+        performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, correlationId);
+
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
             authorityUri,
             networkClient,
             cacheManager,
             authorityOptions,
-            proxyUrl
+            logger,
+            performanceClient,
+            correlationId
         );
 
         try {
+            performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityResolveEndpointsAsync, correlationId);
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {
@@ -62,13 +72,15 @@ export class AuthorityFactory {
         networkInterface: INetworkModule,
         cacheManager: ICacheManager,
         authorityOptions: AuthorityOptions,
-        proxyUrl?: string
+        logger: Logger,
+        performanceClient?: IPerformanceClient,
+        correlationId?: string
     ): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, performanceClient, correlationId);
     }
 }

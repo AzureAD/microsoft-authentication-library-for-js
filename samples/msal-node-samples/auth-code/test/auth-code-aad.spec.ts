@@ -4,12 +4,12 @@
  */
 
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
-import { 
+import {
     enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation,
@@ -30,15 +30,15 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 // Load scenario configuration
 const config = require("../config/AAD.json");
 
-describe("Auth Code AAD PPE Tests", () => {
-    jest.retryTimes(1);
+describe("Auth Code AAD Prod Tests", () => {
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
-    
+
     let username: string;
     let accountPwd: string;
 
@@ -55,7 +55,7 @@ describe("Auth Code AAD PPE Tests", () => {
         createFolder(screenshotFolder);
 
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
         };
 
@@ -142,11 +142,11 @@ describe("Auth Code AAD PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
-            
+
             // Reset the cache to prepare for the second login
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
-            // Login without a prompt 
+            // Login without a prompt
             await page.goto(`${homeRoute}/?prompt=none`, {waitUntil: "networkidle0"});
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);

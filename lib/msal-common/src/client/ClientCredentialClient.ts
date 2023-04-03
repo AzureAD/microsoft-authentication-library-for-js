@@ -12,7 +12,7 @@ import { GrantType , CredentialType, CacheOutcome, Constants, AuthenticationSche
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
-import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { CredentialFilter } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
@@ -20,6 +20,7 @@ import { RequestThumbprint } from "../network/RequestThumbprint";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { IAppTokenProvider } from "../config/AppTokenProvider";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 client credential grant
@@ -88,7 +89,6 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Reads access token from the cache
-     * TODO: Move this call to cacheManager instead
      */
     private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
@@ -97,10 +97,10 @@ export class ClientCredentialClient extends BaseClient {
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
-            target: this.scopeSet.printScopesLowerCase()
+            target: ScopeSet.createSearchScopes(this.scopeSet.asArray())
         };
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
+
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {
@@ -140,6 +140,8 @@ export class ClientCredentialClient extends BaseClient {
                 token_type : AuthenticationScheme.BEARER
             };
         } else {
+            const queryParametersString = this.createTokenQueryParameters(request);
+            const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
             const requestBody = this.createTokenRequestBody(request);
             const headers: Record<string, string> = this.createTokenRequestHeaders();
             const thumbprint: RequestThumbprint = {
@@ -155,7 +157,7 @@ export class ClientCredentialClient extends BaseClient {
             };
     
             reqTimestamp = TimeUtils.nowSeconds();
-            const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+            const response = await this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
             serverTokenResponse = response.body;
         }
 

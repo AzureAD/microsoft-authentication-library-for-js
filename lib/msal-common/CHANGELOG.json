@@ -2,6 +2,314 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 03 Apr 2023 21:29:31 GMT",
+      "tag": "@azure/msal-common_v12.0.0",
+      "version": "12.0.0",
+      "comments": {
+        "major": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
+            "comment": "Optimize token lookups in cache #5806"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c4432b9cc711cc037261c815410433346836c95d",
+            "comment": "Optimize account lookups in cache #5792"
+          }
+        ],
+        "patch": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "299d241afbad3a0e3f1c97ed8bcb40912d0e05ba",
+            "comment": "Added tenant_region_scope and tenant_region_sub_scope to TokenClaims #5789"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Mar 2023 16:48:51 GMT",
+      "tag": "@azure/msal-common_v11.0.0",
+      "version": "11.0.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "f3f54cbc2faf30894852a98585e22c5869277858",
+            "comment": "Reduce preQueueTimeByCorrelationId RAM footprint #5681"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "80b52e998ee91bb8bda7de17c71963781a5767ae",
+            "comment": "Fixed bug in msal-node's httpClient #5722"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "684446fbae372d73454779c25fddfa1e0f039003",
+            "comment": "Fix SHR typ header to pop value #5751"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "50cddaa95ce2fa0c6e09cfefd1e542f8957df40e",
+            "comment": "Accomodate suffixes in credential regex #5728"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2e4df196d41db10216889d0b360b9abc6c0cee7b",
+            "comment": "fixing get account entity from cache using native account id #5695"
+          }
+        ],
+        "minor": [
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "17953165ef5bb105e6f2385e93bce7b98a7195da",
+            "comment": "Handle new spa_accountid parameter from server #5759"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "b83aeef9118568cd3eedf79a5079a9bb2cf0340c",
+            "comment": "Capture native bridge telemetry data points #5698"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "32ec95d8bcc91b89f3e834948c7922eac036f729",
+            "comment": "Expose native broker types and interfaces #5485"
+          }
+        ],
+        "major": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "392e3c350509bd85a38ef71ec8614c8367c93f4e",
+            "comment": "Remove deprecated telemetry event flushMeasurement() function #5718"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "b03430c5841e5caad33d0b928b160af9f1535708",
+            "comment": "Reduce telemetry RAM footprint and improve usability/readability #5676"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 06 Feb 2023 18:51:50 GMT",
+      "tag": "@azure/msal-common_v10.0.0",
+      "version": "10.0.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d4612bfea17987566d24c4b6f4460f68dd814ce8",
+            "comment": "tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "860be0de8a95165a48eea8727708ea0a9ef1618a",
+            "comment": "Add JS Queue Measurements #5352"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0eb89e9ed73aac1d068cd82ff5ba3c9d604f2162",
+            "comment": "Truncate integral telemetry fields #5627"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "78a6b91695925b86dd69622554b5b03f30d17237",
+            "comment": "Track manually completed sub-measurements #5614"
+          }
+        ],
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "efb09924f26896a9620e8d89e1d2578169cdfaa9",
+            "comment": "Update discardCache in PerformanceClient #5645"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "12910a395f92d4209510b253b96a8bb458b1d179",
+            "comment": "Optimize credential regular expressions #5621"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a7a8d7089cb02f1a3c01ded86082d7b0b415accf",
+            "comment": "Added missing fields to InteractionRequiredAuthError #5566"
+          }
+        ],
+        "major": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "63a00b26dd212bb9e6236772bd73457221333c4f",
+            "comment": "proxyUrl is now passed to msal-node's httpClient via it's constructor #5599"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 19 Jan 2023 23:50:24 GMT",
+      "tag": "@azure/msal-common_v9.1.1",
+      "version": "9.1.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "8e36aa8a2d086ee1156281b4e098af8a43e1c274",
+            "comment": "Update startMeasurement in PerformanceClient #5589"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "dd993f4346dd23f87a0d1a94af5389d392a4db7c",
+            "comment": "Add broker timeouts #5580"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 18 Jan 2023 00:33:04 GMT",
+      "tag": "@azure/msal-common_v9.1.0",
+      "version": "9.1.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c94aa6387105571b45a70f58e1852ca053ebae23",
+            "comment": "Add startPerformanceMeasurement to IPerformanceClient #5583"
+          },
+          {
+            "author": "joarroyo@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0c107eaadf7fe5c22367d3f22265d355acc0ac96",
+            "comment": "Revert typo changes #5582"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c06a509e469a69982b23bcdd38e09b0cf8d556c7",
+            "comment": "Match long domain names #5581"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "2ef49eb21f87df98c861d1ce46ddd2a218afc87e",
+            "comment": "- Remove `lookBehind` regex as not compatible with Safari browser. #5551"
+          },
+          {
+            "author": "v-ssalem@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "376e3c0b3562896940d365c9b8e803f6ce5604d9",
+            "comment": "add claims to request body in OBO class #5493"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c37a5debbcac889ed509880d476e3721d3aff2bc",
+            "comment": "Adding page visibility change event for silent calls like AcquireTokenSilent #5555"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 09 Jan 2023 22:44:58 GMT",
+      "tag": "@azure/msal-common_v9.0.2",
+      "version": "9.0.2",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3c38763c9755a837a15972c416c8cde992cb9f2d",
+            "comment": "Fix cache credential look-up (#5484)"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "00d3fd949453e3f9dc3316cc0e913a84b9c2cfa2",
+            "comment": "fix logger explicitly set to undefined error #5355"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "5d768052d5de051f93068d7327b8d90bfebb8a91",
+            "comment": "http version telemetry data #5211"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "0db3780cd80f1b3853f8c993e50cf91a84cbf345",
+            "comment": "fix typos #5531"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 07 Dec 2022 16:53:07 GMT",
+      "tag": "@azure/msal-common_v9.0.1",
+      "version": "9.0.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9fa742d706917415aff7e6d823b9cf6bda1a7eea",
+            "comment": "Fixed Typo in Authority Logs #5430"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "790976971d16a6887ed515bb8fb81a28057bb0fc",
+            "comment": "Improvement to Cloud Instance Discovery #5448"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 21 Nov 2022 19:14:45 GMT",
+      "tag": "@azure/msal-common_v9.0.0",
+      "version": "9.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "v-derisen@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3aef0095a87ea13d775f5176e5882110a433b578",
+            "comment": "Update B2C authority format in tests #5375"
+          }
+        ],
+        "major": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "3abd22bdd6a3360822f442c5f9408c7d8e47fdde",
+            "comment": "Added logging to Authority class"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Nov 2022 22:46:55 GMT",
       "tag": "@azure/msal-common_v8.0.0",
       "version": "8.0.0",

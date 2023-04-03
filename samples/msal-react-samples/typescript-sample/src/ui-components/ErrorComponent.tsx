@@ -1,4 +1,4 @@
-import { Typography } from "@material-ui/core";
+import { Typography } from "@mui/material";
 import { MsalAuthenticationResult } from "@azure/msal-react";
 
 export const ErrorComponent: React.FC<MsalAuthenticationResult> = ({error}) => {

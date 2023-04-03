@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { useMsal } from "@azure/msal-react";
-import IconButton from '@material-ui/core/IconButton';
-import AccountCircle from '@material-ui/icons/AccountCircle';
-import MenuItem from '@material-ui/core/MenuItem';
-import Menu from '@material-ui/core/Menu';
+import IconButton from '@mui/material/IconButton';
+import AccountCircle from "@mui/icons-material/AccountCircle";
+import MenuItem from '@mui/material/MenuItem';
+import Menu from '@mui/material/Menu';
 
 export const SignOutButton = () => {
     const { instance } = useMsal();

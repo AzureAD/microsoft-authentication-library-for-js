@@ -26,7 +26,7 @@ import {
 } from '@azure/msal-node';
 
 import { ConfigurationUtils } from './ConfigurationUtils';
-
+import { TokenValidator } from "./TokenValidator";
 import {
     AppSettings,
     Resource,
@@ -39,12 +39,12 @@ import * as constants from './Constants';
 
 /**
  * A simple wrapper around MSAL Node ConfidentialClientApplication object.
- * It offers a collection of middleware and utility methods that automate 
- * basic authentication and authorization tasks in Express MVC web apps. 
- * 
- * You must have express and express-sessions packages installed. Middleware here 
+ * It offers a collection of middleware and utility methods that automate
+ * basic authentication and authorization tasks in Express MVC web apps.
+ *
+ * You must have express and express-sessions packages installed. Middleware here
  * can be used with express sessions in route controllers.
- * 
+ *
  * Session variables accessible are as follows:
     * req.session.isAuthenticated: boolean
     * req.session.account: AccountInfo
@@ -56,6 +56,7 @@ export class AuthProvider {
     msalConfig: Configuration;
     msalClient: ConfidentialClientApplication;
 
+    private tokenValidator: TokenValidator;
     private cryptoProvider: CryptoProvider;
 
     constructor(appSettings: AppSettings, cache: ICachePlugin = null) {
@@ -66,6 +67,7 @@ export class AuthProvider {
         this.appSettings = appSettings;
         this.msalConfig = ConfigurationUtils.getMsalConfiguration(appSettings, cache);
         this.msalClient = new ConfidentialClientApplication(this.msalConfig);
+        this.tokenValidator = new TokenValidator(this.appSettings, this.cryptoProvider);
     }
 
     // ========== MIDDLEWARE ===========
@@ -74,7 +76,7 @@ export class AuthProvider {
      * Initiate sign in flow
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     signIn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
@@ -112,12 +114,12 @@ export class AuthProvider {
             } as AccountInfo;
         }
 
-        // random GUID for csrf check 
+        // random GUID for csrf check
         req.session.nonce = this.cryptoProvider.createNewGuid();
 
         /**
-         * The OAuth 2.0 state parameter can be used to encode information of the app's state before redirect. 
-         * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter. 
+         * The OAuth 2.0 state parameter can be used to encode information of the app's state before redirect.
+         * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
          * MSAL allows you to pass your custom state as state parameter in the request object. For more information, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request
          */
@@ -145,13 +147,13 @@ export class AuthProvider {
      * Initiate sign out and clean the session
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     signOut = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
         /**
-         * Construct a logout URI and redirect the user to end the 
-         * session with Azure AD/B2C. For more information, visit: 
+         * Construct a logout URI and redirect the user to end the
+         * session with Azure AD/B2C. For more information, visit:
          * (AAD) https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
          * (B2C) https://docs.microsoft.com/azure/active-directory-b2c/openid-connect#send-a-sign-out-request
          */
@@ -169,7 +171,7 @@ export class AuthProvider {
      * There are basically 2 stages: sign-in and acquire token
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     handleRedirect = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
@@ -191,12 +193,31 @@ export class AuthProvider {
                             const tokenResponse = await this.msalClient.acquireTokenByCode(req.session.tokenRequest)
                             console.log("\nResponse: \n:", tokenResponse);
 
-                            // assign session variables
-                            req.session.account = tokenResponse.account;
-                            req.session.isAuthenticated = true;
+                            try {
+                                /**
+                                 * Confidential web applications like ASP.NET Core must validate ID tokens sent to them by
+                                 * using the user's browser in the hybrid flow, before allowing access to a user's data or
+                                 * establishing a session. If this does not apply, the application won't benefit from validating
+                                 * the token. For more information, visit: https://learn.microsoft.com/azure/active-directory/develop/access-tokens#validate-tokens
+                                 */
+                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken);
 
-                            return res.status(200).redirect(this.appSettings.settings.homePageRoute);
-                            
+                                if (isIdTokenValid) {
+
+                                    // assign session variables
+                                    req.session.account = tokenResponse.account;
+                                    req.session.isAuthenticated = true;
+
+                                    return res.status(200).redirect(this.appSettings.settings.homePageRoute);
+                                } else {
+                                    console.log(ErrorMessages.INVALID_TOKEN);
+                                    return res.status(401).send(ErrorMessages.NOT_PERMITTED);
+                                }
+                            } catch (error) {
+                                console.log(error);
+                                next(error);
+                            }
+
                         } catch (error) {
                             console.log(error);
                             next(error);
@@ -242,7 +263,7 @@ export class AuthProvider {
      * Middleware that gets tokens and calls web APIs
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     getToken = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
@@ -316,7 +337,7 @@ export class AuthProvider {
      * Check if authenticated in session
      * @param {Request} req: express request object
      * @param {Response} res: express response object
-     * @param {NextFunction} next: express next 
+     * @param {NextFunction} next: express next
      */
     isAuthenticated = (req: Request, res: Response, next: NextFunction): Response | void => {
         if (req.session) {

@@ -85,6 +85,10 @@ export type CacheOptions = {
      * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
      */
     secureCookies?: boolean;
+    /**
+     * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
+     */
+    cacheMigrationEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -236,13 +240,17 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false
+        secureCookies: false,
+        // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
+        cacheMigrationEnabled: userInputCache && userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage ? true : false
     };
 
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
-        loggerCallback: (): void => {},
+        loggerCallback: (): void => {
+            // allow users to not set logger call back 
+        },
         logLevel: LogLevel.Info,
         piiLoggingEnabled: false
     };
@@ -270,6 +278,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         }
     };
 
+    const providedSystemOptions:BrowserSystemOptions = {
+        ...userInputSystem,
+        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS
+    };
+
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
             appName: Constants.EMPTY_STRING,
@@ -280,7 +293,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem },
+        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
     };
     return overlayedConfig;

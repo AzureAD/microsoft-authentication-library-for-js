@@ -9,16 +9,20 @@
     "build:package": "cd ../../../lib/msal-react && npm run build:all",
     "start": "next start",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
-    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"
+    "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.14.2",
-    "@azure/msal-react": "^1.0.0",
-    "@material-ui/core": "^4.11.0",
-    "@material-ui/icons": "^4.9.1",
-    "next": "^12.2.2",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "@azure/msal-browser": "^2.31.0",
+    "@azure/msal-react": "^1.4.10",
+    "@emotion/cache": "^11.10.5",
+    "@emotion/react": "^11.10.5",
+    "@emotion/server": "^11.10.0",
+    "@emotion/styled": "^11.10.5",
+    "@mui/icons-material": "^5.10.14",
+    "@mui/material": "^5.10.14",
+    "next": "^13.0.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "jest": "^27.0.4"
