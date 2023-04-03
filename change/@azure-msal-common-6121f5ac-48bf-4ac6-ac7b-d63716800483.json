@@ -1,0 +1,7 @@
+{
+    "type": "patch",
+    "comment": "Accomodate suffixes in credential regex #5728",
+    "packageName": "@azure/msal-common",
+    "email": "kshabelko@microsoft.com",
+    "dependentChangeType": "patch"
+}
