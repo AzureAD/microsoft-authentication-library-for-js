@@ -5,7 +5,6 @@
 
 import { ApiId } from "../utils/Constants";
 import {
-    DeviceCodeClient,
     AuthenticationResult,
     CommonDeviceCodeRequest,
     AuthError,
@@ -25,6 +24,7 @@ import { InteractiveRequest } from "../request/InteractiveRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
 import { LoopbackClient } from "../network/LoopbackClient";
 import { ILoopbackClient } from "../network/ILoopbackClient";
+import { DeviceCodeClient } from "./DeviceCodeClient";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -81,7 +81,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
+            serverTelemetryManager.cacheFailedRequest(e as AuthError);
             throw e;
         }
     }

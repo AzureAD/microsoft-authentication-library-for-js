@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { EventType, InteractionStatus, InteractionType, PublicClientApplication } from '@azure/msal-browser';
-import { MsalBroadcastService } from './msal.broadcast.service';
+import { Subscription } from "rxjs";
 import { MsalModule, MSAL_BROADCAST_CONFIG } from './public-api';
-import { ReplaySubject, Subject, Subscription } from "rxjs";
-import { Logger } from '@azure/msal-browser';
+import { MsalBroadcastService } from './msal.broadcast.service';
 
 let broadcastService: MsalBroadcastService;
 let subscription: Subscription;
@@ -63,7 +62,7 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_START, InteractionType.Popup);
   });
 
   it('broadcasts previous events if MsalBroadcastConfig set and eventsToReplay is greater than 0', (done) => {
@@ -98,7 +97,7 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
 
     subscription.unsubscribe();
 
@@ -138,9 +137,9 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
     newSubscription.unsubscribe();
   });
@@ -183,9 +182,9 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.INITIALIZE_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.INITIALIZE_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
 
     subscription.unsubscribe();
 
@@ -225,9 +224,9 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
     newSubscription.unsubscribe();
   });
@@ -257,7 +256,7 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
 
     subscription.unsubscribe();
 
@@ -291,9 +290,9 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
     newSubscription.unsubscribe();
   });
@@ -312,9 +311,9 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
   });
 
   it('HANDLE_REDIRECT_END event sets inProgress to None if handleRedirect is in progress', (done) => {
@@ -331,11 +330,11 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
   });
 
   it('HANDLE_REDIRECT_END event does not set inProgress to None if login is in progress', (done) => {
@@ -352,11 +351,11 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
     // @ts-ignore
-    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+    msalInstance.controller.getEventHandler().emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
   });
 
 });

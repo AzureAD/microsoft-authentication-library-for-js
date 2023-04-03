@@ -3,19 +3,19 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
-import { MsalService } from "./msal.service";
-import { Injectable, Inject, VERSION } from "@angular/core";
+import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
+import { ActivatedRouteSnapshot, RouterStateSnapshot, UrlTree, Router } from "@angular/router";
 import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
-import { MsalGuardConfiguration } from "./msal.guard.config";
-import { MSAL_GUARD_CONFIG } from "./constants";
-import { concatMap, catchError, map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
+import { concatMap, catchError, map } from "rxjs/operators";
+import { MsalService } from "./msal.service";
+import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MSAL_GUARD_CONFIG } from "./constants";
 
 @Injectable()
-export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
+export class MsalGuard {
     private loginFailedRoute?: UrlTree;
 
     constructor(
@@ -96,7 +96,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
     }
 
     /**
-     * Helper which checks for the correct interaction type, prevents page with Guard to be set as reidrect, and calls handleRedirectObservable
+     * Helper which checks for the correct interaction type, prevents page with Guard to be set as redirect, and calls handleRedirectObservable
      * @param state 
      */
     private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
@@ -129,8 +129,11 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         // Capture current path before it gets changed by handleRedirectObservable
         const currentPath = this.location.path(true);
 
-        return this.authService.handleRedirectObservable()
+        return this.authService.initialize()
             .pipe(
+                concatMap(() => {
+                    return this.authService.handleRedirectObservable();
+                }),
                 concatMap(() => {
                     if (!this.authService.instance.getAllAccounts().length) {
                         if (state) {
@@ -181,10 +184,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     this.authService.getLogger().error("Guard - error while logging in, unable to activate");
                     this.authService.getLogger().errorPii(`Guard - error: ${error.message}`);
                     /**
-                     * If a loginFailedRoute is set, checks to see if Angular 10+ is used and state is passed in before returning route
-                     * Apps using Angular 9 will receive of(false) in canLoad interface, as it does not support UrlTree return types
+                     * If a loginFailedRoute is set, checks to see if state is passed before returning route
                      */
-                    if (this.loginFailedRoute && parseInt(VERSION.major, 10) > 9 && state) {
+                    if (this.loginFailedRoute && state) {
                         this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
                         return of(this.loginFailedRoute);
                     }
@@ -210,9 +212,8 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         return this.activateHelper(state);
     }
 
-    canLoad(): Observable<boolean> {
+    canMatch(): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canLoad");
-        // @ts-ignore
         return this.activateHelper();
     }
 }
