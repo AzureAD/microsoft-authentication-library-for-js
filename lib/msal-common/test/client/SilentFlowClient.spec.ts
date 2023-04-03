@@ -134,9 +134,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
@@ -168,9 +168,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
@@ -203,9 +203,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
@@ -326,9 +326,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
@@ -349,9 +349,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
@@ -371,9 +371,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"wasClockTurnedBack").returns(true);
@@ -393,9 +393,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(null);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(null);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config,stubPerformanceClient);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
@@ -433,9 +433,9 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             extractTokenClaims = sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             client = new SilentFlowClient(config,stubPerformanceClient);
@@ -502,7 +502,7 @@ describe("SilentFlowClient unit tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 apiId: 862,
                 correlationId: "test-correlation-id"
-            }, new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto));
+            }, new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, logger));
             client = new SilentFlowClient(config,stubPerformanceClient);
             const telemetryCacheHitSpy = sinon.stub(ServerTelemetryManager.prototype, "incrementCacheHits").returns(1);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
@@ -592,9 +592,9 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.refreshOn = `${Number(testAccessTokenEntity.cachedAt) - 1}`;
             testAccessTokenEntity.expiresOn = `${Number(testAccessTokenEntity.cachedAt) + AUTHENTICATION_RESULT.body.expires_in}`;
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
             
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -634,9 +634,9 @@ describe("SilentFlowClient unit tests", () => {
             testAccessTokenEntity.refreshOn = `${Number(testAccessTokenEntity.cachedAt) - 1}`;
             testAccessTokenEntity.expiresOn = `${Number(testAccessTokenEntity.cachedAt) + AUTHENTICATION_RESULT.body.expires_in}`;
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
     
             const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,

@@ -1,12 +1,12 @@
 import puppeteer from "puppeteer";
-import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
+import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
-import { 
-    enterCredentialsADFS, 
-    enterCredentialsADFSWithConsent, 
+import {
+    enterCredentialsADFS,
+    enterCredentialsADFSWithConsent,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
  } from "../../testUtils";
@@ -23,8 +23,8 @@ const config = require("../config/ADFS.json");
 let username: string;
 let accountPwd: string;
 
-describe('Auth Code ADFS PPE Tests', () => {
-    jest.retryTimes(1);
+describe('Auth Code ADFS 2019 Tests', () => {
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -32,7 +32,7 @@ describe('Auth Code ADFS PPE Tests', () => {
     let port: string;
     let homeRoute: string;
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/adfs`;
-    
+
     beforeAll(async() => {
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -46,7 +46,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             appType: AppTypes.CLOUD,
             federationProvider: FederationProviders.ADFS2019,
             userType: UserTypes.FEDERATED
-        }; 
+        };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
@@ -95,7 +95,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
-         
+
         it("Performs acquire token with prompt = 'login'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptLogin`);
             await page.goto(`${homeRoute}/?prompt=login`);
@@ -106,7 +106,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
-        
+
         it("Performs acquire token with prompt = 'consent'", async () => {
             const screenshot = new Screenshot(`${screenshotFolder}/PromptConsent`);
             await page.goto(`${homeRoute}/?prompt=consent`);

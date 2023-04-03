@@ -12,7 +12,7 @@ import { GrantType , CredentialType, CacheOutcome, Constants, AuthenticationSche
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
-import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { CredentialFilter } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
 import { StringUtils } from "../utils/StringUtils";
@@ -89,7 +89,6 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Reads access token from the cache
-     * TODO: Move this call to cacheManager instead
      */
     private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
@@ -98,10 +97,10 @@ export class ClientCredentialClient extends BaseClient {
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
-            target: this.scopeSet.printScopesLowerCase()
+            target: ScopeSet.createSearchScopes(this.scopeSet.asArray())
         };
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-        const accessTokens = Object.keys(credentialCache.accessTokens).map(key => credentialCache.accessTokens[key]);
+
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
         if (accessTokens.length < 1) {
             return null;
         } else if (accessTokens.length > 1) {

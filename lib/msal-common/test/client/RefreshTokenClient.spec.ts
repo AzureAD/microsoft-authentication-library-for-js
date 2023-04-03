@@ -218,7 +218,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);
@@ -309,7 +309,7 @@ describe("RefreshTokenClient unit tests", () => {
                     done(error);
                 }
             });
-    
+
             const client = new RefreshTokenClient(config, stubPerformanceClient);
             const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
@@ -324,7 +324,7 @@ describe("RefreshTokenClient unit tests", () => {
                     testParam3: "testValue3",
                 },
             };
-    
+
             client.acquireToken(refreshTokenRequest).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
@@ -531,7 +531,6 @@ describe("RefreshTokenClient unit tests", () => {
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
                 incrementCounters: jest.fn(),
-                flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -568,7 +567,6 @@ describe("RefreshTokenClient unit tests", () => {
                 endMeasurement: jest.fn(),
                 addStaticFields: jest.fn(),
                 incrementCounters: jest.fn(),
-                flushMeasurements: jest.fn(),
                 discardMeasurements: jest.fn(),
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
@@ -622,7 +620,7 @@ describe("RefreshTokenClient unit tests", () => {
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_FOCI);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testFamilyRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
             config.storageInterface!.setAccount(testAccountEntity);

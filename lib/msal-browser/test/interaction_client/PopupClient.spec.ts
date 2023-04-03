@@ -17,6 +17,7 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { FetchClient } from "../../src/network/FetchClient";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
+import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const testPopupWondowDefaults = {
     height: BrowserConstants.POPUP_HEIGHT,
@@ -232,7 +233,7 @@ describe("PopupClient", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             // @ts-ignore
-            const nativeMessageHandler = new NativeMessageHandler(pca.logger);
+            const nativeMessageHandler = new NativeMessageHandler(pca.logger, 2000, getDefaultPerformanceClient());
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage, nativeMessageHandler);
             const tokenResp = await popupClient.acquireToken({
@@ -606,6 +607,20 @@ describe("PopupClient", () => {
                 idTokenClaims: testIdTokenClaims
             };
 
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount.idTokenClaims = testIdTokenClaims;
+
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount);
+
             sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
                 done();
@@ -651,6 +666,20 @@ describe("PopupClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
                 idTokenClaims: testIdTokenClaims
             };
+
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount.idTokenClaims = testIdTokenClaims;
+
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount);
 
             sinon.stub(PopupClient.prototype, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
@@ -742,11 +771,13 @@ describe("PopupClient", () => {
                 return Promise.resolve(true);
             });
 
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`, JSON.stringify({homeAccountId: testAccount.homeAccountId, localAccountId: testAccount.localAccountId}));
-            window.sessionStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo), JSON.stringify(testAccount));
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount);
+            pca.setActiveAccount(testAccountInfo);
 
             await popupClient.logout(validatedLogoutRequest).then(() => {
-                expect(window.sessionStorage.length).toBe(0);
+                expect(pca.getActiveAccount()).toBe(null);
+                expect(pca.getAllAccounts().length).toBe(0);
             });
         });
     });

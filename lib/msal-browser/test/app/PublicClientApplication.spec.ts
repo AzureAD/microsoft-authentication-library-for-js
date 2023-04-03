@@ -29,7 +29,8 @@ import {
     IdTokenEntity,
     CacheManager,
     ClientAuthError,
-    PersistentCacheKeys
+    PersistentCacheKeys,
+    Authority
 } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation, CacheLookupPolicy } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -56,11 +57,13 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
+import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
-    secureCookies: false
+    secureCookies: false,
+    cacheMigrationEnabled: false
 };
 
 let testAppConfig = {
@@ -73,18 +76,25 @@ let testAppConfig = {
     }
 };
 
-
 jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
     return {
         BrowserPerformanceMeasurement: jest.fn().mockImplementation(() => {
             return {
                 startMeasurement: () => {},
                 endMeasurement: () => {},
-                flushMeasurement: () => 50
+                flushMeasurement: () => 50,
             }
         })
     }
 });
+
+function stubProvider(pca: PublicClientApplication) {
+    // @ts-ignore
+    const perfClient = pca.performanceClient;
+    return sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
+        return new NativeMessageHandler(pca.getLogger(), 2000, perfClient, "test-extensionId");
+    });
+}
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
@@ -101,6 +111,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             }
         });
+        BrowserPerformanceMeasurement.flushMeasurements = jest.fn().mockReturnValue(null);
     });
 
     afterEach(() => {
@@ -120,9 +131,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("intialize tests", () => {
         it("creates extension provider if allowNativeBroker is true", async () => {
-            const createProviderSpy = sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
@@ -131,6 +139,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
+            const createProviderSpy = stubProvider(pca);
             await pca.initialize();
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
@@ -267,9 +276,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     loginSuccessFired = true;
                 }
             });
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const response = await pca.handleRedirectPromise();
             expect(response).toEqual(testTokenResponse);
@@ -465,7 +472,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
-            expect(window.sessionStorage.length).toEqual(4);
         });
     });
 
@@ -531,9 +537,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 return;
@@ -548,6 +552,29 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             expect(nativeAcquireTokenSpy.calledOnce).toBeTruthy();
             expect(redirectSpy.calledOnce).toBeFalsy();
+        });
+
+        it("captures telemetry data points during initialization", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    allowNativeBroker: true
+                }
+            });
+
+            const callbackId = pca.addPerformanceCallback((events => {
+                expect(events.length).toBe(1);
+                const event = events[0];
+                expect(event.success).toBeTruthy();
+                expect(event.allowNativeBroker).toBeTruthy();
+                pca.removePerformanceCallback(callbackId);
+                done();
+            }));
+
+            stubProvider(pca);
+            pca.initialize();
         });
 
         it("falls back to web flow if prompt is select_account", async () => {
@@ -569,9 +596,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireTokenRedirect");
             const redirectSpy = sinon.stub(RedirectClient.prototype, "acquireToken").callsFake(async () => {
@@ -606,9 +631,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
@@ -644,9 +667,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
@@ -682,9 +703,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireTokenRedirect").callsFake(async () => {
                 throw new Error("testError");
@@ -979,9 +998,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
@@ -1032,9 +1049,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.spy(NativeInteractionClient.prototype, "acquireToken");
             const popupSpy = sinon.stub(PopupClient.prototype, "acquireToken").callsFake(async () => {
@@ -1084,9 +1099,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
@@ -1137,9 +1150,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw InteractionRequiredAuthError.createNativeAccountUnavailableError();
@@ -1176,9 +1187,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new Error("testError");
@@ -1454,9 +1463,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
@@ -1507,9 +1514,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
@@ -1546,9 +1551,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new Error("testError");
@@ -1774,9 +1777,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
@@ -1800,9 +1801,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "something went wrong in the extension");
@@ -2180,9 +2179,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 return testTokenResponse;
@@ -2233,9 +2230,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new NativeAuthError("ContentError", "error in extension");
@@ -2272,9 +2267,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 nativeAccountId: "test-nativeAccountId"
             };
 
-            sinon.stub(NativeMessageHandler, "createProvider").callsFake(async () => {
-                return new NativeMessageHandler(pca.getLogger(), 2000, "test-extensionId");
-            });
+            stubProvider(pca);
             await pca.initialize();
             const nativeAcquireTokenSpy = sinon.stub(NativeInteractionClient.prototype, "acquireToken").callsFake(async () => {
                 throw new Error("testError");
@@ -3353,19 +3346,18 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 return authorityMetadata;
             });
 
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
-            window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount1);
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount2);
 
             const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
-            const idTokenKey1 = idToken1.generateCredentialKey();
-            window.sessionStorage.setItem(idTokenKey1, JSON.stringify(idToken1));
-
-            const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
-            window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken1);
 
             const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
-            const idTokenKey2 = idToken2.generateCredentialKey();
-            window.sessionStorage.setItem(idTokenKey2, JSON.stringify(idToken2));
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -3459,6 +3451,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             localAccountId: TEST_CONFIG.OID,
             idToken: TEST_TOKENS.IDTOKEN_V2,
             idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined
         };
 
         const testAccount1: AccountEntity = new AccountEntity();
@@ -3470,6 +3463,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         testAccount1.name = testAccountInfo1.name;
         testAccount1.authorityType = "MSSTS";
         testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+        testAccount1.idTokenClaims = ID_TOKEN_CLAIMS;
 
         const idTokenData1 = {
             "realm": testAccountInfo1.tenantId,
@@ -3480,36 +3474,71 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             "homeAccountId": testAccountInfo1.homeAccountId,
         };
 
-        beforeEach(() => {
-            const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
-            window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
+        const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
 
-            const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
-            const idTokenKey1 = idToken1.generateCredentialKey();
-            window.sessionStorage.setItem(idTokenKey1, JSON.stringify(idToken1));
+        // Account 2
+        const testAccountInfo2: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "example@microsoft.com",
+            name: "Abe Lincoln",
+            localAccountId: TEST_CONFIG.OID,
+            idToken: TEST_TOKENS.IDTOKEN_V2,
+            idTokenClaims: ID_TOKEN_CLAIMS,
+            nativeAccountId: undefined
+        };
+
+        const testAccount2: AccountEntity = new AccountEntity();
+        testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
+        testAccount2.localAccountId = TEST_CONFIG.OID;
+        testAccount2.environment = testAccountInfo2.environment;
+        testAccount2.realm = testAccountInfo2.tenantId;
+        testAccount2.username = testAccountInfo2.username;
+        testAccount2.name = testAccountInfo2.name;
+        testAccount2.authorityType = "MSSTS";
+        testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+        testAccount2.idTokenClaims = ID_TOKEN_CLAIMS;
+
+        const idTokenData2 = {
+            "realm": testAccountInfo2.tenantId,
+            "environment": testAccountInfo2.environment,
+            "credentialType": "IdToken",
+            "secret": TEST_TOKENS.IDTOKEN_V2,
+            "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
+            "homeAccountId": testAccountInfo2.homeAccountId,
+        };
+        
+        const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
+
+        beforeEach(() => {
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount1);
+            // @ts-ignore
+            pca.browserStorage.setAccount(testAccount2);
+
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken1);
+            // @ts-ignore
+            pca.browserStorage.setIdTokenCredential(idToken2);
+
+            sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
+                const authorityMetadata = new AuthorityMetadataEntity();
+                authorityMetadata.updateCloudDiscoveryMetadata({
+                    aliases: [host],
+                    preferred_cache: host,
+                    preferred_network: host
+                }, false);
+                return authorityMetadata;
+            });
         });
 
         afterEach(() => {
             window.sessionStorage.clear();
+            sinon.restore();
         });
 
         describe("activeAccount getter and setter tests", () => {
-            beforeEach(() => {
-                sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
-                    const authorityMetadata = new AuthorityMetadataEntity();
-                    authorityMetadata.updateCloudDiscoveryMetadata({
-                        aliases: [host],
-                        preferred_cache: host,
-                        preferred_network: host
-                    }, false);
-                    return authorityMetadata;
-                });
-            });
-
-            afterEach(() => {
-                sinon.restore();
-            });
-
             it("active account is initialized as null", () => {
                 // Public client should initialze with active account set to null.
                 expect(pca.getActiveAccount()).toBe(null);
@@ -3566,7 +3595,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 // @ts-ignore
                 const localStorage = pcaLocal.browserStorage;
-                localStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo1), JSON.stringify(testAccount1));
+                localStorage.setAccount(testAccount1);
                 localStorage.setItem(localStorage.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT), testAccount1.localAccountId);
 
                 const activeAccount = pcaLocal.getActiveAccount();
@@ -3574,88 +3603,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             describe("activeAccount tests with two accounts, both with same localId", () => {
-                // Account 1
-                const testAccountInfo1: AccountInfo = {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow1",
-                    environment: "login.windows.net",
-                    tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-                    username: "example@microsoft.com",
-                    name: "Abe Lincoln",
-                    localAccountId: TEST_CONFIG.OID,
-                    idToken: TEST_TOKENS.IDTOKEN_V2,
-                    idTokenClaims: ID_TOKEN_CLAIMS,
-                };
-
-                const testAccount1: AccountEntity = new AccountEntity();
-                testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
-                testAccount1.localAccountId = TEST_CONFIG.OID;
-                testAccount1.environment = testAccountInfo1.environment;
-                testAccount1.realm = testAccountInfo1.tenantId;
-                testAccount1.username = testAccountInfo1.username;
-                testAccount1.name = testAccountInfo1.name;
-                testAccount1.authorityType = "MSSTS";
-                testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-                const idTokenData1 = {
-                    "realm": testAccountInfo1.tenantId,
-                    "environment": testAccountInfo1.environment,
-                    "credentialType": "IdToken",
-                    "secret": TEST_TOKENS.IDTOKEN_V2,
-                    "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
-                    "homeAccountId": testAccountInfo1.homeAccountId,
-                };
-
-                // Account 2
-                const testAccountInfo2: AccountInfo = {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID + ".flow2",
-                    environment: "login.windows.net",
-                    tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-                    username: "example@microsoft.com",
-                    name: "Abe Lincoln",
-                    localAccountId: TEST_CONFIG.OID,
-                    idToken: TEST_TOKENS.IDTOKEN_V2,
-                    idTokenClaims: ID_TOKEN_CLAIMS,
-                };
-
-                const testAccount2: AccountEntity = new AccountEntity();
-                testAccount2.homeAccountId = testAccountInfo2.homeAccountId;
-                testAccount2.localAccountId = TEST_CONFIG.OID;
-                testAccount2.environment = testAccountInfo2.environment;
-                testAccount2.realm = testAccountInfo2.tenantId;
-                testAccount2.username = testAccountInfo2.username;
-                testAccount2.name = testAccountInfo2.name;
-                testAccount2.authorityType = "MSSTS";
-                testAccount2.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
-
-                const idTokenData2 = {
-                    "realm": testAccountInfo2.tenantId,
-                    "environment": testAccountInfo2.environment,
-                    "credentialType": "IdToken",
-                    "secret": TEST_TOKENS.IDTOKEN_V2,
-                    "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
-                    "homeAccountId": testAccountInfo2.homeAccountId,
-                };
-
-                const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
-                const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
-                const idTokenKey1 = idToken1.generateCredentialKey();
-
-                const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
-                const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
-                const idTokenKey2 = idToken2.generateCredentialKey();
-
-                beforeEach(() => {
-                    window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
-                    window.sessionStorage.setItem(idTokenKey1, JSON.stringify(idToken1));
-
-                    window.sessionStorage.setItem(cacheKey2, JSON.stringify(testAccount2));
-                    window.sessionStorage.setItem(idTokenKey2, JSON.stringify(idToken2));
-                });
-
-                afterEach(() => {
-                    window.sessionStorage.clear();
-                });
-
                 it("setActiveAccount sets both home id and local id", () => {
                     expect(pca.getActiveAccount()).toBe(null);
 
@@ -3692,6 +3639,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(activeAccount).not.toEqual(testAccountInfo1);
                     expect(activeAccount).toEqual(testAccountInfo2);
 
+                    const cacheKey2 = AccountEntity.generateAccountCacheKey(testAccountInfo2);
+                    const idTokenKey2 = idToken2.generateCredentialKey();
                     window.sessionStorage.removeItem(cacheKey2);
                     window.sessionStorage.removeItem(idTokenKey2);
                     expect(pca.getActiveAccount()).toBe(null);
@@ -3700,23 +3649,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("activeAccount logout", () => {
-            const testAccountInfo2: AccountInfo = {
-                homeAccountId: "different-home-account-id",
-                environment: "login.windows.net",
-                tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
-                username: "anotherExample@microsoft.com",
-                name: "Abe Lincoln",
-                localAccountId: TEST_CONFIG.OID,
-            };
-
-            const testAccountInfo3: AccountInfo = {
-                ...testAccountInfo1,
-                idToken: undefined,
-                idTokenClaims: undefined,
-            };
-
             beforeEach(() => {
-                pca.setActiveAccount(testAccountInfo3);
+                pca.setActiveAccount(testAccountInfo1);
                 sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                     expect(urlNavigate).toEqual(testLogoutUrl);
@@ -3727,29 +3661,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(PopupClient.prototype, "openPopup").returns(popupWindow);
                 sinon.stub(PopupClient.prototype, "openSizedPopup").returns(popupWindow);
                 sinon.stub(PopupClient.prototype, "cleanPopup");
-            });
-
-            afterEach(() => {
-                sinon.restore();
+                sinon.stub(Authority.prototype, "resolveEndpointsAsync");
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                 await pca.logoutRedirect();
                 expect(pca.getActiveAccount()).toBe(null);
             });
 
             it("Clears active account on logoutRedirect when the given account info matches", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutRedirect({
-                        account: testAccountInfo3
+                        account: testAccountInfo1
                     });
                     expect(pca.getActiveAccount()).toBe(null);
                 }
             );
 
             it("Does not clear active account on logoutRedirect if given account object does not match", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutRedirect({
                         account: testAccountInfo2
                     });
@@ -3758,22 +3689,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
 
             it("Clears active account on logoutPopup with no account", async () => {
-                expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                 await pca.logoutPopup();
                 expect(pca.getActiveAccount()).toBe(null);
             });
 
             it("Clears active account on logoutPopup when the given account info matches", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutPopup({
-                        account: testAccountInfo3
+                        account: testAccountInfo1
                     });
                     expect(pca.getActiveAccount()).toBe(null);
                 }
             );
 
             it("Does not clear active account on logoutPopup if given account object does not match", async () => {
-                    expect(pca.getActiveAccount()).toEqual(testAccountInfo3);
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutPopup({
                         account: testAccountInfo2
                     });
