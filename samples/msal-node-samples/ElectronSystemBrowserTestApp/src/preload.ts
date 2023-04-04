@@ -2,10 +2,17 @@
 // Licensed under the MIT License
 
 import { contextBridge, ipcRenderer } from "electron";
-import { GRAPH_CONFIG, IpcMessages } from "./Constants";
-import { UIManager } from "./UIManager";
-import { AccountInfo } from "@azure/msal-node";
-import { UserInfo, MailInfo } from "./GraphReponseTypes";
+import { IpcMessages } from "./Constants";
+
+const validChannels = [
+    IpcMessages.LOGIN,
+    IpcMessages.LOGOUT,
+    IpcMessages.GET_PROFILE,
+    IpcMessages.GET_ACCOUNT,
+    IpcMessages.SHOW_WELCOME_MESSAGE,
+    IpcMessages.SET_PROFILE,
+    IpcMessages.GET_AUTH_CODE_URL,
+];
 
 /**
  * This preload script exposes a "renderer" API to give
@@ -14,59 +21,19 @@ import { UserInfo, MailInfo } from "./GraphReponseTypes";
  * communication between the Main and Renderer processes.
  */
 contextBridge.exposeInMainWorld("api", {
-    sendLoginMessage: () => {
-        ipcRenderer.send(IpcMessages.LOGIN);
+    send: (channel: IpcMessages) => {
+        if (validChannels.includes(channel)) {
+            ipcRenderer.send(channel);
+        }
     },
-    sendSignoutMessage: () => {
-        ipcRenderer.send(IpcMessages.LOGOUT);
+    receive: (channel: IpcMessages, func: (...args: any) => any) => {
+        if (validChannels.includes(channel)) {
+            ipcRenderer.on(channel, (event, ...args) => func(...args));
+        }
     },
-    sendSeeProfileMessage: () => {
-        ipcRenderer.send(IpcMessages.GET_PROFILE);
-    },
-    sendReadMailMessage: () => {
-        ipcRenderer.send(IpcMessages.GET_MAIL);
-    },
-    /**
-     * This method will be called by the Renderer
-     * to give the preload script access to the UI manager
-     */
-    startUiManager: () => {
-        /**
-         * The UI Manager is declared within this API because
-         * although it's used in the listeners below, it must be initialized by the Renderer
-         * process in order for the DOM to be accessible through JavaScript.
-         */
-        const uiManager = new UIManager();
-
-        ipcRenderer.on(
-            IpcMessages.SHOW_WELCOME_MESSAGE,
-            (event: any, account: AccountInfo) => {
-                uiManager.showWelcomeMessage(account);
-            }
-        );
-
-        ipcRenderer.on(
-            IpcMessages.SET_PROFILE,
-            (event: any, graphResponse: UserInfo) => {
-                uiManager.updateUI(graphResponse, GRAPH_CONFIG.GRAPH_ME_ENDPT);
-            }
-        );
-
-        ipcRenderer.on(
-            IpcMessages.SET_MAIL,
-            (event: any, graphResponse: MailInfo) => {
-                uiManager.updateUI(
-                    graphResponse,
-                    GRAPH_CONFIG.GRAPH_MAIL_ENDPT
-                );
-            }
-        );
-
-        ipcRenderer.on(
-            IpcMessages.GET_AUTH_CODE_URL,
-            (event: any, url: string) => {
-                console.log(url);
-            }
-        );
+    removeAllListeners: (channel: IpcMessages) => {
+        if (validChannels.includes(channel)) {
+            ipcRenderer.removeAllListeners(channel);
+        }
     },
 });

@@ -69,6 +69,11 @@ describe("SilentCacheClient", () => {
         // @ts-ignore
         silentCacheClient = new SilentCacheClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
     })
+
+    afterEach(() => {
+        sinon.restore();
+    });
+    
     describe("acquireToken", () => {
         it("successfully acquires the token from the cache", async () => {
             const response: AuthenticationResult = {
@@ -87,9 +92,9 @@ describe("SilentCacheClient", () => {
             }
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
 
             await expect(silentCacheClient.acquireToken({
                 authority: TEST_CONFIG.validAuthority,

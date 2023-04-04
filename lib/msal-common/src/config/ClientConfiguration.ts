@@ -6,7 +6,7 @@
 import { INetworkModule } from "../network/INetworkModule";
 import { DEFAULT_CRYPTO_IMPLEMENTATION, ICrypto } from "../crypto/ICrypto";
 import { AuthError } from "../error/AuthError";
-import { ILoggerCallback, LogLevel } from "../logger/Logger";
+import { ILoggerCallback, Logger, LogLevel } from "../logger/Logger";
 import { Constants } from "../utils/Constants";
 import { version } from "../packageMetadata";
 import { Authority } from "../authority/Authority";
@@ -221,7 +221,7 @@ export function buildClientConfiguration(
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION),
+        storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION, new Logger(loggerOptions)),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,

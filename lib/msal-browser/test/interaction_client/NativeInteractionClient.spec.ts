@@ -101,7 +101,7 @@ describe("NativeInteractionClient Tests", () => {
             tokenType: AuthenticationScheme.BEARER
         };
 
-        sinon.stub(CacheManager.prototype, "readAccountFromCacheWithNativeAccountId").returns(testAccountEntity);
+        sinon.stub(CacheManager.prototype, "getAccountInfoFilteredBy").returns(testAccountInfo);
         sinon.stub(SilentCacheClient.prototype, "acquireToken").callsFake(() => { return Promise.resolve(response); });
 
         it("Tokens found in cache", async () => {
