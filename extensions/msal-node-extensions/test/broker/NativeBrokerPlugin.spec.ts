@@ -1,6 +1,6 @@
 import { NativeBrokerPlugin } from "../../src/broker/NativeBrokerPlugin";
-import { Account, AsyncHandle, AuthParameters, AuthResult, DiscoverAccountsResult, ErrorStatus, msalNodeRuntime, ReadAccountResult } from "@azure/msal-node-runtime";
-import { AccountInfo, AuthenticationResult, NativeRequest, PromptValue } from "@azure/msal-common";
+import { Account, AsyncHandle, AuthParameters, AuthResult, DiscoverAccountsResult, ErrorStatus, msalNodeRuntime, MsalRuntimeError, ReadAccountResult, SignOutResult } from "@azure/msal-node-runtime";
+import { AccountInfo, AuthenticationResult, ClientAuthError, ClientConfigurationError, InteractionRequiredAuthError, NativeRequest, NativeSignOutRequest, PromptValue, ServerError } from "@azure/msal-common";
 import { randomUUID } from "crypto";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { testMsalRuntimeAccount, testAccountInfo, msalRuntimeExampleError, getTestAuthenticationResult, TEST_CLIENT_ID, TEST_REDIRECTURI } from "../util/TestConstants";
@@ -736,7 +736,6 @@ describe("NativeBrokerPlugin", () => {
                     CheckError: () => { throw msalRuntimeExampleError; },
                     telemetryData: ""
                 };
-                console.log("HERE")
                 expect(correlationId).toEqual(testCorrelationId);
                 callback(result);
 
@@ -788,9 +787,534 @@ describe("NativeBrokerPlugin", () => {
             }
             await expect(nativeBrokerPlugin.acquireTokenInteractive(request)).rejects.toThrowError(testNativeAuthError);
         });
+
+        it("Throws error if MsalRuntime API throws", async () => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInAsync").mockImplementation(() => {
+                throw msalRuntimeExampleError;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            await expect(nativeBrokerPlugin.acquireTokenInteractive(request)).rejects.toThrowError(testNativeAuthError);
+        })
     });
 
     describe("signOut tests", () => {
+        it("Calls SignOutSilentlyAsync and resolves promise successfully", async () => {
+            const testCorrelationId = generateCorrelationId();
 
+            jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
+                const result: ReadAccountResult = {
+                    account: testMsalRuntimeAccount,
+                    CheckError: () => {},
+                    telemetryData: ""
+                };
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            jest.spyOn(msalNodeRuntime, "SignOutSilentlyAsync").mockImplementation((clientId: string, correlationId: string, account: Account, callback: (result: SignOutResult) => void) => {
+                const result: SignOutResult = {
+                    CheckError: () => {},
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                expect(account).toStrictEqual(testMsalRuntimeAccount);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeSignOutRequest = {
+                clientId: TEST_CLIENT_ID,
+                correlationId: testCorrelationId,
+                accountId: testAccountInfo.nativeAccountId
+            }
+            await nativeBrokerPlugin.signOut(request);
+        });
+
+        it("Throws error if account is not signed in", async () => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
+                const result: ReadAccountResult = {
+                    account: null,
+                    CheckError: () => {},
+                    telemetryData: ""
+                };
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeSignOutRequest = {
+                clientId: TEST_CLIENT_ID,
+                correlationId: testCorrelationId,
+                accountId: testAccountInfo.nativeAccountId
+            }
+
+            await expect(nativeBrokerPlugin.signOut(request)).rejects.toThrowError(ClientAuthError.createNoAccountFoundError());
+        });
+
+        it("Throws error if SignOutSilentlyAsync returns error", async () => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
+                const result: ReadAccountResult = {
+                    account: testMsalRuntimeAccount,
+                    CheckError: () => {},
+                    telemetryData: ""
+                };
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            jest.spyOn(msalNodeRuntime, "SignOutSilentlyAsync").mockImplementation((clientId: string, correlationId: string, account: Account, callback: (result: SignOutResult) => void) => {
+                const result: SignOutResult = {
+                    CheckError: () => { throw msalRuntimeExampleError; },
+                    telemetryData: ""
+                };
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeSignOutRequest = {
+                clientId: TEST_CLIENT_ID,
+                correlationId: testCorrelationId,
+                accountId: testAccountInfo.nativeAccountId
+            }
+            await expect(nativeBrokerPlugin.signOut(request)).rejects.toThrowError(testNativeAuthError);
+        });
+
+        it("Throws error if SignOutSilentlyAsync API throws", async () => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
+                const result: ReadAccountResult = {
+                    account: testMsalRuntimeAccount,
+                    CheckError: () => {},
+                    telemetryData: ""
+                };
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            jest.spyOn(msalNodeRuntime, "SignOutSilentlyAsync").mockImplementation(() => {
+                throw msalRuntimeExampleError;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeSignOutRequest = {
+                clientId: TEST_CLIENT_ID,
+                correlationId: testCorrelationId,
+                accountId: testAccountInfo.nativeAccountId
+            }
+            await expect(nativeBrokerPlugin.signOut(request)).rejects.toThrowError(testNativeAuthError);
+        });
+    });
+
+    describe("WrapError tests", () => {
+        it("Throws interaction_required error if MsalRuntime throws InteractionRequired Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.InteractionRequired,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                done();
+            });
+        });
+
+        it("Throws interaction_required error if MsalRuntime throws AccountUnusable Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.AccountUnusable,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toBeInstanceOf(InteractionRequiredAuthError);
+                done();
+            });
+        });
+
+        it("Throws no_network_connectivity error if MsalRuntime throws NoNetwork Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.NoNetwork,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toStrictEqual(ClientAuthError.createNoNetworkConnectivityError());
+                done();
+            });
+        });
+
+        it("Throws no_network_connectivity error if MsalRuntime throws NetworkTemporarilyUnavailable Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.NetworkTemporarilyUnavailable,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toStrictEqual(ClientAuthError.createNoNetworkConnectivityError());
+                done();
+            });
+        });
+
+        it("Throws server_error if MsalRuntime throws ServerTemporarilyUnavailable Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.ServerTemporarilyUnavailable,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toBeInstanceOf(ServerError);
+                done();
+            });
+        });
+
+        it("Throw user_cancelled error if MsalRuntime throws UserCanceled Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.UserCanceled,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toStrictEqual(ClientAuthError.createUserCanceledError());
+                done();
+            });
+        });
+
+        it("Throw authority_untrusted error if MsalRuntime throws AuthorityUntrusted Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.AuthorityUntrusted,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toStrictEqual(ClientConfigurationError.createUntrustedAuthorityError());
+                done();
+            });
+        });
+
+        it("Does not throw error if MsalRuntime throws UserSwitched Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+            const testAuthenticationResult = getTestAuthenticationResult(testCorrelationId);
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: JSON.stringify(testAuthenticationResult.idTokenClaims),
+                    accessToken: testAuthenticationResult.accessToken,
+                    rawIdToken: testAuthenticationResult.idToken,
+                    grantedScopes: testAuthenticationResult.scopes.join(" "),
+                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    isPopAuthorization: false,
+                    account: testMsalRuntimeAccount,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.UserSwitched,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: testAuthenticationResult.scopes,
+                correlationId: testCorrelationId,
+                authority: testAuthenticationResult.authority,
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).then((response) => {
+                expect(response).toStrictEqual(testAuthenticationResult);
+                done();
+            });
+        });
+
+        it("Throws account_not_found error if MsalRuntime throws AccountNotFound Status", (done) => {
+            const testCorrelationId = generateCorrelationId();
+
+            jest.spyOn(msalNodeRuntime, "SignInSilentlyAsync").mockImplementation((authParams: AuthParameters, correlationId: string, callback: (result: AuthResult) => void) => {
+                const result: AuthResult = {
+                    idToken: "",
+                    accessToken: "",
+                    rawIdToken: "",
+                    grantedScopes: "",
+                    expiresOn: 0,
+                    isPopAuthorization: false,
+                    account: null,
+                    CheckError: () => {
+                        const testError: MsalRuntimeError = {
+                            errorCode: 0,
+                            errorStatus: ErrorStatus.AccountNotFound,
+                            errorContext: "",
+                            errorTag: 0
+                        }
+                        throw testError;
+                    },
+                    telemetryData: ""
+                };
+                expect(correlationId).toEqual(testCorrelationId);
+                callback(result);
+
+                return asyncHandle;
+            });
+
+            const nativeBrokerPlugin = new NativeBrokerPlugin();
+            const request: NativeRequest = {
+                clientId: TEST_CLIENT_ID,
+                scopes: [],
+                correlationId: testCorrelationId,
+                authority: "",
+                redirectUri: TEST_REDIRECTURI
+            }
+            nativeBrokerPlugin.acquireTokenSilent(request).catch((error) => {
+                expect(error).toStrictEqual(ClientAuthError.createNoAccountFoundError());
+                done();
+            });
+        });
     });
 });
