@@ -2,7 +2,7 @@
 
 If you are new to MSAL, you should start [here](initialization.md).
 
-If you are coming from [MSAL v1.x](../../msal-common/), you should check [this guide](v1-migration.md) first to migrate to [MSAL v2.x](../../msal-browser/).
+If you are coming from [MSAL v1.x](../../msal-core/), you should check [this guide](v1-migration.md) first to migrate to [MSAL v2.x](../../msal-browser/).
 
 If you are coming from [MSAL v2.x](../../msal-browser/), you can follow this guide to update your code to use [MSAL v3.x](../../msal-browser/).
 
@@ -22,7 +22,7 @@ const msalConfig = {
 const msalInstance = new msal.PublicClientApplication(msalConfig);
 ```
 
-In MSAL v3.x, you should initialize the application object as well. There are several options at your disposal:
+In MSAL v3.x, you must initialize the application object as well. There are several options at your disposal:
 
 ### Option 1
 
