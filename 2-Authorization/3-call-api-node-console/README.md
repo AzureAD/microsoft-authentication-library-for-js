@@ -292,7 +292,7 @@ public void ConfigureServices(IServiceCollection services)
 
 The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not mach the resource APP ID URI, the token should be considered invalid. Likewise, the permissions that an Access Token grants is represented by the `roles` claim. See [Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
 
-To get the access token for Protected resources using the client credentials grant flow, **MSAL Node** exposes `acquireTokenByClientCredential` API to grant permission to the application to get an **access token**.
+To get the **access token** for a protected resource using the client credentials grant flow, **MSAL Node** exposes `acquireTokenByClientCredential` API to grant permission to the application to get an **access token**.
 
 ```javascript
 const cca = new msal.ConfidentialClientApplication(msalConfig);
