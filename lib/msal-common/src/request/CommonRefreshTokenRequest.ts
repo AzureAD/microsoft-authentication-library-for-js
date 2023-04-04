@@ -4,7 +4,6 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
-import { StringDict } from "../utils/MsalTypes";
 import { CcsCredential } from "../account/CcsCredential";
 
 /**
@@ -17,10 +16,10 @@ import { CcsCredential } from "../account/CcsCredential";
  * - resourceRequestMethod   - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
  * - forceCache              - Force MSAL to cache a refresh token flow response when there is no account in the cache. Used for migration scenarios.
+ * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  */
 export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
-    tokenQueryParameters?: StringDict;
     ccsCredential?: CcsCredential;
     forceCache?: boolean;
 };

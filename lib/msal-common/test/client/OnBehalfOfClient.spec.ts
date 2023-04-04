@@ -165,7 +165,38 @@ describe("OnBehalfOf unit tests", () => {
             expect(returnVal.includes(`${AADServerParamKeys.X_APP_VER}=${TEST_CONFIG.applicationVersion}`)).toBe(true);
             expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
             expect(returnVal.includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(true);
-        })
+        });
+
+        it("Adds tokenQueryParameters to the /token request", (done) => {
+            sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+                try {
+                    expect(url.includes("/token?testParam1=testValue1&testParam3=testValue3")).toBeTruthy();
+                    expect(!url.includes("/token?testParam2=")).toBeTruthy();
+                    done();
+                } catch (error) {
+                    done(error);
+                }
+            });
+    
+            const client = new OnBehalfOfClient(config);
+            const oboRequest: CommonOnBehalfOfRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE],
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                oboAssertion: "user_assertion_hash",
+                skipCache: true,
+                claims: TEST_CONFIG.CLAIMS,
+                tokenQueryParameters: {
+                    testParam1: "testValue1",
+                    testParam2: "",
+                    testParam3: "testValue3",
+                },
+            };
+    
+            client.acquireToken(oboRequest).catch((error) => {
+                // Catch errors thrown after the function call this test is testing
+            });
+        });
 
         it("Does not add claims when empty object provided", async () => {
             sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
@@ -220,14 +251,10 @@ describe("OnBehalfOf unit tests", () => {
             sinon.stub(CacheManager.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
 
-            sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns({
-                idTokens: {},
-                accessTokens: { "foo": testAccessTokenEntity },
-                refreshTokens: {},
-            });
+            sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([testAccessTokenEntity]);
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
-            expect(mockIdTokenCached.calledWith(oboRequest)).toBe(true);
+            expect(mockIdTokenCached.calledWith(testAccessTokenEntity.homeAccountId)).toBe(true);
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);

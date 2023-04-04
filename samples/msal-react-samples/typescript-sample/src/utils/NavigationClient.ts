@@ -1,29 +1,29 @@
 import { NavigationClient, NavigationOptions } from "@azure/msal-browser";
-import { History } from "history";
+import { NavigateFunction } from "react-router-dom";
 
 /**
  * This is an example for overriding the default function MSAL uses to navigate to other urls in your webpage
  */
-export class CustomNavigationClient extends NavigationClient{
-    private history: History;
+export class CustomNavigationClient extends NavigationClient {
+    private navigate: NavigateFunction;
 
-    constructor(history: History) {
+    constructor(navigate: NavigateFunction) {
         super();
-        this.history = history;
+        this.navigate = navigate;
     }
 
     /**
      * Navigates to other pages within the same web application
-     * You can use the useHistory hook provided by react-router-dom to take advantage of client-side routing
-     * @param url 
-     * @param options 
+     * You can use the useNavigate hook provided by react-router-dom to take advantage of client-side routing
+     * @param url
+     * @param options
      */
     async navigateInternal(url: string, options: NavigationOptions) {
-        const relativePath = url.replace(window.location.origin, '');
+        const relativePath = url.replace(window.location.origin, "");
         if (options.noHistory) {
-            this.history.replace(relativePath);
+            this.navigate(relativePath, { replace: true });
         } else {
-            this.history.push(relativePath);
+            this.navigate(relativePath);
         }
 
         return false;

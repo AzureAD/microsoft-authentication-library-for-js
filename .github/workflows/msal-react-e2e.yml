@@ -1,23 +1,23 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Will not trigger unless PR is ready for review.
 
 name: msal-react E2E Tests
 
 on:
-  push:
-    branches: 
-      - dev
-      - master
   pull_request:
-    paths: 
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
       - 'lib/msal-react/**/*'
-      - 'lib/msal-browser/**/*' 
+      - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
       - 'samples/msal-react-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
       - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-react-e2e.yml'
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: react-e2e-${{github.ref}}
@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
     runs-on: ubuntu-latest
 
     strategy:
@@ -71,7 +71,7 @@ jobs:
     - name: Restore node_modules for test tools
       uses: actions/cache@v3
       id: test-tools-cache
-      with: 
+      with:
         path: |
           samples/node_modules
           samples/.cache/puppeteer
@@ -85,7 +85,7 @@ jobs:
     - name: Restore node_modules for sample
       uses: actions/cache@v3
       id: sample-cache
-      with: 
+      with:
         path: samples/msal-react-samples/${{ matrix.sample }}/node_modules
         key: ${{ runner.os }}-react-e2e-${{ hashFiles(format('samples/msal-react-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 

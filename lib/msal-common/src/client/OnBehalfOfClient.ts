@@ -13,7 +13,7 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
-import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
+import { CredentialFilter } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { IdTokenEntity } from "../cache/entities/IdTokenEntity";
 import { AccountEntity } from "../cache/entities/AccountEntity";
@@ -21,6 +21,7 @@ import { AuthToken } from "../account/AuthToken";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AccountInfo } from "../account/AccountInfo";
+import { UrlString } from "../url/UrlString";
 
 /**
  * On-Behalf-Of client
@@ -81,7 +82,7 @@ export class OnBehalfOfClient extends BaseClient {
         }
 
         // fetch the idToken from cache
-        const cachedIdToken = this.readIdTokenFromCacheForOBO(request, cachedAccessToken.homeAccountId);
+        const cachedIdToken = this.readIdTokenFromCacheForOBO(cachedAccessToken.homeAccountId);
         let idTokenObject: AuthToken | undefined;
         let cachedAccount: AccountEntity | null = null;
         if (cachedIdToken) {
@@ -123,7 +124,7 @@ export class OnBehalfOfClient extends BaseClient {
      * Certain use cases of OBO flow do not expect an idToken in the cache/or from the service
      * @param request
      */
-    private readIdTokenFromCacheForOBO(request: CommonOnBehalfOfRequest, atHomeAccountId: string): IdTokenEntity | null {
+    private readIdTokenFromCacheForOBO(atHomeAccountId: string): IdTokenEntity | null {
 
         const idTokenFilter: CredentialFilter = {
             homeAccountId: atHomeAccountId,
@@ -133,8 +134,8 @@ export class OnBehalfOfClient extends BaseClient {
             realm: this.authority.tenant
         };
 
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(idTokenFilter);
-        const idTokens = Object.keys(credentialCache.idTokens).map(key => credentialCache.idTokens[key]);
+        const idTokens: IdTokenEntity[] = this.cacheManager.getIdTokensByFilter(idTokenFilter);
+
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
         if (idTokens.length < 1) {
             return null;
@@ -159,16 +160,14 @@ export class OnBehalfOfClient extends BaseClient {
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,
             clientId,
-            target: this.scopeSet.printScopesLowerCase(),
+            target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
             tokenType: authScheme,
             keyId: request.sshKid,
             requestedClaimsHash: request.requestedClaimsHash,
             userAssertionHash: this.userAssertionHash
         };
 
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-
-        const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
 
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
@@ -187,7 +186,8 @@ export class OnBehalfOfClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority, userAssertionHash: string)
         : Promise<AuthenticationResult | null> {
-
+        const queryParametersString = this.createTokenQueryParameters(request);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -203,7 +203,7 @@ export class OnBehalfOfClient extends BaseClient {
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const response = await this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,

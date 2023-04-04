@@ -6,6 +6,7 @@
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
 import { validateCacheLocation } from "../../testUtils";
 import { ConfidentialClientApplication } from "../../../../lib/msal-node/";
+import {RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad-agc.cache.json`;
 
@@ -23,13 +24,13 @@ const authOptions = {
 const clientCredentialRequestScopes = [`${process.env.GRAPH_URL}/.default`];
 
 describe('Client Credentials AAD AGC Tests', () => {
-    jest.retryTimes(1);
+    jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(90000);
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
     });
-    
+
     describe("Acquire Token", () => {
         let confidentialClientApplication: ConfidentialClientApplication;
         let server: any;

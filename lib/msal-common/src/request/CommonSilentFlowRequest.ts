@@ -5,7 +5,6 @@
 
 import { AccountInfo } from "../account/AccountInfo";
 import { BaseAuthRequest } from "./BaseAuthRequest";
-import { StringDict } from "../utils/MsalTypes";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -15,11 +14,11 @@ import { StringDict } from "../utils/MsalTypes";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
- * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
- * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
+ * - resourceRequestMethod  - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
+ * - resourceRequestUri     - URI that token will be used for. Used for proof-of-possession flows.
+ * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call
  */
 export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh: boolean;
-    tokenQueryParameters?: StringDict;
 };

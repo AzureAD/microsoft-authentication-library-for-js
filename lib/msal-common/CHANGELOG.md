@@ -1,8 +1,65 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 19 Jan 2023 23:50:24 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 12.0.0
+
+Mon, 03 Apr 2023 21:29:31 GMT
+
+### Major changes
+
+- Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Added tenant_region_scope and tenant_region_sub_scope to TokenClaims #5789 (lalimasharda@microsoft.com)
+
+## 11.0.0
+
+Tue, 07 Mar 2023 16:48:51 GMT
+
+### Major changes
+
+- Remove deprecated telemetry event "flushMeasurement()" function #5718 (kshabelko@microsoft.com)
+- Reduce telemetry RAM footprint and improve usability/readability #5676 (kshabelko@microsoft.com)
+
+### Minor changes
+
+- Handle new spa_accountid parameter from server #5759 (lalimasharda@microsoft.com)
+- Capture native bridge telemetry data points #5698 (kshabelko@microsoft.com)
+- Expose native broker types and interfaces #5485 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Reduce preQueueTimeByCorrelationId RAM footprint #5681 (kshabelko@microsoft.com)
+- Fixed bug in msal-node's httpClient #5722 (rginsburg@microsoft.com)
+- Fix SHR typ header to pop value #5751 (hemoral@microsoft.com)
+- Accomodate suffixes in credential regex #5728 (kshabelko@microsoft.com)
+- fixing get account entity from cache using native account id #5695 (lalimasharda@microsoft.com)
+
+## 10.0.0
+
+Mon, 06 Feb 2023 18:51:50 GMT
+
+### Major changes
+
+- proxyUrl is now passed to msal-node's httpClient via it's constructor #5599 (rginsburg@microsoft.com)
+
+### Minor changes
+
+- tokenQueryParameters are now sent to the /token endpoint for all Confidential Client flows #5573 (rginsburg@microsoft.com)
+- Add JS Queue Measurements #5352 (joarroyo@microsoft.com)
+- Truncate integral telemetry fields #5627 (kshabelko@microsoft.com)
+- Track manually completed sub-measurements #5614 (kshabelko@microsoft.com)
+
+### Patches
+
+- Update discardCache in PerformanceClient #5645 (joarroyo@microsoft.com)
+- Optimize credential regular expressions #5621 (kshabelko@microsoft.com)
+- Added missing fields to InteractionRequiredAuthError #5566 (rginsburg@microsoft.com)
 
 ## 9.1.1
 

@@ -1,22 +1,22 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Will not trigger unless PR is ready for review.
 
 name: msal-browser E2E Tests
 
 on:
-  push:
-    branches: 
-      - dev
-      - master
   pull_request:
-    paths: 
-      - 'lib/msal-browser/**/*' 
+    types: [opened, reopened, synchronize, ready_for_review]
+    paths:
+      - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - 'samples/e2eTestUtils/**/*'
       - 'samples/package-lock.json'
       - '!**.md'
       - '.github/workflows/msal-browser-e2e.yml'
+  merge_group:
+    types: [checks_requested]
 
 concurrency:
   group: browser-e2e-${{github.ref}}
@@ -27,8 +27,20 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))  && !github.event.pull_request.draft
     runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        sample:
+          - 'client-capabilities'
+          - 'multipleResources'
+          - 'onPageLoad'
+          - 'pop'
+          - 'customizable-e2e-test'
+
+    name: ${{ matrix.sample }}
 
     steps:
     - uses: actions/checkout@v3
@@ -54,7 +66,7 @@ jobs:
     - name: Restore node_modules for test tools
       uses: actions/cache@v3
       id: test-tools-cache
-      with: 
+      with:
         path: |
           samples/node_modules
           samples/.cache/puppeteer
@@ -68,7 +80,7 @@ jobs:
     - name: Restore node_modules for sample
       uses: actions/cache@v3
       id: sample-cache
-      with: 
+      with:
         path: samples/msal-browser-samples/VanillaJSTestApp2.0/node_modules
         key: ${{ runner.os }}-browser-sample-${{ hashFiles('samples/msal-browser-samples/VanillaJSTestApp2.0/package.json', 'samples/package-lock.json') }}
 
@@ -88,7 +100,7 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      run: npm run test:e2e
+      run: npm run test:e2e -- --sample=${{ matrix.sample }}
 
     - name: Upload E2E Test Screenshots
       uses: actions/upload-artifact@v3

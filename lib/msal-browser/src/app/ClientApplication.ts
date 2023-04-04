@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
+import { InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
@@ -151,7 +151,8 @@ export abstract class ClientApplication {
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false
+            secureCookies: false,
+            cacheMigrationEnabled: false
         };
         this.nativeInternalStorage = new BrowserCacheManager(this.config.auth.clientId, nativeCacheOptions, this.browserCrypto, this.logger);
 
@@ -170,16 +171,22 @@ export abstract class ClientApplication {
             this.logger.info("initialize has already been called, exiting early.");
             return;
         }
+
+        const allowNativeBroker = this.config.system.allowNativeBroker;
+        const initMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.InitializeClientApplication);
         this.eventHandler.emitEvent(EventType.INITIALIZE_START);
-        if (this.config.system.allowNativeBroker) {
+
+        if (allowNativeBroker) {
             try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout);
+                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
                 this.logger.verbose(e);
             }
         }
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+
+        initMeasurement.endMeasurement({allowNativeBroker, success: true});
     }
 
     // #region Redirect Flow
@@ -357,7 +364,6 @@ export abstract class ClientApplication {
                     isNativeBroker: true,
                     requestId: response.requestId
                 });
-                atPopupMeasurement.flushMeasurement();
                 return response;
             }).catch((e: AuthError) => {
                 if (e instanceof NativeAuthError && e.isFatal()) {
@@ -397,8 +403,6 @@ export abstract class ClientApplication {
                 success: true,
                 requestId: result.requestId
             });
-
-            atPopupMeasurement.flushMeasurement();
             return result;
         }).catch((e: AuthError) => {
             if (loggedInAccounts.length > 0) {
@@ -412,8 +416,6 @@ export abstract class ClientApplication {
                 subErrorCode: e.subError,
                 success: false
             });
-            atPopupMeasurement.flushMeasurement();
-
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         });
@@ -494,7 +496,6 @@ export abstract class ClientApplication {
                 isNativeBroker: response.fromNativeBroker,
                 requestId: response.requestId
             });
-            this.ssoSilentMeasurement?.flushMeasurement();
             return response;
         }).catch((e: AuthError) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
@@ -503,7 +504,6 @@ export abstract class ClientApplication {
                 subErrorCode: e.subError,
                 success: false
             });
-            this.ssoSilentMeasurement?.flushMeasurement();
             throw e;
         }).finally(() => {
             document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
@@ -529,7 +529,11 @@ export abstract class ClientApplication {
         const atbcMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenByCode, request.correlationId);
 
         try {
-            if (request.code) {
+            if (request.code && request.nativeAccountId) {
+                // Throw error in case server returns both spa_code and spa_accountid in exchange for auth code.
+                throw BrowserAuthError.createSpaCodeAndNativeAccountIdPresentError();
+            }
+            else if (request.code) {
                 const hybridAuthCode = request.code;
                 let response = this.hybridAuthCodeResponses.get(hybridAuthCode);
                 if (!response) {
@@ -550,7 +554,6 @@ export abstract class ClientApplication {
                                 isNativeBroker: result.fromNativeBroker,
                                 requestId: result.requestId
                             });
-                            atbcMeasurement.flushMeasurement();
                             return result;
                         })
                         .catch((error: AuthError) => {
@@ -561,15 +564,11 @@ export abstract class ClientApplication {
                                 subErrorCode: error.subError,
                                 success: false
                             });
-                            atbcMeasurement.flushMeasurement();
                             throw error;
                         });
                     this.hybridAuthCodeResponses.set(hybridAuthCode, response);
                 } else {
                     this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
-                    atbcMeasurement.endMeasurement({
-                        success: true
-                    });
                     atbcMeasurement.discardMeasurement();
                 }
                 return response;
@@ -765,15 +764,21 @@ export abstract class ClientApplication {
      * (the account object is created at the time of successful login)
      * or null when no matching account is found.
      * This API is provided for convenience but getAccountById should be used for best reliability
-     * @param userName
+     * @param username
      * @returns The account object stored in MSAL
      */
-    getAccountByUsername(userName: string): AccountInfo | null {
-        const allAccounts = this.getAllAccounts();
-        if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
-            this.logger.verbose("Account matching username found, returning");
-            this.logger.verbosePii(`Returning signed-in accounts matching username: ${userName}`);
-            return allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null;
+    getAccountByUsername(username: string): AccountInfo | null {
+        this.logger.trace("getAccountByUsername called");
+        if (!username) {
+            this.logger.warning("getAccountByUsername: No username provided");
+            return null;
+        }
+
+        const account = this.browserStorage.getAccountInfoFilteredBy({username});
+        if (account) {
+            this.logger.verbose("getAccountByUsername: Account matching username found, returning");
+            this.logger.verbosePii(`getAccountByUsername: Returning signed-in accounts matching username: ${username}`);
+            return account;
         } else {
             this.logger.verbose("getAccountByUsername: No matching account found, returning null");
             return null;
@@ -788,11 +793,17 @@ export abstract class ClientApplication {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        const allAccounts = this.getAllAccounts();
-        if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
-            this.logger.verbose("Account matching homeAccountId found, returning");
-            this.logger.verbosePii(`Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
-            return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
+        this.logger.trace("getAccountByHomeId called");
+        if (!homeAccountId) {
+            this.logger.warning("getAccountByHomeId: No homeAccountId provided");
+            return null;
+        }
+
+        const account = this.browserStorage.getAccountInfoFilteredBy({homeAccountId});
+        if (account) {
+            this.logger.verbose("getAccountByHomeId: Account matching homeAccountId found, returning");
+            this.logger.verbosePii(`getAccountByHomeId: Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
+            return account;
         } else {
             this.logger.verbose("getAccountByHomeId: No matching account found, returning null");
             return null;
@@ -807,11 +818,17 @@ export abstract class ClientApplication {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        const allAccounts = this.getAllAccounts();
-        if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
-            this.logger.verbose("Account matching localAccountId found, returning");
-            this.logger.verbosePii(`Returning signed-in accounts matching localAccountId: ${localAccountId}`);
-            return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        this.logger.trace("getAccountByLocalId called");
+        if (!localAccountId) {
+            this.logger.warning("getAccountByLocalId: No localAccountId provided");
+            return null;
+        }
+
+        const account = this.browserStorage.getAccountInfoFilteredBy({localAccountId});
+        if (account) {
+            this.logger.verbose("getAccountByLocalId: Account matching localAccountId found, returning");
+            this.logger.verbosePii(`getAccountByLocalId: Returning signed-in accounts matching localAccountId: ${localAccountId}`);
+            return account;
         } else {
             this.logger.verbose("getAccountByLocalId: No matching account found, returning null");
             return null;
