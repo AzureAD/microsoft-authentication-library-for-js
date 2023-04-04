@@ -13,9 +13,9 @@ import {
     CommonClientCredentialRequest,
     CommonUsernamePasswordRequest,
     Constants,
-    CredentialCache,
     GrantType,
-    IAppTokenProvider, InteractionRequiredAuthError,
+    IAppTokenProvider,
+    InteractionRequiredAuthError,
     ThrottlingConstants,
     TimeUtils
 } from "@azure/msal-common";
@@ -508,17 +508,6 @@ describe("ClientCredentialClient unit tests", () => {
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
-
-        const mockedCredentialCache: CredentialCache = {
-            accessTokens: {
-                "key1": mockedAtEntity,
-                "key2": mockedAtEntity2
-            },
-            // @ts-ignore
-            refreshTokens: null,
-            // @ts-ignore
-            idTokens: null
-        }
 
         sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([mockedAtEntity, mockedAtEntity2]);
 

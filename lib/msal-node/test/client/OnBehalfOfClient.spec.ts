@@ -254,7 +254,7 @@ describe("OnBehalfOf unit tests", () => {
             sinon.stub(CacheManager.prototype, <any>"getAccessTokensByFilter").returns([testAccessTokenEntity]);
 
             const authResult = await client.acquireToken(oboRequest) as AuthenticationResult;
-            expect(mockIdTokenCached.calledWith('home_account_id')).toBe(true);
+            expect(mockIdTokenCached.calledWith(testAccessTokenEntity.homeAccountId)).toBe(true);
             expect(authResult.scopes).toEqual(ScopeSet.fromString(testAccessTokenEntity.target).asArray());
             expect(authResult.idToken).toEqual(testIdToken.secret);
             expect(authResult.accessToken).toEqual(testAccessTokenEntity.secret);
