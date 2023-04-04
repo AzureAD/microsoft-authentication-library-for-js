@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Capture native bridge telemetry data points #5698",
-  "packageName": "@azure/msal-browser",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

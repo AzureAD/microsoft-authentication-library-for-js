@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Avoid throwing 'Interaction is currently in progress' error in msal interceptor #5146",
-  "packageName": "@azure/msal-angular",
-  "email": "ykshtein@gmail.com",
-  "dependentChangeType": "patch"
-}

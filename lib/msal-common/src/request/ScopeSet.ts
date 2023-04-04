@@ -42,6 +42,22 @@ export class ScopeSet {
     }
 
     /**
+     * Creates the set of scopes to search for in cache lookups
+     * @param inputScopeString 
+     * @returns 
+     */
+    static createSearchScopes(inputScopeString: Array<string>): ScopeSet {
+        const scopeSet = new ScopeSet(inputScopeString);
+        if (!scopeSet.containsOnlyOIDCScopes()) {
+            scopeSet.removeOIDCScopes();
+        } else {
+            scopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
+        }
+
+        return scopeSet;
+    }
+
+    /**
      * Used to validate the scopes input parameter requested  by the developer.
      * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
      * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not

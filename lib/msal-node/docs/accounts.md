@@ -102,5 +102,5 @@ async function getResource() {
 
 ## Notes
 
-* The current msal-node silent-flow [sample](../../../samples/msal-node-samples/standalone-samples/silent-flow) has a working single account scenario that uses `getAccountByHomeId()`.
-* If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-node-samples/standalone-samples/silent-flow/index.js) (in `/graphCall` route) to list all cached accounts and choose a specific account. You may also need to customize the related view templates and `handlebars` template params.
+* The current msal-node silent-flow [sample](../../../samples/msal-node-samples/silent-flow) has a working single account scenario that uses `getAccountByHomeId()`.
+* If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-node-samples/silent-flow/index.js) (in `/graphCall` route) to list all cached accounts and choose a specific account. You may also need to customize the related view templates and `handlebars` template params.

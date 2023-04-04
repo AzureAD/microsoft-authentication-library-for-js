@@ -48,6 +48,31 @@ class NetworkUtils {
             status: statusCode,
         };
     }
+
+    /*
+     * Utility function that converts a URL object into an ordinary options object as expected by the
+     * http.request and https.request APIs.
+     */
+    static urlToHttpOptions(url: URL): https.RequestOptions {
+        const options: https.RequestOptions & Partial<Omit<URL, "port">> = {
+            protocol: url.protocol,
+            hostname: url.hostname && url.hostname.startsWith("[") ?
+                url.hostname.slice(1, -1) :
+                url.hostname,
+            hash: url.hash,
+            search: url.search,
+            pathname: url.pathname,
+            path: `${url.pathname || ""}${url.search || ""}`,
+            href: url.href,
+        };
+        if (url.port !== "") {
+            options.port = Number(url.port);
+        }
+        if (url.username || url.password) {
+            options.auth = `${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`;
+        }
+        return options;
+    }
 }
 
 /**
@@ -100,18 +125,18 @@ export class HttpClientCurrent implements INetworkModule {
 }
 
 const networkRequestViaProxy = <T>(
-    url: string,
+    destinationUrlString: string,
     proxyUrlString: string,
     httpMethod: string,
     options: NetworkRequestOptions,
     agentOptions?: http.AgentOptions,
     timeout?: number,
 ): Promise<NetworkResponse<T>> => {
-    const headers = options?.headers || {} as Record<string, string>;
+    const destinationUrl = new URL(destinationUrlString);
     const proxyUrl = new URL(proxyUrlString);
-    const destinationUrl = new URL(url);
 
     // "method: connect" must be used to establish a connection to the proxy
+    const headers = options?.headers || {} as Record<string, string>;
     const tunnelRequestOptions: https.RequestOptions = {
         host: proxyUrl.hostname,
         port: proxyUrl.port,
@@ -255,7 +280,7 @@ const networkRequestViaProxy = <T>(
 };
 
 const networkRequestViaHttps = <T>(
-    url: string,
+    urlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
     agentOptions?: https.AgentOptions,
@@ -264,12 +289,14 @@ const networkRequestViaHttps = <T>(
     const isPostRequest = httpMethod === HttpMethod.POST;
     const body: string = options?.body || "";
 
-    const emptyHeaders: Record<string, string> = {};
-    const customOptions: https.RequestOptions = {
+    const url = new URL(urlString);
+    const headers = options?.headers || {} as Record<string, string>;
+    let customOptions: https.RequestOptions = {
         method: httpMethod,
-        headers: options?.headers || emptyHeaders,
+        headers: headers,
+        ...NetworkUtils.urlToHttpOptions(url),
     };
-
+    
     if (timeout) {
         customOptions.timeout = timeout;
     }
@@ -287,7 +314,7 @@ const networkRequestViaHttps = <T>(
     }
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
-        const request = https.request(url, customOptions);
+        const request = https.request(customOptions);
 
         if (timeout) {
             request.on("timeout", () => {

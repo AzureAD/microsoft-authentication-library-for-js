@@ -2,6 +2,35 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 07 Mar 2023 16:48:52 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.31",
+      "version": "1.0.0-alpha.31",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "32ec95d8bcc91b89f3e834948c7922eac036f729",
+            "comment": "Expose NativeBrokerPlugin #5485"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v11.0.0",
+            "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "7d0ef8cb6792a30a29ec94011ff8ea1f5ca6a9bc",
+            "comment": "update package-lock"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 Feb 2023 18:51:50 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.30",
       "version": "1.0.0-alpha.30",

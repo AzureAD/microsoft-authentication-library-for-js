@@ -66,8 +66,6 @@ cd samples/msal-node-samples/standalone-samples/ElectronSystemBrowserTestApp
 1. Open the [.customConfig.js](./src/config/customConfig.json) file and provide the required configuration values.
    1. Replace the string `Enter_the_Application_Id_Here` with your app/client ID on Azure AD portal for both the `clientId` and the `customProtocol` keys.
    1. Replace the string `Enter_the_Tenant_Info_Here` with your tenant ID on Azure AD portal.
-   1. Replace the string `Enter_the_Cloud_Instance_Id_Here` with `https://login.microsoftonline.com`.
-   1. Replace the string `Enter_the_Graph_Endpoint_Here`. with `https://graph.microsoft.com/v1.0`.
 
 1. To enable deep linking in the application, open the [successTemplate.html](./public/successTemplate.html) file and provide the required configuration value:
    1. Fill in your application/client ID in the string `msal{Your_Application/Client_Id}://auth`. We are using the ClientID to assign a unique protocol to the application as a deep link. If you like, you can replace this value with any unique string e.g. `your-unique-protocol-name://`. This is to ensure that this deep link only matches to your own application and does not coincide with other application deep links that might be registered on your system. For more information, please check the [Electron documentation on deep linking](https://www.electronjs.org/docs/latest/tutorial/launch-app-from-url-in-another-app).
@@ -196,5 +194,4 @@ private static onOpenUrl(event: any): void {
 1. The app will open a browser to Azure AD for the user to sign-in.
 ![Screenshot](./ReadmeFiles/Screenshot-browser.png)
 1. Select the **Profile** button on the navigation bar. This will make a call to the Microsoft Graph API.
-1. Select the **Mail** button on the navigation bar. This will make a call to the Microsoft Graph API.
 ![Screenshot](./ReadmeFiles/Screenshot-profile.png)

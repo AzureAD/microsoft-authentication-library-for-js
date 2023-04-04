@@ -1,0 +1,19 @@
+{
+  "name": "msal-node-auth-code-cli-brokered-app",
+  "version": "1.0.0",
+  "description": "CLI sample for msal-node public client application using using the platform brooker to sign-in users on azure ad",
+  "main": "src/index.js",
+  "private": true,
+  "scripts": {
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start": "node .",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "file:../../../lib/msal-node",
+    "@azure/msal-node-extensions": "file:../../../extensions/msal-node-extensions",
+    "open": "^8.4.0"
+  }
+}
