@@ -1,7 +1,7 @@
 ---
 page_type: sample
 name: A Node.js console application secured by MSAL Node on Microsoft identity platform
-description: This sample demonstrates how to use [MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) to acquire an access token for a protected resource in a console application using the application's own identity with the ([client credentials flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow))
+description: This sample demonstrates how to use MSAL Node to acquire an access token for a protected resource in a console application using the application's own identity with the client credentials flow
 languages:
  - javascript
  - csharp
@@ -25,6 +25,7 @@ extensions:
 
 * [Overview](#overview)
 * [Scenario](#scenario)
+* [Contents](#contents)
 * [Prerequisites](#prerequisites)
 * [Setup the sample](#setup-the-sample)
 * [Explore the sample](#explore-the-sample)
@@ -42,11 +43,21 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 
 ## Scenario
 
-1. The client Node.js console app uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
+1. The Node.js console app obtains a JWT [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
 1. The **access token** is used as a *bearer* token to authorize the user to call the ASP.NET Core web API protected by **Azure AD CIAM**.
 1. The service uses the [Microsoft.Identity.Web](https://aka.ms/microsoft-identity-web) to protect the Web api, check permissions and validate tokens.
 
 ![Scenario Image](./ReadmeFiles/topology.png).
+
+## Contents
+
+| File/folder                     | Description                                               |
+|---------------------------------|-----------------------------------------------------------|
+| `App/.env`                      | Authentication parameters for the console app reside here.|
+| `App/auth.js`                   | MSAL Node is initialized here.                            |
+| `App/fetch.js`                  | logic to call the API reside here.                        |
+| `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
+| `API/TodoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
 
 ## Prerequisites
 
@@ -193,7 +204,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     1. Select the **Add a permission** button and then:
     1. Ensure that the **My APIs** tab is selected.
     1. In the list of APIs, select the API `ciam-msal-dotnet-api`.
-        1. We will select “Application permissions”, which should be the type of permissions that apps should use when they are authenticating just as themselves and not signing-in users. 
+        1. We will select “Application permissions”, which should be the type of permissions that apps should use when they are authenticating just as themselves and not signing-in users.
     1. In the **Application permissions** section, select the **TodoList.Read.All**, **TodoList.ReadWrite.All** in the list. Use the search box if necessary.
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly but since the client app does not allow users to interact, the users' themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
@@ -241,20 +252,156 @@ Were we successful in addressing your learning objective? Consider taking a mome
 
 ## Troubleshooting
 
-<details>
-	<summary>Expand for troubleshooting info</summary>
+Use [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) to get support from the community. Ask your questions on Stack Overflow first and browse existing issues to see if someone has asked your question before. Make sure that your questions or comments are tagged with [`azure-active-directory` `node` `ms-identity` `adal` `msal`].
 
-ASP.NET core applications create session cookies that represent the identity of the caller. Some Safari users using iOS 12 had issues which are described in ASP.NET Core #4467 and the Web kit bugs database Bug 188165 - iOS 12 Safari breaks ASP.NET Core 2.1 OIDC authentication.
-
-If your web site needs to be accessed from users using iOS 12, you probably want to disable the SameSite protection, but also ensure that state changes are protected with CSRF anti-forgery mechanism. See the how to fix section of Microsoft Security Advisory: iOS12 breaks social, WSFed and OIDC logins #4647
-
-To provide feedback on or suggest features for Azure Active Directory, visit [User Voice page](https://feedback.azure.com/d365community/forum/79b1327d-d925-ec11-b6e6-000d3a4f06a4).
-</details>
+If you find a bug in the sample, raise the issue on [GitHub Issues](../../../../issues).
 
 ## About the code
 
-> * Describe where the code uses auth libraries, or calls the graph
-> * Describe specific aspects (e.g. caching, validation etc.)
+You need to instantiate **MSAL Node** as a [ConfidentialClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-confidential-client-application.md) to support the ([client credentials flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)).
+
+```javascript
+const msal = require('@azure/msal-node');
+const cca = new msal.ConfidentialClientApplication(msalConfig);
+```
+
+### CORS settings
+
+You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **TodoListAPI** in [Startup.cs](./API/TodoListAPI/Startup.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    // ...
+
+    services.AddCors(o => o.AddPolicy("default", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    }));
+}
+```
+
+### Acquire a token
+
+**Access Token** requests in **MSAL.js** are meant to be *per-resource-per-scope(s)*. This means that an **Access Token** requested for resource **A** with scope `scp1`:
+
+* cannot be used for accessing resource **A** with scope `scp2`, and,
+* cannot be used for accessing resource **B** of any scope.
+
+The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not mach the resource APP ID URI, the token should be considered invalid. Likewise, the permissions that an Access Token grants is represented by the `roles` claim. See [Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
+
+To get the access token for Protected resources using the client credentials grant flow, **MSAL Node** exposes `acquireTokenByClientCredential` API to grant permission to the application to get an **access token**.
+
+```javascript
+const cca = new msal.ConfidentialClientApplication(msalConfig);
+
+async function getToken(tokenRequest) {
+    return await cca.acquireTokenByClientCredential(tokenRequest);
+}
+```
+
+### Access token validation
+
+On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Startup.cs](./API/TodoListAPI/Startup.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    // Adds Microsoft Identity platform (AAD v2.0) support to protect this Api
+    services.AddMicrosoftIdentityWebApiAuthentication(Configuration);
+
+    // ...
+}
+```
+
+For validation and debugging purposes, developers can decode **JWT**s (*JSON Web Tokens*) using [jwt.ms](https://jwt.ms).
+
+### Verifying permissions
+
+Access tokens that have neither the **scp** (for delegated permissions) nor **roles** (for application permissions) claim with the required scopes/permissions should not be accepted. In the sample, this is illustrated via the `RequiredScopeOrAppPermission` attribute in [TodoListController.cs](./API/TodoListAPI/Controllers/TodoListController.cs):
+
+```csharp
+[HttpGet]
+/// <summary>
+/// An access token issued by Azure AD will have at least one of the two claims. Access tokens
+/// issued to a user will have the 'scp' claim. Access tokens issued to an application will have
+/// the roles claim. Access tokens that contain both claims are issued only to users, where the scp
+/// claim designates the delegated permissions, while the roles claim designates the user's role.
+/// </summary>
+[RequiredScopeOrAppPermission(
+    AcceptedScope = new string[] { _todoListRead, _todoListReadWrite },
+    AcceptedAppPermission = new string[] { _todoListReadAll, _todoListReadWriteAll }
+)]
+public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
+{
+    // route logic ...
+}
+```
+
+### Access to data
+
+Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire todolist. This is illustrated in the [TodoListController](./API/TodoListAPI/Controllers/TodoListController.cs) controller:
+
+```csharp
+// GET: api/TodoItems
+[HttpGet]
+[RequiredScopeOrAppPermission(
+    AcceptedScope = new string[] { _todoListRead, _todoListReadWrite },
+    AcceptedAppPermission = new string[] { _todoListReadAll, _todoListReadWriteAll }
+)]
+public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
+{
+    if (!IsAppOnlyToken())
+    {
+        /// <summary>
+        /// The 'oid' (object id) is the only claim that should be used to uniquely identify
+        /// a user in an Azure AD tenant. The token might have one or more of the following claim,
+        /// that might seem like a unique identifier, but is not and should not be used as such:
+        ///
+        /// - upn (user principal name): might be unique amongst the active set of users in a tenant
+        /// but tend to get reassigned to new employees as employees leave the organization and others
+        /// take their place or might change to reflect a personal change like marriage.
+        ///
+        /// - email: might be unique amongst the active set of users in a tenant but tend to get reassigned
+        /// to new employees as employees leave the organization and others take their place.
+        /// </summary>
+        return await _context.TodoItems.Where(x => x.Owner == HttpContext.User.GetObjectId()).ToListAsync();
+    }
+    else
+    {
+        return await _context.TodoItems.ToListAsync();
+    }
+}
+
+/// <summary>
+/// Indicates if the AT presented has application or delegated permissions.
+/// </summary>
+/// <returns></returns>
+private bool IsAppOnlyToken()
+{
+    // Add in the optional 'idtyp' claim to check if the access token is coming from an application or user.
+    // See: https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-optional-claims
+    if (HttpContext.User.Claims.Any(c => c.Type == "idtyp"))
+    {
+        return HttpContext.User.Claims.Any(c => c.Type == "idtyp" && c.Value == "app");
+    }
+    else
+    {
+        // alternatively, if an AT contains the roles claim but no scp claim, that indicates it's an app token
+        return HttpContext.User.Claims.Any(c => c.Type == "roles") && HttpContext.User.Claims.Any(c => c.Type != "scp");
+    }
+}
+```
+
+When granting access to data based on scopes, be sure to follow [the principle of least privilege](https://docs.microsoft.com/azure/active-directory/develop/secure-least-privileged-access).
+
+### Debugging the sample
+
+To debug the .NET Core web API that comes with this sample, install the [C# extension](https://marketplace.visualstudio.com/items?itemName=ms-dotnettools.csharp) for Visual Studio Code.
+
+Learn more about using [.NET Core with Visual Studio Code](https://docs.microsoft.com/dotnet/core/tutorials/with-visual-studio-code).
 
 ## How to deploy this sample to Azure
 
