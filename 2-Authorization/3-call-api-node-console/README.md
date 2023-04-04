@@ -242,7 +242,7 @@ Then, open a separate command terminal and run:
 1. Navigate to the [app](./App/) root directory in the terminal.
 1. Enter the following command `node . --op getTodos`.
 
-![Screenshot](./ReadmeFiles/screenshot.png)
+![Screenshot](./ReadmeFiles/Screenshot.png)
 
 > :information_source: Did the sample not work for you as expected? Then please reach out to us using the [GitHub Issues](../../../../issues) page.
 
