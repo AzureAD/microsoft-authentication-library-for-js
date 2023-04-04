@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-export type BridgeRequest<T> = {
+export type BridgeRequest<TResponse> = {
     requestId: string;
     method: string;
-    resolve: (value: T | PromiseLike<T>) => void;
+    resolve: (value: TResponse | PromiseLike<TResponse>) => void;
     reject: (reason?: any) => void;
 };

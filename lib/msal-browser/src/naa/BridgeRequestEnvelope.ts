@@ -17,7 +17,8 @@ export type BridgeMethods =
     | "GetAccountByHomeId"
     | "GetAccountByLocalId"
     | "GetAccountByUsername"
-    | "GetInitContext";
+    | "GetInitContext"
+    | "GetTokenPopup";
 
 export type BridgeRequestEnvelope = {
     messageType: "NestedAppAuthRequest";

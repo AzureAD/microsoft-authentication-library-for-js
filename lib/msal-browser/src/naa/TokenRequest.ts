@@ -4,7 +4,7 @@
  */
 
 export type TokenRequest = {
-    userObjectId?: string; // Account identifier used by OneAuth - I made this optional since providing an incorrect value will cause excel to crash currently
+    userObjectId?: string; // Account identifier used by OneAuth
     clientId: string;
     authority?: string;
     scope: string;

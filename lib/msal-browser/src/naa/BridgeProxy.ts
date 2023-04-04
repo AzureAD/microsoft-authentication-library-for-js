@@ -9,6 +9,7 @@ import {
     AccountByLocalIdRequest,
     AccountByUsernameRequest,
 } from "./AccountRequests";
+import { AuthBridge } from "./AuthBridge";
 import { BridgeCapabilities } from "./BridgeCapabilities";
 import { BridgeRequest } from "./BridgeRequest";
 import { BridgeRequestEnvelope, BridgeMethods } from "./BridgeRequestEnvelope";
@@ -17,7 +18,6 @@ import { IBridgeProxy } from "./IBridgeProxy";
 import { InitializeBridgeResponse } from "./InitializeBridgeResponse";
 import { TokenRequest } from "./TokenRequest";
 import { TokenResponse } from "./TokenResponse";
-import { AuthBridge } from "./AuthBridge";
 
 declare global {
     interface Window {
@@ -104,30 +104,19 @@ export class BridgeProxy implements IBridgeProxy {
     }
 
     /**
-     * acquireToken
+     * acquireToken Attempts to get a token interactively via a popup
      * @param request A token request
      */
-    public acquireToken(request: TokenRequest): Promise<TokenResponse> {
-        const message: BridgeRequestEnvelope = {
-            messageType: "NestedAppAuthRequest",
-            method: "GetToken",
-            requestId: BridgeProxy.crypto.randomUUID(),
-            apiKey: "test_key",
-            body: request,
-        };
+    public getTokenInteractive(request: TokenRequest): Promise<TokenResponse> {
+        return this.sendRequest<TokenResponse>("GetTokenPopup", request);
+    }
 
-        const promise = new Promise<TokenResponse>((resolve, reject) => {
-            const request: BridgeRequest<TokenResponse> = {
-                requestId: message.requestId,
-                method: message.method,
-                resolve: resolve,
-                reject: reject,
-            };
-            BridgeProxy.bridgeRequests.push(request);
-            window.nestedAppAuthBridge.postMessage(JSON.stringify(message));
-        });
-
-        return promise;
+    /**
+     * acquireToken Attempts to get a token silently
+     * @param request A token request
+     */
+    public getTokenSilent(request: TokenRequest): Promise<TokenResponse> {
+        return this.sendRequest<TokenResponse>("GetToken", request);
     }
 
     /**
@@ -140,7 +129,7 @@ export class BridgeProxy implements IBridgeProxy {
         | AccountByLocalIdRequest
         | AccountByUsernameRequest
     ): Promise<AccountInfo> {
-        let method: BridgeMethods;
+        let method: BridgeMethods = "GetAccountByHomeId";
 
         if ((request as AccountByHomeIdRequest).homeAccountId !== undefined) {
             method = "GetAccountByHomeId";
@@ -154,15 +143,31 @@ export class BridgeProxy implements IBridgeProxy {
             method = "GetAccountByUsername";
         }
 
+        return this.sendRequest<AccountInfo>(method, request);
+    }
+
+    /**
+     * acquireToken
+     * @param request A token request
+     */
+    public sendRequest<TResponse>(
+        method: BridgeMethods,
+        request:
+        | TokenRequest
+        | AccountByHomeIdRequest
+        | AccountByLocalIdRequest
+        | AccountByUsernameRequest
+    ): Promise<TResponse> {
         const message: BridgeRequestEnvelope = {
             messageType: "NestedAppAuthRequest",
             method: method,
             requestId: BridgeProxy.crypto.randomUUID(),
+            apiKey: "test_key",
             body: request,
         };
 
-        const promise = new Promise<AccountInfo>((resolve, reject) => {
-            const request: BridgeRequest<AccountInfo> = {
+        const promise = new Promise<TResponse>((resolve, reject) => {
+            const request: BridgeRequest<TResponse> = {
                 requestId: message.requestId,
                 method: message.method,
                 resolve: resolve,

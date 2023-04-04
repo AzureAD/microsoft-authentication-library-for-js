@@ -13,7 +13,8 @@ import { TokenRequest } from "./TokenRequest";
 import { TokenResponse } from "./TokenResponse";
 
 export interface IBridgeProxy {
-    acquireToken(request: TokenRequest): Promise<TokenResponse>;
+    getTokenInteractive(request: TokenRequest): Promise<TokenResponse>;
+    getTokenSilent(request: TokenRequest): Promise<TokenResponse>;
     getAccountInfo(
         request:
         | AccountByHomeIdRequest
