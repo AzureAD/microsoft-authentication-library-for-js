@@ -82,7 +82,6 @@ MSAL.js has been tested and supports the last 2 stable and supported versions of
 - Safari
 - Opera
 
-Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with IE or Edge Legacy. Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
 
 MSAL.js also supports the following environments:
 
