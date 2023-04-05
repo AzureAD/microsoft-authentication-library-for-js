@@ -214,7 +214,7 @@ export const ClientAuthErrorMessage = {
     },
     missingTenantIdError: {
         code: "missing_tenant_id_error",
-        desc: "A tenant id - not common or organizations - must be specified when using the client_credentials flow."
+        desc: "A tenant id - not common, organizations, or consumers - must be specified when using the client_credentials flow."
     }
 };
 

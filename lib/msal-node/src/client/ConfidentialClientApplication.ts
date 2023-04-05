@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+// AADAuthorityConstants
+
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
@@ -18,7 +20,8 @@ import {
     Constants,
     IAppTokenProvider,
     OIDC_DEFAULT_SCOPES,
-    UrlString
+    UrlString,
+    AADAuthorityConstants
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -104,7 +107,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
          */
         const authority = new UrlString(validRequest.authority);
         const tenantId = authority.getUrlComponents().PathSegments[0];
-        if ((tenantId === "common") || (tenantId === "organizations")) {
+        if (Object.values(AADAuthorityConstants).includes(tenantId)) {
             throw ClientAuthError.createMissingTenantIdError();
         }
 

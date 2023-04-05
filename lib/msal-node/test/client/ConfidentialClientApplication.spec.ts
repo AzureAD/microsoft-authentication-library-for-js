@@ -199,8 +199,10 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-    test('acquireTokenByClientCredential throws missingTenantIdError if \"common\" or "\"organization\" were provided as the tenant id', async () => {
+    test('acquireTokenByClientCredential throws missingTenantIdError if \"common\", "\"organization\", or \"consumers\" were provided as the tenant id', async () => {
+        // @ts-ignore
         const testProvider: msalCommon.IAppTokenProvider = () => {
+            // @ts-ignore
             return new Promise<msalCommon.AppTokenProviderResult>(
                 (resolve) => resolve({
                     accessToken: "accessToken",
@@ -211,7 +213,7 @@ describe('ConfidentialClientApplication', () => {
         const configWithExtensibility: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
-                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY,                                
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY, // contains "common"
                 clientAssertion: "testAssertion"
             },
         }                  
