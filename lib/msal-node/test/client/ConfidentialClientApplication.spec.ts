@@ -208,29 +208,29 @@ describe('ConfidentialClientApplication', () => {
                     accessToken: "accessToken",
                     expiresInSeconds: 3601,
                     refreshInSeconds: 1801,
-                }))};      
+                }))};
 
-        const configWithExtensibility: Configuration = {
+        const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
                 authority: TEST_CONSTANTS.DEFAULT_AUTHORITY, // contains "common"
-                clientAssertion: "testAssertion"
+                clientAssertion: "testAssertion",
             },
-        }                  
+        };
 
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            skipCache: false
+            skipCache: false,
         };
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const {ClientCredentialClient: mockClientCredentialClient} = getMsalCommonAutoMock();
-        jest.spyOn(msalCommon, 'ClientCredentialClient').mockImplementation((conf) => new mockClientCredentialClient(conf));
+        const clientCredentialClientSpy = jest.spyOn(msalNode, 'ClientCredentialClient');
 
-        const authApp = new ConfidentialClientApplication(configWithExtensibility);
+        const authApp = new ConfidentialClientApplication(appConfig);
         authApp.SetAppTokenProvider(testProvider);
 
-        await expect(authApp.acquireTokenByClientCredential(request)).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
+        await authApp.acquireTokenByClientCredential(request);
+        await expect(clientCredentialClientSpy).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
     });
 
     test('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
