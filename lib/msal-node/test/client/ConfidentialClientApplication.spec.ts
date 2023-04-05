@@ -199,7 +199,7 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-    test('acquireTokenByClientCredential throws missingTenantIdError if \"common\", "\"organization\", or \"consumers\" were provided as the tenant id', async () => {
+    test('acquireTokenByClientCredential throws missingTenantIdError if \"common\", "\"organization\", or \"consumers\" was provided as the tenant id', async () => {
         // @ts-ignore
         const testProvider: msalCommon.IAppTokenProvider = () => {
             // @ts-ignore
