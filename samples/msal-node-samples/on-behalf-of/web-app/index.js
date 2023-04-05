@@ -100,7 +100,7 @@ if(argv.$0 === "index.js") {
         logLevel: msal.LogLevel.Info,
     };
     const webAppCCA = new msal.ConfidentialClientApplication({auth: webAppConfig.authOptions, system: { loggerOptions }, cache: { cachePlugin: webAppCachePlugin }});
-acquireTokenByCode(webAppCCA, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
+    acquireTokenByCode(webAppCCA, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
 }
 
 module.exports = {
