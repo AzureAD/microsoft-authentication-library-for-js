@@ -6,6 +6,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 1. Consume the ESM build (preferred)
 1. Extract `lib/msal-browser.js` or `lib/msal-browser.min.js` from the downloaded package and serve it as a static asset with your app or host it on your own CDN
+
 ## Best Practices
 
 * Use the latest version of MSAL.js v2.
