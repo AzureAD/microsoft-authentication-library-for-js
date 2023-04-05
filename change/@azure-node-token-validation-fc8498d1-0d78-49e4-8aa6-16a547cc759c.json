@@ -1,7 +1,0 @@
-{
-  "comment": "Add required cache stub function #5806",
-  "type": "none",
-  "packageName": "@azure/node-token-validation",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

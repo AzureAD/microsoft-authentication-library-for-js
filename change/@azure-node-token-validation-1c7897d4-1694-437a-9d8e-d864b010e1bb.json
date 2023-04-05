@@ -1,7 +1,0 @@
-{
-  "comment": "Add required getAccountKeys method",
-  "type": "none",
-  "packageName": "@azure/node-token-validation",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

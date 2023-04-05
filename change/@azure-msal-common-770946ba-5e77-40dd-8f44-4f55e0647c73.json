@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Optimize token lookups in cache #5806",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
