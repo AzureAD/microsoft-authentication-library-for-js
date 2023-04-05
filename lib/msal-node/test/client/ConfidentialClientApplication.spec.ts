@@ -229,8 +229,7 @@ describe('ConfidentialClientApplication', () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         authApp.SetAppTokenProvider(testProvider);
 
-        await authApp.acquireTokenByClientCredential(request);
-        await expect(clientCredentialClientSpy).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
+        await expect(authApp.acquireTokenByClientCredential(request)).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
     });
 
     test('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
