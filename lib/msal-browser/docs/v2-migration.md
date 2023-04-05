@@ -63,7 +63,7 @@ All other APIs are backward compatible with [MSAL v2.x](../../msal-browser/). It
 
 ### Browser support
 
-MSAL.js dropped support for the following browsers:
+MSAL.js no longer supports the following browsers:
 
 - IE 11
 - Edge (Legacy)
