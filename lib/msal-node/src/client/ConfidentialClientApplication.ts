@@ -107,7 +107,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
          */
         const authority = new UrlString(validRequest.authority);
         const tenantId = authority.getUrlComponents().PathSegments[0];
-        if (Object.values(AADAuthorityConstants).includes(tenantId)) {
+        if (Object.values(AADAuthorityConstants).includes(tenantId as AADAuthorityConstants)) {
             throw ClientAuthError.createMissingTenantIdError();
         }
 
