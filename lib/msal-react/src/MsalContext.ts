@@ -10,6 +10,7 @@ export interface IMsalContext {
     instance: IPublicClientApplication;
     inProgress: InteractionStatus;
     accounts: AccountInfo[];
+    state?: string;
     logger: Logger;
 }
 
@@ -21,6 +22,7 @@ const defaultMsalContext: IMsalContext = {
     instance: stubbedPublicClientApplication,
     inProgress: InteractionStatus.None,
     accounts: [],
+    state: undefined,
     logger: new Logger({})
 };
 

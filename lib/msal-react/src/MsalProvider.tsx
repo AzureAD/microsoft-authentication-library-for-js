@@ -24,11 +24,13 @@ export type MsalProviderProps = PropsWithChildren<{
 type MsalState = {
     inProgress: InteractionStatus;
     accounts: AccountInfo[];
+    state?: string
 };
 
 enum MsalProviderActionType {
     UNBLOCK_INPROGRESS = "UNBLOCK_INPROGRESS",
-    EVENT = "EVENT"
+    EVENT = "EVENT",
+    HANDLE_REDIRECT_PROMISE = "UPDATE_STATE"
 }
 
 type MsalProviderReducerAction = {
@@ -37,6 +39,7 @@ type MsalProviderReducerAction = {
         logger: Logger;
         instance: IPublicClientApplication;
         message?: EventMessage;
+        state?: string;
     };
 };
 
@@ -48,6 +51,7 @@ type MsalProviderReducerAction = {
 const reducer = (previousState: MsalState, action: MsalProviderReducerAction): MsalState => {
     const { type, payload } = action;
     let newInProgress = previousState.inProgress;
+    let newState = previousState.state;
 
     switch (type) {
         case MsalProviderActionType.UNBLOCK_INPROGRESS:
@@ -63,6 +67,9 @@ const reducer = (previousState: MsalState, action: MsalProviderReducerAction): M
                 payload.logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${previousState.inProgress} to ${status}`);
                 newInProgress = status;
             }
+            break;
+        case MsalProviderActionType.HANDLE_REDIRECT_PROMISE:
+            newState = payload.state;
             break;
         default:
             throw new Error(`Unknown action type: ${type}`);
@@ -89,6 +96,12 @@ const reducer = (previousState: MsalState, action: MsalProviderReducerAction): M
             ...previousState,
             accounts: currentAccounts
         };
+    } else if (newState !== previousState.state) {
+        return {
+            ...previousState,
+            state:payload.state
+        };
+
     } else {
         // Nothing changed
         return previousState;
@@ -129,7 +142,12 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         logger.verbose(`MsalProvider - Registered event callback with id: ${callbackId}`);
 
         instance.initialize().then(() => {
-            instance.handleRedirectPromise().catch(() => {
+            instance.handleRedirectPromise().then(res => {
+                updateState({
+                    payload:{instance,logger,state:res?.state},
+                    type: MsalProviderActionType.HANDLE_REDIRECT_PROMISE
+                });
+            }).catch(() => {
                 // Errors should be handled by listening to the LOGIN_FAILURE event
                 return;
             }).finally(() => {
