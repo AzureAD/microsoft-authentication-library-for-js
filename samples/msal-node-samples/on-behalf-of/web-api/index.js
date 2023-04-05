@@ -9,6 +9,17 @@ const msal = require("@azure/msal-node");
 const jwt = require("jsonwebtoken");
 const jwksClient = require("jwks-rsa");
 
+/**
+ * Command line arguments can be used to configure:
+ * - The port the application runs on
+ * - The cache file location
+ * - The authentication scenario/configuration file name
+ */
+const argv = require("../../cliArgs");
+
+const WEB_API_TEST_CACHE_LOCATION = argv.c || "../data/webApiCache.json";
+const webApiCachePlugin = require("../../cachePlugin")(WEB_API_TEST_CACHE_LOCATION);
+
 const webApiConfig = require("../config/WEB-API.json");
 
 const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndpoint) => {
@@ -89,15 +100,17 @@ const acquireTokenObo = (cca, webApiPort, clientId, authority, discoveryKeysEndp
     return app.listen(webApiPort, () => console.log(`Msal Node Web API listening on port ${webApiPort}!`));
 };
 
-const loggerOptions = {
-    loggerCallback(loglevel, message, containsPii) {
-        console.log(message);
-    },
-    piiLoggingEnabled: false,
-    logLevel: msal.LogLevel.Verbose,
-};
-const webApiCCA = new msal.ConfidentialClientApplication({auth: webApiConfig.authOptions, system: { loggerOptions }});
-acquireTokenObo(webApiCCA, webApiConfig.serverPort, webApiConfig.authOptions.clientId, webApiConfig.authOptions.authority, webApiConfig.discoveryKeysEndpoint);
+if(argv.$0 === "index.js") {
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
+        },
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Info,
+    };
+    const webApiCCA = new msal.ConfidentialClientApplication({auth: webApiConfig.authOptions, system: { loggerOptions }, cache: { cachePlugin: webApiCachePlugin}});
+    acquireTokenObo(webApiCCA, webApiConfig.serverPort, webApiConfig.authOptions.clientId, webApiConfig.authOptions.authority, webApiConfig.discoveryKeysEndpoint);
+}
 
 module.exports = {
     acquireTokenObo,

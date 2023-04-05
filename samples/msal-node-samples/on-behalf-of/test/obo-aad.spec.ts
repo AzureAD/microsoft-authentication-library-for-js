@@ -30,8 +30,11 @@ webApiConfig.webApiUrl = process.env.OBO_WEB_API_URL;
 webApiConfig.authOptions.authority = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}`;
 webApiConfig.discoveryKeysEndpoint = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}/discovery/v2.0/keys`;
 
-const TEST_CACHE_LOCATION = `${__dirname}/data/cache.json`;
-const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
+const WEB_APP_TEST_CACHE_LOCATION = `${__dirname}/data/webAppCache.json`;
+const webAppCachePlugin = require("../../cachePlugin.js")(WEB_APP_TEST_CACHE_LOCATION);
+
+const WEB_API_TEST_CACHE_LOCATION = `${__dirname}/data/webApiCache.json`;
+const webApiCachePlugin = require("../../cachePlugin.js")(WEB_API_TEST_CACHE_LOCATION);
 
 const HOME_ROUTE = `http://localhost:${webAppConfig.serverPort}`;
 
@@ -48,7 +51,8 @@ describe("OBO AAD Tests", () => {
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/obo/aad`;
 
     beforeAll(async () => {
-        await validateCacheLocation(TEST_CACHE_LOCATION);
+        await validateCacheLocation(WEB_APP_TEST_CACHE_LOCATION);
+        await validateCacheLocation(WEB_API_TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
 
@@ -79,15 +83,16 @@ describe("OBO AAD Tests", () => {
                 console.log(message);
             },
             piiLoggingEnabled: false,
-            logLevel: LogLevel.Verbose,
+            logLevel: LogLevel.Info,
         };
 
         beforeAll(async () => {
-            webAppConfidentialClient = new ConfidentialClientApplication({auth: webAppConfig.authOptions, cache: { cachePlugin }, system: { loggerOptions }});
-            webApiConfidentialClient = new ConfidentialClientApplication({auth: webApiConfig.authOptions, cache: { cachePlugin }, system: { loggerOptions }});
+            webAppConfidentialClient = new ConfidentialClientApplication({auth: webAppConfig.authOptions, cache: { cachePlugin: webAppCachePlugin }, system: { loggerOptions }});
+            webApiConfidentialClient = new ConfidentialClientApplication({auth: webApiConfig.authOptions, cache: { cachePlugin: webApiCachePlugin }, system: { loggerOptions }});
             webAppServer = acquireTokenByCode(webAppConfidentialClient, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
             webApiServer = acquireTokenObo(webApiConfidentialClient, webApiConfig.serverPort, webApiConfig.authOptions.clientId, webApiConfig.authOptions.authority, webApiConfig.discoveryKeysEndpoint);
-            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(WEB_APP_TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(WEB_API_TEST_CACHE_LOCATION);
         });
 
         afterAll(async () => {
@@ -113,7 +118,8 @@ describe("OBO AAD Tests", () => {
         afterEach(async () => {
             await page.close();
             await context.close();
-            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(WEB_APP_TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(WEB_API_TEST_CACHE_LOCATION);
         });
 
         it("Performs acquire token via OBO flow", async () => {
@@ -122,15 +128,14 @@ describe("OBO AAD Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
             
-            console.log("1111111111", TEST_CACHE_LOCATION);
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
-            console.log("done checking cache");
-            expect(cachedTokens.accessTokens.length).toBe(2);
-            expect(cachedTokens.idTokens.length).toBe(2);
-            expect(cachedTokens.refreshTokens.length).toBe(2);
+            const webApiCachedTokens = await NodeCacheTestUtils.waitForTokens(WEB_API_TEST_CACHE_LOCATION, 2000);
+            expect(webApiCachedTokens.accessTokens.length).toBe(1);
+            expect(webApiCachedTokens.idTokens.length).toBe(1);
+            expect(webApiCachedTokens.refreshTokens.length).toBe(1);
 
-            const accounts = await NodeCacheTestUtils.getAccounts(TEST_CACHE_LOCATION);
+            const accounts = await NodeCacheTestUtils.getAccounts(WEB_API_TEST_CACHE_LOCATION);
             expect(Object.keys(accounts).length).toBe(1);
+
             const account = Object.values(accounts)[0];
             expect(account.username).toEqual(username);
         });

@@ -7,6 +7,17 @@ const express = require("express");
 const msal = require("@azure/msal-node");
 const http = require("http");
 
+/**
+ * Command line arguments can be used to configure:
+ * - The port the application runs on
+ * - The cache file location
+ * - The authentication scenario/configuration file name
+ */
+const argv = require("../../cliArgs");
+
+const WEB_APP_TEST_CACHE_LOCATION = argv.c || "../data/webAppCache.json";
+const webAppCachePlugin = require("../../cachePlugin")(WEB_APP_TEST_CACHE_LOCATION);
+
 const webAppConfig = require("../config/WEB-APP.json");
 const webApiConfig = require("../config/WEB-API.json");
 
@@ -80,15 +91,17 @@ const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiUrl)
     return app.listen(webAppPort, () => console.log(`Msal Node web app listening on port ${webAppPort}!`));
 };
 
-const loggerOptions = {
-    loggerCallback(loglevel, message, containsPii) {
-        console.log(message);
-    },
-    piiLoggingEnabled: false,
-    logLevel: msal.LogLevel.Verbose,
-};
-const webAppCCA = new msal.ConfidentialClientApplication({auth: webAppConfig.authOptions, system: { loggerOptions }});
+if(argv.$0 === "index.js") {
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
+        },
+        piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Info,
+    };
+    const webAppCCA = new msal.ConfidentialClientApplication({auth: webAppConfig.authOptions, system: { loggerOptions }, cache: { cachePlugin: webAppCachePlugin }});
 acquireTokenByCode(webAppCCA, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
+}
 
 module.exports = {
     acquireTokenByCode,
