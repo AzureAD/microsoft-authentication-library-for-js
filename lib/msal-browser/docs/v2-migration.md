@@ -78,4 +78,4 @@ Module/target versions were bumped from `es6`/`es5` to `es2020`/`es2020` respect
 
 ### CDN
 
-CJS builds are no longer hosted on a CDN. Check [this doc](cdn-usage.md) for more details.
+MSAL.js is no longer hosted on a CDN. Check [this doc](cdn-usage.md) for more details.
