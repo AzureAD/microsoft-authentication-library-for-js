@@ -2,13 +2,10 @@
 
 In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
-**_NOTE:_** Starting from MSAL.js v3 CJS builds are no longer hosted on the CDN. If you consumed `msal-browser` from the CDN before you should either host `msal-browser` yourself or follow this guide:
+**_NOTE:_** Starting from MSAL.js v3 `msal-browser` is no longer hosted on the CDN. If you consume `msal-browser` from the CDN you will need to download `msal-browser` from npm and choose one of the following alternatives before upgrading:
 
-1. Pull `msal-browser` from npm
-2. Choose one of:
-   * Use the ESM build
-   * Extract the CJS build from the download and bundle it
-
+1. Consume the ESM build (preferred)
+1. Extract `lib/msal-browser.js` or `lib/msal-browser.min.js` from the downloaded package and serve it as a static asset with your app or host it on your own CDN
 ## Best Practices
 
 * Use the latest version of MSAL.js v2.
