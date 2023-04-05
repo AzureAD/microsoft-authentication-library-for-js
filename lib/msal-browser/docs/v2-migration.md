@@ -58,3 +58,24 @@ const msalInstance = await msal.PublicClientApplication.createPublicClientApplic
 ```
 
 All other APIs are backward compatible with [MSAL v2.x](../../msal-browser/). It is recommended to take a look at the [default sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) to see a working example of MSAL v3.0.
+
+## Key changes
+
+### Browser support
+
+MSAL.js dropped support for the following browsers:
+
+- IE 11
+- Edge (Legacy)
+
+### Package dependencies
+
+Typescript version was bumped from `3.8.3` to `4.9.5`.
+
+### Compiler options
+
+Module/target versions were bumped from `es6`/`es5` to `es2020`/`es2020` respectively.
+
+### CDN
+
+CJS builds are no longer hosted on a CDN. Check [this doc](cdn-usage.md) for more details.

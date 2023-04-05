@@ -2,6 +2,13 @@
 
 In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
+**_NOTE:_** Starting from MSAL.js v3 CJS builds are no longer hosted on the CDN. If you consumed `msal-browser` from the CDN before you should either host `msal-browser` yourself or follow this guide:
+
+1. Pull `msal-browser` from npm
+2. Choose one of:
+   * Use the ESM build
+   * Extract the CJS build from the download and bundle it
+
 ## Best Practices
 
 * Use the latest version of MSAL.js v2.
@@ -73,10 +80,11 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 ```
 
 ### SRI Hash Notes
+
 - Each hash will be unique to the version of MSAL.js v2, and will not change.
 - SRI hash usage is optional for MSAL.js CDN builds.
-- If the `integrity` attribute is used for MSAL.js v2 CDN builds, the `crossorigin` attribute must be set to `"anonymous"`. 
-- If you believe our CDN builds have been comprimised, please [inform us](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/SECURITY.md#reporting-a-vulnerability) immediately.
+- If the `integrity` attribute is used for MSAL.js v2 CDN builds, the `crossorigin` attribute must be set to `"anonymous"`.
+- If you believe our CDN builds have been compromised, please [inform us](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/SECURITY.md#reporting-a-vulnerability) immediately.
 
 
 ### SRI Hash History
