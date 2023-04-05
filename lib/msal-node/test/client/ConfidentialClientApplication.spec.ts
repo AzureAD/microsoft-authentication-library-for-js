@@ -224,7 +224,6 @@ describe('ConfidentialClientApplication', () => {
         };
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const clientCredentialClientSpy = jest.spyOn(msalNode, 'ClientCredentialClient');
 
         const authApp = new ConfidentialClientApplication(appConfig);
         authApp.SetAppTokenProvider(testProvider);
