@@ -16,7 +16,8 @@ import {
     Configuration,
     AuthorizationCodeRequest,
     ClientCredentialClient,
-    RefreshTokenRequest
+    RefreshTokenRequest,
+    ClientAuthError
 } from "../../src";
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock } from './test-fixtures';
 
@@ -196,6 +197,38 @@ describe('ConfidentialClientApplication', () => {
         expect(usernamePasswordClientSpy).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
+    });
+
+    test('acquireTokenByClientCredential throws missingTenantIdError if \"common\", "\"organization\", or \"consumers\" was provided as the tenant id', async () => {
+        // @ts-ignore
+        const testProvider: msalCommon.IAppTokenProvider = () => {
+            // @ts-ignore
+            return new Promise<msalCommon.AppTokenProviderResult>(
+                (resolve) => resolve({
+                    accessToken: "accessToken",
+                    expiresInSeconds: 3601,
+                    refreshInSeconds: 1801,
+                }))};
+
+        const appConfig: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.DEFAULT_AUTHORITY, // contains "common"
+                clientAssertion: "testAssertion",
+            },
+        };
+
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: false,
+        };
+
+        setupAuthorityFactory_createDiscoveredInstance_mock();
+
+        const authApp = new ConfidentialClientApplication(appConfig);
+        authApp.SetAppTokenProvider(testProvider);
+
+        await expect(authApp.acquireTokenByClientCredential(request)).rejects.toMatchObject(ClientAuthError.createMissingTenantIdError());
     });
 
     test('acquireTokenByClientCredential handles AuthErrors as expected', async () => {

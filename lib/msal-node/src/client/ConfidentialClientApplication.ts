@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+// AADAuthorityConstants
+
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
@@ -17,7 +19,9 @@ import {
     AuthError,
     Constants,
     IAppTokenProvider,
-    OIDC_DEFAULT_SCOPES
+    OIDC_DEFAULT_SCOPES,
+    UrlString,
+    AADAuthorityConstants
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -96,6 +100,16 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             ...validBaseRequest,
             clientAssertion
         };
+
+        /*
+         * valid request should not have "common" or "organizations" in lieu of the tenant_id in the authority in the auth configuration
+         * example authority: "https://login.microsoftonline.com/TenantId",
+         */
+        const authority = new UrlString(validRequest.authority);
+        const tenantId = authority.getUrlComponents().PathSegments[0];
+        if (Object.values(AADAuthorityConstants).includes(tenantId as AADAuthorityConstants)) {
+            throw ClientAuthError.createMissingTenantIdError();
+        }
 
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
