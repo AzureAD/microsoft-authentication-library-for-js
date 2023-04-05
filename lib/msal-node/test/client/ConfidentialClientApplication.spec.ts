@@ -224,9 +224,8 @@ describe('ConfidentialClientApplication', () => {
         };
 
         setupAuthorityFactory_createDiscoveredInstance_mock();
-        const MockClientCredentialClient = getMsalCommonAutoMock().ClientCredentialClient;
-
-        jest.spyOn(msalCommon, 'ClientCredentialClient').mockImplementation((conf) => new MockClientCredentialClient(conf));
+        const {ClientCredentialClient: mockClientCredentialClient} = getMsalCommonAutoMock();
+        jest.spyOn(msalCommon, 'ClientCredentialClient').mockImplementation((conf) => new mockClientCredentialClient(conf));
 
         const authApp = new ConfidentialClientApplication(configWithExtensibility);
         authApp.SetAppTokenProvider(testProvider);
