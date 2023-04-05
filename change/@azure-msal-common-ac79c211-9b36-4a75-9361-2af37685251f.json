@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fixing get account entity from cache using native account id #5695",
-  "packageName": "@azure/msal-common",
-  "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
-}

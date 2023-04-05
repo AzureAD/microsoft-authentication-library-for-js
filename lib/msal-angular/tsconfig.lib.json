@@ -4,13 +4,12 @@
   "compilerOptions": {
     "outDir": "./out-tsc/lib",
     "declarationMap": true,
-    "target": "es2015",
     "declaration": true,
     "inlineSources": true,
     "types": [],
     "lib": [
       "dom",
-      "es2018"
+      "ES2020"
     ]
   },
   "angularCompilerOptions": {
@@ -19,8 +18,7 @@
     "debug": false,
     "skipTemplateCodegen": true,
     "skipMetadataEmit": false,
-    "strictMetadataEmit": true,
-    "enableIvy": false
+    "strictMetadataEmit": true
   },
   "exclude": [
     "src/test.ts",

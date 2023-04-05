@@ -373,7 +373,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 nonce: "123523",
-                sid: "testSid"
+                sid: "testSid",
+                tenant_region_scope: "test_tenant_region_scope",
+                tenant_region_sub_scope: "test_tenant_region_sub_scope"
             };
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
@@ -411,7 +413,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 preferred_username: "AbeLi@microsoft.com",
                 oid: "00000000-0000-0000-66f3-3332eca7ea81",
                 tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
-                nonce: "123523"
+                nonce: "123523",
+                tenant_region_scope: "test_tenant_region_scope",
+                tenant_region_sub_scope: "test_tenant_region_sub_scope"
             };
 
             const authCodeUrlRequest: CommonAuthorizationUrlRequest = {

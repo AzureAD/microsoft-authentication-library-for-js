@@ -30,7 +30,8 @@ describe("TokenCache tests", () => {
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
-            secureCookies: false
+            secureCookies: false,
+            cacheMigrationEnabled: false
         };
         logger = new Logger({
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},

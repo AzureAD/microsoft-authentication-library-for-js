@@ -3,11 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, Logger, LogLevel } from "../../src";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ValidCredentialType, Logger, LogLevel, TokenKeys } from "../../src";
 import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
+
+const ACCOUNT_KEYS = "ACCOUNT_KEYS";
+const TOKEN_KEYS = "TOKEN_KEYS";
 
 export class MockStorageClass extends CacheManager {
     store = {};
@@ -20,48 +23,83 @@ export class MockStorageClass extends CacheManager {
         }
         return null;
     }
+
     setAccount(value: AccountEntity): void {
         const key = value.generateAccountKey();
         this.store[key] = value;
+
+        const currentAccounts = this.getAccountKeys();
+        if (!currentAccounts.includes(key)) {
+            currentAccounts.push(key);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    async removeAccount(key: string): Promise<void> {
+        await super.removeAccount(key);
+        const currentAccounts = this.getAccountKeys();
+        const removalIndex = currentAccounts.indexOf(key);
+        if (removalIndex > -1) {
+            currentAccounts.splice(removalIndex, 1);
+            this.store[ACCOUNT_KEYS] = currentAccounts;
+        }
+    }
+
+    getAccountKeys(): string[] {
+        return this.store[ACCOUNT_KEYS] || [];
+    }
+
+    getTokenKeys(): TokenKeys {
+        return this.store[TOKEN_KEYS] || {
+            idToken: [],
+            accessToken: [],
+            refreshToken: []
+        }
     }
 
     // Credentials (idtokens)
     getIdTokenCredential(key: string): IdTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ID_TOKEN) {
-            return this.store[key] as IdTokenEntity;
-        }
-        return null;
+        return this.store[key] as IdTokenEntity || null;
     }
     setIdTokenCredential(value: IdTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+
+        const tokenKeys = this.getTokenKeys();
+        if (!tokenKeys.idToken.includes(key)) {
+            tokenKeys.idToken.push(key);
+            this.store[TOKEN_KEYS] = tokenKeys;
+        }
     }
 
     // Credentials (accesstokens)
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ACCESS_TOKEN || credType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
-            return this.store[key] as AccessTokenEntity;
-        }
-        return null;
+        return this.store[key] as AccessTokenEntity || null;
     }
     setAccessTokenCredential(value: AccessTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+
+        const tokenKeys = this.getTokenKeys();
+        if (!tokenKeys.accessToken.includes(key)) {
+            tokenKeys.accessToken.push(key);
+            this.store[TOKEN_KEYS] = tokenKeys;
+        }
     }
 
     // Credentials (accesstokens)
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
-        const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.REFRESH_TOKEN) {
-            return this.store[key] as RefreshTokenEntity;
-        }
-        return null;
+        return this.store[key] as RefreshTokenEntity || null;
     }
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+
+        const tokenKeys = this.getTokenKeys();
+        if (!tokenKeys.refreshToken.includes(key)) {
+            tokenKeys.refreshToken.push(key);
+            this.store[TOKEN_KEYS] = tokenKeys;
+        }
     }
 
     // AppMetadata
@@ -97,13 +135,10 @@ export class MockStorageClass extends CacheManager {
         this.store[key] = value;
     }
 
-    removeItem(key: string): boolean {
-        let result: boolean = false;
+    removeItem(key: string): void {
         if (!!this.store[key]) {
             delete this.store[key];
-            result = true;
         }
-        return result;
     }
     containsKey(key: string): boolean {
         return !!this.store[key];
@@ -184,7 +219,7 @@ export const mockCrypto = {
 export class ClientTestUtils {
     
     static async createTestClientConfiguration(): Promise<ClientConfiguration>{
-        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
 
         const testLoggerCallback = (): void => {
             return;

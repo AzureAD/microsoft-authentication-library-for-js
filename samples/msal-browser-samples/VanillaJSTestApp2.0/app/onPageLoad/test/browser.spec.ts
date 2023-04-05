@@ -66,7 +66,7 @@ describe("On Page Load tests", function () {
         expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(5);
+        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 
     it("Performs loginRedirect on page load from a page other than redirectUri", async () => {
@@ -88,6 +88,6 @@ describe("On Page Load tests", function () {
         expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
         expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"])).toBeTruthy();
         const storage = await BrowserCache.getWindowStorage();
-        expect(Object.keys(storage).length).toEqual(5);
+        expect(Object.keys(storage).length).toEqual(7);
     }, 60000);
 });

@@ -59,18 +59,18 @@ export class HttpClient implements INetworkModule {
 }
 
 const networkRequestViaProxy = <T>(
-    url: string,
+    destinationUrlString: string,
     proxyUrlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
     agentOptions?: http.AgentOptions,
     timeout?: number,
 ): Promise<NetworkResponse<T>> => {
-    const headers = options?.headers || {} as Record<string, string>;
+    const destinationUrl = new URL(destinationUrlString);
     const proxyUrl = new URL(proxyUrlString);
-    const destinationUrl = new URL(url);
 
     // "method: connect" must be used to establish a connection to the proxy
+    const headers = options?.headers || {} as Record<string, string>;
     const tunnelRequestOptions: https.RequestOptions = {
         host: proxyUrl.hostname,
         port: proxyUrl.port,
@@ -214,7 +214,7 @@ const networkRequestViaProxy = <T>(
 };
 
 const networkRequestViaHttps = <T>(
-    url: string,
+    urlString: string,
     httpMethod: string,
     options?: NetworkRequestOptions,
     agentOptions?: https.AgentOptions,
@@ -223,10 +223,12 @@ const networkRequestViaHttps = <T>(
     const isPostRequest = httpMethod === HttpMethod.POST;
     const body: string = options?.body || "";
 
-    const emptyHeaders: Record<string, string> = {};
+    const url = new URL(urlString);
+    const headers = options?.headers || {} as Record<string, string>;
     const customOptions: https.RequestOptions = {
         method: httpMethod,
-        headers: options?.headers || emptyHeaders,
+        headers: headers,
+        ...NetworkUtils.urlToHttpOptions(url),
     };
 
     if (timeout) {
@@ -246,7 +248,7 @@ const networkRequestViaHttps = <T>(
     }
 
     return new Promise<NetworkResponse<T>>((resolve, reject) => {
-        const request = https.request(url, customOptions);
+        const request = https.request(customOptions);
 
         if (timeout) {
             request.on("timeout", () => {

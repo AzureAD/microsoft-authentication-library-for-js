@@ -157,6 +157,10 @@ export const BrowserAuthErrorMessage = {
         code: "auth_code_or_nativeAccountId_required",
         desc: "An authorization code or nativeAccountId must be provided to this flow."
     },
+    spaCodeAndNativeAccountPresent: {
+        code: "spa_code_and_nativeAccountId_present",
+        desc: "Request cannot contain both spa code and native account id."
+    },
     databaseUnavailable: {
         code: "database_unavailable",
         desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
@@ -479,6 +483,13 @@ export class BrowserAuthError extends AuthError {
      */
     static createAuthCodeOrNativeAccountIdRequiredError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.authCodeOrNativeAccountRequired.code, BrowserAuthErrorMessage.authCodeOrNativeAccountRequired.desc);
+    }
+
+    /**
+     * Create an error when both authorization code and native account ID are provided
+     */
+    static createSpaCodeAndNativeAccountIdPresentError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.spaCodeAndNativeAccountPresent.code, BrowserAuthErrorMessage.spaCodeAndNativeAccountPresent.desc);
     }
 
     /**

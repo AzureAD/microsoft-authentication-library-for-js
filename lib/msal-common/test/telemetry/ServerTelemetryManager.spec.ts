@@ -11,8 +11,9 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { AuthError } from "../../src/error/AuthError";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 import { CacheOutcome } from "../../src/utils/Constants";
+import { Logger } from "../../src/logger/Logger";
 
-const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
 const testApiCode = 9999999;
 const testError = "interaction_required";
 const testCorrelationId = "this-is-a-test-correlationId";

@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Rebase dev onto v3 #5843",
+  "packageName": "@azure/msal-react",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
