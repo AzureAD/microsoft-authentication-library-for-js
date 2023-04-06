@@ -1,0 +1,107 @@
+{
+    "Sample": {
+        "Title": "A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node and call a protected ASP.NET Core web API",
+        "Level": 200,
+        "Client": "Node.js & Express web app",
+        "Service": "ASP.NET Core web API",
+        "Languages": ["javascript", "typescript", "csharp"],
+        "Products": ["azure-active-directory", "aspnet-core", "msal-js", "msal-node", "microsoft-identity-web"],
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Endpoint": "AAD v2.0",
+        "Provider": "CIAM",
+        "Platform": "JavaScript",
+        "description": "This sample demonstrates a Node.js & Express web app authenticating users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM) with Microsoft Authentication Library for Node (MSAL Node) and call a protected ASP.NET Core web API"
+    },
+    "AADApps": [
+        {
+            "Id": "service",
+            "Name": "ciam-msal-dotnet-api",
+            "Kind": "WebApi",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MicrosoftIdentityWeb",
+            "SampleSubPath": "2-Authorization\\4-call-api-express\\API\\TodoListAPI",
+            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "AppRoles": [
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.Read.All",
+                    "Description": "Allow this application to read every users TodoList items"
+                },
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users TodoList items"
+                }
+            ],
+            "OptionalClaims": {
+                "AccessTokenClaims": ["idtyp"]
+            }
+        },
+        {
+            "Id": "client",
+            "Name": "ciam-msal-node-webapp",
+            "Kind": "WebApp",
+            "Audience": "AzureADMyOrg",
+            "HomePage": "http://localhost:3000",
+            "ReplyUrls": "http://localhost:3000, http://localhost:3000/auth/redirect",
+            "PasswordCredentials": "Auto",
+            "SDK": "MsalNode",
+            "SampleSubPath": "2-Authorization\\4-call-api-express\\APP",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                },
+                {
+                    "Resource": "service",
+                    "DelegatedPermissions": ["TodoList.Read", "TodoList.ReadWrite"]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "service",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "Mappings": [
+                {
+                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter the tenant ID",
+                    "value": "$tenantId"
+                }
+            ]
+        },
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\APP\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Client_Secret_Here",
+                    "value": ".AppKey"
+                },
+                {
+                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
+                    "value": "$serviceIdentifierUri"
+                }
+            ]
+        }
+    ]
+}
