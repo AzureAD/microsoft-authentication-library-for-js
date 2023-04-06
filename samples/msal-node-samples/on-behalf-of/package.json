@@ -2,6 +2,7 @@
   "name": "msal-node-obo",
   "version": "1.0.0",
   "description": "sample app for msal-node showing on-behalf-of flow",
+  "main": "test/obo-aad.spec.ts",
   "private": true,
   "scripts": {
     "test": "jest",
