@@ -26,7 +26,7 @@ webAppConfig.authOptions.clientSecret = process.env.OBO_WEB_APP_CLIENT_SECRET;
 const webApiConfig = require("../config/WEB-API.json");
 webApiConfig.authOptions.clientId = process.env.OBO_WEB_API_CLIENT_ID;
 webApiConfig.authOptions.clientSecret = process.env.OBO_WEB_API_CLIENT_SECRET;
-webApiConfig.webApiUrl = process.env.OBO_WEB_API_URL;
+webApiConfig.webApiScope = process.env.OBO_WEB_API_SCOPE;
 webApiConfig.authOptions.authority = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}`;
 webApiConfig.discoveryKeysEndpoint = `https://login.microsoftonline.com/${process.env.OBO_WEB_API_TENANT_ID}/discovery/v2.0/keys`;
 
@@ -89,7 +89,7 @@ describe("OBO AAD Tests", () => {
         beforeAll(async () => {
             webAppConfidentialClient = new ConfidentialClientApplication({auth: webAppConfig.authOptions, cache: { cachePlugin: webAppCachePlugin }, system: { loggerOptions }});
             webApiConfidentialClient = new ConfidentialClientApplication({auth: webApiConfig.authOptions, cache: { cachePlugin: webApiCachePlugin }, system: { loggerOptions }});
-            webAppServer = acquireTokenByCode(webAppConfidentialClient, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
+            webAppServer = acquireTokenByCode(webAppConfidentialClient, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiScope);
             webApiServer = acquireTokenObo(webApiConfidentialClient, webApiConfig.serverPort, webApiConfig.authOptions.clientId, webApiConfig.authOptions.authority, webApiConfig.discoveryKeysEndpoint);
             await NodeCacheTestUtils.resetCache(WEB_APP_TEST_CACHE_LOCATION);
             await NodeCacheTestUtils.resetCache(WEB_API_TEST_CACHE_LOCATION);

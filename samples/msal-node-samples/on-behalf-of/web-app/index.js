@@ -21,14 +21,14 @@ const webAppCachePlugin = require("../../cachePlugin")(WEB_APP_TEST_CACHE_LOCATI
 const webAppConfig = require("../config/WEB-APP.json");
 const webApiConfig = require("../config/WEB-API.json");
 
-const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiUrl) => {
+const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiScope) => {
     const app = express();
 
     let accessToken = null;
 
     app.get("/", (req, res) => {
         const authCodeUrlParameters = {
-            scopes: [webApiUrl],
+            scopes: [webApiScope],
             redirectUri: redirectUri,
         };
 
@@ -43,7 +43,7 @@ const acquireTokenByCode = (cca, webAppPort, webApiPort, redirectUri, webApiUrl)
     app.get("/redirect", (req, res) => {
         const tokenRequest = {
             code: req.query.code,
-            scopes: [webApiUrl],
+            scopes: [webApiScope],
             redirectUri: redirectUri,
         };
 
@@ -100,7 +100,7 @@ if(argv.$0 === "index.js") {
         logLevel: msal.LogLevel.Info,
     };
     const webAppCCA = new msal.ConfidentialClientApplication({auth: webAppConfig.authOptions, system: { loggerOptions }, cache: { cachePlugin: webAppCachePlugin }});
-    acquireTokenByCode(webAppCCA, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiUrl);
+    acquireTokenByCode(webAppCCA, webAppConfig.serverPort, webApiConfig.serverPort, webAppConfig.redirectUri, webApiConfig.webApiScope);
 }
 
 module.exports = {

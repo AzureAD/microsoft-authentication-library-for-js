@@ -13,7 +13,8 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "file:../../../lib/msal-node",
-    "dotenv": "^16.0.3"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "jest": "^27.0.4"

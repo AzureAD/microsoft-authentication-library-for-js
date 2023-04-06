@@ -112,7 +112,7 @@ jobs:
         OBO_WEB_APP_CLIENT_SECRET: ${{ secrets.OBO_WEB_APP_CLIENT_SECRET }}
         OBO_WEB_API_CLIENT_ID: ${{ secrets.OBO_WEB_API_CLIENT_ID }}
         OBO_WEB_API_CLIENT_SECRET: ${{ secrets.OBO_WEB_API_CLIENT_SECRET }}
-        OBO_WEB_API_URL: ${{ secrets.OBO_WEB_API_URL }}
+        OBO_WEB_API_SCOPE: ${{ secrets.OBO_WEB_API_SCOPE }}
         OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
       run: npm test
 
