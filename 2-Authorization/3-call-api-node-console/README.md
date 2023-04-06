@@ -99,7 +99,7 @@ There are two projects in this sample. Each needs to be separately registered in
 
 > :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that your environment is prepared correctly for this step.
 
-1. Ensure that you have PowerShell 7 or later which can be installed at [this link](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3).
+1. Ensure that you have [PowerShell 7](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3) or later.
 1. Run the script to create your Azure AD application and configure the code of the sample application accordingly.
 1. For interactive process -in PowerShell, run:
 
