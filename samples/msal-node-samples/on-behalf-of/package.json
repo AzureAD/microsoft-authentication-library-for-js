@@ -15,7 +15,10 @@
   "dependencies": {
     "@azure/msal-node": "file:../../../lib/msal-node",
     "dotenv": "^16.0.3",
-    "express": "^4.18.2"
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0",
+    "jwks-rsa": "^1.8.1",
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "jest": "^27.0.4"
