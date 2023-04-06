@@ -30,7 +30,7 @@ const MainContent = () => {
         instance
             .loginPopup({
                 ...loginRequest,
-                redirectUri: '/redirect.html',
+                redirectUri: '/redirect',
                 prompt: "create"
             })
             .catch((error) => console.log(error));

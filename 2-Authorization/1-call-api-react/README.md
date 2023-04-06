@@ -209,7 +209,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. If you don't have a platform added, select **Add a platform** and select the **Single-page application** option.
     1. In the **Redirect URI** section enter the following redirect URIs:
         1. `http://localhost:3000`
-        1. `http://localhost:3000/redirect.html`
+        1. `http://localhost:3000/redirect`
     1. Click **Save** to save your changes.
 1. Since this app signs-in users, we will now proceed to select **delegated permissions**, which is is required by apps signing-in users.
     1. In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs:
@@ -464,7 +464,7 @@ Build your project to get a distributable files folder, where your built `html`,
 1. In the app's registration screen, select **Authentication** in the menu.
    1. In the **Redirect URIs** section, update the reply URLs to match the site URL of your Azure deployment. For example:
         1. `https://ciam-msal-react-spa.azurewebsites.net/`
-        1. `https://ciam-msal-react-spa.azurewebsites.net/redirect.html`
+        1. `https://ciam-msal-react-spa.azurewebsites.net/redirect`
 
 #### Update authentication configuration parameters (ciam-msal-react-spa)
 

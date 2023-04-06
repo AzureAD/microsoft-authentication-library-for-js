@@ -15,7 +15,7 @@
                     "type": "Spa"
                 },
                 {
-                    "url": "http://localhost:3000/redirect.html",
+                    "url": "http://localhost:3000/redirect",
                     "type": "Spa"
                 }
             ],
