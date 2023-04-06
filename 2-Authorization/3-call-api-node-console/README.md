@@ -9,7 +9,6 @@ products:
  - azure-active-directory
  - aspnet-core
  - msal-js
- - msal-react
  - microsoft-identity-web
 urlFragment: ms-identity-ciam-javascript-tutorial
 extensions:
