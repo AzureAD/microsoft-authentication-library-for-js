@@ -3603,7 +3603,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
             "homeAccountId": testAccountInfo2.homeAccountId,
         };
-
         const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
 
         beforeEach(() => {
