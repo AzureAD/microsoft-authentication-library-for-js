@@ -135,8 +135,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("intialize tests", () => {
-        jest.setTimeout(9999999);
+    describe("initialize tests", () => {
         globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
         beforeEach(() => {
@@ -152,56 +151,55 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             };
-            const samples = 100;
+            const samples = 10;
             const concurrency = 5;
 
             for (let i = 1; i <= samples; i++) {
                 const app = new PublicClientApplication(config);
                 const postMessageSpy: sinon.SinonSpy = sinon.spy(window, "postMessage");
+                const initSpy: sinon.SinonSpy = sinon.spy(PublicClientApplication.prototype, "initialize");
                 // @ts-ignore
                 const handshakeSpy: sinon.SinonSpy = sinon.spy(NativeMessageHandler.prototype, "sendHandshakeRequest");
-                const initEventSpy = sinon.stub(EventHandler.prototype, "emitEvent");
                 let mcPort: MessagePort;
+                try {
+                    const eventHandler = function (event: MessageEvent) {
+                        event.stopImmediatePropagation();
+                        const request = event.data;
+                        const req = {
+                            channel: "53ee284d-920a-4b59-9d30-a60315b26836",
+                            extensionId: "test-ext-id",
+                            responseId: request.responseId,
+                            body: {
+                                method: "HandshakeResponse",
+                                version: 3
+                            }
+                        };
 
-                const eventHandler = function (event: MessageEvent) {
-                    event.stopImmediatePropagation();
-                    const request = event.data;
-                    const req  = {
-                        channel: "53ee284d-920a-4b59-9d30-a60315b26836",
-                        extensionId: "test-ext-id",
-                        responseId: request.responseId,
-                        body: {
-                            method: "HandshakeResponse",
-                            version: 3
-                        }
+                        mcPort = postMessageSpy.args[0][2][0];
+                        mcPort.postMessage(req);
                     };
+                    window.addEventListener("message", eventHandler, true);
 
-                    mcPort = postMessageSpy.args[0][2][0];
-                    mcPort.postMessage(req);
-                };
-                window.addEventListener("message", eventHandler, true);
+                    const promises = [];
+                    for (let x = 0; x < concurrency; x++) {
+                        promises.push(app.initialize());
+                    }
+                    await Promise.all(promises);
 
-                const promises = [];
-                for (let x = 1; x <= concurrency; x++) {
-                    promises.push(app.initialize());
+                    expect(handshakeSpy.callCount).toEqual(1);
+                    expect(initSpy.callCount).toEqual(concurrency);
+                    window.removeEventListener("message", eventHandler, true);
+                    // @ts-ignore
+                    expect(app.controller.initialized).toBeTruthy();
+                    // @ts-ignore
+                    expect(app.controller.getNativeExtensionProvider()).toBeInstanceOf(NativeMessageHandler);
+                } finally {
+                    handshakeSpy.restore();
+                    postMessageSpy.restore();
+                    initSpy.restore();
+                    // @ts-ignore
+                    mcPort.close();
                 }
-                await Promise.all(promises);
-
-                expect(handshakeSpy.calledOnce);
-                expect(initEventSpy.calledOnce);
-                window.removeEventListener("message", eventHandler, true);
-                // @ts-ignore
-                expect(app.controller.initialized).toBeTruthy();
-                // @ts-ignore
-                expect(app.controller.getNativeExtensionProvider()).toBeInstanceOf(NativeMessageHandler);
-
-                handshakeSpy.restore();
-                initEventSpy.restore();
-                postMessageSpy.restore();
-                // @ts-ignore
-                mcPort.close();
-
-                console.log(`sample #${i}`);
             }
         });
 

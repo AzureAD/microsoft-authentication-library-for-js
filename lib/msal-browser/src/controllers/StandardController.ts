@@ -70,6 +70,9 @@ import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
 import { version, name } from "../packageMetadata";
 import { IController } from "./IController";
 
+// Global mutex to serialize `initialize()` calls.
+let initMutex = Promise.resolve();
+
 export class StandardController implements IController {
 
     // OperatingContext
@@ -125,6 +128,7 @@ export class StandardController implements IController {
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -225,27 +229,31 @@ export class StandardController implements IController {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      */
     async initialize(): Promise<void> {
-        this.logger.trace("initialize called");
-        if (this.initialized) {
-            this.logger.info("initialize has already been called, exiting early.");
-            return;
-        }
-
-        const allowNativeBroker = this.config.system.allowNativeBroker;
-        const initMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.InitializeClientApplication);
-        this.eventHandler.emitEvent(EventType.INITIALIZE_START);
-
-        if (allowNativeBroker) {
-            try {
-                this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
-            } catch (e) {
-                this.logger.verbose(e as string);
+        initMutex = initMutex.then(async () => {
+            this.logger.trace("initialize called");
+            if (this.initialized) {
+                this.logger.info("initialize has already been called, exiting early.");
+                return;
             }
-        }
-        this.initialized = true;
-        this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
-        initMeasurement.endMeasurement({ allowNativeBroker, success: true });
+            const allowNativeBroker = this.config.system.allowNativeBroker;
+            const initMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.InitializeClientApplication);
+            this.eventHandler.emitEvent(EventType.INITIALIZE_START);
+
+            if (allowNativeBroker) {
+                try {
+                    this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
+                } catch (e) {
+                    this.logger.verbose(e as string);
+                }
+            }
+            this.initialized = true;
+            this.eventHandler.emitEvent(EventType.INITIALIZE_END);
+
+            initMeasurement.endMeasurement({allowNativeBroker, success: true});
+        });
+
+        return initMutex;
     }
 
     // #region Redirect Flow
