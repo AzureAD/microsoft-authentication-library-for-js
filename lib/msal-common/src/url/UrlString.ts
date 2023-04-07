@@ -66,7 +66,7 @@ export class UrlString {
         try {
             components = this.getUrlComponents();
         } catch (e) {
-            throw ClientConfigurationError.createUrlParseError(e);
+            throw ClientConfigurationError.createUrlParseError(e as string);
         }
 
         // Throw error if URI or path segments are not parseable.

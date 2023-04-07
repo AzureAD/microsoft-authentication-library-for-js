@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Bump typescript to 4.9.5 and build target to es2020 #5750",
+  "packageName": "msal",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
