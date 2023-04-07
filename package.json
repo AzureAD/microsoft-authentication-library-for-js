@@ -60,9 +60,9 @@
     "lint:react": "eslint lib/msal-react/src --ext .ts --ext .tsx",
     "clean": "lerna run clean --no-private && lerna clean",
     "clean:coverage": "rimraf ./.nyc_output/*",
-    "beachball:check": "beachball check --branch origin/msal-browser-v3",
-    "beachball:change": "beachball change --branch origin/msal-browser-v3",
-    "beachball:bump": "beachball bump --branch origin/msal-browser-v3 --bumpDeps false && node release-scripts/updateVersion.js",
+    "beachball:check": "beachball check --branch origin/dev",
+    "beachball:change": "beachball change --branch origin/dev",
+    "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
