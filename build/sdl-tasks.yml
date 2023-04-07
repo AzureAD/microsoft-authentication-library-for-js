@@ -1,7 +1,7 @@
 # Steps to run security scan tasks
 
 steps:
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@1
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-policheck.PoliCheck@2
   displayName: 'Run PoliCheck'
   inputs:
     targetType: F
@@ -16,7 +16,7 @@ steps:
     scanFolder: './'
     debugMode: false
 
-- task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@1
+- task: securedevelopmentteam.vss-secure-development-tools.build-task-postanalysis.PostAnalysis@2
   displayName: 'Post Analysis'
   inputs:
     CredScan: false
