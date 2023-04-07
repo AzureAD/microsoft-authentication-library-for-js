@@ -29,6 +29,9 @@ describe("BaseInteractionClient", () => {
             }
         });
 
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+        
         // @ts-ignore
         testClient = new testInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.performanceClient);
     });

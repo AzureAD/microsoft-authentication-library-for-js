@@ -2,7 +2,7 @@
 
 Before you start here, make sure you understand how to [initialize an app object](./initialize-public-client-application.md).
 
-The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object or as part of the [request APIs](../../msal-common/docs/request.md). Here we describe the configuration object that can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor.
+The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object or as part of the [request APIs](request.md). Here we describe the configuration object that can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor.
 
 In this document:
 - [Usage](#usage)
@@ -111,4 +111,4 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `appVersion` | Version of the application using MSAL | string | Empty string "" |
 
 ## Next Steps
-Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](../../msal-common/docs/request.md)
+Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](request.md)

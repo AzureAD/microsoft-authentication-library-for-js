@@ -38,7 +38,7 @@ describe("NetworkManager", () => {
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 1);
 
-            const res = await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
+            const res = await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(thumbprint, "tokenEndpoint", options);
 
             sinon.assert.callCount(networkStub, 1);
             sinon.assert.callCount(getThrottlingStub, 1);
@@ -61,7 +61,7 @@ describe("NetworkManager", () => {
             sinon.stub(Date, "now").callsFake(() => 1);
 
             try {
-                await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
+                await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(thumbprint, "tokenEndpoint", options);
             } catch { }
 
             sinon.assert.callCount(networkStub, 0);
@@ -89,7 +89,7 @@ describe("NetworkManager", () => {
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 10);
 
-            const res = await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
+            const res = await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(thumbprint, "tokenEndpoint", options);
 
             sinon.assert.callCount(networkStub, 1);
             sinon.assert.callCount(getThrottlingStub, 1);
@@ -115,7 +115,7 @@ describe("NetworkManager", () => {
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(Date, "now").callsFake(() => 1);
 
-            const res = await networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options);
+            const res = await networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(thumbprint, "tokenEndpoint", options);
 
             sinon.assert.callCount(networkStub, 1);
             sinon.assert.callCount(getThrottlingStub, 1);
@@ -133,7 +133,7 @@ describe("NetworkManager", () => {
 
             sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.reject("Fetch failed"));
 
-            networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options).catch(e => {
+            networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(thumbprint, "tokenEndpoint", options).catch(e => {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 expect(e.errorCode).toBe(ClientAuthErrorMessage.networkError.code);
                 expect(e.errorMessage.includes("Fetch failed")).toBe(true);
