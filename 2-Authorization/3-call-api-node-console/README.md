@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: A Node.js console application secured by MSAL Node on Microsoft identity platform
-description: This sample demonstrates how to use MSAL Node to acquire an access token for a protected resource in a console application using the application's own identity with the client credentials flow
+name: A Node.js daemon application secured by MSAL Node on Microsoft identity platform
+description: This sample demonstrates how to use MSAL Node to acquire an access token for a protected resource in a daemon application using the application's own identity with the client credentials flow
 languages:
  - javascript
  - csharp
@@ -16,11 +16,11 @@ extensions:
 - platform: JavaScript
 - endpoint: AAD v2.0
 - level: 200
-- client: Node.js console app
+- client: Node.js daemon app
 - service: ASP.NET Core web API
 ---
 
-# A Node.js console application secured by MSAL Node on Microsoft identity platform
+# A Node.js daemon application secured by MSAL Node on Microsoft identity platform
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -36,13 +36,13 @@ extensions:
 
 ## Overview
 
-This sample demonstrates how to use [MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) to acquire an access token for a protected resource in a console application using the application's own identity with the ([client credentials flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)).
+This sample demonstrates how to use [MSAL Node](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node) to acquire an access token for a protected resource in a daemon application using the application's own identity with the ([client credentials flow](https://learn.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)).
 
-Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens), [token validation](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens), [CORS configuration](https://docs.microsoft.com/rest/api/storageservices/cross-origin-resource-sharing--cors--support-for-the-azure-storage-services#understanding-cors-requests), and more.
+Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens), [token validation](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens), [application permissions](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), and more.
 
 ## Scenario
 
-1. The Node.js console app obtains a JWT [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
+1. The Node.js daemon app obtains a JWT [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
 1. The **access token** is used as a *bearer* token to authorize the user to call the ASP.NET Core web API protected by **Azure AD CIAM**.
 1. The service uses the [Microsoft.Identity.Web](https://aka.ms/microsoft-identity-web) to protect the Web api, check permissions and validate tokens.
 
@@ -52,7 +52,7 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 
 | File/folder                     | Description                                               |
 |---------------------------------|-----------------------------------------------------------|
-| `App/.env`                      | Authentication parameters for the console app reside here.|
+| `App/.env`                      | Authentication parameters for the daemon app reside here.|
 | `App/auth.js`                   | MSAL Node is initialized here.                            |
 | `App/fetch.js`                  | logic to call the API reside here.                        |
 | `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
@@ -132,7 +132,7 @@ To manually register the apps, as a first step you'll need to:
 1. In the **Overview** blade, find and note the **Application (client) ID** and **Directory (tenant) ID**. You use this value in your app's configuration file(s) later in your code.
 1. In the app's registration screen, select the **Expose an API** blade to the left to open the page where you can publish the permission as an API for which client applications can obtain [access tokens](https://aka.ms/access-tokens) for. The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this API. To declare an resource URI(Application ID URI), follow the following steps:
     1. Select **Set** next to the **Application ID URI** to generate a URI that is unique for this app.
-    2. For this sample, accept the proposed Application ID URI (`https://{tenantName}.onmicrosoft.com/{clientId}`) by selecting **Save**.
+    1. For this sample, accept the proposed Application ID URI (`api://{clientId}`) by selecting **Save**.
         > :information_source: Read more about Application ID URI at [Validation differences by supported account types (signInAudience)](https://docs.microsoft.com/azure/active-directory/develop/supported-accounts-validation).
 
 ##### Publish Delegated Permissions
@@ -182,12 +182,12 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Find the key `Enter the Client ID (aka 'Application ID')` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
 1. Find the key `Enter the tenant ID` and replace the existing value with your Azure AD tenant/directory ID.
 
-#### Register the client app (ciam-msal-node-console)
+#### Register the client app (ciam-msal-node-daemon)
 
 1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-node-console`.
+    1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-node-daemon`.
     1. Under **Supported account types**, select **Accounts in this organizational directory only**
     1. Select **Register** to create the application.
 1. In the **Overview** blade, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
@@ -208,17 +208,17 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly but since the client app does not allow users to interact, the users' themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
-##### Configure the client app (ciam-msal-node-console) to use your app registration
+##### Configure the client app (ciam-msal-node-daemon) to use your app registration
 
 Open the project in your IDE (like Visual Studio or Visual Studio Code) to configure the code.
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
 1. Open the `APP\.env` file.
-1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-console` app copied from the Azure portal.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-daemon` app copied from the Azure portal.
 1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
-1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-console` copied from the Azure portal.
-1. Find the key `Enter_the_Web_Api_App_Id_Uri_Here` and replace the existing value with the **App ID URI** of the `ciam-msal-dotnet-api` app copied from the Azure portal (e.g. `https://{tenantName}.onmicrosoft.com/{clientId}`).
+1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-daemon` copied from the Azure portal.
+1. Find the key `Enter_the_Web_Api_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
 
 ### Step 4: Running the sample
 
@@ -262,24 +262,6 @@ You need to instantiate **MSAL Node** as a [ConfidentialClientApplication](https
 ```javascript
 const msal = require('@azure/msal-node');
 const cca = new msal.ConfidentialClientApplication(msalConfig);
-```
-
-### CORS settings
-
-You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **TodoListAPI** in [Startup.cs](./API/TodoListAPI/Startup.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
-
-```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    // ...
-
-    services.AddCors(o => o.AddPolicy("default", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    }));
-}
 ```
 
 ### Acquire a token

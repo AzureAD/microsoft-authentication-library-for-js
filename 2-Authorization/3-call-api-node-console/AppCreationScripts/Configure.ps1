@@ -276,8 +276,8 @@ Function ConfigureApplications
     $currentAppId = $serviceAadApplication.AppId
     $currentAppObjectId = $serviceAadApplication.Id
 
-     $serviceIdentifierUri = 'https://'+ $verifiedDomainName + "/" +$currentAppId
-     Update-MgApplication -ApplicationId $currentAppObjectId -IdentifierUris @($serviceIdentifierUri)
+    $serviceIdentifierUri = 'api://'+$currentAppId
+    Update-MgApplication -ApplicationId $currentAppObjectId -IdentifierUris @($serviceIdentifierUri)
     
     # create the service principal of the newly created application     
     $serviceServicePrincipal = New-MgServicePrincipal -AppId $currentAppId -Tags {WindowsAzureActiveDirectoryIntegratedApp}
@@ -361,13 +361,13 @@ Function ConfigureApplications
     # print the registered app portal URL for any further navigation
     Write-Host "Successfully registered and configured that app registration for 'ciam-msal-dotnet-api' at `n $servicePortalUrl" -ForegroundColor Green 
    # Create the client AAD application
-   Write-Host "Creating the AAD application (ciam-msal-node-console)"
+   Write-Host "Creating the AAD application (ciam-msal-node-daemon)"
    # Get a 6 months application key for the client Application
    $fromDate = [DateTime]::Now;
    $key = CreateAppKey -fromDate $fromDate -durationInMonths 6
    
    # create the application 
-   $clientAadApplication = New-MgApplication -DisplayName "ciam-msal-node-console" `
+   $clientAadApplication = New-MgApplication -DisplayName "ciam-msal-node-daemon" `
                                                       -Web `
                                                       @{ `
                                                         } `
@@ -382,7 +382,7 @@ Function ConfigureApplications
     $currentAppObjectId = $clientAadApplication.Id
 
     $tenantName = (Get-MgApplication -ApplicationId $currentAppObjectId).PublisherDomain
-    #Update-MgApplication -ApplicationId $currentAppObjectId -IdentifierUris @("https://$tenantName/ciam-msal-node-console")
+    #Update-MgApplication -ApplicationId $currentAppObjectId -IdentifierUris @("https://$tenantName/ciam-msal-node-daemon")
     
     # create the service principal of the newly created application     
     $clientServicePrincipal = New-MgServicePrincipal -AppId $currentAppId -Tags {WindowsAzureActiveDirectoryIntegratedApp}
@@ -394,13 +394,13 @@ Function ConfigureApplications
         New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId  -BodyParameter = @{"@odata.id" = "htps://graph.microsoft.com/v1.0/directoryObjects/$user.ObjectId"}
         Write-Host "'$($user.UserPrincipalName)' added as an application owner to app '$($clientServicePrincipal.DisplayName)'"
     }
-    Write-Host "Done creating the client application (ciam-msal-node-console)"
+    Write-Host "Done creating the client application (ciam-msal-node-daemon)"
 
     # URL of the AAD application in the Azure portal
     # Future? $clientPortalUrl = "https://portal.azure.com/#@"+$tenantName+"/blade/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/Overview/appId/"+$currentAppId+"/objectId/"+$currentAppObjectId+"/isMSAApp/"
     $clientPortalUrl = "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationMenuBlade/~/Overview/appId/"+$currentAppId+"/isMSAApp~/false"
 
-    Add-Content -Value "<tr><td>client</td><td>$currentAppId</td><td><a href='$clientPortalUrl'>ciam-msal-node-console</a></td></tr>" -Path createdApps.html
+    Add-Content -Value "<tr><td>client</td><td>$currentAppId</td><td><a href='$clientPortalUrl'>ciam-msal-node-daemon</a></td></tr>" -Path createdApps.html
     # Declare a list to hold RRA items    
     $requiredResourcesAccess = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphRequiredResourceAccess]
 
@@ -420,7 +420,7 @@ Function ConfigureApplications
     
 
     # print the registered app portal URL for any further navigation
-    Write-Host "Successfully registered and configured that app registration for 'ciam-msal-node-console' at `n $clientPortalUrl" -ForegroundColor Green 
+    Write-Host "Successfully registered and configured that app registration for 'ciam-msal-node-daemon' at `n $clientPortalUrl" -ForegroundColor Green 
     
     # Update config file for 'service'
     # $configFile = $pwd.Path + "\..\API\TodoListAPI\appsettings.json"
@@ -435,10 +435,10 @@ Function ConfigureApplications
     ReplaceInTextFile -configFilePath $configFile -dictionary $dictionary
     
     # Update config file for 'client'
-    # $configFile = $pwd.Path + "\..\APP\.env"
-    $configFile = $(Resolve-Path ($pwd.Path + "\..\APP\.env"))
+    # $configFile = $pwd.Path + "\..\APP\authConfig.js"
+    $configFile = $(Resolve-Path ($pwd.Path + "\..\APP\authConfig.js"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Id_Here" = $tenantId;"Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_App_Id_Uri_Here" = $serviceIdentifierUri };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Id_Here" = $tenantId;"Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary

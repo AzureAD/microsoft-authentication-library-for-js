@@ -1,16 +1,16 @@
 {
     "Sample": {
-        "Title": "A Node.js console application secured by MSAL Node on Microsoft identity platform",
+        "Title": "A Node.js daemon application secured by MSAL Node on Microsoft identity platform",
         "Level": 200,
-        "Client": "Node.js console app",
+        "Client": "Node.js daemon app",
         "Service": "ASP.NET Core web API",
         "Languages": ["javascript", "csharp"],
-        "Products": ["azure-active-directory", "aspnet-core", "msal-js", "msal-react", "microsoft-identity-web"],
+        "Products": ["azure-active-directory", "aspnet-core", "msal-js", "microsoft-identity-web"],
         "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
         "Platform": "JavaScript",
         "Endpoint": "AAD v2.0",
         "Provider": "CIAM",
-        "description": "This sample demonstrates a Node console app using MSAL Node to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+        "description": "This sample demonstrates a Node daemon app using MSAL Node to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
     },
     "AADApps": [
         {
@@ -19,7 +19,7 @@
             "Kind": "WebApi",
             "Audience": "AzureADMyOrg",
             "SDK": "MicrosoftIdentityWeb",
-            "SampleSubPath": "2-Authorization\\3-call-api-node-console\\API\\TodoListAPI",
+            "SampleSubPath": "2-Authorization\\3-call-api-node-daemon\\API\\TodoListAPI",
             "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
             "AppRoles": [
                 {
@@ -39,7 +39,7 @@
         },
         {
             "Id": "client",
-            "Name": "ciam-msal-node-console",
+            "Name": "ciam-msal-node-daemon",
             "Kind": "Daemon",
             "Audience": "AzureADMyOrg",
             "SDK": "MsalJs",
@@ -76,7 +76,7 @@
         {
             "App": "client",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\APP\\.env",
+            "SettingFile": "\\..\\APP\\authConfig.js",
             "Mappings": [
                 {
                     "key": "Enter_the_Application_Id_Here",
@@ -91,8 +91,8 @@
                     "value": ".AppKey"
                 },
                 {
-                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
-                    "value": "$serviceIdentifierUri"
+                    "key": "Enter_the_Web_Api_Application_Id_Here",
+                    "value": "service.AppId"
                 }
             ]
         }
