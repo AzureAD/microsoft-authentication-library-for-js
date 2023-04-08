@@ -81,7 +81,7 @@ or download and extract the repository *.zip* file.
 ### Step 2: Install project dependencies
 
 ```console
-    cd 2-Authorization\3-call-api-node-console\App
+    cd 2-Authorization\3-call-api-node-daemon\App
     npm install
 ```
 
@@ -225,14 +225,14 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 From your shell or command line, execute the following commands:
 
 ```console
-    cd 2-Authorization\3-call-api-node-console\API\TodoListAPI
+    cd 2-Authorization\3-call-api-node-daemon\API\TodoListAPI
     dotnet run
 ```
 
 Then, open a separate command terminal and run:
 
 ```console
-    2-Authorization\3-call-api-node-console\App
+    2-Authorization\3-call-api-node-daemon\App
     node . --op getTodos
 ```
 
