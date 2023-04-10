@@ -786,9 +786,7 @@ export class Authority {
 
     /**
      * Transform CIAM_AUTHORIY as per the below rules:
-     * If no path segments found and it is a CIAM authority, then transform it
-     * hostname ends with .ciamlogin.com (a constant of-course) and any Path => do not transform
-     * hostname ends with .ciamlogin.com (a constant of-course) and noPath  => transform
+     * If no path segments found and it is a CIAM authority (hostname ends with .ciamlogin.com), then transform it
      * 
      * NOTE: The transformation path should go away once STS supports CIAM with the format: `tenantIdorDomain.ciamlogin.com`
      * `ciamlogin.com` can also change in the future and we should accommodate the same
