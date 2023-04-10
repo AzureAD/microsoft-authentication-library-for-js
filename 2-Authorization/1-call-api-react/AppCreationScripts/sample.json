@@ -93,8 +93,8 @@
                      "value": "$tenantId"
                  },
                  {
-                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
-                    "value": "$serviceIdentifierUri"
+                    "key": "Enter_the_Web_Api_Application_Id_Here",
+                    "value": "service.AppId"
                  }
                  
              ]
