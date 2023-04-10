@@ -13,6 +13,7 @@ import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
 import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION, TEST_CONFIG } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { Logger } from "../../src/logger/Logger";
 
 describe("NetworkManager", () => {
     describe("sendPostRequest", () => {
@@ -22,7 +23,7 @@ describe("NetworkManager", () => {
 
         it("returns a response", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -48,7 +49,7 @@ describe("NetworkManager", () => {
 
         it("blocks the request if item is found in the cache", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -72,7 +73,7 @@ describe("NetworkManager", () => {
 
         it("passes request through if expired item in cache", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -99,7 +100,7 @@ describe("NetworkManager", () => {
 
         it("creates cache entry on error", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -125,7 +126,7 @@ describe("NetworkManager", () => {
 
         it("throws network error if fetch client fails", (done) => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;

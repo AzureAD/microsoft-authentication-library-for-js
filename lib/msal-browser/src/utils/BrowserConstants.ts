@@ -89,6 +89,11 @@ export enum TemporaryCacheKeys {
     REDIRECT_CONTEXT = "request.redirect.context"
 }
 
+export enum StaticCacheKeys {
+    ACCOUNT_KEYS = "msal.account.keys",
+    TOKEN_KEYS = "msal.token.keys"
+}
+
 /**
  * Cache keys stored in-memory
  */

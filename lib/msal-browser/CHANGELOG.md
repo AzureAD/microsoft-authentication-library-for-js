@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 07 Mar 2023 16:48:51 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.35.0
+
+Mon, 03 Apr 2023 21:29:32 GMT
+
+### Minor changes
+
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
+- Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v12.0.0
+
+### Patches
+
+- Fix missing telemetry queue information #5809 (kshabelko@microsoft.com)
+- Dup code removal in NativeInteractionClient (#5768) (sameera.gajjarapu@microsoft.com)
 
 ## 2.34.0
 
