@@ -121,7 +121,7 @@ export class StandardController implements IController {
 
     // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
-    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
+    private atsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
@@ -212,11 +212,11 @@ export class StandardController implements IController {
     }
 
     private trackPageVisibility(): void {
-        if (!this.astsAsyncMeasurement) {
+        if (!this.atsAsyncMeasurement) {
             return;
         }
         this.logger.info("Perf: Visibility change detected");
-        this.astsAsyncMeasurement.increment({
+        this.atsAsyncMeasurement.increment({
             visibilityChangeCount: 1,
         });
     }
@@ -1384,8 +1384,8 @@ export class StandardController implements IController {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
 
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        this.astsAsyncMeasurement?.increment({
+        this.atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.atsAsyncMeasurement?.increment({
             visibilityChangeCount: 0
         });
         document.addEventListener("visibilitychange", this.trackPageVisibility);
@@ -1457,7 +1457,7 @@ export class StandardController implements IController {
 
         return result.then((response) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            this.astsAsyncMeasurement?.endMeasurement({
+            this.atsAsyncMeasurement?.endMeasurement({
                 success: true,
                 fromCache: response.fromCache,
                 isNativeBroker: response.fromNativeBroker,
@@ -1466,7 +1466,7 @@ export class StandardController implements IController {
             return response;
         }).catch((tokenRenewalError: AuthError) => {
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            this.astsAsyncMeasurement?.endMeasurement({
+            this.atsAsyncMeasurement?.endMeasurement({
                 errorCode: tokenRenewalError.errorCode,
                 subErrorCode: tokenRenewalError.subError,
                 success: false

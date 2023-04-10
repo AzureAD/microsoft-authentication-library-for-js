@@ -104,19 +104,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
     }
 
     /**
-     * Starts and returns an platform-specific implementation of IPerformanceMeasurement.
-     * Note: this incorrectly-named function will be removed at the next major version bump.
-     *
-     * @param {string} measureName
-     * @param {string} correlationId
-     * @returns {IPerformanceMeasurement}
-     */
-    /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
-        return {} as IPerformanceMeasurement;
-    }
-
-    /**
      * Sets pre-queue time by correlation Id
      *
      * @abstract
@@ -238,7 +225,7 @@ export abstract class PerformanceClient implements IPerformanceClient {
 
         // Duplicate code to address spelling error will be removed at the next major version bump.
         this.logger.trace(`PerformanceClient: Performance measurement started for ${measureName}`, eventCorrelationId);
-        const performanceMeasurement = this.startPerformanceMeasuremeant(measureName, eventCorrelationId);
+        const performanceMeasurement = this.startPerformanceMeasurement(measureName, eventCorrelationId);
         performanceMeasurement.startMeasurement();
 
         const inProgressEvent: PerformanceEvent = {
