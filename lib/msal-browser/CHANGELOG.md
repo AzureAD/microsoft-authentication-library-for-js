@@ -1,8 +1,41 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 06 Feb 2023 18:51:51 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.35.0
+
+Mon, 03 Apr 2023 21:29:32 GMT
+
+### Minor changes
+
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
+- Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v12.0.0
+
+### Patches
+
+- Fix missing telemetry queue information #5809 (kshabelko@microsoft.com)
+- Dup code removal in NativeInteractionClient (#5768) (sameera.gajjarapu@microsoft.com)
+
+## 2.34.0
+
+Tue, 07 Mar 2023 16:48:51 GMT
+
+### Minor changes
+
+- Reduce telemetry RAM footprint and improve usability/readability #5676 (kshabelko@microsoft.com)
+- Capture native bridge telemetry data points #5698 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v11.0.0
+
+### Patches
+
+- Reduce preQueueTimeByCorrelationId RAM footprint #5681 (kshabelko@microsoft.com)
+- exporting native classes as internals and separating out native telemetry #5692 (lalimasharda@microsoft.com)
+- Remove deprecated telemetry `flushMeasurements()` function from unit tests #5718 (kshabelko@microsoft.com)
+- Refactor handleNativeResponse (#5757) (sameera.gajjarapu@microsoft.com)
+- Add support for hybrid flow with native bridge enabled #5759 (lalimasharda@microsoft.com)
 
 ## 2.33.0
 

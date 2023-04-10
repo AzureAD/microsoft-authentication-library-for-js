@@ -12,17 +12,13 @@ import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 import { AuthenticationScheme } from "../../utils/Constants";
+import { ScopeSet } from "../../request/ScopeSet";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
 export type AccessTokenCache = Record<string, AccessTokenEntity>;
 export type RefreshTokenCache = Record<string, RefreshTokenEntity>;
 export type AppMetadataCache = Record<string, AppMetadataEntity>;
-export type CredentialCache = {
-    idTokens: IdTokenCache;
-    accessTokens: AccessTokenCache;
-    refreshTokens: RefreshTokenCache;
-};
 
 /**
  * Object type of all accepted cache types
@@ -39,6 +35,8 @@ export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTok
  */
 export type AccountFilter = {
     homeAccountId?: string;
+    localAccountId?: string;
+    username?: string;
     environment?: string;
     realm?: string;
     nativeAccountId?: string;
@@ -54,7 +52,7 @@ export type CredentialFilter = {
     clientId?: string;
     familyId?: string;
     realm?: string;
-    target?: string;
+    target?: ScopeSet;
     userAssertionHash?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
@@ -67,4 +65,10 @@ export type CredentialFilter = {
 export type AppMetadataFilter = {
     environment?: string;
     clientId?: string;
+};
+
+export type TokenKeys = {
+    idToken: string[],
+    accessToken: string[],
+    refreshToken: string[]
 };

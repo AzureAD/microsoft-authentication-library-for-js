@@ -49,7 +49,8 @@
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build:common && npm run build",
-    "prepack": "npm run build:all"
+    "prepack": "npm run build:all",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/node-token-validation"
   },
   "bugs": {
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
@@ -73,7 +74,7 @@
     "typescript": "^4.9.5"
   },
   "dependencies": {
-    "@azure/msal-common": "^10.0.0",
+    "@azure/msal-common": "^12.0.0",
     "axios": "^0.24.0",
     "jose": "^4.9.2"
   }

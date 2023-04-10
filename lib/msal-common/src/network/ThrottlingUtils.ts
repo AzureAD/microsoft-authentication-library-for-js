@@ -5,7 +5,7 @@
 
 import { NetworkResponse } from "./NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { HeaderNames, CacheSchemaType, ThrottlingConstants, Constants } from "../utils/Constants";
+import { HeaderNames, ThrottlingConstants, Constants } from "../utils/Constants";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerError } from "../error/ServerError";
 import { RequestThumbprint } from "./RequestThumbprint";
@@ -33,7 +33,7 @@ export class ThrottlingUtils {
 
         if (value) {
             if (value.throttleTime < Date.now()) {
-                cacheManager.removeItem(key, CacheSchemaType.THROTTLING);
+                cacheManager.removeItem(key);
                 return;
             }
             throw new ServerError(value.errorCodes?.join(" ") || Constants.EMPTY_STRING, value.errorMessage, value.subError);
@@ -95,7 +95,7 @@ export class ThrottlingUtils {
         ) * 1000);
     }
 
-    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): boolean {
+    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): void {
         const thumbprint: RequestThumbprint = {
             clientId: clientId,
             authority: request.authority,
@@ -110,6 +110,6 @@ export class ThrottlingUtils {
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);
-        return cacheManager.removeItem(key, CacheSchemaType.THROTTLING);
+        cacheManager.removeItem(key);
     }
 }

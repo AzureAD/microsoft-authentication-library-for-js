@@ -18,7 +18,6 @@ import {
     ClientConfiguration,
     CommonOnBehalfOfRequest,
     Constants,
-    CredentialCache,
     CredentialFilter,
     CredentialType, GrantType,
     IdTokenEntity,
@@ -141,8 +140,8 @@ export class OnBehalfOfClient extends BaseClient {
             realm: this.authority.tenant
         };
 
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(idTokenFilter);
-        const idTokens = Object.keys(credentialCache.idTokens).map(key => credentialCache.idTokens[key]);
+        const idTokens: IdTokenEntity[] = this.cacheManager.getIdTokensByFilter(idTokenFilter);
+
         // When acquiring a token on behalf of an application, there might not be an id token in the cache
         if (idTokens.length < 1) {
             return null;
@@ -167,16 +166,14 @@ export class OnBehalfOfClient extends BaseClient {
         const accessTokenFilter: CredentialFilter = {
             credentialType: credentialType,
             clientId,
-            target: this.scopeSet.printScopesLowerCase(),
+            target: ScopeSet.createSearchScopes(this.scopeSet.asArray()),
             tokenType: authScheme,
             keyId: request.sshKid,
             requestedClaimsHash: request.requestedClaimsHash,
             userAssertionHash: this.userAssertionHash
         };
 
-        const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
-
-        const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
+        const accessTokens = this.cacheManager.getAccessTokensByFilter(accessTokenFilter);
 
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {

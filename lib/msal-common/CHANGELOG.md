@@ -1,8 +1,44 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 12.0.0
+
+Mon, 03 Apr 2023 21:29:31 GMT
+
+### Major changes
+
+- Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Added tenant_region_scope and tenant_region_sub_scope to TokenClaims #5789 (lalimasharda@microsoft.com)
+
+## 11.0.0
+
+Tue, 07 Mar 2023 16:48:51 GMT
+
+### Major changes
+
+- Remove deprecated telemetry event "flushMeasurement()" function #5718 (kshabelko@microsoft.com)
+- Reduce telemetry RAM footprint and improve usability/readability #5676 (kshabelko@microsoft.com)
+
+### Minor changes
+
+- Handle new spa_accountid parameter from server #5759 (lalimasharda@microsoft.com)
+- Capture native bridge telemetry data points #5698 (kshabelko@microsoft.com)
+- Expose native broker types and interfaces #5485 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Reduce preQueueTimeByCorrelationId RAM footprint #5681 (kshabelko@microsoft.com)
+- Fixed bug in msal-node's httpClient #5722 (rginsburg@microsoft.com)
+- Fix SHR typ header to pop value #5751 (hemoral@microsoft.com)
+- Accomodate suffixes in credential regex #5728 (kshabelko@microsoft.com)
+- fixing get account entity from cache using native account id #5695 (lalimasharda@microsoft.com)
 
 ## 10.0.0
 

@@ -21,7 +21,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).toBeDefined();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy();
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toEqual(4);
+    expect(Object.keys(storage).length).toEqual(6);
 }
 
 
