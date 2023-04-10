@@ -38,8 +38,6 @@ export class AuthorityFactory {
         performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, correlationId);
         
         const authorityUriFinal = Authority.transformCIAMAuthority(authorityUri);
-        // eslint-disable-next-line
-        console.log("In CreateDiscoveredInstance: authorityUriFinal: " + authorityUriFinal);
 
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
