@@ -25,7 +25,6 @@ export interface IPerformanceClient {
     removePerformanceCallback(callbackId: string): boolean;
     addPerformanceCallback(callback: PerformanceCallbackFunction): string;
     emitEvents(events: PerformanceEvent[], correlationId: string): void;
-    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement;
     startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement;
     generateId(): string;
     calculateQueuedTime(preQueueTime: number, currentTime: number): number;
