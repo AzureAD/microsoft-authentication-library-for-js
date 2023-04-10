@@ -205,9 +205,9 @@ async function redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRe
 }
 
 /**
- * 
- * @param {Array} scopes 
- * @returns fetches access token for a given resources 
+ *
+ * @param {Array} scopes
+ * @returns fetches access token for a given resources
  */
 function getToken(scopes) {
     return async function (req, res, next) {
@@ -216,12 +216,11 @@ function getToken(scopes) {
         req.session.tokenCache = msalInstance.getTokenCache().serialize();
 
         try {
-
             const silentRequest = {
                 account: req.session.account,
                 scopes: scopes,
             };
-            // fetches 
+
             const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
             req.session.accessToken = tokenResponse.accessToken;
 
@@ -247,6 +246,7 @@ function getToken(scopes) {
 
                 redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRequestParams, authCodeRequestParams);
             }
+            next(error);
         }
     };
 }

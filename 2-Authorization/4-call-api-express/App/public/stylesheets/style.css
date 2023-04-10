@@ -1,27 +1,14 @@
-h1 {
-    color: red;
+body {
+    padding: 50px;
+    font: 14px 'Lucida Grande', Helvetica, Arial, sans-serif;
 }
 
-#card-div {
-    min-width: 40%;
-    margin: 5% auto 5% auto;
+a {
+    color: #00b7ff;
 }
 
-#form-area-div {
-    width: 55%;
-    margin: 5% auto 5% auto;
+li {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
 }
-
-.table-area-div {
-    width: 70%;
-    margin: 5% auto 5% auto;
-}
-
-.footer {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    text-align: center;
-}
-  
