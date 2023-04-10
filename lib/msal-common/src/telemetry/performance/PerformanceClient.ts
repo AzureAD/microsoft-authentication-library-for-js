@@ -223,7 +223,6 @@ export abstract class PerformanceClient implements IPerformanceClient {
             this.logger.info(`PerformanceClient: No correlation id provided for ${measureName}, generating`, eventCorrelationId);
         }
 
-        // Duplicate code to address spelling error will be removed at the next major version bump.
         this.logger.trace(`PerformanceClient: Performance measurement started for ${measureName}`, eventCorrelationId);
         const performanceMeasurement = this.startPerformanceMeasurement(measureName, eventCorrelationId);
         performanceMeasurement.startMeasurement();
