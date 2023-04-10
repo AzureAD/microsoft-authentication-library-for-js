@@ -151,9 +151,6 @@ export class Authority {
      * Get tenant for authority.
      */
     public get tenant(): string {
-        if(this.authorityType === AuthorityType.Ciam) {
-            
-        }
         return this.canonicalAuthorityUrlComponents.PathSegments[0];
     }
 
