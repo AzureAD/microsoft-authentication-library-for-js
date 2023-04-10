@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:  
       - dev
-      - msal-browser-v3
 
 concurrency:
   group: beachball-${{github.ref}}

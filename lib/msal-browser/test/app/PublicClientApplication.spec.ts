@@ -3887,7 +3887,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             // @ts-ignore
             pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            
+
             // @ts-ignore
             expect(pca.browserStorage.getInteractionInProgress()).toBeTruthy;
         });
