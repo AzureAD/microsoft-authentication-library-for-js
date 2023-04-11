@@ -2,6 +2,11 @@
 
 In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
+**_NOTE:_** Starting from MSAL.js v3 `msal-browser` is no longer hosted on the CDN. If you consume `msal-browser` from the CDN you will need to download `msal-browser` from npm and choose one of the following alternatives before upgrading:
+
+1. Consume the ESM build (preferred)
+1. Extract `lib/msal-browser.js` or `lib/msal-browser.min.js` from the downloaded package and serve it as a static asset with your app or host it on your own CDN
+
 ## Best Practices
 
 * Use the latest version of MSAL.js v2.
@@ -16,7 +21,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.34.0/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.35.0/js/msal-browser.min.js"></script>
 ```
 
 ## Unminified builds
@@ -73,10 +78,11 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 ```
 
 ### SRI Hash Notes
+
 - Each hash will be unique to the version of MSAL.js v2, and will not change.
 - SRI hash usage is optional for MSAL.js CDN builds.
-- If the `integrity` attribute is used for MSAL.js v2 CDN builds, the `crossorigin` attribute must be set to `"anonymous"`. 
-- If you believe our CDN builds have been comprimised, please [inform us](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/SECURITY.md#reporting-a-vulnerability) immediately.
+- If the `integrity` attribute is used for MSAL.js v2 CDN builds, the `crossorigin` attribute must be set to `"anonymous"`.
+- If you believe our CDN builds have been compromised, please [inform us](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/SECURITY.md#reporting-a-vulnerability) immediately.
 
 
 ### SRI Hash History
@@ -84,6 +90,8 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
+2.35.0        | msal-browser.js     | `sha384-+8A1rifuHuJxJgQn6UCxGgmo6Q2SvIeEAqtPOsXCpi0DpqZLtuDhxxnqjJZw/1ve`
+2.35.0        | msal-browser.min.js | `sha384-PARf28kmic36Ve+O3DnUerRXFtOQ7ZDqRDGpLcbljly5/N39T2OV3kt3QsWOKeAX`
 2.34.0        | msal-browser.js     | `sha384-8TkGQjPkLg+rgblWRah3ZvrUIkKL7iDl8aYUAd/8xqSzwSpmOAtEPkE7eLQvs+Ru`
 2.34.0        | msal-browser.min.js | `sha384-oSX3mlcV2SGDE+ZhNgvgqV1xrCHF5lBDuFj1qGUIuCYg/OZzhuJmMSvXOuh1waW2`
 2.33.0        | msal-browser.js     | `sha384-xfWQjvZ0VzT5Zvno0SgkPatOmGBEbU8nBL9PyHta/UR299kguq6f5AdiT7i4njhQ`

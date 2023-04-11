@@ -33,6 +33,11 @@ export class NodeCacheTestUtils {
         return Promise.resolve(tokenCache);
     }
 
+    static async getAccounts(cacheLocation: string): Promise<Object> {
+        const deserializedCache = await NodeCacheTestUtils.readCacheFile(cacheLocation);
+        return Promise.resolve(deserializedCache.accounts || {});
+    };
+
     static async readCacheFile(cacheLocation: string): Promise<any> {
         return new Promise((resolve, reject) => {
             fs.readFile(cacheLocation, "utf-8", (err, data) => {

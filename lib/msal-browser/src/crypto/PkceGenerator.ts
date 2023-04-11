@@ -49,7 +49,7 @@ export class PkceGenerator {
             const pkceCodeVerifierB64: string = this.base64Encode.urlEncodeArr(buffer);
             return pkceCodeVerifierB64;
         } catch (e) {
-            throw BrowserAuthError.createPkceNotGeneratedError(e);
+            throw BrowserAuthError.createPkceNotGeneratedError(e as string);
         }
     }
 
@@ -64,7 +64,7 @@ export class PkceGenerator {
             // encode hash as base64
             return this.base64Encode.urlEncodeArr(new Uint8Array(pkceHashedCodeVerifier));
         } catch (e) {
-            throw BrowserAuthError.createPkceNotGeneratedError(e);
+            throw BrowserAuthError.createPkceNotGeneratedError(e as string);
         }
     }
 }

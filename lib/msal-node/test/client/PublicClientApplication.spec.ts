@@ -1,30 +1,51 @@
-import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration, ILoopbackClient, InteractiveRequest } from './../../src/index';
 import { ID_TOKEN_CLAIMS, mockAuthenticationResult, TEST_CONSTANTS, TEST_DATA_CLIENT_INFO } from '../utils/TestConstants';
 import {
-    ClientConfiguration, AuthenticationResult, AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient,
-    SilentFlowClient, ProtocolMode, Logger, LogLevel, ClientAuthError, AccountInfo, ServerAuthorizationCodeResponse
+    ClientConfiguration,
+    AuthenticationResult,
+    AuthorizationCodeClient,
+    RefreshTokenClient,
+    SilentFlowClient,
+    ProtocolMode,
+    Logger,
+    LogLevel,
+    ClientAuthError,
+    AccountInfo,
+    ServerAuthorizationCodeResponse
 } from '@azure/msal-common';
-import { CryptoProvider } from '../../src/crypto/CryptoProvider';
-import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
-import { AuthorizationCodeRequest } from '../../src/request/AuthorizationCodeRequest';
-import { RefreshTokenRequest } from '../../src/request/RefreshTokenRequest';
-import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
-import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
-import { SilentFlowRequest } from '../../src/request/SilentFlowRequest';
+import {
+    Configuration,
+    DeviceCodeClient,
+    ILoopbackClient,
+    InteractiveRequest,
+    PublicClientApplication,
+    CryptoProvider,
+    DeviceCodeRequest,
+    AuthorizationCodeRequest,
+    RefreshTokenRequest,
+    AuthorizationUrlRequest,
+    UsernamePasswordRequest,
+    SilentFlowRequest,
+    NodeStorage
+} from '../../src';
 import { HttpClient } from '../../src/network/HttpClient';
-import { mocked } from 'ts-jest/utils';
 import http from "http";
 
-import * as msalCommon from '@azure/msal-common';
+import * as msalNode from '../../src';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
-import { getMsalCommonAutoMock } from '../utils/MockUtils';
+import { getMsalCommonAutoMock, MSALCommonModule } from '../utils/MockUtils';
 
-import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
+
+const msalCommon: MSALCommonModule = jest.requireActual('@azure/msal-common');
+
+jest.mock('../../src/client/DeviceCodeClient');
+jest.mock('../../src/client/ClientCredentialClient');
+jest.mock('../../src/client/OnBehalfOfClient');
+jest.mock('../../src/client/UsernamePasswordClient');
 
 describe('PublicClientApplication', () => {
 
+    // @ts-ignore
     const mockTelemetryManager: msalCommon.ServerTelemetryManager = setupServerTelemetryManagerMock();
 
     let appConfig: Configuration = {
@@ -73,21 +94,15 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-
-        const MockDeviceCodeClient2 = getMsalCommonAutoMock().DeviceCodeClient;
-
-
-        jest.spyOn(msalCommon, 'DeviceCodeClient')
-            .mockImplementation((conf) => new MockDeviceCodeClient2(conf));
-
+        const deviceCodeClientSpy = jest.spyOn(msalNode, 'DeviceCodeClient');
         const fakeAuthResult = { "foo": "bar" }
-        mocked(MockDeviceCodeClient2.prototype.acquireToken)
-            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult))
+        jest.spyOn(DeviceCodeClient.prototype, 'acquireToken')
+            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult));
 
         const authApp = new PublicClientApplication(appConfig);
         const result = await authApp.acquireTokenByDeviceCode(request);
-        expect(MockDeviceCodeClient2).toHaveBeenCalledTimes(1);
-        expect(MockDeviceCodeClient2).toHaveBeenCalledWith(
+        expect(deviceCodeClientSpy).toHaveBeenCalledTimes(1);
+        expect(deviceCodeClientSpy).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
         expect(result).toEqual(fakeAuthResult);
@@ -337,13 +352,13 @@ describe('PublicClientApplication', () => {
         jest.spyOn(msalCommon, 'SilentFlowClient')
             .mockImplementation((config) => new silentFlowClient(config));
 
-
+        const acquireTokenSpy = jest.spyOn(silentFlowClient.prototype, "acquireToken");
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenSilent(request);
         expect(silentFlowClient.prototype.acquireToken)
             .toHaveBeenCalledWith(expect.objectContaining({ requestedClaimsHash: expect.any(String) }))
 
-        const submittedRequest = mocked(silentFlowClient.prototype.acquireToken).mock.calls[0][0];
+        const submittedRequest = acquireTokenSpy.mock.calls[0][0];
         expect((submittedRequest as any)?.requestedClaimsHash?.length)
             .toBeGreaterThan(0);
     })
@@ -373,14 +388,12 @@ describe('PublicClientApplication', () => {
             password: TEST_CONSTANTS.PASSWORD
         };
 
-        const mockUsernamePasswordClient = getMsalCommonAutoMock().UsernamePasswordClient;
-        jest.spyOn(msalCommon, 'UsernamePasswordClient')
-            .mockImplementation((config) => new mockUsernamePasswordClient(config));
+        const usernamePasswordClientSpy = jest.spyOn(msalNode, 'UsernamePasswordClient');
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByUsernamePassword(request);
-        expect(UsernamePasswordClient).toHaveBeenCalledTimes(1);
-        expect(UsernamePasswordClient).toHaveBeenCalledWith(
+        expect(usernamePasswordClientSpy).toHaveBeenCalledTimes(1);
+        expect(usernamePasswordClientSpy).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });
@@ -526,7 +539,7 @@ describe('PublicClientApplication', () => {
         const logger = new Logger({
             loggerCallback: (level, message, containsPii) => {
                 expect(message).toContain("Message");
-                expect(message).toContain(LogLevel.Info);
+                expect(message).toContain(LogLevel.Info.toString());
 
                 expect(level).toEqual(LogLevel.Info);
                 expect(containsPii).toEqual(false);

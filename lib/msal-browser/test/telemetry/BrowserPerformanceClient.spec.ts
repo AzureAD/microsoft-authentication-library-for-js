@@ -56,7 +56,7 @@ describe("BrowserPerformanceClient.ts", () => {
             expect(typeof browserPerfClient.generateId()).toBe("string");
         });
     });
-    describe("startPerformanceMeasuremeant", () => {
+    describe("startPerformanceMeasurement", () => {
         it("calculate performance duration", () => {
             const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
 
