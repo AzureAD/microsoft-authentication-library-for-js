@@ -3,7 +3,7 @@ import { Ref, ref, watch } from "vue";
 import { useMsal } from "./useMsal";
 
 export type MsalAuthenticationResult = {
-    acquireToken: Function;
+    acquireToken: (requestOverride?: PopupRequest|RedirectRequest|SilentRequest) => Promise<void>;
     result: Ref<AuthenticationResult|null>;
     error: Ref<AuthError|null>;
     inProgress: Ref<boolean>;
@@ -65,7 +65,7 @@ export function useMsalAuthentication(interactionType: InteractionType, request:
     }
 
     const stopWatcher = watch(inProgress, () => {
-        if (!result && !error) {
+        if (!result.value && !error.value) {
             acquireToken();
         } else {
             stopWatcher();
@@ -73,7 +73,7 @@ export function useMsalAuthentication(interactionType: InteractionType, request:
     });
 
     acquireToken();
-    
+
     return {
         acquireToken,
         result,

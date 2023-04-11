@@ -1,13 +1,20 @@
-import { App, reactive } from "vue";
-import { EventMessage, EventMessageUtils, EventType, InteractionStatus, PublicClientApplication, AccountInfo } from "@azure/msal-browser";
+import {App, reactive} from "vue";
+import {
+    EventMessage,
+    EventMessageUtils,
+    EventType,
+    InteractionStatus,
+    PublicClientApplication,
+    AccountInfo
+} from "@azure/msal-browser";
 
-type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId"|"localAccountId"|"username">>;
+type AccountIdentifiers = Partial<Pick<AccountInfo, "homeAccountId" | "localAccountId" | "username">>;
 
 /**
  * Helper function to determine whether 2 arrays are equal
  * Used to avoid unnecessary state updates
- * @param arrayA 
- * @param arrayB 
+ * @param arrayA
+ * @param arrayB
  */
 function accountArraysAreEqual(arrayA: Array<AccountIdentifiers>, arrayB: Array<AccountIdentifiers>): boolean {
     if (arrayA.length !== arrayB.length) {
@@ -22,9 +29,9 @@ function accountArraysAreEqual(arrayA: Array<AccountIdentifiers>, arrayB: Array<
             return false;
         }
 
-        return (elementA.homeAccountId === elementB.homeAccountId) && 
-               (elementA.localAccountId === elementB.localAccountId) &&
-               (elementA.username === elementB.username);
+        return (elementA.homeAccountId === elementB.homeAccountId) &&
+            (elementA.localAccountId === elementB.localAccountId) &&
+            (elementA.username === elementB.username);
     });
 }
 
@@ -53,14 +60,15 @@ export const msalPlugin = {
                 case EventType.SSO_SILENT_FAILURE:
                 case EventType.LOGOUT_END:
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
-                case EventType.ACQUIRE_TOKEN_FAILURE:
+                case EventType.ACQUIRE_TOKEN_FAILURE: {
                     const currentAccounts = msalInstance.getAllAccounts();
                     if (!accountArraysAreEqual(currentAccounts, state.accounts)) {
                         state.accounts = currentAccounts;
                     }
                     break;
+                }
             }
-            
+
             const status = EventMessageUtils.getInteractionStatusFromEvent(message, state.inProgress);
             if (status !== null) {
                 state.inProgress = status;
