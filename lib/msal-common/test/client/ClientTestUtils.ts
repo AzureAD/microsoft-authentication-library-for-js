@@ -54,7 +54,7 @@ export class MockStorageClass extends CacheManager {
             idToken: [],
             accessToken: [],
             refreshToken: []
-        }
+        };
     }
 
     // Credentials (idtokens)

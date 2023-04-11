@@ -4,16 +4,45 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, PerformanceEvents, PerformanceCallbackFunction, StubPerformanceClient, IPerformanceClient, BaseAuthRequest, PromptValue, ClientAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
+import {
+    InteractionRequiredAuthError,
+    AccountInfo,
+    Constants,
+    INetworkModule,
+    AuthenticationResult,
+    Logger,
+    CommonSilentFlowRequest,
+    ICrypto,
+    DEFAULT_CRYPTO_IMPLEMENTATION,
+    AuthError,
+    PerformanceEvents,
+    PerformanceCallbackFunction,
+    StubPerformanceClient,
+    IPerformanceClient,
+    BaseAuthRequest,
+    PromptValue,
+    ClientAuthError,
+    InProgressPerformanceEvent,
+    RequestThumbprint,
+    ServerError
+} from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
-import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys, CacheLookupPolicy } from "../utils/BrowserConstants";
+import { BrowserConfiguration, CacheOptions } from "../config/Configuration";
+import {
+    InteractionType,
+    ApiId,
+    BrowserCacheLocation,
+    WrapperSKU,
+    TemporaryCacheKeys,
+    CacheLookupPolicy,
+    DEFAULT_REQUEST,
+    BrowserConstants
+} from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { version, name } from "../packageMetadata";
-import { EventCallbackFunction } from "../event/EventMessage";
+import { EventCallbackFunction, EventError } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
@@ -36,8 +65,15 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { NativeTokenRequest } from "../broker/nativeBroker/NativeRequest";
 import { BrowserPerformanceClient } from "../telemetry/BrowserPerformanceClient";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
+import { BaseOperatingContext } from "../operatingcontext/BaseOperatingContext";
+import { version, name } from "../packageMetadata";
+import { IController } from "./IController";
 
-export abstract class ClientApplication {
+export class StandardController implements IController {
+
+    // OperatingContext
+    protected readonly operatingContext: StandardOperatingContext;
 
     // Crypto interface implementation
     protected readonly browserCrypto: ICrypto;
@@ -55,7 +91,7 @@ export abstract class ClientApplication {
     protected navigationClient: INavigationClient;
 
     // Input configuration by developer/user
-    protected config: BrowserConfiguration;
+    protected readonly config: BrowserConfiguration;
 
     // Token cache implementation
     private tokenCache: TokenCache;
@@ -66,10 +102,10 @@ export abstract class ClientApplication {
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
-    protected eventHandler: EventHandler;
+    protected readonly eventHandler: EventHandler;
 
     // Redirect Response Object
-    protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+    protected readonly redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
     // Native Extension Provider
     protected nativeExtensionProvider: NativeMessageHandler | undefined;
@@ -78,10 +114,14 @@ export abstract class ClientApplication {
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
     // Performance telemetry client
-    protected performanceClient: IPerformanceClient;
+    protected readonly performanceClient: IPerformanceClient;
 
     // Flag representing whether or not the initialize API has been called and completed
     protected initialized: boolean;
+
+    // Active requests
+    private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
+    private atsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
 
     private ssoSilentMeasurement?: InProgressPerformanceEvent;
     private acquireTokenByCodeAsyncMeasurement?: InProgressPerformanceEvent;
@@ -106,19 +146,16 @@ export abstract class ClientApplication {
      *
      * @param configuration Object for the MSAL PublicClientApplication instance
      */
-    constructor(configuration: Configuration) {
-        /*
-         * If loaded in an environment where window is not available,
-         * set internal flag to false so that further requests fail.
-         * This is to support server-side rendering environments.
-         */
-        this.isBrowserEnvironment = typeof window !== "undefined";
+    constructor(operatingContext: StandardOperatingContext) {
+
+        this.operatingContext = operatingContext;
+        this.isBrowserEnvironment = this.operatingContext.isBrowserEnvironment();
         // Set the configuration.
-        this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
+        this.config = operatingContext.getConfig();
         this.initialized = false;
 
         // Initialize logger
-        this.logger = new Logger(this.config.system.loggerOptions, name, version);
+        this.logger = this.operatingContext.getLogger();
 
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
@@ -158,8 +195,30 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+
+        this.activeSilentTokenRequests = new Map();
+
+        // Register listener functions
+        this.trackPageVisibility = this.trackPageVisibility.bind(this);
+
         // Register listener functions
         this.trackPageVisibilityWithMeasurement = this.trackPageVisibilityWithMeasurement.bind(this);
+    }
+
+    static async createController(operatingContext: BaseOperatingContext): Promise<IController> {
+        const controller = new StandardController(operatingContext);
+        controller.initialize();
+        return controller;
+    }
+
+    private trackPageVisibility(): void {
+        if (!this.atsAsyncMeasurement) {
+            return;
+        }
+        this.logger.info("Perf: Visibility change detected");
+        this.atsAsyncMeasurement.increment({
+            visibilityChangeCount: 1,
+        });
     }
 
     /**
@@ -180,13 +239,13 @@ export abstract class ClientApplication {
             try {
                 this.nativeExtensionProvider = await NativeMessageHandler.createProvider(this.logger, this.config.system.nativeBrokerHandshakeTimeout, this.performanceClient);
             } catch (e) {
-                this.logger.verbose(e);
+                this.logger.verbose(e as string);
             }
         }
         this.initialized = true;
         this.eventHandler.emitEvent(EventType.INITIALIZE_END);
 
-        initMeasurement.endMeasurement({allowNativeBroker, success: true});
+        initMeasurement.endMeasurement({ allowNativeBroker, success: true });
     }
 
     // #region Redirect Flow
@@ -248,9 +307,9 @@ export abstract class ClientApplication {
                 }).catch((e) => {
                     // Emit login event if there is an account
                     if (loggedInAccounts.length > 0) {
-                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e as EventError);
                     } else {
-                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e as EventError);
                     }
                     this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
@@ -421,9 +480,9 @@ export abstract class ClientApplication {
         });
     }
 
-    private trackPageVisibilityWithMeasurement():void {
+    private trackPageVisibilityWithMeasurement(): void {
         const measurement = this.ssoSilentMeasurement || this.acquireTokenByCodeAsyncMeasurement;
-        if(!measurement) {
+        if (!measurement) {
             return;
         }
 
@@ -464,7 +523,7 @@ export abstract class ClientApplication {
         this.ssoSilentMeasurement?.increment({
             visibilityChangeCount: 0
         });
-        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+        document.addEventListener("visibilitychange", this.trackPageVisibilityWithMeasurement);
         this.logger.verbose("ssoSilent called", correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, validRequest);
 
@@ -506,7 +565,7 @@ export abstract class ClientApplication {
             });
             throw e;
         }).finally(() => {
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+            document.removeEventListener("visibilitychange", this.trackPageVisibilityWithMeasurement);
         });
 
     }
@@ -589,7 +648,7 @@ export abstract class ClientApplication {
             }
 
         } catch (e) {
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e as EventError);
             atbcMeasurement.endMeasurement({
                 errorCode: e instanceof AuthError && e.errorCode || undefined,
                 subErrorCode: e instanceof AuthError && e.subError || undefined,
@@ -610,7 +669,7 @@ export abstract class ClientApplication {
         this.acquireTokenByCodeAsyncMeasurement?.increment({
             visibilityChangeCount: 0
         });
-        document.addEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+        document.addEventListener("visibilitychange", this.trackPageVisibilityWithMeasurement);
         const silentAuthCodeClient = this.createSilentAuthCodeClient(request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request).then((response) => {
             this.acquireTokenByCodeAsyncMeasurement?.endMeasurement({
@@ -628,7 +687,7 @@ export abstract class ClientApplication {
             });
             throw tokenRenewalError;
         }).finally(() => {
-            document.removeEventListener("visibilitychange",this.trackPageVisibilityWithMeasurement);
+            document.removeEventListener("visibilitychange", this.trackPageVisibilityWithMeasurement);
         });
         return silentTokenResult;
     }
@@ -646,7 +705,7 @@ export abstract class ClientApplication {
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenFromCache, commonRequest.correlationId);
-        switch(silentRequest.cacheLookupPolicy) {
+        switch (silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessToken:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
@@ -662,12 +721,12 @@ export abstract class ClientApplication {
      * @param silentRequest SilentRequest
      * @returns A promise that, when resolved, returns the access token
      */
-    protected async acquireTokenByRefreshToken(
+    public async acquireTokenByRefreshToken(
         commonRequest: CommonSilentFlowRequest,
         silentRequest: SilentRequest
     ): Promise<AuthenticationResult> {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, commonRequest.correlationId);
-        switch(silentRequest.cacheLookupPolicy) {
+        switch (silentRequest.cacheLookupPolicy) {
             case CacheLookupPolicy.Default:
             case CacheLookupPolicy.AccessTokenAndRefreshToken:
             case CacheLookupPolicy.RefreshToken:
@@ -861,7 +920,7 @@ export abstract class ClientApplication {
      * @param {InteractionType} interactionType What kind of interaction is being used
      * @param {boolean} [setInteractionInProgress=true] Whether to set interaction in progress temp cache flag
      */
-    protected preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
+    public preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress: boolean = true): void {
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
@@ -911,7 +970,7 @@ export abstract class ClientApplication {
      * Acquire a token from native device (e.g. WAM)
      * @param request
      */
-    protected async acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult> {
+    public async acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenNative called");
         if (!this.nativeExtensionProvider) {
             throw BrowserAuthError.createNativeConnectionNotEstablishedError();
@@ -926,7 +985,7 @@ export abstract class ClientApplication {
      * Returns boolean indicating if this request can use the native broker
      * @param request
      */
-    protected canUseNative(request: RedirectRequest | PopupRequest | SsoSilentRequest, accountId?: string): boolean {
+    public canUseNative(request: RedirectRequest | PopupRequest | SsoSilentRequest, accountId?: string): boolean {
         this.logger.trace("canUseNative called");
         if (!NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme)) {
             this.logger.trace("canUseNative: isNativeAvailable returned false, returning false");
@@ -959,7 +1018,7 @@ export abstract class ClientApplication {
      * @param request
      * @returns
      */
-    protected getNativeAccountId(request: RedirectRequest | PopupRequest | SsoSilentRequest): string {
+    public getNativeAccountId(request: RedirectRequest | PopupRequest | SsoSilentRequest): string {
         const account = request.account || this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid) || this.getActiveAccount();
 
         return account && account.nativeAccountId || "";
@@ -969,7 +1028,7 @@ export abstract class ClientApplication {
      * Returns new instance of the Popup Interaction Client
      * @param correlationId
      */
-    protected createPopupClient(correlationId?: string): PopupClient {
+    public createPopupClient(correlationId?: string): PopupClient {
         return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
@@ -985,7 +1044,7 @@ export abstract class ClientApplication {
      * Returns new instance of the Silent Iframe Interaction Client
      * @param correlationId
      */
-    protected createSilentIframeClient(correlationId?: string): SilentIframeClient {
+    public createSilentIframeClient(correlationId?: string): SilentIframeClient {
         return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, this.performanceClient, this.nativeInternalStorage, this.nativeExtensionProvider, correlationId);
     }
 
@@ -1070,7 +1129,7 @@ export abstract class ClientApplication {
     /**
      * Returns the logger instance
      */
-    getLogger(): Logger {
+    public getLogger(): Logger {
         return this.logger;
     }
 
@@ -1103,8 +1162,79 @@ export abstract class ClientApplication {
     /**
      * Returns the configuration object
      */
-    getConfiguration(): BrowserConfiguration {
+    public getConfiguration(): BrowserConfiguration {
         return this.config;
+    }
+
+    /**
+     * Returns the performance client
+     */
+    public getPerformanceClient(): IPerformanceClient {
+        return this.performanceClient;
+    }
+
+    /**
+     * Returns the browser storage
+     */
+    public getBrowserStorage(): BrowserCacheManager  {
+        return this.browserStorage;
+    }
+
+    /**
+     * Returns the native internal storage
+     */
+    public getNativeInternalStorage(): BrowserCacheManager  {
+        return this.nativeInternalStorage;
+    }
+
+    /**
+     * Returns the instance of interface for crypto functions
+     */
+    public getBrowserCrypto(): ICrypto {
+        return this.browserCrypto;
+    }
+
+    /**
+     * Returns the browser env indicator
+     */
+    public isBrowserEnv() : boolean {
+        return this.isBrowserEnvironment;
+    }
+
+    /**
+     * Returns the native message handler
+     */
+    getNativeExtensionProvider(): NativeMessageHandler | undefined {
+        return this.nativeExtensionProvider;
+    }
+
+    /**
+     * Sets the native message handler
+     * @param provider {?NativeMessageHandler}
+     */
+    setNativeExtensionProvider(provider: NativeMessageHandler | undefined): void {
+        this.nativeExtensionProvider = provider;
+    }
+
+    /**
+     * Returns the event handler
+     */
+    getEventHandler(): EventHandler {
+        return this.eventHandler;
+    }
+
+    /**
+     * Returns the navigation client
+     */
+    getNavigationClient(): INavigationClient {
+        return this.navigationClient;
+    }
+
+    /**
+     * Returns the redirect response map
+     */
+    getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>> {
+        return this.redirectResponse;
     }
 
     /**
@@ -1131,4 +1261,220 @@ export abstract class ClientApplication {
     }
 
     // #endregion
+
+    /**
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
+     * any code that follows this function will not execute.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * @param request
+     */
+    async loginRedirect(request?: RedirectRequest): Promise<void> {
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginRedirect called", correlationId);
+        return this.acquireTokenRedirect({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
+    }
+
+    /**
+     * Use when initiating the login process via opening a popup window in the user's browser
+     *
+     * @param request
+     *
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        const correlationId: string = this.getRequestCorrelationId(request);
+        this.logger.verbose("loginPopup called", correlationId);
+        return this.acquireTokenPopup({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
+     *
+     * @param {@link (SilentRequest:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        const correlationId = this.getRequestCorrelationId(request);
+        const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        atsMeasurement.addStaticFields({
+            cacheLookupPolicy: request.cacheLookupPolicy
+        });
+
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("acquireTokenSilent called", correlationId);
+
+        const account = request.account || this.getActiveAccount();
+        if (!account) {
+            throw BrowserAuthError.createNoAccountError();
+        }
+
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.auth.clientId,
+            authority: request.authority || Constants.EMPTY_STRING,
+            scopes: request.scopes,
+            homeAccountIdentifier: account.homeAccountId,
+            claims: request.claims,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
+        };
+        const silentRequestKey = JSON.stringify(thumbprint);
+
+        const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
+        if (typeof cachedResponse === "undefined") {
+            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
+            const response = this.acquireTokenSilentAsync({
+                ...request,
+                correlationId
+            }, account)
+                .then((result) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.addStaticFields({
+                        accessTokenSize: result.accessToken.length,
+                        idTokenSize: result.idToken.length
+                    });
+                    atsMeasurement.endMeasurement({
+                        success: true,
+                        fromCache: result.fromCache,
+                        isNativeBroker: result.fromNativeBroker,
+                        cacheLookupPolicy: request.cacheLookupPolicy,
+                        requestId: result.requestId,
+                    });
+                    return result;
+                })
+                .catch((error: AuthError) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    atsMeasurement.endMeasurement({
+                        errorCode: error.errorCode,
+                        subErrorCode: error.subError,
+                        success: false
+                    });
+                    throw error;
+                });
+            this.activeSilentTokenRequests.set(silentRequestKey, response);
+            return response;
+        } else {
+            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
+            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
+            atsMeasurement.discardMeasurement();
+            return cachedResponse;
+        }
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     * @param {@link (SilentRequest:type)}
+     * @param {@link (AccountInfo:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
+     */
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult> {
+        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        this.atsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+        this.atsAsyncMeasurement?.increment({
+            visibilityChangeCount: 0
+        });
+        document.addEventListener("visibilitychange", this.trackPageVisibility);
+        let result: Promise<AuthenticationResult>;
+        if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
+            this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
+            const silentRequest: SilentRequest = {
+                ...request,
+                account
+            };
+            result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(async (e: AuthError) => {
+                // If native token acquisition fails for availability reasons fallback to web flow
+                if (e instanceof NativeAuthError && e.isFatal()) {
+                    this.logger.verbose("acquireTokenSilent - native platform unavailable, falling back to web flow");
+                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
+
+                    // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
+                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+                    return silentIframeClient.acquireToken(request);
+                }
+                throw e;
+            });
+        } else {
+            this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
+
+            const silentCacheClient = this.createSilentCacheClient(request.correlationId);
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeSilentRequest, request.correlationId);
+            const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
+
+            const requestWithCLP = {
+                ...request,
+                // set the request's CacheLookupPolicy to Default if it was not optionally passed in
+                cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
+            };
+
+            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache, silentRequest.correlationId);
+            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
+                if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
+                    throw cacheError;
+                }
+
+                // block the reload if it occurred inside a hidden iframe
+                BrowserUtils.blockReloadInHiddenIframes();
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
+
+                this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken, silentRequest.correlationId);
+                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
+                    const isServerError = refreshTokenError instanceof ServerError;
+                    const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
+                    const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+
+                    if ((!isServerError ||
+                        !isInvalidGrantError ||
+                        isInteractionRequiredError ||
+                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
+                        requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
+                        && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
+                    ) {
+                        throw refreshTokenError;
+                    }
+
+                    this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
+                    this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe, silentRequest.correlationId);
+                    return this.acquireTokenBySilentIframe(silentRequest);
+                });
+            });
+        }
+
+        return result.then((response) => {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
+            this.atsAsyncMeasurement?.endMeasurement({
+                success: true,
+                fromCache: response.fromCache,
+                isNativeBroker: response.fromNativeBroker,
+                requestId: response.requestId
+            });
+            return response;
+        }).catch((tokenRenewalError: AuthError) => {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+            this.atsAsyncMeasurement?.endMeasurement({
+                errorCode: tokenRenewalError.errorCode,
+                subErrorCode: tokenRenewalError.subError,
+                success: false
+            });
+            throw tokenRenewalError;
+        }).finally(() => {
+            document.removeEventListener("visibilitychange", this.trackPageVisibility);
+        });
+    }
+
 }

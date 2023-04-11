@@ -8,13 +8,24 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, UnauthenticatedTemplate } from "../../src/index";
-import { PublicClientApplication, IPublicClientApplication, Configuration, InteractionType, EventType, EventMessage } from "@azure/msal-browser";
+import {
+    PublicClientApplication,
+    IPublicClientApplication,
+    Configuration,
+    InteractionType,
+    EventType,
+    EventMessage,
+    AuthenticationResult
+} from "@azure/msal-browser";
 
 describe("UnauthenticatedTemplate tests", () => {
     let pca: IPublicClientApplication;
     const msalConfig: Configuration = {
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
+        },
+        system: {
+            allowNativeBroker: false
         }
     };
 
@@ -27,7 +38,7 @@ describe("UnauthenticatedTemplate tests", () => {
         jest.clearAllMocks();
     });
 
-    test("Does not show child component if an account is signed in", async () => {        
+    test("Does not show child component if an account is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -45,7 +56,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("No user is authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Shows child component if no account is signed in", async () => {        
+    test("Shows child component if no account is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         render(
             <MsalProvider instance={pca}>
@@ -61,7 +72,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("No user is authenticated!")).toBeInTheDocument();
     });
 
-    test("Does not show child component if specific username is signed in", async () => {        
+    test("Does not show child component if specific username is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -79,7 +90,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This user is not authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Does not show child component if specific homeAccountId is signed in", async () => {        
+    test("Does not show child component if specific homeAccountId is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -97,7 +108,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This user is not authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Does not show child component if specific localAccountId is signed in", async () => {        
+    test("Does not show child component if specific localAccountId is signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -115,7 +126,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This user is not authenticated!")).not.toBeInTheDocument();
     });
 
-    test("Shows child component if specific username is not signed in", async () => {        
+    test("Shows child component if specific username is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -133,7 +144,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This user is not authenticated!")).toBeInTheDocument();
     });
 
-    test("Shows child component if specific homeAccountId is not signed in", async () => {        
+    test("Shows child component if specific homeAccountId is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -151,7 +162,7 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This user is not authenticated!")).toBeInTheDocument();
     });
 
-    test("Shows child component if specific localAccountId is not signed in", async () => {        
+    test("Shows child component if specific localAccountId is not signed in", async () => {
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise");
         const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
         getAllAccountsSpy.mockImplementation(() => [testAccount]);
@@ -169,12 +180,14 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This user is not authenticated!")).toBeInTheDocument();
     });
 
-    test("Does not show child component if inProgress value is startup", async () => {        
-        let handleRedirectPromiseResolve = () => {};        
+    test("Does not show child component if inProgress value is startup", async () => {
+        let handleRedirectPromiseResolve = (value?: AuthenticationResult | PromiseLike<AuthenticationResult | null> | null): void => {
+            console.log(value);
+        };
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
             // Prevent handleRedirectPromise from raising an event or resolving and updating inProgress
             return new Promise((resolve) => {
-                handleRedirectPromiseResolve = resolve;
+                handleRedirectPromiseResolve = resolve as (value?: AuthenticationResult | PromiseLike<AuthenticationResult | null> | null) => void;
             });
         });
         render(
@@ -194,7 +207,7 @@ describe("UnauthenticatedTemplate tests", () => {
         await waitFor(() => expect(screen.queryByText("No user is authenticated!")).toBeInTheDocument());
     });
 
-    test("Does not show child component if inProgress value is handleRedirect", async () => {        
+    test("Does not show child component if inProgress value is handleRedirect", async () => {
         const eventCallbacks: Array<Function> = [];
         let eventId = 0;
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {

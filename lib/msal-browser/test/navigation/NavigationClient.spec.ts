@@ -9,8 +9,18 @@ import { TEST_URIS } from "../utils/StringConstants";
 
 describe("NavigationClient.ts Unit Tests", () => {
     const navigationClient = new NavigationClient();
-
     const oldWindow: Window & typeof globalThis = window;
+
+    let oldWindowLocation: Location;
+    let clock: sinon.SinonFakeTimers;
+
+    beforeEach(() => {
+        clock = sinon.useFakeTimers();
+        oldWindowLocation = window.location;
+        // @ts-ignore
+        delete window.location;
+    })
+
     afterEach(() => {
         window = oldWindow;
         sinon.restore();
@@ -20,9 +30,6 @@ describe("NavigationClient.ts Unit Tests", () => {
         it(
             "navigateInternal() with noHistory false will call location.assign",
             (done) => {
-                sinon.useFakeTimers();
-                const oldWindowLocation = window.location;
-                delete window.location;
                 window.location = {
                     ...oldWindowLocation,
                     assign: function (url) {
@@ -35,16 +42,13 @@ describe("NavigationClient.ts Unit Tests", () => {
                 expect(windowAssignSpy.calledOnce).toBe(true);
             }
         );
-    
+
         it(
             "navigateInternal() with noHistory true will call location.replace",
             (done) => {
-                sinon.useFakeTimers();
-                const oldWindowLocation = window.location;
-                delete window.location;
                 window.location = {
                     ...oldWindowLocation,
-                    replace: function (url) {
+                    replace: function (url: string) {
                         expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
@@ -54,16 +58,13 @@ describe("NavigationClient.ts Unit Tests", () => {
                 expect(windowReplaceSpy.calledOnce).toBe(true);
             }
         );
-    
+
         it(
             "navigateInternal() logs if navigation does not take place within 30 seconds",
             (done) => {
-                const clock = sinon.useFakeTimers();
-                const oldWindowLocation = window.location;
-                delete window.location;
                 window.location = {
                     ...oldWindowLocation,
-                    replace: function (url) {
+                    replace: function (url: string) {
                         expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
@@ -81,12 +82,9 @@ describe("NavigationClient.ts Unit Tests", () => {
         it(
             "navigateExternal() with noHistory false will call location.assign",
             (done) => {
-                sinon.useFakeTimers();
-                const oldWindowLocation = window.location;
-                delete window.location;
                 window.location = {
                     ...oldWindowLocation,
-                    assign: function (url) {
+                    assign: function (url: string) {
                         expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
@@ -96,16 +94,13 @@ describe("NavigationClient.ts Unit Tests", () => {
                 expect(windowAssignSpy.calledOnce).toBe(true);
             }
         );
-    
+
         it(
             "navigateExternal() with noHistory true will call location.replace",
             (done) => {
-                sinon.useFakeTimers();
-                const oldWindowLocation = window.location;
-                delete window.location;
                 window.location = {
                     ...oldWindowLocation,
-                    replace: function (url) {
+                    replace: function (url: string) {
                         expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
@@ -115,16 +110,13 @@ describe("NavigationClient.ts Unit Tests", () => {
                 expect(windowReplaceSpy.calledOnce).toBe(true);
             }
         );
-    
+
         it(
             "navigateExternal() logs if navigation does not take place within 30 seconds",
             (done) => {
-                const clock = sinon.useFakeTimers();
-                const oldWindowLocation = window.location;
-                delete window.location;
                 window.location = {
                     ...oldWindowLocation,
-                    replace: function (url) {
+                    replace: function (url: string) {
                         expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
