@@ -385,8 +385,9 @@ describe("SilentFlowClient unit tests", () => {
             await expect(client.acquireCachedToken(null)).rejects.toMatchObject(
                 ClientConfigurationError.createEmptyTokenRequestError()
             );
-            //@ts-ignore
+
             await expect(
+                //@ts-ignore
                 client.acquireCachedToken(undefined)
             ).rejects.toMatchObject(
                 ClientConfigurationError.createEmptyTokenRequestError()

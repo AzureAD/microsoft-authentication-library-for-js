@@ -87,12 +87,12 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     });
 
     it("setRequestState throws error if no crypto object is passed to it", () => {
-        // @ts-ignore
         expect(() =>
+            // @ts-ignore
             ProtocolUtils.setRequestState(null, userState)
         ).toThrowError(ClientAuthError);
-        // @ts-ignore
         expect(() =>
+            // @ts-ignore
             ProtocolUtils.setRequestState(null, userState)
         ).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
     });
@@ -105,12 +105,13 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             ProtocolUtils.parseRequestState(cryptoInterface, "")
         ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
 
-        // @ts-ignore
         expect(() =>
+            // @ts-ignore
             ProtocolUtils.parseRequestState(cryptoInterface, null)
         ).toThrowError(ClientAuthError);
-        // @ts-ignore
+
         expect(() =>
+            // @ts-ignore
             ProtocolUtils.parseRequestState(cryptoInterface, null)
         ).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
     });

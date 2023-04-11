@@ -1217,14 +1217,16 @@ describe("RefreshTokenClient unit tests", () => {
                 config,
                 stubPerformanceClient
             );
-            //@ts-ignore
+
             await expect(
+                //@ts-ignore
                 client.acquireTokenByRefreshToken(null)
             ).rejects.toMatchObject(
                 ClientConfigurationError.createEmptyTokenRequestError()
             );
-            //@ts-ignore
+
             await expect(
+                //@ts-ignore
                 client.acquireTokenByRefreshToken(undefined)
             ).rejects.toMatchObject(
                 ClientConfigurationError.createEmptyTokenRequestError()

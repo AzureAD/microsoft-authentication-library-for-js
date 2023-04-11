@@ -110,8 +110,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
         expect(emptyConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
-        //@ts-ignore
+
         expect(
+            //@ts-ignore
             emptyConfig.networkInterface.sendGetRequestAsync("", null)
         ).rejects.toMatchObject(
             AuthError.createUnexpectedError(
@@ -121,8 +122,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(
             emptyConfig.networkInterface.sendPostRequestAsync
         ).not.toBeNull();
-        //@ts-ignore
+
         await expect(
+            //@ts-ignore
             emptyConfig.networkInterface.sendPostRequestAsync("", null)
         ).rejects.toMatchObject(
             AuthError.createUnexpectedError(
@@ -281,13 +283,15 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Network interface tests
         expect(newConfig.networkInterface).not.toBeNull();
         expect(newConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
-        //@ts-ignore
+
         expect(
+            //@ts-ignore
             newConfig.networkInterface.sendGetRequestAsync("", null)
         ).resolves.toBe(testNetworkResult);
         expect(newConfig.networkInterface.sendPostRequestAsync).not.toBeNull();
-        //@ts-ignore
+
         expect(
+            //@ts-ignore
             newConfig.networkInterface.sendPostRequestAsync("", null)
         ).resolves.toBe(testNetworkResult);
         // Logger option tests

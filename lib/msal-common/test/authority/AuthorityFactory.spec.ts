@@ -71,9 +71,10 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 logger
             )
         ).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        // @ts-ignore
+
         expect(() =>
             AuthorityFactory.createInstance(
+                // @ts-ignore
                 null,
                 networkInterface,
                 mockStorage,

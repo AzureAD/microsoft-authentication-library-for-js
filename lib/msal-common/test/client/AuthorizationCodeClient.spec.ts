@@ -1221,8 +1221,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
             // @ts-ignore
             expect(config.storageInterface.getKeys().length).toBe(1);
-            // @ts-ignore
+
             expect(
+                // @ts-ignore
                 config.storageInterface.getAuthorityMetadataKeys().length
             ).toBe(1);
         });
@@ -1250,8 +1251,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
             };
-            // @ts-ignore
+
             await expect(
+                // @ts-ignore
                 client.acquireToken(codeRequest, null)
             ).rejects.toMatchObject(
                 ClientAuthError.createTokenRequestCannotBeMadeError()
@@ -2423,8 +2425,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 });
 
             const signedJwt = "signedJwt";
-            // @ts-ignore
+
             config.cryptoInterface.signJwt = async (
+                // @ts-ignore
                 payload: SignedHttpRequest,
                 kid: string
             ): Promise<string> => {
@@ -2490,9 +2493,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
-            // @ts-ignore
+
             expect(
                 Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
+                    // @ts-ignore
                     authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(
@@ -2615,8 +2619,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             };
             const signedJwt = "signedJwt";
-            // @ts-ignore
+
             config.cryptoInterface.signJwt = async (
+                // @ts-ignore
                 payload: SignedHttpRequest,
                 kid: string
             ): Promise<string> => {
@@ -2682,9 +2687,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
 
             expect(authenticationResult.accessToken).toBe(signedJwt);
-            // @ts-ignore
             expect(
                 Date.now() + POP_AUTHENTICATION_RESULT.body.expires_in * 1000 >=
+                    // @ts-ignore
                     authenticationResult.expiresOn.getMilliseconds()
             ).toBe(true);
             expect(
@@ -2801,8 +2806,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             };
             const signedJwt = "signedJwt";
-            // @ts-ignore
+
             config.cryptoInterface.signJwt = async (
+                // @ts-ignore
                 payload: SignedHttpRequest,
                 kid: string
             ): Promise<string> => {

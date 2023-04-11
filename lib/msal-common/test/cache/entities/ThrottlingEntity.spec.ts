@@ -47,8 +47,8 @@ describe("ThrottlingEntity", () => {
             expect(
                 ThrottlingEntity.isThrottlingEntity("", throttlingObject)
             ).toBe(false);
-            // @ts-ignore
             expect(
+                // @ts-ignore
                 ThrottlingEntity.isThrottlingEntity(null, throttlingObject)
             ).toBe(false);
         });

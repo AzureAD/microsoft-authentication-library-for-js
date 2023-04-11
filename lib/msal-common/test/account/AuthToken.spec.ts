@@ -131,12 +131,12 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 AuthToken.extractTokenClaims("", cryptoInterface)
             ).toThrowError(ClientAuthError);
 
-            // @ts-ignore
             expect(() =>
+                // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-            // @ts-ignore
             expect(() =>
+                // @ts-ignore
                 AuthToken.extractTokenClaims(null, cryptoInterface)
             ).toThrowError(ClientAuthError);
         });
