@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationParameters } from "../AuthenticationParameters";
-import { Constants, PromptState, DisallowedEQParams, InteractionType } from "./Constants";
+import { Constants, PromptState, BlacklistedEQParams, InteractionType } from "./Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ScopeSet } from "../ScopeSet";
 import { StringDict } from "../MsalTypes";
@@ -104,7 +104,7 @@ export class RequestUtils {
             // this.logger.warning("Removed duplicate claims from extraQueryParameters. Please use either the claimsRequest field OR pass as extraQueryParameter - not both.");
             delete eQParams[Constants.claims];
         }
-        DisallowedEQParams.forEach(param => {
+        BlacklistedEQParams.forEach(param => {
             if (eQParams[param]) {
                 // this.logger.warning("Removed duplicate " + param + " from extraQueryParameters. Please use the " + param + " field in request object.");
                 delete eQParams[param];
