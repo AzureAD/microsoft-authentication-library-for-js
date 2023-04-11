@@ -124,7 +124,7 @@ export class ScopeSet {
         try {
             newScopes.forEach(newScope => this.appendScope(newScope));
         } catch (e) {
-            throw ClientAuthError.createAppendScopeSetError(e as string);
+            throw ClientAuthError.createAppendScopeSetError(e);
         }
     }
 
@@ -171,7 +171,7 @@ export class ScopeSet {
         if (!otherScopes) {
             throw ClientAuthError.createEmptyInputScopeSetError();
         }
-
+        
         // Do not allow OIDC scopes to be the only intersecting scopes
         if (!otherScopes.containsOnlyOIDCScopes()) {
             otherScopes.removeOIDCScopes();

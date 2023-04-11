@@ -221,7 +221,7 @@ export class NativeMessageHandler {
             // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
             this.logger.error("Error parsing response from WAM Extension");
-            this.logger.errorPii(`Error parsing response from WAM Extension: ${err as string}`);
+            this.logger.errorPii(`Error parsing response from WAM Extension: ${err.toString()}`);
             this.logger.errorPii(`Unable to parse ${event}`);
 
             if (resolver) {

@@ -44,7 +44,7 @@ export class AuthToken {
             const base64Decoded = crypto.base64Decode(base64TokenPayload);
             return JSON.parse(base64Decoded) as TokenClaims;
         } catch (err) {
-            throw ClientAuthError.createTokenParsingError(err as string);
+            throw ClientAuthError.createTokenParsingError(err);
         }
     }
 

@@ -274,7 +274,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
-        allowNativeBroker: true,
+        allowNativeBroker: false,
         nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
         cryptoOptions: {

@@ -16,9 +16,6 @@ describe("MsalAuthenticationTemplate tests", () => {
     const msalConfig: Configuration = {
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
-        },
-        system: {
-            allowNativeBroker: false
         }
     };
 
@@ -31,9 +28,8 @@ describe("MsalAuthenticationTemplate tests", () => {
         eventCallbacks = [];
         let eventId = 0;
         pca = new PublicClientApplication(msalConfig);
-        pca = (pca as any).controller;
-        jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn: Function) => {
-            eventCallbacks.push(callbackFn as EventCallbackFunction);
+        jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
+            eventCallbacks.push(callbackFn);
             eventId += 1;
             return eventId.toString();
         });

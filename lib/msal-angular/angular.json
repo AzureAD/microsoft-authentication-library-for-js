@@ -43,9 +43,6 @@
           }
         }
       }
-    }
-  },
-  "cli": {
-    "analytics": false
-  }
+    }},
+  "defaultProject": "msal-angular"
 }

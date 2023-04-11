@@ -3,30 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import {
-    AccessTokenEntity,
-    AuthenticationResult,
-    AuthenticationScheme,
-    Authority,
-    BaseClient,
-    CacheOutcome,
-    ClientAuthError,
-    ClientConfiguration,
-    CommonClientCredentialRequest,
-    Constants,
-    CredentialFilter,
-    CredentialType,
-    GrantType,
-    IAppTokenProvider,
-    RequestParameterBuilder,
-    RequestThumbprint,
-    ResponseHandler,
-    ScopeSet,
-    ServerAuthorizationTokenResponse,
-    StringUtils,
-    TimeUtils,
-    UrlString
-} from "@azure/msal-common";
+import { ClientConfiguration } from "../config/ClientConfiguration";
+import { BaseClient } from "./BaseClient";
+import { Authority } from "../authority/Authority";
+import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
+import { ScopeSet } from "../request/ScopeSet";
+import { GrantType , CredentialType, CacheOutcome, Constants, AuthenticationScheme } from "../utils/Constants";
+import { ResponseHandler } from "../response/ResponseHandler";
+import { AuthenticationResult } from "../response/AuthenticationResult";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
+import { CredentialFilter } from "../cache/utils/CacheTypes";
+import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
+import { TimeUtils } from "../utils/TimeUtils";
+import { StringUtils } from "../utils/StringUtils";
+import { RequestThumbprint } from "../network/RequestThumbprint";
+import { ClientAuthError } from "../error/ClientAuthError";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { IAppTokenProvider } from "../config/AppTokenProvider";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 client credential grant
@@ -65,7 +59,7 @@ export class ClientCredentialClient extends BaseClient {
      * looks up cache if the tokens are cached already
      */
     private async getCachedAuthenticationResult(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
-
+        
         const cachedAccessToken = this.readAccessTokenFromCache();
 
         if (!cachedAccessToken) {
@@ -122,7 +116,7 @@ export class ClientCredentialClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonClientCredentialRequest, authority: Authority)
         : Promise<AuthenticationResult | null> {
-
+        
         let serverTokenResponse: ServerAuthorizationTokenResponse;
         let reqTimestamp: number;
 
@@ -140,10 +134,10 @@ export class ClientCredentialClient extends BaseClient {
             const appTokenProviderResult = await this.appTokenProvider(appTokenPropviderParameters);
 
             serverTokenResponse = {
-                access_token: appTokenProviderResult.accessToken,
+                access_token: appTokenProviderResult.accessToken, 
                 expires_in: appTokenProviderResult.expiresInSeconds,
                 refresh_in: appTokenProviderResult.refreshInSeconds,
-                token_type: AuthenticationScheme.BEARER
+                token_type : AuthenticationScheme.BEARER
             };
         } else {
             const queryParametersString = this.createTokenQueryParameters(request);
@@ -161,7 +155,7 @@ export class ClientCredentialClient extends BaseClient {
                 shrClaims: request.shrClaims,
                 sshKid: request.sshKid
             };
-
+    
             reqTimestamp = TimeUtils.nowSeconds();
             const response = await this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
             serverTokenResponse = response.body;
@@ -177,7 +171,7 @@ export class ClientCredentialClient extends BaseClient {
         );
 
         responseHandler.validateTokenResponse(serverTokenResponse);
-
+       
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             serverTokenResponse,
             this.authority,
@@ -205,7 +199,7 @@ export class ClientCredentialClient extends BaseClient {
         parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
 
         parameterBuilder.addThrottling();
-
+        
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }

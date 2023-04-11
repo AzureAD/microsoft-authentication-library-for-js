@@ -14,9 +14,9 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Fetch Client for REST endpoints - Get request
-     * @param url
-     * @param headers
-     * @param body
+     * @param url 
+     * @param headers 
+     * @param body 
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         let response;
@@ -27,7 +27,7 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createGetRequestFailedError(e as string, url);
+                throw BrowserAuthError.createGetRequestFailedError(e, url);
             } else {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }
@@ -46,9 +46,9 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Fetch Client for REST endpoints - Post request
-     * @param url
-     * @param headers
-     * @param body
+     * @param url 
+     * @param headers 
+     * @param body 
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || Constants.EMPTY_STRING;
@@ -62,7 +62,7 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createPostRequestFailedError(e as string, url);
+                throw BrowserAuthError.createPostRequestFailedError(e, url);
             } else {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }
@@ -81,7 +81,7 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Get Fetch API Headers object from string map
-     * @param inputHeaders
+     * @param inputHeaders 
      */
     private getFetchHeaders(options?: NetworkRequestOptions): Headers {
         const headers = new Headers();

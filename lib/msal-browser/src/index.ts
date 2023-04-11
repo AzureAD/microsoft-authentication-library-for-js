@@ -12,7 +12,6 @@
  * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
-
 import * as internals from "./internals";
 export { internals };
 
@@ -20,11 +19,6 @@ export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "./config/Configuration";
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId, CacheLookupPolicy } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
-
-/*
- * export { IController} from "./controllers/IController";
- * export { StandardController } from "./controllers/StandardController";
- */
 
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";

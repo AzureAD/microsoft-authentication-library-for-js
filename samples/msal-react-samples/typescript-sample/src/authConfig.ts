@@ -7,9 +7,6 @@ export const msalConfig: Configuration = {
         authority: "https://login.microsoftonline.com/common",
         redirectUri: "/",
         postLogoutRedirectUri: "/"
-    },
-    system: {
-        allowNativeBroker: false // Disables WAM Broker
     }
 };
 

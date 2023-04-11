@@ -6,33 +6,7 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_SSH_VALUES } from "../utils/StringConstants";
-import {
-    ServerError,
-    Constants,
-    AccountInfo,
-    TokenClaims,
-    AuthenticationResult,
-    CommonAuthorizationCodeRequest,
-    CommonAuthorizationUrlRequest,
-    AuthToken,
-    PersistentCacheKeys,
-    AuthorizationCodeClient,
-    ResponseMode,
-    ProtocolUtils,
-    AuthenticationScheme,
-    Logger,
-    ServerTelemetryEntity,
-    LogLevel,
-    NetworkResponse,
-    ServerAuthorizationTokenResponse,
-    CcsCredential,
-    CcsCredentialType,
-    CommonEndSessionRequest,
-    ServerTelemetryManager,
-    AccountEntity,
-    ClientConfigurationError,
-    AuthError
-} from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity, ClientConfigurationError } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -86,10 +60,6 @@ describe("RedirectClient", () => {
                 }
             }
         });
-
-        //Implementation of PCA was moved to controller.
-        pca = (pca as any).controller;
-
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 
         // @ts-ignore
@@ -157,7 +127,10 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            const testError: AuthError = new AuthError("Unexpected error!", "Unexpected error");
+            const testError = {
+                errorCode: "Unexpected error!",
+                errorDesc: "Unexpected error"
+            }
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").throws(testError);
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
@@ -278,10 +251,6 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger, 2000, getDefaultPerformanceClient());
             // @ts-ignore
@@ -381,10 +350,6 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             const b64Encode = new Base64Encode();
@@ -553,15 +518,12 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -658,14 +620,11 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             let callbackCalled = false;
             const navigationClient = new NavigationClient();
@@ -778,15 +737,12 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -839,15 +795,11 @@ describe("RedirectClient", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
             const config = {
                 // @ts-ignore
                 ...pca.config,
@@ -857,7 +809,6 @@ describe("RedirectClient", () => {
                     allowRedirectInIframe: true
                 }
             }
-
             // @ts-ignore
             redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
@@ -1006,16 +957,12 @@ describe("RedirectClient", () => {
         });
 
         it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
-
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -1747,7 +1694,10 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
+            const testError = {
+                errorCode: "create_login_url_error",
+                errorMessage: "Error in creating a login url"
+            };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
             try {
                 await redirectClient.acquireToken(emptyRequest);
@@ -1911,15 +1861,12 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -1934,15 +1881,12 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            let pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri: null
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);

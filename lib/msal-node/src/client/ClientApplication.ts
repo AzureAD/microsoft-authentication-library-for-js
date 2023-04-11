@@ -20,6 +20,7 @@ import {
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
     CommonUsernamePasswordRequest,
+    UsernamePasswordClient,
     AuthenticationScheme,
     ResponseMode,
     AuthorityOptions,
@@ -44,7 +45,6 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { NodeAuthError } from "../error/NodeAuthError";
-import { UsernamePasswordClient } from "./UsernamePasswordClient";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -239,7 +239,7 @@ export abstract class ClientApplication {
             if (e instanceof AuthError) {
                 e.setCorrelationId(validRequest.correlationId);
             }
-            serverTelemetryManager.cacheFailedRequest(e as AuthError);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
@@ -291,7 +291,7 @@ export abstract class ClientApplication {
 
     /**
      * Validates OIDC state by comparing the user cached state with the state received from the server.
-     *
+     * 
      * This API is provided for scenarios where you would use OAuth2.0 state parameter to mitigate against
      * CSRF attacks.
      * For more information about state, visit https://datatracker.ietf.org/doc/html/rfc6819#section-3.6.
@@ -330,11 +330,11 @@ export abstract class ClientApplication {
      */
     protected async buildOauthClientConfiguration(
         authority: string,
-        requestCorrelationId?: string,
+        requestCorrelationId?: string, 
         serverTelemetryManager?: ServerTelemetryManager,
-        azureRegionConfiguration?: AzureRegionConfiguration,
+        azureRegionConfiguration?: AzureRegionConfiguration, 
         azureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
-
+        
         this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
 
         // precedence - azureCloudInstance + tenant >> authority and request  >> config
@@ -374,7 +374,7 @@ export abstract class ClientApplication {
             },
             telemetry: this.config.telemetry,
             persistencePlugin: this.config.cache.cachePlugin,
-            serializableCache: this.tokenCache
+            serializableCache: this.tokenCache            
         };
 
         return clientConfiguration;

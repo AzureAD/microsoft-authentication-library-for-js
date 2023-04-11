@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
+import { EventType, InteractionStatus, InteractionType, NavigationClient, NavigationOptions, PublicClientApplication } from '@azure/msal-browser';
+import { MsalBroadcastService } from './msal.broadcast.service';
+import { MsalModule, MsalService } from './public-api';
+import { MsalCustomNavigationClient } from './msal.navigation.client';
 import { Location } from '@angular/common';
 import { Router } from '@angular/router';
-import { InteractionType, NavigationClient, NavigationOptions, PublicClientApplication } from '@azure/msal-browser';
-import { MsalBroadcastService } from './msal.broadcast.service';
 import { MsalGuard } from './msal.guard';
-import { MsalCustomNavigationClient } from './msal.navigation.client';
-import { MsalModule, MsalService } from './public-api';
 
 let authService: MsalService;
 let navigationClient: MsalCustomNavigationClient;

@@ -4,7 +4,9 @@ import { ENV_VARIABLES, LAB_SCOPE, LAB_API_ENDPOINT, ParamKeys } from "./Constan
 import { LabApiQueryParams } from "./LabApiQueryParams";
 import * as dotenv from "dotenv";
 
-dotenv.config({ path: __dirname + `/../../.env` });
+dotenv.config({
+    path: "../../.env"
+});
 
 export class LabClient {
 

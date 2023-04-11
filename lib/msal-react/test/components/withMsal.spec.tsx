@@ -10,9 +10,6 @@ describe("withMsal tests", () => {
     const msalConfig: Configuration = {
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
-        },
-        system: {
-            allowNativeBroker: false
         }
     };
 
@@ -23,7 +20,7 @@ describe("withMsal tests", () => {
     beforeEach(() => {
         pca = new PublicClientApplication(msalConfig);
         jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
-            eventCallback = callbackFn as EventCallbackFunction;
+            eventCallback = callbackFn;
             return "callbackId";
         });
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {

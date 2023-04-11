@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-// eslint-disable-next-line import/no-unresolved
 import { HttpRequest } from "@angular/common/http";
 import { PopupRequest, RedirectRequest, InteractionType, SilentRequest } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";

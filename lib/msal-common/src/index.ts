@@ -9,9 +9,12 @@
  */
 
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
+export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
+export { ClientCredentialClient } from "./client/ClientCredentialClient";
+export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
-export { BaseClient } from "./client/BaseClient";
+export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
 export { IAppTokenProvider, AppTokenProviderParameters, AppTokenProviderResult } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
@@ -33,7 +36,7 @@ export { ProtocolMode } from "./authority/ProtocolMode";
 export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, CredentialFilter, ValidCacheType, ValidCredentialType, TokenKeys } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType, TokenKeys } from "./cache/utils/CacheTypes";
 export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
@@ -72,7 +75,6 @@ export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
 export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
-export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
@@ -81,8 +83,7 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
 export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
-export { DeviceCodeResponse, ServerDeviceCodeResponse } from "./response/DeviceCodeResponse";
-export { ResponseHandler } from "./response/ResponseHandler";
+export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
@@ -94,7 +95,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheOutcome, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS, GrantType, AADAuthorityConstants } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

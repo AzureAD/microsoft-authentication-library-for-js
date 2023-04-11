@@ -61,15 +61,11 @@ testAccessTokenEntity.tokenType = AuthenticationScheme.BEARER;
 describe("NativeInteractionClient Tests", () => {
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
-    let pca = new PublicClientApplication({
+    const pca = new PublicClientApplication({
         auth: {
             clientId: TEST_CONFIG.MSAL_CLIENT_ID
         }
     });
-
-    //Implementation of PCA was moved to controller.
-    pca = (pca as any).controller;
-
     const wamProvider = new NativeMessageHandler(pca.getLogger(), 2000, getDefaultPerformanceClient());
     // @ts-ignore
     const nativeInteractionClient = new NativeInteractionClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.getLogger(), pca.eventHandler, pca.navigationClient, ApiId.acquireTokenRedirect, pca.performanceClient, wamProvider, "nativeAccountId", pca.nativeInternalStorage, RANDOM_TEST_GUID);

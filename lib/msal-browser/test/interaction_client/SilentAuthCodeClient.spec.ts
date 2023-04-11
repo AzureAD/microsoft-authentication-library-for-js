@@ -17,15 +17,11 @@ describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
 
     beforeEach(() => {
-        let pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
-
-        //Implementation of PCA was moved to controller.
-        pca = (pca as any).controller;
-
         // @ts-ignore
         silentAuthCodeClient = new SilentAuthCodeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient);
     });

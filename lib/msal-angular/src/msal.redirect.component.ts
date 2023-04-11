@@ -10,7 +10,7 @@
  */
 
 import { Component, OnInit } from "@angular/core";
-import { concatMap } from "rxjs";
+import { concatMap } from "rxjs/operators";
 import { MsalService } from "./msal.service";
 
 @Component({

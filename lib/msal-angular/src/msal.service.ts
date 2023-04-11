@@ -17,10 +17,10 @@ import {
     Logger,
     WrapperSKU
 } from "@azure/msal-browser";
+import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 import { name, version } from "./packageMetadata";
-import { MSAL_INSTANCE } from "./constants";
 
 @Injectable()
 export class MsalService implements IMsalService {

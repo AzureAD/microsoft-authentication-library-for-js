@@ -14,8 +14,8 @@ export class BrowserProtocolUtils {
 
     /**
      * Extracts the BrowserStateObject from the state string.
-     * @param browserCrypto
-     * @param state
+     * @param browserCrypto 
+     * @param state 
      */
     static extractBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject | null {
         if (StringUtils.isEmpty(state)) {
@@ -26,7 +26,7 @@ export class BrowserProtocolUtils {
             const requestStateObj: RequestStateObject = ProtocolUtils.parseRequestState(browserCrypto, state);
             return requestStateObj.libraryState.meta as BrowserStateObject;
         } catch (e) {
-            throw ClientAuthError.createInvalidStateError(state, e as string);
+            throw ClientAuthError.createInvalidStateError(state, e);
         }
     }
 
@@ -38,7 +38,7 @@ export class BrowserProtocolUtils {
         if (!locationHash) {
             return {};
         }
-
+        
         const hashUrlString = new UrlString(locationHash);
         return UrlString.getDeserializedHash(hashUrlString.getHash());
     }

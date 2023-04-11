@@ -60,7 +60,7 @@ export class BrowserCacheManager extends CacheManager {
                 try {
                     return new BrowserStorage(cacheLocation);
                 } catch (e) {
-                    this.logger.verbose(e as string);
+                    this.logger.verbose(e);
                     break;
                 }
             case BrowserCacheLocation.MemoryStorage:
@@ -87,7 +87,7 @@ export class BrowserCacheManager extends CacheManager {
                      */
                     return new BrowserStorage(temporaryCacheLocation || BrowserCacheLocation.SessionStorage);
                 } catch (e) {
-                    this.logger.verbose(e as string);
+                    this.logger.verbose(e);
                     return this.internalStorage;
                 }
             case BrowserCacheLocation.MemoryStorage:

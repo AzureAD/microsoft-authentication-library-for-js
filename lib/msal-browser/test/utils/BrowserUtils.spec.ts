@@ -9,7 +9,6 @@ import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
 import { BrowserAuthErrorMessage, InteractionType } from "../../src";
-import { BrowserAuthError } from "../../lib";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
 
@@ -38,7 +37,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         window.location.hash = "thisIsAHash";
         BrowserUtils.clearHash(window);
         expect(window.location.href.includes("#thisIsAHash")).toBe(false);
-
+        
         history.replaceState = oldReplaceState;
     });
 
@@ -61,7 +60,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         sinon.stub(window, "parent").value(window);
         expect(BrowserUtils.isInIframe()).toBe(false);
     });
-
+    
     it("isInIframe() returns true if window parent is not the same as the current window", () => {
         expect(BrowserUtils.isInIframe()).toBe(false);
         sinon.stub(window, "parent").value(null);
@@ -98,7 +97,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it("getBrowserNetworkClient() returns fetch client if available", () => {
-        window.fetch = (): Promise<Response> => {
+        window.fetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
             //@ts-ignore
             return null;
         };
@@ -118,8 +117,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             try {
                 BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
             } catch (e) {
-                const browserAuthError = e as BrowserAuthError;
-                expect(browserAuthError.errorCode).toBe(BrowserAuthErrorMessage.redirectInIframeError.code);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.redirectInIframeError.code);
                 done();
             }
         });

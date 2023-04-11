@@ -30,8 +30,7 @@ import {
     CacheManager,
     ClientAuthError,
     PersistentCacheKeys,
-    Authority,
-    AuthError
+    Authority
 } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation, CacheLookupPolicy } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -58,7 +57,6 @@ import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessag
 import { NativeInteractionClient } from "../../src/interaction_client/NativeInteractionClient";
 import { NativeTokenRequest } from "../../src/broker/nativeBroker/NativeRequest";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
-import { StandardController } from "../../src/controllers/StandardController";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 
 const cacheConfig = {
@@ -112,12 +110,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     appName: TEST_CONFIG.applicationName,
                     appVersion: TEST_CONFIG.applicationVersion
                 }
-            },
-            system: {
-                allowNativeBroker: false
             }
         });
-
         BrowserPerformanceMeasurement.flushMeasurements = jest.fn().mockReturnValue(null);
     });
 
@@ -146,13 +140,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const createProviderSpy = stubProvider(pca);
             await pca.initialize();
-
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeInstanceOf(NativeMessageHandler);
@@ -169,10 +158,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
             await pca.initialize();
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             expect(createProviderSpy.called).toBeFalsy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeUndefined();
@@ -191,10 +176,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
             await pca.initialize();
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             expect(createProviderSpy.called).toBeTruthy();
             // @ts-ignore
             expect(pca.nativeExtensionProvider).toBeUndefined();
@@ -224,10 +205,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").callsFake(() => {
                 sinon.stub(pca, "getAllAccounts").returns([testAccount]);
                 return Promise.resolve(testTokenResponse);
@@ -254,9 +231,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -371,7 +345,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
                 username: "AbeLi@microsoft.com"
             };
-            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").rejects("Error");
             let acquireTokenFailureFired = false;
             sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
@@ -464,14 +438,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                system: {
-                    allowNativeBroker: false
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const promise1 = pca.handleRedirectPromise();
             const promise2 = pca.handleRedirectPromise();
@@ -524,7 +492,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("Uses default request if no request provided", (done) => {
-            sinon.stub(StandardController.prototype, "acquireTokenRedirect").callsFake(async (request): Promise<void> => {
+            sinon.stub(pca, "acquireTokenRedirect").callsFake(async (request): Promise<void> => {
                 expect(request.scopes).toContain("openid");
                 expect(request.scopes).toContain("profile");
                 done();
@@ -560,9 +528,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -623,9 +588,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -660,9 +622,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -700,9 +659,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -738,9 +694,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -816,9 +769,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window
             };
 
-            // @ts-ignore
             delete window.opener;
-            // @ts-ignore
             delete window.name;
             window.opener = newWindow;
             window.name = "msal.testPopup"
@@ -860,9 +811,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 cache: {
                     cacheLocation: BrowserCacheLocation.MemoryStorage,
                     storeAuthStateInCookie: false
-                },
-                system: {
-                    allowNativeBroker: false
                 }
             });
 
@@ -886,7 +834,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com"
             };
 
-            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "acquireToken").rejects("Error");
             let acquireTokenStartEmitted = false;
             let acquireTokenFailureEmitted = false;
@@ -990,7 +938,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            sinon.stub(StandardController.prototype, "acquireTokenPopup").callsFake(async (request) => {
+            sinon.stub(pca, "acquireTokenPopup").callsFake(async (request) => {
                 expect(request.scopes).toContain("openid");
                 expect(request.scopes).toContain("profile");
                 done();
@@ -1027,9 +975,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1132,9 +1077,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1186,9 +1128,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1239,9 +1178,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //PCA implementation moved to controller
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1361,7 +1297,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").callsFake(() => {
-                sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
+                sinon.stub(pca, "getAllAccounts").returns([testAccount]);
                 return Promise.resolve(testTokenResponse);
             });
             let loginStartEmitted = false;
@@ -1374,7 +1310,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            const response = await (pca as any).controller.acquireTokenPopup({scopes: ["openid"]});
+            const response = await pca.acquireTokenPopup({scopes: ["openid"]});
             expect(response).toEqual(testTokenResponse);
             expect(popupClientSpy.calledOnce).toBe(true);
             expect(loginStartEmitted).toBe(true);
@@ -1403,7 +1339,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
             const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").resolves(testTokenResponse);
             let acquireTokenStartEmitted = false;
             let acquireTokenSuccessEmitted = false;
@@ -1431,7 +1367,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 username: "AbeLi@microsoft.com"
             };
 
-            sinon.stub(StandardController.prototype, "getAllAccounts").returns([testAccount]);
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
             const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").rejects("Error");
             let acquireTokenStartEmitted = false;
             let acquireTokenFailureEmitted = false;
@@ -1477,9 +1413,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window
             };
 
-            // @ts-ignore
             delete window.opener;
-            // @ts-ignore
             delete window.name;
             window.opener = newWindow;
             window.name = "msal.testPopup"
@@ -1506,9 +1440,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1561,9 +1492,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1614,9 +1542,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -1830,9 +1755,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -1879,9 +1801,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             stubProvider(pca);
             await pca.initialize();
@@ -2238,9 +2157,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2292,9 +2208,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2345,9 +2258,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     allowNativeBroker: true
                 }
             });
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -2534,7 +2444,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(CryptoOps.prototype, "hashString").resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-            const atsSpy = sinon.spy(StandardController.prototype, <any>"acquireTokenSilentAsync");
+            const atsSpy = sinon.spy(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync");
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
@@ -2795,7 +2705,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
-            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
+            const testError = {
+                errorCode: "create_login_url_error",
+                errorMessage: "Error in creating a login url"
+            };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2822,7 +2735,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws when making parallel requests", async () => {
-            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
+            const testError = {
+                errorCode: "create_login_url_error",
+                errorMessage: "Error in creating a login url"
+            };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
@@ -2830,7 +2746,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tenantId: "testTenantId",
                 username: "username@contoso.com"
             };
-            const atsSpy = sinon.spy(StandardController.prototype, <any>"acquireTokenSilentAsync");
+            const atsSpy = sinon.spy(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync");
             sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").rejects(testError);
             const tokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
@@ -2984,7 +2900,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount
             };
 
-            const atsSpy = sinon.stub(StandardController.prototype, <any>"acquireTokenSilentAsync").resolves({
+            const atsSpy = sinon.stub(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync").resolves({
                 fromCache :true,
                 accessToken: "abc",
                 idToken: "defg",
@@ -3146,7 +3062,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount
             };
 
-            const atsSpy = sinon.stub(StandardController.prototype, <any>"acquireTokenSilentAsync").rejects({
+            const atsSpy = sinon.stub(PublicClientApplication.prototype, <any>"acquireTokenSilentAsync").rejects({
                 errorCode: "abc",
                 subError: "defg"
             });
@@ -3160,9 +3076,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.removePerformanceCallback(callbackId);
                 done();
             }));
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
 
             pca.acquireTokenSilent(silentRequest).catch(() => {})
         });
@@ -3273,10 +3186,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("logout", () => {
         it("calls logoutRedirect", (done) => {
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             sinon.stub(pca, "logoutRedirect").callsFake((request) => {
                 expect(request && request.postLogoutRedirectUri).toBe("/logout");
                 done();
@@ -3287,10 +3196,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             sinon.stub(pca, "logoutRedirect").callsFake((request) => {
                 return Promise.resolve();
             });
@@ -3443,17 +3348,17 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount1);
+            pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount2);
+            pca.browserStorage.setAccount(testAccount2);
 
             const idToken1 = CacheManager.toObject(new IdTokenEntity(), idTokenData1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.browserStorage.setIdTokenCredential(idToken1);
 
             const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.browserStorage.setIdTokenCredential(idToken2);
         });
 
         afterEach(() => {
@@ -3604,18 +3509,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             "clientId": TEST_CONFIG.MSAL_CLIENT_ID,
             "homeAccountId": testAccountInfo2.homeAccountId,
         };
+        
         const idToken2 = CacheManager.toObject(new IdTokenEntity(), idTokenData2);
 
         beforeEach(() => {
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount1);
+            pca.browserStorage.setAccount(testAccount1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setAccount(testAccount2);
+            pca.browserStorage.setAccount(testAccount2);
 
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken1);
+            pca.browserStorage.setIdTokenCredential(idToken1);
             // @ts-ignore
-            pca.controller.getBrowserStorage().setIdTokenCredential(idToken2);
+            pca.browserStorage.setIdTokenCredential(idToken2);
 
             sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
                 const authorityMetadata = new AuthorityMetadataEntity();
@@ -3672,7 +3578,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("getActiveAccount picks up legacy account id from local storage", () => {
-                let pcaLocal = new PublicClientApplication({
+                const pcaLocal = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID
                     },
@@ -3687,9 +3593,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     }
                 });
                 expect(pcaLocal.getActiveAccount()).toBe(null);
-
-                //Implementation of PCA was moved to controller.
-                pcaLocal = (pcaLocal as any).controller;
 
                 // @ts-ignore
                 const localStorage = pcaLocal.browserStorage;
@@ -3872,9 +3775,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("Sets wrapperSKU and wrapperVer with passed values", () => {
             pca.initializeWrapperLibrary(WrapperSKU.React, "1.0.0");
 
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             // @ts-ignore
             expect(pca.browserStorage.getWrapperMetadata()).toEqual([WrapperSKU.React, "1.0.0"]);
         });
@@ -3882,10 +3782,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("preflightBrowserEnvironmentCheck", () => {
         it("calls setInteractionInProgress", () => {
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             // @ts-ignore
             pca.preflightBrowserEnvironmentCheck(InteractionType.Popup);
 
@@ -3894,10 +3790,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt call setInteractionInProgress", () => {
-
-            //Implementation of PCA was moved to controller.
-            pca = (pca as any).controller;
-
             // @ts-ignore
             pca.preflightBrowserEnvironmentCheck(InteractionType.Popup, false);
 

@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove dropped version checks from v3 workflows #5729",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}

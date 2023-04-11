@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { Location } from "@angular/common";
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
+import { Location } from "@angular/common";
 import { RouterTestingModule } from "@angular/router/testing";
 import { AccountInfo, AuthError, InteractionStatus, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
-import { BehaviorSubject } from 'rxjs';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, ProtectedResourceScopes } from './public-api';
+import { BehaviorSubject } from 'rxjs';
 
 let interceptor: MsalInterceptor;
 let httpMock: HttpTestingController;

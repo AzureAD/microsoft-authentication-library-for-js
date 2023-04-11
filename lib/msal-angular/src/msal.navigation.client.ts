@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { Injectable } from "@angular/core";
-import { Location } from "@angular/common";
-import { Router } from "@angular/router";
 import { NavigationClient, NavigationOptions, UrlString } from "@azure/msal-browser";
+import { Router } from "@angular/router";
+import { Location } from "@angular/common";
 import { MsalService } from "./msal.service";
+import { Injectable } from "@angular/core";
 
 /**
  * Custom navigation used for Angular client-side navigation.

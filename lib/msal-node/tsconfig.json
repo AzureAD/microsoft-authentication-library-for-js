@@ -2,7 +2,7 @@
   "include": ["src", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es6",
     "module": "esnext",
     "declaration": true,
     "declarationMap": true,

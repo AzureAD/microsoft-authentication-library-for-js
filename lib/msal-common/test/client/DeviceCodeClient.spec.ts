@@ -1,20 +1,6 @@
 import sinon from "sinon";
 import {
-    AADServerParamKeys,
-    AuthError,
-    Authority,
-    AuthToken,
-    BaseClient,
-    ClientAuthError,
-    ClientConfiguration,
-    CommonDeviceCodeRequest,
-    Constants,
-    GrantType,
-    ThrottlingConstants
-} from "@azure/msal-common";
-import {
-    AUTHENTICATION_RESULT,
-    AUTHORIZATION_PENDING_RESPONSE,
+    AUTHENTICATION_RESULT, AUTHORIZATION_PENDING_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DEVICE_CODE_EXPIRED_RESPONSE,
     DEVICE_CODE_RESPONSE,
@@ -26,8 +12,16 @@ import {
     RANDOM_TEST_GUID,
     SERVER_UNEXPECTED_ERROR
 } from "../test_kit/StringConstants";
+import { BaseClient } from "../../src/client/BaseClient";
+import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
-import { DeviceCodeClient } from "../../src";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { Authority } from "../../src/authority/Authority";
+import { AuthToken } from "../../src/account/AuthToken";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient";
+import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { AuthError } from "../../src";
 
 describe("DeviceCodeClient unit tests", () => {
     let config: ClientConfiguration;
@@ -105,13 +99,12 @@ describe("DeviceCodeClient unit tests", () => {
             jest.setTimeout(6000);
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
-            // @ts-ignore
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
                     expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(expect.arrayContaining([name.toLowerCase()]));
                 });
-
+    
                 done();
                 return AUTHENTICATION_RESULT;
             });
@@ -188,7 +181,7 @@ describe("DeviceCodeClient unit tests", () => {
                     done(error);
                 }
             });
-
+    
             // let deviceCodeResponse = null;
             const deviceCodeRequest: CommonDeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
@@ -201,9 +194,9 @@ describe("DeviceCodeClient unit tests", () => {
                 },
                 deviceCodeCallback: () => {},
             };
-
+    
             const client = new DeviceCodeClient(config);
-            client.acquireToken(deviceCodeRequest).catch(() => {
+            client.acquireToken(deviceCodeRequest).catch((error) => {
                 // Catch errors thrown after the function call this test is testing
             });
         });
@@ -355,7 +348,7 @@ describe("DeviceCodeClient unit tests", () => {
                 correlationId: "test-correlationId",
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: () => {},
-                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint
+                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint 
             };
 
             const client = new DeviceCodeClient(config);

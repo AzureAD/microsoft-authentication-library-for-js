@@ -64,7 +64,7 @@ export class TestStorageManager extends CacheManager {
             idToken: [],
             accessToken: [],
             refreshToken: []
-        };
+        }
     }
     
     // Credentials (idtokens)

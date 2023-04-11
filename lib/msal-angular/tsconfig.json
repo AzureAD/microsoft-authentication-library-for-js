@@ -9,17 +9,16 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2020",
+    "target": "es2015",
     "module": "es2020",
     "lib": [
-      "ES2020",
+      "es2018",
       "dom"
     ],
     "paths": {
       "msal-angular": [
         "dist/msal-angular"
       ]
-    },
-    "useDefineForClassFields": false
+    }
   }
 }

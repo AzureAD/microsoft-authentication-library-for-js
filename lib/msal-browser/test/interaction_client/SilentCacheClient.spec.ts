@@ -61,15 +61,11 @@ describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;
 
     beforeEach(() => {
-        let pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
-
-        //Implementation of PCA was moved to controller.
-        pca = (pca as any).controller;
-
         // @ts-ignore
         silentCacheClient = new SilentCacheClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
     })
