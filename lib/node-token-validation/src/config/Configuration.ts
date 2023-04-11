@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, LoggerOptions, LogLevel, ProtocolMode } from "@azure/msal-common";
+import {
+    INetworkModule,
+    LoggerOptions,
+    LogLevel,
+    ProtocolMode,
+} from "@azure/msal-common";
 import { Constants } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -14,11 +19,11 @@ export type Configuration = {
     /**
      * Configuration options related to authentication, such as, authority, protocol, and whether to use a clock skew.
      */
-    auth?: TokenValidationOptions,
+    auth?: TokenValidationOptions;
     /**
      * Configuration options related to operations performed by the library, such as, logging and network requests.
      */
-    system?: SystemOptions
+    system?: SystemOptions;
 };
 
 /**
@@ -28,20 +33,20 @@ export type TokenValidationOptions = {
     /**
      * Specific authority, used for obtaining keys from the metadata endpoint. Usually takes the form of `https://{uri}/{tenantid}`.
      */
-    authority?: string,
+    authority?: string;
     /**
-     * Enum that represents the protocol used by the TokenValidator. 
-     * Used for configuring proper endpoints. 
+     * Enum that represents the protocol used by the TokenValidator.
+     * Used for configuring proper endpoints.
      */
-    protocolMode?: ProtocolMode,
+    protocolMode?: ProtocolMode;
     /**
      * An array of URIs that are known to be valid. Used in B2C scenarios.
      */
-    knownAuthorities?: Array<string>,
+    knownAuthorities?: Array<string>;
     /**
      * Clock skew (in seconds) allowed in token validation. Must be a positive integer.
      */
-    clockSkew?: number
+    clockSkew?: number;
 };
 
 /**
@@ -62,8 +67,8 @@ export type SystemOptions = {
  * Configuration object used to configure the TokenValidator after defaults are set.
  */
 export type TokenValidationConfiguration = {
-    auth: Required<TokenValidationOptions>,
-    system: Required<SystemOptions>
+    auth: Required<TokenValidationOptions>;
+    system: Required<SystemOptions>;
 };
 
 /**
@@ -74,7 +79,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         // allow users to not set logger call back
     },
     logLevel: LogLevel.Info,
-    piiLoggingEnabled: false
+    piiLoggingEnabled: false,
 };
 
 /**
@@ -84,7 +89,7 @@ const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
     authority: Constants.DEFAULT_AUTHORITY,
     knownAuthorities: [],
     protocolMode: ProtocolMode.OIDC,
-    clockSkew: 0
+    clockSkew: 0,
 };
 
 /**
@@ -92,16 +97,18 @@ const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
  */
 const DEFAULT_SYSTEM_OPTIONS = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
-    networkClient: NetworkUtils.getNetworkClient()
+    networkClient: NetworkUtils.getNetworkClient(),
 };
 
 /**
  * Function that sets default configurations when not explicitly configured
- * 
+ *
  * @param {Configuration} config Configuration
  * @returns {TokenValidationConfiguration} Configuration built with defaults
  */
-export function buildConfiguration(config?: Configuration): TokenValidationConfiguration {
+export function buildConfiguration(
+    config?: Configuration
+): TokenValidationConfiguration {
     return {
         auth: { ...DEFAULT_TOKEN_VALIDATION_OPTIONS, ...config?.auth },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...config?.system },

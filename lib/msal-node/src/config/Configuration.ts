@@ -13,7 +13,7 @@ import {
     AzureCloudInstance,
     AzureCloudOptions,
     ApplicationTelemetry,
-    INativeBrokerPlugin
+    INativeBrokerPlugin,
 } from "@azure/msal-common";
 import { HttpClient } from "../network/HttpClient";
 import { AgentOptions as httpAgentOptions } from "http";
@@ -36,9 +36,9 @@ export type NodeAuthOptions = {
     clientSecret?: string;
     clientAssertion?: string;
     clientCertificate?: {
-        thumbprint: string,
-        privateKey: string,
-        x5c?: string
+        thumbprint: string;
+        privateKey: string;
+        x5c?: string;
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
@@ -62,7 +62,7 @@ export type CacheOptions = {
 /**
  * Use this to configure the below broker options:
  * - nativeBrokerPlugin - Native broker implementation (should be imported from msal-node-extensions)
- * 
+ *
  * Note: These options are only available for PublicClientApplications using the Authorization Code Flow
  * @public
  */
@@ -114,7 +114,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientCertificate: {
         thumbprint: Constants.EMPTY_STRING,
         privateKey: Constants.EMPTY_STRING,
-        x5c: Constants.EMPTY_STRING
+        x5c: Constants.EMPTY_STRING,
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: Constants.EMPTY_STRING,
@@ -123,7 +123,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     protocolMode: ProtocolMode.AAD,
     azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
-        tenant: Constants.EMPTY_STRING
+        tenant: Constants.EMPTY_STRING,
     },
     skipAuthorityMetadataCache: false,
 };
@@ -132,7 +132,7 @@ const DEFAULT_CACHE_OPTIONS: CacheOptions = {};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
-        // allow users to not set logger call back 
+        // allow users to not set logger call back
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
@@ -148,8 +148,8 @@ const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
 const DEFAULT_TELEMETRY_OPTIONS: Required<NodeTelemetryOptions> = {
     application: {
         appName: Constants.EMPTY_STRING,
-        appVersion: Constants.EMPTY_STRING
-    }
+        appVersion: Constants.EMPTY_STRING,
+    },
 };
 
 export type NodeConfiguration = {
@@ -176,19 +176,22 @@ export function buildAppConfiguration({
     broker,
     cache,
     system,
-    telemetry
+    telemetry,
 }: Configuration): NodeConfiguration {
     const systemOptions: Required<NodeSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        networkClient: new HttpClient(system?.proxyUrl, (system?.customAgentOptions as httpAgentOptions | httpsAgentOptions)),
+        networkClient: new HttpClient(
+            system?.proxyUrl,
+            system?.customAgentOptions as httpAgentOptions | httpsAgentOptions
+        ),
         loggerOptions: system?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
 
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
-        broker: { ...broker},
+        broker: { ...broker },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...systemOptions, ...system },
-        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry }
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
     };
 }

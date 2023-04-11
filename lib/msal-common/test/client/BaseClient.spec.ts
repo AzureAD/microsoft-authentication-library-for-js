@@ -7,28 +7,27 @@ import { Authority } from "../../src/authority/Authority";
 import sinon from "sinon";
 
 class TestClient extends BaseClient {
-
     constructor(config: ClientConfiguration) {
         super(config);
     }
 
-    getLogger(){
+    getLogger() {
         return this.logger;
     }
 
-    getConfig(){
+    getConfig() {
         return this.config;
     }
 
-    getCryptoUtils(){
+    getCryptoUtils() {
         return this.cryptoUtils;
     }
 
-    getNetworkClient(){
+    getNetworkClient() {
         return this.networkClient;
     }
 
-    getDefaultAuthorityInstance(){
+    getDefaultAuthorityInstance() {
         return this.authority;
     }
 
@@ -43,18 +42,29 @@ describe("BaseClient.ts Class Unit Tests", () => {
     });
 
     describe("Constructor", () => {
-
         it("Creates a valid BaseClient object", async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config = await ClientTestUtils.createTestClientConfiguration();
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             expect(client).not.toBeNull();
             expect(client instanceof BaseClient).toBe(true);
         });
 
         it("Sets fields on BaseClient object", async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config = await ClientTestUtils.createTestClientConfiguration();
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
 
             expect(client.getConfig()).not.toBeNull();
@@ -66,7 +76,12 @@ describe("BaseClient.ts Class Unit Tests", () => {
 
     describe("Header utils", () => {
         beforeEach(() => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon
+                .stub(
+                    Authority.prototype,
+                    <any>"getEndpointMetadataFromNetwork"
+                )
+                .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         });
 
         afterEach(() => {
@@ -74,11 +89,14 @@ describe("BaseClient.ts Class Unit Tests", () => {
         });
 
         it("Creates default token request headers", async () => {
-            const config = await ClientTestUtils.createTestClientConfiguration();
+            const config =
+                await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
             const headers = client.createTokenRequestHeaders();
 
-            expect(headers[HeaderNames.CONTENT_TYPE]).toBe(Constants.URL_FORM_CONTENT_TYPE);
+            expect(headers[HeaderNames.CONTENT_TYPE]).toBe(
+                Constants.URL_FORM_CONTENT_TYPE
+            );
         });
     });
 });

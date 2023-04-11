@@ -19,7 +19,7 @@ import {
     ServerAuthorizationTokenResponse,
     StringUtils,
     TimeUtils,
-    UrlString
+    UrlString,
 } from "@azure/msal-common";
 
 /**
@@ -27,7 +27,6 @@ import {
  * Note: We are only supporting public clients for password grant and for purely testing purposes
  */
 export class UsernamePasswordClient extends BaseClient {
-
     constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
@@ -37,17 +36,25 @@ export class UsernamePasswordClient extends BaseClient {
      * password_grant
      * @param request
      */
-    async acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        // @ts-ignore
-        const atsMeasurement = this.performanceClient?.startMeasurement("UsernamePasswordClientAcquireToken", request.correlationId);
+    async acquireToken(
+        request: CommonUsernamePasswordRequest
+    ): Promise<AuthenticationResult | null> {
+        const atsMeasurement = this.performanceClient?.startMeasurement(
+            // @ts-ignore
+            "UsernamePasswordClientAcquireToken",
+            request.correlationId
+        );
         this.logger.info("in acquireToken call in username-password client");
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response = await this.executeTokenRequest(this.authority, request);
+        const response = await this.executeTokenRequest(
+            this.authority,
+            request
+        );
 
         const httpVerToken = response.headers?.[HeaderNames.X_MS_HTTP_VERSION];
         atsMeasurement?.addStaticFields({
-            httpVerToken
+            httpVerToken,
         });
 
         const responseHandler = new ResponseHandler(
@@ -61,7 +68,12 @@ export class UsernamePasswordClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request);
+        const tokenResponse = responseHandler.handleServerTokenResponse(
+            response.body,
+            this.authority,
+            reqTimestamp,
+            request
+        );
 
         return tokenResponse;
     }
@@ -71,13 +83,19 @@ export class UsernamePasswordClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(
+        authority: Authority,
+        request: CommonUsernamePasswordRequest
+    ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const queryParametersString = this.createTokenQueryParameters(request);
-        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParametersString);
+        const endpoint = UrlString.appendQueryString(
+            authority.tokenEndpoint,
+            queryParametersString
+        );
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders({
             credential: request.username,
-            type: CcsCredentialType.UPN
+            type: CcsCredentialType.UPN,
         });
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
@@ -88,17 +106,24 @@ export class UsernamePasswordClient extends BaseClient {
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshKid: request.sshKid
+            sshKid: request.sshKid,
         };
 
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(
+            endpoint,
+            requestBody,
+            headers,
+            thumbprint
+        );
     }
 
     /**
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: CommonUsernamePasswordRequest): string {
+    private createTokenRequestBody(
+        request: CommonUsernamePasswordRequest
+    ): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -113,31 +138,50 @@ export class UsernamePasswordClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-        parameterBuilder.addApplicationTelemetry(this.config.telemetry.application);
+        parameterBuilder.addApplicationTelemetry(
+            this.config.telemetry.application
+        );
         parameterBuilder.addThrottling();
 
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        const correlationId =
+            request.correlationId ||
+            this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
         if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+            parameterBuilder.addClientSecret(
+                this.config.clientCredentials.clientSecret
+            );
         }
 
         if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
+            const clientAssertion =
+                this.config.clientCredentials.clientAssertion;
             parameterBuilder.addClientAssertion(clientAssertion.assertion);
-            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+            parameterBuilder.addClientAssertionType(
+                clientAssertion.assertionType
+            );
         }
 
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
-            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        if (
+            !StringUtils.isEmptyObj(request.claims) ||
+            (this.config.authOptions.clientCapabilities &&
+                this.config.authOptions.clientCapabilities.length > 0)
+        ) {
+            parameterBuilder.addClaims(
+                request.claims,
+                this.config.authOptions.clientCapabilities
+            );
         }
 
-        if (this.config.systemOptions.preventCorsPreflight && request.username) {
+        if (
+            this.config.systemOptions.preventCorsPreflight &&
+            request.username
+        ) {
             parameterBuilder.addCcsUpn(request.username);
         }
 

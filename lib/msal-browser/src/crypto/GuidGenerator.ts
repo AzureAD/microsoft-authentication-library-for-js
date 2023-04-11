@@ -3,11 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { Constants , IGuidGenerator } from "@azure/msal-common";
+import { Constants, IGuidGenerator } from "@azure/msal-common";
 import { MathUtils } from "../utils/MathUtils";
 import { BrowserCrypto } from "./BrowserCrypto";
 export class GuidGenerator implements IGuidGenerator {
-
     // browser crypto object used to generate random values
     private cryptoObj: BrowserCrypto;
 
@@ -50,16 +49,29 @@ export class GuidGenerator implements IGuidGenerator {
             buffer[8] |= 0x80; // buffer[8] | 10000000 will set the 7 bit to 1.
             buffer[8] &= 0xbf; // buffer[8] & 10111111 will set the 6 bit to 0.
 
-            return MathUtils.decimalToHex(buffer[0]) + MathUtils.decimalToHex(buffer[1])
-                + MathUtils.decimalToHex(buffer[2]) + MathUtils.decimalToHex(buffer[3])
-                + "-" + MathUtils.decimalToHex(buffer[4]) + MathUtils.decimalToHex(buffer[5])
-                + "-" + MathUtils.decimalToHex(buffer[6]) + MathUtils.decimalToHex(buffer[7])
-                + "-" + MathUtils.decimalToHex(buffer[8]) + MathUtils.decimalToHex(buffer[9])
-                + "-" + MathUtils.decimalToHex(buffer[10]) + MathUtils.decimalToHex(buffer[11])
-                + MathUtils.decimalToHex(buffer[12]) + MathUtils.decimalToHex(buffer[13])
-                + MathUtils.decimalToHex(buffer[14]) + MathUtils.decimalToHex(buffer[15]);
-        }
-        catch (err) {
+            return (
+                MathUtils.decimalToHex(buffer[0]) +
+                MathUtils.decimalToHex(buffer[1]) +
+                MathUtils.decimalToHex(buffer[2]) +
+                MathUtils.decimalToHex(buffer[3]) +
+                "-" +
+                MathUtils.decimalToHex(buffer[4]) +
+                MathUtils.decimalToHex(buffer[5]) +
+                "-" +
+                MathUtils.decimalToHex(buffer[6]) +
+                MathUtils.decimalToHex(buffer[7]) +
+                "-" +
+                MathUtils.decimalToHex(buffer[8]) +
+                MathUtils.decimalToHex(buffer[9]) +
+                "-" +
+                MathUtils.decimalToHex(buffer[10]) +
+                MathUtils.decimalToHex(buffer[11]) +
+                MathUtils.decimalToHex(buffer[12]) +
+                MathUtils.decimalToHex(buffer[13]) +
+                MathUtils.decimalToHex(buffer[14]) +
+                MathUtils.decimalToHex(buffer[15])
+            );
+        } catch (err) {
             const guidHolder: string = "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx";
             const hex: string = "0123456789abcdef";
             let r: number = 0;
@@ -67,7 +79,7 @@ export class GuidGenerator implements IGuidGenerator {
             for (let i: number = 0; i < 36; i++) {
                 if (guidHolder[i] !== "-" && guidHolder[i] !== "4") {
                     // each x and y needs to be random
-                    r = Math.random() * 16 | 0;
+                    r = (Math.random() * 16) | 0;
                 }
                 if (guidHolder[i] === "x") {
                     guidResponse += hex[r];
@@ -89,7 +101,8 @@ export class GuidGenerator implements IGuidGenerator {
      * @param guid
      */
     isGuid(guid: string): boolean {
-        const regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const regexGuid =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return regexGuid.test(guid);
     }
 }

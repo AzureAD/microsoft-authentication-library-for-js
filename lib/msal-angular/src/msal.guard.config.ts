@@ -3,14 +3,25 @@
  * Licensed under the MIT License.
  */
 
-import { RouterStateSnapshot } from "@angular/router";
-import { PopupRequest, RedirectRequest,InteractionType } from "@azure/msal-browser";
-import { MsalService } from "./msal.service";
+import { RouterStateSnapshot } from '@angular/router';
+import {
+  PopupRequest,
+  RedirectRequest,
+  InteractionType,
+} from '@azure/msal-browser';
+import { MsalService } from './msal.service';
 
-export declare type MsalGuardAuthRequest = Partial<PopupRequest> | Partial<Omit<RedirectRequest, "redirectStartPage">>;
+export declare type MsalGuardAuthRequest =
+  | Partial<PopupRequest>
+  | Partial<Omit<RedirectRequest, 'redirectStartPage'>>;
 
 export type MsalGuardConfiguration = {
-    interactionType: InteractionType.Popup | InteractionType.Redirect;
-    authRequest?: MsalGuardAuthRequest | ((authService: MsalService, state: RouterStateSnapshot) => MsalGuardAuthRequest);
-    loginFailedRoute?: string;
+  interactionType: InteractionType.Popup | InteractionType.Redirect;
+  authRequest?:
+    | MsalGuardAuthRequest
+    | ((
+        authService: MsalService,
+        state: RouterStateSnapshot
+      ) => MsalGuardAuthRequest);
+  loginFailedRoute?: string;
 };

@@ -3,10 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { Constants as CommonConstants, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
+import {
+    Constants as CommonConstants,
+    ServerAuthorizationCodeResponse,
+    UrlString,
+} from "@azure/msal-common";
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
-import { Constants, HttpStatus, LOOPBACK_SERVER_CONSTANTS } from "../utils/Constants";
+import {
+    Constants,
+    HttpStatus,
+    LOOPBACK_SERVER_CONSTANTS,
+} from "../utils/Constants";
 import { ILoopbackClient } from "./ILoopbackClient";
 
 export class LoopbackClient implements ILoopbackClient {
@@ -18,39 +26,61 @@ export class LoopbackClient implements ILoopbackClient {
      * @param errorTemplate
      * @returns
      */
-    async listenForAuthCode(successTemplate?: string, errorTemplate?: string): Promise<ServerAuthorizationCodeResponse> {
+    async listenForAuthCode(
+        successTemplate?: string,
+        errorTemplate?: string
+    ): Promise<ServerAuthorizationCodeResponse> {
         if (!!this.server) {
             throw NodeAuthError.createLoopbackServerAlreadyExistsError();
         }
 
-        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>((resolve, reject) => {
-            this.server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-                const url = req.url;
-                if (!url) {
-                    res.end(errorTemplate || "Error occurred loading redirectUrl");
-                    reject(NodeAuthError.createUnableToLoadRedirectUrlError());
-                    return;
-                } else if (url === CommonConstants.FORWARD_SLASH) {
-                    res.end(successTemplate || "Auth code was successfully acquired. You can close this window now.");
-                    return;
-                }
+        const authCodeListener = new Promise<ServerAuthorizationCodeResponse>(
+            (resolve, reject) => {
+                this.server = createServer(
+                    async (req: IncomingMessage, res: ServerResponse) => {
+                        const url = req.url;
+                        if (!url) {
+                            res.end(
+                                errorTemplate ||
+                                    "Error occurred loading redirectUrl"
+                            );
+                            reject(
+                                NodeAuthError.createUnableToLoadRedirectUrlError()
+                            );
+                            return;
+                        } else if (url === CommonConstants.FORWARD_SLASH) {
+                            res.end(
+                                successTemplate ||
+                                    "Auth code was successfully acquired. You can close this window now."
+                            );
+                            return;
+                        }
 
-                const authCodeResponse = UrlString.getDeserializedQueryString(url);
-                if (authCodeResponse.code) {
-                    const redirectUri = await this.getRedirectUri();
-                    res.writeHead(HttpStatus.REDIRECT, { location: redirectUri }); // Prevent auth code from being saved in the browser history
-                    res.end();
-                }
-                resolve(authCodeResponse);
-            });
-            this.server.listen(0); // Listen on any available port
-        });
+                        const authCodeResponse =
+                            UrlString.getDeserializedQueryString(url);
+                        if (authCodeResponse.code) {
+                            const redirectUri = await this.getRedirectUri();
+                            res.writeHead(HttpStatus.REDIRECT, {
+                                location: redirectUri,
+                            }); // Prevent auth code from being saved in the browser history
+                            res.end();
+                        }
+                        resolve(authCodeResponse);
+                    }
+                );
+                this.server.listen(0); // Listen on any available port
+            }
+        );
 
         // Wait for server to be listening
         await new Promise<void>((resolve) => {
             let ticks = 0;
             const id = setInterval(() => {
-                if ((LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS / LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS) < ticks) {
+                if (
+                    LOOPBACK_SERVER_CONSTANTS.TIMEOUT_MS /
+                        LOOPBACK_SERVER_CONSTANTS.INTERVAL_MS <
+                    ticks
+                ) {
                     throw NodeAuthError.createLoopbackServerTimeoutError();
                 }
 

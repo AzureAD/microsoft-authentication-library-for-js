@@ -10,24 +10,34 @@ import { getChildrenOrFunction } from "../utils/utilities";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { InteractionStatus } from "@azure/msal-browser";
 
-export type UnauthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;
+export type UnauthenticatedTemplateProps =
+    PropsWithChildren<AccountIdentifiers>;
 
 /**
  * Renders child components if user is unauthenticated
- * @param props 
+ * @param props
  */
-export function UnauthenticatedTemplate({ username, homeAccountId, localAccountId, children }: UnauthenticatedTemplateProps): React.ReactElement|null {
+export function UnauthenticatedTemplate({
+    username,
+    homeAccountId,
+    localAccountId,
+    children,
+}: UnauthenticatedTemplateProps): React.ReactElement | null {
     const context = useMsal();
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {
             username,
             homeAccountId,
-            localAccountId
+            localAccountId,
         };
     }, [username, homeAccountId, localAccountId]);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
-    if (!isAuthenticated && context.inProgress !== InteractionStatus.Startup && context.inProgress !== InteractionStatus.HandleRedirect) {
+    if (
+        !isAuthenticated &&
+        context.inProgress !== InteractionStatus.Startup &&
+        context.inProgress !== InteractionStatus.HandleRedirect
+    ) {
         return (
             <React.Fragment>
                 {getChildrenOrFunction(children, context)}

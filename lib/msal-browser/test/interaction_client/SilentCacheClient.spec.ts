@@ -5,9 +5,27 @@
 
 import sinon from "sinon";
 import { PublicClientApplication, BrowserAuthError } from "../../src";
-import { TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_TOKENS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import {
+    TEST_CONFIG,
+    ID_TOKEN_CLAIMS,
+    TEST_TOKENS,
+    DEFAULT_OPENID_CONFIG_RESPONSE,
+} from "../utils/StringConstants";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
-import { AuthToken, CacheManager, IdTokenEntity, AccountEntity, AccessTokenEntity, CredentialType, AuthenticationScheme, RefreshTokenEntity, TimeUtils, AuthenticationResult, AccountInfo, Authority } from "@azure/msal-common";
+import {
+    AuthToken,
+    CacheManager,
+    IdTokenEntity,
+    AccountEntity,
+    AccessTokenEntity,
+    CredentialType,
+    AuthenticationScheme,
+    RefreshTokenEntity,
+    TimeUtils,
+    AuthenticationResult,
+    AccountInfo,
+    Authority,
+} from "@azure/msal-common";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${ID_TOKEN_CLAIMS.oid}.${ID_TOKEN_CLAIMS.tid}`;
@@ -53,9 +71,8 @@ const testAccount: AccountInfo = {
     username: ID_TOKEN_CLAIMS.preferred_username,
     localAccountId: ID_TOKEN_CLAIMS.oid,
     idTokenClaims: ID_TOKEN_CLAIMS,
-    name: ID_TOKEN_CLAIMS.name
+    name: ID_TOKEN_CLAIMS.name,
 };
-
 
 describe("SilentCacheClient", () => {
     let silentCacheClient: SilentCacheClient;
@@ -63,21 +80,29 @@ describe("SilentCacheClient", () => {
     beforeEach(() => {
         let pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
-            }
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
         });
 
         //Implementation of PCA was moved to controller.
         pca = (pca as any).controller;
 
         // @ts-ignore
-        silentCacheClient = new SilentCacheClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
-    })
+        silentCacheClient = new SilentCacheClient(
+            pca.config,
+            pca.browserStorage,
+            pca.browserCrypto,
+            pca.logger,
+            pca.eventHandler,
+            pca.navigationClient,
+            pca.performanceClient
+        );
+    });
 
     afterEach(() => {
         sinon.restore();
     });
-    
+
     describe("acquireToken", () => {
         it("successfully acquires the token from the cache", async () => {
             const response: AuthenticationResult = {
@@ -91,28 +116,44 @@ describe("SilentCacheClient", () => {
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 fromCache: true,
                 correlationId: "testCorrelationId",
-                expiresOn: new Date(Number(testAccessTokenEntity.expiresOn) * 1000),
-                tokenType: AuthenticationScheme.BEARER
-            }
-            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
-            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
-            sinon.stub(CacheManager.prototype, "getIdToken").returns(testIdToken);
-            sinon.stub(CacheManager.prototype, "getAccessToken").returns(testAccessTokenEntity);
-            sinon.stub(CacheManager.prototype, "getRefreshToken").returns(testRefreshTokenEntity);
+                expiresOn: new Date(
+                    Number(testAccessTokenEntity.expiresOn) * 1000
+                ),
+                tokenType: AuthenticationScheme.BEARER,
+            };
+            sinon
+                .stub(AuthToken, "extractTokenClaims")
+                .returns(ID_TOKEN_CLAIMS);
+            sinon
+                .stub(CacheManager.prototype, "readAccountFromCache")
+                .returns(testAccountEntity);
+            sinon
+                .stub(CacheManager.prototype, "getIdToken")
+                .returns(testIdToken);
+            sinon
+                .stub(CacheManager.prototype, "getAccessToken")
+                .returns(testAccessTokenEntity);
+            sinon
+                .stub(CacheManager.prototype, "getRefreshToken")
+                .returns(testRefreshTokenEntity);
 
-            await expect(silentCacheClient.acquireToken({
-                authority: TEST_CONFIG.validAuthority,
-                correlationId: "testCorrelationId",
-                account: testAccount, 
-                scopes: ["openid"],
-                forceRefresh: false
-            })).resolves.toMatchObject(response);
+            await expect(
+                silentCacheClient.acquireToken({
+                    authority: TEST_CONFIG.validAuthority,
+                    correlationId: "testCorrelationId",
+                    account: testAccount,
+                    scopes: ["openid"],
+                    forceRefresh: false,
+                })
+            ).resolves.toMatchObject(response);
         });
     });
 
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
-            await expect(silentCacheClient.logout).rejects.toMatchObject(BrowserAuthError.createSilentLogoutUnsupportedError());
+            await expect(silentCacheClient.logout).rejects.toMatchObject(
+                BrowserAuthError.createSilentLogoutUnsupportedError()
+            );
         });
     });
 });

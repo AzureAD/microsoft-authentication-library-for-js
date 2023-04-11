@@ -5,7 +5,7 @@
 
 export const Constants = {
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
-    EMPTY_STRING: ""
+    EMPTY_STRING: "",
 };
 
 /**
@@ -22,7 +22,7 @@ export enum HttpMethod {
 export const JwtConstants = {
     ALGORITHM: "alg",
     RSA_256: "RS256",
-    X5T: "x5t", 
+    X5T: "x5t",
     X5C: "x5c",
     AUDIENCE: "aud",
     EXPIRATION_TIME: "exp",
@@ -36,16 +36,16 @@ export const JwtConstants = {
  * Token Types
  */
 export const TokenType = {
-    JWT: "JWT"
+    JWT: "JWT",
 };
 
 /**
  * HTTP status code constants
- * 
+ *
  * HTTP status codes are used when checking network responses for errors.
  * Status codes indicating request timeout or service unavailable will result in retrying the network request.
  */
 export enum HttpStatusCode {
     RequestTimeout = 408,
-    ServiceUnavailable = 503
+    ServiceUnavailable = 503,
 }

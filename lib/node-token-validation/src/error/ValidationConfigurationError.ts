@@ -11,39 +11,38 @@ import { ClientConfigurationError } from "@azure/msal-common";
 export const ValidationConfigurationErrorMessage = {
     missingToken: {
         code: "missing_token",
-        desc: "Unable to validate token when token is not provided."
+        desc: "Unable to validate token when token is not provided.",
     },
     emptyIssuer: {
         code: "empty_issuer",
-        desc: "Unable to validate token when validIssuers provided is empty."
+        desc: "Unable to validate token when validIssuers provided is empty.",
     },
     emptyAudience: {
         code: "empty_audience",
-        desc: "Unable to validate token when validAudiences provided is empty."
+        desc: "Unable to validate token when validAudiences provided is empty.",
     },
     missingNonce: {
         code: "missing_nonce",
-        desc: "Nonce is present on id token, but nonce is not set in validationParams. Provide nonce to validate id token."
+        desc: "Nonce is present on id token, but nonce is not set in validationParams. Provide nonce to validate id token.",
     },
     invalidMetadata: {
         code: "invalid_metadata",
-        desc: "Metadata returned from well-known endpoint is invalid and does not contain jwks_uri."
+        desc: "Metadata returned from well-known endpoint is invalid and does not contain jwks_uri.",
     },
     invalidAuthenticationScheme: {
         code: "invalid_auth_scheme",
-        desc: "Invalid authentication scheme. Only bearer is supported by the library at this time."
+        desc: "Invalid authentication scheme. Only bearer is supported by the library at this time.",
     },
     negativeClockSkew: {
         code: "negative_clock_skew",
-        desc: "Invalid clock skew value. Clock skew must be a positive integer."
-    }
+        desc: "Invalid clock skew value. Clock skew must be a positive integer.",
+    },
 };
 
 /**
  * Token Validation library error class thrown for configuration errors
  */
 export class ValidationConfigurationError extends ClientConfigurationError {
-
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ValidationConfigurationError";
@@ -56,8 +55,13 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @param {string} appendError Additional details for the missing token error
      * @returns {ValidationConfigurationError} Missing token error
      */
-    static createMissingTokenError(appendError?: string): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, `${ValidationConfigurationErrorMessage.missingToken.desc} Detail: ${appendError}`);
+    static createMissingTokenError(
+        appendError?: string
+    ): ValidationConfigurationError {
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.missingToken.code,
+            `${ValidationConfigurationErrorMessage.missingToken.desc} Detail: ${appendError}`
+        );
     }
 
     /**
@@ -66,7 +70,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @returns {ValidationConfigurationError} Empty issuer error
      */
     static createEmptyIssuerError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyIssuer.code, ValidationConfigurationErrorMessage.emptyIssuer.desc);
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.emptyIssuer.code,
+            ValidationConfigurationErrorMessage.emptyIssuer.desc
+        );
     }
 
     /**
@@ -75,7 +82,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @returns {ValidationConfigurationError} Empty audience error
      */
     static createEmptyAudienceError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyAudience.code, ValidationConfigurationErrorMessage.emptyAudience.desc);
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.emptyAudience.code,
+            ValidationConfigurationErrorMessage.emptyAudience.desc
+        );
     }
 
     /**
@@ -84,7 +94,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @returns {ValidationConfigurationError} Empty nonce error
      */
     static createMissingNonceError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingNonce.code, ValidationConfigurationErrorMessage.missingNonce.desc);
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.missingNonce.code,
+            ValidationConfigurationErrorMessage.missingNonce.desc
+        );
     }
 
     /**
@@ -93,7 +106,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @returns {ValidationConfigurationError} Invalid metadata error
      */
     static createInvalidMetadataError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidMetadata.code, ValidationConfigurationErrorMessage.invalidMetadata.desc);
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.invalidMetadata.code,
+            ValidationConfigurationErrorMessage.invalidMetadata.desc
+        );
     }
 
     /**
@@ -102,8 +118,13 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @param {string} appendError Additional details for the error.
      * @returns {ValidationConfigurationError} Invalid authentication scheme error
      */
-    static createInvalidAuthenticationScheme(appendError?: string): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code, `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`);
+    static createInvalidAuthenticationScheme(
+        appendError?: string
+    ): ValidationConfigurationError {
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.invalidAuthenticationScheme.code,
+            `${ValidationConfigurationErrorMessage.invalidAuthenticationScheme.desc} Detail: ${appendError}`
+        );
     }
 
     /**
@@ -112,6 +133,9 @@ export class ValidationConfigurationError extends ClientConfigurationError {
      * @returns {ValidationConfigurationError} Negative clock skew error
      */
     static createNegativeClockSkewError(): ValidationConfigurationError {
-        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.negativeClockSkew.code, ValidationConfigurationErrorMessage.negativeClockSkew.desc);
+        return new ValidationConfigurationError(
+            ValidationConfigurationErrorMessage.negativeClockSkew.code,
+            ValidationConfigurationErrorMessage.negativeClockSkew.desc
+        );
     }
 }

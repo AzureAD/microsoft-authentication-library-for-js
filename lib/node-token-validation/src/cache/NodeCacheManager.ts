@@ -3,7 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorityMetadataEntity, CacheManager, ICrypto, Logger, ValidCacheType, TokenKeys } from "@azure/msal-common";
+import {
+    AuthorityMetadataEntity,
+    CacheManager,
+    ICrypto,
+    Logger,
+    ValidCacheType,
+    TokenKeys,
+} from "@azure/msal-common";
 import { CacheKVStore } from "./CacheTypes";
 
 /**
@@ -31,7 +38,7 @@ export class NodeCacheManager extends CacheManager {
     /**
      * Sets the current cache key-value store
      *
-     * @param {CacheKVStore} cache 
+     * @param {CacheKVStore} cache the cache
      */
     setCache(cache: CacheKVStore): void {
         this.logger.trace("Setting cache");
@@ -114,7 +121,7 @@ export class NodeCacheManager extends CacheManager {
 
         // Read cache
         const cache = this.getCache();
-        return [ ...Object.keys(cache)];
+        return [...Object.keys(cache)];
     }
 
     /**
@@ -127,7 +134,7 @@ export class NodeCacheManager extends CacheManager {
         const cacheKeys = this.getKeys();
 
         // Delete each element
-        cacheKeys.forEach(key => {
+        cacheKeys.forEach((key) => {
             this.removeItem(key);
         });
     }
@@ -184,12 +191,20 @@ export class NodeCacheManager extends CacheManager {
      * Fetch authority metadata entity from the cache
      *
      * @param {string} key Lookup key to fetch cache type AuthorityMetadataEntity
-     * @returns {AuthorityMetadataEntity} Authority metadata entity 
+     * @returns {AuthorityMetadataEntity} Authority metadata entity
      */
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
         this.logger.trace("NodeCacheManager.getAuthorityMetadata called");
-        const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(key) as AuthorityMetadataEntity;
-        if (authorityMetadataEntity && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, authorityMetadataEntity)) {
+        const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(
+            key
+        ) as AuthorityMetadataEntity;
+        if (
+            authorityMetadataEntity &&
+            AuthorityMetadataEntity.isAuthorityMetadataEntity(
+                key,
+                authorityMetadataEntity
+            )
+        ) {
             return authorityMetadataEntity;
         }
         return null;

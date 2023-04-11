@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, CommonSilentFlowRequest, StringDict } from "@azure/msal-common";
+import {
+    AccountInfo,
+    CommonSilentFlowRequest,
+    StringDict,
+} from "@azure/msal-common";
 import { CacheLookupPolicy } from "../utils/BrowserConstants";
 
 /**
@@ -24,7 +28,14 @@ import { CacheLookupPolicy } from "../utils/BrowserConstants";
  *          none:  will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error
  *          no_session: will not read existing session token when authenticating the user. Upon user being successfully authenticated, EVO won’t create a new session for the user. FOR INTERNAL USE ONLY.
  */
-export type SilentRequest = Omit<CommonSilentFlowRequest, "authority"|"correlationId"|"forceRefresh"|"account"|"requestedClaimsHash"> & {
+export type SilentRequest = Omit<
+    CommonSilentFlowRequest,
+    | "authority"
+    | "correlationId"
+    | "forceRefresh"
+    | "account"
+    | "requestedClaimsHash"
+> & {
     redirectUri?: string;
     extraQueryParameters?: StringDict;
     authority?: string;

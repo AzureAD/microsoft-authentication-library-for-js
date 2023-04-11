@@ -11,14 +11,16 @@
  * This extensibility point is only defined for the client_credential flow, i.e. acquireTokenByClientCredential and
  * meant for Azure SDK to enhance Managed Identity support.
  */
-export interface IAppTokenProvider { 
-    (appTokenProviderParameters: AppTokenProviderParameters): Promise<AppTokenProviderResult>;
+export interface IAppTokenProvider {
+    (
+        appTokenProviderParameters: AppTokenProviderParameters
+    ): Promise<AppTokenProviderResult>;
 }
 
 /**
  * Input object for the IAppTokenProvider extensiblity. MSAL will create this object, which can be used
  * to help create an AppTokenProviderResult.
- * 
+ *
  * - correlationId           - the correlation Id associated with the request
  * - tenantId                - the tenant Id for which the token must be provided
  * - scopes                  - the scopes for which the token must be provided
@@ -32,9 +34,9 @@ export type AppTokenProviderParameters = {
 };
 
 /**
- * Output object for IAppTokenProvider extensiblity. 
- * 
- * - accessToken            - the actual access token, typically in JWT format, that satisfies the request data AppTokenProviderParameters 
+ * Output object for IAppTokenProvider extensiblity.
+ *
+ * - accessToken            - the actual access token, typically in JWT format, that satisfies the request data AppTokenProviderParameters
  * - expiresInSeconds       - how long the tokens has before expiry, in seconds. Similar to the "expires_in" field in an AAD token response.
  * - refreshInSeconds       - how long the token has before it should be proactively refreshed. Similar to the "refresh_in" field in an AAD token response.
  */

@@ -66,7 +66,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
-     * @param kid 
+     * @param kid
      */
     removeTokenBindingKey(): Promise<boolean> {
         throw new Error("Method not implemented.");
@@ -91,8 +91,8 @@ export class CryptoProvider implements ICrypto {
      */
     async hashString(plainText: string): Promise<string> {
         return EncodingUtils.base64EncodeUrl(
-            this.hashUtils.sha256(plainText).toString("base64"), 
-            "base64" 
+            this.hashUtils.sha256(plainText).toString("base64"),
+            "base64"
         );
     }
 }

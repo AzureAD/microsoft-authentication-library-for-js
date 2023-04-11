@@ -44,17 +44,27 @@ export class NetworkManager {
      * @param tokenEndpoint
      * @param options
      */
-    async sendPostRequest<T extends ServerAuthorizationTokenResponse>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    async sendPostRequest<T extends ServerAuthorizationTokenResponse>(
+        thumbprint: RequestThumbprint,
+        tokenEndpoint: string,
+        options: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
 
         let response;
         try {
-            response = await this.networkClient.sendPostRequestAsync<T>(tokenEndpoint, options);
+            response = await this.networkClient.sendPostRequestAsync<T>(
+                tokenEndpoint,
+                options
+            );
         } catch (e) {
             if (e instanceof AuthError) {
                 throw e;
             } else {
-                throw ClientAuthError.createNetworkError(tokenEndpoint, e as string);
+                throw ClientAuthError.createNetworkError(
+                    tokenEndpoint,
+                    e as string
+                );
             }
         }
 
