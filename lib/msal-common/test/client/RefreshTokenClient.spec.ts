@@ -123,7 +123,7 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
-            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url) => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake(async (url: string) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
                 done();
             });
@@ -535,7 +535,6 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasuremeant: jest.fn(),
                 startPerformanceMeasurement: jest.fn(),
                 generateId: jest.fn(),
                 calculateQueuedTime: jest.fn(),
@@ -571,7 +570,6 @@ describe("RefreshTokenClient unit tests", () => {
                 removePerformanceCallback: jest.fn(),
                 addPerformanceCallback: jest.fn(),
                 emitEvents: jest.fn(),
-                startPerformanceMeasuremeant: jest.fn(),
                 startPerformanceMeasurement: jest.fn(),
                 generateId: jest.fn(),
                 calculateQueuedTime: jest.fn(),

@@ -6,7 +6,6 @@
 import { DataProtectionScope, FilePersistenceWithDataProtection } from "../../src";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 import { Dpapi } from "../../src/Dpapi";
-import { mocked } from 'ts-jest/utils';
 
 jest.mock("../../src/Dpapi");
 
@@ -34,8 +33,8 @@ describe('Test File Persistence with data protection', () => {
     });
 
     test('Saves and loads contents', async () => {
-        mocked(Dpapi.unprotectData).mockReturnValueOnce(Buffer.from("data"));
-        mocked(Dpapi.protectData).mockReturnValueOnce(Buffer.from("encryptedData"));
+        jest.spyOn(Dpapi, 'unprotectData').mockReturnValueOnce(Buffer.from("data"));
+        jest.spyOn(Dpapi, 'protectData').mockReturnValueOnce(Buffer.from("encryptedData"));
 
         const persistence = await FilePersistenceWithDataProtection.create(filePath, dpapiScope);
         const contents = "test";

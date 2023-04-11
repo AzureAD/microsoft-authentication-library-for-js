@@ -35,8 +35,8 @@ export class ProtocolUtils {
 
     /**
      * Appends user state with random guid, or returns random guid.
-     * @param userState 
-     * @param randomGuid 
+     * @param userState
+     * @param randomGuid
      */
     static setRequestState(cryptoObj: ICrypto, userState?: string, meta?: Record<string, string>): string {
         const libraryState = ProtocolUtils.generateLibraryState(cryptoObj, meta);
@@ -45,8 +45,8 @@ export class ProtocolUtils {
 
     /**
      * Generates the state value used by the common library.
-     * @param randomGuid 
-     * @param cryptoObj 
+     * @param randomGuid
+     * @param cryptoObj
      */
     static generateLibraryState(cryptoObj: ICrypto, meta?: Record<string, string>): string {
         if (!cryptoObj) {
@@ -69,8 +69,8 @@ export class ProtocolUtils {
 
     /**
      * Parses the state into the RequestStateObject, which contains the LibraryState info and the state passed by the user.
-     * @param state 
-     * @param cryptoObj 
+     * @param state
+     * @param cryptoObj
      */
     static parseRequestState(cryptoObj: ICrypto, state: string): RequestStateObject {
         if (!cryptoObj) {
@@ -93,7 +93,7 @@ export class ProtocolUtils {
                 libraryState: libraryStateObj
             };
         } catch(e) {
-            throw ClientAuthError.createInvalidStateError(state, e);
+            throw ClientAuthError.createInvalidStateError(state, e as string);
         }
     }
 }

@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Fix telemetry typos #5868",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

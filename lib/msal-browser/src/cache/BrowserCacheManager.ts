@@ -61,7 +61,7 @@ export class BrowserCacheManager extends CacheManager {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
                     return new BrowserStorage(cacheLocation);
                 } catch (e) {
-                    this.logger.verbose(e);
+                    this.logger.verbose(e as string);
                     break;
                 }
             case BrowserCacheLocation.MemoryStorage:
@@ -84,7 +84,7 @@ export class BrowserCacheManager extends CacheManager {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
                     return new BrowserStorage(BrowserCacheLocation.SessionStorage);
                 } catch (e) {
-                    this.logger.verbose(e);
+                    this.logger.verbose(e as string);
                     return this.internalStorage;
                 }
             case BrowserCacheLocation.MemoryStorage:
