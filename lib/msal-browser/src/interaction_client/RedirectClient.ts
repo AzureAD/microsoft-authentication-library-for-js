@@ -164,8 +164,8 @@ export class RedirectClient extends StandardInteractionClient {
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
             window.removeEventListener("pageshow", handleBackButton);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
@@ -334,8 +334,8 @@ export class RedirectClient extends StandardInteractionClient {
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByInteractionType(
                 InteractionType.Redirect
             );
@@ -553,8 +553,8 @@ export class RedirectClient extends StandardInteractionClient {
         } catch (e) {
             if (e instanceof AuthError) {
                 (e as AuthError).setCorrelationId(this.correlationId);
+                serverTelemetryManager.cacheFailedRequest(e);
             }
-            serverTelemetryManager.cacheFailedRequest(e);
             this.eventHandler.emitEvent(
                 EventType.LOGOUT_FAILURE,
                 InteractionType.Redirect,

@@ -384,12 +384,14 @@ describe("InteractionHandler.ts Unit Tests", () => {
             //@ts-ignore
             expect(
                 interactionHandler.handleCodeResponseFromHash(
+                    //@ts-ignore
                     null,
                     "",
                     authorityInstance,
                     authConfig.networkInterface
                 )
             ).rejects.toMatchObject(
+                //@ts-ignore
                 BrowserAuthError.createEmptyHashError(null)
             );
         });

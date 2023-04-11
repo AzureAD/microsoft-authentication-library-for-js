@@ -79,13 +79,21 @@ describe("PopupClient", () => {
 
         //@ts-ignore
         popupClient = new PopupClient(
+            //@ts-ignore
             pca.config,
+            //@ts-ignore
             pca.browserStorage,
+            //@ts-ignore
             pca.browserCrypto,
+            //@ts-ignore
             pca.logger,
+            //@ts-ignore
             pca.eventHandler,
+            //@ts-ignore
             pca.navigationClient,
+            //@ts-ignore
             pca.performanceClient,
+            //@ts-ignore
             pca.nativeInternalStorage,
             undefined,
             TEST_CONFIG.CORRELATION_ID
@@ -221,13 +229,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -352,21 +368,29 @@ describe("PopupClient", () => {
             sinon
                 .stub(CryptoOps.prototype, "createNewGuid")
                 .returns(RANDOM_TEST_GUID);
-            // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(
+                //@ts-ignore
                 pca.logger,
                 2000,
                 getDefaultPerformanceClient()
             );
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
@@ -456,13 +480,21 @@ describe("PopupClient", () => {
                 .returns(RANDOM_TEST_GUID);
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -644,13 +676,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -713,13 +753,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -766,12 +814,19 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient
             );
 
@@ -810,13 +865,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -855,12 +918,19 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient
             );
             const logoutHint = "test@user.com";
@@ -897,13 +967,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -976,13 +1054,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
             const logoutHint = "test@user.com";
@@ -1342,6 +1428,7 @@ describe("PopupClient", () => {
                 close: () => {
                     // @ts-ignore
                     expect(
+                        //@ts-ignore
                         pca.browserStorage.getTemporaryCache(
                             TemporaryCacheKeys.INTERACTION_STATUS_KEY
                         )
@@ -1444,13 +1531,21 @@ describe("PopupClient", () => {
 
             //@ts-ignore
             popupClient = new PopupClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage,
                 undefined,
                 TEST_CONFIG.CORRELATION_ID

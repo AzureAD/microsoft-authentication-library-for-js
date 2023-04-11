@@ -99,16 +99,23 @@ describe("NativeInteractionClient Tests", () => {
     );
     // @ts-ignore
     const nativeInteractionClient = new NativeInteractionClient(
+        // @ts-ignore
         pca.config,
+        // @ts-ignore
         pca.browserStorage,
+        // @ts-ignore
         pca.browserCrypto,
         pca.getLogger(),
+        // @ts-ignore
         pca.eventHandler,
+        // @ts-ignore
         pca.navigationClient,
         ApiId.acquireTokenRedirect,
+        // @ts-ignore
         pca.performanceClient,
         wamProvider,
         "nativeAccountId",
+        // @ts-ignore
         pca.nativeInternalStorage,
         RANDOM_TEST_GUID
     );
@@ -447,16 +454,24 @@ describe("NativeInteractionClient Tests", () => {
                 });
             // @ts-ignore
             const nativeInteractionClient = new NativeInteractionClient(
+                // @ts-ignore
                 pca.config,
+                // @ts-ignore
                 pca.browserStorage,
+                // @ts-ignore
                 pca.browserCrypto,
+                // @ts-ignore
                 pca.getLogger(),
+                // @ts-ignore
                 pca.eventHandler,
+                // @ts-ignore
                 pca.navigationClient,
                 ApiId.ssoSilent,
+                // @ts-ignore
                 pca.performanceClient,
                 wamProvider,
                 "nativeAccountId",
+                // @ts-ignore
                 pca.nativeInternalStorage,
                 RANDOM_TEST_GUID
             );
@@ -509,16 +524,24 @@ describe("NativeInteractionClient Tests", () => {
                 });
             // @ts-ignore
             const nativeInteractionClient = new NativeInteractionClient(
+                // @ts-ignore
                 pca.config,
+                // @ts-ignore
                 pca.browserStorage,
+                // @ts-ignore
                 pca.browserCrypto,
+                // @ts-ignore
                 pca.getLogger(),
+                // @ts-ignore
                 pca.eventHandler,
+                // @ts-ignore
                 pca.navigationClient,
                 ApiId.acquireTokenSilent_silentFlow,
+                // @ts-ignore
                 pca.performanceClient,
                 wamProvider,
                 "nativeAccountId",
+                // @ts-ignore
                 pca.nativeInternalStorage,
                 RANDOM_TEST_GUID
             );
@@ -765,16 +788,16 @@ describe("NativeInteractionClient Tests", () => {
             nativeInteractionClient
                 .acquireTokenRedirect({ scopes: ["User.Read"] })
                 .then(() => {
-                    // @ts-ignore
                     const inProgress =
+                        // @ts-ignore
                         pca.browserStorage.getInteractionInProgress();
                     expect(inProgress).toBeTruthy();
                     nativeInteractionClient
                         .handleRedirectPromise()
                         .catch((e) => {
                             expect(e.errorCode).toBe("ContentError");
-                            // @ts-ignore
                             const isInProgress =
+                                // @ts-ignore
                                 pca.browserStorage.getInteractionInProgress();
                             expect(isInProgress).toBeFalsy();
                             done();

@@ -58,8 +58,8 @@ describe("BrowserPerformanceClient.ts", () => {
         expect(
             browserPerfClient.getPreQueueTime(eventName, correlationId)
         ).toEqual(perfTimeNow);
-        // @ts-ignore
         expect(
+            // @ts-ignore
             browserPerfClient.preQueueTimeByCorrelationId.get(correlationId)
         ).toEqual({ name: eventName, time: perfTimeNow });
     });

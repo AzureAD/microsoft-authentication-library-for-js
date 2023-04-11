@@ -384,12 +384,14 @@ describe("RedirectHandler.ts Unit Tests", () => {
             //@ts-ignore
             expect(
                 redirectHandler.handleCodeResponseFromHash(
+                    //@ts-ignore
                     null,
                     "",
                     authorityInstance,
                     authConfig.networkInterface!
                 )
             ).rejects.toMatchObject(
+                //@ts-ignore
                 BrowserAuthError.createEmptyHashError(null)
             );
         });

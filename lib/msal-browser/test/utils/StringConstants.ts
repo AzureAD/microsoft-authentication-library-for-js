@@ -233,7 +233,7 @@ export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     },
 };
 
-export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<any> = {
+export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<unknown> = {
     headers: {},
     status: 200,
     body: {

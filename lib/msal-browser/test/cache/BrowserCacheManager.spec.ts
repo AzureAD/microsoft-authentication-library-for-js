@@ -1137,12 +1137,17 @@ describe("BrowserCacheManager tests", () => {
                 testObj.preferred_network = Constants.DEFAULT_AUTHORITY_HOST;
                 testObj.canonical_authority = Constants.DEFAULT_AUTHORITY;
                 testObj.authorization_endpoint =
+                    //@ts-ignore
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
                 testObj.token_endpoint =
+                    //@ts-ignore
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
                 testObj.end_session_endpoint =
+                    //@ts-ignore
                     DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
+                //@ts-ignore
                 testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
+                //@ts-ignore
                 testObj.jwks_uri = DEFAULT_OPENID_CONFIG_RESPONSE.body.jwks_uri;
                 testObj.aliasesFromNetwork = false;
                 testObj.endpointsFromNetwork = false;

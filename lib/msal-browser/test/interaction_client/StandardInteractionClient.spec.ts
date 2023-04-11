@@ -65,12 +65,19 @@ describe("StandardInteractionClient", () => {
 
         // @ts-ignore
         testClient = new testStandardInteractionClient(
+            //@ts-ignore
             pca.config,
+            //@ts-ignore
             pca.browserStorage,
+            //@ts-ignore
             pca.browserCrypto,
+            //@ts-ignore
             pca.logger,
+            //@ts-ignore
             pca.eventHandler,
+            //@ts-ignore
             null,
+            //@ts-ignore
             pca.performanceClient
         );
         sinon

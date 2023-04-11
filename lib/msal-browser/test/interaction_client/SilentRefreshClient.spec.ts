@@ -43,12 +43,19 @@ describe("SilentRefreshClient", () => {
             .returns(RANDOM_TEST_GUID);
         // @ts-ignore
         silentRefreshClient = new SilentRefreshClient(
+            //@ts-ignore
             pca.config,
+            //@ts-ignore
             pca.browserStorage,
+            //@ts-ignore
             pca.browserCrypto,
+            //@ts-ignore
             pca.logger,
+            //@ts-ignore
             pca.eventHandler,
+            //@ts-ignore
             pca.navigationClient,
+            //@ts-ignore
             pca.performanceClient
         );
     });

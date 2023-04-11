@@ -34,11 +34,17 @@ describe("BaseInteractionClient", () => {
 
         // @ts-ignore
         testClient = new testInteractionClient(
+            // @ts-ignore
             pca.config,
+            // @ts-ignore
             pca.browserStorage,
+            // @ts-ignore
             pca.browserCrypto,
+            // @ts-ignore
             pca.logger,
+            // @ts-ignore
             pca.eventHandler,
+            // @ts-ignore
             pca.performanceClient
         );
     });

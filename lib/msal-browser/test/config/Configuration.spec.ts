@@ -25,6 +25,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     it("buildConfiguration assigns default values", () => {
         // @ts-ignore
         let emptyConfig: Configuration = buildConfiguration(
+            // @ts-ignore
             { auth: null },
             true
         );

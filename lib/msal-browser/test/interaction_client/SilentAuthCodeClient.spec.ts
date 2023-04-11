@@ -42,13 +42,20 @@ describe("SilentAuthCodeClient", () => {
 
         // @ts-ignore
         silentAuthCodeClient = new SilentAuthCodeClient(
+            //@ts-ignore
             pca.config,
+            //@ts-ignore
             pca.browserStorage,
+            //@ts-ignore
             pca.browserCrypto,
+            //@ts-ignore
             pca.logger,
+            //@ts-ignore
             pca.eventHandler,
+            //@ts-ignore
             pca.navigationClient,
             ApiId.acquireTokenSilent_authCode,
+            //@ts-ignore
             pca.performanceClient
         );
     });

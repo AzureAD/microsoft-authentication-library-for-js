@@ -124,13 +124,20 @@ describe("RedirectClient", () => {
 
         // @ts-ignore
         redirectClient = new RedirectClient(
+            //@ts-ignore
             pca.config,
             browserStorage,
+            //@ts-ignore
             pca.browserCrypto,
+            //@ts-ignore
             pca.logger,
+            //@ts-ignore
             pca.eventHandler,
+            //@ts-ignore
             pca.navigationClient,
+            //@ts-ignore
             pca.performanceClient,
+            //@ts-ignore
             pca.nativeInternalStorage
         );
     });
@@ -403,19 +410,27 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(
+                //@ts-ignore
                 pca.logger,
                 2000,
                 getDefaultPerformanceClient()
             );
             // @ts-ignore
             redirectClient = new RedirectClient(
+                //@ts-ignore
                 pca.config,
                 browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
@@ -562,13 +577,20 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                //@ts-ignore
                 pca.config,
                 browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
             const b64Encode = new Base64Encode();
@@ -854,13 +876,21 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -1021,13 +1051,21 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -1177,13 +1215,21 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -1298,11 +1344,17 @@ describe("RedirectClient", () => {
             redirectClient = new RedirectClient(
                 config,
                 browserStorage,
+                // @ts-ignore
                 pca.browserCrypto,
+                // @ts-ignore
                 pca.logger,
+                // @ts-ignore
                 pca.eventHandler,
+                // @ts-ignore
                 pca.navigationClient,
+                // @ts-ignore
                 pca.performanceClient,
+                // @ts-ignore
                 pca.nativeInternalStorage
             );
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
@@ -1581,13 +1633,21 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                // @ts-ignore
                 pca.config,
+                // @ts-ignore
                 pca.browserStorage,
+                // @ts-ignore
                 pca.browserCrypto,
+                // @ts-ignore
                 pca.logger,
+                // @ts-ignore
                 pca.eventHandler,
+                // @ts-ignore
                 pca.navigationClient,
+                // @ts-ignore
                 pca.performanceClient,
+                // @ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -2969,13 +3029,21 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                // @ts-ignore
                 pca.config,
+                // @ts-ignore
                 pca.browserStorage,
+                // @ts-ignore
                 pca.browserCrypto,
+                // @ts-ignore
                 pca.logger,
+                // @ts-ignore
                 pca.eventHandler,
+                // @ts-ignore
                 pca.navigationClient,
+                // @ts-ignore
                 pca.performanceClient,
+                // @ts-ignore
                 pca.nativeInternalStorage
             );
 
@@ -3010,12 +3078,19 @@ describe("RedirectClient", () => {
 
             // @ts-ignore
             redirectClient = new RedirectClient(
+                // @ts-ignore
                 pca.config,
+                // @ts-ignore
                 pca.browserStorage,
+                // @ts-ignore
                 pca.browserCrypto,
+                // @ts-ignore
                 pca.logger,
+                // @ts-ignore
                 pca.eventHandler,
+                // @ts-ignore
                 pca.navigationClient,
+                // @ts-ignore
                 pca.performanceClient
             );
 

@@ -922,8 +922,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                 })
                 .catch((e) => {
-                    // @ts-ignore
                     expect(
+                        // @ts-ignore
                         pca.browserStorage.getInteractionInProgress()
                     ).toBeFalsy();
                     expect(e.message).toEqual("testError");
@@ -1515,8 +1515,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                 })
                 .catch((e) => {
-                    // @ts-ignore
                     expect(
+                        // @ts-ignore
                         pca.browserStorage.getInteractionInProgress()
                     ).toBeFalsy();
                     expect(e.message).toEqual("testError");

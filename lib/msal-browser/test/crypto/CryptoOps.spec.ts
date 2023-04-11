@@ -250,6 +250,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(
             BrowserCrypto.prototype as any,
             "sha256Digest"
+            // @ts-ignore
         ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(
                 createHash("SHA256").update(Buffer.from(data)).digest()
@@ -271,6 +272,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(
             BrowserCrypto.prototype as any,
             "sha256Digest"
+            // @ts-ignore
         ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(
                 createHash("SHA256").update(Buffer.from(data)).digest()
@@ -304,6 +306,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(
             BrowserCrypto.prototype as any,
             "sha256Digest"
+            // @ts-ignore
         ).mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(
                 createHash("SHA256").update(Buffer.from(data)).digest()
@@ -331,6 +334,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("hashString() returns a valid SHA-256 hash of an input string", async () => {
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+            // @ts-ignore
             (data: Uint8Array): Promise<ArrayBuffer> => {
                 return Promise.resolve(
                     createHash("SHA256").update(Buffer.from(data)).digest()
@@ -360,14 +364,16 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
 
         it("uses MS crypto if available", () => {
-            // @ts-ignore
             jest.spyOn(
                 BrowserCrypto.prototype,
+                // @ts-ignore
                 "hasBrowserCrypto"
+                // @ts-ignore
             ).mockReturnValue(false);
 
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
+                // @ts-ignore
                 true
             );
 
@@ -377,14 +383,16 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
 
         it("uses MSR crypto if available", () => {
-            // @ts-ignore
             jest.spyOn(
                 BrowserCrypto.prototype,
+                // @ts-ignore
                 "hasBrowserCrypto"
+                // @ts-ignore
             ).mockReturnValue(false);
 
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
+                // @ts-ignore
                 false
             );
 
@@ -398,14 +406,16 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
 
         it("throws if MSR Crypto is available but useMsrCrypto is not enabled", () => {
-            // @ts-ignore
             jest.spyOn(
                 BrowserCrypto.prototype,
+                // @ts-ignore
                 "hasBrowserCrypto"
+                // @ts-ignore
             ).mockReturnValue(false);
 
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
+                // @ts-ignore
                 false
             );
 
@@ -419,14 +429,17 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
 
         it("throws if MSR Crypto is available but entropy is not provided", () => {
-            // @ts-ignore
+            
             jest.spyOn(
                 BrowserCrypto.prototype,
+                // @ts-ignore
                 "hasBrowserCrypto"
+                // @ts-ignore
             ).mockReturnValue(false);
 
             // @ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "hasIECrypto").mockReturnValue(
+                // @ts-ignore
                 false
             );
 

@@ -39,6 +39,7 @@ describe("NavigationClient.ts Unit Tests", () => {
             navigationClient.navigateInternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: false,
+                //@ts-ignore
                 apiId: 0,
             });
             expect(windowAssignSpy.calledOnce).toBe(true);
@@ -56,6 +57,7 @@ describe("NavigationClient.ts Unit Tests", () => {
             navigationClient.navigateInternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
+                //@ts-ignore
                 apiId: 0,
             });
             expect(windowReplaceSpy.calledOnce).toBe(true);
@@ -74,6 +76,7 @@ describe("NavigationClient.ts Unit Tests", () => {
             navigationClient.navigateInternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
+                //@ts-ignore
                 apiId: 0,
             });
             expect(windowReplaceSpy.calledOnce).toBe(true);
@@ -94,6 +97,7 @@ describe("NavigationClient.ts Unit Tests", () => {
             navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: false,
+                //@ts-ignore
                 apiId: 0,
             });
             expect(windowAssignSpy.calledOnce).toBe(true);
@@ -111,6 +115,7 @@ describe("NavigationClient.ts Unit Tests", () => {
             navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
+                //@ts-ignore
                 apiId: 0,
             });
             expect(windowReplaceSpy.calledOnce).toBe(true);
@@ -129,6 +134,7 @@ describe("NavigationClient.ts Unit Tests", () => {
             navigationClient.navigateExternal(TEST_URIS.TEST_LOGOUT_URI, {
                 timeout: 30000,
                 noHistory: true,
+                //@ts-ignore
                 apiId: 0,
             });
             expect(windowReplaceSpy.calledOnce).toBe(true);

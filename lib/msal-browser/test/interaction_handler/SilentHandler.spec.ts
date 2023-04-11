@@ -217,8 +217,8 @@ describe("SilentHandler.ts Unit Tests", () => {
             ).rejects.toMatchObject(
                 BrowserAuthError.createEmptyNavigationUriError()
             );
-            //@ts-ignore
             await expect(
+                //@ts-ignore
                 silentHandler.initiateAuthRequest(null)
             ).rejects.toMatchObject(
                 BrowserAuthError.createEmptyNavigationUriError()
@@ -374,8 +374,8 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 performanceClient
             );
-            // @ts-ignore
             silentHandler
+                //@ts-ignore
                 .monitorIframeForHash(iframe, 1000)
                 .then((hash: string) => {
                     expect(hash).toEqual("#code=hello");

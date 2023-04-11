@@ -56,14 +56,22 @@ describe("SilentIframeClient", () => {
 
         // @ts-ignore
         silentIframeClient = new SilentIframeClient(
+            //@ts-ignore
             pca.config,
+            //@ts-ignore
             pca.browserStorage,
+            //@ts-ignore
             pca.browserCrypto,
+            //@ts-ignore
             pca.logger,
+            //@ts-ignore
             pca.eventHandler,
+            //@ts-ignore
             pca.navigationClient,
             ApiId.acquireTokenSilent_authCode,
+            //@ts-ignore
             pca.performanceClient,
+            //@ts-ignore
             pca.nativeInternalStorage
         );
     });
@@ -327,20 +335,29 @@ describe("SilentIframeClient", () => {
 
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(
+                //@ts-ignore
                 pca.logger,
                 2000,
                 getDefaultPerformanceClient()
             );
             // @ts-ignore
             silentIframeClient = new SilentIframeClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
                 ApiId.acquireTokenSilent_authCode,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage,
                 nativeMessageHandler
             );
@@ -431,14 +448,22 @@ describe("SilentIframeClient", () => {
 
             // @ts-ignore
             silentIframeClient = new SilentIframeClient(
+                //@ts-ignore
                 pca.config,
+                //@ts-ignore
                 pca.browserStorage,
+                //@ts-ignore
                 pca.browserCrypto,
+                //@ts-ignore
                 pca.logger,
+                //@ts-ignore
                 pca.eventHandler,
+                //@ts-ignore
                 pca.navigationClient,
                 ApiId.acquireTokenSilent_authCode,
+                //@ts-ignore
                 pca.performanceClient,
+                //@ts-ignore
                 pca.nativeInternalStorage
             );
             const testServerTokenResponse = {

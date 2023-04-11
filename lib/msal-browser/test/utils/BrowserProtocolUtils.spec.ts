@@ -36,6 +36,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         //@ts-ignore
         const requestState1 = BrowserProtocolUtils.extractBrowserRequestState(
             cryptoInterface,
+            //@ts-ignore
             null
         );
         expect(requestState1).toBeNull();

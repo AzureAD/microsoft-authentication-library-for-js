@@ -27,6 +27,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
     it("generateCodes() generates valid pkce codes", async () => {
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+            //@ts-ignore
             (data: Uint8Array): Promise<ArrayBuffer> => {
                 return Promise.resolve(
                     createHash("SHA256").update(Buffer.from(data)).digest()
@@ -51,6 +52,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+            //@ts-ignore
             (data: Uint8Array): Promise<ArrayBuffer> => {
                 return Promise.resolve(
                     createHash("SHA256").update(Buffer.from(data)).digest()
