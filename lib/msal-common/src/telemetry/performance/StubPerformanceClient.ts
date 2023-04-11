@@ -16,16 +16,12 @@ export class StubPerformanceMeasurement implements IPerformanceMeasurement {
     flushMeasurement(): number | null {
         return null;
     }
-    
+
 }
 
 export class StubPerformanceClient extends PerformanceClient implements IPerformanceClient {
     generateId(): string {
         return "callback-id";
-    }
-    
-    startPerformanceMeasuremeant(): IPerformanceMeasurement {
-        return new StubPerformanceMeasurement();
     }
 
     startPerformanceMeasurement(): IPerformanceMeasurement {
