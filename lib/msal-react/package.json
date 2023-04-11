@@ -27,7 +27,7 @@
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:modules:watch": "tsdx watch --verbose --tsconfig ./tsconfig.build.json",
-    "test": "tsdx test .*MsalAuthenticationTemplate.spec.*",
+    "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "cd ../../ && npm run lint:react",

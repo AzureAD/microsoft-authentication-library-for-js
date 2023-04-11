@@ -78,6 +78,7 @@ describe("utilities tests", () => {
             // @ts-ignore
             expect(
                 accountArraysAreEqual(
+                    // @ts-ignore
                     [testAccount1, null],
                     [testAccount1, testAccount2]
                 )
@@ -86,12 +87,14 @@ describe("utilities tests", () => {
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
+                    // @ts-ignore
                     [null, testAccount2]
                 )
             ).toBe(false);
             // @ts-ignore
             expect(
                 accountArraysAreEqual(
+                    // @ts-ignore
                     [testAccount1, undefined],
                     [testAccount1, testAccount2]
                 )
@@ -100,6 +103,7 @@ describe("utilities tests", () => {
             expect(
                 accountArraysAreEqual(
                     [testAccount1, testAccount2],
+                    // @ts-ignore
                     [undefined, testAccount2]
                 )
             ).toBe(false);
