@@ -115,8 +115,11 @@ describe("DeviceCodeClient unit tests", () => {
             sinon
                 .stub(BaseClient.prototype, <any>"executePostToTokenEndpoint")
                 .callsFake(
+                    // @ts-ignore
                     (
+                        // @ts-ignore
                         tokenEndpoint: string,
+                        // @ts-ignore
                         queryString: string,
                         headers: Record<string, string>
                     ) => {

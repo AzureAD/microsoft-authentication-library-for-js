@@ -904,8 +904,11 @@ describe("ClientCredentialClient unit tests", () => {
                 <any>"executePostToTokenEndpoint"
             )
             .callsFake(
+                // @ts-ignore
                 (
+                    // @ts-ignore
                     tokenEndpoint: string,
+                    // @ts-ignore
                     queryString: string,
                     headers: Record<string, string>
                 ) => {
