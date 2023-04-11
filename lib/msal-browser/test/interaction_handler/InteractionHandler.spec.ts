@@ -121,7 +121,6 @@ const performanceClient = {
     addPerformanceCallback: jest.fn(),
     emitEvents: jest.fn(),
     startPerformanceMeasurement: jest.fn(),
-    startPerformanceMeasuremeant: jest.fn(),
     generateId: jest.fn(),
     calculateQueuedTime: jest.fn(),
     addQueueMeasurement: jest.fn(),
@@ -165,7 +164,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds
             },
             cryptoInterface: cryptoInterface,
-            storageInterface: new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, cryptoInterface),
+            storageInterface: new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, cryptoInterface, logger),
             networkInterface: {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;

@@ -2,6 +2,36 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 03 Apr 2023 21:29:32 GMT",
+      "tag": "@azure/msal-react_v1.5.5",
+      "version": "1.5.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.35.0",
+            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Mar 2023 16:48:52 GMT",
+      "tag": "@azure/msal-react_v1.5.4",
+      "version": "1.5.4",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.34.0",
+            "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 Feb 2023 18:51:51 GMT",
       "tag": "@azure/msal-react_v1.5.3",
       "version": "1.5.3",

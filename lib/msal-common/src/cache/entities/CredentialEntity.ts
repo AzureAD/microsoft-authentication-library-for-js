@@ -42,37 +42,6 @@ export class CredentialEntity {
     keyId?: string;
     requestedClaimsHash?: string;
 
-    /*
-     * Match host names like "login.microsoftonline.com", "https://accounts.google.com:4000", https://localhost:5000,
-     * "login.microsoftonline.com/common", "login.microsoftonline.com:4000/common", etc
-     */
-    private static credentialDomainRegex = "(https?:\\/\\/)?((([\\w-]+\\.)*([\\w-]{1,63})(\\.(\\w{2,63})))|(localhost))(\\:[0-9]{4,5})?(\\/[\\w-]+)?";
-    // Maps {CredentialType} to the corresponding regular expression.
-    private static credentialRegexMap: Map<CredentialType, RegExp>;
-
-    /**
-     * Initializes a map with credential {CredentialType} regular expressions.
-     */
-    static _initRegex(): void {
-        const separator = Separators.CACHE_KEY_SEPARATOR;
-        CredentialEntity.credentialRegexMap = new Map<CredentialType, RegExp>();
-        for (const credKey of Object.keys(CredentialType)) {
-            const credVal = CredentialType[credKey].toLowerCase();
-
-            try {
-                // Verify credential type is preceded by a valid host name (environment) using lookbehind
-                CredentialEntity.credentialRegexMap.set(
-                    CredentialType[credKey],
-                    new RegExp(`(?<=${separator}${CredentialEntity.credentialDomainRegex})${separator}${credVal}${separator}`));
-            } catch (err) {
-                // Lookbehind is not supported (Safari or older versions of IE) - removing it
-                CredentialEntity.credentialRegexMap.set(
-                    CredentialType[credKey],
-                    new RegExp(`${separator}${CredentialEntity.credentialDomainRegex}${separator}${credVal}${separator}`));
-            }
-        }
-    }
-
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
      */
@@ -132,20 +101,6 @@ export class CredentialEntity {
                 throw ClientAuthError.createUnexpectedCredentialTypeError();
             }
         }
-    }
-
-    /**
-     * helper function to return `CredentialType`
-     * @param key
-     */
-    static getCredentialType(key: string): string {
-        for (const credKey of Object.keys(CredentialType)) {
-            if (this.credentialRegexMap.get(CredentialType[credKey])?.test(key.toLowerCase())) {
-                return CredentialType[credKey];
-            }
-        }
-
-        return Constants.NOT_DEFINED;
     }
 
     /**
@@ -238,5 +193,3 @@ export class CredentialEntity {
         return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
     }
 }
-
-CredentialEntity._initRegex();

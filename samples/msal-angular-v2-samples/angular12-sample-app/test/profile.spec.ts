@@ -15,7 +15,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(7);
+    expect(Object.keys(storage).length).toBe(9);
 }
 
 describe('/ (Profile Page)', () => {
@@ -35,7 +35,7 @@ describe('/ (Profile Page)', () => {
         port = global.__PORT__;
 
         const labApiParams: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD
         };
 

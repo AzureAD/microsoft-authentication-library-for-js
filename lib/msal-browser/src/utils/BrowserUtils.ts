@@ -48,9 +48,9 @@ export class BrowserUtils {
      * Returns boolean of whether or not the current window is a popup opened by msal
      */
     static isInPopup(): boolean {
-        return typeof window !== "undefined" && !!window.opener && 
-            window.opener !== window && 
-            typeof window.name === "string" && 
+        return typeof window !== "undefined" && !!window.opener &&
+            window.opener !== window &&
+            typeof window.name === "string" &&
             window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0;
     }
 
@@ -73,9 +73,10 @@ export class BrowserUtils {
     }
 
     /**
-     * Returns best compatible network client object. 
+     * Returns best compatible network client object.
      */
     static getBrowserNetworkClient(): INetworkModule {
+        // @ts-ignore TS2774
         if (window.fetch && window.Headers) {
             return new FetchClient();
         } else {
@@ -84,7 +85,7 @@ export class BrowserUtils {
     }
 
     /**
-     * Throws error if we have completed an auth and are 
+     * Throws error if we have completed an auth and are
      * attempting another auth request inside an iframe.
      */
     static blockReloadInHiddenIframes(): void {
@@ -130,8 +131,8 @@ export class BrowserUtils {
 
     /**
      * Throws error if native brokering is enabled but initialize hasn't been called
-     * @param allowNativeBroker 
-     * @param initialized 
+     * @param allowNativeBroker
+     * @param initialized
      */
     static blockNativeBrokerCalledBeforeInitialized(allowNativeBroker: boolean, initialized: boolean): void {
         if (allowNativeBroker && !initialized) {

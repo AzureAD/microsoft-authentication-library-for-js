@@ -30,7 +30,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
     }
 
-    startPerformanceMeasuremeant(measureName: string, correlationId: string): IPerformanceMeasurement {
+    startPerformanceMeasurement(measureName: string, correlationId: string): IPerformanceMeasurement {
         return new BrowserPerformanceMeasurement(measureName, correlationId);
     }
 
@@ -123,7 +123,7 @@ export class BrowserPerformanceClient extends PerformanceClient implements IPerf
             this.logger.trace(`BrowserPerformanceClient: Incomplete pre-queue ${preQueueEvent.name} found`, correlationId);
             this.addQueueMeasurement(preQueueEvent.name, correlationId, undefined, true);
         }
-        this.preQueueTimeByCorrelationId.set(eventName, { name: eventName, time: window.performance.now() });
+        this.preQueueTimeByCorrelationId.set(correlationId, { name: eventName, time: window.performance.now() });
     }
 
     /**

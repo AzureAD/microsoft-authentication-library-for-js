@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.32
+
+Mon, 03 Apr 2023 21:29:32 GMT
+
+### Changes
+
+- Bump @azure/msal-common to v12.0.0
+
+## 1.0.0-alpha.31
+
+Tue, 07 Mar 2023 16:48:52 GMT
+
+### Changes
+
+- Expose NativeBrokerPlugin #5485 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v11.0.0
 
 ## 1.0.0-alpha.30
 

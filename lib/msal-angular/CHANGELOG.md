@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 06 Feb 2023 18:51:51 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.5.5
+
+Mon, 03 Apr 2023 21:29:32 GMT
+
+### Patches
+
+- Bump @azure/msal-browser to v2.35.0
+
+## 2.5.4
+
+Tue, 07 Mar 2023 16:48:51 GMT
+
+### Patches
+
+- Avoid throwing 'Interaction is currently in progress' error in msal interceptor #5146 (ykshtein@gmail.com)
+- Bump @azure/msal-browser to v2.34.0
 
 ## 2.5.3
 

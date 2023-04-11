@@ -11,8 +11,9 @@ import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemet
 import { AuthError } from "../../src/error/AuthError";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 import { CacheOutcome } from "../../src/utils/Constants";
+import { Logger } from "../../src/logger/Logger";
 
-const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
 const testApiCode = 9999999;
 const testError = "interaction_required";
 const testCorrelationId = "this-is-a-test-correlationId";
@@ -79,7 +80,7 @@ describe("ServerTelemetryManager.ts", () => {
             try {
                 throw new Error("test_error");
             } catch (e) {
-                telemetryManager.cacheFailedRequest(e);
+                telemetryManager.cacheFailedRequest(e as AuthError);
             }
 
             const failures = {
@@ -97,7 +98,7 @@ describe("ServerTelemetryManager.ts", () => {
             try {
                 throw "";
             } catch (e) {
-                telemetryManager.cacheFailedRequest(e);
+                telemetryManager.cacheFailedRequest(e as AuthError);
             }
 
             const failures = {
@@ -217,7 +218,7 @@ describe("ServerTelemetryManager.ts", () => {
                 errors: [] as string[],
                 cacheHits: 0
             };
-    
+
             let dataSize = 0;
             while (dataSize < 4000) {
                 failures.failedRequests.push(`${testApiCode}`, testCorrelationId);
@@ -229,17 +230,17 @@ describe("ServerTelemetryManager.ts", () => {
             failures.errors.push(testError);
             failures.failedRequests.push(`${testApiCode}`, testCorrelationId);
             failures.errors.push(testError);
-    
+
             expect(ServerTelemetryManager.maxErrorsToSend(failures)).toBeLessThan(failures.errors.length);
         });
-    
+
         it("maxErrorsToSend doesn't break on null and undefined values", () => {
             const failures = {
                 failedRequests: [null, undefined, undefined, null],
                 errors: [null, undefined],
                 cacheHits: 0
             };
-    
+
             // @ts-ignore
             expect(ServerTelemetryManager.maxErrorsToSend(failures)).toBe(2);
         });

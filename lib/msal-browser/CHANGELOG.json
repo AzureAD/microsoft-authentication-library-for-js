@@ -2,6 +2,106 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 03 Apr 2023 21:29:32 GMT",
+      "tag": "@azure/msal-browser_v2.35.0",
+      "version": "2.35.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c4432b9cc711cc037261c815410433346836c95d",
+            "comment": "Optimize account lookups in cache #5792"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "7d39c2c90527a41115556ff05cfb6b84e30fac0a",
+            "comment": "Optimize token lookups in cache #5806"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v12.0.0",
+            "commit": "98cb8fce7ff4199e528ffe819dccbf58d28a8c80"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "089c78094966d99c5e387bb512945430618e780e",
+            "comment": "Fix missing telemetry queue information #5809"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "112abff69ebb68d4c8a88e86af6d056cf650e492",
+            "comment": "Dup code removal in NativeInteractionClient (#5768)"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Mar 2023 16:48:51 GMT",
+      "tag": "@azure/msal-browser_v2.34.0",
+      "version": "2.34.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f3f54cbc2faf30894852a98585e22c5869277858",
+            "comment": "Reduce preQueueTimeByCorrelationId RAM footprint #5681"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "6a8d2e6bcca2a846da75b8e4726a2ed4d0f41746",
+            "comment": "exporting native classes as internals and separating out native telemetry #5692"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "392e3c350509bd85a38ef71ec8614c8367c93f4e",
+            "comment": "Remove deprecated telemetry `flushMeasurements()` function from unit tests #5718"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "0a7d1be785ee7fc1dd05d35a1614dadd0e3a0441",
+            "comment": "Refactor handleNativeResponse (#5757)"
+          },
+          {
+            "author": "lalimasharda@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "17953165ef5bb105e6f2385e93bce7b98a7195da",
+            "comment": "Add support for hybrid flow with native bridge enabled #5759"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b03430c5841e5caad33d0b928b160af9f1535708",
+            "comment": "Reduce telemetry RAM footprint and improve usability/readability #5676"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b83aeef9118568cd3eedf79a5079a9bb2cf0340c",
+            "comment": "Capture native bridge telemetry data points #5698"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v11.0.0",
+            "commit": "cbd2c9ddae007b1ca0468a3299aebe0ae053bf80"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 06 Feb 2023 18:51:51 GMT",
       "tag": "@azure/msal-browser_v2.33.0",
       "version": "2.33.0",

@@ -203,6 +203,18 @@ export const ClientAuthErrorMessage = {
     keyIdMissing: {
         code: "key_id_missing",
         desc: "A keyId value is missing from the requested bound token's cache record and is required to match the token to it's stored binding key."
+    },
+    noNetworkConnectivity: {
+        code: "no_network_connectivity",
+        desc: "No network connectivity. Check your internet connection."
+    },
+    userCanceledError: {
+        code: "user_canceled",
+        desc: "User canceled the flow."
+    },
+    missingTenantIdError: {
+        code: "missing_tenant_id_error",
+        desc: "A tenant id - not common, organizations, or consumers - must be specified when using the client_credentials flow."
     }
 };
 
@@ -553,5 +565,26 @@ export class ClientAuthError extends AuthError {
      */
     static createKeyIdMissingError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.keyIdMissing.code, ClientAuthErrorMessage.keyIdMissing.desc);
+    }
+
+    /**
+     * Create an error when the client does not have network connectivity
+     */
+    static createNoNetworkConnectivityError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noNetworkConnectivity.code, ClientAuthErrorMessage.noNetworkConnectivity.desc);
+    }
+
+    /**
+     * Create an error when the user cancels the flow
+     */
+    static createUserCanceledError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userCanceledError.code, ClientAuthErrorMessage.userCanceledError.desc);
+    }
+
+    /**
+     * Creates an error for during acquireTokenByClientCredential when TenantId is set to "common" or "organizations"
+     */
+    static createMissingTenantIdError(): ClientAuthError {
+        return new AuthError(ClientAuthErrorMessage.missingTenantIdError.code, ClientAuthErrorMessage.missingTenantIdError.desc);
     }
 }

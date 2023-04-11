@@ -193,14 +193,6 @@ export enum SSOTypes {
 }
 
 /**
- * Disallowed extra query parameters.
- */
-export const BlacklistedEQParams = [
-    SSOTypes.SID,
-    SSOTypes.LOGIN_HINT
-];
-
-/**
  * allowed values for codeVerifier
  */
 export const CodeChallengeMethodValues = {
@@ -266,22 +258,6 @@ export enum CredentialType {
     ACCESS_TOKEN = "AccessToken",
     ACCESS_TOKEN_WITH_AUTH_SCHEME = "AccessToken_With_AuthScheme",
     REFRESH_TOKEN = "RefreshToken",
-}
-
-/**
- * Credential Type stored in the cache
- */
-export enum CacheSchemaType {
-    ACCOUNT = "Account",
-    CREDENTIAL = "Credential",
-    ID_TOKEN = "IdToken",
-    ACCESS_TOKEN = "AccessToken",
-    REFRESH_TOKEN = "RefreshToken",
-    APP_METADATA = "AppMetadata",
-    TEMPORARY = "TempCache",
-    TELEMETRY = "Telemetry",
-    UNDEFINED = "Undefined",
-    THROTTLING = "Throttling"
 }
 
 /**
@@ -406,7 +382,8 @@ export enum CacheOutcome {
 
 export enum JsonTypes {
     Jwt = "JWT",
-    Jwk = "JWK"
+    Jwk = "JWK",
+    Pop = "pop"
 }
 
 export const ONE_DAY_IN_MS = 86400000;

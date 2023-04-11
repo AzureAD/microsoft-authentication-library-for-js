@@ -9,12 +9,9 @@
  */
 
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
-export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
-export { ClientCredentialClient } from "./client/ClientCredentialClient";
-export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
-export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
+export { BaseClient } from "./client/BaseClient";
 export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
 export { IAppTokenProvider, AppTokenProviderParameters, AppTokenProviderResult } from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
@@ -32,9 +29,11 @@ export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptio
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
+// Broker
+export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
+export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, CredentialFilter, ValidCacheType, ValidCredentialType, TokenKeys } from "./cache/utils/CacheTypes";
 export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
@@ -50,7 +49,7 @@ export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";
 export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions, StubbedNetworkModule } from "./network/INetworkModule";
-export { NetworkManager, NetworkResponse } from "./network/NetworkManager";
+export { NetworkManager, NetworkResponse, UrlToHttpRequestOptions } from "./network/NetworkManager";
 export { ThrottlingUtils } from "./network/ThrottlingUtils";
 export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
@@ -60,7 +59,7 @@ export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestPar
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 export { IGuidGenerator } from "./crypto/IGuidGenerator";
 export { JoseHeader } from "./crypto/JoseHeader";
-// Request and Response
+// Request
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";
 export { CommonAuthorizationCodeRequest } from "./request/CommonAuthorizationCodeRequest";
@@ -71,6 +70,10 @@ export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
 export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
+export { NativeRequest } from "./request/NativeRequest";
+export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
+export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
+// Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
 export { AuthenticationResult } from "./response/AuthenticationResult";
@@ -78,7 +81,8 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
 export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
-export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
+export { DeviceCodeResponse, ServerDeviceCodeResponse } from "./response/DeviceCodeResponse";
+export { ResponseHandler } from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
@@ -90,7 +94,7 @@ export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
 export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheSchemaType, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS } from "./utils/Constants";
+export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CacheOutcome, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS, GrantType, AADAuthorityConstants } from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
 export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";

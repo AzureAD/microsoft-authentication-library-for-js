@@ -2,9 +2,9 @@
     "include": ["lib", "extensions"],
     "exclude": ["**/node_modules", "**/test", "**/stories", "**/*.spec.ts", "**/samples"],
     "compilerOptions": {
-        "module": "esnext",
-        "target": "es5",
-        "lib": ["dom", "esnext"],
+        "module": "es2020",
+        "target": "es2020",
+        "lib": ["dom", "es2020"],
         "importHelpers": true,
         "declaration": true,
         "sourceMap": true,

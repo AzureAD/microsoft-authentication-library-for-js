@@ -6,7 +6,33 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_SSH_VALUES } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity, ClientConfigurationError } from "@azure/msal-common";
+import {
+    ServerError,
+    Constants,
+    AccountInfo,
+    TokenClaims,
+    AuthenticationResult,
+    CommonAuthorizationCodeRequest,
+    CommonAuthorizationUrlRequest,
+    AuthToken,
+    PersistentCacheKeys,
+    AuthorizationCodeClient,
+    ResponseMode,
+    ProtocolUtils,
+    AuthenticationScheme,
+    Logger,
+    ServerTelemetryEntity,
+    LogLevel,
+    NetworkResponse,
+    ServerAuthorizationTokenResponse,
+    CcsCredential,
+    CcsCredentialType,
+    CommonEndSessionRequest,
+    ServerTelemetryManager,
+    AccountEntity,
+    ClientConfigurationError,
+    AuthError
+} from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -29,7 +55,8 @@ const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
     temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
-    secureCookies: false
+    secureCookies: false,
+    cacheMigrationEnabled: false
 };
 
 const loggerOptions = {
@@ -59,6 +86,10 @@ describe("RedirectClient", () => {
                 }
             }
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 
         // @ts-ignore
@@ -126,10 +157,7 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            const testError = {
-                errorCode: "Unexpected error!",
-                errorDesc: "Unexpected error"
-            }
+            const testError: AuthError = new AuthError("Unexpected error!", "Unexpected error");
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").throws(testError);
             redirectClient.handleRedirectPromise().catch((e) => {
                 expect(e).toMatchObject(testError);
@@ -239,7 +267,6 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
             expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
             expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
-            expect(window.sessionStorage.length).toEqual(4);
         });
 
         it("gets hash from cache and calls native broker if hash contains accountId", async () => {
@@ -251,6 +278,10 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
             const nativeMessageHandler = new NativeMessageHandler(pca.logger, 2000, getDefaultPerformanceClient());
             // @ts-ignore
@@ -350,6 +381,10 @@ describe("RedirectClient", () => {
                     allowNativeBroker: true
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             const b64Encode = new Base64Encode();
@@ -518,12 +553,15 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -536,7 +574,6 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
             expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
             expect(testTokenResponse.expiresOn && tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
-            expect(window.sessionStorage.length).toEqual(4);
             expect(window.location.hash).toBe("");
         });
 
@@ -621,11 +658,14 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             let callbackCalled = false;
             const navigationClient = new NavigationClient();
@@ -654,7 +694,6 @@ describe("RedirectClient", () => {
             expect(tokenResponse.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
             expect(tokenResponse.accessToken).toEqual(testTokenResponse.accessToken);
             expect(testTokenResponse.expiresOn!.getMilliseconds() >= tokenResponse.expiresOn!.getMilliseconds()).toBeTruthy();
-            expect(window.sessionStorage.length).toEqual(4);
             expect(window.location.hash).toBe("");
         });
 
@@ -739,12 +778,15 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -757,7 +799,6 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
             expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
             expect(testTokenResponse.expiresOn && tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
-            expect(window.sessionStorage.length).toEqual(4);
             expect(window.location.hash).toBe("");
         });
 
@@ -798,11 +839,15 @@ describe("RedirectClient", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             const config = {
                 // @ts-ignore
                 ...pca.config,
@@ -812,6 +857,7 @@ describe("RedirectClient", () => {
                     allowRedirectInIframe: true
                 }
             }
+
             // @ts-ignore
             redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
@@ -960,12 +1006,16 @@ describe("RedirectClient", () => {
         });
 
         it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
+
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
 
@@ -1697,10 +1747,7 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            const testError = {
-                errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
-            };
+            const testError: AuthError = new AuthError("create_login_url_error", "Error in creating a login url");
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
             try {
                 await redirectClient.acquireToken(emptyRequest);
@@ -1864,12 +1911,15 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient, pca.nativeInternalStorage);
@@ -1884,12 +1934,15 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            const pca = new PublicClientApplication({
+            let pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri: null
                 }
             });
+
+            //PCA implementation moved to controller
+            pca = (pca as any).controller;
 
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
@@ -1950,6 +2003,19 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims
             };
 
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount.idTokenClaims = testIdTokenClaims;
+
+            browserStorage.setAccount(testAccount);
+
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
                 done();
@@ -1981,6 +2047,19 @@ describe("RedirectClient", () => {
                 username: testIdTokenClaims.preferred_username || "",
                 idTokenClaims: testIdTokenClaims
             };
+
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount.idTokenClaims = testIdTokenClaims;
+
+            browserStorage.setAccount(testAccount);
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
@@ -2022,10 +2101,21 @@ describe("RedirectClient", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
-                tenantId: "",
-                username: "",
-                idTokenClaims: {}
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
             };
+
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+            browserStorage.setAccount(testAccount);
 
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
@@ -2088,10 +2178,21 @@ describe("RedirectClient", () => {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
-                tenantId: "",
-                username: "",
-                idTokenClaims: {}
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
             };
+
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+            browserStorage.setAccount(testAccount);
 
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
@@ -2169,7 +2270,10 @@ describe("RedirectClient", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || ""
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims,
+                name: testIdTokenClaims.name || "",
+                nativeAccountId: undefined
             };
 
             const testAccount: AccountEntity = new AccountEntity();
@@ -2181,6 +2285,7 @@ describe("RedirectClient", () => {
             testAccount.name = testAccountInfo.name;
             testAccount.authorityType = "MSSTS";
             testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+            testAccount.idTokenClaims = testIdTokenClaims;
 
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
@@ -2192,12 +2297,13 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT_FILTERS}`, JSON.stringify({homeAccountId: testAccount.homeAccountId, localAccountId: testAccount.localAccountId}));
-            window.sessionStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo), JSON.stringify(testAccount));
+            browserStorage.setAccount(testAccount);
+            pca.setActiveAccount(testAccountInfo);
+            expect(pca.getActiveAccount()).toStrictEqual(testAccountInfo);
 
             await redirectClient.logout(validatedLogoutRequest).then(() => {
-                // Interaction in progress
-                expect(window.sessionStorage.length).toBe(1);
+                expect(pca.getActiveAccount()).toBe(null);
+                expect(pca.getAllAccounts().length).toBe(0);
             });
         });
     });

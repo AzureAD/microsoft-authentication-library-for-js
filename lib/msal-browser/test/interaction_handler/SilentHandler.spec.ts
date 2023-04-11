@@ -118,7 +118,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             },
             loggerOptions: loggerOptions,
         };
-        authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!);
+        authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!, logger);
         authCodeModule = new AuthorizationCodeClient(authConfig);
         const browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
@@ -132,7 +132,6 @@ describe("SilentHandler.ts Unit Tests", () => {
             addPerformanceCallback: jest.fn(),
             emitEvents: jest.fn(),
             startPerformanceMeasurement: jest.fn(),
-            startPerformanceMeasuremeant: jest.fn(),
             generateId: jest.fn(),
             calculateQueuedTime: jest.fn(),
             addQueueMeasurement: jest.fn(),

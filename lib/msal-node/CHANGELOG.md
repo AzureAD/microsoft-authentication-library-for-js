@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 06 Feb 2023 18:51:50 GMT and should not be manually modified.
+This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.17.0
+
+Mon, 03 Apr 2023 21:29:31 GMT
+
+### Minor changes
+
+- Optimize token lookups in cache #5806 (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v12.0.0
+
+### Patches
+
+- Optimize account lookups in cache #5792 (thomas.norling@microsoft.com)
+
+## 1.16.0
+
+Tue, 07 Mar 2023 16:48:52 GMT
+
+### Minor changes
+
+- Add support for NativeBrokerPlugin #5550 (thomas.norling@microsoft.com)
+- Allow adding custom loopback client in acquireTokenInteractive #5578 (v-derisen@microsoft.com)
+- Bump @azure/msal-common to v11.0.0
+
+### Patches
+
+- Fixed bug in msal-node's httpClient #5722 (rginsburg@microsoft.com)
 
 ## 1.15.0
 

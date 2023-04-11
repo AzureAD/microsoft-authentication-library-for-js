@@ -65,7 +65,7 @@ export class SilentFlowClient extends BaseClient {
 
         const environment = request.authority || this.authority.getPreferredCache();
 
-        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, request, environment);
+        const cacheRecord = this.cacheManager.readCacheRecord(request.account, request, environment);
 
         if (!cacheRecord.accessToken) {
             // Must refresh due to non-existent access_token.

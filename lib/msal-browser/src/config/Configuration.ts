@@ -89,6 +89,10 @@ export type CacheOptions = {
      * If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
      */
     secureCookies?: boolean;
+    /**
+     * If set, MSAL will attempt to migrate cache entries from older versions on initialization. By default this flag is set to true if cacheLocation is localStorage, otherwise false.
+     */
+    cacheMigrationEnabled?: boolean;
 };
 
 export type BrowserSystemOptions = SystemOptions & {
@@ -241,7 +245,9 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         cacheLocation: BrowserCacheLocation.SessionStorage,
         temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
-        secureCookies: false
+        secureCookies: false,
+        // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
+        cacheMigrationEnabled: userInputCache && userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage ? true : false
     };
 
     // Default logger options for browser
@@ -268,7 +274,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
-        allowNativeBroker: false,
+        allowNativeBroker: true,
         nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
         cryptoOptions: {
