@@ -6,7 +6,7 @@ name: Beachball Check
 on:
   pull_request:
     branches:  
-      - dev
+      - msal-lts
 
 concurrency:
   group: beachball-${{github.ref}}
