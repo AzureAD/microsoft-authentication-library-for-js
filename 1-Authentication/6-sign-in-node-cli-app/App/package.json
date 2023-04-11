@@ -1,0 +1,16 @@
+{
+  "name": "msal-node-auth-code-cli-app",
+  "version": "1.0.0",
+  "description": "CLI sample for msal-node public client application using using auth code flow with PKCE to sign-in users on azure ad CIAM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/msal-node": "^1.17.0",
+    "open": "^8.4.0"
+  }
+}
