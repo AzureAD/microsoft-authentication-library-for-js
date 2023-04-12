@@ -4,8 +4,12 @@
  */
 
 import { BaseOperatingContext } from "./BaseOperatingContext";
+import { IBridgeProxy } from "../naa/IBridgeProxy";
+import { BridgeProxy } from "../naa/BridgeProxy";
 
 export class TeamsAppOperatingContext extends BaseOperatingContext {
+    protected bridgeProxy: IBridgeProxy | undefined = undefined;
+
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
      * containing the implementation for this operating context
@@ -33,6 +37,10 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
         return TeamsAppOperatingContext.ID;
     }
 
+    getBridgeProxy(): IBridgeProxy | undefined {
+        return this.bridgeProxy;
+    }
+
     /**
      * Checks whether the operating context is available.
      * Confirms that the code is running a browser rather.  This is required.
@@ -40,9 +48,21 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
      */
     async initialize(): Promise<boolean> {
         /*
-         * TODO: Add implementation to check for presence of inject MetaOSHub JavaScript interface
-         * TODO: Make pre-flight token request to ensure that App is eligible to use Nested App Auth
+         * TODO: Add implementation to check for presence of inject Nested App Auth Bridge JavaScript interface
+         *
          */
-        return false;
+        try {
+            if (typeof window !== "undefined") {
+                const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
+                this.bridgeProxy = bridgeProxy;
+                this.available = bridgeProxy !== undefined;
+            } else {
+                this.available = false;
+            }
+        } catch (e) {
+            this.available = false;
+        } finally {
+            return this.available;
+        }
     }
 }
