@@ -9,8 +9,12 @@ import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
-import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../test_kit/StringConstants";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
+import {
+    THUMBPRINT,
+    THROTTLING_ENTITY,
+    TEST_CONFIG,
+} from "../test_kit/StringConstants";
 import { ServerError } from "../../src/error/ServerError";
 import { BaseAuthRequest, Logger } from "../../src";
 
@@ -19,7 +23,8 @@ describe("ThrottlingUtils", () => {
         it("returns a throttling key", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const jsonString = JSON.stringify(thumbprint);
-            const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
+            const key =
+                ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
 
             expect(key).toEqual(`throttling.${jsonString}`);
         });
@@ -33,43 +38,65 @@ describe("ThrottlingUtils", () => {
         it("checks the cache and throws an error", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
+            sinon
+                .stub(cache, "getThrottlingCache")
+                .callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 1);
 
             try {
                 ThrottlingUtils.preProcess(cache, thumbprint);
-            } catch { }
+            } catch {}
             sinon.assert.callCount(removeItemStub, 0);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).toThrowError(ServerError);
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprint)
+            ).toThrowError(ServerError);
         });
 
         it("checks the cache and removes an item", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
             const removeItemStub = sinon.stub(cache, "removeItem");
-            sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
+            sinon
+                .stub(cache, "getThrottlingCache")
+                .callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 10);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 1);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).not.toThrow();
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprint)
+            ).not.toThrow();
         });
 
         it("checks the cache and does nothing with no match", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => null);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 0);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).not.toThrow();
+            expect(() =>
+                ThrottlingUtils.preProcess(cache, thumbprint)
+            ).not.toThrow();
         });
     });
 
@@ -81,11 +108,15 @@ describe("ThrottlingUtils", () => {
         it("sets an item in the cache", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: { },
-                body: { },
-                status: 429
+                headers: {},
+                body: {},
+                status: 429,
             };
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
@@ -95,11 +126,15 @@ describe("ThrottlingUtils", () => {
         it("does not set an item in the cache", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: { },
-                body: { },
-                status: 200
+                headers: {},
+                body: {},
+                status: 200,
             };
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
@@ -110,9 +145,9 @@ describe("ThrottlingUtils", () => {
     describe("checkResponseStatus", () => {
         it("returns true if status == 429", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: { },
-                body: { },
-                status: 429
+                headers: {},
+                body: {},
+                status: 429,
             };
 
             const bool = ThrottlingUtils.checkResponseStatus(res);
@@ -121,9 +156,9 @@ describe("ThrottlingUtils", () => {
 
         it("returns true if 500 <= status < 600", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: { },
-                body: { },
-                status: 500
+                headers: {},
+                body: {},
+                status: 500,
             };
 
             const bool = ThrottlingUtils.checkResponseStatus(res);
@@ -132,9 +167,9 @@ describe("ThrottlingUtils", () => {
 
         it("returns false if status is not 429 or between 500 and 600", () => {
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
-                headers: { },
-                body: { },
-                status: 430
+                headers: {},
+                body: {},
+                status: 430,
             };
 
             const bool = ThrottlingUtils.checkResponseStatus(res);
@@ -144,12 +179,12 @@ describe("ThrottlingUtils", () => {
 
     describe("checkResponseForRetryAfter", () => {
         it("returns true when Retry-After header exists and when status <= 200", () => {
-            const headers: Record<string, string> = { };
+            const headers: Record<string, string> = {};
             headers["Retry-After"] = "test";
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
-                body: { },
-                status: 199
+                body: {},
+                status: 199,
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
@@ -157,12 +192,12 @@ describe("ThrottlingUtils", () => {
         });
 
         it("returns true when Retry-After header exists and when status > 300", () => {
-            const headers: Record<string, string> = { };
+            const headers: Record<string, string> = {};
             headers["Retry-After"] = "test";
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
-                body: { },
-                status: 300
+                body: {},
+                status: 300,
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
@@ -170,11 +205,11 @@ describe("ThrottlingUtils", () => {
         });
 
         it("returns false when there is no RetryAfter header", () => {
-            const headers: Record<string, string> = { };
+            const headers: Record<string, string> = {};
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
-                body: { },
-                status: 301
+                body: {},
+                status: 301,
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
@@ -182,11 +217,11 @@ describe("ThrottlingUtils", () => {
         });
 
         it("returns false when 200 <= status < 300", () => {
-            const headers: Record<string, string> = { };
+            const headers: Record<string, string> = {};
             const res: NetworkResponse<ServerAuthorizationTokenResponse> = {
                 headers,
-                body: { },
-                status: 200
+                body: {},
+                status: 200,
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
@@ -228,21 +263,25 @@ describe("ThrottlingUtils", () => {
         });
     });
 
-    describe("removeThrottle", () =>  {
+    describe("removeThrottle", () => {
         afterEach(() => {
             sinon.restore();
         });
 
         it("removes the entry from storage", () => {
-            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, new Logger({}));
+            const cache = new MockStorageClass(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                mockCrypto,
+                new Logger({})
+            );
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const removeItemStub = jest.spyOn(cache, "removeItem");
 
             const request: BaseAuthRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                correlationId: TEST_CONFIG.CORRELATION_ID
-            }
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+            };
 
             ThrottlingUtils.removeThrottle(cache, clientId, request);
             expect(removeItemStub).toHaveBeenCalledTimes(1);

@@ -7,8 +7,8 @@
  * Popup configurations for setting dimensions and position of popup window
  */
 export type PopupWindowAttributes = {
-    popupSize?: PopupSize,
-    popupPosition?: PopupPosition
+    popupSize?: PopupSize;
+    popupPosition?: PopupPosition;
 };
 
 export type PopupSize = {

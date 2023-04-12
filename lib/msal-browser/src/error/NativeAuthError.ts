@@ -21,21 +21,21 @@ export enum NativeStatusCode {
     TRANSIENT_ERROR = "TRANSIENT_ERROR",
     PERSISTENT_ERROR = "PERSISTENT_ERROR",
     DISABLED = "DISABLED",
-    ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE"
+    ACCOUNT_UNAVAILABLE = "ACCOUNT_UNAVAILABLE",
 }
 
 export const NativeAuthErrorMessage = {
     extensionError: {
-        code: "ContentError"
+        code: "ContentError",
     },
     userSwitch: {
         code: "user_switch",
-        desc: "User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again."
+        desc: "User attempted to switch accounts in the native broker, which is not allowed. All new accounts must sign-in through the standard web flow first, please try again.",
     },
     tokensNotFoundInCache: {
         code: "tokens_not_found_in_internal_memory_cache",
-        desc: "Tokens not cached in MSAL JS internal memory, please make the WAM request"
-    }
+        desc: "Tokens not cached in MSAL JS internal memory, please make the WAM request",
+    },
 };
 
 export class NativeAuthError extends AuthError {
@@ -53,7 +53,12 @@ export class NativeAuthError extends AuthError {
      * These errors should result in a fallback to the 'standard' browser based auth flow.
      */
     isFatal(): boolean {
-        if (this.ext && this.ext.status && (this.ext.status === NativeStatusCode.PERSISTENT_ERROR || this.ext.status === NativeStatusCode.DISABLED)) {
+        if (
+            this.ext &&
+            this.ext.status &&
+            (this.ext.status === NativeStatusCode.PERSISTENT_ERROR ||
+                this.ext.status === NativeStatusCode.DISABLED)
+        ) {
             return true;
         }
 
@@ -72,7 +77,11 @@ export class NativeAuthError extends AuthError {
      * @param ext
      * @returns
      */
-    static createError(code: string, description: string, ext?: OSError): AuthError {
+    static createError(
+        code: string,
+        description: string,
+        ext?: OSError
+    ): AuthError {
         if (ext && ext.status) {
             switch (ext.status) {
                 case NativeStatusCode.ACCOUNT_UNAVAILABLE:
@@ -94,7 +103,10 @@ export class NativeAuthError extends AuthError {
      * @returns
      */
     static createUserSwitchError(): NativeAuthError {
-        return new NativeAuthError(NativeAuthErrorMessage.userSwitch.code, NativeAuthErrorMessage.userSwitch.desc);
+        return new NativeAuthError(
+            NativeAuthErrorMessage.userSwitch.code,
+            NativeAuthErrorMessage.userSwitch.desc
+        );
     }
 
     /**
@@ -102,6 +114,9 @@ export class NativeAuthError extends AuthError {
      * @returns NativeAuthError: tokensNotFoundInCache
      */
     static createTokensNotFoundInCacheError(): NativeAuthError {
-        return new NativeAuthError(NativeAuthErrorMessage.tokensNotFoundInCache.code, NativeAuthErrorMessage.tokensNotFoundInCache.desc);
+        return new NativeAuthError(
+            NativeAuthErrorMessage.tokensNotFoundInCache.code,
+            NativeAuthErrorMessage.tokensNotFoundInCache.desc
+        );
     }
 }

@@ -13,11 +13,15 @@ export type WithMsalProps = {
 };
 
 /**
- * Higher order component wraps provided component with msal by injecting msal context values into the component's props 
- * @param Component 
+ * Higher order component wraps provided component with msal by injecting msal context values into the component's props
+ * @param Component
  */
-export const withMsal = <P extends WithMsalProps>(Component: React.ComponentType<P>): React.FunctionComponent<Subtract<P,WithMsalProps>> => {
-    const ComponentWithMsal: React.FunctionComponent<Subtract<P,WithMsalProps>> = props => {
+export const withMsal = <P extends WithMsalProps>(
+    Component: React.ComponentType<P>
+): React.FunctionComponent<Subtract<P, WithMsalProps>> => {
+    const ComponentWithMsal: React.FunctionComponent<
+        Subtract<P, WithMsalProps>
+    > = (props) => {
         const msal = useMsal();
         return <Component {...(props as P)} msalContext={msal} />;
     };

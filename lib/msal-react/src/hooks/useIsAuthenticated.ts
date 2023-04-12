@@ -9,17 +9,25 @@ import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { AccountInfo, InteractionStatus } from "@azure/msal-browser";
 import { getAccountByIdentifiers } from "../utils/utilities";
 
-function isAuthenticated(allAccounts: AccountInfo[], matchAccount?: AccountIdentifiers): boolean {
-    if(matchAccount && (matchAccount.username || matchAccount.homeAccountId || matchAccount.localAccountId)) {
+function isAuthenticated(
+    allAccounts: AccountInfo[],
+    matchAccount?: AccountIdentifiers
+): boolean {
+    if (
+        matchAccount &&
+        (matchAccount.username ||
+            matchAccount.homeAccountId ||
+            matchAccount.localAccountId)
+    ) {
         return !!getAccountByIdentifiers(allAccounts, matchAccount);
-    }   
+    }
 
     return allAccounts.length > 0;
 }
 
 /**
  * Returns whether or not a user is currently signed-in. Optionally provide 1 or more accountIdentifiers to determine if a specific user is signed-in
- * @param matchAccount 
+ * @param matchAccount
  */
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
     const { accounts: allAccounts, inProgress } = useMsal();

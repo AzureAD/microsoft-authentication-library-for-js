@@ -25,13 +25,28 @@ export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
 
-export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOptions, CacheOptions } from "./config/Configuration";
+export {
+    Configuration,
+    buildAppConfiguration,
+    NodeAuthOptions,
+    NodeSystemOptions,
+    CacheOptions,
+} from "./config/Configuration";
 export { ClientAssertion } from "./client/ClientAssertion";
 
 // Cache and Storage
 export { TokenCache } from "./cache/TokenCache";
 export { NodeStorage } from "./cache/NodeStorage";
-export { CacheKVStore, JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedAppMetadataEntity, SerializedRefreshTokenEntity } from "./cache/serializer/SerializerTypes";
+export {
+    CacheKVStore,
+    JsonCache,
+    InMemoryCache,
+    SerializedAccountEntity,
+    SerializedIdTokenEntity,
+    SerializedAccessTokenEntity,
+    SerializedAppMetadataEntity,
+    SerializedRefreshTokenEntity,
+} from "./cache/serializer/SerializerTypes";
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";
 
 // Crypto
@@ -87,7 +102,7 @@ export {
     // IAppTokenProvider
     IAppTokenProvider,
     AppTokenProviderParameters,
-    AppTokenProviderResult
+    AppTokenProviderResult,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

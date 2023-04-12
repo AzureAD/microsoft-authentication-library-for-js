@@ -8,14 +8,14 @@
  */
 export type ExpressRequest = {
     headers: {
-        authorization?: string
-    },
+        authorization?: string;
+    };
     body?: {
-        access_token?: string
-    },
+        access_token?: string;
+    };
     session?: {
-        protectedResources?: object
-    }
+        protectedResources?: object;
+    };
 };
 
 /**

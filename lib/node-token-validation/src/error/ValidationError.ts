@@ -11,23 +11,22 @@ import { AuthError } from "@azure/msal-common";
 export const ValidationErrorMessage = {
     invalidNonce: {
         code: "invalid_nonce",
-        desc: "Nonce in token does not match nonce set in validation parameters."
+        desc: "Nonce in token does not match nonce set in validation parameters.",
     },
     invalidCHash: {
         code: "invalid_c_hash",
-        desc: "C_hash in token unable to be validated against code in token."
+        desc: "C_hash in token unable to be validated against code in token.",
     },
     invalidAtHash: {
         code: "invalid_at_hash",
-        desc: "At_hash in token unable to be validated against access token."
-    }
+        desc: "At_hash in token unable to be validated against access token.",
+    },
 };
 
 /**
  * Token Validation library error class thrown for validation errors
  */
 export class ValidationError extends AuthError {
-
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
         this.name = "ValidationError";
@@ -40,7 +39,10 @@ export class ValidationError extends AuthError {
      * @returns {ValidationError} Invalid nonce error
      */
     static createInvalidNonceError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidNonce.code, ValidationErrorMessage.invalidNonce.desc);
+        return new ValidationError(
+            ValidationErrorMessage.invalidNonce.code,
+            ValidationErrorMessage.invalidNonce.desc
+        );
     }
 
     /**
@@ -49,7 +51,10 @@ export class ValidationError extends AuthError {
      * @returns {ValidationError} Invalid c_hash error
      */
     static createInvalidCHashError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidCHash.code, ValidationErrorMessage.invalidCHash.desc);
+        return new ValidationError(
+            ValidationErrorMessage.invalidCHash.code,
+            ValidationErrorMessage.invalidCHash.desc
+        );
     }
 
     /**
@@ -58,7 +63,9 @@ export class ValidationError extends AuthError {
      * @returns {ValidationError} Invalid at_hash error
      */
     static createInvalidAtHashError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidAtHash.code, ValidationErrorMessage.invalidAtHash.desc);
+        return new ValidationError(
+            ValidationErrorMessage.invalidAtHash.code,
+            ValidationErrorMessage.invalidAtHash.desc
+        );
     }
-
 }

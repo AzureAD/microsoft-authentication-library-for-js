@@ -17,8 +17,22 @@ import * as internals from "./internals";
 export { internals };
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration, DEFAULT_IFRAME_TIMEOUT_MS } from "./config/Configuration";
-export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId, CacheLookupPolicy } from "./utils/BrowserConstants";
+export {
+    Configuration,
+    BrowserAuthOptions,
+    CacheOptions,
+    BrowserSystemOptions,
+    BrowserConfiguration,
+    DEFAULT_IFRAME_TIMEOUT_MS,
+} from "./config/Configuration";
+export {
+    InteractionType,
+    InteractionStatus,
+    BrowserCacheLocation,
+    WrapperSKU,
+    ApiId,
+    CacheLookupPolicy,
+} from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
 /*
@@ -27,11 +41,20 @@ export { BrowserUtils } from "./utils/BrowserUtils";
  */
 
 // Browser Errors
-export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
-export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } from "./error/BrowserConfigurationAuthError";
+export {
+    BrowserAuthError,
+    BrowserAuthErrorMessage,
+} from "./error/BrowserAuthError";
+export {
+    BrowserConfigurationAuthError,
+    BrowserConfigurationAuthErrorMessage,
+} from "./error/BrowserConfigurationAuthError";
 
 // Interfaces
-export { IPublicClientApplication, stubbedPublicClientApplication } from "./app/IPublicClientApplication";
+export {
+    IPublicClientApplication,
+    stubbedPublicClientApplication,
+} from "./app/IPublicClientApplication";
 export { INavigationClient } from "./navigation/INavigationClient";
 export { NavigationClient } from "./navigation/NavigationClient";
 export { NavigationOptions } from "./navigation/NavigationOptions";
@@ -48,10 +71,20 @@ export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 export { LoadTokenOptions } from "./cache/TokenCache";
 
 // Events
-export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
+export {
+    EventMessage,
+    EventPayload,
+    EventError,
+    EventCallbackFunction,
+    EventMessageUtils,
+    PopupEvent,
+} from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
-export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
+export {
+    SignedHttpRequest,
+    SignedHttpRequestOptions,
+} from "./crypto/SignedHttpRequest";
 
 export { PopupWindowAttributes } from "./request/PopupWindowAttributes";
 
@@ -95,7 +128,7 @@ export {
     OIDC_DEFAULT_SCOPES,
     PerformanceCallbackFunction,
     PerformanceEvent,
-    PerformanceEvents
+    PerformanceEvents,
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

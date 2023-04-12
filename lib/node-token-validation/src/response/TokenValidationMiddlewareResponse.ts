@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ExpressNextFunction, ExpressRequest, ExpressResponse } from "../request/MiddlewareTypes";
+import {
+    ExpressNextFunction,
+    ExpressRequest,
+    ExpressResponse,
+} from "../request/MiddlewareTypes";
 
 /**
  * Response object for token validation middleware API
@@ -11,4 +15,8 @@ import { ExpressNextFunction, ExpressRequest, ExpressResponse } from "../request
  * - res          - Express Response object
  * - next         - Express Next function
  */
-export type TokenValidationMiddlewareResponse = (req: ExpressRequest, res: ExpressResponse, next: ExpressNextFunction) => void;
+export type TokenValidationMiddlewareResponse = (
+    req: ExpressRequest,
+    res: ExpressResponse,
+    next: ExpressNextFunction
+) => void;

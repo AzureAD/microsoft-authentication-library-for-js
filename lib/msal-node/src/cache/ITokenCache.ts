@@ -10,7 +10,6 @@ import { AccountInfo } from "@azure/msal-common";
  * @public
  */
 export interface ITokenCache {
-
     /** API that retrieves all accounts currently in cache to the user */
     getAllAccounts(): Promise<AccountInfo[]>;
 

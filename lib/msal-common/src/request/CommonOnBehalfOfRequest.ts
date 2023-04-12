@@ -14,6 +14,6 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  */
 export type CommonOnBehalfOfRequest = BaseAuthRequest & {
-    oboAssertion: string,
+    oboAssertion: string;
     skipCache?: boolean;
 };

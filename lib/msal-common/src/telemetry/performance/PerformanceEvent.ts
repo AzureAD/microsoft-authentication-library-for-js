@@ -10,7 +10,6 @@
  * @enum {number}
  */
 export enum PerformanceEvents {
-
     /**
      * acquireTokenByCode API (msal-browser and msal-node).
      * Used to acquire tokens by trading an authorization code against the token endpoint.
@@ -234,7 +233,7 @@ export enum PerformanceEvents {
     GetEndpointMetadataFromNetwork = "getEndpointMetadataFromNetwork",
     GetCloudDiscoveryMetadataFromNetworkMeasurement = "getCloudDiscoveryMetadataFromNetworkMeasurement",
 
-    HandleRedirectPromiseMeasurement= "handleRedirectPromiseMeasurement",
+    HandleRedirectPromiseMeasurement = "handleRedirectPromiseMeasurement",
 
     UpdateCloudDiscoveryMetadataMeasurement = "updateCloudDiscoveryMetadataMeasurement",
 
@@ -252,7 +251,7 @@ export enum PerformanceEvents {
 export enum PerformanceEventStatus {
     NotStarted,
     InProgress,
-    Completed
+    Completed,
 }
 
 /**
@@ -264,14 +263,14 @@ export type StaticFields = {
      *
      * @type {?(number | undefined)}
      */
-    cacheLookupPolicy?: number | undefined,
+    cacheLookupPolicy?: number | undefined;
 
     /**
      * Size of the id token
      *
      * @type {number}
      */
-    idTokenSize?: number,
+    idTokenSize?: number;
 
     /**
      *
@@ -280,7 +279,7 @@ export type StaticFields = {
      * @type {number}
      */
 
-    accessTokenSize?: number,
+    accessTokenSize?: number;
 
     /**
      *
@@ -289,27 +288,27 @@ export type StaticFields = {
      * @type {number}
      */
 
-    refreshTokenSize?: number | undefined,
+    refreshTokenSize?: number | undefined;
 
     /**
      * Application name as specified by the app.
      *
      * @type {?string}
      */
-    appName?: string,
+    appName?: string;
 
     /**
      * Application version as specified by the app.
      *
      * @type {?string}
      */
-    appVersion?: string,
+    appVersion?: string;
 
     /**
      * The following are fields that may be emitted in native broker scenarios
      */
-    extensionId?: string,
-    extensionVersion?: string
+    extensionId?: string;
+    extensionVersion?: string;
     matsBrokerVersion?: string;
     matsAccountJoinOnStart?: string;
     matsAccountJoinOnEnd?: string;
@@ -321,7 +320,7 @@ export type StaticFields = {
     matsSilentBiSubCode?: number;
     matsSilentMessage?: string;
     matsSilentStatus?: number;
-    matsHttpStatus?: number
+    matsHttpStatus?: number;
     matsHttpEventCount?: number;
     httpVerToken?: string;
     httpVerAuthority?: string;
@@ -346,7 +345,7 @@ export type Counters = {
      *
      * @type {?number}
      */
-    queuedCount?: number
+    queuedCount?: number;
     /**
      * Amount of manually completed queue events.
      *
@@ -356,8 +355,8 @@ export type Counters = {
 };
 
 export type SubMeasurement = {
-    name: PerformanceEvents,
-    startTimeMs: number
+    name: PerformanceEvents;
+    startTimeMs: number;
 };
 
 /**
@@ -366,155 +365,156 @@ export type SubMeasurement = {
  * @export
  * @typedef {PerformanceEvent}
  */
-export type PerformanceEvent = StaticFields & Counters & {
-    /**
-     * Unique id for the event
-     *
-     * @type {string}
-     */
-    eventId: string,
+export type PerformanceEvent = StaticFields &
+    Counters & {
+        /**
+         * Unique id for the event
+         *
+         * @type {string}
+         */
+        eventId: string;
 
-    /**
-     * State of the perforance measure.
-     *
-     * @type {PerformanceEventStatus}
-     */
-    status: PerformanceEventStatus,
+        /**
+         * State of the perforance measure.
+         *
+         * @type {PerformanceEventStatus}
+         */
+        status: PerformanceEventStatus;
 
-    /**
-     * Login authority used for the request
-     *
-     * @type {string}
-     */
-    authority: string,
+        /**
+         * Login authority used for the request
+         *
+         * @type {string}
+         */
+        authority: string;
 
-    /**
-     * Client id for the application
-     *
-     * @type {string}
-     */
-    clientId: string
+        /**
+         * Client id for the application
+         *
+         * @type {string}
+         */
+        clientId: string;
 
-    /**
-     * Correlation ID used for the request
-     *
-     * @type {string}
-     */
-    correlationId: string,
+        /**
+         * Correlation ID used for the request
+         *
+         * @type {string}
+         */
+        correlationId: string;
 
-    /**
-     * End-to-end duration in milliseconds.
-     * @date 3/22/2022 - 3:40:05 PM
-     *
-     * @type {number}
-     */
-    durationMs?: number,
+        /**
+         * End-to-end duration in milliseconds.
+         * @date 3/22/2022 - 3:40:05 PM
+         *
+         * @type {number}
+         */
+        durationMs?: number;
 
-    /**
-     * Visibility of the page when the event completed.
-     * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
-     *
-     * @type {?(string | null)}
-     */
-    endPageVisibility?: string | null,
+        /**
+         * Visibility of the page when the event completed.
+         * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
+         *
+         * @type {?(string | null)}
+         */
+        endPageVisibility?: string | null;
 
-    /**
-     * Whether the result was retrieved from the cache.
-     *
-     * @type {(boolean | null)}
-     */
-    fromCache?: boolean | null,
+        /**
+         * Whether the result was retrieved from the cache.
+         *
+         * @type {(boolean | null)}
+         */
+        fromCache?: boolean | null;
 
-    /**
-     * Event name (usually in the form of classNameFunctionName)
-     *
-     * @type {PerformanceEvents}
-     */
-    name: PerformanceEvents,
+        /**
+         * Event name (usually in the form of classNameFunctionName)
+         *
+         * @type {PerformanceEvents}
+         */
+        name: PerformanceEvents;
 
-    /**
-     * Visibility of the page when the event completed.
-     * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
-     *
-     * @type {?(string | null)}
-     */
-    startPageVisibility?: string | null,
+        /**
+         * Visibility of the page when the event completed.
+         * Read from: https://developer.mozilla.org/docs/Web/API/Page_Visibility_API
+         *
+         * @type {?(string | null)}
+         */
+        startPageVisibility?: string | null;
 
-    /**
-     * Unix millisecond timestamp when the event was initiated.
-     *
-     * @type {number}
-     */
-    startTimeMs: number,
+        /**
+         * Unix millisecond timestamp when the event was initiated.
+         *
+         * @type {number}
+         */
+        startTimeMs: number;
 
-    /**
-     * Whether or the operation completed successfully.
-     *
-     * @type {(boolean | null)}
-     */
-    success?: boolean | null,
+        /**
+         * Whether or the operation completed successfully.
+         *
+         * @type {(boolean | null)}
+         */
+        success?: boolean | null;
 
-    /**
-     * Add specific error code in case of failure
-     *
-     * @type {string}
-     */
-    errorCode?: string,
+        /**
+         * Add specific error code in case of failure
+         *
+         * @type {string}
+         */
+        errorCode?: string;
 
-    /**
-     * Add specific sub error code in case of failure
-     *
-     * @type {string}
-     */
-    subErrorCode?: string,
+        /**
+         * Add specific sub error code in case of failure
+         *
+         * @type {string}
+         */
+        subErrorCode?: string;
 
-    /**
-     * Name of the library used for the operation.
-     *
-     * @type {string}
-     */
-    libraryName: string,
+        /**
+         * Name of the library used for the operation.
+         *
+         * @type {string}
+         */
+        libraryName: string;
 
-    /**
-     * Version of the library used for the operation.
-     *
-     * @type {string}
-     */
-    libraryVersion: string,
+        /**
+         * Version of the library used for the operation.
+         *
+         * @type {string}
+         */
+        libraryVersion: string;
 
-    /**
-     * Whether the response is from a native component (e.g., WAM)
-     *
-     * @type {?boolean}
-     */
-    isNativeBroker?: boolean,
+        /**
+         * Whether the response is from a native component (e.g., WAM)
+         *
+         * @type {?boolean}
+         */
+        isNativeBroker?: boolean;
 
-    /**
-     * Request ID returned from the response
-     *
-     * @type {?string}
-     */
-    requestId?: string
+        /**
+         * Request ID returned from the response
+         *
+         * @type {?string}
+         */
+        requestId?: string;
 
-    /**
-     * Cache lookup policy
-     *
-     * @type {?number}
-     */
-    cacheLookupPolicy?: number | undefined,
+        /**
+         * Cache lookup policy
+         *
+         * @type {?number}
+         */
+        cacheLookupPolicy?: number | undefined;
 
-    /**
-     * Amount of time spent in the JS queue in milliseconds.
-     *
-     * @type {?number}
-     */
-    queuedTimeMs?: number,
+        /**
+         * Amount of time spent in the JS queue in milliseconds.
+         *
+         * @type {?number}
+         */
+        queuedTimeMs?: number;
 
-    /**
-     * Sub-measurements for internal use. To be deleted before flushing.
-     */
-    incompleteSubMeasurements?: Map<string, SubMeasurement>
-};
+        /**
+         * Sub-measurements for internal use. To be deleted before flushing.
+         */
+        incompleteSubMeasurements?: Map<string, SubMeasurement>;
+    };
 
 export const IntFields: ReadonlySet<string> = new Set([
     "accessTokenSize",

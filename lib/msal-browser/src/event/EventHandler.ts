@@ -3,9 +3,19 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, AccountEntity, CacheManager } from "@azure/msal-common";
+import {
+    ICrypto,
+    Logger,
+    AccountEntity,
+    CacheManager,
+} from "@azure/msal-common";
 import { InteractionType } from "../utils/BrowserConstants";
-import { EventCallbackFunction, EventError, EventMessage, EventPayload } from "./EventMessage";
+import {
+    EventCallbackFunction,
+    EventError,
+    EventMessage,
+    EventPayload,
+} from "./EventMessage";
 import { EventType } from "./EventType";
 
 export class EventHandler {
@@ -20,7 +30,8 @@ export class EventHandler {
         this.logger = logger;
         this.browserCrypto = browserCrypto;
         this.listeningToStorageEvents = false;
-        this.handleAccountCacheChange = this.handleAccountCacheChange.bind(this);
+        this.handleAccountCacheChange =
+            this.handleAccountCacheChange.bind(this);
     }
 
     /**
@@ -31,11 +42,13 @@ export class EventHandler {
         if (typeof window !== "undefined") {
             const callbackId = this.browserCrypto.createNewGuid();
             this.eventCallbacks.set(callbackId, callback);
-            this.logger.verbose(`Event callback registered with id: ${callbackId}`);
-    
+            this.logger.verbose(
+                `Event callback registered with id: ${callbackId}`
+            );
+
             return callbackId;
         }
-        
+
         return null;
     }
 
@@ -75,7 +88,10 @@ export class EventHandler {
 
         if (this.listeningToStorageEvents) {
             this.logger.verbose("Removing account storage listener.");
-            window.removeEventListener("storage", this.handleAccountCacheChange);
+            window.removeEventListener(
+                "storage",
+                this.handleAccountCacheChange
+            );
             this.listeningToStorageEvents = false;
         } else {
             this.logger.verbose("No account storage listener registered.");
@@ -89,22 +105,31 @@ export class EventHandler {
      * @param payload
      * @param error
      */
-    emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError): void {
+    emitEvent(
+        eventType: EventType,
+        interactionType?: InteractionType,
+        payload?: EventPayload,
+        error?: EventError
+    ): void {
         if (typeof window !== "undefined") {
             const message: EventMessage = {
                 eventType: eventType,
                 interactionType: interactionType || null,
                 payload: payload || null,
                 error: error || null,
-                timestamp: Date.now()
+                timestamp: Date.now(),
             };
 
             this.logger.info(`Emitting event: ${eventType}`);
 
-            this.eventCallbacks.forEach((callback: EventCallbackFunction, callbackId: string) => {
-                this.logger.verbose(`Emitting event to callback ${callbackId}: ${eventType}`);
-                callback.apply(null, [message]);
-            });
+            this.eventCallbacks.forEach(
+                (callback: EventCallbackFunction, callbackId: string) => {
+                    this.logger.verbose(
+                        `Emitting event to callback ${callbackId}: ${eventType}`
+                    );
+                    callback.apply(null, [message]);
+                }
+            );
         }
     }
 
@@ -118,17 +143,31 @@ export class EventHandler {
                 return;
             }
             const parsedValue = JSON.parse(cacheValue);
-            if (typeof parsedValue !== "object" || !AccountEntity.isAccountEntity(parsedValue)) {
+            if (
+                typeof parsedValue !== "object" ||
+                !AccountEntity.isAccountEntity(parsedValue)
+            ) {
                 return;
             }
-            const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), parsedValue);
+            const accountEntity = CacheManager.toObject<AccountEntity>(
+                new AccountEntity(),
+                parsedValue
+            );
             const accountInfo = accountEntity.getAccountInfo();
             if (!e.oldValue && e.newValue) {
-                this.logger.info("Account was added to cache in a different window");
+                this.logger.info(
+                    "Account was added to cache in a different window"
+                );
                 this.emitEvent(EventType.ACCOUNT_ADDED, undefined, accountInfo);
             } else if (!e.newValue && e.oldValue) {
-                this.logger.info("Account was removed from cache in a different window");
-                this.emitEvent(EventType.ACCOUNT_REMOVED, undefined, accountInfo);
+                this.logger.info(
+                    "Account was removed from cache in a different window"
+                );
+                this.emitEvent(
+                    EventType.ACCOUNT_REMOVED,
+                    undefined,
+                    accountInfo
+                );
             }
         } catch (e) {
             return;
