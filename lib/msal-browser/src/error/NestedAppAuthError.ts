@@ -30,4 +30,3 @@ export class NestedAppAuthError extends AuthError {
         );
     }
 }
-
