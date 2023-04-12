@@ -522,6 +522,12 @@ export class Authority {
      */
     private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
 
+        // CIAM does not support cloud discovery metadata
+        if(this.authorityType === AuthorityType.Ciam) {
+            this.logger.verbose("CIAM authorities do not support cloud discovery metadata, generate the aliases from authority host.");
+            return Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
+        }
+
         // Check if network response was provided in config
         if (this.authorityOptions.cloudDiscoveryMetadata) {
             this.logger.verbose("The cloud discovery metadata has been provided as a network response, in the config.");
