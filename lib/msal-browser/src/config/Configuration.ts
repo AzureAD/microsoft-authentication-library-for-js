@@ -82,6 +82,10 @@ export type BrowserAuthOptions = {
      * Flag of whether to use the local metadata cache
      */
     skipAuthorityMetadataCache?: boolean;
+    /**
+     * App supports nested app auth or not; defaults to false
+     */
+    supportsNestedAppAuth?: boolean;
 };
 
 /**
@@ -255,6 +259,7 @@ export function buildConfiguration(
             tenant: Constants.EMPTY_STRING,
         },
         skipAuthorityMetadataCache: false,
+        supportsNestedAppAuth: false,
     };
 
     // Default cache options for browser
