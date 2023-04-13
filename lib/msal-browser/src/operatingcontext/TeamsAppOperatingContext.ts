@@ -60,7 +60,10 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
         try {
             if (typeof window !== "undefined") {
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
-                // Because we want to get SSO we need to grab the active account as part of initialization
+                /*
+                 * Because we want to get SSO we need to grab the active account as part of initialization
+                 * this.activeAccount = await bridgeProxy.getActiveAccount();
+                 */
                 this.activeAccount = await bridgeProxy.getActiveAccount();
                 this.bridgeProxy = bridgeProxy;
                 this.available = bridgeProxy !== undefined;

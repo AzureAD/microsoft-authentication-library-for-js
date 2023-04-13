@@ -124,18 +124,26 @@ export class NestedAppAuthAdapter {
         const expiresOn = new Date(
             TimeUtils.nowSeconds() + (response.expires_in || 0) * 1000
         );
-        const authToken: AuthToken = new AuthToken(
-            response.id_token,
-            this.crypto
-        );
+
+        /*
+         * Currently we're not getting id_token back....
+         *let authToken: AuthToken;
+         *if (response.id_token !== undefined) {
+         *    authToken = new AuthToken(response.id_token, this.crypto);
+         *}
+         */
         const authenticationResult: AuthenticationResult = {
             authority: response.account.environment,
             uniqueId: response.account.homeAccountId,
             tenantId: response.account.tenantId,
             scopes: response.scope.split(" "),
             account: this.fromNaaAccountInfo(response.account),
-            idToken: response.id_token,
-            idTokenClaims: authToken.claims,
+            /*
+             * idToken: response.id_token,
+             * idTokenClaims: authToken.claims,
+             */
+            idToken: "",
+            idTokenClaims: {},
             accessToken: response.access_token,
             fromCache: true,
             expiresOn: expiresOn,
