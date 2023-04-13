@@ -1,0 +1,53 @@
+{
+    "Sample": {
+        "Title": "A Node Command Line Interface (CLI) application using MSAL Node to authentication users against Customer Identity Access Management (CIAM).",
+        "Level": 100,
+        "Client": "Node CLI",
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Endpoint": "AAD v2.0",
+        "platform": "javascript",
+        "Languages": ["javascript"],
+        "Description": "A Node Command Line Interface (CLI) application using MSAL Node to authentication users against Customer Identity Access Management (CIAM).",
+        "products": ["azure-active-directory", "msal-js", "msal-node"],
+        "Provider": "CIAM"
+    },
+     "AADApps": [
+        {
+            "Id": "client",
+            "Name": "ciam-msal-node-cli-app",
+            "Kind": "Desktop",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalJs",
+            "ReplyUrls": "http://localhost",
+            "SampleSubPath": "1-Authentication\\6-sign-in-node-cli-app\\App",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": ["openid", "offline_access"]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
+     ],
+     "CodeConfiguration": [
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\App\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Tenant_Id_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                }
+            ]
+        }
+     ]
+}
