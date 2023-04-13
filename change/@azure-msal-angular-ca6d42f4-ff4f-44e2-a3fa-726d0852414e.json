@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Msal Angular v3 minor updates #5884",
+  "comment": "Msal Angular v3 address security vulnerabilities #5884",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
