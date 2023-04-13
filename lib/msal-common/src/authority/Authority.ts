@@ -80,8 +80,8 @@ export class Authority {
     // See above for AuthorityType
     public get authorityType(): AuthorityType {
 
-        // CIAM auth pattern is being standardized as: tenant.ciamlogin.com
-        if(this.canonicalAuthorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
+        // CIAM auth url pattern is being standardized as: <tenant>.ciamlogin.com
+        if (this.canonicalAuthorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
             return AuthorityType.Ciam;
         }
 
