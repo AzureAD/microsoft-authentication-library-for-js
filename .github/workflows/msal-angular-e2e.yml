@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
     runs-on: ubuntu-latest
 
     strategy:
@@ -45,7 +45,7 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v3
       with:
-          node-version: 16
+          node-version: 18
 
     - name: Clean Install
       env:
