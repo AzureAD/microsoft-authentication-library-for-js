@@ -330,7 +330,12 @@ export class NestedAppAuthController implements IController {
         throw NestedAppAuthError.createUnsupportedError();
     }
     getActiveAccount(): AccountInfo | null {
-        throw NestedAppAuthError.createUnsupportedError();
+        const currentAccount = this.operatingContext.getActiveAccount();
+        if (currentAccount !== undefined) {
+            return this.nestedAppAuthAdapter.fromNaaAccountInfo(currentAccount);
+        } else {
+            return null;
+        }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
