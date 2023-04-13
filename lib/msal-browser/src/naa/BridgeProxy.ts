@@ -159,6 +159,10 @@ export class BridgeProxy implements IBridgeProxy {
         return this.sendRequest<AccountInfo>(method, request);
     }
 
+    public getActiveAccount(): Promise<AccountInfo> {
+        return this.sendRequest<AccountInfo>("GetActiveAccount", undefined);
+    }
+
     /**
      * A method used to send a request to the bridge
      * @param request A token request
@@ -171,6 +175,7 @@ export class BridgeProxy implements IBridgeProxy {
             | AccountByHomeIdRequest
             | AccountByLocalIdRequest
             | AccountByUsernameRequest
+            | undefined
     ): Promise<TResponse> {
         const message: BridgeRequestEnvelope = {
             messageType: "NestedAppAuthRequest",

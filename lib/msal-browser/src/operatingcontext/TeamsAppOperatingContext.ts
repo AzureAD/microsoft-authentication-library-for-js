@@ -6,9 +6,11 @@
 import { BaseOperatingContext } from "./BaseOperatingContext";
 import { IBridgeProxy } from "../naa/IBridgeProxy";
 import { BridgeProxy } from "../naa/BridgeProxy";
+import { AccountInfo } from "../naa/AccountInfo";
 
 export class TeamsAppOperatingContext extends BaseOperatingContext {
     protected bridgeProxy: IBridgeProxy | undefined = undefined;
+    protected activeAccount: AccountInfo | undefined = undefined;
 
     /*
      * TODO: Once we have determine the bundling code return here to specify the name of the bundle
@@ -41,6 +43,10 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
         return this.bridgeProxy;
     }
 
+    getActiveAccount(): AccountInfo | undefined {
+        return this.activeAccount;
+    }
+
     /**
      * Checks whether the operating context is available.
      * Confirms that the code is running a browser rather.  This is required.
@@ -54,6 +60,8 @@ export class TeamsAppOperatingContext extends BaseOperatingContext {
         try {
             if (typeof window !== "undefined") {
                 const bridgeProxy: IBridgeProxy = await BridgeProxy.create();
+                // Because we want to get SSO we need to grab the active account as part of initialization
+                this.activeAccount = await bridgeProxy.getActiveAccount();
                 this.bridgeProxy = bridgeProxy;
                 this.available = bridgeProxy !== undefined;
             } else {

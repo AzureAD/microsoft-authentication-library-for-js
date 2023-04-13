@@ -108,6 +108,7 @@ export class NestedAppAuthController implements IController {
 
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
+            this.config.auth.clientCapabilities,
             this.browserCrypto,
             this.logger
         );
@@ -221,15 +222,48 @@ export class NestedAppAuthController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccountByHomeId(homeAccountId: string): AccountInfo | null {
-        throw new Error("Method not implemented.");
+        const currentAccount = this.operatingContext.getActiveAccount();
+        if (currentAccount !== undefined) {
+            if (currentAccount.homeAccountId === homeAccountId) {
+                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
+                    currentAccount
+                );
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccountByLocalId(localId: string): AccountInfo | null {
-        throw new Error("Method not implemented.");
+        const currentAccount = this.operatingContext.getActiveAccount();
+        if (currentAccount !== undefined) {
+            if (currentAccount.localAccountId === localId) {
+                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
+                    currentAccount
+                );
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     getAccountByUsername(userName: string): AccountInfo | null {
-        throw new Error("Method not implemented.");
+        const currentAccount = this.operatingContext.getActiveAccount();
+        if (currentAccount !== undefined) {
+            if (currentAccount.username === userName) {
+                return this.nestedAppAuthAdapter.fromNaaAccountInfo(
+                    currentAccount
+                );
+            } else {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
     getAllAccounts(): AccountInfo[] {
         throw new Error("Method not implemented.");
