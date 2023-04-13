@@ -30,7 +30,7 @@ const pca = new PublicClientApplication(msalConfig);
 
 const acquireToken = async () => {
     const accounts = await pca.getTokenCache().getAllAccounts();
-    if (accounts.length == 1) {
+    if (accounts.length === 1) {
         const silentRequest = {
             account: accounts[0],
         };
