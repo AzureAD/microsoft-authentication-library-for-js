@@ -21,4 +21,5 @@ export interface IBridgeProxy {
             | AccountByLocalIdRequest
             | AccountByUsernameRequest
     ): Promise<AccountInfo>;
+    getActiveAccount(): Promise<AccountInfo>;
 }

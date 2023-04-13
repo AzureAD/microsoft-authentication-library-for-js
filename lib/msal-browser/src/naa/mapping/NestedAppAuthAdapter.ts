@@ -29,9 +29,16 @@ export class NestedAppAuthAdapter {
     protected crypto: ICrypto;
     protected logger: Logger;
     protected clientId: string;
+    protected clientCapabilities: string[];
 
-    constructor(clientId: string, crypto: ICrypto, logger: Logger) {
+    constructor(
+        clientId: string,
+        clientCapabilities: string[],
+        crypto: ICrypto,
+        logger: Logger
+    ) {
         this.clientId = clientId;
+        this.clientCapabilities = clientCapabilities;
         this.crypto = crypto;
         this.logger = logger;
     }
@@ -64,7 +71,7 @@ export class NestedAppAuthAdapter {
                 request.authenticationScheme !== undefined
                     ? request.authenticationScheme
                     : "",
-            clientCapabilities: undefined,
+            clientCapabilities: this.clientCapabilities,
             extraParameters: extraParams,
         };
 
