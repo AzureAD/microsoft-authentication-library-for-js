@@ -457,7 +457,7 @@ export class BrowserCacheManager extends CacheManager {
                 const accessRemoval = tokenKeys.accessToken.indexOf(key);
                 if (accessRemoval > -1) {
                     this.logger.info("BrowserCacheManager: removeTokenKey - accessToken removed from map");
-                    tokenKeys.idToken.splice(accessRemoval, 1);
+                    tokenKeys.accessToken.splice(accessRemoval, 1);
                 } else {
                     this.logger.info("BrowserCacheManager: removeTokenKey - accessToken does not exist in map. Either it was previously removed or it was never added.");
                 }
@@ -467,7 +467,7 @@ export class BrowserCacheManager extends CacheManager {
                 const refreshRemoval = tokenKeys.refreshToken.indexOf(key);
                 if (refreshRemoval > -1) {
                     this.logger.info("BrowserCacheManager: removeTokenKey - refreshToken removed from map");
-                    tokenKeys.idToken.splice(refreshRemoval, 1);
+                    tokenKeys.refreshToken.splice(refreshRemoval, 1);
                 } else {
                     this.logger.info("BrowserCacheManager: removeTokenKey - refreshToken does not exist in map. Either it was previously removed or it was never added.");
                 }
