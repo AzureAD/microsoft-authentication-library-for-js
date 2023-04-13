@@ -523,7 +523,7 @@ export class Authority {
     private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
 
         // CIAM does not support cloud discovery metadata
-        if(this.authorityType === AuthorityType.Ciam) {
+        if (this.authorityType === AuthorityType.Ciam) {
             this.logger.verbose("CIAM authorities do not support cloud discovery metadata, generate the aliases from authority host.");
             return Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
         }
