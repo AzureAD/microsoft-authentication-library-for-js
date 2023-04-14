@@ -39,7 +39,7 @@ export class InteractionHandler {
         this.logger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
-            throw BrowserAuthError.createEmptyHashError(locationHash);
+            throw BrowserAuthError.createEmptyHashError();
         }
 
         // Handle code response.

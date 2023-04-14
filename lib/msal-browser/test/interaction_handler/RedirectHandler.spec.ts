@@ -255,9 +255,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("throws error if given hash is empty", () => {
             const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto, performanceClient);
-            expect(redirectHandler.handleCodeResponseFromHash("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            expect(redirectHandler.handleCodeResponseFromHash("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
             //@ts-ignore
-            expect(redirectHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
+            expect(redirectHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
         });
 
         it("successfully handles response", async () => {

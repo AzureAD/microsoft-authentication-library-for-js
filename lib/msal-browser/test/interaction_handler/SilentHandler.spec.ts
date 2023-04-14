@@ -193,7 +193,9 @@ describe("SilentHandler.ts Unit Tests", () => {
             const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, { navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS, pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS }, performanceClient);
             // @ts-ignore
             silentHandler.monitorIframeForHash(iframe, 500)
-                .catch(() => {
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toMatchObject(BrowserAuthError.createMonitorIframeTimeoutError());
                     done();
                 });
         });
@@ -204,7 +206,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             const iframe = {
                 contentWindow: {
                     location: {
-                        href: "http://localhost",
+                        href: "about:blank",
                         hash: ""
                     }
                 }
@@ -213,7 +215,9 @@ describe("SilentHandler.ts Unit Tests", () => {
             const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, { navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS, pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS }, performanceClient);
             // @ts-ignore
             silentHandler.monitorIframeForHash(iframe, 2000)
-                .catch(() => {
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toMatchObject(BrowserAuthError.createMonitorIframeTimeoutError());
                     done();
                 });
 
@@ -240,7 +244,7 @@ describe("SilentHandler.ts Unit Tests", () => {
             const iframe = {
                 contentWindow: {
                     location: {
-                        href: "http://localhost",
+                        href: "about:blank",
                         hash: ""
                     }
                 }
@@ -258,6 +262,60 @@ describe("SilentHandler.ts Unit Tests", () => {
                 iframe.contentWindow.location = {
                     href: "http://localhost/#code=hello",
                     hash: "#code=hello"
+                };
+            }, 500);
+        });
+
+        it("Throws hash empty error", done => {
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "about:blank",
+                        hash: ""
+                    }
+                }
+            };
+
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, { navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS, pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS }, performanceClient);
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 1000)
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toMatchObject(BrowserAuthError.createEmptyHashError());
+                    done();
+                });
+
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/",
+                    hash: ""
+                };
+            }, 500);
+        });
+
+        it("Throws hashDoesNotContainKnownProperties error", done => {
+            const iframe = {
+                contentWindow: {
+                    location: {
+                        href: "about:blank",
+                        hash: ""
+                    }
+                }
+            };
+
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, { navigateFrameWait: DEFAULT_IFRAME_TIMEOUT_MS, pollIntervalMilliseconds: DEFAULT_POLL_INTERVAL_MS }, performanceClient);
+            // @ts-ignore
+            silentHandler.monitorIframeForHash(iframe, 1000)
+                .catch((e) => {
+                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e).toMatchObject(BrowserAuthError.createHashDoesNotContainKnownPropertiesError());
+                    done();
+                });
+
+            setTimeout(() => {
+                iframe.contentWindow.location = {
+                    href: "http://localhost/#myCustomHash",
+                    hash: "myCustomHash"
                 };
             }, 500);
         });

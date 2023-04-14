@@ -270,9 +270,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
         it("throws error if given location hash is empty", async () => {
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            expect(interactionHandler.handleCodeResponseFromHash("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            expect(interactionHandler.handleCodeResponseFromHash("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
             //@ts-ignore
-            expect(interactionHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
+            expect(interactionHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
         });
 
         // TODO: Need to improve these tests

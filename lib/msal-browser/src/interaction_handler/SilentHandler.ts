@@ -80,16 +80,34 @@ export class SilentHandler extends InteractionHandler {
                     href = contentWindow ? contentWindow.location.href : Constants.EMPTY_STRING;
                 } catch (e) {}
 
-                if (StringUtils.isEmpty(href)) {
+                if (StringUtils.isEmpty(href) || href === "about:blank") {
                     return;
                 }
 
                 const contentHash = contentWindow ? contentWindow.location.hash: Constants.EMPTY_STRING;
-                if (UrlString.hashContainsKnownProperties(contentHash)) {
-                    // Success case
+                if (contentHash) {
+                    if (UrlString.hashContainsKnownProperties(contentHash)) {
+                        // Success case
+                        this.removeHiddenIframe(iframe);
+                        clearInterval(intervalId);
+                        resolve(contentHash);
+                        return;
+                    } else {
+                        // Hash is present but incorrect
+                        this.logger.error("SilentHandler:monitorIFrameForHash - a hash is present in the iframe but it does not contain known properties. It's likely that the hash has been replaced by code running on the redirectUri page.");
+                        this.logger.errorPii(`SilentHandler:monitorIFrameForHash - the url detected in the iframe is: ${href}`);
+                        this.removeHiddenIframe(iframe);
+                        clearInterval(intervalId);
+                        reject(BrowserAuthError.createHashDoesNotContainKnownPropertiesError());
+                        return;
+                    }
+                } else {
+                    // No hash is present
+                    this.logger.error("SilentHandler:monitorIFrameForHash - the request has returned to the redirectUri but a hash is not present in the iframe. It's likely that the hash has been removed or the page has been redirected by code running on the redirectUri page.");
+                    this.logger.errorPii(`SilentHandler:monitorIFrameForHash - the url detected in the iframe is: ${href}`);
                     this.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
-                    resolve(contentHash);
+                    reject(BrowserAuthError.createEmptyHashError());
                     return;
                 }
             }, this.pollIntervalMilliseconds);

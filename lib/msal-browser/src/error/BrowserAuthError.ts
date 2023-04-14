@@ -241,8 +241,8 @@ export class BrowserAuthError extends AuthError {
      * Creates an error thrown when the hash string value is unexpectedly empty.
      * @param hashValue
      */
-    static createEmptyHashError(hashValue: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
+    static createEmptyHashError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc}`);
     }
 
     /**
