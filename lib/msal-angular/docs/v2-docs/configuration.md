@@ -29,6 +29,8 @@ Please see our [MsalInterceptor](https://github.com/AzureAD/microsoft-authentica
 
 We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppComponent` if you intend to use redirects. Please see the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more details. 
 
+**Note:** As of MSAL v3.x, the `MsalRedirectComponent` is now **MANDATORY** and must be bootstrapped for app initialization to succeed.
+
 ## MsalModule.forRoot
 
 The `MsalModule` class contains a static method that can be called in your `app.module.ts` file:
