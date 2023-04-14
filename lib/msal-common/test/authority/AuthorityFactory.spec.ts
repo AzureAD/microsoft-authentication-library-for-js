@@ -152,7 +152,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
     });
 
-    it("createDiscoveredInstance does not transform when there is a PATH & does not add a trailing `slash`", async () => {
+    it("createDiscoveredInstance does not transform when there is a PATH adds a trailing `slash` if not provided", async () => {
         const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockResolvedValue();
         const authorityInstance = await AuthorityFactory.createDiscoveredInstance("https://test.ciamlogin.com/tenant", networkInterface, mockStorage, authorityOptions, logger);
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
@@ -161,7 +161,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
     })
 
-    it("createDiscoveredInstance transforms CIAM authority", async () => {
+    it("createDiscoveredInstance does not tranform CIAM authority when there is a PATH & accounts for existing trailing `slash`", async () => {
         const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockResolvedValue();
         const authorityInstance = await AuthorityFactory.createDiscoveredInstance("https://test.ciamlogin.com/e458a5d7-3227-49a6-a1f1-8e5317c8a790/", networkInterface, mockStorage, authorityOptions, logger);
         expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);

@@ -19,7 +19,7 @@ export const Constants = {
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // CIAM URL
     CIAM_AUTH_URL: ".ciamlogin.com",
-    CIAM_ENDPOINT: ".onmicrosoft.com",
+    AAD_TENANT_DOMAIN_SUFFIX: ".onmicrosoft.com",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects

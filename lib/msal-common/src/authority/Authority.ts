@@ -804,7 +804,7 @@ export class Authority {
         // check if transformation is needed
         if (authorityUrlComponents.PathSegments.length === 0 && (authorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL))){
             const tenantIdOrDomain = authorityUrlComponents.HostNameAndPort.split(".")[0];
-            ciamAuthority = `${ciamAuthority}${tenantIdOrDomain}${Constants.CIAM_ENDPOINT}`;
+            ciamAuthority = `${ciamAuthority}${tenantIdOrDomain}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`;
         }
 
         return ciamAuthority;
