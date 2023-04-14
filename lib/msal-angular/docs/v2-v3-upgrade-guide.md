@@ -6,7 +6,7 @@ This guide will demonstrate changes needed to migrate an existing application fr
 
 If you are migrating from `@azure/msal-angular` v1, please refer to the [v1-v2 migration guide](./v2-docs/v1-v2-upgrade-guide.md) first to migrate to MSAL v2.
 
-Please also see the [MSAL Browser Migration Doc](../../msal-browser/docs/v2-migration.md) for other key changes.
+Please also see the [MSAL Browser Migration Doc](../../msal-browser/docs/v2-migration.md) for browser support and other key changes.
 
 ## Breaking changes in `@azure/msal-angular@3`
 
