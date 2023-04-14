@@ -151,7 +151,7 @@ Please refer to:
 1. If you don't have a platform added, select **Add a platform** and select the **Single-page application** option.
     1. In the **Redirect URI** section enter the following redirect URIs:
         1. `http://localhost:3000/`
-        1. `http://localhost:3000/redirect.html`
+        1. `http://localhost:3000/redirect`
     1. Click **Save** to save your changes.
 1. Since this app signs-in users, we will now proceed to select **delegated permissions**, which is is required by apps signing-in users.
     1. In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs:

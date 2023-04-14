@@ -45,7 +45,7 @@
             "SDK": "MsalJs",
             "SampleSubPath": "2-Authorization\\1-call-api-react\\SPA",
             "HomePage": "http://localhost:3000",
-            "ReplyUrls": "http://localhost:3000, http://localhost:3000/redirect.html",
+            "ReplyUrls": "http://localhost:3000, http://localhost:3000/redirect",
             "RequiredResourcesAccess": [
                 {
                     "Resource": "Microsoft Graph",
@@ -93,8 +93,8 @@
                      "value": "$tenantId"
                  },
                  {
-                    "key": "Enter_the_Web_Api_App_Id_Uri_Here",
-                    "value": "$serviceIdentifierUri"
+                    "key": "Enter_the_Web_Api_Application_Id_Here",
+                    "value": "service.AppId"
                  }
                  
              ]

@@ -146,7 +146,7 @@ Please refer to:
 1. In the **Overview** blade, find and note the **Application (client) ID**. You use this value in your app's configuration file(s) later in your code.
 1. In the app's registration screen, select the **Expose an API** blade to the left to open the page where you can publish the permission as an API for which client applications can obtain [access tokens](https://aka.ms/access-tokens) for. The first thing that we need to do is to declare the unique [resource](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow) URI that the clients will be using to obtain access tokens for this API. To declare an resource URI(Application ID URI), follow the following steps:
     1. Select **Set** next to the **Application ID URI** to generate a URI that is unique for this app.
-    1. For this sample, accept the proposed Application ID URI (`https://{tenantName}.onmicrosoft.com/{clientId}`) by selecting **Save**.
+    1. For this sample, accept the proposed Application ID URI (`api://{clientId}`) by selecting **Save**.
         > :information_source: Read more about Application ID URI at [Validation differences by supported account types (signInAudience)](https://docs.microsoft.com/azure/active-directory/develop/supported-accounts-validation).
 
 ##### Publish Delegated Permissions
@@ -209,7 +209,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. If you don't have a platform added, select **Add a platform** and select the **Single-page application** option.
     1. In the **Redirect URI** section enter the following redirect URIs:
         1. `http://localhost:3000`
-        1. `http://localhost:3000/redirect.html`
+        1. `http://localhost:3000/redirect`
     1. Click **Save** to save your changes.
 1. Since this app signs-in users, we will now proceed to select **delegated permissions**, which is is required by apps signing-in users.
     1. In the app's registration screen, select the **API permissions** blade in the left to open the page where we add access to the APIs that your application needs:
@@ -234,7 +234,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Open the `SPA\src\authConfig.js` file.
 1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-react-spa` app copied from the Azure portal.
 1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
-1. Find the key `Enter_the_Web_Api_App_Id_Uri_Here` and replace the existing value with the **App ID URI** of the `ciam-msal-dotnet-api` app copied from the Azure portal (e.g. `https://{tenantName}.onmicrosoft.com/{clientId}`).
+1. Find the key `Enter_the_Web_Api_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
 
 ### Step 4: Running the sample
 
@@ -464,7 +464,7 @@ Build your project to get a distributable files folder, where your built `html`,
 1. In the app's registration screen, select **Authentication** in the menu.
    1. In the **Redirect URIs** section, update the reply URLs to match the site URL of your Azure deployment. For example:
         1. `https://ciam-msal-react-spa.azurewebsites.net/`
-        1. `https://ciam-msal-react-spa.azurewebsites.net/redirect.html`
+        1. `https://ciam-msal-react-spa.azurewebsites.net/redirect`
 
 #### Update authentication configuration parameters (ciam-msal-react-spa)
 

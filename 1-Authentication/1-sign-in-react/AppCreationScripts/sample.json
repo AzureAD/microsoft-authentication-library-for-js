@@ -17,7 +17,7 @@
             "Name": "msal-react-spa",
             "Kind": "SinglePageApplication",
             "HomePage": "http://localhost:3000/",
-            "ReplyUrls": "http://localhost:3000/, http://localhost:3000/redirect.html",
+            "ReplyUrls": "http://localhost:3000/, http://localhost:3000/redirect",
             "Audience": "AzureADMyOrg",
             "SDK": "MsalJs",
             "SampleSubPath": "1-Authentication\\1-sign-in-react\\SPA",

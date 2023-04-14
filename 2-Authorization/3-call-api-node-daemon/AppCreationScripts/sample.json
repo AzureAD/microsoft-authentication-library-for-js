@@ -1,0 +1,100 @@
+{
+    "Sample": {
+        "Title": "A Node.js daemon application secured by MSAL Node on Microsoft identity platform",
+        "Level": 200,
+        "Client": "Node.js daemon app",
+        "Service": "ASP.NET Core web API",
+        "Languages": ["javascript", "csharp"],
+        "Products": ["azure-active-directory", "aspnet-core", "msal-js", "microsoft-identity-web"],
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Platform": "JavaScript",
+        "Endpoint": "AAD v2.0",
+        "Provider": "CIAM",
+        "description": "This sample demonstrates a Node daemon app using MSAL Node to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+    },
+    "AADApps": [
+        {
+            "Id": "service",
+            "Name": "ciam-msal-dotnet-api",
+            "Kind": "WebApi",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MicrosoftIdentityWeb",
+            "SampleSubPath": "2-Authorization\\3-call-api-node-daemon\\API\\TodoListAPI",
+            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "AppRoles": [
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.Read.All",
+                    "Description": "Allow this application to read every users TodoList items"
+                },
+                {
+                    "AllowedMemberTypes": ["Application"],
+                    "Name": "TodoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users TodoList items"
+                }
+            ],
+            "OptionalClaims": {
+                "AccessTokenClaims": ["idtyp"]
+            }
+        },
+        {
+            "Id": "client",
+            "Name": "ciam-msal-node-daemon",
+            "Kind": "Daemon",
+            "Audience": "AzureADMyOrg",
+            "SDK": "MsalJs",
+            "PasswordCredentials": "Auto",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "service",
+                    "ApplicationPermissions": ["TodoList.Read.All", "TodoList.ReadWrite.All"]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to the API permissions page and click on 'Grant admin consent for {tenant}'"
+                }
+            ]
+        }
+    ],
+    "CodeConfiguration": [
+        {
+            "App": "service",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "Mappings": [
+                {
+                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter the tenant ID",
+                    "value": "$tenantId"
+                }
+            ]
+        },
+        {
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\APP\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "Value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Id_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Client_Secret_Here",
+                    "value": ".AppKey"
+                },
+                {
+                    "key": "Enter_the_Web_Api_Application_Id_Here",
+                    "value": "service.AppId"
+                }
+            ]
+        }
+    ]
+}
