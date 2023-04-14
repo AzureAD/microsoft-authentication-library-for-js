@@ -30,7 +30,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
             ...
         },
         system: {
-            allowNativeBroker: false, // Disables WAM Broker
+            allowNativeBroker: false, // Disables native brokering support
         }
     });
 }
