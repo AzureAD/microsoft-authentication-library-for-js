@@ -180,7 +180,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
 ## 2. Subscribing to `handleRedirectObservable` manually
 
-**Note:** As of MSAL v3.x, the `MsalRedirectComponent` is now **MANDATORY** and manual subscriptions to `handleRedirectObservable` can no longer be guaranteed to work.
+**Note:** As of MSAL v3.x, the `MsalRedirectComponent` is now **MANDATORY** and manual subscriptions to `handleRedirectObservable` are no longer supported.
 
 This is not our recommended approach, but if you are unable to bootstrap the `MsalRedirectComponent`, you **must** handle redirects using the `handleRedirectObservable` as follows:
 
