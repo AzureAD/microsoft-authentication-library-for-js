@@ -5,19 +5,18 @@
 
 import { StringUtils } from "../utils/StringUtils";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { PromptValue, CodeChallengeMethodValues} from "../utils/Constants";
+import { PromptValue, CodeChallengeMethodValues } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 
 /**
  * Validates server consumable params from the "request" objects
  */
 export class RequestValidator {
-
     /**
      * Utility to check if the `redirectUri` in the request is a non-null value
      * @param redirectUri
      */
-    static validateRedirectUri(redirectUri: string) : void {
+    static validateRedirectUri(redirectUri: string): void {
         if (StringUtils.isEmpty(redirectUri)) {
             throw ClientConfigurationError.createRedirectUriEmptyError();
         }
@@ -27,7 +26,7 @@ export class RequestValidator {
      * Utility to validate prompt sent by the user in the request
      * @param prompt
      */
-    static validatePrompt(prompt: string) : void {
+    static validatePrompt(prompt: string): void {
         const promptValues = [];
 
         for (const value in PromptValue) {
@@ -39,10 +38,10 @@ export class RequestValidator {
         }
     }
 
-    static validateClaims(claims: string) : void {
+    static validateClaims(claims: string): void {
         try {
             JSON.parse(claims);
-        } catch(e) {
+        } catch (e) {
             throw ClientConfigurationError.createInvalidClaimsRequestError();
         }
     }
@@ -52,8 +51,14 @@ export class RequestValidator {
      * @param codeChallenge
      * @param codeChallengeMethod
      */
-    static validateCodeChallengeParams(codeChallenge: string, codeChallengeMethod: string) : void  {
-        if (StringUtils.isEmpty(codeChallenge) || StringUtils.isEmpty(codeChallengeMethod)) {
+    static validateCodeChallengeParams(
+        codeChallenge: string,
+        codeChallengeMethod: string
+    ): void {
+        if (
+            StringUtils.isEmpty(codeChallenge) ||
+            StringUtils.isEmpty(codeChallengeMethod)
+        ) {
             throw ClientConfigurationError.createInvalidCodeChallengeParamsError();
         } else {
             this.validateCodeChallengeMethod(codeChallengeMethod);
@@ -64,11 +69,11 @@ export class RequestValidator {
      * Utility to validate code_challenge_method
      * @param codeChallengeMethod
      */
-    static validateCodeChallengeMethod(codeChallengeMethod: string) : void {
+    static validateCodeChallengeMethod(codeChallengeMethod: string): void {
         if (
             [
                 CodeChallengeMethodValues.PLAIN,
-                CodeChallengeMethodValues.S256
+                CodeChallengeMethodValues.S256,
             ].indexOf(codeChallengeMethod) < 0
         ) {
             throw ClientConfigurationError.createInvalidCodeChallengeMethodError();
@@ -79,7 +84,10 @@ export class RequestValidator {
      * Removes unnecessary, duplicate, and empty string query parameters from extraQueryParameters
      * @param request
      */
-    static sanitizeEQParams(eQParams: StringDict, queryParams: Map<string, string>) : StringDict {
+    static sanitizeEQParams(
+        eQParams: StringDict,
+        queryParams: Map<string, string>
+    ): StringDict {
         if (!eQParams) {
             return {};
         }
@@ -92,7 +100,8 @@ export class RequestValidator {
         });
 
         // remove empty string parameters
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        return Object.fromEntries(Object.entries(eQParams).filter(([key, value]) => value !== ""));
+        return Object.fromEntries(
+            Object.entries(eQParams).filter(([key, value]) => value !== "") // eslint-disable-line @typescript-eslint/no-unused-vars
+        );
     }
 }

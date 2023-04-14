@@ -27,5 +27,5 @@ export enum EventType {
     LOGOUT_START = "msal:logoutStart",
     LOGOUT_SUCCESS = "msal:logoutSuccess",
     LOGOUT_FAILURE = "msal:logoutFailure",
-    LOGOUT_END = "msal:logoutEnd"
+    LOGOUT_END = "msal:logoutEnd",
 }

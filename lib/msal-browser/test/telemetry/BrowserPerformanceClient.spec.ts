@@ -1,4 +1,8 @@
-import { ApplicationTelemetry, Logger, PerformanceEvents } from "@azure/msal-common";
+import {
+    ApplicationTelemetry,
+    Logger,
+    PerformanceEvents,
+} from "@azure/msal-common";
 import { name, version } from "../../src/packageMetadata";
 import { BrowserPerformanceClient } from "../../src/telemetry/BrowserPerformanceClient";
 
@@ -8,12 +12,12 @@ const logger = new Logger({});
 const correlationId = "correlation-id";
 const applicationTelemetry: ApplicationTelemetry = {
     appName: "Test App",
-    appVersion: "1.0.0-test.0"
-}
+    appVersion: "1.0.0-test.0",
+};
 const cryptoOptions = {
     useMsrCrypto: false,
-    entropy: undefined
-}
+    entropy: undefined,
+};
 
 jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
     return {
@@ -21,46 +25,76 @@ jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
             return {
                 startMeasurement: () => {},
                 endMeasurement: () => {},
-                flushMeasurement: () => 50
-            }
-        })
-    }
+                flushMeasurement: () => 50,
+            };
+        }),
+    };
 });
 
 describe("BrowserPerformanceClient.ts", () => {
-
     afterAll(() => {
         jest.resetAllMocks();
         jest.restoreAllMocks();
     });
 
     it("sets pre-queue time", () => {
-        const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+        const browserPerfClient = new BrowserPerformanceClient(
+            clientId,
+            authority,
+            logger,
+            name,
+            version,
+            applicationTelemetry,
+            cryptoOptions
+        );
         const eventName = PerformanceEvents.AcquireTokenSilent;
-        const correlationId = 'test-correlation-id';
+        const correlationId = "test-correlation-id";
         const perfTimeNow = 1234567890;
 
         jest.spyOn(window.performance, "now").mockReturnValue(perfTimeNow);
 
         browserPerfClient.setPreQueueTime(eventName, correlationId);
         // @ts-ignore
-        expect(browserPerfClient.getPreQueueTime(eventName, correlationId)).toEqual(perfTimeNow);
-        // @ts-ignore
-        expect(browserPerfClient.preQueueTimeByCorrelationId.get(correlationId)).toEqual({name: eventName, time: perfTimeNow});
+        expect(
+            browserPerfClient.getPreQueueTime(eventName, correlationId)
+        ).toEqual(perfTimeNow);
+        expect(
+            // @ts-ignore
+            browserPerfClient.preQueueTimeByCorrelationId.get(correlationId)
+        ).toEqual({ name: eventName, time: perfTimeNow });
     });
 
     describe("generateId", () => {
         it("returns a string", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+            const browserPerfClient = new BrowserPerformanceClient(
+                clientId,
+                authority,
+                logger,
+                name,
+                version,
+                applicationTelemetry,
+                cryptoOptions
+            );
 
             expect(typeof browserPerfClient.generateId()).toBe("string");
         });
     });
-    describe("startPerformanceMeasuremeant", () => {
+    describe("startPerformanceMeasurement", () => {
         it("calculate performance duration", () => {
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+            const browserPerfClient = new BrowserPerformanceClient(
+                clientId,
+                authority,
+                logger,
+                name,
+                version,
+                applicationTelemetry,
+                cryptoOptions
+            );
 
-            const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            const measurement = browserPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
 
             const result = measurement.endMeasurement();
 
@@ -68,11 +102,24 @@ describe("BrowserPerformanceClient.ts", () => {
         });
 
         it("captures page visibilityState", () => {
-            const spy = jest.spyOn(Document.prototype,"visibilityState", "get").mockReturnValue("visible");
+            const spy = jest
+                .spyOn(Document.prototype, "visibilityState", "get")
+                .mockReturnValue("visible");
 
-            const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+            const browserPerfClient = new BrowserPerformanceClient(
+                clientId,
+                authority,
+                logger,
+                name,
+                version,
+                applicationTelemetry,
+                cryptoOptions
+            );
 
-            const measurement = browserPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+            const measurement = browserPerfClient.startMeasurement(
+                PerformanceEvents.AcquireTokenSilent,
+                correlationId
+            );
 
             const result = measurement.endMeasurement();
 
@@ -84,7 +131,15 @@ describe("BrowserPerformanceClient.ts", () => {
     });
 
     it("supportsBrowserPerformanceNow returns false if window.performance not present", () => {
-        const browserPerfClient = new BrowserPerformanceClient(clientId, authority, logger, name, version, applicationTelemetry, cryptoOptions);
+        const browserPerfClient = new BrowserPerformanceClient(
+            clientId,
+            authority,
+            logger,
+            name,
+            version,
+            applicationTelemetry,
+            cryptoOptions
+        );
 
         // @ts-ignore
         jest.spyOn(window, "performance", "get").mockReturnValue(undefined);

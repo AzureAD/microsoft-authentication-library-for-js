@@ -3,7 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CredentialType, CacheType, Constants, AuthenticationScheme } from "../../utils/Constants";
+import {
+    Separators,
+    CredentialType,
+    CacheType,
+    Constants,
+    AuthenticationScheme,
+} from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
@@ -46,7 +52,10 @@ export class CredentialEntity {
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
      */
     generateAccountId(): string {
-        return CredentialEntity.generateAccountIdForCacheKey(this.homeAccountId, this.environment);
+        return CredentialEntity.generateAccountIdForCacheKey(
+            this.homeAccountId,
+            this.environment
+        );
     }
 
     /**
@@ -81,7 +90,7 @@ export class CredentialEntity {
             this.target,
             this.familyId,
             this.tokenType,
-            this.requestedClaimsHash,
+            this.requestedClaimsHash
         );
     }
 
@@ -120,10 +129,15 @@ export class CredentialEntity {
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
-            this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
+            this.generateCredentialIdForCacheKey(
+                credentialType,
+                clientId,
+                realm,
+                familyId
+            ),
             this.generateTargetForCacheKey(target),
             this.generateClaimsHashForCacheKey(requestedClaimsHash),
-            this.generateSchemeForCacheKey(tokenType)
+            this.generateSchemeForCacheKey(tokenType),
         ];
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -178,8 +192,10 @@ export class CredentialEntity {
     /**
      * Generate requested claims key component as per schema: <requestedClaims>
      */
-    private static generateClaimsHashForCacheKey(requestedClaimsHash?: string): string {
-        return(requestedClaimsHash || Constants.EMPTY_STRING).toLowerCase();
+    private static generateClaimsHashForCacheKey(
+        requestedClaimsHash?: string
+    ): string {
+        return (requestedClaimsHash || Constants.EMPTY_STRING).toLowerCase();
     }
 
     /**
@@ -190,6 +206,10 @@ export class CredentialEntity {
          * PoP Tokens and SSH certs include scheme in cache key
          * Cast to lowercase to handle "bearer" from ADFS
          */
-        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : Constants.EMPTY_STRING;
+        return tokenType &&
+            tokenType.toLowerCase() !==
+                AuthenticationScheme.BEARER.toLowerCase()
+            ? tokenType.toLowerCase()
+            : Constants.EMPTY_STRING;
     }
 }

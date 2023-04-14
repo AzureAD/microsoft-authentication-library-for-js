@@ -6,7 +6,6 @@
 import { IWindowStorage } from "./IWindowStorage";
 
 export class MemoryStorage<T> implements IWindowStorage<T> {
-
     private cache: Map<string, T>;
 
     constructor() {
@@ -37,7 +36,7 @@ export class MemoryStorage<T> implements IWindowStorage<T> {
         return this.cache.has(key);
     }
 
-    clear() :void {
+    clear(): void {
         this.cache.clear();
     }
 }

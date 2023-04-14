@@ -47,5 +47,5 @@ export type NativeExtensionRequest = {
     channel: string;
     responseId: number;
     extensionId?: string;
-    body: NativeExtensionRequestBody
+    body: NativeExtensionRequestBody;
 };

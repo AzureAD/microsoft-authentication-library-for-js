@@ -8,5 +8,5 @@
  */
 export enum ProtocolMode {
     AAD = "AAD",
-    OIDC = "OIDC"
+    OIDC = "OIDC",
 }

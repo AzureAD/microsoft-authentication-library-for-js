@@ -5,6 +5,6 @@
 
 export type ImdsOptions = {
     headers?: {
-        Metadata: string,
-    },
+        Metadata: string;
+    };
 };

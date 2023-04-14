@@ -11,9 +11,9 @@ import {
     Logger,
     PerformanceClient,
     PerformanceEvents,
-    PerformanceEventStatus
+    PerformanceEventStatus,
 } from "../../src";
-import crypto from 'crypto';
+import crypto from "crypto";
 
 const sampleClientId = "test-client-id";
 const authority = "https://login.microsoftonline.com/common";
@@ -22,20 +22,16 @@ const libraryVersion = "1.0.0";
 const samplePerfDuration = 50.25;
 const sampleApplicationTelemetry: ApplicationTelemetry = {
     appName: "Test Comon App",
-    appVersion: "1.0.0-test.1"
-}
+    appVersion: "1.0.0-test.1",
+};
 
 const logger = new Logger({
-    loggerCallback: () => {}
+    loggerCallback: () => {},
 });
 
 class MockPerformanceMeasurement implements IPerformanceMeasurement {
-    startMeasurement(): void {
-
-    }
-    endMeasurement(): void {
-
-    }
+    startMeasurement(): void {}
+    endMeasurement(): void {}
     flushMeasurement(): number | null {
         return samplePerfDuration;
     }
@@ -49,18 +45,28 @@ class UnsupportedBrowserPerformanceMeasurement extends MockPerformanceMeasuremen
 
 class MockGuidGenerator implements IGuidGenerator {
     generateGuid(): string {
-        return crypto['randomUUID']();
+        return crypto["randomUUID"]();
     }
     isGuid(guid: string): boolean {
         return true;
     }
 }
 
-class MockPerformanceClient extends PerformanceClient implements IPerformanceClient {
+class MockPerformanceClient
+    extends PerformanceClient
+    implements IPerformanceClient
+{
     private guidGenerator: MockGuidGenerator;
 
     constructor() {
-        super(sampleClientId, authority, logger, libraryName, libraryVersion, sampleApplicationTelemetry);
+        super(
+            sampleClientId,
+            authority,
+            logger,
+            libraryName,
+            libraryVersion,
+            sampleApplicationTelemetry
+        );
         this.guidGenerator = new MockGuidGenerator();
     }
 
@@ -68,21 +74,26 @@ class MockPerformanceClient extends PerformanceClient implements IPerformanceCli
         return this.guidGenerator.generateGuid();
     }
 
-    startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
+    startPerformanceMeasurement(
+        measureName: string,
+        correlationId?: string
+    ): IPerformanceMeasurement {
         return new MockPerformanceMeasurement();
     }
 
-    startPerformanceMeasurement(measureName: string, correlationId?: string): IPerformanceMeasurement {
-        return new MockPerformanceMeasurement();
-    }
-
-    setPreQueueTime(eventName: PerformanceEvents, correlationId?: string | undefined): void {
+    setPreQueueTime(
+        eventName: PerformanceEvents,
+        correlationId?: string | undefined
+    ): void {
         return;
     }
 }
 
 class UnsupportedBrowserPerformanceClient extends MockPerformanceClient {
-    startPerformanceMeasuremeant(measureName: string, correlationId?: string): IPerformanceMeasurement {
+    startPerformanceMeasurement(
+        measureName: string,
+        correlationId?: string
+    ): IPerformanceMeasurement {
         return new UnsupportedBrowserPerformanceMeasurement();
     }
 }
@@ -96,21 +107,21 @@ describe("PerformanceClient.spec.ts", () => {
     it("Adds and removes a callback", () => {
         const mockPerfClient = new MockPerformanceClient();
 
-        const callbackId = mockPerfClient.addPerformanceCallback((events =>{
+        const callbackId = mockPerfClient.addPerformanceCallback((events) => {
             console.log(events);
-        }));
+        });
 
         const result = mockPerfClient.removePerformanceCallback(callbackId);
 
         expect(result).toBe(true);
     });
 
-    it("starts, ends, and emits an event", done => {
+    it("starts, ends, and emits an event", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             expect(events[0].correlationId).toBe(correlationId);
             expect(events[0].authority).toBe(authority);
@@ -120,155 +131,217 @@ describe("PerformanceClient.spec.ts", () => {
             expect(events[0].libraryVersion).toBe(libraryVersion);
             expect(events[0].success).toBe(true);
             expect(events[0].appName).toBe(sampleApplicationTelemetry.appName);
-            expect(events[0].appVersion).toBe(sampleApplicationTelemetry.appVersion);
-            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(events[0].appVersion).toBe(
+                sampleApplicationTelemetry.appVersion
+            );
+            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(
+                Math.floor(samplePerfDuration)
+            );
             done();
-        }));
+        });
 
         // Start and end top-level measurement
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
 
         // Start and end submeasurement
-        const subMeasurement = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)
+        const subMeasurement = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilentAsync,
+            correlationId
+        );
         subMeasurement.endMeasurement({
-            success: true
+            success: true,
         });
 
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    it("adds static fields", done => {
+    it("adds static fields", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
         const authority = "test-authority";
         const extensionId = "test-extension-id";
 
-        mockPerfClient.addPerformanceCallback((events => {
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             expect(events[0].correlationId).toBe(correlationId);
             expect(events[0].httpVerAuthority).toBe(authority);
             expect(events[0].extensionId).toBe(extensionId);
             done();
-        }));
+        });
 
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
-        topLevelEvent.addStaticFields({ httpVerAuthority: authority, extensionId : extensionId });
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+        topLevelEvent.addStaticFields({
+            httpVerAuthority: authority,
+            extensionId: extensionId,
+        });
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    it("increments counters", done => {
+    it("increments counters", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events => {
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
 
             expect(events[0].correlationId).toBe(correlationId);
             expect(events[0].visibilityChangeCount).toBe(8);
             done();
-        }));
+        });
 
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
         topLevelEvent.increment({ visibilityChangeCount: 5 });
         topLevelEvent.increment({ visibilityChangeCount: 3 });
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    it("captures submeasurements", done => {
+    it("captures submeasurements", (done) => {
         const mockPerfClient = new MockPerformanceClient();
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toEqual(1);
             const event = events[0];
-            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration));
-            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(event["acquireTokenSilentAsyncDurationMs"]).toBe(
+                Math.floor(samplePerfDuration)
+            );
+            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(
+                Math.floor(samplePerfDuration)
+            );
             expect(event.incompleteSubsCount).toEqual(0);
             done();
-        }));
+        });
 
         // Start and end top-level measurement
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
 
         // Start and complete submeasurements
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.AcquireTokenSilentAsync,
+                correlationId
+            )
             .endMeasurement({ status: PerformanceEventStatus.Completed });
-        mockPerfClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, correlationId)
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.SilentIframeClientAcquireToken,
+                correlationId
+            )
             .endMeasurement({ status: PerformanceEventStatus.Completed });
 
         // End top level event without ending submeasurement
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    it("discards incomplete submeasurements", done => {
+    it("discards incomplete submeasurements", (done) => {
         const mockPerfClient = new MockPerformanceClient();
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toEqual(1);
             const event = events[0];
             expect(event["acquireTokenSilentAsyncDurationMs"]).toBeUndefined();
-            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(Math.floor(samplePerfDuration));
-            expect(event["silentCacheClientAcquireTokenDurationMs"]).toBeUndefined();
+            expect(event["silentIframeClientAcquireTokenDurationMs"]).toBe(
+                Math.floor(samplePerfDuration)
+            );
+            expect(
+                event["silentCacheClientAcquireTokenDurationMs"]
+            ).toBeUndefined();
             expect(event.incompleteSubsCount).toEqual(2);
             done();
-        }));
+        });
 
         // Start and end top-level measurement
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
 
         // Start submeasurement but dont end it
-        mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
-        mockPerfClient.startMeasurement(PerformanceEvents.SilentIframeClientAcquireToken, correlationId)
+        mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilentAsync,
+            correlationId
+        );
+        mockPerfClient
+            .startMeasurement(
+                PerformanceEvents.SilentIframeClientAcquireToken,
+                correlationId
+            )
             .endMeasurement({ status: PerformanceEventStatus.Completed });
-        mockPerfClient.startMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, correlationId);
+        mockPerfClient.startMeasurement(
+            PerformanceEvents.SilentCacheClientAcquireToken,
+            correlationId
+        );
 
         // End top level event without ending submeasurement
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    it("only records the first measurement for a subMeasurement", done => {
+    it("only records the first measurement for a subMeasurement", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             const event = events[0];
-            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(events[0]["acquireTokenSilentAsyncDurationMs"]).toBe(
+                Math.floor(samplePerfDuration)
+            );
             expect(event.incompleteSubsCount).toEqual(0);
             done();
-        }));
-
-        // Start and end top-level measurement
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
-
-        // Start and end submeasurements
-        const subMeasure1 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId)
-        subMeasure1.endMeasurement({
-            success: true
         });
 
-        const subMeasure2 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
+        // Start and end top-level measurement
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
+
+        // Start and end submeasurements
+        const subMeasure1 = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilentAsync,
+            correlationId
+        );
+        subMeasure1.endMeasurement({
+            success: true,
+        });
+
+        const subMeasure2 = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilentAsync,
+            correlationId
+        );
         subMeasure2.endMeasurement({
             success: true,
-            durationMs: 1
+            durationMs: 1,
         });
 
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
@@ -277,49 +350,60 @@ describe("PerformanceClient.spec.ts", () => {
 
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(0);
-        }));
+        });
 
         // Start and end top-level measurement
-        const measure = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const measure = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
         const result = measure.endMeasurement({
-            success: true
+            success: true,
         });
 
         expect(result).toBe(null);
     });
 
-    it("gracefully handles two requests with the same correlation id", done => {
+    it("gracefully handles two requests with the same correlation id", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
         let event1Id: string;
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             expect(events[0].eventId).toBe(event1Id);
             expect(events[0].success).toBeFalsy();
-            expect(events[0]["acquireTokenSilentDurationMs"]).toBe(Math.floor(samplePerfDuration));
+            expect(events[0]["acquireTokenSilentDurationMs"]).toBe(
+                Math.floor(samplePerfDuration)
+            );
 
             done();
-        }));
+        });
 
         // Start and end top-level measurement
-        const topLevelEvent1 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent1 = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
         event1Id = topLevelEvent1.event.eventId;
-        const topLevelEvent2 = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent2 = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
 
         topLevelEvent2.endMeasurement({
             success: true,
-            startTimeMs: topLevelEvent1.event.startTimeMs + 5
+            startTimeMs: topLevelEvent1.event.startTimeMs + 5,
         });
         topLevelEvent1.endMeasurement({
-            success: false
+            success: false,
         });
     });
 
-    it("truncates integral fields", done => {
+    it("truncates integral fields", (done) => {
         const mockPerfClient = new MockPerformanceClient();
 
         const correlationId = "test-correlation-id";
@@ -331,7 +415,7 @@ describe("PerformanceClient.spec.ts", () => {
             return val && Math.floor(val) === val;
         }
 
-        mockPerfClient.addPerformanceCallback((events => {
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toBe(1);
             expect(isIntegral(events[0].startTimeMs)).toBeTruthy();
             expect(isIntegral(events[0].durationMs)).toBeTruthy();
@@ -340,69 +424,94 @@ describe("PerformanceClient.spec.ts", () => {
             expect(isIntegral(events[0].idTokenSize)).toBeUndefined();
 
             done();
-        }));
+        });
 
         // Start and end top-level measurement
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId)
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
         topLevelEvent.addStaticFields({
             accessTokenSize,
             refreshTokenSize,
-            idTokenSize
-        })
+            idTokenSize,
+        });
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    it("captures total count of manually completed queue events", done => {
+    it("captures total count of manually completed queue events", (done) => {
         const mockPerfClient = new MockPerformanceClient();
         const correlationId = "test-correlation-id";
 
-        mockPerfClient.addPerformanceCallback((events =>{
+        mockPerfClient.addPerformanceCallback((events) => {
             expect(events.length).toEqual(1);
             const event = events[0];
             expect(event.queuedCount).toEqual(4);
             expect(event.queuedManuallyCompletedCount).toEqual(2);
             expect(event.queuedTimeMs).toEqual(10);
             done();
-        }));
+        });
 
-        const topLevelEvent = mockPerfClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
+        const topLevelEvent = mockPerfClient.startMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            correlationId
+        );
 
-        mockPerfClient.addQueueMeasurement(PerformanceEvents.SilentCacheClientAcquireToken, topLevelEvent.event.correlationId, 1, false);
-        mockPerfClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilent, topLevelEvent.event.correlationId, 2, false);
-        mockPerfClient.addQueueMeasurement(PerformanceEvents.AcquireTokenByRefreshToken, topLevelEvent.event.correlationId, 3, true);
-        mockPerfClient.addQueueMeasurement(PerformanceEvents.GetAuthCodeUrl, topLevelEvent.event.correlationId, 4, true);
+        mockPerfClient.addQueueMeasurement(
+            PerformanceEvents.SilentCacheClientAcquireToken,
+            topLevelEvent.event.correlationId,
+            1,
+            false
+        );
+        mockPerfClient.addQueueMeasurement(
+            PerformanceEvents.AcquireTokenSilent,
+            topLevelEvent.event.correlationId,
+            2,
+            false
+        );
+        mockPerfClient.addQueueMeasurement(
+            PerformanceEvents.AcquireTokenByRefreshToken,
+            topLevelEvent.event.correlationId,
+            3,
+            true
+        );
+        mockPerfClient.addQueueMeasurement(
+            PerformanceEvents.GetAuthCodeUrl,
+            topLevelEvent.event.correlationId,
+            4,
+            true
+        );
 
         topLevelEvent.endMeasurement({
-            success: true
+            success: true,
         });
     });
 
-    describe('calculateQueuedTime', () => {
-        it('returns the queuedTime calculation', () => {
+    describe("calculateQueuedTime", () => {
+        it("returns the queuedTime calculation", () => {
             const mockPerfClient = new MockPerformanceClient();
             const result = mockPerfClient.calculateQueuedTime(1, 2);
             expect(result).toBe(1);
         });
 
-        it('returns 0 if preQueueTime is not positive integer', () => {
+        it("returns 0 if preQueueTime is not positive integer", () => {
             const mockPerfClient = new MockPerformanceClient();
             const result = mockPerfClient.calculateQueuedTime(-1, 1);
             expect(result).toBe(0);
         });
 
-        it('returns 0 if currentTime is not positive integer', () => {
+        it("returns 0 if currentTime is not positive integer", () => {
             const mockPerfClient = new MockPerformanceClient();
             const result = mockPerfClient.calculateQueuedTime(1, -1);
             expect(result).toBe(0);
         });
 
-        it('returns 0 if preQueueTime is greater than currentTime', () => {
+        it("returns 0 if preQueueTime is greater than currentTime", () => {
             const mockPerfClient = new MockPerformanceClient();
             const result = mockPerfClient.calculateQueuedTime(2, 1);
             expect(result).toBe(0);
         });
     });
-
 });

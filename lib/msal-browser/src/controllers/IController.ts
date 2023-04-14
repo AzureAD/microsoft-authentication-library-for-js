@@ -10,7 +10,7 @@ import {
     PerformanceCallbackFunction,
     IPerformanceClient,
     ICrypto,
-    CommonSilentFlowRequest
+    CommonSilentFlowRequest,
 } from "@azure/msal-common";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -36,13 +36,24 @@ export interface IController {
 
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
 
-    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
+    acquireTokenSilent(
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult>;
 
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthenticationResult>;
 
-    acquireTokenNative(request: PopupRequest | SilentRequest | SsoSilentRequest, apiId: ApiId, accountId?: string): Promise<AuthenticationResult>;
+    acquireTokenNative(
+        request: PopupRequest | SilentRequest | SsoSilentRequest,
+        apiId: ApiId,
+        accountId?: string
+    ): Promise<AuthenticationResult>;
 
-    acquireTokenByRefreshToken(commonRequest: CommonSilentFlowRequest, silentRequest: SilentRequest): Promise<AuthenticationResult>;
+    acquireTokenByRefreshToken(
+        commonRequest: CommonSilentFlowRequest,
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult>;
 
     addEventCallback(callback: Function): string | null;
 
@@ -106,9 +117,13 @@ export interface IController {
 
     getNativeExtensionProvider(): NativeMessageHandler | undefined;
 
-    setNativeExtensionProvider(provider: NativeMessageHandler | undefined): void;
+    setNativeExtensionProvider(
+        provider: NativeMessageHandler | undefined
+    ): void;
 
-    getNativeAccountId(request: RedirectRequest | PopupRequest | SsoSilentRequest): string;
+    getNativeAccountId(
+        request: RedirectRequest | PopupRequest | SsoSilentRequest
+    ): string;
 
     getEventHandler(): EventHandler;
 
@@ -116,9 +131,15 @@ export interface IController {
 
     getRedirectResponse(): Map<string, Promise<AuthenticationResult | null>>;
 
-    preflightBrowserEnvironmentCheck(interactionType: InteractionType, setInteractionInProgress?: boolean): void;
+    preflightBrowserEnvironmentCheck(
+        interactionType: InteractionType,
+        setInteractionInProgress?: boolean
+    ): void;
 
-    canUseNative(request: RedirectRequest | PopupRequest | SsoSilentRequest, accountId?: string): boolean;
+    canUseNative(
+        request: RedirectRequest | PopupRequest | SsoSilentRequest,
+        accountId?: string
+    ): boolean;
 
     createPopupClient(correlationId?: string): PopupClient;
 

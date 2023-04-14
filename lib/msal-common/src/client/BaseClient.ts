@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, buildClientConfiguration, CommonClientConfiguration } from "../config/ClientConfiguration";
+import {
+    ClientConfiguration,
+    buildClientConfiguration,
+    CommonClientConfiguration,
+} from "../config/ClientConfiguration";
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
 import { ICrypto } from "../crypto/ICrypto";
@@ -53,7 +57,10 @@ export abstract class BaseClient {
     // Performance telemetry client
     protected performanceClient?: IPerformanceClient;
 
-    protected constructor(configuration: ClientConfiguration, performanceClient?: IPerformanceClient) {
+    protected constructor(
+        configuration: ClientConfiguration,
+        performanceClient?: IPerformanceClient
+    ) {
         // Set the configuration
         this.config = buildClientConfiguration(configuration);
 
@@ -70,7 +77,10 @@ export abstract class BaseClient {
         this.networkClient = this.config.networkInterface;
 
         // Set the NetworkManager
-        this.networkManager = new NetworkManager(this.networkClient, this.cacheManager);
+        this.networkManager = new NetworkManager(
+            this.networkClient,
+            this.cacheManager
+        );
 
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
@@ -85,24 +95,35 @@ export abstract class BaseClient {
     /**
      * Creates default headers for requests to token endpoint
      */
-    protected createTokenRequestHeaders(ccsCred?: CcsCredential): Record<string, string> {   
+    protected createTokenRequestHeaders(
+        ccsCred?: CcsCredential
+    ): Record<string, string> {
         const headers: Record<string, string> = {};
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
                     try {
-                        const clientInfo = buildClientInfoFromHomeAccountId(ccsCred.credential);
-                        headers[HeaderNames.CCS_HEADER] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
+                        const clientInfo = buildClientInfoFromHomeAccountId(
+                            ccsCred.credential
+                        );
+                        headers[
+                            HeaderNames.CCS_HEADER
+                        ] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
                     } catch (e) {
-                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                        this.logger.verbose(
+                            "Could not parse home account ID for CCS Header: " +
+                                e
+                        );
                     }
                     break;
                 case CcsCredentialType.UPN:
-                    headers[HeaderNames.CCS_HEADER] = `UPN: ${ccsCred.credential}`;
+                    headers[
+                        HeaderNames.CCS_HEADER
+                    ] = `UPN: ${ccsCred.credential}`;
                     break;
             }
-        }   
+        }
         return headers;
     }
 
@@ -113,14 +134,24 @@ export abstract class BaseClient {
      * @param headers
      * @param thumbprint
      */
-    protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
-            thumbprint,
-            tokenEndpoint,
-            { body: queryString, headers: headers }
-        );
+    protected async executePostToTokenEndpoint(
+        tokenEndpoint: string,
+        queryString: string,
+        headers: Record<string, string>,
+        thumbprint: RequestThumbprint
+    ): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        const response =
+            await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
+                thumbprint,
+                tokenEndpoint,
+                { body: queryString, headers: headers }
+            );
 
-        if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
+        if (
+            this.config.serverTelemetryManager &&
+            response.status < 500 &&
+            response.status !== 429
+        ) {
             // Telemetry data successfully logged by server, clear Telemetry cache
             this.config.serverTelemetryManager.clearTelemetryCache();
         }
@@ -134,7 +165,9 @@ export abstract class BaseClient {
      */
     updateAuthority(updatedAuthority: Authority): void {
         if (!updatedAuthority.discoveryComplete()) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Updated authority has not completed endpoint discovery.");
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
+                "Updated authority has not completed endpoint discovery."
+            );
         }
         this.authority = updatedAuthority;
     }
@@ -147,7 +180,9 @@ export abstract class BaseClient {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.tokenQueryParameters) {
-            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+            parameterBuilder.addExtraQueryParameters(
+                request.tokenQueryParameters
+            );
         }
 
         return parameterBuilder.createQueryString();

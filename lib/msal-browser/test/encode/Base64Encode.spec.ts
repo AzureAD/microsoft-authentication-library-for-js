@@ -2,14 +2,12 @@ import { Base64Encode } from "../../src/encode/Base64Encode";
 import { TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
 
 describe("Base64Encode.ts Unit Tests", () => {
-
     let b64Encode: Base64Encode;
     beforeEach(() => {
         b64Encode = new Base64Encode();
     });
 
     describe("encode", () => {
-        
         it("RFC 4648 Test Vectors", () => {
             /**
              * From RFC 4648 Section 10
@@ -32,13 +30,16 @@ describe("Base64Encode.ts Unit Tests", () => {
 
         it("MSAL Test Vectors", () => {
             // Client Info B64
-            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
-            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED);
+            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(
+                TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED
+            );
+            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(
+                TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED
+            );
         });
     });
 
     describe("urlEncode", () => {
-        
         it("RFC 4648 Test Vectors", () => {
             /**
              * From RFC 4648 Section 10
@@ -61,8 +62,12 @@ describe("Base64Encode.ts Unit Tests", () => {
 
         it("MSAL Test Vectors", () => {
             // Client Info B64
-            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
-            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED);
+            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(
+                TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED
+            );
+            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(
+                TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED
+            );
         });
     });
 });

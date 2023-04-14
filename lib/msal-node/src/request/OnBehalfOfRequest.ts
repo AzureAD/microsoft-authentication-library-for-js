@@ -14,7 +14,16 @@ import { CommonOnBehalfOfRequest } from "@azure/msal-common";
  * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * @public
  */
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion"|"scopes"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
+export type OnBehalfOfRequest = Partial<
+    Omit<
+        CommonOnBehalfOfRequest,
+        | "oboAssertion"
+        | "scopes"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+        | "requestedClaimsHash"
+    >
+> & {
     oboAssertion: string;
     scopes: Array<string>;
 };

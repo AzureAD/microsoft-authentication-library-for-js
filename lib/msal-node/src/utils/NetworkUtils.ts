@@ -6,7 +6,11 @@
 import { NetworkResponse, UrlToHttpRequestOptions } from "@azure/msal-common";
 
 export class NetworkUtils {
-    static getNetworkResponse<T>(headers: Record<string, string>, body: T, statusCode: number): NetworkResponse<T> {
+    static getNetworkResponse<T>(
+        headers: Record<string, string>,
+        body: T,
+        statusCode: number
+    ): NetworkResponse<T> {
         return {
             headers: headers,
             body: body,
@@ -22,9 +26,10 @@ export class NetworkUtils {
     static urlToHttpOptions(url: URL): UrlToHttpRequestOptions {
         const options: UrlToHttpRequestOptions = {
             protocol: url.protocol,
-            hostname: url.hostname && url.hostname.startsWith("[") ?
-                url.hostname.slice(1, -1) :
-                url.hostname,
+            hostname:
+                url.hostname && url.hostname.startsWith("[")
+                    ? url.hostname.slice(1, -1)
+                    : url.hostname,
             hash: url.hash,
             search: url.search,
             pathname: url.pathname,
@@ -35,7 +40,9 @@ export class NetworkUtils {
             options.port = Number(url.port);
         }
         if (url.username || url.password) {
-            options.auth = `${decodeURIComponent(url.username)}:${decodeURIComponent(url.password)}`;
+            options.auth = `${decodeURIComponent(
+                url.username
+            )}:${decodeURIComponent(url.password)}`;
         }
         return options;
     }

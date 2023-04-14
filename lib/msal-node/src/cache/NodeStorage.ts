@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { TokenKeys ,
+import {
+    TokenKeys,
     AccountEntity,
     IdTokenEntity,
     AccessTokenEntity,
@@ -16,12 +17,16 @@ import { TokenKeys ,
     ValidCacheType,
     ICrypto,
     AuthorityMetadataEntity,
-    ValidCredentialType
+    ValidCredentialType,
 } from "@azure/msal-common";
 
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
-import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerTypes";
+import {
+    InMemoryCache,
+    JsonCache,
+    CacheKVStore,
+} from "./serializer/SerializerTypes";
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
@@ -50,7 +55,7 @@ export class NodeStorage extends CacheManager {
      * Invoke the callback when cache changes
      */
     emitChange(): void {
-        this.changeEmitters.forEach(func => func.call(null));
+        this.changeEmitters.forEach((func) => func.call(null));
     }
 
     /**
@@ -72,11 +77,17 @@ export class NodeStorage extends CacheManager {
             } else if (cache[key] instanceof IdTokenEntity) {
                 inMemoryCache.idTokens[key] = cache[key] as IdTokenEntity;
             } else if (cache[key] instanceof AccessTokenEntity) {
-                inMemoryCache.accessTokens[key] = cache[key] as AccessTokenEntity;
+                inMemoryCache.accessTokens[key] = cache[
+                    key
+                ] as AccessTokenEntity;
             } else if (cache[key] instanceof RefreshTokenEntity) {
-                inMemoryCache.refreshTokens[key] = cache[key] as RefreshTokenEntity;
+                inMemoryCache.refreshTokens[key] = cache[
+                    key
+                ] as RefreshTokenEntity;
             } else if (cache[key] instanceof AppMetadataEntity) {
-                inMemoryCache.appMetadata[key] = cache[key] as AppMetadataEntity;
+                inMemoryCache.appMetadata[key] = cache[
+                    key
+                ] as AppMetadataEntity;
             } else {
                 continue;
             }
@@ -90,7 +101,6 @@ export class NodeStorage extends CacheManager {
      * @param inMemoryCache - kvstore map for inmemory
      */
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore {
-
         // convert in memory cache to a flat Key-Value map
         let cache = this.getCache();
 
@@ -100,7 +110,7 @@ export class NodeStorage extends CacheManager {
             ...inMemoryCache.idTokens,
             ...inMemoryCache.accessTokens,
             ...inMemoryCache.refreshTokens,
-            ...inMemoryCache.appMetadata
+            ...inMemoryCache.appMetadata,
         };
 
         // convert in memory cache to a flat Key-Value map
@@ -122,7 +132,7 @@ export class NodeStorage extends CacheManager {
      * sets the current in memory cache for the client
      * @param inMemoryCache - key value map in memory
      */
-    setInMemoryCache(inMemoryCache: InMemoryCache): void{
+    setInMemoryCache(inMemoryCache: InMemoryCache): void {
         this.logger.trace("Setting in-memory cache");
 
         // convert and append the inMemoryCache to cacheKVStore
@@ -192,7 +202,7 @@ export class NodeStorage extends CacheManager {
         const tokenKeys = {
             idToken: Object.keys(inMemoryCache.idTokens),
             accessToken: Object.keys(inMemoryCache.accessTokens),
-            refreshToken: Object.keys(inMemoryCache.refreshTokens)
+            refreshToken: Object.keys(inMemoryCache.refreshTokens),
         };
 
         return tokenKeys;
@@ -265,8 +275,12 @@ export class NodeStorage extends CacheManager {
      * fetch the refreshToken credential
      * @param refreshTokenKey - lookup key to fetch cache type RefreshTokenEntity
      */
-    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
-        const refreshToken = this.getItem(refreshTokenKey) as RefreshTokenEntity;
+    getRefreshTokenCredential(
+        refreshTokenKey: string
+    ): RefreshTokenEntity | null {
+        const refreshToken = this.getItem(
+            refreshTokenKey
+        ) as RefreshTokenEntity;
         if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
             return refreshToken as RefreshTokenEntity;
         }
@@ -287,8 +301,12 @@ export class NodeStorage extends CacheManager {
      * @param appMetadataKey - lookup key to fetch cache type AppMetadataEntity
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
-        const appMetadata: AppMetadataEntity = this.getItem(appMetadataKey) as AppMetadataEntity;
-        if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
+        const appMetadata: AppMetadataEntity = this.getItem(
+            appMetadataKey
+        ) as AppMetadataEntity;
+        if (
+            AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)
+        ) {
             return appMetadata;
         }
         return null;
@@ -307,9 +325,19 @@ export class NodeStorage extends CacheManager {
      * fetch server telemetry entity from the platform cache
      * @param serverTelemetrykey - lookup key to fetch cache type ServerTelemetryEntity
      */
-    getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null {
-        const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(serverTelemetrykey) as ServerTelemetryEntity;
-        if (serverTelemetryEntity && ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetrykey, serverTelemetryEntity)) {
+    getServerTelemetry(
+        serverTelemetrykey: string
+    ): ServerTelemetryEntity | null {
+        const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(
+            serverTelemetrykey
+        ) as ServerTelemetryEntity;
+        if (
+            serverTelemetryEntity &&
+            ServerTelemetryEntity.isServerTelemetryEntity(
+                serverTelemetrykey,
+                serverTelemetryEntity
+            )
+        ) {
             return serverTelemetryEntity;
         }
         return null;
@@ -320,7 +348,10 @@ export class NodeStorage extends CacheManager {
      * @param serverTelemetryKey - lookup key to fetch cache type ServerTelemetryEntity
      * @param serverTelemetry - cache value to be set of type ServerTelemetryEntity
      */
-    setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
+    setServerTelemetry(
+        serverTelemetryKey: string,
+        serverTelemetry: ServerTelemetryEntity
+    ): void {
         this.setItem(serverTelemetryKey, serverTelemetry);
     }
 
@@ -329,8 +360,16 @@ export class NodeStorage extends CacheManager {
      * @param key - lookup key to fetch cache type AuthorityMetadataEntity
      */
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
-        const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(key) as AuthorityMetadataEntity;
-        if (authorityMetadataEntity && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, authorityMetadataEntity)) {
+        const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(
+            key
+        ) as AuthorityMetadataEntity;
+        if (
+            authorityMetadataEntity &&
+            AuthorityMetadataEntity.isAuthorityMetadataEntity(
+                key,
+                authorityMetadataEntity
+            )
+        ) {
             return authorityMetadataEntity;
         }
         return null;
@@ -359,8 +398,16 @@ export class NodeStorage extends CacheManager {
      * @param throttlingCacheKey - lookup key to fetch cache type ThrottlingEntity
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
-        const throttlingCache: ThrottlingEntity = this.getItem(throttlingCacheKey) as ThrottlingEntity;
-        if (throttlingCache && ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
+        const throttlingCache: ThrottlingEntity = this.getItem(
+            throttlingCacheKey
+        ) as ThrottlingEntity;
+        if (
+            throttlingCache &&
+            ThrottlingEntity.isThrottlingEntity(
+                throttlingCacheKey,
+                throttlingCache
+            )
+        ) {
             return throttlingCache;
         }
         return null;
@@ -371,7 +418,10 @@ export class NodeStorage extends CacheManager {
      * @param throttlingCacheKey - lookup key to fetch cache type ThrottlingEntity
      * @param throttlingCache - cache value to be set of type ThrottlingEntity
      */
-    setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void {
+    setThrottlingCache(
+        throttlingCacheKey: string,
+        throttlingCache: ThrottlingEntity
+    ): void {
         this.setItem(throttlingCacheKey, throttlingCache);
     }
 
@@ -416,7 +466,7 @@ export class NodeStorage extends CacheManager {
 
         // read cache
         const cache = this.getCache();
-        return [ ...Object.keys(cache)];
+        return [...Object.keys(cache)];
     }
 
     /**
@@ -429,7 +479,7 @@ export class NodeStorage extends CacheManager {
         const cacheKeys = this.getKeys();
 
         // delete each element
-        cacheKeys.forEach(key => {
+        cacheKeys.forEach((key) => {
             this.removeItem(key);
         });
         this.emitChange();
@@ -456,7 +506,10 @@ export class NodeStorage extends CacheManager {
     /**
      * Updates a credential's cache key if the current cache key is outdated
      */
-    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+    updateCredentialCacheKey(
+        currentCacheKey: string,
+        credential: ValidCredentialType
+    ): string {
         const updatedCacheKey = credential.generateCredentialKey();
 
         if (currentCacheKey !== updatedCacheKey) {
@@ -464,10 +517,14 @@ export class NodeStorage extends CacheManager {
             if (cacheItem) {
                 this.removeItem(currentCacheKey);
                 this.setItem(updatedCacheKey, cacheItem);
-                this.logger.verbose(`Updated an outdated ${credential.credentialType} cache key`);
+                this.logger.verbose(
+                    `Updated an outdated ${credential.credentialType} cache key`
+                );
                 return updatedCacheKey;
             } else {
-                this.logger.error(`Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`);
+                this.logger.error(
+                    `Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`
+                );
             }
         }
 

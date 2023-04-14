@@ -18,13 +18,13 @@ export enum HttpStatus {
     CLIENT_ERROR_RANGE_START = 400,
     CLIENT_ERROR_RANGE_END = 499,
     SERVER_ERROR_RANGE_START = 500,
-    SERVER_ERROR_RANGE_END = 599
+    SERVER_ERROR_RANGE_END = 599,
 }
 
 export enum ProxyStatus {
     SUCCESS_RANGE_START = 200,
     SUCCESS_RANGE_END = 299,
-    SERVER_ERROR = 500
+    SERVER_ERROR = 500,
 }
 
 /**
@@ -65,10 +65,11 @@ export const CACHE = {
  */
 export const Constants = {
     MSAL_SKU: "msal.js.node",
-    JWT_BEARER_ASSERTION_TYPE: "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+    JWT_BEARER_ASSERTION_TYPE:
+        "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
     AUTHORIZATION_PENDING: "authorization_pending",
     HTTP_PROTOCOL: "http://",
-    LOCALHOST: "localhost"
+    LOCALHOST: "localhost",
 };
 
 /**
@@ -84,7 +85,7 @@ export enum ApiId {
     acquireTokenByDeviceCode = 671,
     acquireTokenByClientCredential = 771,
     acquireTokenByCode = 871,
-    acquireTokenByRefreshToken = 872
+    acquireTokenByRefreshToken = 872,
 }
 
 /**
@@ -93,7 +94,7 @@ export enum ApiId {
 export const JwtConstants = {
     ALGORITHM: "alg",
     RSA_256: "RS256",
-    X5T: "x5t", 
+    X5T: "x5t",
     X5C: "x5c",
     AUDIENCE: "aud",
     EXPIRATION_TIME: "exp",
@@ -105,5 +106,5 @@ export const JwtConstants = {
 
 export const LOOPBACK_SERVER_CONSTANTS = {
     INTERVAL_MS: 100,
-    TIMEOUT_MS: 5000
+    TIMEOUT_MS: 5000,
 };

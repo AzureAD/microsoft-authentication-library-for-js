@@ -8,7 +8,6 @@ import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { IWindowStorage } from "./IWindowStorage";
 
 export class BrowserStorage implements IWindowStorage<string> {
-
     private windowStorage: Storage;
 
     constructor(cacheLocation: string) {
@@ -17,12 +16,19 @@ export class BrowserStorage implements IWindowStorage<string> {
     }
 
     private validateWindowStorage(cacheLocation: string): void {
-        if (cacheLocation !== BrowserCacheLocation.LocalStorage && cacheLocation !== BrowserCacheLocation.SessionStorage) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
+        if (
+            cacheLocation !== BrowserCacheLocation.LocalStorage &&
+            cacheLocation !== BrowserCacheLocation.SessionStorage
+        ) {
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError(
+                cacheLocation
+            );
         }
         const storageSupported = !!window[cacheLocation];
         if (!storageSupported) {
-            throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
+            throw BrowserConfigurationAuthError.createStorageNotSupportedError(
+                cacheLocation
+            );
         }
     }
 

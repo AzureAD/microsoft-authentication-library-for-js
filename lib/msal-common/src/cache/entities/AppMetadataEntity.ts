@@ -28,19 +28,27 @@ export class AppMetadataEntity {
      * Generate AppMetadata Cache Key as per the schema: appmetadata-<environment>-<client_id>
      */
     generateAppMetadataKey(): string {
-        return AppMetadataEntity.generateAppMetadataCacheKey(this.environment, this.clientId);
+        return AppMetadataEntity.generateAppMetadataCacheKey(
+            this.environment,
+            this.clientId
+        );
     }
 
     /**
      * Generate AppMetadata Cache Key
      */
-    static generateAppMetadataCacheKey(environment: string, clientId: string): string {
+    static generateAppMetadataCacheKey(
+        environment: string,
+        clientId: string
+    ): string {
         const appMetaDataKeyArray: Array<string> = [
             APP_METADATA,
             environment,
             clientId,
         ];
-        return appMetaDataKeyArray.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
+        return appMetaDataKeyArray
+            .join(Separators.CACHE_KEY_SEPARATOR)
+            .toLowerCase();
     }
 
     /**
@@ -49,7 +57,11 @@ export class AppMetadataEntity {
      * @param environment
      * @param familyId
      */
-    static createAppMetadataEntity(clientId: string, environment: string, familyId?: string): AppMetadataEntity {
+    static createAppMetadataEntity(
+        clientId: string,
+        environment: string,
+        familyId?: string
+    ): AppMetadataEntity {
         const appMetadata = new AppMetadataEntity();
 
         appMetadata.clientId = clientId;
@@ -66,7 +78,6 @@ export class AppMetadataEntity {
      * @param entity
      */
     static isAppMetadataEntity(key: string, entity: object): boolean {
-
         if (!entity) {
             return false;
         }

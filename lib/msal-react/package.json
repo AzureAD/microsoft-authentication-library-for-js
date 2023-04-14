@@ -27,7 +27,7 @@
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:modules:watch": "tsdx watch --verbose --tsconfig ./tsconfig.build.json",
-    "test": "tsdx test .*MsalAuthenticationTemplate.spec.*",
+    "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
     "lint": "cd ../../ && npm run lint:react",
@@ -36,7 +36,9 @@
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-react",
-    "prepack": "npm run build:all"
+    "prepack": "npm run build:all",
+    "format:check": "npx prettier --ignore-path .gitignore --check src test",
+    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "peerDependencies": {
     "@azure/msal-browser": "^2.35.0",
@@ -52,6 +54,7 @@
     "@types/react-dom": "^17.0.2",
     "jest": "^27.0.4",
     "jest-environment-jsdom-fifteen": "^1.0.2",
+    "prettier": "2.8.7",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "ts-jest": "^27.0.2",
