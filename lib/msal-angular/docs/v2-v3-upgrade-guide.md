@@ -18,7 +18,7 @@ See the [guide to redirects](./v2-docs/redirects.md) on how to add `MsalRedirect
 
 ### The `allowNativeBroker` flag
 
-The `allowNativeBroker` flag is now turned on by default in the configurations. To turn it off, configure your app as follows:
+The `allowNativeBroker` flag is now turned on by default in the configurations. If you're using a B2C authority you can turn it off as follows:
 
 ```js
 export function MSALInstanceFactory(): IPublicClientApplication {
