@@ -12,7 +12,12 @@ import { SilentRequest } from "../request/SilentRequest";
 import { WrapperSKU } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { IController } from "../controllers/IController";
-import { AuthenticationResult, PerformanceCallbackFunction, AccountInfo, Logger } from "@azure/msal-common";
+import {
+    AuthenticationResult,
+    PerformanceCallbackFunction,
+    AccountInfo,
+    Logger,
+} from "@azure/msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
@@ -25,11 +30,11 @@ import { StandardOperatingContext } from "../operatingcontext/StandardOperatingC
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
 export class PublicClientApplication implements IPublicClientApplication {
-
     protected controller: IController;
 
-    public static async createPublicClientApplication(configuration: Configuration): Promise<IPublicClientApplication> {
-
+    public static async createPublicClientApplication(
+        configuration: Configuration
+    ): Promise<IPublicClientApplication> {
         const factory = new ControllerFactory(configuration);
         const controller = await factory.createController();
         const pca = new PublicClientApplication(configuration, controller);
@@ -63,7 +68,9 @@ export class PublicClientApplication implements IPublicClientApplication {
         if (controller) {
             this.controller = controller;
         } else {
-            const standardOperatingContext = new StandardOperatingContext(configuration);
+            const standardOperatingContext = new StandardOperatingContext(
+                configuration
+            );
             this.controller = new StandardController(standardOperatingContext);
         }
     }
@@ -82,7 +89,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    async acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+    async acquireTokenPopup(
+        request: PopupRequest
+    ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenPopup(request);
     }
 
@@ -105,7 +114,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param {@link (SilentRequest:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult> {
+    acquireTokenSilent(
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenSilent(silentRequest);
     }
 
@@ -119,7 +130,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param request {@link AuthorizationCodeRequest}
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+    acquireTokenByCode(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthenticationResult> {
         return this.controller.acquireTokenByCode(request);
     }
 
@@ -224,7 +237,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
-    handleRedirectPromise(hash?: string | undefined): Promise<AuthenticationResult | null> {
+    handleRedirectPromise(
+        hash?: string | undefined
+    ): Promise<AuthenticationResult | null> {
         return this.controller.handleRedirectPromise(hash);
     }
 
@@ -235,7 +250,9 @@ export class PublicClientApplication implements IPublicClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    loginPopup(request?: PopupRequest | undefined): Promise<AuthenticationResult> {
+    loginPopup(
+        request?: PopupRequest | undefined
+    ): Promise<AuthenticationResult> {
         return this.controller.loginPopup(request);
     }
 

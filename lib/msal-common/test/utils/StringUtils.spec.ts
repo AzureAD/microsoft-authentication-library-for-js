@@ -1,10 +1,12 @@
 import { StringUtils } from "../../src/utils/StringUtils";
 import { TEST_TOKENS } from "../test_kit/StringConstants";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import {
+    ClientAuthError,
+    ClientAuthErrorMessage,
+} from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 
 describe("StringUtils.ts Class Unit Tests", () => {
-
     it("decodeJwt returns a correctly crackedToken.", () => {
         const sampleJwt = `${TEST_TOKENS.SAMPLE_JWT_HEADER}.${TEST_TOKENS.SAMPLE_JWT_PAYLOAD}.${TEST_TOKENS.SAMPLE_JWT_SIG}`;
         const decodedJwt = StringUtils.decodeAuthToken(sampleJwt);
@@ -12,7 +14,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(decodedJwt).toEqual({
             header: TEST_TOKENS.SAMPLE_JWT_HEADER,
             JWSPayload: TEST_TOKENS.SAMPLE_JWT_PAYLOAD,
-            JWSSig: TEST_TOKENS.SAMPLE_JWT_SIG
+            JWSSig: TEST_TOKENS.SAMPLE_JWT_SIG,
         });
     });
 
@@ -25,9 +27,15 @@ describe("StringUtils.ts Class Unit Tests", () => {
             expect(err instanceof AuthError).toBe(true);
             expect(err instanceof Error).toBe(true);
             const parsedErr = err as ClientAuthError;
-            expect(parsedErr.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyToken.code);
-            expect(parsedErr.errorMessage).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-            expect(parsedErr.message).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(parsedErr.errorCode).toBe(
+                ClientAuthErrorMessage.nullOrEmptyToken.code
+            );
+            expect(parsedErr.errorMessage).toContain(
+                ClientAuthErrorMessage.nullOrEmptyToken.desc
+            );
+            expect(parsedErr.message).toContain(
+                ClientAuthErrorMessage.nullOrEmptyToken.desc
+            );
             expect(parsedErr.name).toBe("ClientAuthError");
             expect(parsedErr.stack).toContain("StringUtils.spec.ts");
             done();
@@ -42,9 +50,15 @@ describe("StringUtils.ts Class Unit Tests", () => {
             expect(err instanceof AuthError).toBe(true);
             expect(err instanceof Error).toBe(true);
             const parsedErr = err as ClientAuthError;
-            expect(parsedErr.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyToken.code);
-            expect(parsedErr.errorMessage).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-            expect(parsedErr.message).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(parsedErr.errorCode).toBe(
+                ClientAuthErrorMessage.nullOrEmptyToken.code
+            );
+            expect(parsedErr.errorMessage).toContain(
+                ClientAuthErrorMessage.nullOrEmptyToken.desc
+            );
+            expect(parsedErr.message).toContain(
+                ClientAuthErrorMessage.nullOrEmptyToken.desc
+            );
             expect(parsedErr.name).toBe("ClientAuthError");
             expect(parsedErr.stack).toContain("StringUtils.spec.ts");
             done();
@@ -59,9 +73,15 @@ describe("StringUtils.ts Class Unit Tests", () => {
             expect(err instanceof AuthError).toBe(true);
             expect(err instanceof Error).toBe(true);
             const parsedErr = err as ClientAuthError;
-            expect(parsedErr.errorCode).toBe(ClientAuthErrorMessage.tokenParsingError.code);
-            expect(parsedErr.errorMessage).toContain(ClientAuthErrorMessage.tokenParsingError.desc);
-            expect(parsedErr.message).toContain(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(parsedErr.errorCode).toBe(
+                ClientAuthErrorMessage.tokenParsingError.code
+            );
+            expect(parsedErr.errorMessage).toContain(
+                ClientAuthErrorMessage.tokenParsingError.desc
+            );
+            expect(parsedErr.message).toContain(
+                ClientAuthErrorMessage.tokenParsingError.desc
+            );
             expect(parsedErr.name).toBe("ClientAuthError");
             expect(parsedErr.stack).toContain("StringUtils.spec.ts");
             done();
@@ -86,7 +106,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.isEmptyObj("{   }")).toBe(true);
         expect(StringUtils.isEmptyObj("Non-object string")).toBe(true);
         const exampleObj = {
-            "valid": true
+            valid: true,
         };
         expect(StringUtils.isEmptyObj(JSON.stringify(exampleObj))).toBe(false);
     });
@@ -121,15 +141,16 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.endsWith(testString, searchString)).toBe(false);
     });
 
-
     it("queryStringToObject correctly deserializes query string into object", () => {
         const serializedObj = "param1=value1&param2=value2&param3=value3";
         const deserializedObj = {
-            "param1": "value1",
-            "param2": "value2",
-            "param3": "value3",
+            param1: "value1",
+            param2: "value2",
+            param3: "value3",
         };
-        expect(StringUtils.queryStringToObject(serializedObj)).toEqual(deserializedObj);
+        expect(StringUtils.queryStringToObject(serializedObj)).toEqual(
+            deserializedObj
+        );
     });
 
     it("trimArrayEntries() correctly trims entries in an array", () => {
@@ -137,16 +158,16 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.trimArrayEntries(arr)).toEqual(["S1", "S2", "S3"]);
     });
 
-    it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
-
-    });
+    it("removeEmptyStringsFromArray() removes empty strings from an array", () => {});
 
     it("queryStringToObject correctly deserializes URI encoded query string into decoded object", () => {
         const serializedObj = "param1=test%2525u00f1";
         const deserializedObj = {
-            "param1": "test%25u00f1"
+            param1: "test%25u00f1",
         };
-        expect(StringUtils.queryStringToObject(serializedObj)).toEqual(deserializedObj);
+        expect(StringUtils.queryStringToObject(serializedObj)).toEqual(
+            deserializedObj
+        );
     });
 
     describe("jsonParseHelper", () => {
@@ -163,24 +184,33 @@ describe("StringUtils.ts Class Unit Tests", () => {
             const parsedValEmptyString = StringUtils.jsonParseHelper("");
             expect(parsedValNull).toBeNull();
             expect(parsedValEmptyString).toBeNull();
-        })
+        });
     });
 
     describe("matchPattern", () => {
         it("no wildcard", () => {
-            const matches = StringUtils.matchPattern("https://myapplication.com/user/1", "https://myapplication.com/user/1");
+            const matches = StringUtils.matchPattern(
+                "https://myapplication.com/user/1",
+                "https://myapplication.com/user/1"
+            );
 
             expect(matches).toBe(true);
         });
 
         it("single wildcard", () => {
-            const matches = StringUtils.matchPattern("https://myapplication.com/user/*", "https://myapplication.com/user/1");
+            const matches = StringUtils.matchPattern(
+                "https://myapplication.com/user/*",
+                "https://myapplication.com/user/1"
+            );
 
             expect(matches).toBe(true);
         });
 
         it("multiple wildcards", () => {
-            const matches = StringUtils.matchPattern("https://*.myapplication.com/user/*", "https://test.myapplication.com/user/1");
+            const matches = StringUtils.matchPattern(
+                "https://*.myapplication.com/user/*",
+                "https://test.myapplication.com/user/1"
+            );
 
             expect(matches).toBe(true);
         });

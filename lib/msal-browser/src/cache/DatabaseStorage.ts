@@ -23,7 +23,7 @@ interface IDBRequestEvent extends Event {
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
 export class DatabaseStorage<T> implements IAsyncStorage<T> {
-    private db: IDBDatabase|undefined;
+    private db: IDBDatabase | undefined;
     private dbName: string;
     private tableName: string;
     private version: number;
@@ -42,17 +42,22 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
     async open(): Promise<void> {
         return new Promise((resolve, reject) => {
             const openDB = window.indexedDB.open(this.dbName, this.version);
-            openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
-                const event = e as IDBOpenOnUpgradeNeededEvent;
-                event.target.result.createObjectStore(this.tableName);
-            });
+            openDB.addEventListener(
+                "upgradeneeded",
+                (e: IDBVersionChangeEvent) => {
+                    const event = e as IDBOpenOnUpgradeNeededEvent;
+                    event.target.result.createObjectStore(this.tableName);
+                }
+            );
             openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
                 this.db = event.target.result;
                 this.dbOpen = true;
                 resolve();
             });
-            openDB.addEventListener("error",  () => reject(BrowserAuthError.createDatabaseUnavailableError()));
+            openDB.addEventListener("error", () =>
+                reject(BrowserAuthError.createDatabaseUnavailableError())
+            );
         });
     }
 
@@ -79,7 +84,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
 
     /**
      * Retrieves item from IndexedDB instance.
-     * @param key 
+     * @param key
      */
     async getItem(key: string): Promise<T | null> {
         await this.validateDbIsOpen();
@@ -88,10 +93,13 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
-            const transaction = this.db.transaction([this.tableName], "readonly");
+            const transaction = this.db.transaction(
+                [this.tableName],
+                "readonly"
+            );
             const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
-            
+
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 this.closeConnection();
@@ -107,8 +115,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
 
     /**
      * Adds item to IndexedDB under given key
-     * @param key 
-     * @param payload 
+     * @param key
+     * @param payload
      */
     async setItem(key: string, payload: T): Promise<void> {
         await this.validateDbIsOpen();
@@ -117,7 +125,10 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
-            const transaction = this.db.transaction([this.tableName], "readwrite");
+            const transaction = this.db.transaction(
+                [this.tableName],
+                "readwrite"
+            );
 
             const objectStore = transaction.objectStore(this.tableName);
 
@@ -146,7 +157,10 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readwrite");
+            const transaction = this.db.transaction(
+                [this.tableName],
+                "readwrite"
+            );
             const objectStore = transaction.objectStore(this.tableName);
             const dbDelete = objectStore.delete(key);
 
@@ -172,7 +186,10 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readonly");
+            const transaction = this.db.transaction(
+                [this.tableName],
+                "readonly"
+            );
             const objectStore = transaction.objectStore(this.tableName);
             const dbGetKeys = objectStore.getAllKeys();
 
@@ -182,7 +199,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
                 resolve(event.target.result);
             });
 
-            dbGetKeys.addEventListener("error",  (e: Event) => {
+            dbGetKeys.addEventListener("error", (e: Event) => {
                 this.closeConnection();
                 reject(e);
             });
@@ -190,7 +207,7 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
     }
 
     /**
-     * 
+     *
      * Checks whether there is an object under the search key in the object store
      */
     async containsKey(key: string): Promise<boolean> {
@@ -201,7 +218,10 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readonly");
+            const transaction = this.db.transaction(
+                [this.tableName],
+                "readonly"
+            );
             const objectStore = transaction.objectStore(this.tableName);
             const dbContainsKey = objectStore.count(key);
 

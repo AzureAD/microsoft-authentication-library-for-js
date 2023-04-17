@@ -17,11 +17,23 @@ import { AuthorizationUrlRequest } from "./AuthorizationUrlRequest";
  * - loopbackClient          - Custom implementation for a loopback server to listen for authorization code response.
  * @public
  */
-export type InteractiveRequest = Pick<AuthorizationUrlRequest, "authority"|"correlationId"|"claims"|"azureCloudOptions"|"account"|"extraQueryParameters"|"tokenQueryParameters"|"extraScopesToConsent"|"loginHint"|"prompt"> & {
+export type InteractiveRequest = Pick<
+    AuthorizationUrlRequest,
+    | "authority"
+    | "correlationId"
+    | "claims"
+    | "azureCloudOptions"
+    | "account"
+    | "extraQueryParameters"
+    | "tokenQueryParameters"
+    | "extraScopesToConsent"
+    | "loginHint"
+    | "prompt"
+> & {
     openBrowser: (url: string) => Promise<void>;
     scopes?: Array<string>;
     successTemplate?: string;
     errorTemplate?: string;
     windowHandle?: Buffer; // Relevant only to brokered requests
-    loopbackClient?: ILoopbackClient
+    loopbackClient?: ILoopbackClient;
 };

@@ -25,7 +25,15 @@ export type AccountInfo = {
     localAccountId: string;
     name?: string;
     idToken?: string;
-    idTokenClaims?: TokenClaims & { [key: string]: string | number | string[] | object | undefined | unknown };
+    idTokenClaims?: TokenClaims & {
+        [key: string]:
+            | string
+            | number
+            | string[]
+            | object
+            | undefined
+            | unknown;
+    };
     nativeAccountId?: string;
 };
 

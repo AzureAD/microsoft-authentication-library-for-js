@@ -2,7 +2,6 @@ import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
 
 describe("AuthError.ts Class", () => {
-
     it("AuthError object can be created", () => {
         const TEST_ERROR_CODE: string = "test";
         const TEST_ERROR_MSG: string = "This is a test error";
@@ -40,9 +39,13 @@ describe("AuthError.ts Class", () => {
         expect(err instanceof Error).toBe(true);
         const authErr = err as AuthError;
         expect(authErr.errorCode).toBe(AuthErrorMessage.unexpectedError.code);
-        expect(authErr.errorMessage.includes(AuthErrorMessage.unexpectedError.desc)).toBe(true);
+        expect(
+            authErr.errorMessage.includes(AuthErrorMessage.unexpectedError.desc)
+        ).toBe(true);
         expect(authErr.errorMessage.includes(ERROR_DESC)).toBe(true);
-        expect(authErr.message.includes(AuthErrorMessage.unexpectedError.desc)).toBe(true);
+        expect(
+            authErr.message.includes(AuthErrorMessage.unexpectedError.desc)
+        ).toBe(true);
         expect(authErr.name).toBe("AuthError");
         expect(authErr.stack?.includes("AuthError.spec.ts")).toBe(true);
     });
@@ -55,7 +58,7 @@ describe("AuthError.ts Class", () => {
 
         expect(err.errorCode).toBe(TEST_ERROR_CODE);
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
-        expect(err.correlationId).toBe(TEST_CONFIG.CORRELATION_ID)
+        expect(err.correlationId).toBe(TEST_CONFIG.CORRELATION_ID);
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("AuthError");
         expect(err.stack?.includes("AuthError.spec.ts")).toBe(true);

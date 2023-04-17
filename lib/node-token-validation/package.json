@@ -50,7 +50,9 @@
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build:common && npm run build",
     "prepack": "npm run build:all",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/node-token-validation"
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/node-token-validation",
+    "format:check": "npx prettier --ignore-path .gitignore --check src test",
+    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "bugs": {
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js/issues"
@@ -63,6 +65,7 @@
     "eslint-plugin-jsdoc": "^39.3.2",
     "husky": "^7.0.2",
     "jest": "^27.5.0",
+    "prettier": "2.8.7",
     "regenerator-runtime": "^0.13.9",
     "rimraf": "^3.0.2",
     "rollup": "^2.58.0",

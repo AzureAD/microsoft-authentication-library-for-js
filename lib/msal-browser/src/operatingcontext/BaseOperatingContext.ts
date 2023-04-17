@@ -4,7 +4,11 @@
  */
 
 import { Logger } from "@azure/msal-common";
-import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import {
+    BrowserConfiguration,
+    buildConfiguration,
+    Configuration,
+} from "../config/Configuration";
 import { version, name } from "../packageMetadata";
 
 /**
@@ -15,15 +19,13 @@ import { version, name } from "../packageMetadata";
  * For example: Some operating contexts will pre-cache tokens impacting performance telemetry
  */
 export abstract class BaseOperatingContext {
-
     protected logger: Logger;
     protected config: BrowserConfiguration;
     protected available: boolean;
     protected browserEnvironment: boolean;
 
     constructor(config: Configuration) {
-
-        /* 
+        /*
          * If loaded in an environment where window is not available,
          * set internal flag to false so that further requests fail.
          * This is to support server-side rendering environments.
@@ -31,7 +33,11 @@ export abstract class BaseOperatingContext {
         this.browserEnvironment = typeof window !== "undefined";
 
         this.config = buildConfiguration(config, this.browserEnvironment);
-        this.logger = new Logger(this.config.system.loggerOptions, name, version);
+        this.logger = new Logger(
+            this.config.system.loggerOptions,
+            name,
+            version
+        );
         this.available = false;
     }
 
@@ -70,8 +76,7 @@ export abstract class BaseOperatingContext {
         return this.available;
     }
 
-    isBrowserEnvironment(): boolean{
+    isBrowserEnvironment(): boolean {
         return this.browserEnvironment;
     }
-
 }

@@ -6,20 +6,20 @@
 export interface IAsyncStorage<T> {
     /**
      * Get the item from the asynchronous storage object matching the given key.
-     * @param key 
+     * @param key
      */
     getItem(key: string): Promise<T | null>;
 
     /**
      * Sets the item in the asynchronous storage object with the given key.
-     * @param key 
-     * @param value 
+     * @param key
+     * @param value
      */
     setItem(key: string, value: T): Promise<void>;
 
     /**
      * Removes the item in the asynchronous storage object matching the given key.
-     * @param key 
+     * @param key
      */
     removeItem(key: string): Promise<void>;
 
@@ -30,7 +30,7 @@ export interface IAsyncStorage<T> {
 
     /**
      * Returns true or false if the given key is present in the cache.
-     * @param key 
+     * @param key
      */
     containsKey(key: string): Promise<boolean>;
 }

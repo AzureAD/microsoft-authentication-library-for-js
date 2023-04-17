@@ -16,7 +16,6 @@ import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 
 export interface ICacheManager {
-
     /**
      * fetch the account entity from the platform cache
      * @param accountKey
@@ -31,12 +30,16 @@ export interface ICacheManager {
 
     /**
      * Returns true if the given key matches our account key schema. Also matches homeAccountId and/or tenantId if provided
-     * @param key 
-     * @param homeAccountId 
-     * @param tenantId 
-     * @returns 
+     * @param key
+     * @param homeAccountId
+     * @param tenantId
+     * @returns
      */
-    isAccountKey(key: string, homeAccountId?: string, tenantId?: string): boolean
+    isAccountKey(
+        key: string,
+        homeAccountId?: string,
+        tenantId?: string
+    ): boolean;
 
     /**
      * fetch the idToken entity from the platform cache
@@ -66,7 +69,9 @@ export interface ICacheManager {
      * fetch the idToken entity from the platform cache
      * @param refreshTokenKey
      */
-    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
+    getRefreshTokenCredential(
+        refreshTokenKey: string
+    ): RefreshTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
@@ -90,14 +95,19 @@ export interface ICacheManager {
      * fetch server telemetry entity from the platform cache
      * @param serverTelemetryKey
      */
-    getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null;
+    getServerTelemetry(
+        serverTelemetryKey: string
+    ): ServerTelemetryEntity | null;
 
     /**
      * set server telemetry entity to the platform cache
      * @param serverTelemetryKey
      * @param serverTelemetry
      */
-    setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
+    setServerTelemetry(
+        serverTelemetryKey: string,
+        serverTelemetry: ServerTelemetryEntity
+    ): void;
 
     /**
      * fetch cloud discovery metadata entity from the platform cache
@@ -119,13 +129,13 @@ export interface ICacheManager {
 
     /**
      * Provide an alias to find a matching AuthorityMetadataEntity in cache
-     * @param host 
+     * @param host
      */
     getAuthorityMetadataByAlias(host: string): AuthorityMetadataEntity | null;
 
     /**
      * given an authority generates the cache key for authorityMetadata
-     * @param authority 
+     * @param authority
      */
     generateAuthorityMetadataCacheKey(authority: string): string;
 
@@ -140,7 +150,10 @@ export interface ICacheManager {
      * @param throttlingCacheKey
      * @param throttlingCache
      */
-    setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;
+    setThrottlingCache(
+        throttlingCacheKey: string,
+        throttlingCache: ThrottlingEntity
+    ): void;
 
     /**
      * Returns all accounts in cache
@@ -163,7 +176,7 @@ export interface ICacheManager {
 
     /**
      * Get AccountInfo object based on provided filters
-     * @param filter 
+     * @param filter
      */
     getAccountInfoFilteredBy(filter: AccountFilter): AccountInfo | null;
 
@@ -192,10 +205,10 @@ export interface ICacheManager {
     /**
      * @param key
      */
-    removeAccessToken(key:string): Promise<void>;
+    removeAccessToken(key: string): Promise<void>;
 
     /**
-     * @param key 
+     * @param key
      */
     removeRefreshToken(key: string): void;
 }

@@ -23,15 +23,20 @@ export class AuthorityMetadataEntity {
     jwks_uri: string;
 
     constructor() {
-        this.expiresAt = TimeUtils.nowSeconds() + AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
+        this.expiresAt =
+            TimeUtils.nowSeconds() +
+            AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
     }
 
     /**
      * Update the entity with new aliases, preferred_cache and preferred_network values
-     * @param metadata 
-     * @param fromNetwork 
+     * @param metadata
+     * @param fromNetwork
      */
-    updateCloudDiscoveryMetadata(metadata: CloudDiscoveryMetadata, fromNetwork: boolean): void {
+    updateCloudDiscoveryMetadata(
+        metadata: CloudDiscoveryMetadata,
+        fromNetwork: boolean
+    ): void {
         this.aliases = metadata.aliases;
         this.preferred_cache = metadata.preferred_cache;
         this.preferred_network = metadata.preferred_network;
@@ -40,10 +45,13 @@ export class AuthorityMetadataEntity {
 
     /**
      * Update the entity with new endpoints
-     * @param metadata 
-     * @param fromNetwork 
+     * @param metadata
+     * @param fromNetwork
      */
-    updateEndpointMetadata(metadata: OpenIdConfigResponse, fromNetwork: boolean): void {
+    updateEndpointMetadata(
+        metadata: OpenIdConfigResponse,
+        fromNetwork: boolean
+    ): void {
         this.authorization_endpoint = metadata.authorization_endpoint;
         this.token_endpoint = metadata.token_endpoint;
         this.end_session_endpoint = metadata.end_session_endpoint;
@@ -54,7 +62,7 @@ export class AuthorityMetadataEntity {
 
     /**
      * Save the authority that was used to create this cache entry
-     * @param authority 
+     * @param authority
      */
     updateCanonicalAuthority(authority: string): void {
         this.canonical_authority = authority;
@@ -64,7 +72,9 @@ export class AuthorityMetadataEntity {
      * Reset the exiresAt value
      */
     resetExpiresAt(): void {
-        this.expiresAt = TimeUtils.nowSeconds() + AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
+        this.expiresAt =
+            TimeUtils.nowSeconds() +
+            AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
     }
 
     /**
@@ -79,7 +89,6 @@ export class AuthorityMetadataEntity {
      * @param entity
      */
     static isAuthorityMetadataEntity(key: string, entity: object): boolean {
-
         if (!entity) {
             return false;
         }

@@ -3,16 +3,19 @@ import { LogLevel, Logger } from "../../src/logger/Logger";
 import sinon from "sinon";
 
 describe("Logger.ts Class Unit Tests", () => {
-
     let loggerOptions: LoggerOptions;
     let logStore = {};
     beforeEach(() => {
         loggerOptions = {
-            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+            loggerCallback: (
+                level: LogLevel,
+                message: string,
+                containsPii: boolean
+            ): void => {
                 logStore[level] = message;
             },
             piiLoggingEnabled: true,
-            logLevel: LogLevel.Verbose
+            logLevel: LogLevel.Verbose,
         };
     });
 
@@ -34,7 +37,7 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBe(undefined);
             expect(logStore[LogLevel.Info]).toBe(undefined);
@@ -49,7 +52,7 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBe(undefined);
@@ -64,7 +67,7 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -79,14 +82,14 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
             expect(logStore[LogLevel.Verbose]).toBeTruthy();
             expect(logStore[LogLevel.Trace]).toBe(undefined);
         });
-        
+
         it("Creates a logger with level Trace", () => {
             const options = { ...loggerOptions, logLevel: LogLevel.Trace };
             const logger = new Logger(options);
@@ -94,7 +97,7 @@ describe("Logger.ts Class Unit Tests", () => {
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -104,17 +107,21 @@ describe("Logger.ts Class Unit Tests", () => {
 
         it("Creates a logger with level Info if logLevel isn't passed in", () => {
             loggerOptions = {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {
                     logStore[level] = message;
                 },
-                piiLoggingEnabled: true
+                piiLoggingEnabled: true,
             };
             const logger = new Logger(loggerOptions);
             logger.error("Message");
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -124,19 +131,23 @@ describe("Logger.ts Class Unit Tests", () => {
 
         it("Creates a logger with level Info if logLevel passed in is a string", () => {
             loggerOptions = {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {
                     logStore[level] = message;
                 },
                 piiLoggingEnabled: true,
                 //@ts-ignore
-                logLevel: "Verbose"
+                logLevel: "Verbose",
             };
             const logger = new Logger(loggerOptions);
             logger.error("Message");
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -146,19 +157,23 @@ describe("Logger.ts Class Unit Tests", () => {
 
         it("Creates a logger with level Info if logLevel passed in is an array", () => {
             loggerOptions = {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {
                     logStore[level] = message;
                 },
                 piiLoggingEnabled: true,
                 //@ts-ignore
-                logLevel: [LogLevel.Verbose]
+                logLevel: [LogLevel.Verbose],
             };
             const logger = new Logger(loggerOptions);
             logger.error("Message");
             logger.warning("Message");
             logger.info("Message");
             logger.verbose("Message");
-            logger.trace("Message")
+            logger.trace("Message");
             expect(logStore[LogLevel.Error]).toBeTruthy();
             expect(logStore[LogLevel.Warning]).toBeTruthy();
             expect(logStore[LogLevel.Info]).toBeTruthy();
@@ -168,12 +183,16 @@ describe("Logger.ts Class Unit Tests", () => {
 
         it("Creates a logger with level Info if logLevel passed in is null", () => {
             loggerOptions = {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+                loggerCallback: (
+                    level: LogLevel,
+                    message: string,
+                    containsPii: boolean
+                ): void => {
                     logStore[level] = message;
                 },
                 piiLoggingEnabled: true,
                 //@ts-ignore
-                logLevel: null
+                logLevel: null,
             };
             const logger = new Logger(loggerOptions);
             logger.error("Message");
@@ -190,11 +209,12 @@ describe("Logger.ts Class Unit Tests", () => {
     });
 
     describe("clone() tests", () => {
-
         it("Creates a new logger with logger configurations of existing logger", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
-            expect(loggerClone.isPiiLoggingEnabled()).toBe(logger.isPiiLoggingEnabled());
+            expect(loggerClone.isPiiLoggingEnabled()).toBe(
+                logger.isPiiLoggingEnabled()
+            );
         });
 
         it("Creates a new logger with package name and package version", () => {
@@ -203,16 +223,19 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerClone.info("Message");
             expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
             expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
-            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(
+                true
+            );
         });
     });
 
     describe("clone() tests", () => {
-
         it("Creates a new logger with logger configurations of existing logger", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
-            expect(loggerClone.isPiiLoggingEnabled()).toBe(logger.isPiiLoggingEnabled());
+            expect(loggerClone.isPiiLoggingEnabled()).toBe(
+                logger.isPiiLoggingEnabled()
+            );
         });
 
         it("Creates a new logger with package name and package version", () => {
@@ -221,12 +244,13 @@ describe("Logger.ts Class Unit Tests", () => {
             loggerClone.info("Message");
             expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
             expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
-            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(
+                true
+            );
         });
     });
 
     describe("executeCallback() tests", () => {
-
         it("Executes a callback if assigned", () => {
             const logger = new Logger(loggerOptions);
             logger.executeCallback(LogLevel.Error, "Message", true);
@@ -235,7 +259,6 @@ describe("Logger.ts Class Unit Tests", () => {
     });
 
     describe("Error APIs", () => {
-
         it("Executes error APIs", () => {
             const executeCbSpy = sinon.spy(Logger.prototype, "executeCallback");
 
@@ -263,7 +286,6 @@ describe("Logger.ts Class Unit Tests", () => {
     });
 
     describe("Warning APIs", () => {
-
         it("Executes warning APIs", () => {
             const executeCbSpy = sinon.spy(Logger.prototype, "executeCallback");
 
@@ -291,7 +313,6 @@ describe("Logger.ts Class Unit Tests", () => {
     });
 
     describe("Info APIs", () => {
-
         it("Executes info APIs", () => {
             const executeCbSpy = sinon.spy(Logger.prototype, "executeCallback");
 
@@ -319,7 +340,6 @@ describe("Logger.ts Class Unit Tests", () => {
     });
 
     describe("Verbose APIs", () => {
-
         it("Executes verbose APIs", () => {
             const executeCbSpy = sinon.spy(Logger.prototype, "executeCallback");
 
@@ -347,13 +367,17 @@ describe("Logger.ts Class Unit Tests", () => {
     });
 
     describe("CorrelationId tests", () => {
-
         it("CorrelationId is included in log message if set on Logger configurations", () => {
             const testCorrelationId = "12345";
-            const logger = new Logger({...loggerOptions, correlationId: testCorrelationId});
+            const logger = new Logger({
+                ...loggerOptions,
+                correlationId: testCorrelationId,
+            });
 
             logger.verbose("Message");
-            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
+                true
+            );
         });
 
         it("CorrelationId is included in log message if passed in log message", () => {
@@ -361,17 +385,26 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
 
             logger.verbose("Message", testCorrelationId);
-            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
+                true
+            );
         });
 
         it("CorrelationId passed in log message takes precedence over correlationId in Logger configurations", () => {
             const optionsCorrelationId = "34567";
             const testCorrelationId = "45678";
-            const logger = new Logger({...loggerOptions, correlationId: optionsCorrelationId});
+            const logger = new Logger({
+                ...loggerOptions,
+                correlationId: optionsCorrelationId,
+            });
 
             logger.verbose("Message", testCorrelationId);
-            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
-            expect(logStore[LogLevel.Verbose].includes(optionsCorrelationId)).toBe(false);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
+                true
+            );
+            expect(
+                logStore[LogLevel.Verbose].includes(optionsCorrelationId)
+            ).toBe(false);
         });
 
         it("CorrelationId on Logger will be used if an empty string is passed in the log message", () => {
@@ -379,8 +412,9 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions, testCorrelationId);
 
             logger.verbose("Message", "");
-            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(
+                true
+            );
         });
     });
-
 });

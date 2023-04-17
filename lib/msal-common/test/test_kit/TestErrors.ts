@@ -9,15 +9,14 @@
 export const TestErrorMessage = {
     testSetupError: {
         code: "test_setup_error",
-        desc: "Error in test setup"
-    }
+        desc: "Error in test setup",
+    },
 };
 
 /**
  * General error class thrown by the MSAL.js library.
  */
 export class TestError extends Error {
-
     /**
      * Short string denoting error
      */
@@ -34,7 +33,9 @@ export class TestError extends Error {
     subError: string;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
-        const errorString = errorMessage ? `${errorCode}: ${errorMessage}` : errorCode;
+        const errorString = errorMessage
+            ? `${errorCode}: ${errorMessage}`
+            : errorCode;
         super(errorString);
         Object.setPrototypeOf(this, TestError.prototype);
 
@@ -49,10 +50,16 @@ export class TestError extends Error {
      * @param errDesc
      */
     static createTestSetupError(errDesc: string): TestError {
-        return new TestError(TestErrorMessage.testSetupError.code, `${TestErrorMessage.testSetupError.desc}: ${errDesc}`);
+        return new TestError(
+            TestErrorMessage.testSetupError.code,
+            `${TestErrorMessage.testSetupError.desc}: ${errDesc}`
+        );
     }
 
     static createTestFailureError(errDesc: string): TestError {
-        return new TestError(TestErrorMessage.testSetupError.code, `${TestErrorMessage.testSetupError.desc}: ${errDesc}`);
+        return new TestError(
+            TestErrorMessage.testSetupError.code,
+            `${TestErrorMessage.testSetupError.desc}: ${errDesc}`
+        );
     }
 }

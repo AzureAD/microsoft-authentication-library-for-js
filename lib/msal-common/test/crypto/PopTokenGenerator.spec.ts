@@ -1,5 +1,12 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
+import {
+    RANDOM_TEST_GUID,
+    TEST_POP_VALUES,
+    TEST_DATA_CLIENT_INFO,
+    TEST_CONFIG,
+    TEST_URIS,
+    TEST_CRYPTO_VALUES,
+} from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -9,7 +16,6 @@ import { AuthenticationScheme } from "../../src/utils/Constants";
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
 
 describe("PopTokenGenerator Unit Tests", () => {
-
     afterEach(() => {
         sinon.restore();
     });
@@ -47,8 +53,8 @@ describe("PopTokenGenerator Unit Tests", () => {
         async generatePkceCodes(): Promise<PkceCodes> {
             return {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
-                verifier: TEST_CONFIG.TEST_VERIFIER
-            }
+                verifier: TEST_CONFIG.TEST_VERIFIER,
+            };
         },
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;
@@ -64,7 +70,7 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async hashString(): Promise<string> {
             return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-        }
+        },
     };
 
     describe("generateCnf", () => {
@@ -72,22 +78,26 @@ describe("PopTokenGenerator Unit Tests", () => {
             authority: TEST_CONFIG.validAuthority,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            resourceRequestMethod:"POST",
-            resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
+            resourceRequestMethod: "POST",
+            resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
         };
         it("Generates the req_cnf correctly", async () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const reqCnfData = await popTokenGenerator.generateCnf(testRequest);
-            expect(reqCnfData.reqCnfString).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            expect(reqCnfData.reqCnfString).toBe(
+                TEST_POP_VALUES.ENCODED_REQ_CNF
+            );
             expect(reqCnfData.kid).toBe(TEST_POP_VALUES.KID);
-            expect(reqCnfData.reqCnfHash).toBe(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+            expect(reqCnfData.reqCnfHash).toBe(
+                TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+            );
         });
     });
 
     describe("signPopToken", () => {
         let currTime: number;
         let testRequest: BaseAuthRequest;
-        
+
         beforeAll(() => {
             currTime = TimeUtils.nowSeconds();
             testRequest = {
@@ -116,11 +126,13 @@ describe("PopTokenGenerator Unit Tests", () => {
                 resourceRequestMethod: resourceReqMethod,
                 resourceRequestUri: resourceUrl,
                 shrClaims: shrClaims,
-                shrNonce: shrNonce
-            }
+                shrNonce: shrNonce,
+            };
 
-
-            cryptoInterface.signJwt = (payload: SignedHttpRequest, kid: string): Promise<string> => {
+            cryptoInterface.signJwt = (
+                payload: SignedHttpRequest,
+                kid: string
+            ): Promise<string> => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
@@ -132,19 +144,26 @@ describe("PopTokenGenerator Unit Tests", () => {
                     q: [[], resourceUrlComponents.QueryString],
                     client_claims: shrClaims,
                 };
-                
+
                 expect(payload).toEqual(expectedPayload);
                 done();
                 return Promise.resolve("");
             };
-            popTokenGenerator.signPopToken(accessToken, TEST_POP_VALUES.KID, popRequest);
+            popTokenGenerator.signPopToken(
+                accessToken,
+                TEST_POP_VALUES.KID,
+                popRequest
+            );
         });
 
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
-            cryptoInterface.signJwt = (payload: SignedHttpRequest, kid: string): Promise<string> => {
+            cryptoInterface.signJwt = (
+                payload: SignedHttpRequest,
+                kid: string
+            ): Promise<string> => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
@@ -154,14 +173,18 @@ describe("PopTokenGenerator Unit Tests", () => {
                     nonce: RANDOM_TEST_GUID,
                     p: undefined,
                     q: undefined,
-                    client_claims: undefined
+                    client_claims: undefined,
                 };
-                
+
                 expect(payload).toEqual(expectedPayload);
                 done();
                 return Promise.resolve("");
             };
-            popTokenGenerator.signPopToken(accessToken, TEST_POP_VALUES.KID, testRequest);
+            popTokenGenerator.signPopToken(
+                accessToken,
+                TEST_POP_VALUES.KID,
+                testRequest
+            );
         });
     });
 });

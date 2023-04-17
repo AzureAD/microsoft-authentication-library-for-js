@@ -6,7 +6,7 @@
 import { SERVER_TELEM_CONSTANTS } from "../../utils/Constants";
 
 export class ServerTelemetryEntity {
-    failedRequests: Array<string|number>;
+    failedRequests: Array<string | number>;
     errors: string[];
     cacheHits: number;
 
@@ -22,8 +22,8 @@ export class ServerTelemetryEntity {
      * @param entity
      */
     static isServerTelemetryEntity(key: string, entity?: object): boolean {
-
-        const validateKey: boolean = key.indexOf(SERVER_TELEM_CONSTANTS.CACHE_KEY) === 0;
+        const validateKey: boolean =
+            key.indexOf(SERVER_TELEM_CONSTANTS.CACHE_KEY) === 0;
         let validateEntity: boolean = true;
 
         if (entity) {
