@@ -1,67 +1,67 @@
 {
-  "Sample": {
-    "Title": "A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node",
-    "Level": 100,
-    "Client": "Node.js & Express web app",
-    "Languages": [
-      "javascript"
+    "Sample": {
+        "Title": "A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node",
+        "Level": 100,
+        "Client": "Node.js & Express web app",
+        "Languages": [
+            "javascript"
+        ],
+        "Products": [
+            "azure-active-directory",
+            "msal-node"
+        ],
+        "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
+        "Endpoint": "AAD v2.0",
+        "Provider": "CIAM",
+        "Platform": "JavaScript",
+        "description": "This sample demonstrates a Node.js & Express web app authenticating users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM) with Microsoft Authentication Library for Node (MSAL Node)"
+    },
+    "AADApps": [
+        {
+            "Id": "client",
+            "Name": "ciam-msal-node-webapp",
+            "Kind": "WebApp",
+            "Audience": "AzureADMyOrg",
+            "HomePage": "http://localhost:3000",
+            "ReplyUrls": "http://localhost:3000, http://localhost:3000/auth/redirect",
+            "PasswordCredentials": "Auto",
+            "SDK": "MsalNode",
+            "SampleSubPath": "1-Authentication\\5-sign-in-express\\App",
+            "RequiredResourcesAccess": [
+                {
+                    "Resource": "Microsoft Graph",
+                    "DelegatedPermissions": [
+                        "openid",
+                        "offline_access"
+                    ]
+                }
+            ],
+            "ManualSteps": [
+                {
+                    "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
+                }
+            ]
+        }
     ],
-    "Products": [
-      "azure-active-directory",
-      "msal-node"
-    ],
-    "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
-    "Endpoint": "AAD v2.0",
-    "Provider": "CIAM",
-    "Platform": "JavaScript",
-    "description": "This sample demonstrates a Node.js & Express web app authenticating users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM) with Microsoft Authentication Library for Node (MSAL Node)"
-  },
-  "AADApps": [
-    {
-      "Id": "client",
-      "Name": "ciam-msal-node-webapp",
-      "Kind": "WebApp",
-      "Audience": "AzureADMyOrg",
-      "HomePage": "http://localhost:3000",
-      "ReplyUrls": "http://localhost:3000, http://localhost:3000/auth/redirect",
-      "PasswordCredentials": "Auto",
-      "SDK": "MsalNode",
-      "SampleSubPath": "1-Authentication\\5-sign-in-express\\App",
-      "RequiredResourcesAccess": [
+    "CodeConfiguration": [
         {
-          "Resource": "Microsoft Graph",
-          "DelegatedPermissions": [
-            "openid",
-            "offline_access"
-          ]
+            "App": "client",
+            "SettingKind": "Replace",
+            "SettingFile": "\\..\\App\\authConfig.js",
+            "Mappings": [
+                {
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": ".AppId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Info_Here",
+                    "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Client_Secret_Here",
+                    "value": ".AppKey"
+                }
+            ]
         }
-      ],
-      "ManualSteps": [
-        {
-          "Comment": "Navigate to your tenant and create user flows to allow users to sign up for the application."
-        }
-      ]
-    }
-  ],
-  "CodeConfiguration": [
-    {
-      "App": "client",
-      "SettingKind": "Replace",
-      "SettingFile": "\\..\\App\\authConfig.js",
-      "Mappings": [
-        {
-          "key": "Enter_the_Application_Id_Here",
-          "value": ".AppId"
-        },
-        {
-          "key": "Enter_the_Tenant_Info_Here",
-          "value": "$tenantId"
-        },
-        {
-          "key": "Enter_the_Client_Secret_Here",
-          "value": ".AppKey"
-        }
-      ]
-    }
-  ]
+    ]
 }

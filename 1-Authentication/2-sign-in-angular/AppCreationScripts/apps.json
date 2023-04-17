@@ -1,21 +1,17 @@
 {
     "Sample": {
-        "Title": "A React single-page application using MSAL React to authenticate users against Azure AD CIAM",
+        "Title": "An Angular single-page application using MSAL Angular to authenticate users against Azure AD CIAM",
         "Client": "SinglePageApplication",
         "Level": 100
     },
     "AppRegistrations": [
         {
-            "x-ms-id": "ciam-react-spa",
-            "x-ms-name": "ms-identity-ciam-react-spa",
+            "x-ms-id": "ciam-angular-spa",
+            "x-ms-name": "ms-identity-ciam-angular-spa",
             "x-ms-version": "2.0",
             "replyUrlsWithType": [
                 {
-                    "url": "http://localhost:3000/",
-                    "type": "Spa"
-                },
-                {
-                    "url": "http://localhost:3000/redirect",
+                    "url": "http://localhost:4200/",
                     "type": "Spa"
                 }
             ],
@@ -39,10 +35,10 @@
             ],
             "codeConfigurations": [
                 {
-                    "settingFile": "/SPA/src/authConfig.js",
+                    "settingFile": "/SPA/src/app/auth-config.ts",
                     "replaceTokens": {
                         "appId": "Enter_the_Application_Id_Here",
-                        "tenantId": "Enter_the_Tenant_Id_Here"
+                        "tenantId": "Enter_the_Tenant_Info_Here"
                     }
                 }
             ]

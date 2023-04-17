@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory
-description: This sample demonstrates an Angular single-page application (SPA) that uses Microsoft Authentication Library for Angular (MSAL Angular) to sign-in users with Azure Active Directory (Azure AD) Consumers Identity and Access Management (CIAM)
+name: Angular single-page application using MSAL Angular to sign-in users against Azure AD CIAM
+description: This sample demonstrates an Angular single-page application (SPA) that uses Microsoft Authentication Library for Angular (MSAL Angular) to sign-in users with Azure Active Directory Consumers Identity and Access Management (Azure AD CIAM)
 languages:
  - javascript
  - typescript
@@ -17,7 +17,7 @@ extensions:
 - client: Angular SPA
 ---
 
-# Angular single-page application using MSAL Angular to sign-in users with Azure Active Directory
+# Angular single-page application using MSAL Angular to sign-in users against Azure AD CIAM
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -27,7 +27,6 @@ extensions:
 * [Explore the sample](#explore-the-sample)
 * [Troubleshooting](#troubleshooting)
 * [About the code](#about-the-code)
-* [Next Steps](#next-steps)
 * [Contributing](#contributing)
 * [Learn More](#learn-more)
 
@@ -387,14 +386,8 @@ Build your project to get a distributable files folder, where your built `html`,
 1. In the resulting screen, select `ciam-msal-angular-spa`.
 1. In the app's registration screen, select **Authentication** in the menu.
    1. In the **Redirect URIs** section, update the reply URLs to match the site URL of your Azure deployment. For example:
-        1. `https://ciam-msal-angular-spa.azurewebsites.net/`
+      1. `https://ciam-msal-angular-spa.azurewebsites.net/`
 </details>
-
-## Next Steps
-
-Learn how to:
-
-> * Enter next steps (samples, docs) for your platform here
 
 ## Contributing
 

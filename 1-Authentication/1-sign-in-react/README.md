@@ -1,14 +1,14 @@
 ---
 page_type: sample
-name: React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)
-description: React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)
+name: React single-page application using MSAL React to authentication users against Azure AD CIAM
+description: React single-page application using MSAL React to authentication users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM)
 languages:
  - javascript
 products:
  - azure-active-directory
  - msal-js
  - msal-react
-urlFragment: ms-identity-javascript-react-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial
 extensions:
 - services: ms-identity
 - platform: javascript
@@ -17,7 +17,7 @@ extensions:
 - client: React SPA 
 ---
 
-# React single-page application using MSAL React to authentication users against Customer Identity Access Management (CIAM)
+# React single-page application using MSAL React to authenticate users against Azure AD CIAM
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -27,7 +27,6 @@ extensions:
 * [Explore the sample](#explore-the-sample)
 * [Troubleshooting](#troubleshooting)
 * [About the code](#about-the-code)
-* [Next Steps](#next-steps)
 * [Contributing](#contributing)
 * [Learn More](#learn-more)
 
@@ -51,7 +50,7 @@ Here you'll learn how to [sign-in](https://docs.microsoft.com/azure/active-direc
 | File/folder                | Description                                      |
 |----------------------------|--------------------------------------------------|
 | `App.jsx`                  | Main application logic resides here.             |
-| `NavigationBar.jsx`        | Authentication logic .                           |
+| `NavigationBar.jsx`        | Contains buttons for login and logout.           |
 | `authConfig.js`            | Contains authentication parameters.              |
 
 ## Prerequisites
@@ -59,7 +58,6 @@ Here you'll learn how to [sign-in](https://docs.microsoft.com/azure/active-direc
 * [Node.js](https://nodejs.org/en/download/) must be installed to run this sample.
 * [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
 * [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
-* A modern web browser.
 * An **Azure AD CIAM** tenant. For more information, see: [How to get an Azure AD CIAM tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
 * A user account in your **Azure AD CIAM** tenant.
 
@@ -306,12 +304,6 @@ As shown above, the components that depend on whether the user is authenticated 
 ### ID token validation
 
 When you receive an [ID token](https://docs.microsoft.com/azure/active-directory/develop/id-tokens) directly from the IdP on a secure channel (e.g. HTTPS), such is the case with SPAs, there’s no need to validate it. If you were to do it, you would validate it by asking the same server that gave you the ID token to give you the keys needed to validate it, which renders it pointless, as if one is compromised so is the other.
-
-## Next Steps
-
-Learn how to:
-
-> * Enter next steps (samples, docs) for your platform here
 
 ## Contributing
 
