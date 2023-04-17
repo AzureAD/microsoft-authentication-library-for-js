@@ -196,14 +196,6 @@ export enum SSOTypes {
 }
 
 /**
- * Disallowed extra query parameters.
- */
-export const BlacklistedEQParams = [
-    SSOTypes.SID,
-    SSOTypes.LOGIN_HINT
-];
-
-/**
  * allowed values for codeVerifier
  */
 export const CodeChallengeMethodValues = {

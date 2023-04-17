@@ -140,7 +140,7 @@ export enum SSOTypes {
 /**
  * @hidden
  */
-export const BlacklistedEQParams = [
+export const DisallowedEQParams = [
     SSOTypes.SID,
     SSOTypes.LOGIN_HINT
 ];
