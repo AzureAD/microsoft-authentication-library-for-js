@@ -357,6 +357,15 @@ describe('MsalService', () => {
 
       spyOn(
         PublicClientApplication.prototype,
+        'initialize'
+      ).and.returnValue(
+        new Promise((resolve) => {
+          resolve();
+        })
+      );
+
+      spyOn(
+        PublicClientApplication.prototype,
         'handleRedirectPromise'
       ).and.returnValue(
         new Promise((resolve) => {
@@ -369,6 +378,7 @@ describe('MsalService', () => {
         .handleRedirectObservable()
         .subscribe((response: AuthenticationResult) => {
           expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(PublicClientApplication.prototype.initialize).toHaveBeenCalled();
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalled();
@@ -378,6 +388,15 @@ describe('MsalService', () => {
 
     it('failure', (done) => {
       const sampleError = new AuthError('123', 'message');
+
+      spyOn(
+        PublicClientApplication.prototype,
+        'initialize'
+      ).and.returnValue(
+        new Promise((resolve) => {
+          resolve();
+        })
+      );
 
       spyOn(
         PublicClientApplication.prototype,
@@ -391,6 +410,7 @@ describe('MsalService', () => {
       authService.handleRedirectObservable().subscribe({
         error: (error: AuthError) => {
           expect(error.message).toBe(sampleError.message);
+          expect(PublicClientApplication.prototype.initialize).toHaveBeenCalled();
           expect(
             PublicClientApplication.prototype.handleRedirectPromise
           ).toHaveBeenCalled();
