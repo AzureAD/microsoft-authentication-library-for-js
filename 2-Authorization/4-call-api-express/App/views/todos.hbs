@@ -1,0 +1,22 @@
+<h1>Todolist</h1>
+<div>
+    <form action="/todos" method="POST">
+        <input type="text" name="description" class="form-control" placeholder="Enter a task" aria-label="Enter a task"
+            aria-describedby="button-addon">
+        <button type="submit" id="button-addon">Add</button>
+    </form>
+</div>
+<div class="row" style="margin: 10px;">
+    <ol id="todoListItems" class="list-group"> 
+        {{#each todos}} 
+        <li class="todoListItem" id="todoListItem">
+            <span>{{description}}</span>
+            <form action='/todos?_method=DELETE' method='POST'>
+                <span><input type='hidden' name='_id' value='{{id}}'></span>
+                <span><button type='submit'>Remove</button></span>
+            </form>
+        </li> 
+        {{/each}} 
+    </ol>
+</div>
+<a href="/">Go back</a>
