@@ -85,7 +85,7 @@ describe('Test cross platform lock', () => {
         }, 2000);
 
         // expect lockfile to be present
-        await expect(async () => await lock.lock()).not.toThrow();
-        await expect(async () => await fs.access(lockFilePath)).not.toThrow();
+        await lock.lock();
+        await fs.access(lockFilePath);
     });
 });
