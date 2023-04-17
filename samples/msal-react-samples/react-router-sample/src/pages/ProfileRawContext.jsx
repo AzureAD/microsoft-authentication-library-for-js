@@ -70,7 +70,8 @@ class Profile extends Component {
     render() {
         
         const authRequest = {
-            ...loginRequest
+            ...loginRequest,
+            redirectUri: process.env.REACT_APP_POPUP_REDIRECT_URI // e.g. /redirect
         };
 
         return (
