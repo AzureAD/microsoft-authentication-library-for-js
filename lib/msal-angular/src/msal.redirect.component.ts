@@ -10,7 +10,6 @@
  */
 
 import { Component, OnInit } from '@angular/core';
-import { concatMap } from 'rxjs';
 import { MsalService } from './msal.service';
 
 @Component({
@@ -22,13 +21,6 @@ export class MsalRedirectComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.getLogger().verbose('MsalRedirectComponent activated');
-    this.authService
-      .initialize()
-      .pipe(
-        concatMap(() => {
-          return this.authService.handleRedirectObservable();
-        })
-      )
-      .subscribe();
+    this.authService.handleRedirectObservable().subscribe();
   }
 }

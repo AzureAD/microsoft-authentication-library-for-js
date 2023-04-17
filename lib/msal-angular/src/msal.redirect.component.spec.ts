@@ -41,9 +41,6 @@ describe('MsalRedirectComponent', () => {
       accessToken: '123abc',
     };
 
-    spyOn(PublicClientApplication.prototype, 'initialize').and.returnValue(
-      Promise.resolve()
-    );
     spyOn(
       PublicClientApplication.prototype,
       'handleRedirectPromise'
@@ -53,7 +50,6 @@ describe('MsalRedirectComponent', () => {
         //@ts-ignore
         resolve(sampleAccessToken);
 
-        expect(PublicClientApplication.prototype.initialize).toHaveBeenCalled();
         expect(
           PublicClientApplication.prototype.handleRedirectPromise
         ).toHaveBeenCalled();
