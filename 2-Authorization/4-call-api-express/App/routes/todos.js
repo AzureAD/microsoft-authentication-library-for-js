@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { getToken } = require('./auth');
-const { protectedResources } = require('../authConfig');
+
 const todolistController = require('../controller/todolistController');
+const { protectedResources } = require('../authConfig');
+const { getToken } = require('./auth');
 
 // custom middleware to check auth state
 function isAuthenticated(req, res, next) {
@@ -22,14 +23,14 @@ router.get(
 
 router.delete(
     '/',
-    isAuthenticated, // check if user is authenticated
+    isAuthenticated,
     getToken(protectedResources.apiTodoList.scopes.write),
     todolistController.deleteTodo
 );
 
 router.post(
     '/',
-    isAuthenticated, // check if user is authenticated
+    isAuthenticated,
     getToken(protectedResources.apiTodoList.scopes.write),
     todolistController.postTodo
 );

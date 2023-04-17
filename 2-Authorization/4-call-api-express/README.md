@@ -1,6 +1,6 @@
 ---
 page_type: sample
-name: A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node and call a protected ASP.NET Core web API
+name: A Node.js & Express web app authenticating users against Azure AD CIAM and call a protected ASP.NET Core web API
 description: This sample demonstrates a Node.js & Express web app authenticating users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM) with Microsoft Authentication Library for Node (MSAL Node) and call a protected ASP.NET Core web API
 languages:
  - javascript
@@ -8,7 +8,6 @@ languages:
 products:
  - azure-active-directory
  - aspnet-core
- - msal-js
  - msal-node
  - microsoft-identity-web
 urlFragment: ms-identity-ciam-javascript-tutorial
@@ -21,7 +20,7 @@ extensions:
 - service: ASP.NET Core web API
 ---
 
-# A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node and call a protected ASP.NET Core web API
+# A Node.js & Express web app authenticating users against Azure AD CIAM and calling a protected ASP.NET Core web API
 
 * [Overview](#overview)
 * [Scenario](#scenario)

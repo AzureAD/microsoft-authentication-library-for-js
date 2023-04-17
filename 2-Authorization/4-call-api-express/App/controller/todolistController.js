@@ -1,5 +1,5 @@
 const { protectedResources } = require('../authConfig');
-const { callEndpointWithToken } = require('../fatch');
+const { callEndpointWithToken } = require('../fetch');
 
 exports.getTodos = async (req, res, next) => {
     try {
@@ -8,8 +8,7 @@ exports.getTodos = async (req, res, next) => {
             req.session.accessToken,
             'GET'
         );
-        const data = response.data;
-        res.render('todos', { isAuthenticated: req.session.isAuthenticated, todos: data });
+        res.render('todos', { isAuthenticated: req.session.isAuthenticated, todos: response.data });
     } catch (error) {
         next(error);
     }

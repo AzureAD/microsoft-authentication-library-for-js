@@ -13,6 +13,7 @@ const axios = require('axios');
 const callEndpointWithToken = async (endpoint, accessToken, method, data = null) => {
     try {
         let response;
+
         const options = {
             headers: {
                 Authorization: `Bearer ${accessToken}`,

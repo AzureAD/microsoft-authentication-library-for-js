@@ -7,12 +7,16 @@ const express = require('express');
 const msal = require('@azure/msal-node');
 const axios = require('axios');
 
-const { msalConfig, REDIRECT_URI, POST_LOGOUT_REDIRECT_URI } = require('../authConfig');
+const { 
+    msalConfig, 
+    REDIRECT_URI, 
+    POST_LOGOUT_REDIRECT_URI 
+} = require('../authConfig');
 
-const authRouter = express.Router();
+const router = express.Router();
 const cryptoProvider = new msal.CryptoProvider();
 
-authRouter.get('/signin', async function (req, res, next) {
+router.get('/signin', async function (req, res, next) {
     // create a GUID for crsf
     req.session.csrfToken = cryptoProvider.createNewGuid();
 
@@ -49,9 +53,9 @@ authRouter.get('/signin', async function (req, res, next) {
     };
 
     /**
-     * If the current msal configuration does not have cloudDiscoveryMetadata or authorityMetadata, we will
-     * make a request to the relevant endpoints to retrieve the metadata. This allows MSAL to avoid making
-     * metadata discovery calls, thereby improving performance of token acquisition process.
+     * If the current msal instance's configuration does not have cloudDiscoveryMetadata or authorityMetadata, we will
+     * make a request to the relevant endpoints to retrieve the metadata. This enables fresh MSAL instances to avoid 
+     * making metadata discovery calls, thereby improving performance of token acquisition process.
      */
     if (!msalConfig.auth.cloudDiscoveryMetadata || !msalConfig.auth.authorityMetadata) {
         const [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
@@ -69,34 +73,34 @@ authRouter.get('/signin', async function (req, res, next) {
     return redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRequestParams, authCodeRequestParams);
 });
 
-authRouter.post('/redirect', async function (req, res, next) {
-    let state;
-    if (req.body.state) {
-        state = JSON.parse(cryptoProvider.base64Decode(req.body.state));
-        //remove the stage and both sign-in and token acqu will be the same
-        const authCodeRequest = {
-            ...req.session.authCodeRequest,
-            code: req.body.code, // authZ code
-            codeVerifier: req.session.pkceCodes.verifier, // PKCE Code Verifier
-        };
-        try {
-            const msalInstance = getMsalInstance(msalConfig);
-            msalInstance.getTokenCache().deserialize(req.session.tokenCache);
-            const tokenResponse = await msalInstance.acquireTokenByCode(authCodeRequest, req.body);
+router.post('/redirect', async function (req, res, next) {
+    //remove the stage and both sign-in and token acqu will be the same
+    const authCodeRequest = {
+        ...req.session.authCodeRequest,
+        code: req.body.code, // authZ code
+        codeVerifier: req.session.pkceCodes.verifier, // PKCE Code Verifier
+    };
 
-            req.session.tokenCache = msalInstance.getTokenCache().serialize();
-            req.session.idToken = tokenResponse.idToken;
-            req.session.account = tokenResponse.account;
-            req.session.accessToken = tokenResponse.accessToken;
-            req.session.isAuthenticated = true;
-            res.redirect(state.redirectTo);
-        } catch (error) {
-            next(error);
-        }
+    try {
+        const msalInstance = getMsalInstance(msalConfig);
+        msalInstance.getTokenCache().deserialize(req.session.tokenCache);
+
+        const tokenResponse = await msalInstance.acquireTokenByCode(authCodeRequest, req.body);
+
+        req.session.tokenCache = msalInstance.getTokenCache().serialize();
+        req.session.idToken = tokenResponse.idToken;
+        req.session.account = tokenResponse.account;
+        req.session.accessToken = tokenResponse.accessToken;
+        req.session.isAuthenticated = true;
+
+        const state = JSON.parse(cryptoProvider.base64Decode(req.body.state));
+        res.redirect(state.redirectTo);
+    } catch (error) {
+        next(error);
     }
 });
 
-authRouter.get('/signout', function (req, res) {
+router.get('/signout', function (req, res) {
     /**
      * Construct a logout URI and redirect the user to end the
      * session with Azure AD. For more information, visit:
@@ -211,23 +215,24 @@ async function redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRe
  */
 function getToken(scopes) {
     return async function (req, res, next) {
-        let msalInstance = getMsalInstance(msalConfig);
-        msalInstance.getTokenCache().deserialize(req.session.tokenCache);
-        req.session.tokenCache = msalInstance.getTokenCache().serialize();
-
         try {
+            const msalInstance = getMsalInstance(msalConfig);
+            msalInstance.getTokenCache().deserialize(req.session.tokenCache);
+
             const silentRequest = {
                 account: req.session.account,
                 scopes: scopes,
             };
 
             const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
+            
+            req.session.tokenCache = msalInstance.getTokenCache().serialize();
             req.session.accessToken = tokenResponse.accessToken;
-
             next();
         } catch (error) {
             if (error instanceof msal.InteractionRequiredAuthError) {
                 req.session.csrfToken = cryptoProvider.createNewGuid();
+
                 const state = cryptoProvider.base64Encode(
                     JSON.stringify({
                         redirectTo: 'http://localhost:3000/todos',
@@ -244,14 +249,15 @@ function getToken(scopes) {
                     scopes: scopes,
                 };
 
-                redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRequestParams, authCodeRequestParams);
+                return redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRequestParams, authCodeRequestParams);
             }
+
             next(error);
         }
     };
 }
 
 module.exports = {
-    authRouter,
+    authRouter: router,
     getToken,
 };
