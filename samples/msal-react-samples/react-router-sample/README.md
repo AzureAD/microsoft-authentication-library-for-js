@@ -42,9 +42,12 @@ For more information, visit:
 
 ### Configure the application
 
-- Open `./src/authConfig.js` in an editor.
-- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+- Open `./env.development` in an editor.
+- Replace `ENTER_CLIENT_ID_HERE` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+- Replace `ENTER_TENANT_ID_HERE` with the tenant ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
+
+These parameters are used in `./src/authConfig.js` to configure MSAL.
 
 #### Install npm dependencies for sample
 

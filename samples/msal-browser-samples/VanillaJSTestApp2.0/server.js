@@ -6,14 +6,14 @@ const express = require('express');
 const morgan = require('morgan');
 const fs = require('fs');
 const path = require('path');
-const argv = require('yargs')
-    .usage('Usage: $0 -sample [sample-name] -p [PORT] -https')
-    .alias('s', 'sample')
-    .alias('p', 'port')
-    .alias('h', 'https')
-    .describe('sample', '(Optional) Name of sample to run')
-    .describe('port', '(Optional) Port Number - default is 30662')
-    .describe('https', '(Optional) Serve over https')
+const argv = require("yargs")
+    .usage("Usage: $0 -sample [sample-name] -p [PORT] -https")
+    .alias("s", "sample")
+    .alias("p", "port")
+    .alias("h", "https")
+    .describe("sample", "(Optional) Name of sample to run")
+    .describe("port", "(Optional) Port Number - default is 30662")
+    .describe("https", "(Optional) Serve over https")
     .strict()
     .argv;
 
@@ -55,6 +55,12 @@ if (sampleName && isSample) {
     console.log("Running default sample.\n");
     app.use(express.static('app/default'));
 }
+
+// set up a route for redirect.html. When using popup and silent APIs, 
+// we recommend setting the redirectUri to a blank page or a page that does not implement MSAL.
+app.get("/redirect", function (req, res) {
+    res.sendFile(path.join(__dirname + "/redirect.html"));
+});
 
 // Set up a route for index.html.
 app.get('*', function (req, res) {
