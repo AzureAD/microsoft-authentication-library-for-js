@@ -215,8 +215,8 @@ async function redirectToAuthCodeUrl(req, res, next, msalInstance, authCodeUrlRe
  */
 function getToken(scopes) {
     return async function (req, res, next) {
+        const msalInstance = getMsalInstance(msalConfig);
         try {
-            const msalInstance = getMsalInstance(msalConfig);
             msalInstance.getTokenCache().deserialize(req.session.tokenCache);
 
             const silentRequest = {
