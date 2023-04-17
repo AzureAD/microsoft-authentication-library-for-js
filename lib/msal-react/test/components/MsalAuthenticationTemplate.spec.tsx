@@ -53,8 +53,8 @@ describe("MsalAuthenticationTemplate tests", () => {
     beforeEach(() => {
         eventCallbacks = [];
         let eventId = 0;
-        pca = new PublicClientApplication(msalConfig);
-        pca = (pca as any).controller;
+        // @ts-ignore
+        pca = new PublicClientApplication(msalConfig).controller;
         jest.spyOn(pca, "addEventCallback").mockImplementation(
             (callbackFn: Function) => {
                 eventCallbacks.push(callbackFn as EventCallbackFunction);

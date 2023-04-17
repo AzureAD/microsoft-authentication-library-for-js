@@ -4,5 +4,8 @@
  */
 
 module.exports = {
-    coverageReporters: [["lcov", {"projectRoot": "../../"}]]
+    transform: {
+        "^.+\\.(ts|tsx)$": "ts-jest",
+    },
+    coverageReporters: [["lcov", { "projectRoot": "../../" }]]
 };
