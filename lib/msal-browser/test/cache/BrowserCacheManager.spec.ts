@@ -1989,14 +1989,19 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("addTokenKey adds credential to key map and removeTokenKey removes the given credential from the key map", () => {
-            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {
-                ...cacheConfig
-            }, browserCrypto, logger);
+            const browserStorage = new BrowserCacheManager(
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                {
+                    ...cacheConfig,
+                },
+                browserCrypto,
+                logger
+            );
 
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: [],
                 accessToken: [],
-                refreshToken: []
+                refreshToken: [],
             });
 
             browserStorage.addTokenKey("idToken1", CredentialType.ID_TOKEN);
@@ -2004,57 +2009,93 @@ describe("BrowserCacheManager tests", () => {
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken1", "idToken2"],
                 accessToken: [],
-                refreshToken: []
+                refreshToken: [],
             });
 
-            browserStorage.addTokenKey("accessToken1", CredentialType.ACCESS_TOKEN);
-            browserStorage.addTokenKey("accessToken2", CredentialType.ACCESS_TOKEN);
+            browserStorage.addTokenKey(
+                "accessToken1",
+                CredentialType.ACCESS_TOKEN
+            );
+            browserStorage.addTokenKey(
+                "accessToken2",
+                CredentialType.ACCESS_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken1", "idToken2"],
                 accessToken: ["accessToken1", "accessToken2"],
-                refreshToken: []
+                refreshToken: [],
             });
 
-            browserStorage.addTokenKey("refreshToken1", CredentialType.REFRESH_TOKEN);
-            browserStorage.addTokenKey("refreshToken2", CredentialType.REFRESH_TOKEN);
+            browserStorage.addTokenKey(
+                "refreshToken1",
+                CredentialType.REFRESH_TOKEN
+            );
+            browserStorage.addTokenKey(
+                "refreshToken2",
+                CredentialType.REFRESH_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken1", "idToken2"],
                 accessToken: ["accessToken1", "accessToken2"],
-                refreshToken: ["refreshToken1", "refreshToken2"]
+                refreshToken: ["refreshToken1", "refreshToken2"],
             });
 
             browserStorage.removeTokenKey("idToken1", CredentialType.ID_TOKEN);
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
                 accessToken: ["accessToken1", "accessToken2"],
-                refreshToken: ["refreshToken1", "refreshToken2"]
+                refreshToken: ["refreshToken1", "refreshToken2"],
             });
 
-            browserStorage.removeTokenKey("accessToken2", CredentialType.ACCESS_TOKEN);
+            browserStorage.removeTokenKey(
+                "accessToken2",
+                CredentialType.ACCESS_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
                 accessToken: ["accessToken1"],
-                refreshToken: ["refreshToken1", "refreshToken2"]
+                refreshToken: ["refreshToken1", "refreshToken2"],
             });
 
-            browserStorage.removeTokenKey("refreshToken1", CredentialType.REFRESH_TOKEN);
+            browserStorage.removeTokenKey(
+                "refreshToken1",
+                CredentialType.REFRESH_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
                 accessToken: ["accessToken1"],
-                refreshToken: ["refreshToken2"]
+                refreshToken: ["refreshToken2"],
             });
 
             // Attempting to remove keys which exist as a different credential type results in a no-op
-            browserStorage.removeTokenKey("idToken2", CredentialType.ACCESS_TOKEN);
-            browserStorage.removeTokenKey("idToken2", CredentialType.REFRESH_TOKEN);
-            browserStorage.removeTokenKey("accessToken1", CredentialType.ID_TOKEN);
-            browserStorage.removeTokenKey("accessToken1", CredentialType.REFRESH_TOKEN);
-            browserStorage.removeTokenKey("refreshToken2", CredentialType.ID_TOKEN);
-            browserStorage.removeTokenKey("refreshToken2", CredentialType.ACCESS_TOKEN);
+            browserStorage.removeTokenKey(
+                "idToken2",
+                CredentialType.ACCESS_TOKEN
+            );
+            browserStorage.removeTokenKey(
+                "idToken2",
+                CredentialType.REFRESH_TOKEN
+            );
+            browserStorage.removeTokenKey(
+                "accessToken1",
+                CredentialType.ID_TOKEN
+            );
+            browserStorage.removeTokenKey(
+                "accessToken1",
+                CredentialType.REFRESH_TOKEN
+            );
+            browserStorage.removeTokenKey(
+                "refreshToken2",
+                CredentialType.ID_TOKEN
+            );
+            browserStorage.removeTokenKey(
+                "refreshToken2",
+                CredentialType.ACCESS_TOKEN
+            );
             expect(browserStorage.getTokenKeys()).toStrictEqual({
                 idToken: ["idToken2"],
                 accessToken: ["accessToken1"],
-                refreshToken: ["refreshToken2"]
+                refreshToken: ["refreshToken2"],
             });
         });
 
