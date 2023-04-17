@@ -10,11 +10,19 @@ Please also see the [MSAL Browser Migration Doc](../../msal-browser/docs/v2-migr
 
 ## Breaking changes in `@azure/msal-angular@3`
 
-### `MsalRedirectComponent` is now mandatory
+### Initialization
 
-MSAL v3.x now requires initializing the application object. Initialization has been built into the `MsalRedirectComponent`, bootstrapping the component is now **MANDATORY**.
+#### Applications using redirects
 
-See the [guide to redirects](./v2-docs/redirects.md) on how to add `MsalRedirectComponent` to your application.
+MSAL v3.x now requires initializing the application object. Initialization has been built into the `MsalRedirectComponent` and `handleRedirectObservable` API, and applications that have implemented redirect strategies do not have to make changes.
+
+See the [guide to redirects](./v2-docs/redirects.md) for details on handling redirects in your application.
+
+#### Applications using popups
+
+Due to initialization being built into `MsalRedirectComponent` and `handleRedirectObservable`, applications that only use popups will also have to either bootstrap the `MsalRedirectComponent` or call `handleRedirectObservable` manually once to initialize the application object. 
+
+See the [guide to redirects](./v2-docs/redirects.md) for set up details.
 
 ### The `allowNativeBroker` flag
 
@@ -38,9 +46,11 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 ## Angular 15 and rxjs@7
 
-MSAL Angular now expects that your application is built with `@angular/core@15`, `@angular/common@15`, `rxjs@7`. As with MSAL Angular v2, `rxjs-compat` is not required.
+MSAL Angular now expects that your application is built with `@angular/core@15`, `@angular/common@15`, `rxjs@7`. 
 
-Please follow the [Angular Update Guide](https://update.angular.io/) to update your application to Angular 15.
+Due to this change, MSAL Angular v3 is not backwards compatible with earlier versions of Angular and RxJS and you may need to update your application. Please follow the [Angular Update Guide](https://update.angular.io/) to update your application to Angular 15.
+
+As with MSAL Angular v2, `rxjs-compat` is not required.
 
 ## Samples
 
