@@ -1,7 +1,7 @@
 trigger: none # Disable push triggers
 
 pr:
-- dev
+- msal-lts
 
 jobs:
   - job: Build_1P

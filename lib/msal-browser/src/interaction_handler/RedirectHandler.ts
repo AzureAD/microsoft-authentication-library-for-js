@@ -153,7 +153,7 @@ export class RedirectHandler extends InteractionHandler {
 
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
-            throw BrowserAuthError.createEmptyHashError(locationHash);
+            throw BrowserAuthError.createEmptyHashError();
         }
 
         // Interaction is completed - remove interaction status.
