@@ -49,8 +49,7 @@ export const FederationProviders = {
     ADFS2019: "adfsv2019",
     B2C: "b2c",
     PING: "ping",
-    SHIBBOLETH: "shibboleth",
-    CIAM: "ciam"
+    SHIBBOLETH: "shibboleth"
 };
 
 export const HomeDomains = {
@@ -58,8 +57,7 @@ export const HomeDomains = {
     LAB2: "msidlab2.com",
     LAB3: "msidlab3.com",
     LAB4: "msidlab4.com",
-    LAB8: "msidlab8.com",
-    CIAMLAB: "msidlabciam1.com"
+    LAB8: "msidlab8.com"
 };
 
 export const UserTypes = {
