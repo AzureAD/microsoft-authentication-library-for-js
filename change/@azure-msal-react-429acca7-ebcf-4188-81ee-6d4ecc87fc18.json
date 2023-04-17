@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Drop TSDX in favor of using rollup & jest directly #5895",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
