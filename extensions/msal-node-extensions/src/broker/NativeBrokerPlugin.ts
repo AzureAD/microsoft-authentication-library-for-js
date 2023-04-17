@@ -329,7 +329,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
     private getAuthenticationResult(request: NativeRequest, authResult: AuthResult): AuthenticationResult {
         this.logger.trace("NativeBrokerPlugin - getAuthenticationResult called", request.correlationId);
         
-        let fromCache: boolean;
+        let fromCache: boolean = false;
         try {
             const telemetryJSON = JSON.parse(authResult.telemetryData);
             fromCache = !!telemetryJSON["is_cache"];
@@ -356,7 +356,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             idTokenClaims: idTokenClaims,
             accessToken: authResult.accessToken,
             fromCache: fromCache,
-            expiresOn: new Date(authResult.expiresOn * 1000),
+            expiresOn: new Date(authResult.expiresOn),
             tokenType: authResult.isPopAuthorization ? AuthenticationScheme.POP : AuthenticationScheme.BEARER,
             correlationId: request.correlationId,
             fromNativeBroker: true
