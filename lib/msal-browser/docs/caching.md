@@ -58,9 +58,16 @@ To faciliate efficient token acquisition while maintaining a good UX, MSAL cache
     - previous failed request 
     - performance data
 
-> :bulb: Temporary cache entries will always be stored in session storage or in memory. MSAL will fallback to memory storage if local/session storage is not available.
+> :bulb: Temporary cache entries will always be stored in session storage or in memory unless overridden by the user with the `temporaryCacheLocation` cache option. MSAL will fallback to memory storage if local/session storage is not available. Please read the warning below for more information.
 
 > :bulb: The authorization code is only stored in memory and will be discarded after redeeming it for tokens.
+
+## Warning :warning:
+Overriding `temporaryCacheLocation` should be done with caution. Specifically when choosing `localStorage`. Interaction in more than one tab/window will not be supported and you may receive `interaction_in_progress` errors unexpectedly. This is an escape hatch, not a fully supported feature.
+
+When using MSAL.js with the default configuration in a scenario where the user is redirected after successful authentication in a new window or tab, the OAuth 2.0 Authorization Code with PKCE flow will be interrupted. In this case, the original window or tab where the authentication state (code verifier and challenge) are stored, will be lost, and the authentication flow will fail.
+
+To handle this scenario, you can configure MSAL to use `localStorage` as the cache location by overriding the `temporaryCacheLocation` configuration property. This allows the code verifier and challenge to be stored in the browser's `localStorage,` which is persistent across multiple tabs and windows.
 
 ## Remarks
 

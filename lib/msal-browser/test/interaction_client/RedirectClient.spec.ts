@@ -27,6 +27,7 @@ import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
+    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false,
     cacheMigrationEnabled: false
