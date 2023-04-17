@@ -8,7 +8,6 @@ export const PageLayout = (props) => {
      * msal-react provides 2 easy ways to do this. AuthenticatedTemplate and UnauthenticatedTemplate components will
      * only render their children if a user is authenticated or unauthenticated, respectively.
      */
-
     return (
         <>
             <NavigationBar />

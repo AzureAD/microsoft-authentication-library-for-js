@@ -1,22 +1,30 @@
 {
     "Sample": {
-        "Title": "A React single-page application using MSAL React to authenticate users against Azure AD CIAM",
-        "Client": "SinglePageApplication",
+        "Title": "A JavaScript single-page application using MSAL Angular to authenticate users against Azure AD CIAM",
+        "Client": "Node (Express) web app",
         "Level": 100
     },
     "AppRegistrations": [
         {
-            "x-ms-id": "ciam-react-spa",
-            "x-ms-name": "ms-identity-ciam-react-spa",
+            "x-ms-id": "ciam-express-webapp",
+            "x-ms-name": "ms-identity-ciam-express-webapp",
             "x-ms-version": "2.0",
             "replyUrlsWithType": [
                 {
                     "url": "http://localhost:3000/",
-                    "type": "Spa"
+                    "type": "Web"
                 },
                 {
-                    "url": "http://localhost:3000/redirect",
-                    "type": "Spa"
+                    "url": "http://localhost:3000/auth/redirect",
+                    "type": "Web"
+                }
+            ],
+            "oauth2AllowImplicitFlow": false,
+            "oauth2AllowIdTokenImplicitFlow": false,
+            "x-ms-passwordCredentials": "Auto",
+            "passwordCredentials": [
+                {
+                    "value": "{auto}"
                 }
             ],
             "requiredResourceAccess": [
@@ -39,10 +47,11 @@
             ],
             "codeConfigurations": [
                 {
-                    "settingFile": "/SPA/src/authConfig.js",
+                    "settingFile": "/App/authConfig.js",
                     "replaceTokens": {
                         "appId": "Enter_the_Application_Id_Here",
-                        "tenantId": "Enter_the_Tenant_Id_Here"
+                        "tenantId": "Enter_the_Tenant_Info_Here",
+                        "clientSecret": "Enter_the_Client_Secret_Here"
                     }
                 }
             ]

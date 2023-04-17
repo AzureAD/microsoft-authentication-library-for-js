@@ -4,13 +4,6 @@
 
 ### Quick summary
 
-1. On Windows, run PowerShell as **Administrator** and navigate to the root of the cloned directory.
-1. In PowerShell run:
-
-   ```PowerShell
-   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process -Force
-   ```
-
 1. Run the script to create your Azure AD application and configure the code of the sample application accordingly.
 
    ```PowerShell
@@ -24,7 +17,7 @@
   - [Presentation of the scripts](#presentation-of-the-scripts)
   - [Usage pattern for tests and DevOps scenarios](#usage-pattern-for-tests-and-DevOps-scenarios)
 - [How to use the app creation scripts?](#how-to-use-the-app-creation-scripts)
-  - [Prerequisites](#prerequisites)
+  - [Pre-requisites](#pre-requisites)
   - [Run the script and start running](#run-the-script-and-start-running)
   - [Four ways to run the script](#four-ways-to-run-the-script)
     - [Option 1 (interactive)](#option-1-interactive)
@@ -47,7 +40,7 @@ These scripts are:
     - the AppId of the application
     - the url of its registration in the [Azure portal](https://portal.azure.com).
 
-- `Cleanup.ps1` which cleans-up the Azure AD objects created by `Configure.ps1`. Note that this script does not revert the changes done in the configuration files, though. You'll need to undo the change from source control (from Visual Studio, or from the command line using, for instance, `git reset`).
+- `Cleanup.ps1` which cleans-up the Azure AD objects created by `Configure.ps1`. Note that this script does not revert the changes done in the configuration files, though. You will need to undo the change from source control (from Visual Studio, or from the command line using, for instance, `git reset`).
 
 > :information_source: If the sample supports using certificates instead of client secrets, this folder will contain an additional set of scripts: `Configure-WithCertificates.ps1` and `Cleanup-WithCertificates.ps1`. You can use them in the same way to register app(s) that use certificates instead of client secrets.
 
@@ -57,30 +50,25 @@ The `Configure.ps1` will stop if it tries to create an Azure AD application whic
 
 ## How to use the app creation scripts?
 
-### Prerequisites
+### Pre-requisites
 
+1. PowerShell 7 or later (see: [installing PowerShell](https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell))
 1. Open PowerShell (On Windows, press  `Windows-R` and type `PowerShell` in the search window)
-1. Navigate to the root directory of the project.
-1. Until you change it, the default [Execution Policy](https:/go.microsoft.com/fwlink/?LinkID=135170) for scripts is usually `Restricted`. In order to run the PowerShell script you need to set the Execution Policy to `RemoteSigned`. You can set this just for the current PowerShell process by running the command:
-
-    ```PowerShell
-    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
-    ```
 
 ### (Optionally) install Microsoft.Graph.Applications PowerShell modules
 
 The scripts install the required PowerShell module (Microsoft.Graph.Applications) for the current user if needed. However, if you want to install if for all users on the machine, you can follow the following steps:
 
-1. If you have not done it already, in the PowerShell window, install the `Microsoft.Graph.Applications` PowerShell modules:
+1. If you have never done it already, in the PowerShell window, install the Microsoft.Graph.Applications PowerShell modules. For this:
 
-   1. Open PowerShell as admin (On Windows, Search Powershell in the search bar, right click on it and select **Run as administrator**).
-   2. Run either;
+   1. Open PowerShell
+   2. Type:
 
       ```PowerShell
       Install-Module Microsoft.Graph.Applications
       ```
 
-      or if you cannot be administrator on your machine, run:
+      or if you want the modules to be installed for the current user only, run:
 
       ```PowerShell
       Install-Module Microsoft.Graph.Applications -Scope CurrentUser
@@ -88,7 +76,7 @@ The scripts install the required PowerShell module (Microsoft.Graph.Applications
 
 ### Run the script and start running
 
-1. Navigate to *AppCreationScripts* from the folder where you cloned the repo by running the following command.
+1. Go to the `AppCreationScripts` sub-folder. From the folder where you cloned the repo,
 
     ```PowerShell
     cd AppCreationScripts
@@ -111,10 +99,10 @@ Here are the details on how to do this.
 
 #### Option 1 (interactive)
 
-- Run `.\Configure.ps1` in the terminal, and you will be prompted to sign-in (email address, password, and if needed MFA).
+- Just run ``.\Configure.ps1``, and you will be prompted to sign-in (email address, password, and if needed MFA).
 - The script will be run as the signed-in user and will use the tenant in which the user is defined.
 
-Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to sign-in again.
+Note that the script will choose the tenant in which to create the applications, based on the user. Also to run the `Cleanup.ps1` script, you will need to re-sign-in.
 
 #### Option 2 (Interactive, but create apps in a specified tenant)
 
@@ -138,9 +126,9 @@ All the four options listed above can be used on any Azure Sovereign clouds. By 
 
 The acceptable values for this parameter are:
 
-- `AzureCloud`
-- `AzureChinaCloud`
-- `AzureUSGovernment`
+- AzureCloud
+- AzureChinaCloud
+- AzureUSGovernment
 
 Example:
 
