@@ -4,8 +4,8 @@
  */
 
 module.exports = {
-    transform: {
-        "^.+\\.(ts|tsx)$": "ts-jest",
-    },
+    preset: "ts-jest",
+    testEnvironment: "node",
+    collectCoverageFrom: ["src/**/*.ts"],
     coverageReporters: [["lcov", { "projectRoot": "../../" }]]
 };
