@@ -15,6 +15,7 @@ import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
 import { NativeExtensionMethod } from "../../src/utils/BrowserConstants";
 import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 let performanceClient: IPerformanceClient;
 
@@ -33,12 +34,14 @@ jest.mock("../../src/telemetry/BrowserPerformanceMeasurement", () => {
 describe("NativeMessageHandler Tests", () => {
     let postMessageSpy: sinon.SinonSpy;
     let mcPort: MessagePort;
+    let cryptoInterface: CryptoOps;
     globalThis.MessageChannel = require("worker_threads").MessageChannel; // jsdom does not include an implementation for MessageChannel
 
     beforeEach(() => {
         postMessageSpy = sinon.spy(window, "postMessage");
         sinon.stub(MessageEvent.prototype, "source").get(() => window); // source property not set by jsdom window messaging APIs
         performanceClient = getDefaultPerformanceClient();
+        cryptoInterface = new CryptoOps(new Logger({}));
     });
 
     afterEach(() => {
@@ -73,7 +76,8 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -122,7 +126,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             ).then(() => {
                 window.removeEventListener("message", eventHandler, true);
             });
@@ -159,7 +164,8 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -170,7 +176,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             ).catch((e) => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(
@@ -193,7 +200,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             )
                 .catch((e) => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
@@ -231,7 +239,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             ).catch(() => {
                 if (callbackDone) {
                     done();
@@ -287,7 +296,8 @@ describe("NativeMessageHandler Tests", () => {
             const wamMessageHandler = await NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             );
             expect(wamMessageHandler).toBeInstanceOf(NativeMessageHandler);
 
@@ -344,7 +354,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -410,7 +421,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler
@@ -474,7 +486,8 @@ describe("NativeMessageHandler Tests", () => {
             NativeMessageHandler.createProvider(
                 new Logger({}),
                 2000,
-                performanceClient
+                performanceClient,
+                cryptoInterface
             )
                 .then((wamMessageHandler) => {
                     wamMessageHandler

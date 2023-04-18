@@ -14,6 +14,7 @@ import {
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
+    ICrypto
 } from "@azure/msal-common";
 import {
     NativeExtensionRequest,
@@ -34,11 +35,11 @@ export class NativeMessageHandler {
     private extensionId: string | undefined;
     private extensionVersion: string | undefined;
     private logger: Logger;
+    private crypto: ICrypto;
     private readonly handshakeTimeoutMs: number;
-    private responseId: number;
     private timeoutId: number | undefined;
-    private resolvers: Map<number, ResponseResolvers<object>>;
-    private handshakeResolvers: Map<number, ResponseResolvers<void>>;
+    private resolvers: Map<string, ResponseResolvers<object>>;
+    private handshakeResolvers: Map<string, ResponseResolvers<void>>;
     private messageChannel: MessageChannel;
     private readonly windowListener: (event: MessageEvent) => void;
     private readonly performanceClient: IPerformanceClient;
@@ -48,6 +49,7 @@ export class NativeMessageHandler {
         logger: Logger,
         handshakeTimeoutMs: number,
         performanceClient: IPerformanceClient,
+        crypto: ICrypto,
         extensionId?: string
     ) {
         this.logger = logger;
@@ -55,13 +57,13 @@ export class NativeMessageHandler {
         this.extensionId = extensionId;
         this.resolvers = new Map(); // Used for non-handshake messages
         this.handshakeResolvers = new Map(); // Used for handshake messages
-        this.responseId = 0;
         this.messageChannel = new MessageChannel();
         this.windowListener = this.onWindowMessage.bind(this); // Window event callback doesn't have access to 'this' unless it's bound
         this.performanceClient = performanceClient;
         this.handshakeEvent = performanceClient.startMeasurement(
             PerformanceEvents.NativeMessageHandlerHandshake
         );
+        this.crypto = crypto;
     }
 
     /**
@@ -73,7 +75,7 @@ export class NativeMessageHandler {
         const req: NativeExtensionRequest = {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
-            responseId: this.responseId++,
+            responseId: this.crypto.createNewGuid(),
             body: body,
         };
 
@@ -97,11 +99,13 @@ export class NativeMessageHandler {
      * @param {Logger} logger
      * @param {number} handshakeTimeoutMs
      * @param {IPerformanceClient} performanceClient
+     * @param {ICrypto} crypto
      */
     static async createProvider(
         logger: Logger,
         handshakeTimeoutMs: number,
-        performanceClient: IPerformanceClient
+        performanceClient: IPerformanceClient,
+        crypto: ICrypto
     ): Promise<NativeMessageHandler> {
         logger.trace("NativeMessageHandler - createProvider called.");
         try {
@@ -109,6 +113,7 @@ export class NativeMessageHandler {
                 logger,
                 handshakeTimeoutMs,
                 performanceClient,
+                crypto,
                 NativeConstants.PREFERRED_EXTENSION_ID
             );
             await preferredProvider.sendHandshakeRequest();
@@ -118,7 +123,8 @@ export class NativeMessageHandler {
             const backupProvider = new NativeMessageHandler(
                 logger,
                 handshakeTimeoutMs,
-                performanceClient
+                performanceClient,
+                crypto
             );
             await backupProvider.sendHandshakeRequest();
             return backupProvider;
@@ -138,7 +144,7 @@ export class NativeMessageHandler {
         const req: NativeExtensionRequest = {
             channel: NativeConstants.CHANNEL_ID,
             extensionId: this.extensionId,
-            responseId: this.responseId++,
+            responseId: this.crypto.createNewGuid(),
             body: {
                 method: NativeExtensionMethod.HandshakeRequest,
             },
@@ -203,6 +209,16 @@ export class NativeMessageHandler {
         }
 
         if (request.body.method === NativeExtensionMethod.HandshakeRequest) {
+            const handshakeResolver = this.handshakeResolvers.get(
+                request.responseId
+            );
+            // Filter out responses with no matched resolvers sooner to keep channel ports open while waiting for
+            // the proper response.
+            if (!handshakeResolver) {
+                this.logger.trace(`NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`);
+                return;
+            }
+
             // If we receive this message back it means no extension intercepted the request, meaning no extension supporting handshake protocol is installed
             this.logger.verbose(
                 request.extensionId
@@ -213,18 +229,14 @@ export class NativeMessageHandler {
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
-            const handshakeResolver = this.handshakeResolvers.get(
-                request.responseId
+            this.handshakeEvent.endMeasurement({
+                success: false,
+                extensionInstalled: false,
+            });
+            handshakeResolver.reject(
+                BrowserAuthError.createNativeExtensionNotInstalledError()
             );
-            if (handshakeResolver) {
-                this.handshakeEvent.endMeasurement({
-                    success: false,
-                    extensionInstalled: false,
-                });
-                handshakeResolver.reject(
-                    BrowserAuthError.createNativeExtensionNotInstalledError()
-                );
-            }
+
         }
     }
 
@@ -288,6 +300,7 @@ export class NativeMessageHandler {
                 this.resolvers.delete(request.responseId);
             } else if (method === NativeExtensionMethod.HandshakeResponse) {
                 if (!handshakeResolver) {
+                    this.logger.trace(`NativeMessageHandler.onChannelMessage - resolver can't be found for request ${request.responseId}`);
                     return;
                 }
                 clearTimeout(this.timeoutId); // Clear setTimeout

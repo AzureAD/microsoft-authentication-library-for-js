@@ -14,6 +14,7 @@ import {
     CredentialType,
     TimeUtils,
     CacheManager,
+    Logger
 } from "@azure/msal-common";
 import sinon from "sinon";
 import { NativeMessageHandler } from "../../src/broker/nativeBroker/NativeMessageHandler";
@@ -36,6 +37,7 @@ import {
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { NativeExtensionRequestBody } from "../../src/broker/nativeBroker/NativeRequest";
 import { getDefaultPerformanceClient } from "../utils/TelemetryUtils";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -95,7 +97,8 @@ describe("NativeInteractionClient Tests", () => {
     const wamProvider = new NativeMessageHandler(
         pca.getLogger(),
         2000,
-        getDefaultPerformanceClient()
+        getDefaultPerformanceClient(),
+        new CryptoOps(new Logger({}))
     );
     // @ts-ignore
     const nativeInteractionClient = new NativeInteractionClient(
