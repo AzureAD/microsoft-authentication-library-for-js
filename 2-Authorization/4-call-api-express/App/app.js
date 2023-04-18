@@ -17,7 +17,7 @@ var logger = require('morgan');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var todosRouter = require('./routes/todos');
-var { authRouter } = require('./routes/auth');
+var authRouter = require('./routes/auth');
 
 // initialize express
 var app = express();

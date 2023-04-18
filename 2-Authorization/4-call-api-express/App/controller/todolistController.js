@@ -1,14 +1,23 @@
-const { protectedResources } = require('../authConfig');
 const { callEndpointWithToken } = require('../fetch');
+const { msalConfig, REDIRECT_URI, POST_LOGOUT_REDIRECT_URI, protectedResources } = require('../authConfig');
+
+const AuthProvider = require('../auth/AuthProvider');
+
+const authProvider = new AuthProvider({
+    msalConfig: msalConfig,
+    redirectUri: REDIRECT_URI,
+    postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
+});
 
 exports.getTodos = async (req, res, next) => {
     try {
-        const response = await callEndpointWithToken(
+        await authProvider.getToken(req, res, next, protectedResources.apiTodoList.scopes.read);
+        const todoResponse = await callEndpointWithToken(
             protectedResources.apiTodoList.endpoint,
             req.session.accessToken,
             'GET'
         );
-        res.render('todos', { isAuthenticated: req.session.isAuthenticated, todos: response.data });
+        res.render('todos', { isAuthenticated: req.session.isAuthenticated, todos: todoResponse.data });
     } catch (error) {
         next(error);
     }
@@ -22,6 +31,7 @@ exports.postTodo = async (req, res, next) => {
                 owner: req.session.account.idTokenClaims.oid,
             };
 
+            await authProvider.getToken(req, res, next, protectedResources.apiTodoList.scopes.write);
             await callEndpointWithToken(
                 protectedResources.apiTodoList.endpoint,
                 req.session.accessToken,
@@ -39,6 +49,7 @@ exports.postTodo = async (req, res, next) => {
 
 exports.deleteTodo = async (req, res, next) => {
     try {
+        await authProvider.getToken(req, res, next, protectedResources.apiTodoList.scopes.write);
         await callEndpointWithToken(
             protectedResources.apiTodoList.endpoint,
             req.session.accessToken,
