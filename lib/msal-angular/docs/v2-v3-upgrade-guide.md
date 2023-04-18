@@ -4,9 +4,9 @@ MSAL Angular v3 brings our Angular wrapper up-to-date with the latest version of
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular` v2 to v3. 
 
-If you are migrating from `@azure/msal-angular` v1, please refer to the [v1-v2 migration guide](./v2-docs/v1-v2-upgrade-guide.md) first to migrate to MSAL v2.
+If you are migrating from `@azure/msal-angular` v1, please refer to the [v1-v2 migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) first to migrate to MSAL v2.
 
-Please also see the [MSAL Browser Migration Doc](../../msal-browser/docs/v2-migration.md) for browser support and other key changes.
+Please also see the [MSAL Browser Migration Doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/v2-migration.md) for browser support and other key changes.
 
 ## Breaking changes in `@azure/msal-angular@3`
 
@@ -16,13 +16,13 @@ Please also see the [MSAL Browser Migration Doc](../../msal-browser/docs/v2-migr
 
 MSAL v3.x now requires initializing the application object. Initialization has been built into the `MsalRedirectComponent` and `handleRedirectObservable` API, and applications that have implemented redirect strategies do not have to make changes.
 
-See the [guide to redirects](./v2-docs/redirects.md) for details on handling redirects in your application.
+See the [guide to redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for details on handling redirects in your application.
 
 #### Applications using popups
 
 Due to initialization being built into `MsalRedirectComponent` and `handleRedirectObservable`, applications that only use popups will also have to either bootstrap the `MsalRedirectComponent` or call `handleRedirectObservable` manually once to initialize the application object. 
 
-See the [guide to redirects](./v2-docs/redirects.md) for set up details.
+See the [guide to redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for set up details.
 
 ### The `allowNativeBroker` flag
 
