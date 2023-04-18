@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { Request, Response, NextFunction, RequestHandler } from 'express';
+import { Request, Response, NextFunction, RequestHandler } from "express";
 
-import { AppConfig } from './AuthProvider';
-import TokenValidator from './TokenValidator';
+import { AppConfig } from "./AuthProvider";
+import TokenValidator from "./TokenValidator";
 
 export const isAuthorized = (appConfig: AppConfig): RequestHandler => {
     return async (req: Request, res: Response, next: NextFunction) => {

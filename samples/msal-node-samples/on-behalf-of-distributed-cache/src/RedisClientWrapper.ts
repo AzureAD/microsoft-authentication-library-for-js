@@ -6,6 +6,7 @@
 import { ICacheClient } from "@azure/msal-node";
 import { RedisClientType } from "redis";
 
+// settings below are for illustration
 const CACHE_TTL = 60 * 60 * 24; // 24 hours
 const MAX_MEMORY = "4000mb";
 const EVICTION_POLICY = "volatile-lru";
