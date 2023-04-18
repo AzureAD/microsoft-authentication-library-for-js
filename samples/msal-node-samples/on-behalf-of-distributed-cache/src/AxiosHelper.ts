@@ -8,9 +8,11 @@ import axios from "axios";
 class AxiosHelper {
 
     /**
-     * Makes an HTTP GET to the endpoint uri. If an access token exists, it adds an Authroization header to the request, where it adds the Bearer token.
-     * @param endpoint
-     * @param accessToken
+     * Makes an HTTP GET to the endpoint uri. If an access token exists, it includes
+     * an Authorization header in the request. The header contains the bearer token.
+     * @param endpoint - endpoint uri
+     * @param accessToken - raw access token
+     * @param params - parameters object for the request in the form of key-value pairs
      */
     static async callDownstreamApi(endpoint: string, accessToken?: string, params?: Record<string, string>): Promise<any> {
         console.log(`Request to ${endpoint} made at: ${new Date().toString()}`);

@@ -74,21 +74,17 @@ export class AuthProvider {
             }
         });
 
-        let tokenResponse = null;
+        performance.mark("acquireTokenOnBehalfOf-start");
 
-        try {
-            performance.mark("acquireTokenOnBehalfOf-start");
-            await cca.getTokenCache().getAllAccounts(); // required for cache read
-            tokenResponse = await cca.acquireTokenOnBehalfOf(tokenRequest);
-            performance.mark("acquireTokenOnBehalfOf-end");
-            performance.measure(
-                tokenResponse?.fromCache ? "acquireTokenOnBehalfOf-fromCache" : "acquireTokenOnBehalfOf-fromNetwork",
-                "acquireTokenOnBehalfOf-start",
-                "acquireTokenOnBehalfOf-end"
-            );
-        } catch (error) {
-            throw error;
-        }
+        await cca.getTokenCache().getAllAccounts(); // required for cache read
+        const tokenResponse = await cca.acquireTokenOnBehalfOf(tokenRequest);
+
+        performance.mark("acquireTokenOnBehalfOf-end");
+        performance.measure(
+            tokenResponse?.fromCache ? "acquireTokenOnBehalfOf-fromCache" : "acquireTokenOnBehalfOf-fromNetwork",
+            "acquireTokenOnBehalfOf-start",
+            "acquireTokenOnBehalfOf-end"
+        );
 
         return tokenResponse;
     }
