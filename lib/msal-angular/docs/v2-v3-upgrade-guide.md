@@ -52,6 +52,10 @@ Due to this change, MSAL Angular v3 is not backwards compatible with earlier ver
 
 As with MSAL Angular v2, `rxjs-compat` is not required.
 
+## Documentation
+
+Aside from the changes above, all MSAL Angular [v2 documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs) can also be used for MSAL Angular v3.
+
 ## Samples
 
 We have put together a sample application for Angular 15. This sample demonstrates basic configuration and usage, and will be improved and added to incrementally. 
