@@ -17,7 +17,7 @@ import {
     PerformanceCallbackFunction,
     AccountInfo,
     Logger,
-} from "@azure/msal-common";
+} from "../../msal-common";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";

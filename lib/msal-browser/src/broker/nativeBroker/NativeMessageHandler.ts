@@ -14,7 +14,7 @@ import {
     InProgressPerformanceEvent,
     PerformanceEvents,
     IPerformanceClient,
-} from "@azure/msal-common";
+} from "../../../msal-common";
 import {
     NativeExtensionRequest,
     NativeExtensionRequestBody,

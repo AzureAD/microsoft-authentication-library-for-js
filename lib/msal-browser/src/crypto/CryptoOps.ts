@@ -12,7 +12,7 @@ import {
     PkceCodes,
     SignedHttpRequest,
     SignedHttpRequestParameters,
-} from "@azure/msal-common";
+} from "../..//msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";

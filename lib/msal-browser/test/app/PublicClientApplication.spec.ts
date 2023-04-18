@@ -48,7 +48,7 @@ import {
     PersistentCacheKeys,
     Authority,
     AuthError,
-} from "@azure/msal-common";
+} from "../..//msal-common";
 import {
     ApiId,
     InteractionType,
@@ -81,6 +81,8 @@ import {
     AuthorizationCodeRequest,
     BrowserConfigurationAuthError,
     EndSessionRequest,
+    RedirectRequest,
+    PopupRequest
 } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
@@ -636,7 +638,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("loginRedirect", () => {
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: RedirectRequest = {
                 scopes: [],
             };
 
@@ -933,7 +935,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: RedirectRequest = {
                 scopes: [],
             };
 
@@ -1158,7 +1160,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: PopupRequest = {
                 scopes: [],
             };
 
@@ -1526,7 +1528,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt mutate request correlation id", async () => {
-            const request: SilentRequest = {
+            const request: PopupRequest = {
                 scopes: [],
             };
 

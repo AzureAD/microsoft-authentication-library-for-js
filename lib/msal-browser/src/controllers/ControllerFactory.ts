@@ -6,7 +6,7 @@
 import { TeamsAppOperatingContext } from "../operatingcontext/TeamsAppOperatingContext";
 import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 import { IController } from "./IController";
-import { Logger } from "@azure/msal-common";
+import { Logger } from "../..//msal-common";
 import { Configuration } from "../config/Configuration";
 import { version, name } from "../packageMetadata";
 

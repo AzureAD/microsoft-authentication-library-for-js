@@ -20,7 +20,11 @@
             "path": "../msal-common"
         }
     ],
-    "include": ["src", "test"],
+    "include": [
+        "src",
+        "test",
+        "msal-common"
+    ],
     "exclude": [
         "node_modules"
     ],
