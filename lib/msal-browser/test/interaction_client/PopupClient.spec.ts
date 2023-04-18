@@ -36,6 +36,7 @@ import {
     Authority,
     CommonAuthorizationCodeRequest,
     AuthError,
+    Logger
 } from "@azure/msal-common";
 import {
     TemporaryCacheKeys,
@@ -372,7 +373,8 @@ describe("PopupClient", () => {
                 //@ts-ignore
                 pca.logger,
                 2000,
-                getDefaultPerformanceClient()
+                getDefaultPerformanceClient(),
+                new CryptoOps(new Logger({}))
             );
             //@ts-ignore
             popupClient = new PopupClient(
