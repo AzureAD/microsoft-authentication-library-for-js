@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Randomize native extension response identifiers to facilitate concurrency #5903",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}

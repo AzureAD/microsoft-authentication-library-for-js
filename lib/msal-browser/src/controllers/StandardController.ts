@@ -296,7 +296,8 @@ export class StandardController implements IController {
                     await NativeMessageHandler.createProvider(
                         this.logger,
                         this.config.system.nativeBrokerHandshakeTimeout,
-                        this.performanceClient
+                        this.performanceClient,
+                        this.browserCrypto
                     );
             } catch (e) {
                 this.logger.verbose(e as string);
