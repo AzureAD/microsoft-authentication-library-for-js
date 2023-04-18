@@ -8,7 +8,7 @@ import axios from "axios";
 class AxiosHelper {
 
     /**
-     * Makes an Authorization "Bearer" request with the given accessToken to the given endpoint.
+     * Makes an HTTP GET to the endpoint uri. If an access token exists, it adds an Authroization header to the request, where it adds the Bearer token.
      * @param endpoint
      * @param accessToken
      */
