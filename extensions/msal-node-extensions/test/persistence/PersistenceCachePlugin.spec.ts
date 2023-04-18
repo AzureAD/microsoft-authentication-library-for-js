@@ -7,7 +7,7 @@ import { IPersistence, PersistenceCachePlugin } from "../../src";
 import { Logger, TokenCacheContext, ISerializableTokenCache } from "@azure/msal-common";
 
 describe('Test PersistenceCachePlugin', () => {
-    const filePath = "./test.json";
+    const filePath = "./cache-plugin-test.json";
     const mockCacheData = "mockCacheData";
 
     const mockPersistence: IPersistence = {

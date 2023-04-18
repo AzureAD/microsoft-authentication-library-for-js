@@ -15,6 +15,7 @@ describe('Test File Persistence with data protection', () => {
 
     afterEach(async () => {
         await FileSystemUtils.cleanUpFile(filePath);
+        jest.restoreAllMocks();
     });
 
     test('exports a class', async () => {
