@@ -719,6 +719,7 @@ describe("PopupClient", () => {
                 "create_logout_url_error",
                 "Error in creating a logout url"
             );
+            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
 
             try {
                 await popupClient.logout();

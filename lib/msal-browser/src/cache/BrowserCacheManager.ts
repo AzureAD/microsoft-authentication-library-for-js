@@ -80,6 +80,7 @@ export class BrowserCacheManager extends CacheManager {
             this.cacheConfig.cacheLocation
         );
         this.temporaryCacheStorage = this.setupTemporaryCacheStorage(
+            this.cacheConfig.temporaryCacheLocation,
             this.cacheConfig.cacheLocation
         );
 
@@ -101,7 +102,6 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
                 try {
-                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
                     return new BrowserStorage(cacheLocation);
                 } catch (e) {
                     this.logger.verbose(e as string);
@@ -116,10 +116,12 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     *
+     * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured temporaryCacheLocation.
+     * @param temporaryCacheLocation
      * @param cacheLocation
      */
     protected setupTemporaryCacheStorage(
+        temporaryCacheLocation: BrowserCacheLocation | string,
         cacheLocation: BrowserCacheLocation | string
     ): IWindowStorage<string> {
         switch (cacheLocation) {
@@ -128,7 +130,8 @@ export class BrowserCacheManager extends CacheManager {
                 try {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
                     return new BrowserStorage(
-                        BrowserCacheLocation.SessionStorage
+                        temporaryCacheLocation ||
+                            BrowserCacheLocation.SessionStorage
                     );
                 } catch (e) {
                     this.logger.verbose(e as string);
@@ -1885,6 +1888,7 @@ export const DEFAULT_BROWSER_CACHE_MANAGER = (
 ): BrowserCacheManager => {
     const cacheOptions: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
+        temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
         secureCookies: false,
         cacheMigrationEnabled: false,
