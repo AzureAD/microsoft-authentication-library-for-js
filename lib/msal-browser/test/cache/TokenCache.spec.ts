@@ -51,6 +51,7 @@ describe("TokenCache tests", () => {
             true
         );
         cacheConfig = {
+            temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,

@@ -380,7 +380,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                     authorityInstance,
                     authConfig.networkInterface!
                 )
-            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            ).rejects.toMatchObject(BrowserAuthError.createEmptyHashError());
             //@ts-ignore
             expect(
                 interactionHandler.handleCodeResponseFromHash(
@@ -392,7 +392,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 )
             ).rejects.toMatchObject(
                 //@ts-ignore
-                BrowserAuthError.createEmptyHashError(null)
+                BrowserAuthError.createEmptyHashError()
             );
         });
 

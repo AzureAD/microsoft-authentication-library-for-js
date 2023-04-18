@@ -22,6 +22,7 @@ const msalConfig = {
     },
     cache: {
         cacheLocation: "sessionStorage",
+        temporaryCacheLocation: "sessionStorage",
         storeAuthStateInCookie: false,
         secureCookies: false
     },
@@ -88,6 +89,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
 | `cacheLocation` | Location of token cache in browser. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
+| `temporaryCacheLocation` | Location of temporary cache in browser. This option should only be changed for specific edge cases. Please refer to [caching](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md#cached-artifacts) for more. | String value that must be one of the following: `"sessionStorage"`, `"localStorage"`, `"memoryStorage"` | `sessionStorage` |
 | `storeAuthStateInCookie` | If true, stores cache items in cookies as well as browser cache. Should be set to true for use cases using IE. | boolean | `false` |
 | `secureCookies` | If true and `storeAuthStateInCookies` is also enabled, MSAL adds the `Secure` flag to the browser cookie so it can only be sent over HTTPS. | boolean | `false` |
 | `cacheMigrationEnabled` | If true, cache entries from older versions of MSAL will be updated to conform to the latest cache schema on startup. If your application has not been recently updated to a new version of MSAL.js you can safely turn this off. In the event old cache entries are not migrated it may result in a cache miss when attempting to retrieve accounts or tokens and affected users may need to re-authenticate to get up to date. | boolean | `true` when using `localStorage`, `false` otherwise |
