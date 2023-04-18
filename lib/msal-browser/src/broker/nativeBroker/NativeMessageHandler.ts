@@ -212,8 +212,10 @@ export class NativeMessageHandler {
             const handshakeResolver = this.handshakeResolvers.get(
                 request.responseId
             );
-            // Filter out responses with no matched resolvers sooner to keep channel ports open while waiting for
-            // the proper response.
+            /*
+             * Filter out responses with no matched resolvers sooner to keep channel ports open while waiting for
+             * the proper response.
+             */
             if (!handshakeResolver) {
                 this.logger.trace(`NativeMessageHandler.onWindowMessage - resolver can't be found for request ${request.responseId}`);
                 return;
