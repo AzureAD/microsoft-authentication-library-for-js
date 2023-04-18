@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 18 Apr 2023 21:21:33 GMT",
+      "tag": "@azure/msal-common_v12.1.0",
+      "version": "12.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4ba37f441c75bb5e0638dbc2c4df04adbda2eb02",
+            "comment": "Add CIAM Authority Support(#5865)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9fc8ec7d5318f6da827f755b7f7132bbddbf4a28",
+            "comment": "Update polycheck version (#5901)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Apr 2023 21:29:31 GMT",
       "tag": "@azure/msal-common_v12.0.0",
       "version": "12.0.0",

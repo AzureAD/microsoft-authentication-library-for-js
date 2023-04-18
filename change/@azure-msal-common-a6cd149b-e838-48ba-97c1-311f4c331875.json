@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update polycheck version (#5901)",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}

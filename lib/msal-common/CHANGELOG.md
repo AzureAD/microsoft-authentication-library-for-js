@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
+This log was last generated on Tue, 18 Apr 2023 21:21:33 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 12.1.0
+
+Tue, 18 Apr 2023 21:21:33 GMT
+
+### Minor changes
+
+- Add CIAM Authority Support(#5865) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Update polycheck version (#5901) (sameera.gajjarapu@microsoft.com)
 
 ## 12.0.0
 
