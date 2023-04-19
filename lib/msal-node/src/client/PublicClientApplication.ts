@@ -215,7 +215,7 @@ export class PublicClientApplication
      */
     async acquireTokenSilent(
         request: SilentFlowRequest
-    ): Promise<AuthenticationResult | null> {
+    ): Promise<AuthenticationResult> {
         const correlationId =
             request.correlationId || this.cryptoProvider.createNewGuid();
         this.logger.trace("acquireTokenSilent called", correlationId);
