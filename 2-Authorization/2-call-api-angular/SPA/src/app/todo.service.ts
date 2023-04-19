@@ -8,7 +8,7 @@ import { protectedResources } from './auth-config';
     providedIn: 'root'
 })
 export class TodoService {
-    url = protectedResources.apiTodoList.endpoint;
+    url = protectedResources.toDoListAPI.endpoint;
 
     constructor(private http: HttpClient) { }
 

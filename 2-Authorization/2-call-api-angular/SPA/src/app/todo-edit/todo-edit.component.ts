@@ -14,13 +14,12 @@ export class TodoEditComponent implements OnInit {
     todo: Todo = {
         id: 1,
         description: "undefined",
-        status: false,
     };
 
     constructor(private route: ActivatedRoute, private router: Router, private service: TodoService) { }
 
     ngOnInit(): void {
-        this.route.paramMap.subscribe((params) => {
+        this.route.paramMap.subscribe((params: any) => {
             let id = +params.get('id')!;
             this.service.getTodo(+id).subscribe((response: Todo) => {
                 this.todo = response;

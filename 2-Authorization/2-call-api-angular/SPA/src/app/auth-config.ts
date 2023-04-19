@@ -45,11 +45,11 @@ export const msalConfig: Configuration = {
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md
  */
 export const protectedResources = {
-    apiTodoList: {
+    toDoListAPI: {
         endpoint: 'https://localhost:44351/api/todolist',
         scopes: {
-            read: ['api://Enter_the_Web_Api_Application_Id_Here/TodoList.Read'],
-            write: ['api://Enter_the_Web_Api_Application_Id_Here/TodoList.ReadWrite'],
+            read: ['api://Enter_the_Web_Api_Application_Id_Here/ToDoList.Read'],
+            write: ['api://Enter_the_Web_Api_Application_Id_Here/ToDoList.ReadWrite'],
         },
     },
 };
