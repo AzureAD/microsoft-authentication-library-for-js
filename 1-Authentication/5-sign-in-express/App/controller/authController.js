@@ -1,4 +1,4 @@
-const { authProviderInstance }  = require('../auth/AuthProvider');
+const authProvider = require('../auth/AuthProvider');
 
 exports.signIn = async (req, res, next) => {
     return authProvider.login(req, res, next);
