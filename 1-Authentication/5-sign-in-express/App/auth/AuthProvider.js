@@ -178,7 +178,7 @@ class AuthProvider {
     }
 }
 
-const authProviderInstance = new AuthProvider({
+const authProvider = new AuthProvider({
     msalConfig: msalConfig,
     redirectUri: REDIRECT_URI,
     postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
