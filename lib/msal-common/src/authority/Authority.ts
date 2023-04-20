@@ -691,7 +691,6 @@ export class Authority {
      */
     private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
 
-
         // CIAM does not support cloud discovery metadata
         if (this.authorityType === AuthorityType.Ciam) {
             this.logger.verbose("CIAM authorities do not support cloud discovery metadata, generate the aliases from authority host.");
@@ -1049,6 +1048,7 @@ export class Authority {
      * @param authority 
      */
     static transformCIAMAuthority(authority: string): string {
+        
         let ciamAuthority = authority.endsWith(Constants.FORWARD_SLASH) ? authority : `${authority}${Constants.FORWARD_SLASH}`;
         const authorityUrl = new UrlString(authority);
         const authorityUrlComponents = authorityUrl.getUrlComponents();
