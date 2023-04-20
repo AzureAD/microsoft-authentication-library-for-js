@@ -1,25 +1,13 @@
-const AuthProvider = require('../auth/AuthProvider');
-
-const { 
-    msalConfig, 
-    REDIRECT_URI, 
-    POST_LOGOUT_REDIRECT_URI 
-} = require('../authConfig');
-
-const authProvider = new AuthProvider({
-    msalConfig: msalConfig,
-    redirectUri: REDIRECT_URI,
-    postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
-});
+const { authProviderInstance }  = require('../auth/AuthProvider');
 
 exports.signIn = async (req, res, next) => {
-    return authProvider.login(req, res, next);
+    return authProviderInstance.login(req, res, next);
 };
 
 exports.handleRedirect = async (req, res, next) => {
-    return authProvider.handleRedirect(req, res, next);
+    return authProviderInstance.handleRedirect(req, res, next);
 }
 
 exports.signOut = async (req, res, next) => {
-    return authProvider.logout(req, res, next);
+    return authProviderInstance.logout(req, res, next);
 };
