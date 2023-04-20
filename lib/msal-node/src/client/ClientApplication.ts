@@ -255,7 +255,7 @@ export abstract class ClientApplication {
      */
     async acquireTokenSilent(
         request: SilentFlowRequest
-    ): Promise<AuthenticationResult | null> {
+    ): Promise<AuthenticationResult> {
         const validRequest: CommonSilentFlowRequest = {
             ...request,
             ...(await this.initializeBaseRequest(request)),
