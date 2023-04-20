@@ -48,7 +48,7 @@ describe('Ensure pages served', () => {
         process.env.NODE_ENV = 'test';
     });
 
-    it('should get index page', async () => {
+    it('should serve index page', async () => {
         const res = await request(app)
             .get('/');
 
@@ -57,7 +57,7 @@ describe('Ensure pages served', () => {
         expect(res.text).toEqual(data);
     });
 
-    it('should get signout page', async () => {
+    it('should serve signout page', async () => {
         const res = await request(app)
             .get('/signout');
 
