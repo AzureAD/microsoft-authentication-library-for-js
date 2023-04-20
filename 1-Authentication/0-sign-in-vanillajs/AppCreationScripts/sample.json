@@ -59,8 +59,8 @@
                     "value": ".AppId"
                 },
                 {
-                    "key": "Enter_the_Tenant_Id_Here",
-                    "value": "$tenantId"
+                    "key": "Enter_the_Tenant_Name_Here",
+                    "value": "$tenantName"
                 }
             ]
         }

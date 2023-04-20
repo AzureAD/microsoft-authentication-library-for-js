@@ -14,7 +14,7 @@ ms.date: 04/19/2023
 ---
 # Portal quickstart for React SPA
 
-> In this quickstart, you download and run a code sample that demonstrates how an ASP.NET Core MVC web app can sign in users with Azure AD for Customers.
+> In this quickstart, you download and run a code sample that demonstrates how a React SPA that can sign in users with Azure AD for Customers.
 >
 > [!div renderon="portal" id="display-on-portal" class="sxs-lookup"]
 >

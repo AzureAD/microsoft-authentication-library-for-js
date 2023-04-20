@@ -15,7 +15,7 @@ ms.date: 04/19/2023
 # Portal quickstart for Node (Express) web app
 
 > [!div renderon="portal" id="display-on-portal" class="sxs-lookup"]
-> In this quickstart, you download and run a code sample that demonstrates how a Node (Express) web application can sign in users with Azure AD CIAM.
+> In this quickstart, you download and run a code sample that demonstrates how a Node (Express) web application that can sign in users with Azure AD CIAM.
 >
 > 1. Make sure you've installed [Node.js](https://nodejs.org/download/).
 > 1. Unzip the sample.
