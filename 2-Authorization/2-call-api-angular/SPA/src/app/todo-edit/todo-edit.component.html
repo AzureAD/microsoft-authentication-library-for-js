@@ -7,7 +7,7 @@
     <form #edit="ngForm" (ngSubmit)="editTodo(edit.value)">
         <mat-form-field appearance="fill" class="form-field">
             <input matInput type="text" name="description" placeholder="task" class="input-field"
-                [(ngModel)]="todo.description">
+                [(ngModel)]="toDo.description">
         </mat-form-field>
         <button mat-raised-button color="primary" type="submit" value="submit" class="submit-button">Edit</button>
     </form>

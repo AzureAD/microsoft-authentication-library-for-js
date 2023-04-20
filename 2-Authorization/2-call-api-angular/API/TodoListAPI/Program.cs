@@ -46,7 +46,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddDbContext<ToDoContext>(options =>
 {
-    options.UseInMemoryDatabase("ToDos"); // FIXME make sure the name same
+    options.UseInMemoryDatabase("ToDos");
 });
 
 builder.Services.AddControllers();
@@ -83,6 +83,6 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers(); // TODO: check
+app.MapControllers();
 
 app.Run();

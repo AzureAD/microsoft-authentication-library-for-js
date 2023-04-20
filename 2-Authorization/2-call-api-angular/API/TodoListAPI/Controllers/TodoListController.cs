@@ -120,7 +120,8 @@ public class ToDoListController : ControllerBase
     )]
     public async Task<IActionResult> PutAsync(int id, [FromBody] ToDo toDo)
     {
-        var storedToDo = await _toDoContext.ToDos!.FirstOrDefaultAsync(td => RequestCanAccessToDo(td.Owner) && td.Id == id);
+        var storedToDo = await _toDoContext.ToDos!
+            .FirstOrDefaultAsync(td => RequestCanAccessToDo(td.Owner) && td.Id == id);
 
         if (storedToDo is null)
         {
