@@ -1,13 +1,6 @@
 const { callEndpointWithToken } = require('../fetch');
-const { msalConfig, REDIRECT_URI, POST_LOGOUT_REDIRECT_URI, protectedResources } = require('../authConfig');
-
-const AuthProvider = require('../auth/AuthProvider');
-
-const authProvider = new AuthProvider({
-    msalConfig: msalConfig,
-    redirectUri: REDIRECT_URI,
-    postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
-});
+const { protectedResources } = require('../authConfig');
+const authProvider = require('../auth/AuthProvider');
 
 exports.getTodos = async (req, res, next) => {
     try {
