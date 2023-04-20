@@ -23,7 +23,6 @@ class AuthProvider {
          * The state parameter can also be used to encode information of the app's state before redirect.
          * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter.
          */
-
         const state = this.cryptoProvider.base64Encode(
             JSON.stringify({
                 csrfToken: req.session.csrfToken,
@@ -39,6 +38,9 @@ class AuthProvider {
              * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
              */
             scopes: [],
+            extraQueryParameters: {
+                dc: "ESTS-PUB-EUS-AZ1-FD000-TEST1" // STS CIAM test slice
+            }
         };
 
         const authCodeRequestParams = {
@@ -56,14 +58,8 @@ class AuthProvider {
          * make a request to the relevant endpoints to retrieve the metadata. This allows MSAL to avoid making
          * metadata discovery calls, thereby improving performance of token acquisition process.
          */
-
-        if (!this.config.msalConfig.auth.cloudDiscoveryMetadata || !this.config.msalConfig.auth.authorityMetadata) {
-            const [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
-                this.getCloudDiscoveryMetadata(),
-                this.getAuthorityMetadata(),
-            ]);
-
-            this.config.msalConfig.auth.cloudDiscoveryMetadata = JSON.stringify(cloudDiscoveryMetadata);
+        if (!this.config.msalConfig.auth.authorityMetadata) {
+            const authorityMetadata = await this.getAuthorityMetadata()
             this.config.msalConfig.auth.authorityMetadata = JSON.stringify(authorityMetadata);
         }
 
@@ -78,6 +74,44 @@ class AuthProvider {
             authCodeRequestParams,
             msalInstance
         );
+    }
+
+    async handleRedirect(req, res, next) {
+        const authCodeRequest = {
+            ...req.session.authCodeRequest,
+            code: req.body.code, // authZ code
+            codeVerifier: req.session.pkceCodes.verifier, // PKCE Code Verifier
+        };
+
+        try {
+            const msalInstance = this.getMsalInstance(this.config.msalConfig);
+            msalInstance.getTokenCache().deserialize(req.session.tokenCache);
+
+            const tokenResponse = await msalInstance.acquireTokenByCode(authCodeRequest, req.body);
+
+            req.session.tokenCache = msalInstance.getTokenCache().serialize();
+            req.session.idToken = tokenResponse.idToken;
+            req.session.account = tokenResponse.account;
+            req.session.isAuthenticated = true;
+
+            const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state));
+            res.redirect(state.redirectTo);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async logout(req, res, next) {
+        /**
+         * Construct a logout URI and redirect the user to end the
+         * session with Azure AD. For more information, visit:
+         * https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
+         */
+        const logoutUri = `${this.config.msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${this.config.postLogoutRedirectUri}`;
+
+        req.session.destroy(() => {
+            res.redirect(logoutUri);
+        });
     }
 
     /**
@@ -128,62 +162,6 @@ class AuthProvider {
         }
     }
 
-    async handleRedirect(req, res, next) {
-        const authCodeRequest = {
-            ...req.session.authCodeRequest,
-            code: req.body.code, // authZ code
-            codeVerifier: req.session.pkceCodes.verifier, // PKCE Code Verifier
-        };
-
-        try {
-            const msalInstance = this.getMsalInstance(this.config.msalConfig);
-            msalInstance.getTokenCache().deserialize(req.session.tokenCache);
-
-            const tokenResponse = await msalInstance.acquireTokenByCode(authCodeRequest, req.body);
-
-            req.session.tokenCache = msalInstance.getTokenCache().serialize();
-            req.session.idToken = tokenResponse.idToken;
-            req.session.account = tokenResponse.account;
-            req.session.isAuthenticated = true;
-            const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state));
-            res.redirect(state.redirectTo);
-        } catch (error) {
-            next(error);
-        }
-    }
-
-    async logout(req, res, next) {
-        /**
-         * Construct a logout URI and redirect the user to end the
-         * session with Azure AD. For more information, visit:
-         * https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
-         */
-        const logoutUri = `${this.config.msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${this.config.postLogoutRedirectUri}`;
-
-        req.session.destroy(() => {
-            res.redirect(logoutUri);
-        });
-    }
-
-    /**
-     * Retrieves cloud discovery metadata from the /discovery/instance endpoint
-     * @returns
-     */
-    async getCloudDiscoveryMetadata() {
-        const endpoint = 'https://login.microsoftonline.com/common/discovery/instance';
-        try {
-            const response = await axios.get(endpoint, {
-                params: {
-                    'api-version': '1.1',
-                    authorization_endpoint: `${this.config.msalConfig.auth.authority}/oauth2/v2.0/authorize`,
-                },
-            });
-            return await response.data;
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
     /**
      * Retrieves oidc metadata from the openid endpoint
      * @returns
@@ -196,14 +174,6 @@ class AuthProvider {
         } catch (error) {
             console.log(error);
         }
-    }
-
-    isAuthenticated(req, res, next) {
-        if (req.session && req.session.isAuthenticated) {
-            return true;
-        }
-
-        return false;
     }
 }
 
