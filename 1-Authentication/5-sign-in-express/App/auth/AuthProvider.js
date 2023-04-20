@@ -1,6 +1,6 @@
 const msal = require('@azure/msal-node');
 const axios = require('axios');
-const { TENANT_NAME } = require('../authConfig');
+const { msalConfig, TENANT_NAME, REDIRECT_URI, POST_LOGOUT_REDIRECT_URI } = require('../authConfig');
 
 class AuthProvider {
     config;
@@ -178,4 +178,10 @@ class AuthProvider {
     }
 }
 
-module.exports = AuthProvider;
+const authProvider = new AuthProvider({
+    msalConfig: msalConfig,
+    redirectUri: REDIRECT_URI,
+    postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
+});
+
+module.exports = authProvider;
