@@ -1,7 +1,7 @@
 const { authProviderInstance }  = require('../auth/AuthProvider');
 
 exports.signIn = async (req, res, next) => {
-    return authProviderInstance.login(req, res, next);
+    return authProvider.login(req, res, next);
 };
 
 exports.handleRedirect = async (req, res, next) => {
