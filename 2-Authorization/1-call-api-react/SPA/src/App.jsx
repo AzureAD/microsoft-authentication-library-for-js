@@ -3,14 +3,14 @@ import { MsalProvider } from '@azure/msal-react';
 
 import { PageLayout } from './components/PageLayout';
 import { Home } from './pages/Home';
-import { TodoList } from './pages/TodoList';
+import { ToDoList } from './pages/ToDoList';
 
 import './styles/App.css';
 
 const Pages = () => {
     return (
         <Routes>
-            <Route path="/todolist" element={<TodoList />} />
+            <Route path="/todolist" element={<ToDoList />} />
             <Route path="/" element={<Home />} />
         </Routes>
     );

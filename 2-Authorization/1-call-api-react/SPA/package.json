@@ -4,8 +4,8 @@
     "private": true,
     "description": "React single-page application using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API",
     "dependencies": {
-        "@azure/msal-browser": "^2.34.0",
-        "@azure/msal-react": "^1.5.4",
+        "@azure/msal-browser": "^2.36.0",
+        "@azure/msal-react": "^1.5.6",
         "bootstrap": "^5.2.3",
         "react": "^18.2.0",
         "react-bootstrap": "^2.7.2",

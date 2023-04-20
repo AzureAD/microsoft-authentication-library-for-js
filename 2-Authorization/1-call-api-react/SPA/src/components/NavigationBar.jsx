@@ -56,7 +56,7 @@ export const NavigationBar = () => {
                 </a>
                 <AuthenticatedTemplate>
                     <Nav.Link className="navbarButton" href="/todolist">
-                        Todolist
+                        ToDolist
                     </Nav.Link>
                     <div className="collapse navbar-collapse justify-content-end">
                         <DropdownButton

@@ -20,17 +20,17 @@
             "Audience": "AzureADMyOrg",
             "SDK": "MicrosoftIdentityWeb",
             "SampleSubPath": "2-Authorization\\1-call-api-react\\API",
-            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "Scopes": ["ToDoList.Read", "ToDoList.ReadWrite"],
             "AppRoles": [
                 {
                     "AllowedMemberTypes": ["Application"],
-                    "Name": "TodoList.Read.All",
-                    "Description": "Allow this application to read every users TodoList items"
+                    "Name": "ToDoList.Read.All",
+                    "Description": "Allow this application to read every users ToDoList items"
                 },
                 {
                     "AllowedMemberTypes": ["Application"],
-                    "Name": "TodoList.ReadWrite.All",
-                    "Description": "Allow this application to read and write every users TodoList items"
+                    "Name": "ToDoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users ToDoList items"
                 }
             ],
             "OptionalClaims": {
@@ -42,7 +42,7 @@
             "Name": "ciam-msal-react-spa",
             "Kind": "SinglePageApplication",
             "Audience": "AzureADMyOrg",
-            "SDK": "MsalJs",
+            "SDK": "MsalReact",
             "SampleSubPath": "2-Authorization\\1-call-api-react\\SPA",
             "HomePage": "http://localhost:3000",
             "ReplyUrls": "http://localhost:3000, http://localhost:3000/redirect",
@@ -53,7 +53,7 @@
                 },
                 {
                     "Resource": "service",
-                    "DelegatedPermissions": ["TodoList.Read", "TodoList.ReadWrite"]
+                    "DelegatedPermissions": ["ToDoList.Read", "ToDoList.ReadWrite"]
                 }
             ],
             "ManualSteps": [
@@ -67,15 +67,19 @@
         {
             "App": "service",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "SettingFile": "\\..\\API\\ToDoListAPI\\appsettings.json",
             "Mappings": [
                 {
-                    "key": "Enter the Client ID (aka 'Application ID')",
-                    "value": ".AppId"
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": "service.AppId"
                 },
                 {
-                    "key": "Enter the tenant ID",
+                    "key": "Enter_the_Tenant_Id_Here",
                     "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Name_Here",
+                    "value": "$tenantName"
                 }
             ]
         },
@@ -89,8 +93,8 @@
                      "value": ".AppId"
                  },
                  {
-                     "key": "Enter_the_Tenant_Id_Here",
-                     "value": "$tenantId"
+                     "key": "Enter_the_Tenant_Name_Here",
+                     "value": "$tenantName"
                  },
                  {
                     "key": "Enter_the_Web_Api_Application_Id_Here",
