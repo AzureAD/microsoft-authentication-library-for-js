@@ -6,26 +6,26 @@ import { ListView } from '../components/ListView';
 import { loginRequest, protectedResources } from "../authConfig";
 import useFetchWithMsal from '../hooks/useFetchWithMsal';
 
-const TodoListContent = () => {
+const ToDoListContent = () => {
     const { error, execute } = useFetchWithMsal({
-        scopes: protectedResources.apiTodoList.scopes.read,
+        scopes: protectedResources.toDoListAPI.scopes.read,
     });
 
-    const [todoListData, setTodoListData] = useState(null);
+    const [toDoListData, setToDoListData] = useState(null);
 
     useEffect(() => {
-        if (!todoListData) {
-            execute("GET", protectedResources.apiTodoList.endpoint).then((response) => {
-                setTodoListData(response);
+        if (!toDoListData) {
+            execute("GET", protectedResources.toDoListAPI.endpoint).then((response) => {
+                setToDoListData(response);
             });
         }
-    }, [execute, todoListData])
+    }, [execute, toDoListData])
 
     if (error) {
         return <div>Error: {error.message}</div>;
     }
 
-    return <>{todoListData ? <ListView todoListData={todoListData} /> : null}</>;
+    return <>{toDoListData ? <ListView toDoListData={toDoListData} /> : null}</>;
 };
 
 /**
@@ -35,7 +35,7 @@ const TodoListContent = () => {
  * authentication is in progress or a component to display if an error occurs. For more, visit:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md
  */
-export const TodoList = () => {
+export const ToDoList = () => {
     const authRequest = {
         ...loginRequest,
     };
@@ -45,7 +45,7 @@ export const TodoList = () => {
             interactionType={InteractionType.Redirect} 
             authenticationRequest={authRequest}
         >
-            <TodoListContent />
+            <ToDoListContent />
         </MsalAuthenticationTemplate>
     );
 };

@@ -14,7 +14,7 @@ const usePrevious = (value) => {
     return ref.current;
 }
 
-export const TodoItem = (props) => {
+export const ToDoItem = (props) => {
     const [isEditing, setEditing] = useState(false);
     const [newDescription, setDescription] = useState('');
 
@@ -69,13 +69,6 @@ export const TodoItem = (props) => {
     const viewTemplate = (
         <div className="todo-view">
             <Form.Group>
-                <Form.Check
-                    inline
-                    id={props.id}
-                    type="checkbox"
-                    defaultChecked={props.status}
-                    onChange={() => props.completeTask(props.id)}
-                />
                 <label className="todo-label" htmlFor={props.id}>
                     {props.description}
                 </label>

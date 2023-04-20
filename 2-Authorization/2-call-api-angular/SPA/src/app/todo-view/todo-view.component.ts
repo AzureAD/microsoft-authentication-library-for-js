@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { NgForm } from '@angular/forms';
 
 import { TodoService } from './../todo.service';
-import { Todo } from '../todo';
+import { ToDo } from '../todo';
 
 @Component({
     selector: 'app-todo-view',
@@ -11,11 +11,11 @@ import { Todo } from '../todo';
 })
 export class TodoViewComponent implements OnInit {
 
-    todo?: Todo;
+    toDo?: ToDo;
 
-    todos: Todo[] = [];
+    toDos: ToDo[] = [];
 
-    displayedColumns = ['status', 'description', 'edit', 'remove'];
+    displayedColumns = ['description', 'edit', 'remove'];
 
     constructor(private service: TodoService) { }
 
@@ -25,8 +25,8 @@ export class TodoViewComponent implements OnInit {
 
     getTodos(): void {
         this.service.getTodos()
-            .subscribe((todos: Todo[]) => {
-                this.todos = todos;
+            .subscribe((todos: ToDo[]) => {
+                this.toDos = todos;
             });
     }
 
@@ -37,7 +37,7 @@ export class TodoViewComponent implements OnInit {
         add.resetForm();
     }
 
-    checkTodo(todo: Todo): void {
+    checkTodo(todo: ToDo): void {
         this.service.editTodo(todo).subscribe();
     }
 

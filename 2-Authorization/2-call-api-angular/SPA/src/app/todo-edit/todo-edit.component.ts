@@ -2,7 +2,7 @@ import { TodoService } from './../todo.service';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { Todo } from '../todo';
+import { ToDo } from '../todo';
 
 @Component({
     selector: 'app-todo-edit',
@@ -11,26 +11,25 @@ import { Todo } from '../todo';
 })
 export class TodoEditComponent implements OnInit {
 
-    todo: Todo = {
+    toDo: ToDo = {
         id: 1,
         description: "undefined",
-        status: false,
     };
 
     constructor(private route: ActivatedRoute, private router: Router, private service: TodoService) { }
 
     ngOnInit(): void {
-        this.route.paramMap.subscribe((params) => {
+        this.route.paramMap.subscribe((params: any) => {
             let id = +params.get('id')!;
-            this.service.getTodo(+id).subscribe((response: Todo) => {
-                this.todo = response;
+            this.service.getTodo(+id).subscribe((response: ToDo) => {
+                this.toDo = response;
             })
         })
     }
 
-    editTodo(todo: Todo): void {
-        this.todo.description = todo.description;
-        this.service.editTodo(this.todo).subscribe(() => {
+    editTodo(toDo: ToDo): void {
+        this.toDo.description = toDo.description;
+        this.service.editTodo(this.toDo).subscribe(() => {
             this.router.navigate(['/todo-view']);
         })
     }

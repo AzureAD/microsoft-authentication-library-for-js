@@ -41,7 +41,7 @@ const useFetchWithMsal = (msalRequest) => {
                 let response = null;
 
                 const headers = new Headers();
-                const bearer = `Bearer ${result.accessToken}`;            
+                const bearer = `Bearer ${result.accessToken}`;
                 headers.append("Authorization", bearer);
 
                 if (data) headers.append('Content-Type', 'application/json');
@@ -54,15 +54,23 @@ const useFetchWithMsal = (msalRequest) => {
 
                 setIsLoading(true);
                 response = (await fetch(endpoint, options));
-                if (response.status === 200 || response.status === 201) {
-                    let responseData = await response.json();
-                    setData(responseData);
-                    setIsLoading(false);
-                    return responseData;
-                } 
 
+                if ((response.status === 200 || response.status === 201)) {
+                    let responseData = response;
+
+                    try {
+                        responseData = await response.json();
+                    } catch (error) {
+                        console.log(error);
+                    } finally {
+                        setData(responseData);
+                        setIsLoading(false);
+                        return responseData;
+                    }
+                }
+
+                setIsLoading(false);
                 return response;
-                
             } catch (e) {
                 setError(e);
                 setIsLoading(false);

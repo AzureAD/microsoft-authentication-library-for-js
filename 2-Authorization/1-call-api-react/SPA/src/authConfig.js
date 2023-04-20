@@ -13,10 +13,9 @@ import { LogLevel } from "@azure/msal-browser";
 export const msalConfig = {
     auth: {
         clientId: 'Enter_the_Application_Id_Here', // This is the ONLY mandatory field that you need to supply.
-        authority: 'https://login.microsoftonline.com/Enter_the_Tenant_Id_Here', // Defaults to "https://login.microsoftonline.com/common"
+        authority: 'https://Enter_the_Tenant_Name_Here.ciamlogin.com/', // Replace "Enter_the_Tenant_Name_Here" with your tenant name
         redirectUri: '/', // You must register this URI on Azure Portal/App Registration. Defaults to window.location.origin
         postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
-        clientCapabilities: ['CP1'], // this lets the resource owner know that this client is capable of handling claims challenge.
     },
     cache: {
         cacheLocation: 'localStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO between tabs.
@@ -58,11 +57,11 @@ export const msalConfig = {
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md
  */
 export const protectedResources = {
-    apiTodoList: {
+    toDoListAPI: {
         endpoint: 'https://localhost:44351/api/todolist',
         scopes: {
-            read: ['api://Enter_the_Web_Api_Application_Id_Here/Todolist.Read'],
-            write: ['api://Enter_the_Web_Api_Application_Id_Here/Todolist.ReadWrite'],
+            read: ['api://Enter_the_Web_Api_Application_Id_Here/ToDoList.Read'],
+            write: ['api://Enter_the_Web_Api_Application_Id_Here/ToDoList.ReadWrite'],
         },
     },
 };
@@ -74,5 +73,8 @@ export const protectedResources = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 export const loginRequest = {
-    scopes: [...protectedResources.apiTodoList.scopes.read, ...protectedResources.apiTodoList.scopes.write]
+    scopes: [...protectedResources.toDoListAPI.scopes.read, ...protectedResources.toDoListAPI.scopes.write],
+    extraQueryParameters: {
+        dc: "ESTS-PUB-EUS-AZ1-FD000-TEST1"
+    }
 };

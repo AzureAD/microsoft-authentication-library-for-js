@@ -58,8 +58,8 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 | `SPA/App.jsx`       | Main application logic resides here.                |
 | `SPA/hooks/useFetchWithMsal.jsx`     | Custom hook to make fetch calls with bearer tokens.     |
 | `SPA/authConfig.js` | Contains authentication parameters for SPA project. |
-| `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
-| `API/TodoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
+| `API/ToDoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
+| `API/ToDoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
 
 ## Prerequisites
 
@@ -102,7 +102,7 @@ There are two projects in this sample. Each needs to be separately registered in
 
 > :warning: If you have never used **Microsoft Graph PowerShell** before, we recommend you go through the [App Creation Scripts Guide](./AppCreationScripts/AppCreationScripts.md) once to ensure that your environment is prepared correctly for this step.
 
-1. Ensure that you have PowerShell 7 or later which can be installed at [this link]([this link](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3)).
+1. Ensure that you have PowerShell 7 or later which can be installed at [here](https://learn.microsoft.com/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.3).
 1. Run the script to create your Azure AD application and configure the code of the sample application accordingly.
 1. For interactive process -in PowerShell, run:
 
@@ -153,12 +153,12 @@ Please refer to:
 
 1. All APIs must publish a minimum of one [scope](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code), also called [Delegated Permission](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), for the client apps to obtain an access token for a *user* successfully. To publish a scope, follow these steps:
 1. Select **Add a scope** button open the **Add a scope** screen and Enter the values as indicated below:
-    1. For **Scope name**, use `TodoList.Read`.
-    1. For **Admin consent display name** type in *TodoList.Read*.
-    1. For **Admin consent description** type in *e.g. Allows the app to read the signed-in user's files.*.
+    1. For **Scope name**, use `ToDoList.Read`.
+    1. For **Admin consent display name** type in *Read users ToDo list using the 'ciam-msal-dotnet-api'*.
+    1. For **Admin consent description** type in *Allow the app to read the user's ToDo list using the 'ciam-msal-dotnet-api'*.
     1. Keep **State** as **Enabled**.
     1. Select the **Add scope** button on the bottom to save this scope.
-    > :warning: Repeat the steps above for another scope named **TodoList.ReadWrite**
+    > :warning: Repeat the steps above for another scope named **ToDoList.ReadWrite**
 1. Select the **Manifest** blade on the left.
     1. Set `accessTokenAcceptedVersion` property to **2**.
     1. Select on **Save**.
@@ -170,12 +170,12 @@ Please refer to:
 1. All APIs should publish a minimum of one [App role for applications](https://docs.microsoft.com/azure/active-directory/develop/howto-add-app-roles-in-azure-ad-apps#assign-app-roles-to-applications), also called [Application Permission](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), for the client apps to obtain an access token as *themselves*, i.e. when they are not signing-in a user. **Application permissions** are the type of permissions that APIs should publish when they want to enable client applications to successfully authenticate as themselves and not need to sign-in users. To publish an application permission, follow these steps:
 1. Still on the same app registration, select the **App roles** blade to the left.
 1. Select **Create app role**:
-    1. For **Display name**, enter a suitable name for your application permission, for instance **TodoList.Read.All**.
+    1. For **Display name**, enter a suitable name for your application permission, for instance **ToDoList.Read.All**.
     1. For **Allowed member types**, choose **Application** to ensure other applications can be granted this permission.
-    1. For **Value**, enter **TodoList.Read.All**.
-    1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
+    1. For **Value**, enter **ToDoList.Read.All**.
+    1. For **Description**, enter *Allow the app to read every user's ToDo list using the 'ciam-msal-dotnet-api'*.
     1. Select **Apply** to save your changes.
-    > :warning: Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
+    > :warning: Repeat the steps above for another app permission named **ToDoList.ReadWrite.All**
 
 ##### Configure Optional Claims
 
@@ -192,9 +192,10 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `API\TodoListAPI\appsettings.json` file.
-1. Find the key `Enter the Client ID (aka 'Application ID')` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
-1. Find the key `Enter the tenant ID` and replace the existing value with your Azure AD tenant/directory ID.
+1. Open the `API\ToDoListAPI\appsettings.json` file.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
+1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Tenant_Name_Here` and replace the existing value with the name of your Azure AD CIAM tenant.
 
 #### Register the client app (ciam-msal-react-spa)
 
@@ -221,7 +222,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     1. Select the **Add a permission** button and then:
     1. Ensure that the **My APIs** tab is selected.
     1. In the list of APIs, select the API `ciam-msal-dotnet-api`.
-    1. In the **Delegated permissions** section, select **TodoList.Read**, **TodoList.ReadWrite** in the list. Use the search box if necessary.
+    1. In the **Delegated permissions** section, select **ToDoList.Read**, **ToDoList.ReadWrite** in the list. Use the search box if necessary.
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
@@ -233,7 +234,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 1. Open the `SPA\src\authConfig.js` file.
 1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-react-spa` app copied from the Azure portal.
-1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Tenant_Name_Here` and replace the existing value with the name of your Azure AD CIAM tenant
 1. Find the key `Enter_the_Web_Api_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
 
 ### Step 4: Running the sample
@@ -256,7 +257,7 @@ Then, open a separate command terminal and run:
 
 1. Open your browser and navigate to `http://localhost:3000`.
 1. Select the **Sign In** button on the top right corner.
-1. Select the **TodoList** button on the navigation bar. This will make a call to the TodoList web API.
+1. Select the **ToDoList** button on the navigation bar. This will make a call to the ToDoListAPI.
 
 ![Screenshot](./ReadmeFiles/screenshot.png)
 
@@ -276,7 +277,7 @@ If you find a bug in the sample, raise the issue on [GitHub Issues](../../../../
 
 ### CORS settings
 
-You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **TodoListAPI** in [Startup.cs](./API/TodoListAPI/Startup.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
+You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **ToDoListAPI** in [Startup.cs](./API/ToDoListAPI/Startup.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -294,7 +295,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Access token validation
 
-On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Startup.cs](./API/TodoListAPI/Startup.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:
+On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Startup.cs](./API/ToDoListAPI/Startup.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -310,66 +311,30 @@ For validation and debugging purposes, developers can decode **JWT**s (*JSON Web
 
 ### Verifying permissions
 
-Access tokens that have neither the **scp** (for delegated permissions) nor **roles** (for application permissions) claim with the required scopes/permissions should not be accepted. In the sample, this is illustrated via the `RequiredScopeOrAppPermission` attribute in [TodoListController.cs](./API/TodoListAPI/Controllers/TodoListController.cs):
+Access tokens that have neither the **scp** (for delegated permissions) nor **roles** (for application permissions) claim with the required scopes/permissions should not be accepted. In the sample, this is illustrated via the `RequiredScopeOrAppPermission` attribute in [ToDoListController.cs](./API/ToDoListAPI/Controllers/ToDoListController.cs):
 
 ```csharp
 [HttpGet]
-/// <summary>
-/// An access token issued by Azure AD will have at least one of the two claims. Access tokens
-/// issued to a user will have the 'scp' claim. Access tokens issued to an application will have
-/// the roles claim. Access tokens that contain both claims are issued only to users, where the scp
-/// claim designates the delegated permissions, while the roles claim designates the user's role.
-/// </summary>
 [RequiredScopeOrAppPermission(
-    AcceptedScope = new string[] { _todoListRead, _todoListReadWrite },
-    AcceptedAppPermission = new string[] { _todoListReadAll, _todoListReadWriteAll }
+    RequiredScopesConfigurationKey = "AzureAD:Scopes:Read",
+    RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
 )]
-public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
+public async Task<IActionResult> GetAsync()
 {
-    // route logic ...
+    var toDos = await _toDoContext.ToDos!
+        .Where(td => RequestCanAccessToDo(td.Owner))
+        .ToListAsync();
+
+    return Ok(toDos);
 }
 ```
 
 ### Access to data
 
-Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire todolist. This is illustrated in the [TodoListController](./API/TodoListAPI/Controllers/TodoListController.cs) controller:
+Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire list of toDos. This is illustrated in the [ToDoListController](./API/ToDoListAPI/Controllers/ToDoListController.cs) controller:
 
 ```csharp
-// GET: api/TodoItems
-[HttpGet]
-[RequiredScopeOrAppPermission(
-    AcceptedScope = new string[] { _todoListRead, _todoListReadWrite },
-    AcceptedAppPermission = new string[] { _todoListReadAll, _todoListReadWriteAll }
-)]
-public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
-{
-    if (!IsAppOnlyToken())
-    {
-        /// <summary>
-        /// The 'oid' (object id) is the only claim that should be used to uniquely identify
-        /// a user in an Azure AD tenant. The token might have one or more of the following claim,
-        /// that might seem like a unique identifier, but is not and should not be used as such:
-        ///
-        /// - upn (user principal name): might be unique amongst the active set of users in a tenant
-        /// but tend to get reassigned to new employees as employees leave the organization and others
-        /// take their place or might change to reflect a personal change like marriage.
-        ///
-        /// - email: might be unique amongst the active set of users in a tenant but tend to get reassigned
-        /// to new employees as employees leave the organization and others take their place.
-        /// </summary>
-        return await _context.TodoItems.Where(x => x.Owner == HttpContext.User.GetObjectId()).ToListAsync();
-    }
-    else
-    {
-        return await _context.TodoItems.ToListAsync();
-    }
-}
-
-/// <summary>
-/// Indicates if the AT presented has application or delegated permissions.
-/// </summary>
-/// <returns></returns>
-private bool IsAppOnlyToken()
+private bool IsAppMakingRequest()
 {
     // Add in the optional 'idtyp' claim to check if the access token is coming from an application or user.
     // See: https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-optional-claims
@@ -380,8 +345,27 @@ private bool IsAppOnlyToken()
     else
     {
         // alternatively, if an AT contains the roles claim but no scp claim, that indicates it's an app token
-        return HttpContext.User.Claims.Any(c => c.Type == "roles") && HttpContext.User.Claims.Any(c => c.Type != "scp");
+        return HttpContext.User.Claims.Any(c => c.Type == "roles") && !HttpContext.User.Claims.Any(c => c.Type == "scp");
     }
+}
+
+private bool RequestCanAccessToDo(Guid userId)
+{
+    return IsAppMakingRequest() || (userId == GetUserId());
+}
+
+[HttpGet]
+[RequiredScopeOrAppPermission(
+    RequiredScopesConfigurationKey = "AzureAD:Scopes:Read",
+    RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+)]
+public async Task<IActionResult> GetAsync()
+{
+    var toDos = await _toDoContext.ToDos!
+        .Where(td => RequestCanAccessToDo(td.Owner))
+        .ToListAsync();
+
+    return Ok(toDos);
 }
 ```
 

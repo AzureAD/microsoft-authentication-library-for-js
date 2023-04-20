@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Todo } from './todo';
+import { ToDo } from './todo';
 
 import { protectedResources } from './auth-config';
 
@@ -8,27 +8,27 @@ import { protectedResources } from './auth-config';
     providedIn: 'root'
 })
 export class TodoService {
-    url = protectedResources.apiTodoList.endpoint;
+    url = protectedResources.toDoListAPI.endpoint;
 
     constructor(private http: HttpClient) { }
 
     getTodos() {
-        return this.http.get<Todo[]>(this.url);
+        return this.http.get<ToDo[]>(this.url);
     }
 
     getTodo(id: number) {
-        return this.http.get<Todo>(this.url + '/' + id);
+        return this.http.get<ToDo>(this.url + '/' + id);
     }
 
-    postTodo(todo: Todo) {
-        return this.http.post<Todo>(this.url, todo);
+    postTodo(toDo: ToDo) {
+        return this.http.post<ToDo>(this.url, toDo);
     }
 
     deleteTodo(id: number) {
         return this.http.delete(this.url + '/' + id);
     }
 
-    editTodo(todo: Todo) {
-        return this.http.put<Todo>(this.url + '/' + todo.id, todo);
+    editTodo(toDo: ToDo) {
+        return this.http.put<ToDo>(this.url + '/' + toDo.id, toDo);
     }
 }
