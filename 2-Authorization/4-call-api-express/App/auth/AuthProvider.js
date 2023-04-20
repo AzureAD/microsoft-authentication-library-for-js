@@ -1,5 +1,6 @@
 const msal = require('@azure/msal-node');
 const axios = require('axios');
+const { TENANT_NAME } = require('../authConfig');
 
 class AuthProvider {
     config;
@@ -14,7 +15,7 @@ class AuthProvider {
         return new msal.ConfidentialClientApplication(msalConfig);
     }
 
-    async login(req, res, next, options = {}) {
+    async login(req, res, next) {
         // create a GUID for crsf
         req.session.csrfToken = this.cryptoProvider.createNewGuid();
 
@@ -39,6 +40,9 @@ class AuthProvider {
              * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
              */
             scopes: [],
+            extraQueryParameters: {
+                dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
+            },
         };
 
         const authCodeRequestParams = {
@@ -57,13 +61,8 @@ class AuthProvider {
          * metadata discovery calls, thereby improving performance of token acquisition process.
          */
 
-        if (!this.config.msalConfig.auth.cloudDiscoveryMetadata || !this.config.msalConfig.auth.authorityMetadata) {
-            const [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
-                this.getCloudDiscoveryMetadata(),
-                this.getAuthorityMetadata(),
-            ]);
-
-            this.config.msalConfig.auth.cloudDiscoveryMetadata = JSON.stringify(cloudDiscoveryMetadata);
+        if (!this.config.msalConfig.auth.authorityMetadata) {
+            const authorityMetadata = await this.getAuthorityMetadata();
             this.config.msalConfig.auth.authorityMetadata = JSON.stringify(authorityMetadata);
         }
 
@@ -147,7 +146,6 @@ class AuthProvider {
             const state = JSON.parse(this.cryptoProvider.base64Decode(req.body.state));
             res.redirect(state.redirectTo);
         } catch (error) {
-            console.log(errror);
             next(error);
         }
     }
@@ -218,7 +216,7 @@ class AuthProvider {
          * session with Azure AD. For more information, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
          */
-        const logoutUri = `${this.config.msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${this.config.postLogoutRedirectUri}`;
+        const logoutUri = `${this.config.msalConfig.auth.authority}${TENANT_NAME}.onmicrosoft.com/oauth2/v2.0/logout?post_logout_redirect_uri=${this.config.postLogoutRedirectUri}`;
 
         req.session.destroy(() => {
             res.redirect(logoutUri);
@@ -226,30 +224,11 @@ class AuthProvider {
     }
 
     /**
-     * Retrieves cloud discovery metadata from the /discovery/instance endpoint
-     * @returns
-     */
-    async getCloudDiscoveryMetadata() {
-        const endpoint = 'https://login.microsoftonline.com/common/discovery/instance';
-        try {
-            const response = await axios.get(endpoint, {
-                params: {
-                    'api-version': '1.1',
-                    authorization_endpoint: `${this.config.msalConfig.auth.authority}/oauth2/v2.0/authorize`,
-                },
-            });
-            return await response.data;
-        } catch (error) {
-            console.log(error);
-        }
-    }
-
-    /**
      * Retrieves oidc metadata from the openid endpoint
      * @returns
      */
     async getAuthorityMetadata() {
-        const endpoint = `${this.config.msalConfig.auth.authority}/v2.0/.well-known/openid-configuration`;
+        const endpoint = `${this.config.msalConfig.auth.authority}${TENANT_NAME}.onmicrosoft.com/.well-known/openid-configuration`;
         try {
             const response = await axios.get(endpoint);
             return await response.data;

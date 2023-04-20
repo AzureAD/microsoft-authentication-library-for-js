@@ -54,7 +54,7 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 |---------------------|-----------------------------------------------------|
 | `App/app.js`          | Application entry point.                   |
 | `App/authConfig.js`   | Contains authentication parameters.        |
-| `App/routes/auth.js`  | Main authentication logic resides here.    |
+| `App/auth/AuthProvider.js`  | Main authentication logic resides here.    |
 | `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
 | `API/TodoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
 
