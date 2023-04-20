@@ -49,7 +49,7 @@ Here you'll learn about [ID Tokens](https://docs.microsoft.com/azure/active-dire
 |-----------------------|--------------------------------------------|
 | `App/app.js`          | Application entry point.                   |
 | `App/authConfig.js`   | Contains authentication parameters.        |
-| `App/routes/auth.js`  | Main authentication logic resides here.    |
+| `App/auth/AuthProvider.js`  | Main authentication logic resides here.    |
 
 ## Prerequisites
 
