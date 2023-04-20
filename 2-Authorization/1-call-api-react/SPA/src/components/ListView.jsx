@@ -1,6 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useMsal } from "@azure/msal-react";
-import { customAlphabet } from 'nanoid';
 import ListGroup from "react-bootstrap/ListGroup";
 
 import { ToDoForm } from "./ToDoForm";
@@ -21,9 +19,6 @@ function usePrevious(value) {
 
 export const ListView = (props) => {
 
-    const { instance } = useMsal();
-    const account = instance.getActiveAccount();
-
     const { error, execute } = useFetchWithMsal({
         scopes: protectedResources.toDoListAPI.scopes.write
     });
@@ -31,16 +26,13 @@ export const ListView = (props) => {
     const [tasks, setTasks] = useState(props.toDoListData);
 
     const handleAddTask = (description) => {
-        const nanoid = customAlphabet('1234567890', 6);
         const newTask = {
-            owner: account.idTokenClaims?.oid,
-            id: Number(nanoid(6)),
             description: description,
         };
 
         execute('POST', protectedResources.toDoListAPI.endpoint, newTask).then((response) => {
             if (response) {
-                setTasks([...tasks, newTask]);
+                setTasks([...tasks, response]);
             }
         });
     };
@@ -58,7 +50,7 @@ export const ListView = (props) => {
         const updatedTask = tasks.find((task) => id === task.id);
         updatedTask.description = description;
 
-        execute('PUT', protectedResources.toDoListAPI.endpoint + `/${id}`, updatedTask).then(() => {
+        execute('PUT', protectedResources.toDoListAPI.endpoint + `/${id}`, updatedTask).then((response) => {
             const updatedTasks = tasks.map((task) => {
                 if (id === task.id) {
                     return { ...task, description: description };
@@ -69,15 +61,15 @@ export const ListView = (props) => {
         });
     };
 
-    const taskList = tasks.map((task) => (
-        <ToDoItem
+    const taskList = tasks.map((task) => {
+        return <ToDoItem
             id={task.id}
             description={task.description}
             key={task.id}
             deleteTask={handleDeleteTask}
             editTask={handleEditTask}
         />
-    ));
+    });
 
     const listHeadingRef = useRef(null);
     const prevTaskLength = usePrevious(tasks.length);
@@ -91,7 +83,7 @@ export const ListView = (props) => {
     if (error) {
         return <div>Error: {error.message}</div>;
     }
-    
+
     return (
         <div className="data-area-div">
             <ToDoForm addTask={handleAddTask} />

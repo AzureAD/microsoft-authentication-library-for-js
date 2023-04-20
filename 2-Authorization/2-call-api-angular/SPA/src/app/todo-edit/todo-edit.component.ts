@@ -27,8 +27,8 @@ export class TodoEditComponent implements OnInit {
         })
     }
 
-    editTodo(todo: ToDo): void {
-        this.toDo.description = todo.description;
+    editTodo(toDo: ToDo): void {
+        this.toDo.description = toDo.description;
         this.service.editTodo(this.toDo).subscribe(() => {
             this.router.navigate(['/todo-view']);
         })
