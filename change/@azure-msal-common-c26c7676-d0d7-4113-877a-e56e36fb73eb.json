@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix bugs in CIAM Authority Support (#5917)",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
