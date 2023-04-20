@@ -184,7 +184,4 @@ const authProviderInstance = new AuthProvider({
     postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
 });
 
-module.exports = {
-    AuthProvider,
-    authProviderInstance
-};
+module.exports = authProvider;
