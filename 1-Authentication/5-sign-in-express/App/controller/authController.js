@@ -9,5 +9,5 @@ exports.handleRedirect = async (req, res, next) => {
 }
 
 exports.signOut = async (req, res, next) => {
-    return authProviderInstance.logout(req, res, next);
+    return authProvider.logout(req, res, next);
 };
