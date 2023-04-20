@@ -72,7 +72,7 @@ public class ToDoListController : ControllerBase
         else
         {
             // alternatively, if an AT contains the roles claim but no scp claim, that indicates it's an app token
-            return HttpContext.User.Claims.Any(c => c.Type == "roles") && HttpContext.User.Claims.Any(c => c.Type != "scp");
+            return HttpContext.User.Claims.Any(c => c.Type == "roles") && !HttpContext.User.Claims.Any(c => c.Type == "scp");
         }
     }
 
