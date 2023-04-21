@@ -27,9 +27,8 @@ const msalConfig = {
     },
 };
 
-const REDIRECT_URI = process.env.REDIRECT_URI || "http://localhost:3000/auth/redirect";
-const POST_LOGOUT_REDIRECT_URI = process.env.POST_LOGOUT_REDIRECT_URI || "http://localhost:3000";
-
+const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/auth/redirect';
+const POST_LOGOUT_REDIRECT_URI = process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000';
 const todolistReadScope = process.env.TODOLIST_READ || 'api://Enter_the_Web_Api_Application_Id_Here/Todolist.Read';
 const todolistReadWriteScope = process.env.TODOLIST_READWRITE || 'api://Enter_the_Web_Api_Application_Id_Here/Todolist.ReadWrite';
 

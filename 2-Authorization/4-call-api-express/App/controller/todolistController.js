@@ -1,14 +1,15 @@
-const { protectedResources } = require('../authConfig');
 const { callEndpointWithToken } = require('../fetch');
+const { protectedResources } = require('../authConfig');
+const authProvider = require('../auth/AuthProvider');
 
 exports.getTodos = async (req, res, next) => {
     try {
-        const response = await callEndpointWithToken(
+        const todoResponse = await callEndpointWithToken(
             protectedResources.apiTodoList.endpoint,
             req.session.accessToken,
             'GET'
         );
-        res.render('todos', { isAuthenticated: req.session.isAuthenticated, todos: response.data });
+        res.render('todos', { isAuthenticated: req.session.isAuthenticated, todos: todoResponse.data });
     } catch (error) {
         next(error);
     }
