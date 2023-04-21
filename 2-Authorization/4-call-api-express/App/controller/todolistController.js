@@ -4,7 +4,6 @@ const authProvider = require('../auth/AuthProvider');
 
 exports.getTodos = async (req, res, next) => {
     try {
-        await authProvider.getToken(req, res, next, protectedResources.apiTodoList.scopes.read);
         const todoResponse = await callEndpointWithToken(
             protectedResources.apiTodoList.endpoint,
             req.session.accessToken,
@@ -24,7 +23,6 @@ exports.postTodo = async (req, res, next) => {
                 owner: req.session.account.idTokenClaims.oid,
             };
 
-            await authProvider.getToken(req, res, next, protectedResources.apiTodoList.scopes.write);
             await callEndpointWithToken(
                 protectedResources.apiTodoList.endpoint,
                 req.session.accessToken,
@@ -42,7 +40,6 @@ exports.postTodo = async (req, res, next) => {
 
 exports.deleteTodo = async (req, res, next) => {
     try {
-        await authProvider.getToken(req, res, next, protectedResources.apiTodoList.scopes.write);
         await callEndpointWithToken(
             protectedResources.apiTodoList.endpoint,
             req.session.accessToken,

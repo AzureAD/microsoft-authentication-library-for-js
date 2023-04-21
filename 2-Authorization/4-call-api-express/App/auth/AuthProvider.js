@@ -159,51 +159,54 @@ class AuthProvider {
      * @param next: Express next function
      * @param scopes: Array of strings
      */
-    async getToken(req, res, next, scopes) {
-        const msalInstance = this.getMsalInstance(this.config.msalConfig);
-        try {
-            msalInstance.getTokenCache().deserialize(req.session.tokenCache);
+    getToken(scopes) {
+        return  async function (req, res, next) {
+            const msalInstance = authProvider.getMsalInstance(authProvider.config.msalConfig);
+            try {
+                msalInstance.getTokenCache().deserialize(req.session.tokenCache);
 
-            const silentRequest = {
-                account: req.session.account,
-                scopes: scopes,
-            };
-
-            const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
-
-            req.session.tokenCache = msalInstance.getTokenCache().serialize();
-            req.session.accessToken = tokenResponse.accessToken;
-        } catch (error) {
-            if (error instanceof msal.InteractionRequiredAuthError) {
-                req.session.csrfToken = this.cryptoProvider.createNewGuid();
-
-                const state = this.cryptoProvider.base64Encode(
-                    JSON.stringify({
-                        redirectTo: 'http://localhost:3000/todos',
-                        csrfToken: req.session.csrfToken,
-                    })
-                );
-                const authCodeUrlRequestParams = {
-                    state: state,
+                const silentRequest = {
+                    account: req.session.account,
                     scopes: scopes,
                 };
 
-                const authCodeRequestParams = {
-                    state: state,
-                    scopes: scopes,
-                };
-                this.redirectToAuthCodeUrl(
-                    req,
-                    res,
-                    next,
-                    authCodeUrlRequestParams,
-                    authCodeRequestParams,
-                    msalInstance
-                );
+                const tokenResponse = await msalInstance.acquireTokenSilent(silentRequest);
+
+                req.session.tokenCache = msalInstance.getTokenCache().serialize();
+                req.session.accessToken = tokenResponse.accessToken;
+                next();
+            } catch (error) {
+                if (error instanceof msal.InteractionRequiredAuthError) {
+                    req.session.csrfToken = authProvider.cryptoProvider.createNewGuid();
+
+                    const state = authProvider.cryptoProvider.base64Encode(
+                        JSON.stringify({
+                            redirectTo: 'http://localhost:3000/todos',
+                            csrfToken: req.session.csrfToken,
+                        })
+                    );
+                    const authCodeUrlRequestParams = {
+                        state: state,
+                        scopes: scopes,
+                    };
+
+                    const authCodeRequestParams = {
+                        state: state,
+                        scopes: scopes,
+                    };
+                    authProvider.redirectToAuthCodeUrl(
+                        req,
+                        res,
+                        next,
+                        authCodeUrlRequestParams,
+                        authCodeRequestParams,
+                        msalInstance
+                    );
+                }
+
+                next(error);
             }
-
-            next(error);
-        }
+        };
     }
 
     /**
@@ -261,5 +264,6 @@ const authProvider = new AuthProvider({
     redirectUri: REDIRECT_URI,
     postLogoutRedirectUri: POST_LOGOUT_REDIRECT_URI,
 });
+
 
 module.exports = authProvider;

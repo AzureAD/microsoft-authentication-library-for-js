@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const authProvider = require('../auth/AuthProvider');
+const { protectedResources } = require('../authConfig');
 
 const todolistController = require('../controller/todolistController');
 
@@ -15,18 +17,21 @@ function isAuthenticated(req, res, next) {
 router.get(
     '/',
     isAuthenticated, // check if user is authenticated
+    authProvider.getToken(protectedResources.apiTodoList.scopes.read),
     todolistController.getTodos
 );
 
 router.delete(
     '/',
     isAuthenticated,
+    authProvider.getToken(protectedResources.apiTodoList.scopes.write),
     todolistController.deleteTodo
 );
 
 router.post(
     '/',
     isAuthenticated,
+    authProvider.getToken(protectedResources.apiTodoList.scopes.write),
     todolistController.postTodo
 );
 
