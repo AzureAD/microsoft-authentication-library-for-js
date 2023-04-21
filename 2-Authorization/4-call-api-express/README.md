@@ -55,7 +55,7 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 | `App/app.js`          | Application entry point.                   |
 | `App/authConfig.js`   | Contains authentication parameters.        |
 | `App/auth/AuthProvider.js`  | Main authentication logic resides here.    |
-| `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
+| `API/ToDoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
 | `API/TodoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
 
 ## Prerequisites
@@ -152,12 +152,12 @@ Please refer to:
 
 1. All APIs must publish a minimum of one [scope](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code), also called [Delegated Permission](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), for the client apps to obtain an access token for a *user* successfully. To publish a scope, follow these steps:
 1. Select **Add a scope** button open the **Add a scope** screen and Enter the values as indicated below:
-    1. For **Scope name**, use `TodoList.Read`.
-    1. For **Admin consent display name** type in *TodoList.Read*.
+    1. For **Scope name**, use `ToDoList.Read`.
+    1. For **Admin consent display name** type in *Read users ToDo list using the 'ciam-msal-dotnet-api'*.
     1. For **Admin consent description** type in *e.g. Allows the app to read the signed-in user's files.*.
     1. Keep **State** as **Enabled**.
     1. Select the **Add scope** button on the bottom to save this scope.
-    1. Repeat the steps above for another scope named **TodoList.ReadWrite**
+    1. Repeat the steps above for another scope named **ToDoList.ReadWrite**
 1. Select the **Manifest** blade on the left.
     1. Set `accessTokenAcceptedVersion` property to **2**.
     1. Select on **Save**.
@@ -169,12 +169,12 @@ Please refer to:
 1. All APIs should publish a minimum of one [App role for applications](https://docs.microsoft.com/azure/active-directory/develop/howto-add-app-roles-in-azure-ad-apps#assign-app-roles-to-applications), also called [Application Permission](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), for the client apps to obtain an access token as *themselves*, i.e. when they are not signing-in a user. **Application permissions** are the type of permissions that APIs should publish when they want to enable client applications to successfully authenticate as themselves and not need to sign-in users. To publish an application permission, follow these steps:
 1. Still on the same app registration, select the **App roles** blade to the left.
 1. Select **Create app role**:
-    1. For **Display name**, enter a suitable name for your application permission, for instance **TodoList.Read.All**.
+    1. For **Display name**, enter a suitable name for your application permission, for instance **ToDoList.Read.All**.
     1. For **Allowed member types**, choose **Application** to ensure other applications can be granted this permission.
-    1. For **Value**, enter **TodoList.Read.All**.
-    1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
+    1. For **Value**, enter **ToDoList.Read.All**.
+    1. For **Description**, enter *Allow the app to read every user's ToDo list using the 'ciam-msal-dotnet-api'*.
     1. Select **Apply** to save your changes.
-    1. Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
+    1. Repeat the steps above for another app permission named **ToDoList.ReadWrite.All**.
 
 ##### Configure Optional Claims
 
@@ -248,7 +248,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 From your shell or command line, execute the following commands:
 
 ```console
-    cd 2-Authorization\4-call-api-express\API\TodoListAPI
+    cd 2-Authorization\4-call-api-express\API\ToDoListAPI
     dotnet run
 ```
 

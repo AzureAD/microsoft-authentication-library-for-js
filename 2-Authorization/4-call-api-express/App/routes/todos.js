@@ -3,7 +3,7 @@ const router = express.Router();
 const authProvider = require('../auth/AuthProvider');
 const { protectedResources } = require('../authConfig');
 
-const todolistController = require('../controller/todolistController');
+const toDoListController = require('../controller/todolistController');
 
 // custom middleware to check auth state
 function isAuthenticated(req, res, next) {
@@ -18,21 +18,21 @@ router.get(
     '/',
     isAuthenticated, // check if user is authenticated
     authProvider.getToken(protectedResources.apiTodoList.scopes.read),
-    todolistController.getTodos
+    toDoListController.getToDos
 );
 
 router.delete(
     '/',
     isAuthenticated,
     authProvider.getToken(protectedResources.apiTodoList.scopes.write),
-    todolistController.deleteTodo
+    toDoListController.deleteToDo
 );
 
 router.post(
     '/',
     isAuthenticated,
     authProvider.getToken(protectedResources.apiTodoList.scopes.write),
-    todolistController.postTodo
+    toDoListController.postToDo
 );
 
 module.exports = router;
