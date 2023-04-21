@@ -30,9 +30,8 @@ function selectAccount() {
         // Add your account choosing logic here
         console.warn("Multiple accounts detected.");
     } else if (currentAccounts.length === 1) {
-        username = currentAccounts[0].username;
-        welcomeUser(username);
-        updateTable();
+        welcomeUser(currentAccounts[0].username);
+        updateTable(currentAccounts[0]);
     }
 }
 
@@ -44,9 +43,8 @@ function handleResponse(response) {
      */
 
     if (response !== null) {
-        username = response.account.username;
-        welcomeUser(username);
-        updateTable();
+        welcomeUser(response.account.username);
+        updateTable(response.account);
     } else {
         selectAccount();
 
@@ -57,11 +55,9 @@ function handleResponse(response) {
          */
 
         // myMSALObj.ssoSilent(silentRequest).
-        //     then(() => {
-        //         const currentAccounts = myMSALObj.getAllAccounts();
-        //         username = currentAccounts[0].username;
-        //         welcomeUser(username);
-        //         updateTable();
+        //     then((response) => {
+        //         welcomeUser(response.account.username);
+        //         updateTable(response.account);
         //     }).catch(error => {
         //         console.error("Silent Error: " + error);
         //         if (error instanceof msal.InteractionRequiredAuthError) {
