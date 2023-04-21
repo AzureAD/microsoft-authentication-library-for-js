@@ -263,3 +263,4 @@ typings/
 lib/
 dist/
 ref/
+msal-common/

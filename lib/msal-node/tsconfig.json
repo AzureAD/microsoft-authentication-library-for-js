@@ -19,7 +19,7 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
@@ -27,13 +27,17 @@
     "jsx": "react",
     "esModuleInterop": true,
     "suppressImplicitAnyIndexErrors": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+        "@azure/msal-common": ["src/msal-common"]
+    }
   },
   "compileOnSave": false,
   "buildOnSave": false,
   "references": [
     {
-      "path": "../msal-common"
+      "path": "src/msal-common"
     }
   ]
 }
