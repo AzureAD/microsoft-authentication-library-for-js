@@ -57,6 +57,7 @@
     "prettier": "2.8.7",
     "rollup": "^3.20.1",
     "rollup-plugin-typescript-paths": "^1.4.0",
+    "shx": "^0.3.4",
     "sinon": "^7.5.0",
     "ts-jest": "^29.0.5",
     "tslib": "^1.10.0",
