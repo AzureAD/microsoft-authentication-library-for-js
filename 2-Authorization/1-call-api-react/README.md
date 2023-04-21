@@ -277,7 +277,7 @@ If you find a bug in the sample, raise the issue on [GitHub Issues](../../../../
 
 ### CORS settings
 
-You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **ToDoListAPI** in [Startup.cs](./API/ToDoListAPI/Startup.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
+You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **ToDoListAPI** in [Program.cs](./API/ToDoListAPI/Program.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
@@ -295,7 +295,7 @@ public void ConfigureServices(IServiceCollection services)
 
 ### Access token validation
 
-On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Startup.cs](./API/ToDoListAPI/Startup.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:
+On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Program.cs](./API/ToDoListAPI/Program.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:
 
 ```csharp
 public void ConfigureServices(IServiceCollection services)
