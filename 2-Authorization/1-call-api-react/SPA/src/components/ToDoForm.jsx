@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { Button, Form, InputGroup } from "react-bootstrap";
+import { Button, Form, InputGroup } from "react-bootstrap"; 
 
 export const ToDoForm = (props) => {
     const [description, setDescription] = useState('');
-
     const handleSubmit = (e) => {
         e.preventDefault();
 
