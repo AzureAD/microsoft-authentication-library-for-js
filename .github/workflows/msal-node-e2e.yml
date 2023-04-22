@@ -113,7 +113,10 @@ jobs:
         OBO_WEB_API_CLIENT_SECRET: ${{ secrets.OBO_WEB_API_CLIENT_SECRET }}
         OBO_WEB_API_SCOPE: ${{ secrets.OBO_WEB_API_SCOPE }}
         OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
-      run: npm test
+      run: |
+        pwd
+        ls -la ../../../lib/msal-node/src/msal-common
+        npm test
 
     - name: Upload E2E Test Screenshots
       uses: actions/upload-artifact@v3
