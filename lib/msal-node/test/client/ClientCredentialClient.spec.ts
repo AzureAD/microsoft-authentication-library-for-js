@@ -19,7 +19,7 @@ import {
     InteractionRequiredAuthError,
     ThrottlingConstants,
     TimeUtils,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PkceCodes } from "@azure/msal-common";
+import { Constants, PkceCodes } from "../msal-common";
 import { CharSet, RANDOM_OCTET_SIZE } from "../utils/Constants";
 import { EncodingUtils } from "../utils/EncodingUtils";
 import { HashUtils } from "./HashUtils";

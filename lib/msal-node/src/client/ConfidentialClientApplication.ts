@@ -26,7 +26,7 @@ import {
     OIDC_DEFAULT_SCOPES,
     UrlString,
     AADAuthorityConstants,
-} from "@azure/msal-common";
+} from "../msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";

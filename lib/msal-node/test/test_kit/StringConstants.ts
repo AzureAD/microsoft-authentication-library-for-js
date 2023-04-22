@@ -7,7 +7,7 @@ import {
     AuthenticationScheme,
     Constants,
     ONE_DAY_IN_MS,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 
 // This file contains the string constants used by the test classes.
 

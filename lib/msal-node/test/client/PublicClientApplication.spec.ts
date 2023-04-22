@@ -22,7 +22,7 @@ import {
     InteractionRequiredAuthError,
     AccountEntity,
     IdToken
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import {
     Configuration,
     DeviceCodeClient,
@@ -53,7 +53,7 @@ import { version, name } from "../../package.json";
 import { MockNativeBrokerPlugin } from "../utils/MockNativeBrokerPlugin";
 import { SignOutRequest } from "../../src/request/SignOutRequest";
 
-const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
+const msalCommon: MSALCommonModule = jest.requireActual("../../src/msal-common");
 
 jest.mock("../../src/client/DeviceCodeClient");
 jest.mock("../../src/client/ClientCredentialClient");
@@ -237,12 +237,12 @@ describe("PublicClientApplication", () => {
                 account: mockAccountInfo,
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             };
-    
+
             const silentFlowClient = getMsalCommonAutoMock().SilentFlowClient;
             jest.spyOn(msalCommon, "SilentFlowClient").mockImplementation(
                 (config) => new silentFlowClient(config)
             );
-    
+
             const authApp = new PublicClientApplication(appConfig);
             await authApp.acquireTokenSilent(request);
             expect(SilentFlowClient).toHaveBeenCalledTimes(1);
@@ -302,9 +302,9 @@ describe("PublicClientApplication", () => {
 
         test("acquireTokenInteractive succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
-    
+
             let redirectUri: string;
-    
+
             const openBrowser = (url: string) => {
                 expect(url.startsWith("https://login.microsoftonline.com")).toBe(
                     true
@@ -318,13 +318,13 @@ describe("PublicClientApplication", () => {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
             };
-    
+
             const MockAuthorizationCodeClient =
                 getMsalCommonAutoMock().AuthorizationCodeClient;
             jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
                 (config) => new MockAuthorizationCodeClient(config)
             );
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
@@ -332,7 +332,7 @@ describe("PublicClientApplication", () => {
                 redirectUri = req.redirectUri;
                 return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
             });
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "acquireToken"
@@ -343,7 +343,7 @@ describe("PublicClientApplication", () => {
                 ]);
                 return Promise.resolve(mockAuthenticationResult);
             });
-    
+
             const response = await authApp.acquireTokenInteractive(request);
             expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
             expect(response.accessToken).toEqual(
@@ -351,23 +351,23 @@ describe("PublicClientApplication", () => {
             );
             expect(response.account).toEqual(mockAuthenticationResult.account);
         });
-    
+
         test("acquireTokenInteractive - with custom loopback client succeeds", async () => {
             const authApp = new PublicClientApplication(appConfig);
-    
+
             const openBrowser = (url: string) => {
                 expect(url.startsWith("https://login.microsoftonline.com")).toBe(
                     true
                 );
                 return Promise.resolve();
             };
-    
+
             const testServerCodeResponse: ServerAuthorizationCodeResponse = {
                 code: TEST_CONSTANTS.AUTHORIZATION_CODE,
                 client_info: TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO,
                 state: "123",
             };
-    
+
             const mockListenForAuthCode = jest.fn(() => {
                 return new Promise<ServerAuthorizationCodeResponse>((resolve) => {
                     resolve(testServerCodeResponse);
@@ -375,25 +375,25 @@ describe("PublicClientApplication", () => {
             });
             const mockGetRedirectUri = jest.fn(() => TEST_CONSTANTS.REDIRECT_URI);
             const mockCloseServer = jest.fn(() => {});
-    
+
             const customLoopbackClient: ILoopbackClient = {
                 listenForAuthCode: mockListenForAuthCode,
                 getRedirectUri: mockGetRedirectUri,
                 closeServer: mockCloseServer,
             };
-    
+
             const request: InteractiveRequest = {
                 scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
                 openBrowser: openBrowser,
                 loopbackClient: customLoopbackClient,
             };
-    
+
             const MockAuthorizationCodeClient =
                 getMsalCommonAutoMock().AuthorizationCodeClient;
             jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
                 (config) => new MockAuthorizationCodeClient(config)
             );
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "getAuthCodeUrl"
@@ -401,7 +401,7 @@ describe("PublicClientApplication", () => {
                 expect(req.redirectUri).toEqual(TEST_CONSTANTS.REDIRECT_URI);
                 return Promise.resolve(TEST_CONSTANTS.AUTH_CODE_URL);
             });
-    
+
             jest.spyOn(
                 MockAuthorizationCodeClient.prototype,
                 "acquireToken"
@@ -412,7 +412,7 @@ describe("PublicClientApplication", () => {
                 ]);
                 return Promise.resolve(mockAuthenticationResult);
             });
-    
+
             const response = await authApp.acquireTokenInteractive(request);
             expect(response.idToken).toEqual(mockAuthenticationResult.idToken);
             expect(response.accessToken).toEqual(
@@ -487,9 +487,9 @@ describe("PublicClientApplication", () => {
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, 
-                mockAccountInfo.homeAccountId, 
-                new IdToken(mockAuthenticationResult.idToken, cryptoProvider), 
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                mockAccountInfo.homeAccountId,
+                new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
                 fakeAuthority
             );
 
@@ -551,9 +551,9 @@ describe("PublicClientApplication", () => {
 
             const cryptoProvider = new CryptoProvider();
             const accountEntity: AccountEntity = AccountEntity.createAccount(
-                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, 
-                mockAccountInfo.homeAccountId, 
-                new IdToken(mockAuthenticationResult.idToken, cryptoProvider), 
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO,
+                mockAccountInfo.homeAccountId,
+                new IdToken(mockAuthenticationResult.idToken, cryptoProvider),
                 fakeAuthority
             );
 
@@ -882,7 +882,7 @@ describe("PublicClientApplication", () => {
         );
 
         const mockInfo = jest.fn();
-        jest.mock("@azure/msal-common", () => {
+        jest.mock("../../src/msal-common", () => {
             return {
                 getLogger: () => ({
                     info: mockInfo,
@@ -930,7 +930,7 @@ describe("PublicClientApplication", () => {
         );
 
         const mockInfo = jest.fn();
-        jest.mock("@azure/msal-common", () => {
+        jest.mock("../../src/msal-common", () => {
             return {
                 getLogger: () => ({
                     info: mockInfo,

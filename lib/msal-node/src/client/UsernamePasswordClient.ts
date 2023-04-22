@@ -20,7 +20,7 @@ import {
     StringUtils,
     TimeUtils,
     UrlString,
-} from "@azure/msal-common";
+} from "../msal-common";
 
 /**
  * Oauth2.0 Password grant client

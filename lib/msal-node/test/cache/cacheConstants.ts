@@ -4,7 +4,7 @@ import {
     RefreshTokenEntity,
     AccountEntity,
     AppMetadataEntity,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 
 export const MOCK_PARTITION_KEY = "mock_partition_key";
 export const MOCK_CACHE_STRING = "mock_cache_string";

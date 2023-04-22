@@ -31,7 +31,7 @@ import {
     StringUtils,
     ClientAuthError,
     Constants,
-} from "@azure/msal-common";
+} from "../msal-common";
 import {
     Configuration,
     buildAppConfiguration,

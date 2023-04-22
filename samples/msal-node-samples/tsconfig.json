@@ -16,7 +16,7 @@
         "sourceMap": true,
         "experimentalDecorators": true,
         "importHelpers": true,
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "downlevelIteration": true,
     },
     "include": ["**/test/*.spec.ts"],
@@ -29,4 +29,4 @@
     ],
     "compileOnSave": false,
     "buildOnSave": false,
-} 
+}

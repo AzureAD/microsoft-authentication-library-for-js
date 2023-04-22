@@ -103,6 +103,6 @@ export {
     IAppTokenProvider,
     AppTokenProviderParameters,
     AppTokenProviderResult,
-} from "@azure/msal-common";
+} from "./msal-common";
 
 export { version } from "./packageMetadata";

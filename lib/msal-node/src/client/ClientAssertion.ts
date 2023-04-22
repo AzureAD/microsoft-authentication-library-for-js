@@ -4,7 +4,7 @@
  */
 
 import { JwtHeader, sign } from "jsonwebtoken";
-import { TimeUtils, ClientAuthError, Constants } from "@azure/msal-common";
+import { TimeUtils, ClientAuthError, Constants } from "../msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from "../utils/EncodingUtils";
 import { JwtConstants } from "../utils/Constants";

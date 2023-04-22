@@ -7,9 +7,9 @@ import {
     ServerTelemetryManager,
     Authority,
     AuthorityFactory,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 
-import * as msalCommon from "@azure/msal-common";
+import * as msalCommon from "../../src/msal-common";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
 
 // @ts-ignore

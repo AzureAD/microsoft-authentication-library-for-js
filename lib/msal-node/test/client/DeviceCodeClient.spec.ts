@@ -11,7 +11,7 @@ import {
     Constants,
     GrantType,
     ThrottlingConstants,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import {
     AUTHENTICATION_RESULT,
     AUTHORIZATION_PENDING_RESPONSE,

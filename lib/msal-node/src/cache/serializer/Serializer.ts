@@ -9,7 +9,7 @@ import {
     AccessTokenCache,
     RefreshTokenCache,
     AppMetadataCache,
-} from "@azure/msal-common";
+} from "../../msal-common";
 import {
     InMemoryCache,
     JsonCache,

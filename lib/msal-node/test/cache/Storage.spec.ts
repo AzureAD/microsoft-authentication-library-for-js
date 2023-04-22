@@ -7,7 +7,7 @@ import {
     AuthorityMetadataEntity,
     IdTokenEntity,
     RefreshTokenEntity,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import {
     JsonCache,
     InMemoryCache,

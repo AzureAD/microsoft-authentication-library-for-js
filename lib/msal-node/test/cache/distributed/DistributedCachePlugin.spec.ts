@@ -3,7 +3,7 @@ import {
     AccountEntity,
     ICachePlugin,
     TokenCacheContext,
-} from "@azure/msal-common";
+} from "../../../src/msal-common";
 import { TokenCache } from "../../../src/cache/TokenCache";
 import {
     MockCache,

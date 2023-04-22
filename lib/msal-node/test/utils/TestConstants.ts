@@ -8,7 +8,7 @@ import { AccountInfo ,
     AuthError,
     PkceCodes,
     AuthenticationResult,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 
 export const TEST_CONSTANTS = {
     APP_NAME: "MSAL Node.js Unit Test",

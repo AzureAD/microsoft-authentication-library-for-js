@@ -6,7 +6,7 @@
 import {
     CommonDeviceCodeRequest,
     DeviceCodeResponse,
-} from "@azure/msal-common";
+} from "../msal-common";
 
 /**
  * Parameters for Oauth2 device code flow.

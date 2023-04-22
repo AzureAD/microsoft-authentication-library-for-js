@@ -17,7 +17,7 @@ import {
     NativeSignOutRequest,
     AccountInfo,
     INativeBrokerPlugin,
-} from "@azure/msal-common";
+} from "../msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";

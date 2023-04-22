@@ -21,7 +21,7 @@ import {
     ScopeSet,
     ThrottlingConstants,
     TimeUtils,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import { AuthenticationResult, OnBehalfOfClient } from "../../src";
 import {
     AUTHENTICATION_RESULT,

@@ -18,7 +18,7 @@ import {
     ICrypto,
     AuthorityMetadataEntity,
     ValidCredentialType,
-} from "@azure/msal-common";
+} from "../msal-common";
 
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";

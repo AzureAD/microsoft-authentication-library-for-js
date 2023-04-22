@@ -5,7 +5,7 @@ import {
     AuthenticationResult,
     OIDC_DEFAULT_SCOPES,
     CommonClientCredentialRequest,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import { TEST_CONSTANTS } from "../utils/TestConstants";
 import {
     AuthError,
@@ -27,7 +27,7 @@ import {
 import * as msalNode from "../../src";
 import { getMsalCommonAutoMock, MSALCommonModule } from "../utils/MockUtils";
 
-const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
+const msalCommon: MSALCommonModule = jest.requireActual("../../src/msal-common");
 
 jest.mock("../../src/client/ClientCredentialClient");
 jest.mock("../../src/client/OnBehalfOfClient");

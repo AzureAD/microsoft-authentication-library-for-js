@@ -21,7 +21,7 @@ import {
     StringUtils,
     TimeUtils,
     UrlString,
-} from "@azure/msal-common";
+} from "../msal-common";
 
 /**
  * OAuth2.0 Device code client

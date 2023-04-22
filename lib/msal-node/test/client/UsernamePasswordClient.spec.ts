@@ -16,7 +16,7 @@ import {
     GrantType,
     PasswordGrantConstants,
     ThrottlingConstants,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,

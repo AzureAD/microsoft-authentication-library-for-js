@@ -16,7 +16,7 @@ import {
     RefreshTokenEntity,
     AppMetadataEntity,
     CacheManager,
-} from "@azure/msal-common";
+} from "../../msal-common";
 import {
     JsonCache,
     InMemoryCache,

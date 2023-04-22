@@ -1,4 +1,4 @@
-import { PkceCodes } from "@azure/msal-common";
+import { PkceCodes } from "../../src/msal-common";
 import { PkceGenerator } from "./../../src/crypto/PkceGenerator";
 
 describe("PkceGenerator", () => {

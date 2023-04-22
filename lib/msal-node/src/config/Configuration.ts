@@ -14,7 +14,7 @@ import {
     AzureCloudOptions,
     ApplicationTelemetry,
     INativeBrokerPlugin,
-} from "@azure/msal-common";
+} from "../msal-common";
 import { HttpClient } from "../network/HttpClient";
 import { AgentOptions as httpAgentOptions } from "http";
 import { AgentOptions as httpsAgentOptions } from "https";

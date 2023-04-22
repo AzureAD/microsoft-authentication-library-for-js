@@ -1,5 +1,5 @@
-import * as msalCommon from "@azure/msal-common";
+import * as msalCommon from "../../src/msal-common";
 export type MSALCommonModule = typeof msalCommon;
 
 export const getMsalCommonAutoMock = (): MSALCommonModule =>
-    jest.genMockFromModule("@azure/msal-common");
+    jest.genMockFromModule("../../src/msal-common");

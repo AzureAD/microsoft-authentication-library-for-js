@@ -24,7 +24,7 @@ import {
     Logger,
     LogLevel,
     TokenKeys,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import {
     AUTHENTICATION_RESULT,
     ID_TOKEN_CLAIMS,

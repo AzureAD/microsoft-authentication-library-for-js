@@ -28,7 +28,7 @@ import {
     ScopeSet,
     TimeUtils,
     UrlString,
-} from "@azure/msal-common";
+} from "../msal-common";
 
 /**
  * On-Behalf-Of client

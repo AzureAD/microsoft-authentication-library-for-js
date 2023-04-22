@@ -7,7 +7,7 @@ import {
     INetworkModule,
     NetworkRequestOptions,
     NetworkResponse,
-} from "@azure/msal-common";
+} from "../msal-common";
 import {
     HttpMethod,
     Constants,

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationCodeResponse } from "@azure/msal-common";
+import { ServerAuthorizationCodeResponse } from "../msal-common";
 
 /**
  * Interface for LoopbackClient allowing to replace the default loopback server with a custom implementation.

@@ -3,7 +3,7 @@ import {
     Logger,
     TokenCacheContext,
     ICachePlugin,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import { NodeStorage } from "../../src/cache/NodeStorage";
 import { TokenCache } from "../../src/cache/TokenCache";
 import { promises as fs } from "fs";
@@ -16,7 +16,7 @@ import { Deserializer } from "../../src/cache/serializer/Deserializer";
 import { JsonCache } from "../../src";
 import { MSALCommonModule } from "../utils/MockUtils";
 
-const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
+const msalCommon: MSALCommonModule = jest.requireActual("../../src/msal-common");
 
 describe("TokenCache tests", () => {
     let logger: Logger;

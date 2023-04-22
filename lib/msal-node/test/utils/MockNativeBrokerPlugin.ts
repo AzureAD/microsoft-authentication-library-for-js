@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, INativeBrokerPlugin } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, INativeBrokerPlugin } from "../../src/msal-common";
 import { mockNativeAuthenticationResult, mockNativeAccountInfo } from "./TestConstants";
 
 export class MockNativeBrokerPlugin implements INativeBrokerPlugin {

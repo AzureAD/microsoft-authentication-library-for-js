@@ -1,4 +1,4 @@
-import { PkceCodes } from "@azure/msal-common";
+import { PkceCodes } from "../../src/msal-common";
 import { CryptoProvider } from "./../../src/index";
 import { GuidGenerator } from "./../../src/crypto/GuidGenerator";
 

@@ -11,7 +11,7 @@ import {
     NetworkRequestOptions,
     AuthToken,
     AzureCloudInstance,
-} from "@azure/msal-common";
+} from "../../src/msal-common";
 import {
     ClientCredentialRequest,
     ConfidentialClientApplication,

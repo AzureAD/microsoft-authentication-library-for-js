@@ -10,7 +10,7 @@ import {
     RefreshTokenCache,
     AppMetadataCache,
     ValidCacheType,
-} from "@azure/msal-common";
+} from "../../msal-common";
 
 /**
  * Key value store for in-memory cache

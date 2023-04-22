@@ -7,7 +7,7 @@ import {
     Constants as CommonConstants,
     ServerAuthorizationCodeResponse,
     UrlString,
-} from "@azure/msal-common";
+} from "../msal-common";
 import { createServer, IncomingMessage, Server, ServerResponse } from "http";
 import { NodeAuthError } from "../error/NodeAuthError";
 import {
