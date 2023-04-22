@@ -56,8 +56,9 @@ jobs:
       with:
         path: |
           node_modules
+          lib/msal-common/node_modules
           lib/msal-node/node_modules
-        key: ${{ runner.os }}-node-e2e-${{matrix.node}}-${{ hashFiles('package-lock.json', 'lib/msal-node/package-lock.json') }}
+        key: ${{ runner.os }}-node-e2e-${{matrix.node}}-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
@@ -142,8 +143,9 @@ jobs:
       with:
         path: |
           node_modules
+          lib/msal-common/node_modules
           lib/msal-node/node_modules
-        key: ${{ runner.os }}-node-electron-e2e-${{ hashFiles('package-lock.json', 'lib/msal-node/package-lock.json') }}
+        key: ${{ runner.os }}-node-electron-e2e-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
