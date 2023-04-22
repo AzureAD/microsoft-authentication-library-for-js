@@ -37,7 +37,7 @@
   "buildOnSave": false,
   "references": [
     {
-      "path": "src/msal-common"
+      "path": "../msal-common"
     }
   ]
 }
