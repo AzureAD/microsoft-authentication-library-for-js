@@ -115,7 +115,7 @@ jobs:
         OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
       run: |
         pwd
-        ls -la ../../../lib/msal-node/src/msal-common
+        ls -la node_modules/@azure/msal-node/dist/msal-common
         npm test
 
     - name: Upload E2E Test Screenshots
