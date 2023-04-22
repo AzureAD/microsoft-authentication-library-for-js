@@ -9,6 +9,7 @@ on:
     types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - 'lib/msal-node/**/*'
+      - 'lib/msal-common/**/*'
       - 'samples/msal-node-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
       - 'samples/package-lock.json'
