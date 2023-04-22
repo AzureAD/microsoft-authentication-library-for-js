@@ -27,11 +27,7 @@
     "jsx": "react",
     "esModuleInterop": true,
     "suppressImplicitAnyIndexErrors": true,
-    "experimentalDecorators": true,
-    "baseUrl": ".",
-    "paths": {
-        "@azure/msal-common": ["src/msal-common"]
-    }
+    "experimentalDecorators": true
   },
   "compileOnSave": false,
   "buildOnSave": false,
