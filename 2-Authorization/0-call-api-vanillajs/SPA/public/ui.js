@@ -13,12 +13,10 @@ const todoListItems = document.getElementById('todoListItems');
 
 todoForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const account = getAccount();
     let task = {
-        owner: account.idTokenClaims?.oid,
         description: textInput.value,
     };
-    handleTodoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
+    handleToDoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
     todoForm.reset();
 });
 
@@ -31,8 +29,7 @@ function welcomeUser(username) {
     welcomeDiv.innerHTML = `Welcome ${username}!`;
 }
 
-function updateTable() {
-    const account = getAccount();
+function updateTable(account) {
     tableDiv.classList.remove('d-none');
     const tokenClaims = createClaimsTable(account.idTokenClaims);
 
@@ -47,25 +44,25 @@ function updateTable() {
     });
 }
 
-function showTodoListItems(response) {
+function showToDoListItems(response) {
     todoListItems.replaceChildren();
     tableDiv.classList.add('d-none');
     todoForm.classList.remove('d-none');
     todolistDiv.classList.remove('d-none');
     if (!!response.length) {
         response.forEach((task) => {
-            AddTaskToTodoList(task);
+            AddTaskToToDoList(task);
         });
     }
 }
 
-function AddTaskToTodoList(task) {
+function AddTaskToToDoList(task) {
     let li = document.createElement('li');
     let button = document.createElement('button');
     button.innerHTML = 'Delete';
     button.classList.add('btn', 'btn-danger');
     button.addEventListener('click', () => {
-        handleTodoListActions(task, 'DELETE', protectedResources.apiTodoList.endpoint + `/${task.id}`);
+        handleToDoListActions(task, 'DELETE', protectedResources.apiTodoList.endpoint + `/${task.id}`);
     });
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
     li.innerHTML = task.description;
