@@ -19,7 +19,6 @@ exports.postToDo = async (req, res, next) => {
         if (!!req.body.description) {
             let todoItem = {
                 description: req.body.description,
-                owner: req.session.account.idTokenClaims.oid,
             };
 
             await callEndpointWithToken(

@@ -58,14 +58,14 @@ class AuthProvider {
          * metadata discovery calls, thereby improving performance of token acquisition process.
          */
 
-        if (!msalConfig.auth.cloudDiscoveryMetadata || !msalConfig.auth.authorityMetadata) {
+        if (!this.config.msalConfig.auth.cloudDiscoveryMetadata || !this.config.msalConfig.auth.authorityMetadata) {
             const [cloudDiscoveryMetadata, authorityMetadata] = await Promise.all([
                 this.getCloudDiscoveryMetadata(),
                 this.getAuthorityMetadata(),
             ]);
 
-            msalConfig.auth.cloudDiscoveryMetadata = JSON.stringify(cloudDiscoveryMetadata);
-            msalConfig.auth.authorityMetadata = JSON.stringify(authorityMetadata);
+            this.config.msalConfig.auth.cloudDiscoveryMetadata = JSON.stringify(cloudDiscoveryMetadata);
+            this.config.msalConfig.auth.authorityMetadata = JSON.stringify(authorityMetadata);
         }
 
         const msalInstance = this.getMsalInstance(this.config.msalConfig);
@@ -221,7 +221,7 @@ class AuthProvider {
          * session with Azure AD. For more information, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
          */
-        const logoutUri = `${msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${POST_LOGOUT_REDIRECT_URI}`;
+        const logoutUri = `${this.config.msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${POST_LOGOUT_REDIRECT_URI}`;
 
         req.session.destroy(() => {
             res.redirect(logoutUri);
@@ -233,7 +233,7 @@ class AuthProvider {
      * @returns
      */
     async getAuthorityMetadata() {
-        const endpoint = `${msalConfig.auth.authority}/v2.0/.well-known/openid-configuration`;
+        const endpoint = `${this.config.msalConfig.auth.authority}/v2.0/.well-known/openid-configuration`;
         try {
             const response = await axios.get(endpoint);
             return await response.data;
@@ -248,7 +248,7 @@ class AuthProvider {
             const response = await axios.get(endpoint, {
                 params: {
                     'api-version': '1.1',
-                    authorization_endpoint: `${msalConfig.auth.authority}/oauth2/v2.0/authorize`,
+                    authorization_endpoint: `${this.config.msalConfig.auth.authority}/oauth2/v2.0/authorize`,
                 },
             });
 
