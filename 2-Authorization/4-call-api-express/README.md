@@ -281,34 +281,28 @@ If you find a bug in the sample, raise the issue on [GitHub Issues](../../../../
 
 ### CORS settings
 
-You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **TodoListAPI** in [Startup.cs](./API/TodoListAPI/Startup.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
+You need to set **cross-origin resource sharing** (CORS) policy to be able to call the **ToDoListAPI** in [Program.cs](./API/TodoListAPI/Program.cs). For the purpose of the sample, **CORS** is enabled for **all** domains and methods. This is insecure and only used for demonstration purposes here. In production, you should modify this as to allow only the domains that you designate. If your web API is going to be hosted on **Azure App Service**, we recommend configuring CORS on the App Service itself.
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
+builder.Services.AddCors(o => o.AddPolicy("default", builder =>
 {
-    // ...
-
-    services.AddCors(o => o.AddPolicy("default", builder =>
-    {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
-    }));
-}
+    builder.AllowAnyOrigin()
+           .AllowAnyMethod()
+           .AllowAnyHeader();
+}));
 ```
 
 ### Access token validation
 
-On the web API side, the `AddMicrosoftIdentityWebApiAuthentication` method in [Startup.cs](./API/TodoListAPI/Startup.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail. Simply add the following line under the `ConfigureServices` method:
+On the web API side, the `AddMicrosoftIdentityWebApi` method in [Program.cs](./API/TodoListAPI/Program.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail.
 
 ```csharp
-public void ConfigureServices(IServiceCollection services)
-{
-    // Adds Microsoft Identity platform (AAD v2.0) support to protect this Api
-    services.AddMicrosoftIdentityWebApiAuthentication(Configuration);
-
-    // ...
-}
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            .AddMicrosoftIdentityWebApi(options =>
+            {
+                builder.Configuration.Bind("AzureAd", options);
+                options.Events = new JwtBearerEvents();
+            }, options => { builder.Configuration.Bind("AzureAd", options); });
 ```
 
 For validation and debugging purposes, developers can decode **JWT**s (*JSON Web Tokens*) using [jwt.ms](https://jwt.ms).
@@ -319,75 +313,40 @@ Access tokens that have neither the **scp** (for delegated permissions) nor **ro
 
 ```csharp
 [HttpGet]
-/// <summary>
-/// An access token issued by Azure AD will have at least one of the two claims. Access tokens
-/// issued to a user will have the 'scp' claim. Access tokens issued to an application will have
-/// the roles claim. Access tokens that contain both claims are issued only to users, where the scp
-/// claim designates the delegated permissions, while the roles claim designates the user's role.
-/// </summary>
-[RequiredScopeOrAppPermission(
-    AcceptedScope = new string[] { _todoListRead, _todoListReadWrite },
-    AcceptedAppPermission = new string[] { _todoListReadAll, _todoListReadWriteAll }
-)]
-public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
-{
-    // route logic ...
-}
+    [RequiredScopeOrAppPermission(
+        RequiredScopesConfigurationKey = "AzureAD:Scopes:Read",
+        RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+    )]
+    public async Task<IActionResult> GetAsync()
+    {
+        var toDos = await _toDoContext.ToDos!
+            .Where(td => RequestCanAccessToDo(td.Owner))
+            .ToListAsync();
+        return Ok(toDos);
+    }
 ```
 
 ### Access to data
 
-Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire todolist. This is illustrated in the [TodoListController](./API/TodoListAPI/Controllers/TodoListController.cs) controller:
+Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire todolist. This is illustrated in the [TodoListController](./API/ToDoListAPI/Controllers/TodoListController.cs) controller:
 
 ```csharp
-// GET: api/TodoItems
+private bool RequestCanAccessToDo(Guid userId)
+    {
+        return IsAppMakingRequest() || (userId == GetUserId());
+    }
 [HttpGet]
-[RequiredScopeOrAppPermission(
-    AcceptedScope = new string[] { _todoListRead, _todoListReadWrite },
-    AcceptedAppPermission = new string[] { _todoListReadAll, _todoListReadWriteAll }
-)]
-public async Task<ActionResult<IEnumerable<TodoItem>>> GetTodoItems()
-{
-    if (!IsAppOnlyToken())
+    [RequiredScopeOrAppPermission(
+        RequiredScopesConfigurationKey = "AzureAD:Scopes:Read",
+        RequiredAppPermissionsConfigurationKey = "AzureAD:AppPermissions:Read"
+    )]
+    public async Task<IActionResult> GetAsync()
     {
-        /// <summary>
-        /// The 'oid' (object id) is the only claim that should be used to uniquely identify
-        /// a user in an Azure AD tenant. The token might have one or more of the following claim,
-        /// that might seem like a unique identifier, but is not and should not be used as such:
-        ///
-        /// - upn (user principal name): might be unique amongst the active set of users in a tenant
-        /// but tend to get reassigned to new employees as employees leave the organization and others
-        /// take their place or might change to reflect a personal change like marriage.
-        ///
-        /// - email: might be unique amongst the active set of users in a tenant but tend to get reassigned
-        /// to new employees as employees leave the organization and others take their place.
-        /// </summary>
-        return await _context.TodoItems.Where(x => x.Owner == HttpContext.User.GetObjectId()).ToListAsync();
+        var toDos = await _toDoContext.ToDos!
+            .Where(td => RequestCanAccessToDo(td.Owner))
+            .ToListAsync();
+        return Ok(toDos);
     }
-    else
-    {
-        return await _context.TodoItems.ToListAsync();
-    }
-}
-
-/// <summary>
-/// Indicates if the AT presented has application or delegated permissions.
-/// </summary>
-/// <returns></returns>
-private bool IsAppOnlyToken()
-{
-    // Add in the optional 'idtyp' claim to check if the access token is coming from an application or user.
-    // See: https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-optional-claims
-    if (HttpContext.User.Claims.Any(c => c.Type == "idtyp"))
-    {
-        return HttpContext.User.Claims.Any(c => c.Type == "idtyp" && c.Value == "app");
-    }
-    else
-    {
-        // alternatively, if an AT contains the roles claim but no scp claim, that indicates it's an app token
-        return HttpContext.User.Claims.Any(c => c.Type == "roles") && HttpContext.User.Claims.Any(c => c.Type != "scp");
-    }
-}
 ```
 
 When granting access to data based on scopes, be sure to follow [the principle of least privilege](https://docs.microsoft.com/azure/active-directory/develop/secure-least-privileged-access).

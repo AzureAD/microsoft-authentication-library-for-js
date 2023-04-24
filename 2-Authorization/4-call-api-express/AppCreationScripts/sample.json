@@ -19,17 +19,17 @@
             "Kind": "WebApi",
             "Audience": "AzureADMyOrg",
             "SDK": "MicrosoftIdentityWeb",
-            "SampleSubPath": "2-Authorization\\4-call-api-express\\API\\TodoListAPI",
-            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "SampleSubPath": "2-Authorization\\4-call-api-express\\API\\ToDoListAPI",
+            "Scopes": ["ToDoList.Read", "ToDoList.ReadWrite"],
             "AppRoles": [
                 {
                     "AllowedMemberTypes": ["Application"],
-                    "Name": "TodoList.Read.All",
+                    "Name": "ToDoList.Read.All",
                     "Description": "Allow this application to read every users TodoList items"
                 },
                 {
                     "AllowedMemberTypes": ["Application"],
-                    "Name": "TodoList.ReadWrite.All",
+                    "Name": "ToDoList.ReadWrite.All",
                     "Description": "Allow this application to read and write every users TodoList items"
                 }
             ],
@@ -54,7 +54,7 @@
                 },
                 {
                     "Resource": "service",
-                    "DelegatedPermissions": ["TodoList.Read", "TodoList.ReadWrite"]
+                    "DelegatedPermissions": ["ToDoList.Read", "ToDoList.ReadWrite"]
                 }
             ],
             "ManualSteps": [
@@ -68,7 +68,7 @@
         {
             "App": "service",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "SettingFile": "\\..\\API\\ToDoListAPI\\appsettings.json",
             "Mappings": [
                 {
                     "key": "Enter the Client ID (aka 'Application ID')",
