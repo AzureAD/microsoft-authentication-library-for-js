@@ -29,7 +29,9 @@ export default [
         },
         external: [
             ...Object.keys(pkg.dependencies || {}),
-            ...Object.keys(pkg.peerDependencies || {})
+            ...Object.keys(pkg.peerDependencies || {}),
+            ...Object.keys(pkg.bundledDependencies || {}),
+
         ],
         plugins: [
             typescript({
@@ -57,7 +59,8 @@ export default [
         },
         external: [
             ...Object.keys(pkg.dependencies || {}),
-            ...Object.keys(pkg.peerDependencies || {})
+            ...Object.keys(pkg.peerDependencies || {}),
+            ...Object.keys(pkg.bundledDependencies || {}),
         ],
         plugins: [
             typescript({
