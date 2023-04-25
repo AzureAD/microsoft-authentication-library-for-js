@@ -13,14 +13,32 @@
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
         "esModuleInterop": true,
-        "resolveJsonModule": true
+        "resolveJsonModule": true,
+        "strictPropertyInitialization": false,
+        "rootDirs": [
+            "./",
+            "../msal-common"
+        ],
+        "baseUrl": "./",
+        "paths": {
+            "*": [
+                "src/*",
+                "node_modules/"
+            ],
+            "@azure/msal-common": [
+                "../msal-common/src"
+            ]
+        }
     },
     "references": [
         {
             "path": "../msal-common"
         }
     ],
-    "include": ["src", "test"],
+    "include": [
+        "src",
+        "test"
+    ],
     "exclude": [
         "node_modules"
     ],
