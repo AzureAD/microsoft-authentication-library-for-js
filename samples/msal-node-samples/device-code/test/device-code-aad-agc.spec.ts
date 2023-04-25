@@ -13,7 +13,7 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
  } from "../../testUtils";
-import { Configuration, PublicClientApplication } from "../../../../lib/msal-node";
+import { Configuration, PublicClientApplication } from "@azure/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
 
 // Set test cache name/location

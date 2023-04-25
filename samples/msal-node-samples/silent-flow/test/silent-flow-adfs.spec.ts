@@ -19,7 +19,7 @@ import {
     validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
 
-import { PublicClientApplication, TokenCache } from "../../../../lib/msal-node/dist";
+import { PublicClientApplication, TokenCache } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;

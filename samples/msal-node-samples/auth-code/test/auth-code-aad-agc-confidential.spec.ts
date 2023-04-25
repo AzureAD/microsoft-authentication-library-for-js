@@ -12,7 +12,7 @@ import {
     validateCacheLocation,
     SAMPLE_HOME_URL
  } from "../../testUtils";
-import { ConfidentialClientApplication } from "../../../../lib/msal-node";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
 
 // Set test cache name/location

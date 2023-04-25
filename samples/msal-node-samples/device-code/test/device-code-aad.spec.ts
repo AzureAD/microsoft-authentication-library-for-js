@@ -17,7 +17,7 @@ import {
     validateCacheLocation
  } from "../../testUtils";
 
-import { Configuration, PublicClientApplication } from "../../../../lib/msal-node";
+import { Configuration, PublicClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;

@@ -47,6 +47,8 @@ export {
     SerializedAppMetadataEntity,
     SerializedRefreshTokenEntity,
 } from "./cache/serializer/SerializerTypes";
+export { Serializer } from "./cache/serializer/Serializer";
+export { Deserializer } from "./cache/serializer/Deserializer";
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";
 
 // Crypto

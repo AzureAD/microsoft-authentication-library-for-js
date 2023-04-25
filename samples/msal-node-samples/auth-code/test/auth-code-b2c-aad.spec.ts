@@ -21,7 +21,7 @@ import {
     SAMPLE_HOME_URL
  } from "../../testUtils";
 
-import { PublicClientApplication } from "../../../../lib/msal-node/dist";
+import { PublicClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/b2c-aad.cache.json`;

@@ -22,7 +22,7 @@ import {
     SAMPLE_HOME_URL
 } from "../../testUtils";
 
-import { ConfidentialClientApplication } from "../../../../lib/msal-node/dist";
+import { ConfidentialClientApplication } from "@azure/msal-node";
 
 // Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/../data/b2c-local.cache.json`;

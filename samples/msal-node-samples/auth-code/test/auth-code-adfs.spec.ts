@@ -10,7 +10,7 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
  } from "../../testUtils";
-import { PublicClientApplication } from "../../../../lib/msal-node/";
+import { PublicClientApplication } from "@azure/msal-node";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
 

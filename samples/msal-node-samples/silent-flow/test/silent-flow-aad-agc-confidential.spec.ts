@@ -15,7 +15,7 @@ import {
     SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation,
     SUCCESSFUL_SILENT_TOKEN_ACQUISITION_ID} from "../../testUtils";
-import { ConfidentialClientApplication, TokenCache } from "../../../../lib/msal-node";
+import { ConfidentialClientApplication, TokenCache } from "@azure/msal-node";
 import { getKeyVaultSecretClient, getCredentials } from "../../../e2eTestUtils/KeyVaultUtils";
 
 // Set test cache name/location
