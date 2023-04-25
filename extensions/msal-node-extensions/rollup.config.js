@@ -6,7 +6,6 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import pkg from "./package.json";
-import { typescriptPaths } from 'rollup-plugin-typescript-paths';
 
 const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split("T")[0]} */`;
 const useStrictHeader = "'use strict';";
@@ -38,8 +37,7 @@ export default [
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
             }),
-            nodeResolve(),
-            typescriptPaths()
+            nodeResolve()
         ]
     },
     {
@@ -67,8 +65,7 @@ export default [
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
             }),
-            nodeResolve(),
-            typescriptPaths()
+            nodeResolve()
         ]
     }
 ];
