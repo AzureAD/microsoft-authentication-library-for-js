@@ -14,8 +14,8 @@ describe("PkceGenerator.ts Unit Tests", () => {
         //@ts-ignore
         window.crypto = {
             ...oldWindowCrypto,
-            ...msrCrypto
-        }
+            ...msrCrypto,
+        };
     });
 
     afterEach(() => {
@@ -26,9 +26,14 @@ describe("PkceGenerator.ts Unit Tests", () => {
 
     it("generateCodes() generates valid pkce codes", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
-            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
-        });
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+            //@ts-ignore
+            (data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            }
+        );
         const browserCrypto = new BrowserCrypto(new Logger({}));
 
         const pkceGenerator = new PkceGenerator(browserCrypto);
@@ -37,7 +42,8 @@ describe("PkceGenerator.ts Unit Tests", () => {
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         for (let i = 0; i < NUM_TESTS; i++) {
-            const generatedCodes: PkceCodes = await pkceGenerator.generateCodes();
+            const generatedCodes: PkceCodes =
+                await pkceGenerator.generateCodes();
             expect(regExp.test(generatedCodes.challenge)).toBe(true);
             expect(regExp.test(generatedCodes.verifier)).toBe(true);
         }
@@ -45,11 +51,23 @@ describe("PkceGenerator.ts Unit Tests", () => {
 
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
-            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
-        });
-        jest.spyOn(MsBrowserCrypto.prototype, "getRandomValues").mockImplementation((data: Uint8Array) => msrCrypto.getRandomValues(data));
-        jest.spyOn(BrowserCrypto.prototype, <any>"hasIECrypto").mockReturnValue(true);
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation(
+            //@ts-ignore
+            (data: Uint8Array): Promise<ArrayBuffer> => {
+                return Promise.resolve(
+                    createHash("SHA256").update(Buffer.from(data)).digest()
+                );
+            }
+        );
+        jest.spyOn(
+            MsBrowserCrypto.prototype,
+            "getRandomValues"
+        ).mockImplementation((data: Uint8Array) =>
+            msrCrypto.getRandomValues(data)
+        );
+        jest.spyOn(BrowserCrypto.prototype, <any>"hasIECrypto").mockReturnValue(
+            true
+        );
         const browserCrypto = new BrowserCrypto(new Logger({}));
 
         const pkceGenerator = new PkceGenerator(browserCrypto);
@@ -58,7 +76,8 @@ describe("PkceGenerator.ts Unit Tests", () => {
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         for (let i = 0; i < NUM_TESTS; i++) {
-            const generatedCodes: PkceCodes = await pkceGenerator.generateCodes();
+            const generatedCodes: PkceCodes =
+                await pkceGenerator.generateCodes();
             expect(regExp.test(generatedCodes.challenge)).toBe(true);
             expect(regExp.test(generatedCodes.verifier)).toBe(true);
         }

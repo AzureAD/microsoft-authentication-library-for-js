@@ -19,11 +19,11 @@ import { FileSystemUtils } from '../util/FileSystemUtils';
 
 describe('Persistence Creator', () => {
     afterAll(() => {
-        FileSystemUtils.cleanUpFile("./test.json");
+        FileSystemUtils.cleanUpFile("./creator-test.json");
     });
 
     const persistenceConfig: IPersistenceConfiguration = {
-        cachePath: "./test.json",
+        cachePath: "./creator-test.json",
         dataProtectionScope: DataProtectionScope.CurrentUser,
         serviceName: "serviceName",
         accountName: "accountName",

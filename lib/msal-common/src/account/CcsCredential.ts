@@ -4,11 +4,11 @@
  */
 
 export type CcsCredential = {
-    credential: string,
-    type: CcsCredentialType
+    credential: string;
+    type: CcsCredentialType;
 };
 
 export enum CcsCredentialType {
     HOME_ACCOUNT_ID = "home_account_id",
-    UPN = "UPN"
+    UPN = "UPN",
 }

@@ -3,7 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
+import {
+    Constants,
+    INetworkModule,
+    NetworkRequestOptions,
+    NetworkResponse,
+} from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
@@ -11,23 +16,28 @@ import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
  * This class implements the Fetch API for GET and POST requests. See more here: https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API
  */
 export class FetchClient implements INetworkModule {
-
     /**
      * Fetch Client for REST endpoints - Get request
-     * @param url 
-     * @param headers 
-     * @param body 
+     * @param url
+     * @param headers
+     * @param body
      */
-    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    async sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
         let response;
         try {
             response = await fetch(url, {
                 method: HTTP_REQUEST_TYPE.GET,
-                headers: this.getFetchHeaders(options)
+                headers: this.getFetchHeaders(options),
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createGetRequestFailedError(e, url);
+                throw BrowserAuthError.createGetRequestFailedError(
+                    e as string,
+                    url
+                );
             } else {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }
@@ -36,8 +46,8 @@ export class FetchClient implements INetworkModule {
         try {
             return {
                 headers: this.getHeaderDict(response.headers),
-                body: await response.json() as T,
-                status: response.status
+                body: (await response.json()) as T,
+                status: response.status,
             };
         } catch (e) {
             throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
@@ -46,11 +56,14 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Fetch Client for REST endpoints - Post request
-     * @param url 
-     * @param headers 
-     * @param body 
+     * @param url
+     * @param headers
+     * @param body
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    async sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || Constants.EMPTY_STRING;
 
         let response;
@@ -58,11 +71,14 @@ export class FetchClient implements INetworkModule {
             response = await fetch(url, {
                 method: HTTP_REQUEST_TYPE.POST,
                 headers: this.getFetchHeaders(options),
-                body: reqBody
+                body: reqBody,
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createPostRequestFailedError(e, url);
+                throw BrowserAuthError.createPostRequestFailedError(
+                    e as string,
+                    url
+                );
             } else {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }
@@ -71,8 +87,8 @@ export class FetchClient implements INetworkModule {
         try {
             return {
                 headers: this.getHeaderDict(response.headers),
-                body: await response.json() as T,
-                status: response.status
+                body: (await response.json()) as T,
+                status: response.status,
             };
         } catch (e) {
             throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
@@ -81,7 +97,7 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Get Fetch API Headers object from string map
-     * @param inputHeaders 
+     * @param inputHeaders
      */
     private getFetchHeaders(options?: NetworkRequestOptions): Headers {
         const headers = new Headers();

@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Unit tests for broker flow #5910",
+  "packageName": "@azure/msal-node",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}

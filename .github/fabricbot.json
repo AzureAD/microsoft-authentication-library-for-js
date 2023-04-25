@@ -1045,12 +1045,21 @@
               }
             },
             {
-              "name": "prMatchesPattern",
-              "parameters": {
-                "pathFilter": "**.md",
-                "exclude": [],
-                "matchRegex": "lib\\/.*\\/src\\/"
-              }
+              "operator": "or",
+              "operands": [
+                {
+                  "name": "prMatchesPattern",
+                  "parameters": {
+                    "matchRegex": "lib\\/.*\\/src\\/"
+                  }
+                },
+                {
+                  "name": "prMatchesPattern",
+                  "parameters": {
+                    "matchRegex": "extensions\\/.*\\/src\\/"
+                  }
+                }
+              ]
             }
           ]
         },

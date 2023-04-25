@@ -1,24 +1,41 @@
 {
-  "include": ["src", "test"],
+  "extends": "../../tsconfig.json",
+  "include": [
+    "src",
+    "test"
+  ],
   "compilerOptions": {
     "module": "esnext",
+    "target": "es2020",
     "moduleResolution": "node",
-    "lib": ["dom", "esnext"],
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "./",
+    "rootDirs": [
+      "./",
+      "../../lib/msal-common"
+    ],
+    "outDir": "./dist",
     "noUnusedLocals": true,
     "baseUrl": "./",
     "paths": {
-      "*": ["src/*", "node_modules/*", "build/"]
+      "*": [
+        "src/*",
+        "node_modules/*",
+        "build/"
+      ],
+      "@azure/msal-common": ["../../lib/msal-common/src"]
     },
     "jsx": "react",
     "esModuleInterop": true
   },
   "references": [
     {
-        "path": "../../lib/msal-common"
+      "path": "../../lib/msal-common"
     }
   ]
 }

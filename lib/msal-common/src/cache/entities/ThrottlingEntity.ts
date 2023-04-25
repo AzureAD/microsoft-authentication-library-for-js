@@ -20,12 +20,12 @@ export class ThrottlingEntity {
      * @param entity
      */
     static isThrottlingEntity(key: string, entity?: object): boolean {
-        
         let validateKey: boolean = false;
         if (key) {
-            validateKey = key.indexOf(ThrottlingConstants.THROTTLING_PREFIX) === 0;
+            validateKey =
+                key.indexOf(ThrottlingConstants.THROTTLING_PREFIX) === 0;
         }
-        
+
         let validateEntity: boolean = true;
         if (entity) {
             validateEntity = entity.hasOwnProperty("throttleTime");

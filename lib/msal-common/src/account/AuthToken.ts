@@ -13,7 +13,6 @@ import { ICrypto } from "../crypto/ICrypto";
  * JWT Token representation class. Parses token string and generates claims object.
  */
 export class AuthToken {
-
     // Raw Token string
     rawToken: string;
     // Claims inside token
@@ -32,9 +31,12 @@ export class AuthToken {
      *
      * @param encodedToken
      */
-    static extractTokenClaims(encodedToken: string, crypto: ICrypto): TokenClaims {
-
-        const decodedToken: DecodedAuthToken = StringUtils.decodeAuthToken(encodedToken);
+    static extractTokenClaims(
+        encodedToken: string,
+        crypto: ICrypto
+    ): TokenClaims {
+        const decodedToken: DecodedAuthToken =
+            StringUtils.decodeAuthToken(encodedToken);
 
         // token will be decoded to get the username
         try {
@@ -44,7 +46,7 @@ export class AuthToken {
             const base64Decoded = crypto.base64Decode(base64TokenPayload);
             return JSON.parse(base64Decoded) as TokenClaims;
         } catch (err) {
-            throw ClientAuthError.createTokenParsingError(err);
+            throw ClientAuthError.createTokenParsingError(err as string);
         }
     }
 
@@ -58,7 +60,7 @@ export class AuthToken {
          * provide a value of 0 for the max_age parameter and the AS will force a fresh login.
          */
         const fiveMinuteSkew = 300000; // five minutes in milliseconds
-        if ((maxAge === 0) || ((Date.now() - fiveMinuteSkew) > (authTime + maxAge))) {
+        if (maxAge === 0 || Date.now() - fiveMinuteSkew > authTime + maxAge) {
             throw ClientAuthError.createMaxAgeTranspiredError();
         }
     }

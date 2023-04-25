@@ -15,11 +15,13 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_UTID: "456-test-utid",
     TEST_UTID_ENCODED: "NDU2LXRlc3QtdXRpZA==",
     TEST_UTID_URLENCODED: "NDU2LXRlc3QtdXRpZA",
-    TEST_DECODED_CLIENT_INFO: "{\"uid\":\"123-test-uid\",\"utid\":\"456-test-utid\"}",
-    TEST_INVALID_JSON_CLIENT_INFO: "{\"uid\":\"123-test-uid\"\"utid\":\"456-test-utid\"}",
-    TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
+    TEST_DECODED_CLIENT_INFO: '{"uid":"123-test-uid","utid":"456-test-utid"}',
+    TEST_INVALID_JSON_CLIENT_INFO:
+        '{"uid":"123-test-uid""utid":"456-test-utid"}',
+    TEST_RAW_CLIENT_INFO:
+        "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
-    TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA=="
+    TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
 };
 
 export const testAccount: AccountInfo = {
@@ -28,7 +30,7 @@ export const testAccount: AccountInfo = {
     environment: "login.windows.net",
     tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
     username: "example@microsoft.com",
-    name: "Abe Lincoln"
+    name: "Abe Lincoln",
 };
 
 export const testResult: AuthenticationResult = {
@@ -41,7 +43,7 @@ export const testResult: AuthenticationResult = {
     accessToken: "test-access-token",
     fromCache: false,
     correlationId: "test-correlation-id",
-    expiresOn: new Date(Date.now() + (3600000)),
+    expiresOn: new Date(Date.now() + 3600000),
     account: testAccount,
-    tokenType: "Bearer"
+    tokenType: "Bearer",
 };

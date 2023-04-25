@@ -6,8 +6,8 @@
         "compilerOptions": {
             "moduleResolution": "node",
             "module": "commonjs",
-            "target": "es5",
-            "lib": ["es2015", "dom", "es2015.promise"],
+            "target": "es2020",
+            "lib": ["es2020", "dom", "es2020.promise"],
             "outDir": "./dist",
             "esModuleInterop": true,
             "resolveJsonModule": true,
@@ -24,12 +24,12 @@
     },
     "compilerOptions": {
         "moduleResolution": "node",
-        "module": "es6",
-        "target": "es5",
+        "module": "es2020",
+        "target": "es2020",
         "lib": [
-            "es2015",
+            "es2020",
             "dom",
-            "es2015.promise"
+            "es2020.promise"
         ],
         "outDir": "./dist",
         "allowUnusedLabels": false,

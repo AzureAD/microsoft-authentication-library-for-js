@@ -45,7 +45,7 @@ export type NativeExtensionRequestBody = {
  */
 export type NativeExtensionRequest = {
     channel: string;
-    responseId: number;
+    responseId: string;
     extensionId?: string;
-    body: NativeExtensionRequestBody
+    body: NativeExtensionRequestBody;
 };

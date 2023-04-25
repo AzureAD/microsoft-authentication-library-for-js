@@ -52,8 +52,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         rtEntity.secret = refreshToken;
         rtEntity.userAssertionHash = userAssertionHash;
 
-        if (familyId)
-            rtEntity.familyId = familyId;
+        if (familyId) rtEntity.familyId = familyId;
 
         return rtEntity;
     }
@@ -63,7 +62,6 @@ export class RefreshTokenEntity extends CredentialEntity {
      * @param entity
      */
     static isRefreshTokenEntity(entity: object): boolean {
-
         if (!entity) {
             return false;
         }

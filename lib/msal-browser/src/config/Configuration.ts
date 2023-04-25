@@ -3,9 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions, ApplicationTelemetry } from "@azure/msal-common";
+import {
+    SystemOptions,
+    LoggerOptions,
+    INetworkModule,
+    DEFAULT_SYSTEM_OPTIONS,
+    Constants,
+    ProtocolMode,
+    LogLevel,
+    StubbedNetworkModule,
+    AzureCloudInstance,
+    AzureCloudOptions,
+    ApplicationTelemetry,
+} from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserCacheLocation, BrowserConstants } from "../utils/BrowserConstants";
+import {
+    BrowserCacheLocation,
+    BrowserConstants,
+} from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
 
@@ -74,9 +89,13 @@ export type BrowserAuthOptions = {
  */
 export type CacheOptions = {
     /**
-     * Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
+     * Used to specify the cacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
      */
     cacheLocation?: BrowserCacheLocation | string;
+    /**
+     * Used to specify the temporaryCacheLocation user wants to set. Valid values are "localStorage", "sessionStorage" and "memoryStorage".
+     */
+    temporaryCacheLocation?: BrowserCacheLocation | string;
     /**
      * If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
      */
@@ -151,13 +170,12 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type CryptoOptions = {
-    
     /**
      * Enables the application to use the MSR Crypto interface, if available (and other interfaces are not)
      * @type {?boolean}
      */
     useMsrCrypto?: boolean;
-     
+
     /**
      * Entropy to seed browser crypto API (needed for MSR Crypto). Must be cryptographically strong random numbers (e.g. crypto.randomBytes(48) from Node)
      * @type {?Uint8Array}
@@ -184,26 +202,26 @@ export type Configuration = {
     /**
      * This is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
      */
-    auth: BrowserAuthOptions,
+    auth: BrowserAuthOptions;
     /**
      * This is where you configure cache location and whether to store cache in cookies
      */
-    cache?: CacheOptions,
+    cache?: CacheOptions;
     /**
      * This is where you can configure the network client, logger, token renewal offset
      */
-    system?: BrowserSystemOptions,
+    system?: BrowserSystemOptions;
     /**
      * This is where you can configure telemetry data and options
      */
-    telemetry?: BrowserTelemetryOptions
+    telemetry?: BrowserTelemetryOptions;
 };
 
 export type BrowserConfiguration = {
-    auth: Required<BrowserAuthOptions>,
-    cache: Required<CacheOptions>,
-    system: Required<BrowserSystemOptions>,
-    telemetry: Required<BrowserTelemetryOptions>
+    auth: Required<BrowserAuthOptions>;
+    cache: Required<CacheOptions>;
+    system: Required<BrowserSystemOptions>;
+    telemetry: Required<BrowserTelemetryOptions>;
 };
 
 /**
@@ -215,8 +233,15 @@ export type BrowserConfiguration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, telemetry: userInputTelemetry }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
-
+export function buildConfiguration(
+    {
+        auth: userInputAuth,
+        cache: userInputCache,
+        system: userInputSystem,
+        telemetry: userInputTelemetry,
+    }: Configuration,
+    isBrowserEnvironment: boolean
+): BrowserConfiguration {
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
         clientId: Constants.EMPTY_STRING,
@@ -231,7 +256,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         protocolMode: ProtocolMode.AAD,
         azureCloudOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: Constants.EMPTY_STRING
+            tenant: Constants.EMPTY_STRING,
         },
         skipAuthorityMetadataCache: false,
     };
@@ -239,63 +264,74 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
+        temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
         secureCookies: false,
         // Default cache migration to true if cache location is localStorage since entries are preserved across tabs/windows. Migration has little to no benefit in sessionStorage and memoryStorage
-        cacheMigrationEnabled: userInputCache && userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage ? true : false
+        cacheMigrationEnabled:
+            userInputCache &&
+            userInputCache.cacheLocation === BrowserCacheLocation.LocalStorage
+                ? true
+                : false,
     };
 
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
         // eslint-disable-next-line @typescript-eslint/no-empty-function
         loggerCallback: (): void => {
-            // allow users to not set logger call back 
+            // allow users to not set logger call back
         },
         logLevel: LogLevel.Info,
-        piiLoggingEnabled: false
+        piiLoggingEnabled: false,
     };
 
     // Default system options for browser
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
-        networkClient: isBrowserEnvironment ? BrowserUtils.getBrowserNetworkClient() : StubbedNetworkModule,
+        networkClient: isBrowserEnvironment
+            ? BrowserUtils.getBrowserNetworkClient()
+            : StubbedNetworkModule,
         navigationClient: new NavigationClient(),
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
-        windowHashTimeout: userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
-        iframeHashTimeout: userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait: isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        windowHashTimeout:
+            userInputSystem?.loadFrameTimeout || DEFAULT_POPUP_TIMEOUT_MS,
+        iframeHashTimeout:
+            userInputSystem?.loadFrameTimeout || DEFAULT_IFRAME_TIMEOUT_MS,
+        navigateFrameWait:
+            isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false,
-        allowNativeBroker: false,
-        nativeBrokerHandshakeTimeout: userInputSystem?.nativeBrokerHandshakeTimeout || DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
+        allowNativeBroker: true,
+        nativeBrokerHandshakeTimeout:
+            userInputSystem?.nativeBrokerHandshakeTimeout ||
+            DEFAULT_NATIVE_BROKER_HANDSHAKE_TIMEOUT_MS,
         pollIntervalMilliseconds: BrowserConstants.DEFAULT_POLL_INTERVAL_MS,
         cryptoOptions: {
             useMsrCrypto: false,
-            entropy: undefined
-        }
+            entropy: undefined,
+        },
     };
 
-    const providedSystemOptions:BrowserSystemOptions = {
+    const providedSystemOptions: BrowserSystemOptions = {
         ...userInputSystem,
-        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS
+        loggerOptions: userInputSystem?.loggerOptions || DEFAULT_LOGGER_OPTIONS,
     };
 
     const DEFAULT_TELEMETRY_OPTIONS: Required<BrowserTelemetryOptions> = {
         application: {
             appName: Constants.EMPTY_STRING,
-            appVersion: Constants.EMPTY_STRING
-        }
+            appVersion: Constants.EMPTY_STRING,
+        },
     };
 
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...providedSystemOptions },
-        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry }
+        telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...userInputTelemetry },
     };
     return overlayedConfig;
 }
-

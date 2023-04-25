@@ -14,7 +14,6 @@ import { AADAuthorityConstants, Constants } from "../utils/Constants";
  * Url object class which can perform various transformations on url strings.
  */
 export class UrlString {
-
     // internal url string field
     private _urlString: string;
     public get urlString(): string {
@@ -66,17 +65,24 @@ export class UrlString {
         try {
             components = this.getUrlComponents();
         } catch (e) {
-            throw ClientConfigurationError.createUrlParseError(e);
+            throw ClientConfigurationError.createUrlParseError(e as string);
         }
 
         // Throw error if URI or path segments are not parseable.
         if (!components.HostNameAndPort || !components.PathSegments) {
-            throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
+            throw ClientConfigurationError.createUrlParseError(
+                `Given url string: ${this.urlString}`
+            );
         }
 
         // Throw error if uri is insecure.
-        if(!components.Protocol || components.Protocol.toLowerCase() !== "https:") {
-            throw ClientConfigurationError.createInsecureAuthorityUriError(this.urlString);
+        if (
+            !components.Protocol ||
+            components.Protocol.toLowerCase() !== "https:"
+        ) {
+            throw ClientConfigurationError.createInsecureAuthorityUriError(
+                this.urlString
+            );
         }
     }
 
@@ -90,7 +96,9 @@ export class UrlString {
             return url;
         }
 
-        return url.indexOf("?") < 0 ? `${url}?${queryString}` : `${url}&${queryString}`;
+        return url.indexOf("?") < 0
+            ? `${url}?${queryString}`
+            : `${url}&${queryString}`;
     }
 
     /**
@@ -109,7 +117,12 @@ export class UrlString {
     replaceTenantPath(tenantId: string): UrlString {
         const urlObject = this.getUrlComponents();
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === AADAuthorityConstants.COMMON || pathArray[0] === AADAuthorityConstants.ORGANIZATIONS))) {
+        if (
+            tenantId &&
+            pathArray.length !== 0 &&
+            (pathArray[0] === AADAuthorityConstants.COMMON ||
+                pathArray[0] === AADAuthorityConstants.ORGANIZATIONS)
+        ) {
             pathArray[0] = tenantId;
         }
         return UrlString.constructAuthorityUriFromObject(urlObject);
@@ -128,12 +141,16 @@ export class UrlString {
      */
     getUrlComponents(): IUri {
         // https://gist.github.com/curtisz/11139b2cfcaef4a261e0
-        const regEx = RegExp("^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?");
+        const regEx = RegExp(
+            "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?"
+        );
 
         // If url string does not match regEx, we throw an error
         const match = this.urlString.match(regEx);
         if (!match) {
-            throw ClientConfigurationError.createUrlParseError(`Given url string: ${this.urlString}`);
+            throw ClientConfigurationError.createUrlParseError(
+                `Given url string: ${this.urlString}`
+            );
         }
 
         // Url component object
@@ -141,15 +158,21 @@ export class UrlString {
             Protocol: match[1],
             HostNameAndPort: match[4],
             AbsolutePath: match[5],
-            QueryString: match[7]
+            QueryString: match[7],
         } as IUri;
 
         let pathSegments = urlComponents.AbsolutePath.split("/");
         pathSegments = pathSegments.filter((val) => val && val.length > 0); // remove empty elements
         urlComponents.PathSegments = pathSegments;
 
-        if (!StringUtils.isEmpty(urlComponents.QueryString) && urlComponents.QueryString.endsWith("/")) {
-            urlComponents.QueryString = urlComponents.QueryString.substring(0, urlComponents.QueryString.length-1);
+        if (
+            !StringUtils.isEmpty(urlComponents.QueryString) &&
+            urlComponents.QueryString.endsWith("/")
+        ) {
+            urlComponents.QueryString = urlComponents.QueryString.substring(
+                0,
+                urlComponents.QueryString.length - 1
+            );
         }
         return urlComponents;
     }
@@ -160,7 +183,9 @@ export class UrlString {
         const match = url.match(regEx);
 
         if (!match) {
-            throw ClientConfigurationError.createUrlParseError(`Given url string: ${url}`);
+            throw ClientConfigurationError.createUrlParseError(
+                `Given url string: ${url}`
+            );
         }
 
         return match[2];
@@ -171,7 +196,12 @@ export class UrlString {
             const url = new UrlString(baseUrl);
             const baseComponents = url.getUrlComponents();
 
-            return baseComponents.Protocol + "//" + baseComponents.HostNameAndPort + relativeUrl;
+            return (
+                baseComponents.Protocol +
+                "//" +
+                baseComponents.HostNameAndPort +
+                relativeUrl
+            );
         }
 
         return relativeUrl;
@@ -208,7 +238,13 @@ export class UrlString {
     }
 
     static constructAuthorityUriFromObject(urlObject: IUri): UrlString {
-        return new UrlString(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + urlObject.PathSegments.join("/"));
+        return new UrlString(
+            urlObject.Protocol +
+                "//" +
+                urlObject.HostNameAndPort +
+                "/" +
+                urlObject.PathSegments.join("/")
+        );
     }
 
     /**
@@ -222,10 +258,15 @@ export class UrlString {
         // Strip the # symbol if present
         const parsedHash = UrlString.parseHash(hash);
         // If # symbol was not present, above will return empty string, so give original hash value
-        const deserializedHash: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedHash) ? hash : parsedHash);
+        const deserializedHash: ServerAuthorizationCodeResponse =
+            StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(
+                StringUtils.isEmpty(parsedHash) ? hash : parsedHash
+            );
         // Check if deserialization didn't work
         if (!deserializedHash) {
-            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedHash));
+            throw ClientAuthError.createHashNotDeserializedError(
+                JSON.stringify(deserializedHash)
+            );
         }
         return deserializedHash;
     }
@@ -233,7 +274,9 @@ export class UrlString {
     /**
      * Returns URL query string as server auth code response object.
      */
-    static getDeserializedQueryString(query: string): ServerAuthorizationCodeResponse {
+    static getDeserializedQueryString(
+        query: string
+    ): ServerAuthorizationCodeResponse {
         // Check if given query is empty
         if (StringUtils.isEmpty(query)) {
             return {};
@@ -241,10 +284,17 @@ export class UrlString {
         // Strip the ? symbol if present
         const parsedQueryString = UrlString.parseQueryString(query);
         // If ? symbol was not present, above will return empty string, so give original query value
-        const deserializedQueryString: ServerAuthorizationCodeResponse = StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(StringUtils.isEmpty(parsedQueryString) ? query : parsedQueryString);
+        const deserializedQueryString: ServerAuthorizationCodeResponse =
+            StringUtils.queryStringToObject<ServerAuthorizationCodeResponse>(
+                StringUtils.isEmpty(parsedQueryString)
+                    ? query
+                    : parsedQueryString
+            );
         // Check if deserialization didn't work
         if (!deserializedQueryString) {
-            throw ClientAuthError.createHashNotDeserializedError(JSON.stringify(deserializedQueryString));
+            throw ClientAuthError.createHashNotDeserializedError(
+                JSON.stringify(deserializedQueryString)
+            );
         }
         return deserializedQueryString;
     }
@@ -258,7 +308,8 @@ export class UrlString {
             return false;
         }
 
-        const parameters: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+        const parameters: ServerAuthorizationCodeResponse =
+            UrlString.getDeserializedHash(hash);
         return !!(
             parameters.code ||
             parameters.error_description ||

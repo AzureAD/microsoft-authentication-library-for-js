@@ -109,6 +109,22 @@ const cca = new ConfidentialClientApplication({
 
 > *Note: dSTS supports both Public and Confidential Client applications.*
 
+### CIAM 
+
+Azure Active Directory (Azure AD) is adding support to customer identity access management (CIAM) solution that lets you create secure, customized sign-in experiences for your customer-facing apps and services. With these built-in CIAM features, Azure AD can serve as the identity provider and access management service for your customer scenarios.
+
+The CIAM authority format is still in the process of standardization. It is determined to be split from AAD and currently supported in the below formats:
+- https://tenantName.ciamlogin.com/tenant
+- https://tenantName.ciamlogin.com
+
+Where `tenant` would mean:
+
+- tenantName.microsoft.com
+- GUID (tenantId)
+- a verified domain for the tenant
+
+Note: MSAL JS currently is previeing the `CIAM` support. This is an emerging space and there could be some changes to the support until we GA the feature.
+
 ### Other OIDC-compliant IdPs
 
 MSAL can be configured to acquire tokens from any OIDC-compliant IdP. See [initialization](../../msal-browser/docs/initialization.md#optional-configure-authority) for more.

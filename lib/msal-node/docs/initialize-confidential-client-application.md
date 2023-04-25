@@ -62,4 +62,4 @@ For more information on authority, please refer to: [Authority in MSAL](../../ms
 [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) has more options which are documented [here](./configuration.md).
 
 ## Next Steps
-Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](../../msal-common/docs/request.md)
+Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](request.md)

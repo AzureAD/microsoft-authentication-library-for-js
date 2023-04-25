@@ -15,7 +15,6 @@ import { IPerformanceClient } from "../telemetry/performance/IPerformanceClient"
 import { PerformanceEvents } from "../telemetry/performance/PerformanceEvent";
 
 export class AuthorityFactory {
-
     /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (i.e. aad, b2c, adfs)
@@ -35,25 +34,36 @@ export class AuthorityFactory {
         performanceClient?: IPerformanceClient,
         correlationId?: string
     ): Promise<Authority> {
-        performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, correlationId);
-
-        // Initialize authority and perform discovery endpoint check.
-        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
-            authorityUri,
-            networkClient,
-            cacheManager,
-            authorityOptions,
-            logger,
-            performanceClient,
+        performanceClient?.addQueueMeasurement(
+            PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance,
             correlationId
         );
 
+        const authorityUriFinal = Authority.transformCIAMAuthority(authorityUri);
+
+        // Initialize authority and perform discovery endpoint check.
+        const acquireTokenAuthority: Authority =
+            AuthorityFactory.createInstance(
+                authorityUriFinal,
+                networkClient,
+                cacheManager,
+                authorityOptions,
+                logger,
+                performanceClient,
+                correlationId
+            );
+
         try {
-            performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityResolveEndpointsAsync, correlationId);
+            performanceClient?.setPreQueueTime(
+                PerformanceEvents.AuthorityResolveEndpointsAsync,
+                correlationId
+            );
             await acquireTokenAuthority.resolveEndpointsAsync();
             return acquireTokenAuthority;
         } catch (e) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(e);
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError(
+                e as string
+            );
         }
     }
 
@@ -81,6 +91,14 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, logger, performanceClient, correlationId);
+        return new Authority(
+            authorityUrl,
+            networkInterface,
+            cacheManager,
+            authorityOptions,
+            logger,
+            performanceClient,
+            correlationId
+        );
     }
 }

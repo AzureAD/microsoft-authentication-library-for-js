@@ -16,7 +16,16 @@ import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common";
  * - forceRefresh           - Forces silent requests to make network calls if true.
  * @public
  */
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account"|"scopes"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
+export type SilentFlowRequest = Partial<
+    Omit<
+        CommonSilentFlowRequest,
+        | "account"
+        | "scopes"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+        | "requestedClaimsHash"
+    >
+> & {
     account: AccountInfo;
     scopes: Array<string>;
 };

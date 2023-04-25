@@ -1,12 +1,21 @@
 {
-  "include": ["src", "types", "test"],
+  "include": [
+    "src",
+    "types",
+    "test"
+  ],
   "compilerOptions": {
     "module": "esnext",
-    "lib": ["dom", "esnext"],
+    "target": "es2020",
+    "lib": [
+      "dom",
+      "esnext"
+    ],
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
     "rootDir": "./",
+    "outDir": "./dist",
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,

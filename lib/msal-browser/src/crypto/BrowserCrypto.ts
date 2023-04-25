@@ -29,7 +29,6 @@ const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
  * hashing and encoding. It also has helper functions to validate the availability of specific APIs.
  */
 export class BrowserCrypto {
-
     private keygenAlgorithmOptions: RsaHashedKeyGenParams;
     private subtleCrypto: ISubtleCrypto;
     private logger: Logger;
@@ -41,7 +40,9 @@ export class BrowserCrypto {
 
         if (this.hasBrowserCrypto()) {
             // Use standard modern web crypto if available
-            this.logger.verbose("BrowserCrypto: modern crypto interface available");
+            this.logger.verbose(
+                "BrowserCrypto: modern crypto interface available"
+            );
             this.subtleCrypto = new ModernBrowserCrypto();
         } else if (this.hasIECrypto()) {
             // For IE11, use msCrypto interface
@@ -49,14 +50,20 @@ export class BrowserCrypto {
             this.subtleCrypto = new MsBrowserCrypto();
         } else if (this.hasMsrCrypto() && this.cryptoOptions?.useMsrCrypto) {
             // For other browsers, use MSR Crypto if found
-            this.logger.verbose("BrowserCrypto: MSR crypto interface available");
+            this.logger.verbose(
+                "BrowserCrypto: MSR crypto interface available"
+            );
             this.subtleCrypto = new MsrBrowserCrypto();
         } else {
             if (this.hasMsrCrypto()) {
-                this.logger.info("BrowserCrypto: MSR Crypto interface available but system.cryptoOptions.useMsrCrypto not enabled");
+                this.logger.info(
+                    "BrowserCrypto: MSR Crypto interface available but system.cryptoOptions.useMsrCrypto not enabled"
+                );
             }
             this.logger.error("BrowserCrypto: No crypto interfaces available.");
-            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto, msCrypto, or msrCrypto interfaces not available.");
+            throw BrowserAuthError.createCryptoNotAvailableError(
+                "Browser crypto, msCrypto, or msrCrypto interfaces not available."
+            );
         }
 
         // Mainly needed for MSR Crypto: https://github.com/microsoft/MSR-JavaScript-Crypto#random-number-generator-prng
@@ -64,7 +71,9 @@ export class BrowserCrypto {
             this.logger.verbose("BrowserCrypto: Interface requires entropy");
 
             if (!this.cryptoOptions?.entropy) {
-                this.logger.error("BrowserCrypto: Interface requires entropy but none provided.");
+                this.logger.error(
+                    "BrowserCrypto: Interface requires entropy but none provided."
+                );
                 throw BrowserConfigurationAuthError.createEntropyNotProvided();
             }
 
@@ -76,7 +85,7 @@ export class BrowserCrypto {
             name: PKCS1_V15_KEYGEN_ALG,
             hash: S256_HASH_ALG,
             modulusLength: MODULUS_LENGTH,
-            publicExponent: PUBLIC_EXPONENT
+            publicExponent: PUBLIC_EXPONENT,
         };
     }
 
@@ -103,7 +112,7 @@ export class BrowserCrypto {
 
     /**
      * Returns a sha-256 hash of the given dataString as an ArrayBuffer.
-     * @param dataString 
+     * @param dataString
      */
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
@@ -113,7 +122,7 @@ export class BrowserCrypto {
 
     /**
      * Populates buffer with cryptographically random values.
-     * @param dataBuffer 
+     * @param dataBuffer
      */
     getRandomValues(dataBuffer: Uint8Array): Uint8Array {
         return this.subtleCrypto.getRandomValues(dataBuffer);
@@ -121,17 +130,24 @@ export class BrowserCrypto {
 
     /**
      * Generates a keypair based on current keygen algorithm config.
-     * @param extractable 
-     * @param usages 
+     * @param extractable
+     * @param usages
      */
-    async generateKeyPair(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        return this.subtleCrypto.generateKey(this.keygenAlgorithmOptions, extractable, usages);
+    async generateKeyPair(
+        extractable: boolean,
+        usages: Array<KeyUsage>
+    ): Promise<CryptoKeyPair> {
+        return this.subtleCrypto.generateKey(
+            this.keygenAlgorithmOptions,
+            extractable,
+            usages
+        );
     }
 
     /**
      * Export key as Json Web Key (JWK)
-     * @param key 
-     * @param format 
+     * @param key
+     * @param format
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return this.subtleCrypto.exportKey(key);
@@ -139,19 +155,28 @@ export class BrowserCrypto {
 
     /**
      * Imports key as Json Web Key (JWK), can set extractable and usages.
-     * @param key 
-     * @param format 
-     * @param extractable 
-     * @param usages 
+     * @param key
+     * @param format
+     * @param extractable
+     * @param usages
      */
-    async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        return this.subtleCrypto.importKey(key, this.keygenAlgorithmOptions, extractable, usages);
+    async importJwk(
+        key: JsonWebKey,
+        extractable: boolean,
+        usages: Array<KeyUsage>
+    ): Promise<CryptoKey> {
+        return this.subtleCrypto.importKey(
+            key,
+            this.keygenAlgorithmOptions,
+            extractable,
+            usages
+        );
     }
 
     /**
      * Signs given data with given key
-     * @param key 
-     * @param data 
+     * @param key
+     * @param data
      */
     async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
         return this.subtleCrypto.sign(this.keygenAlgorithmOptions, key, data);

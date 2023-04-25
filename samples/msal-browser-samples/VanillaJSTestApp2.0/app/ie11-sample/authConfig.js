@@ -17,6 +17,9 @@ const msalConfig = {
     cache: {
         cacheLocation: "localStorage", // This configures where your cache will be stored
         storeAuthStateInCookie: isIE || isEdge, // Set this to "true" if you are having issues on IE11 or Edge
+    },
+    system: {
+        allowNativeBroker: false // Disables WAM Broker
     }
 };
 

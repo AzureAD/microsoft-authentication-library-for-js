@@ -21,7 +21,8 @@ export class GuidGenerator implements IGuidGenerator {
      * @param guid
      */
     isGuid(guid: string): boolean {
-        const regexGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const regexGuid =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
         return regexGuid.test(guid);
     }
 }

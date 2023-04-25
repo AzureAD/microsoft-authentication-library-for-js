@@ -1,7 +1,6 @@
 import { MathUtils } from "../../src/utils/MathUtils";
 
 describe("MathUtils.ts Class Unit Tests", () => {
-
     it("decimalToHex Unit Tests", () => {
         expect(MathUtils.decimalToHex(0)).toBe("00");
         expect(MathUtils.decimalToHex(252)).toBe("fc");

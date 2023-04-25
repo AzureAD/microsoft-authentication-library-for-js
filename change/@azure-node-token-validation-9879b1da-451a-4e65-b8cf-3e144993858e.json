@@ -1,0 +1,7 @@
+{
+  "comment": "Msal v3 final rebase #5859",
+  "type": "none",
+  "packageName": "@azure/node-token-validation",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
