@@ -1,7 +1,7 @@
 {
     "Sample": {
         "Title": "An Electron desktop application using MSAL Node to authenticate users against Azure AD CIAM",
-        "Client": "SinglePageApplication",
+        "Client": "ElectronDesktopApp",
         "Level": 100
     },
     "AppRegistrations": [
