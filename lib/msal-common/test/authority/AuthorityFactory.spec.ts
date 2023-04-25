@@ -143,6 +143,15 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
     });
 
+    it("createDiscoveredInstance transforms CIAM authority when trailing slash is missing", async () => {
+        const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockResolvedValue();
+        const authorityInstance = await AuthorityFactory.createDiscoveredInstance("https://test.ciamlogin.com", networkInterface, mockStorage, authorityOptions, logger);
+        expect(authorityInstance.authorityType).toBe(AuthorityType.Ciam);
+        expect(authorityInstance.canonicalAuthority).toBe("https://test.ciamlogin.com/test.onmicrosoft.com/");
+        expect(authorityInstance instanceof Authority);
+        expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
+    });
+
     it("createDiscoveredInstance does not transform when there is a PATH", async () => {
         const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockResolvedValue();
         const authorityInstance = await AuthorityFactory.createDiscoveredInstance("https://test.ciamlogin.com/tenant/", networkInterface, mockStorage, authorityOptions, logger);
