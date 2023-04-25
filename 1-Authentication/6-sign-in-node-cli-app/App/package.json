@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/msal-node": "^1.17.0",
+    "@azure/msal-node": "^1.17.1",
     "open": "^8.4.0"
   }
 }
