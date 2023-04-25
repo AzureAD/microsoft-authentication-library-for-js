@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update MSAL Browser build config to bundle msal-common as a bundledDependency",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
