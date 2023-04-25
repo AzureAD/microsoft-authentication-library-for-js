@@ -5,25 +5,23 @@ const titleDiv = document.getElementById('title-div');
 const welcomeDiv = document.getElementById('welcome-div');
 const tableDiv = document.getElementById('table-div');
 const tableBody = document.getElementById('table-body-div');
-const todolistLink = document.getElementById('todolistLink');
-const todoForm = document.getElementById('form');
+const toDoListLink = document.getElementById('toDoListLink');
+const toDoForm = document.getElementById('form');
 const textInput = document.getElementById('textInput');
-const todolistDiv = document.getElementById('groupDiv');
-const todoListItems = document.getElementById('todoListItems');
+const toDoListDiv = document.getElementById('groupDiv');
+const todoListItems = document.getElementById('toDoListItems');
 
-todoForm.addEventListener('submit', (e) => {
+toDoForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    let task = {
-        description: textInput.value,
-    };
+    let task = { description: textInput.value };
     handleToDoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
-    todoForm.reset();
+    toDoForm.reset();
 });
 
 function welcomeUser(username) {
     signInButton.classList.add('d-none');
     signOutButton.classList.remove('d-none');
-    todolistLink.classList.remove('d-none');
+    toDoListLink.classList.remove('d-none');
     titleDiv.classList.add('d-none');
     welcomeDiv.classList.remove('d-none');
     welcomeDiv.innerHTML = `Welcome ${username}!`;
@@ -47,8 +45,8 @@ function updateTable(account) {
 function showToDoListItems(response) {
     todoListItems.replaceChildren();
     tableDiv.classList.add('d-none');
-    todoForm.classList.remove('d-none');
-    todolistDiv.classList.remove('d-none');
+    toDoForm.classList.remove('d-none');
+    toDoListDiv.classList.remove('d-none');
     if (!!response.length) {
         response.forEach((task) => {
             AddTaskToToDoList(task);

@@ -19,7 +19,6 @@ app.get('/redirect', (req, res) => {
 });
 
 // Set up a route for index.html
-
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname + '/index.html'));
 });

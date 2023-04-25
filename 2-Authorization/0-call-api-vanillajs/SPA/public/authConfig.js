@@ -9,7 +9,6 @@ const msalConfig = {
         authority: 'https://login.microsoftonline.com/Enter_the_Tenant_Id_Here', // Defaults to "https://login.microsoftonline.com/common"
         redirectUri: '/', // You must register this URI on Azure Portal/App Registration. Defaults to window.location.href e.g. http://localhost:3000/,
         postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
-        clientCapabilities: ['CP1'], // this lets the resource owner know that this client is capable of handling claims challenge.
     },
     cache: {
         cacheLocation: 'sessionStorage', // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
@@ -47,7 +46,7 @@ const msalConfig = {
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md
  */
 const protectedResources = {
-    apiTodoList: {
+    toDoListAPI: {
         endpoint: 'https://localhost:44351/api/todolist',
         scopes: {
             read: ['api://Enter_the_Web_Api_Application_Id_Here/ToDolist.Read'],
@@ -63,7 +62,7 @@ const protectedResources = {
  * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 const loginRequest = {
-    scopes: [...protectedResources.apiTodoList.scopes.read, ...protectedResources.apiTodoList.scopes.write],
+    scopes: [...protectedResources.toDoListAPI.scopes.read, ...protectedResources.toDoListAPI.scopes.write],
 };
 
 /**
@@ -79,8 +78,8 @@ const loginRequest = {
 // exporting config object for jest
 if (typeof exports !== 'undefined') {
     module.exports = {
-        msalConfig: msalConfig,
-        loginRequest: loginRequest,
-        protectedResources: protectedResources,
+        msalConfig,
+        loginRequest,
+        protectedResources,
     };
 }
