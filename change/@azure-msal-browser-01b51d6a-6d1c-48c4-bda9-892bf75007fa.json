@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Latest release on v2 for browser",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

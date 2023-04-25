@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Latest release on v3 for angular",
+  "packageName": "@azure/msal-angular",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

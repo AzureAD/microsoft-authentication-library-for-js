@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Latest release on v2 for node",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Latest msal release ",
+  "packageName": "msal",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

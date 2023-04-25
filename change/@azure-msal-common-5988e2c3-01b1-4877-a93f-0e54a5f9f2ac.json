@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Latest release on v2 for common",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Latest release on v2 for react",
+  "packageName": "@azure/msal-react",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
