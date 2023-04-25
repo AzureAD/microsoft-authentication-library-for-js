@@ -22,44 +22,47 @@ function callApi(method, endpoint, token, data = null) {
     };
 
     return fetch(endpoint, options)
-        .then((response) => response);
+        .then((response) => {
+            const contentType = response.headers.get("content-type");
+            
+            if (contentType && contentType.indexOf("application/json") !== -1) {
+                return response.json();
+            } else {
+                return response;
+            }
+        });
 }
 
-let listData = [];
 
 /**
- * Handles todo list POST and DELETE actions
+ * Handles todolist actions
  * @param {Object} task
  * @param {string} method
  * @param {string} endpoint
  */
 async function handleToDoListActions(task, method, endpoint) {
+    let listData;
+
     try {
-        let tokenResponse;
+        const accessToken = await getToken();
+        const data = await callApi(method, endpoint, accessToken, task);
 
-        if (typeof getTokenPopup === 'function') {
-            tokenResponse = await getTokenPopup({
-                scopes: [...protectedResources.apiTodoList.scopes.write],
-                redirectUri: '/redirect',
-            });
-        } else {
-            tokenResponse = await getTokenRedirect({
-                scopes: [...protectedResources.apiTodoList.scopes.write],
-            });
-        }
-
-        if (tokenResponse && tokenResponse.accessToken) {
-            const apiResponse = await callApi(method, endpoint, tokenResponse.accessToken, task);
-
-            if ((method === 'POST') && (apiResponse.status === 200 || apiResponse.status === 201)) {
-                const data = await apiResponse.json();
+        switch (method) {
+            case 'POST':
+                listData = JSON.parse(localStorage.getItem('todolist'));
                 listData = [data, ...listData];
+                localStorage.setItem('todolist', JSON.stringify(listData));
                 AddTaskToToDoList(data);
-            } else if (method === 'DELETE' && apiResponse.status === 200) {
+                break;
+            case 'DELETE':
+                listData = JSON.parse(localStorage.getItem('todolist'));
                 const index = listData.findIndex((todoItem) => todoItem.id === task.id);
-                listData.splice(index, 1);
+                localStorage.setItem('todolist', JSON.stringify([...listData.splice(index, 1)]));
                 showToDoListItems(listData);
-            }
+                break;
+            default:
+                console.log('Unrecognized method.')
+                break;
         }
     } catch (error) {
         console.error(error);
@@ -67,36 +70,47 @@ async function handleToDoListActions(task, method, endpoint) {
 }
 
 /**
- * Handles todo list action GET action.
+ * Handles todolist action GET action.
  */
 async function getToDos() {
     try {
-        let tokenResponse;
-        if (typeof getTokenPopup === 'function') {
-            tokenResponse = await getTokenPopup({
-                scopes: [...protectedResources.apiTodoList.scopes.read],
-                redirectUri: '/redirect'
-            });
-        } else {
-            tokenResponse = await getTokenRedirect({
-                scopes: [...protectedResources.apiTodoList.scopes.read],
-            });
-        }
+        const accessToken = await getToken();
 
-        if (tokenResponse && tokenResponse.accessToken) {
-            const apiResponse = await callApi(
-                'GET',
-                protectedResources.apiTodoList.endpoint,
-                tokenResponse.accessToken
-            );
-            const data = await apiResponse.json();
-            if (data.errors) throw data;
-            if (data) {
-                listData = data;
-                showToDoListItems(data);
-            }
+        const data = await callApi(
+            'GET',
+            protectedResources.toDoListAPI.endpoint,
+            accessToken
+        );
+
+        if (data) {
+            localStorage.setItem('todolist', JSON.stringify(data));
+            showToDoListItems(data);
         }
     } catch (error) {
         console.error(error);
     }
+}
+
+/**
+ * Retrieves an access token.
+ */
+async function getToken() {
+    let tokenResponse;
+
+    if (typeof getTokenPopup === 'function') {
+        tokenResponse = await getTokenPopup({
+            scopes: [...protectedResources.toDoListAPI.scopes.read],
+            redirectUri: '/redirect'
+        });
+    } else {
+        tokenResponse = await getTokenRedirect({
+            scopes: [...protectedResources.toDoListAPI.scopes.read],
+        });
+    }
+
+    if (!tokenResponse) {
+        return null;
+    }
+
+    return tokenResponse.accessToken;
 }

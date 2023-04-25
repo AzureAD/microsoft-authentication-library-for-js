@@ -14,7 +14,7 @@ const todoListItems = document.getElementById('toDoListItems');
 toDoForm.addEventListener('submit', (e) => {
     e.preventDefault();
     let task = { description: textInput.value };
-    handleToDoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
+    handleToDoListActions(task, 'POST', protectedResources.toDoListAPI.endpoint);
     toDoForm.reset();
 });
 
@@ -60,7 +60,7 @@ function AddTaskToToDoList(task) {
     button.innerHTML = 'Delete';
     button.classList.add('btn', 'btn-danger');
     button.addEventListener('click', () => {
-        handleToDoListActions(task, 'DELETE', protectedResources.apiTodoList.endpoint + `/${task.id}`);
+        handleToDoListActions(task, 'DELETE', protectedResources.toDoListAPI.endpoint + `/${task.id}`);
     });
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
     li.innerHTML = task.description;
