@@ -24,7 +24,8 @@
         "src/*",
         "node_modules/*",
         "build/"
-      ]
+      ],
+      "@azure/msal-common": ["../../lib/msal-common/src"]
     },
     "jsx": "react",
     "esModuleInterop": true
