@@ -15,7 +15,10 @@
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDir": "./",
+    "rootDirs": [
+      "./",
+      "../../lib/msal-common"
+    ],
     "outDir": "./dist",
     "noUnusedLocals": true,
     "baseUrl": "./",
