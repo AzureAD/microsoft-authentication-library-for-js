@@ -1,11 +1,10 @@
 const { callEndpointWithToken } = require('../fetch');
 const { protectedResources } = require('../authConfig');
-const authProvider = require('../auth/AuthProvider');
 
-exports.getTodos = async (req, res, next) => {
+exports.getToDos = async (req, res, next) => {
     try {
         const todoResponse = await callEndpointWithToken(
-            protectedResources.apiTodoList.endpoint,
+            protectedResources.toDoListAPI.endpoint,
             req.session.accessToken,
             'GET'
         );
@@ -15,16 +14,15 @@ exports.getTodos = async (req, res, next) => {
     }
 };
 
-exports.postTodo = async (req, res, next) => {
+exports.postToDo = async (req, res, next) => {
     try {
         if (!!req.body.description) {
             let todoItem = {
                 description: req.body.description,
-                owner: req.session.account.idTokenClaims.oid,
             };
 
             await callEndpointWithToken(
-                protectedResources.apiTodoList.endpoint,
+                protectedResources.toDoListAPI.endpoint,
                 req.session.accessToken,
                 'POST',
                 todoItem
@@ -38,10 +36,10 @@ exports.postTodo = async (req, res, next) => {
     }
 };
 
-exports.deleteTodo = async (req, res, next) => {
+exports.deleteToDo = async (req, res, next) => {
     try {
         await callEndpointWithToken(
-            protectedResources.apiTodoList.endpoint,
+            protectedResources.toDoListAPI.endpoint,
             req.session.accessToken,
             'DELETE',
             req.body._id

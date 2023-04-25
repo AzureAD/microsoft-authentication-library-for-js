@@ -5,6 +5,10 @@
 
 require('dotenv').config();
 
+const TENANT_NAME = process.env.TENANT_NAME || 'Enter_the_Tenant_Name_Here';
+const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/auth/redirect';
+const POST_LOGOUT_REDIRECT_URI = process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000';
+
 /**
  * Configuration object to be passed to MSAL instance on creation.
  * For a full list of MSAL Node configuration parameters, visit:
@@ -13,7 +17,7 @@ require('dotenv').config();
 const msalConfig = {
     auth: {
         clientId: process.env.CLIENT_ID || 'Enter_the_Application_Id_Here', // 'Application (client) ID' of app registration in Azure portal - this value is a GUID
-        authority: 'https://login.microsoftonline.com/' + (process.env.TENANT_ID || 'Enter_the_Tenant_Info_Here'), // Full directory URL, in the form of https://login.microsoftonline.com/<tenant>
+        authority: process.env.AUTHORITY || `https://${TENANT_NAME}.ciamlogin.com/`, // replace "Enter_the_Tenant_Name_Here" with your tenant name
         clientSecret: process.env.CLIENT_SECRET || 'Enter_the_Client_Secret_Here', // Client secret generated from the app registration in Azure portal
     },
     system: {
@@ -27,25 +31,23 @@ const msalConfig = {
     },
 };
 
-const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/auth/redirect';
-const POST_LOGOUT_REDIRECT_URI = process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000';
-const todolistReadScope = process.env.TODOLIST_READ || 'api://Enter_the_Web_Api_Application_Id_Here/Todolist.Read';
-const todolistReadWriteScope = process.env.TODOLIST_READWRITE || 'api://Enter_the_Web_Api_Application_Id_Here/Todolist.ReadWrite';
+const toDoListReadScope = process.env.TODOLIST_READ || 'api://Enter_the_Web_Api_Application_Id_Here/ToDoList.Read';
+const toDoListReadWriteScope = process.env.TODOLIST_READWRITE || 'api://Enter_the_Web_Api_Application_Id_Here/ToDoList.ReadWrite';
 
 const protectedResources = {
-    apiTodoList: {
-        callingPageRoute: "/todos",
+    toDoListAPI: {
         endpoint: 'https://localhost:44351/api/todolist',
         scopes: {
-            read: [todolistReadScope],
-            write: [todolistReadWriteScope],
+            read: [toDoListReadScope],
+            write: [toDoListReadWriteScope],
         },
     },
 };
 
 module.exports = {
     msalConfig,
+    protectedResources,
+    TENANT_NAME,
     REDIRECT_URI,
     POST_LOGOUT_REDIRECT_URI,
-    protectedResources,
 };

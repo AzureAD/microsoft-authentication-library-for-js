@@ -286,7 +286,7 @@ Function ConfigureApplications
     $owner = Get-MgApplicationOwner -ApplicationId $currentAppObjectId
     if ($owner -eq $null)
     { 
-        New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId  -BodyParameter = @{"@odata.id" = "htps://graph.microsoft.com/v1.0/directoryObjects/$user.ObjectId"}
+        New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId  -BodyParameter @{"@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$user.ObjectId"}
         Write-Host "'$($user.UserPrincipalName)' added as an application owner to app '$($serviceServicePrincipal.DisplayName)'"
     }
 
@@ -305,9 +305,9 @@ Function ConfigureApplications
     
     # Publish Application Permissions
     $appRoles = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphAppRole]
-    $newRole = CreateAppRole -types "Application" -name "TodoList.Read.All" -description "e.g. Allows the app to read the signed-in user's files."
+    $newRole = CreateAppRole -types "Application" -name "ToDoList.Read.All" -description "Allow the app to read every user's ToDo list using the 'ciam-msal-dotnet-api'"
     $appRoles.Add($newRole)
-    $newRole = CreateAppRole -types "Application" -name "TodoList.ReadWrite.All" -description "e.g. Allows the app to read the signed-in user's files."
+    $newRole = CreateAppRole -types "Application" -name "ToDoList.ReadWrite.All" -description "Allow the app to read every user's ToDo list using the 'ciam-msal-dotnet-api'"
     $appRoles.Add($newRole)
     Update-MgApplication -ApplicationId $currentAppObjectId -AppRoles $appRoles
     
@@ -329,20 +329,20 @@ Function ConfigureApplications
     }
 
     $scopes = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphPermissionScope]
-    $scope = CreateScope -value TodoList.Read  `
-        -userConsentDisplayName "TodoList.Read"  `
-        -userConsentDescription "eg. Allows the app to read your files."  `
-        -adminConsentDisplayName "TodoList.Read"  `
-        -adminConsentDescription "e.g. Allows the app to read the signed-in user's files." `
+    $scope = CreateScope -value ToDoList.Read  `
+        -userConsentDisplayName "Read users ToDo list using the 'ciam-msal-dotnet-api'"  `
+        -userConsentDescription "Allow the app to read your ToDo list items via the 'ciam-msal-dotnet-api'"  `
+        -adminConsentDisplayName "Read users ToDo list using the 'ciam-msal-dotnet-api'"  `
+        -adminConsentDescription "Allow the app to read the user's ToDo list using the 'ciam-msal-dotnet-api'" `
         -consentType "Admin" `
         
             
     $scopes.Add($scope)
-    $scope = CreateScope -value TodoList.ReadWrite  `
-        -userConsentDisplayName "TodoList.ReadWrite"  `
-        -userConsentDescription "eg. Allows the app to read your files."  `
-        -adminConsentDisplayName "TodoList.ReadWrite"  `
-        -adminConsentDescription "e.g. Allows the app to read the signed-in user's files." `
+    $scope = CreateScope -value ToDoList.ReadWrite  `
+        -userConsentDisplayName "Read and Write user's ToDo list using the 'ciam-msal-dotnet-api'"  `
+        -userConsentDescription "Allow the app to read and write your ToDo list items via the 'ciam-msal-dotnet-api'"  `
+        -adminConsentDisplayName "Read and Write user's ToDo list using the 'ciam-msal-dotnet-api'"  `
+        -adminConsentDescription "Allow the app to read and write user's ToDo list using the 'ciam-msal-dotnet-api'" `
         -consentType "Admin" `
         
             
@@ -393,7 +393,7 @@ Function ConfigureApplications
     $owner = Get-MgApplicationOwner -ApplicationId $currentAppObjectId
     if ($owner -eq $null)
     { 
-        New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId  -BodyParameter = @{"@odata.id" = "htps://graph.microsoft.com/v1.0/directoryObjects/$user.ObjectId"}
+        New-MgApplicationOwnerByRef -ApplicationId $currentAppObjectId  -BodyParameter @{"@odata.id" = "https://graph.microsoft.com/v1.0/directoryObjects/$user.ObjectId"}
         Write-Host "'$($user.UserPrincipalName)' added as an application owner to app '$($clientServicePrincipal.DisplayName)'"
     }
     Write-Host "Done creating the client application (ciam-msal-node-webapp)"
@@ -421,7 +421,7 @@ Function ConfigureApplications
     # Add Required Resources Access (from 'client' to 'service')
     Write-Host "Getting access from 'client' to 'service'"
     $requiredPermission = GetRequiredPermissions -applicationDisplayName "ciam-msal-dotnet-api"`
-        -requiredDelegatedPermissions "TodoList.Read|TodoList.ReadWrite"
+        -requiredDelegatedPermissions "ToDoList.Read|ToDoList.ReadWrite"
 
     $requiredResourcesAccess.Add($requiredPermission)
     Write-Host "Added 'service' to the RRA list."
@@ -437,10 +437,10 @@ Function ConfigureApplications
     Write-Host "Successfully registered and configured that app registration for 'ciam-msal-node-webapp' at `n $clientPortalUrl" -ForegroundColor Green 
     
     # Update config file for 'service'
-    # $configFile = $pwd.Path + "\..\API\TodoListAPI\appsettings.json"
-    $configFile = $(Resolve-Path ($pwd.Path + "\..\API\TodoListAPI\appsettings.json"))
+    # $configFile = $pwd.Path + "\..\API\ToDoListAPI\appsettings.json"
+    $configFile = $(Resolve-Path ($pwd.Path + "\..\API\ToDoListAPI\appsettings.json"))
     
-    $dictionary = @{ "Enter the Client ID (aka 'Application ID')" = $serviceAadApplication.AppId;"Enter the tenant ID" = $tenantId; };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $serviceAadApplication.AppId;"Enter_the_Tenant_Id_Here" = $tenantId;"Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0] };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
@@ -452,7 +452,7 @@ Function ConfigureApplications
     # $configFile = $pwd.Path + "\..\APP\authConfig.js"
     $configFile = $(Resolve-Path ($pwd.Path + "\..\APP\authConfig.js"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId; "Enter_the_Tenant_Info_Here" = $tenantId; "Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0];"Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
