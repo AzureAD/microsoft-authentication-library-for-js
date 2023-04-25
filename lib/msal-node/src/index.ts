@@ -8,6 +8,14 @@
  * @module @azure/msal-node
  */
 
+/**
+ * Warning: This set of exports is purely intended to be used by other MSAL libraries, and should be considered potentially unstable. We strongly discourage using them directly, you do so at your own risk.
+ * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
+ */
+
+import * as internals from "./internals";
+export { internals };
+
 // Interfaces
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
@@ -47,8 +55,6 @@ export {
     SerializedAppMetadataEntity,
     SerializedRefreshTokenEntity,
 } from "./cache/serializer/SerializerTypes";
-export { Serializer } from "./cache/serializer/Serializer";
-export { Deserializer } from "./cache/serializer/Deserializer";
 export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";
 
 // Crypto
