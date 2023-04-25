@@ -1,6 +1,11 @@
 const msal = require('@azure/msal-node');
 const axios = require('axios');
-const { msalConfig, TENANT_NAME, REDIRECT_URI, POST_LOGOUT_REDIRECT_URI } = require('../authConfig');
+const { 
+    msalConfig, 
+    TENANT_NAME, 
+    REDIRECT_URI, 
+    POST_LOGOUT_REDIRECT_URI 
+} = require('../authConfig');
 
 class AuthProvider {
     config;
@@ -168,7 +173,7 @@ class AuthProvider {
      * @returns
      */
     async getAuthorityMetadata() {
-        const endpoint = `${this.config.msalConfig.auth.authority}${TENANT_NAME}.onmicrosoft.com/.well-known/openid-configuration`;
+        const endpoint = `${this.config.msalConfig.auth.authority}${TENANT_NAME}.onmicrosoft.com/v2.0/.well-known/openid-configuration`;
         try {
             const response = await axios.get(endpoint);
             return await response.data;

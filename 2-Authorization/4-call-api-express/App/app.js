@@ -15,9 +15,9 @@ var methodOverride = require('method-override');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
+var authRouter = require('./routes/auth');
 var usersRouter = require('./routes/users');
 var todosRouter = require('./routes/todos');
-var authRouter = require('./routes/auth');
 
 // initialize express
 var app = express();

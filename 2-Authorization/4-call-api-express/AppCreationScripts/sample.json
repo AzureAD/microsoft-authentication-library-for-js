@@ -1,10 +1,10 @@
 {
     "Sample": {
-        "Title": "A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node and call a protected ASP.NET Core web API",
+        "Title": "A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node and calling a protected ASP.NET Core web API",
         "Level": 200,
         "Client": "Node.js & Express web app",
         "Service": "ASP.NET Core web API",
-        "Languages": ["javascript", "typescript", "csharp"],
+        "Languages": ["javascript", "csharp"],
         "Products": ["azure-active-directory", "aspnet-core", "msal-js", "msal-node", "microsoft-identity-web"],
         "RepositoryUrl": "ms-identity-ciam-javascript-tutorial",
         "Endpoint": "AAD v2.0",
@@ -25,12 +25,12 @@
                 {
                     "AllowedMemberTypes": ["Application"],
                     "Name": "ToDoList.Read.All",
-                    "Description": "Allow this application to read every users TodoList items"
+                    "Description": "Allow this application to read every users ToDoList items"
                 },
                 {
                     "AllowedMemberTypes": ["Application"],
                     "Name": "ToDoList.ReadWrite.All",
-                    "Description": "Allow this application to read and write every users TodoList items"
+                    "Description": "Allow this application to read and write every users ToDoList items"
                 }
             ],
             "OptionalClaims": {
@@ -71,12 +71,16 @@
             "SettingFile": "\\..\\API\\ToDoListAPI\\appsettings.json",
             "Mappings": [
                 {
-                    "key": "Enter the Client ID (aka 'Application ID')",
-                    "value": ".AppId"
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": "service.AppId"
                 },
                 {
-                    "key": "Enter the tenant ID",
+                    "key": "Enter_the_Tenant_Id_Here",
                     "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Name_Here",
+                    "value": "$tenantName"
                 }
             ]
         },

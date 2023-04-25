@@ -191,9 +191,10 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `API\TodoListAPI\appsettings.json` file.
-1. Find the key `Enter the Client ID (aka 'Application ID')` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
-1. Find the key `Enter the tenant ID` and replace the existing value with your Azure AD tenant/directory ID.
+1. Open the `API\ToDoListAPI\appsettings.json` file.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
+1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Tenant_Name_Here` and replace the existing value with the name of your Azure AD CIAM tenant.
 
 #### Register the client app (ciam-msal-node-webapp)
 
@@ -227,7 +228,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     1. Select the **Add a permission** button and then:
     1. Ensure that the **My APIs** tab is selected.
     1. In the list of APIs, select the API `ciam-msal-dotnet-api`.
-    1. In the **Delegated permissions** section, select **TodoList.Read**, **TodoList.ReadWrite** in the list. Use the search box if necessary.
+    1. In the **Delegated permissions** section, select **ToDoList.Read**, **ToDoList.ReadWrite** in the list. Use the search box if necessary.
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly, but since it's a CIAM tenant, the users themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
@@ -239,7 +240,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 1. Open the `APP\authConfig.js` file.
 1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-webapp` app copied from the Azure portal.
-1. Find the key `Enter_the_Tenant_Info_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Tenant_Name_Here` and replace the existing value with the name of your Azure AD CIAM tenant.
 1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-webapp` copied from the Azure portal.
 1. Find the key `Enter_the_Web_Api_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
 
@@ -262,8 +263,8 @@ Then, open a separate command terminal and run:
 ## Explore the sample
 
 1. Open your browser and navigate to `http://localhost:3000`.
-1. Select the **Sign In** button on the top right corner.
-1. Select the **TodoList** button on the navigation bar. This will make a call to the TodoList web API.
+1. Select the **Sign In** link on the page.
+1. Select the **ToDoList** link on the page. This will make a call to the ToDoList web API.
 
 ![Screenshot](./ReadmeFiles/screenshot.png)
 

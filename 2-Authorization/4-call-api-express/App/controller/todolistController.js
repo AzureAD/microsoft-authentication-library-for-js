@@ -4,7 +4,7 @@ const { protectedResources } = require('../authConfig');
 exports.getToDos = async (req, res, next) => {
     try {
         const todoResponse = await callEndpointWithToken(
-            protectedResources.apiTodoList.endpoint,
+            protectedResources.toDoListAPI.endpoint,
             req.session.accessToken,
             'GET'
         );
@@ -22,7 +22,7 @@ exports.postToDo = async (req, res, next) => {
             };
 
             await callEndpointWithToken(
-                protectedResources.apiTodoList.endpoint,
+                protectedResources.toDoListAPI.endpoint,
                 req.session.accessToken,
                 'POST',
                 todoItem
@@ -39,7 +39,7 @@ exports.postToDo = async (req, res, next) => {
 exports.deleteToDo = async (req, res, next) => {
     try {
         await callEndpointWithToken(
-            protectedResources.apiTodoList.endpoint,
+            protectedResources.toDoListAPI.endpoint,
             req.session.accessToken,
             'DELETE',
             req.body._id
