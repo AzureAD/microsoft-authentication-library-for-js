@@ -226,7 +226,7 @@ class AuthProvider {
          * session with Azure AD. For more information, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/v2-protocols-oidc#send-a-sign-out-request
          */
-        const logoutUri = `${this.config.msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${POST_LOGOUT_REDIRECT_URI}`;
+        const logoutUri = `${this.config.msalConfig.auth.authority}${TENANT_NAME}.onmicrosoft.com/oauth2/v2.0/logout?post_logout_redirect_uri=${this.config.postLogoutRedirectUri}`;
 
         req.session.destroy(() => {
             res.redirect(logoutUri);
