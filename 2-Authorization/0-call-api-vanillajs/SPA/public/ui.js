@@ -5,34 +5,29 @@ const titleDiv = document.getElementById('title-div');
 const welcomeDiv = document.getElementById('welcome-div');
 const tableDiv = document.getElementById('table-div');
 const tableBody = document.getElementById('table-body-div');
-const todolistLink = document.getElementById('todolistLink');
-const todoForm = document.getElementById('form');
+const toDoListLink = document.getElementById('toDoListLink');
+const toDoForm = document.getElementById('form');
 const textInput = document.getElementById('textInput');
-const todolistDiv = document.getElementById('groupDiv');
-const todoListItems = document.getElementById('todoListItems');
+const toDoListDiv = document.getElementById('groupDiv');
+const todoListItems = document.getElementById('toDoListItems');
 
-todoForm.addEventListener('submit', (e) => {
+toDoForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const account = getAccount();
-    let task = {
-        owner: account.idTokenClaims?.oid,
-        description: textInput.value,
-    };
-    handleTodoListActions(task, 'POST', protectedResources.apiTodoList.endpoint);
-    todoForm.reset();
+    let task = { description: textInput.value };
+    handleToDoListActions(task, 'POST', protectedResources.toDoListAPI.endpoint);
+    toDoForm.reset();
 });
 
 function welcomeUser(username) {
     signInButton.classList.add('d-none');
     signOutButton.classList.remove('d-none');
-    todolistLink.classList.remove('d-none');
+    toDoListLink.classList.remove('d-none');
     titleDiv.classList.add('d-none');
     welcomeDiv.classList.remove('d-none');
     welcomeDiv.innerHTML = `Welcome ${username}!`;
 }
 
-function updateTable() {
-    const account = getAccount();
+function updateTable(account) {
     tableDiv.classList.remove('d-none');
     const tokenClaims = createClaimsTable(account.idTokenClaims);
 
@@ -47,25 +42,25 @@ function updateTable() {
     });
 }
 
-function showTodoListItems(response) {
+function showToDoListItems(response) {
     todoListItems.replaceChildren();
     tableDiv.classList.add('d-none');
-    todoForm.classList.remove('d-none');
-    todolistDiv.classList.remove('d-none');
+    toDoForm.classList.remove('d-none');
+    toDoListDiv.classList.remove('d-none');
     if (!!response.length) {
         response.forEach((task) => {
-            AddTaskToTodoList(task);
+            AddTaskToToDoList(task);
         });
     }
 }
 
-function AddTaskToTodoList(task) {
+function AddTaskToToDoList(task) {
     let li = document.createElement('li');
     let button = document.createElement('button');
     button.innerHTML = 'Delete';
     button.classList.add('btn', 'btn-danger');
     button.addEventListener('click', () => {
-        handleTodoListActions(task, 'DELETE', protectedResources.apiTodoList.endpoint + `/${task.id}`);
+        handleToDoListActions(task, 'DELETE', protectedResources.toDoListAPI.endpoint + `/${task.id}`);
     });
     li.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-center');
     li.innerHTML = task.description;

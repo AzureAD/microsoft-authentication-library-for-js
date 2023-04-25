@@ -14,7 +14,6 @@
     <!-- adding Bootstrap 5 for UI components  -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous">
-        
 </head>
 
 <body>
@@ -22,7 +21,7 @@
         <a class="navbar-brand" href="/">Microsoft identity platform</a>
         <ul class="navbar-nav">
             <li class="nav-item active">
-                <a class="nav-link d-none" id="todolistLink" href="#" onclick="getTodos()">todolist</a>
+                <a class="nav-link d-none" id="toDoListLink" href="#" onclick="getToDos()">todolist</a>
             </li>
         </ul>
         <div class="navbar-collapse justify-content-end">
@@ -52,13 +51,13 @@
         <form id="form" class="d-none">
             <div id="formGroup" class="input-group mb-3">
                 <input id="textInput" type="text" class="form-control" placeholder="Enter a task" aria-label="Enter a task" aria-describedby="button-addon2">
-                <button class="btn btn-primary" type="submit" id="button-addon2">Add</button>
+                <button class="btn btn-primary" type="submit" id="button-addon">Add</button>
             </div>
         </form>
      </div>
     <div>
     <div id="groupDiv" class="group-div d-none" >
-        <ul id="todoListItems" class="list-group">
+        <ul id="toDoListItems" class="list-group">
         </ul>
     </div>
     <!-- importing bootstrap.js and supporting js libraries -->
@@ -80,7 +79,5 @@
     <!-- uncomment the above line and comment the line below if you would like to use the redirect flow -->
     <!-- <script type="text/javascript" src="./authRedirect.js"></script> -->
     <script type="text/javascript" src="./fetch.js"></script>
-    <script type="text/javascript" src="./todoListUtils.js"></script>
-
 </body>
 </html>

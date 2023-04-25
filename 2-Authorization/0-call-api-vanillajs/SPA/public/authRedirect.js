@@ -32,16 +32,8 @@ function selectAccount() {
     } else if (currentAccounts.length === 1) {
         username = currentAccounts[0].username;
         welcomeUser(username);
-        updateTable();
+        updateTable(currentAccounts[0]);
     }
-}
-
-function getAccount() {
-    const accounts = myMSALObj.getAllAccounts();
-    if (accounts.length > 0) {
-        return accounts[0];
-    }
-    return null;
 }
 
 function handleResponse(response) {
@@ -53,7 +45,7 @@ function handleResponse(response) {
     if (response !== null) {
         username = response.account.username;
         welcomeUser(username);
-        updateTable();
+        updateTable(response.account);
     } else {
         selectAccount();
     }
