@@ -14,7 +14,7 @@ const fileHeader = `${libraryHeader}\n${useStrictHeader}`;
 export default [
     {
         // for cjs build
-        input: "src/index.ts",
+        input: ["src/index.ts", "../../lib/msal-common/dist/index.js"],
         output: {
             dir: "dist",
             format: "cjs",
@@ -29,8 +29,7 @@ export default [
         },
         external: [
             ...Object.keys(pkg.dependencies || {}),
-            ...Object.keys(pkg.peerDependencies || {}),
-            ...Object.keys(pkg.bundledDependencies || {}),
+            ...Object.keys(pkg.peerDependencies || {})
 
         ],
         plugins: [
@@ -43,7 +42,7 @@ export default [
     },
     {
         // for esm build
-        input: "src/index.ts",
+        input: ["src/index.ts", "../../lib/msal-common/dist/index.js"],
         output: {
             dir: "dist",
             format: "esm",
@@ -59,8 +58,7 @@ export default [
         },
         external: [
             ...Object.keys(pkg.dependencies || {}),
-            ...Object.keys(pkg.peerDependencies || {}),
-            ...Object.keys(pkg.bundledDependencies || {}),
+            ...Object.keys(pkg.peerDependencies || {})
         ],
         plugins: [
             typescript({
@@ -70,5 +68,4 @@ export default [
             nodeResolve()
         ]
     }
-
 ];
