@@ -146,7 +146,7 @@ describe("BrowserAuthError Unit Tests", () => {
     });
 
     it("createEmptyHashError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createEmptyHashError("");
+        const err: BrowserAuthError = BrowserAuthError.createEmptyHashError();
 
         expect(err instanceof BrowserAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);

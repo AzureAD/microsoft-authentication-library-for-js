@@ -4,5 +4,8 @@
  */
 
 module.exports = {
-    coverageReporters: [["lcov", {"projectRoot": "../../"}]]
+    preset: "ts-jest",
+    testEnvironment: "node",
+    collectCoverageFrom: ["src/**/*.ts"],
+    coverageReporters: [["lcov", { "projectRoot": "../../" }]]
 };

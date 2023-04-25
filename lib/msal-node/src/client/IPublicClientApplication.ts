@@ -35,7 +35,7 @@ export interface IPublicClientApplication {
     /** Acquires a token silently when a user specifies the account the token is requested for */
     acquireTokenSilent(
         request: SilentFlowRequest
-    ): Promise<AuthenticationResult | null>;
+    ): Promise<AuthenticationResult>;
 
     /** Acquires a token by exchanging the refresh token provided for a new set of tokens */
     acquireTokenByRefreshToken(
