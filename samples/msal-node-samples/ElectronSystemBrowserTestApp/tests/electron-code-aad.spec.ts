@@ -8,7 +8,7 @@ import {
     Browser,
 } from "@playwright/test";
 
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../e2eTestUtils/LabClient";

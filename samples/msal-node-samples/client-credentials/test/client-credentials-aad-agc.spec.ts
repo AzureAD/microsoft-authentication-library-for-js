@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { validateCacheLocation } from "../../testUtils";
 import { ConfidentialClientApplication } from "@azure/msal-node";
 import {RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";

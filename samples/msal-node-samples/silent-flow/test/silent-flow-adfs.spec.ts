@@ -5,7 +5,7 @@
 
 import puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";

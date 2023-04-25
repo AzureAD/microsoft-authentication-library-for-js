@@ -5,7 +5,7 @@
 
 import puppeteer from "puppeteer";
 import {Screenshot, createFolder, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
     clickSignIn,
     enterCredentials,

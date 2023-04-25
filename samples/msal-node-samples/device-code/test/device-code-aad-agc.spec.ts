@@ -5,7 +5,7 @@
 
 import puppeteer from "puppeteer";
 import {Screenshot, createFolder, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
     approveRemoteConnect,
     enterCredentials,

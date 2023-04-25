@@ -14,7 +14,6 @@
     "devDependencies": {
         "@azure/identity": "^3.1.2",
         "@azure/keyvault-secrets": "^4.3.0",
-        "@azure/msal-node": "file:../lib/msal-node",
         "@types/jest": "^27.4.0",
         "dotenv": "^8.2.0",
         "find-process": "^1.4.4",
