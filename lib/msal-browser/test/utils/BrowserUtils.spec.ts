@@ -9,7 +9,7 @@ import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
 import { BrowserAuthErrorMessage, InteractionType } from "../../src";
-import { BrowserAuthError } from "../../lib";
+import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow: Window & typeof globalThis = window;
