@@ -1880,7 +1880,7 @@ describe("Authority.ts Class Unit Tests", () => {
             );
         });
 
-        it("DSTS authority uses v1 well-known endpoint with common y", async () => {
+        it("DSTS authority uses v2 well-known endpoint with common y", async () => {
             const authorityUrl =
                 "https://login.microsoftonline.com/dstsv2/common/";
             let endpoint = "";
@@ -1902,11 +1902,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(
-                `${authorityUrl}.well-known/openid-configuration`
+                `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
 
-        it("DSTS authority uses v1 well-known  with tenanted authority", async () => {
+        it("DSTS authority uses v2 well-known  with tenanted authority", async () => {
             const authorityUrl = `https://login.microsoftonline.com/dstsv2/${TEST_CONFIG.TENANT}/`;
             let endpoint = "";
             authority = new Authority(
@@ -1927,7 +1927,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).toBe(
-                `${authorityUrl}.well-known/openid-configuration`
+                `${authorityUrl}v2.0/.well-known/openid-configuration`
             );
         });
 
