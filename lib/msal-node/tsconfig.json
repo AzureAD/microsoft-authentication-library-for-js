@@ -1,4 +1,5 @@
 {
+  "extends": "../../tsconfig.json",
   "include": ["src", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
@@ -9,7 +10,10 @@
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "sourceMap": true,
-    "rootDir": "./",
+    "rootDirs": [
+      "./",
+      "../msal-common"
+    ],
     "outDir": "./dist",
     "strict": true,
     "noImplicitAny": true,
@@ -19,7 +23,7 @@
     "noImplicitThis": true,
     "alwaysStrict": true,
     "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedParameters": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
@@ -27,7 +31,11 @@
     "jsx": "react",
     "esModuleInterop": true,
     "suppressImplicitAnyIndexErrors": true,
-    "experimentalDecorators": true
+    "experimentalDecorators": true,
+    "baseUrl": "./",
+    "paths": {
+      "@azure/msal-common": ["../msal-common/src"]
+    }
   },
   "compileOnSave": false,
   "buildOnSave": false,

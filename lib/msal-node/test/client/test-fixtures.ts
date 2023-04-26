@@ -14,15 +14,22 @@ import { TEST_CONSTANTS } from "../utils/TestConstants";
 
 // @ts-ignore
 const mockServerTelemetryManager: ServerTelemetryManager = {
+    // @ts-ignore
     cacheManager: undefined,
+    // @ts-ignore
     apiId: undefined,
+    // @ts-ignore
     correlationId: undefined,
+    // @ts-ignore
     telemetryCacheKey: undefined,
+    // @ts-ignore
     wrapperSKU: undefined,
+    // @ts-ignore
     wrapperVer: undefined,
     regionUsed: undefined,
     regionSource: undefined,
     regionOutcome: undefined,
+    // @ts-ignore
     cacheOutcome: undefined,
     generateCurrentRequestHeaderValue: jest.fn(),
     generateLastRequestHeaderValue: jest

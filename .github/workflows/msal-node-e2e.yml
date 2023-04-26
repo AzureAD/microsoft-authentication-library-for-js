@@ -57,16 +57,12 @@ jobs:
       with:
         path: |
           node_modules
-          lib/msal-common/node_modules
           lib/msal-node/node_modules
-        key: ${{ runner.os }}-node-e2e-${{matrix.node}}-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
+        key: ${{ runner.os }}-node-e2e-${{matrix.node}}-${{ hashFiles('package-lock.json', 'lib/msal-node/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
       run: npm ci --ignore-scripts
-
-    - name: Link local packages
-      run: npx lerna --scope @azure/msal-node --scope @azure/msal-common bootstrap
 
     - name: Build Package
       working-directory: samples/msal-node-samples
@@ -151,9 +147,8 @@ jobs:
       with:
         path: |
           node_modules
-          lib/msal-common/node_modules
           lib/msal-node/node_modules
-        key: ${{ runner.os }}-node-electron-e2e-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
+        key: ${{ runner.os }}-node-electron-e2e-${{ hashFiles('package-lock.json', 'lib/msal-node/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'

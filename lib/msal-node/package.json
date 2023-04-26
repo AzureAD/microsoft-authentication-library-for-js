@@ -33,9 +33,7 @@
     "test:coverage": "jest --coverage",
     "lint": "cd ../../ && npm run lint:node",
     "lint:fix": "npm run lint -- -- --fix",
-    "build:all": "npm run build:common && npm run build",
-    "build:common": "cd ../msal-common && npm run build",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node",
+    "build:all": "npm run build",
     "prepack": "npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
@@ -57,6 +55,7 @@
     "jest": "^29.5.0",
     "prettier": "2.8.7",
     "rollup": "^3.20.1",
+    "rollup-plugin-delete": "^2.0.0",
     "sinon": "^7.5.0",
     "ts-jest": "^29.0.5",
     "tslib": "^1.10.0",
@@ -64,10 +63,12 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "^12.0.0",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },
+  "bundledDependencies": [
+    "@azure/msal-common"
+  ],
   "engines": {
     "node": "16 || 18"
   }
