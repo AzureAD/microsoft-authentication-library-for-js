@@ -1,3 +1,13 @@
 export const environment = {
-  production: true
+	production: true,
+	msalConfig: {
+		auth: {
+			clientId: '',
+			authority: ''
+		}
+	},
+	apiConfig: {
+		scopes: [''],
+		uri: ''
+	}
 };
