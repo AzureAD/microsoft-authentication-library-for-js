@@ -8,7 +8,7 @@ const { LogLevel } = require('@azure/msal-node');
 const msalConfig = {
     auth: {
         clientId: 'Enter_the_Application_Id_Here',
-        authority: 'https://login.microsoftonline.com/Enter_the_Tenant_Id_Here',
+        authority: 'https://Enter_the_Tenant_Name_Here.ciamlogin.com/',
     },
     system: {
         loggerOptions: {
@@ -29,6 +29,9 @@ const msalConfig = {
  */
 const loginRequest = {
     scopes: [],
+    extraQueryParameters: {
+        dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
+    },
 };
 
 module.exports = {
