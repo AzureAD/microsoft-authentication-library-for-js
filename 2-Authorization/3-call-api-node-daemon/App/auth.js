@@ -8,11 +8,14 @@ const { msalConfig, protectedResources } = require('./authConfig');
  * https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow
  */
 const tokenRequest = {
-    scopes: [`${protectedResources.apiTodoList.scopes}/.default`],
+    scopes: [`${protectedResources.apiToDoList.scopes}/.default`],
+    extraQueryParameters: {
+        dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
+    },
 };
 
 const apiConfig = {
-    uri: protectedResources.apiTodoList.endpoint
+    uri: protectedResources.apiToDoList.endpoint,
 };
 
 

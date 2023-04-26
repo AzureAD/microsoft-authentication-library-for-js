@@ -18,7 +18,7 @@ async function main() {
     console.log(`You have selected: ${options.op}`);
 
     switch (yargs.argv['op']) {
-        case 'getTodos':
+        case 'getToDos':
 
             try {
                 const authResponse = await auth.getToken(auth.tokenRequest);

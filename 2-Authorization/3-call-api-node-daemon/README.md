@@ -55,8 +55,8 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 | `App/.env`                      | Authentication parameters for the daemon app reside here.|
 | `App/auth.js`                   | MSAL Node is initialized here.                            |
 | `App/fetch.js`                  | logic to call the API reside here.                        |
-| `API/TodoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
-| `API/TodoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
+| `API/ToDoListAPI/appsettings.json` | Authentication parameters for the API reside here.     |
+| `API/ToDoListAPI/Startup.cs` | Microsoft.Identity.Web is initialized here.                  |
 
 ## Prerequisites
 
@@ -139,12 +139,12 @@ To manually register the apps, as a first step you'll need to:
 
 1. All APIs must publish a minimum of one [scope](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow#request-an-authorization-code), also called [Delegated Permission](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), for the client apps to obtain an access token for a *user* successfully. To publish a scope, follow these steps:
 1. Select **Add a scope** button open the **Add a scope** screen and Enter the values as indicated below:
-    1. For **Scope name**, use `TodoList.Read`.
-    1. For **Admin consent display name** type in *TodoList.Read*.
+    1. For **Scope name**, use `ToDoList.Read`.
+    1. For **Admin consent display name** type in *ToDoList.Read*.
     1. For **Admin consent description** type in *e.g. Allows the app to read the signed-in user's files.*.
     1. Keep **State** as **Enabled**.
     1. Select the **Add scope** button on the bottom to save this scope.
-    1. Repeat the steps above for another scope named **TodoList.ReadWrite**
+    1. Repeat the steps above for another scope named **ToDoList.ReadWrite**
 1. Select the **Manifest** blade on the left.
     1. Set `accessTokenAcceptedVersion` property to **2**.
     1. Select on **Save**.
@@ -158,10 +158,10 @@ To manually register the apps, as a first step you'll need to:
 1. Select **Create app role**:
     1. For **Display name**, enter a suitable name for your application permission, for instance **TodoList.Read.All**.
     1. For **Allowed member types**, choose **Application** to ensure other applications can be granted this permission.
-    1. For **Value**, enter **TodoList.Read.All**.
+    1. For **Value**, enter **ToDoList.Read.All**.
     1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
     1. Select **Apply** to save your changes.
-    1. Repeat the steps above for another app permission named **TodoList.ReadWrite.All**
+    1. Repeat the steps above for another app permission named **ToDoList.ReadWrite.All**
 
 ##### Configure Optional Claims
 
@@ -178,9 +178,10 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 > In the steps below, "ClientID" is the same as "Application ID" or "AppId".
 
-1. Open the `API\TodoListAPI\appsettings.json` file.
-1. Find the key `Enter the Client ID (aka 'Application ID')` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
-1. Find the key `Enter the tenant ID` and replace the existing value with your Azure AD tenant/directory ID.
+1. Open the `API\ToDoListAPI\appsettings.json` file.
+1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
+1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Tenant_Name_Here` and replace the existing value with the name of your Azure AD for Customers tenant.
 
 #### Register the client app (ciam-msal-node-daemon)
 
@@ -204,7 +205,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
     1. Ensure that the **My APIs** tab is selected.
     1. In the list of APIs, select the API `ciam-msal-dotnet-api`.
         1. We will select “Application permissions”, which should be the type of permissions that apps should use when they are authenticating just as themselves and not signing-in users.
-    1. In the **Application permissions** section, select the **TodoList.Read.All**, **TodoList.ReadWrite.All** in the list. Use the search box if necessary.
+    1. In the **Application permissions** section, select the **ToDoList.Read.All**, **ToDoList.ReadWrite.All** in the list. Use the search box if necessary.
     1. Select the **Add permissions** button at the bottom.
 1. At this stage, the permissions are assigned correctly but since the client app does not allow users to interact, the users' themselves cannot consent to these permissions. To get around this problem, we'd let the [tenant administrator consent on behalf of all users in the tenant](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent). Select the **Grant admin consent for {tenant}** button, and then select **Yes** when you are asked if you want to grant consent for the requested permissions for all accounts in the tenant. You need to be a tenant admin to be able to carry out this operation.
 
@@ -216,7 +217,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 1. Open the `APP\.env` file.
 1. Find the key `Enter_the_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-node-daemon` app copied from the Azure portal.
-1. Find the key `Enter_the_Tenant_Id_Here` and replace the existing value with your Azure AD tenant/directory ID.
+1. Find the key `Enter_the_Tenant_Name_Here` and replace the existing value with the name of your Azure AD for Customers tenant.
 1. Find the key `Enter_the_Client_Secret_Here` and replace the existing value with the generated secret that you saved during the creation of `ciam-msal-node-daemon` copied from the Azure portal.
 1. Find the key `Enter_the_Web_Api_Application_Id_Here` and replace the existing value with the application ID (clientId) of `ciam-msal-dotnet-api` app copied from the Azure portal.
 
@@ -225,7 +226,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 From your shell or command line, execute the following commands:
 
 ```console
-    cd 2-Authorization\3-call-api-node-daemon\API\TodoListAPI
+    cd 2-Authorization\3-call-api-node-daemon\API\ToDoListAPI
     dotnet run
 ```
 
@@ -233,13 +234,13 @@ Then, open a separate command terminal and run:
 
 ```console
     2-Authorization\3-call-api-node-daemon\App
-    node . --op getTodos
+    node . --op getToDos
 ```
 
 ## Explore the sample
 
 1. Navigate to the [app](./App/) root directory in the terminal.
-1. Enter the following command `node . --op getTodos`.
+1. Enter the following command `node . --op getToDos`.
 
 ![Screenshot](./ReadmeFiles/Screenshot.png)
 

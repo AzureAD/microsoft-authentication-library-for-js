@@ -305,9 +305,9 @@ Function ConfigureApplications
     
     # Publish Application Permissions
     $appRoles = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphAppRole]
-    $newRole = CreateAppRole -types "Application" -name "TodoList.Read.All" -description "e.g. Allows the app to read the signed-in user's files."
+    $newRole = CreateAppRole -types "Application" -name "ToDoList.Read.All" -description "e.g. Allows the app to read the signed-in user's files."
     $appRoles.Add($newRole)
-    $newRole = CreateAppRole -types "Application" -name "TodoList.ReadWrite.All" -description "e.g. Allows the app to read the signed-in user's files."
+    $newRole = CreateAppRole -types "Application" -name "ToDoList.ReadWrite.All" -description "e.g. Allows the app to read the signed-in user's files."
     $appRoles.Add($newRole)
     Update-MgApplication -ApplicationId $currentAppObjectId -AppRoles $appRoles
     
@@ -329,19 +329,19 @@ Function ConfigureApplications
     }
 
     $scopes = New-Object System.Collections.Generic.List[Microsoft.Graph.PowerShell.Models.MicrosoftGraphPermissionScope]
-    $scope = CreateScope -value TodoList.Read  `
-        -userConsentDisplayName "TodoList.Read"  `
+    $scope = CreateScope -value ToDoList.Read  `
+        -userConsentDisplayName "ToDoList.Read"  `
         -userConsentDescription "eg. Allows the app to read your files."  `
-        -adminConsentDisplayName "TodoList.Read"  `
+        -adminConsentDisplayName "ToDoList.Read"  `
         -adminConsentDescription "e.g. Allows the app to read the signed-in user's files." `
         -consentType "Admin" `
         
             
     $scopes.Add($scope)
-    $scope = CreateScope -value TodoList.ReadWrite  `
-        -userConsentDisplayName "TodoList.ReadWrite"  `
+    $scope = CreateScope -value ToDoList.ReadWrite  `
+        -userConsentDisplayName "ToDoList.ReadWrite"  `
         -userConsentDescription "eg. Allows the app to read your files."  `
-        -adminConsentDisplayName "TodoList.ReadWrite"  `
+        -adminConsentDisplayName "ToDoList.ReadWrite"  `
         -adminConsentDescription "e.g. Allows the app to read the signed-in user's files." `
         -consentType "Admin" `
         
@@ -407,7 +407,7 @@ Function ConfigureApplications
     # Add Required Resources Access (from 'client' to 'service')
     Write-Host "Getting access from 'client' to 'service'"
     $requiredPermission = GetRequiredPermissions -applicationDisplayName "ciam-msal-dotnet-api"`
-        -requiredApplicationPermissions "TodoList.Read.All|TodoList.ReadWrite.All"
+        -requiredApplicationPermissions "ToDoList.Read.All|ToDoList.ReadWrite.All"
 
     $requiredResourcesAccess.Add($requiredPermission)
     Write-Host "Added 'service' to the RRA list."
@@ -424,9 +424,9 @@ Function ConfigureApplications
     
     # Update config file for 'service'
     # $configFile = $pwd.Path + "\..\API\TodoListAPI\appsettings.json"
-    $configFile = $(Resolve-Path ($pwd.Path + "\..\API\TodoListAPI\appsettings.json"))
+    $configFile = $(Resolve-Path ($pwd.Path + "\..\API\ToDoListAPI\appsettings.json"))
     
-    $dictionary = @{ "Enter the Client ID (aka 'Application ID')" = $serviceAadApplication.AppId;"Enter the tenant ID" = $tenantId };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $serviceAadApplication.AppId; "Enter_the_Tenant_Id_Here" = $tenantId; "Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0] };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
@@ -438,7 +438,7 @@ Function ConfigureApplications
     # $configFile = $pwd.Path + "\..\APP\authConfig.js"
     $configFile = $(Resolve-Path ($pwd.Path + "\..\APP\authConfig.js"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Id_Here" = $tenantId;"Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0];"Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
