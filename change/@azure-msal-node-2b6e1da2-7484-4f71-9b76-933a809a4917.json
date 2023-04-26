@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Bundle msal-common into msal-node #5935",
+  "packageName": "@azure/msal-node",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
