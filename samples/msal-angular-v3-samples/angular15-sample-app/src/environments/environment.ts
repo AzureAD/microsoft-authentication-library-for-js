@@ -3,7 +3,17 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  msalConfig: {
+      auth: {
+          clientId: '',
+          authority: ''
+      }
+  },
+  apiConfig: {
+      scopes: [''],
+      uri: ''
+  }
 };
 
 /*
