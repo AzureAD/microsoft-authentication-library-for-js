@@ -1,5 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
   "include": ["src", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
@@ -10,10 +9,7 @@
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "sourceMap": true,
-    "rootDirs": [
-      "./",
-      "../msal-common"
-    ],
+    "rootDir": "./",
     "outDir": "./dist",
     "strict": true,
     "noImplicitAny": true,
