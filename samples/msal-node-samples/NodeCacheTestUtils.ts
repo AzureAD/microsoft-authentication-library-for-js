@@ -2,10 +2,8 @@ import fs from "fs";
 import { IdTokenEntity } from "../../lib/msal-common/src/cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../../lib/msal-common/src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../lib/msal-common/src/cache/entities/RefreshTokenEntity";
-import { InMemoryCache } from '../../lib/msal-node/src/cache/serializer/SerializerTypes';
 
-import { Serializer } from "../../lib/msal-node/src/cache/serializer/Serializer";
-import { Deserializer } from "../../lib/msal-node/src/cache/serializer/Deserializer";
+import { InMemoryCache, internals } from "@azure/msal-node";
 
 export type tokenMap = {
     idTokens: IdTokenEntity[],
@@ -46,7 +44,7 @@ export class NodeCacheTestUtils {
                     reject(err);
                 }
                 const cache = (data) ? data : this.getCacheTemplate();
-                const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
+                const deserializedCache = internals.Deserializer.deserializeAllCache(JSON.parse(cache));
                 resolve(deserializedCache);
             });
         });
@@ -91,7 +89,7 @@ export class NodeCacheTestUtils {
             deserializedCache.accessTokens[atKey].extendedExpiresOn = "0";
         });
 
-        const serializedCache = Serializer.serializeAllCache(deserializedCache);
+        const serializedCache = internals.Serializer.serializeAllCache(deserializedCache);
 
         return new Promise((resolve, reject) => {
             fs.writeFile(cacheLocation, JSON.stringify(serializedCache, null, 1), (error) => {
