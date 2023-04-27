@@ -156,7 +156,7 @@ To manually register the apps, as a first step you'll need to:
 1. All APIs should publish a minimum of one [App role for applications](https://docs.microsoft.com/azure/active-directory/develop/howto-add-app-roles-in-azure-ad-apps#assign-app-roles-to-applications), also called [Application Permission](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#permission-types), for the client apps to obtain an access token as *themselves*, i.e. when they are not signing-in a user. **Application permissions** are the type of permissions that APIs should publish when they want to enable client applications to successfully authenticate as themselves and not need to sign-in users. To publish an application permission, follow these steps:
 1. Still on the same app registration, select the **App roles** blade to the left.
 1. Select **Create app role**:
-    1. For **Display name**, enter a suitable name for your application permission, for instance **TodoList.Read.All**.
+    1. For **Display name**, enter a suitable name for your application permission, for instance **ToDoList.Read.All**.
     1. For **Allowed member types**, choose **Application** to ensure other applications can be granted this permission.
     1. For **Value**, enter **ToDoList.Read.All**.
     1. For **Description**, enter *e.g. Allows the app to read the signed-in user's files.*.
@@ -286,7 +286,7 @@ async function getToken(tokenRequest) {
 
 ### Access token validation
 
-On the web API side, the `AddMicrosoftIdentityWebApi` method in [Program.cs](./API/TodoListAPI/Program.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail.
+On the web API side, the `AddMicrosoftIdentityWebApi` method in [Program.cs](./API/ToDoListAPI/Program.cs) protects the web API by [validating access tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#validating-tokens) sent tho this API. Check out [Protected web API: Code configuration](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-configuration) which explains the inner workings of this method in more detail.
 
 ```csharp
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -301,7 +301,7 @@ For validation and debugging purposes, developers can decode **JWT**s (*JSON Web
 
 ### Verifying permissions
 
-Access tokens that have neither the **scp** (for delegated permissions) nor **roles** (for application permissions) claim with the required scopes/permissions should not be accepted. In the sample, this is illustrated via the `RequiredScopeOrAppPermission` attribute in [TodoListController.cs](./API/TodoListAPI/Controllers/TodoListController.cs):
+Access tokens that have neither the **scp** (for delegated permissions) nor **roles** (for application permissions) claim with the required scopes/permissions should not be accepted. In the sample, this is illustrated via the `RequiredScopeOrAppPermission` attribute in [ToDoListController.cs](./API/ToDoListAPI/Controllers/ToDoListController.cs):
 
 ```csharp
 [HttpGet]
@@ -320,7 +320,7 @@ Access tokens that have neither the **scp** (for delegated permissions) nor **ro
 
 ### Access to data
 
-Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire todolist. This is illustrated in the [TodoListController](./API/TodoListAPI/Controllers/TodoListController.cs) controller:
+Web API endpoints should be prepared to accept calls from both users and applications, and should have control structures in place to respond to each accordingly. For instance, a call from a user via delegated permissions should be responded with user's data, while a call from an application via application permissions might be responded with the entire todolist. This is illustrated in the [ToDoListController](./API/ToDoListAPI/Controllers/ToDoListController.cs) controller:
 
 ```csharp
 private bool RequestCanAccessToDo(Guid userId)

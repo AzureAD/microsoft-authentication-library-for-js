@@ -80,7 +80,7 @@
         {
             "App": "client",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\APP\\authConfig.js",
+            "SettingFile": "\\..\\App\\authConfig.js",
             "Mappings": [
                 {
                     "key": "Enter_the_Application_Id_Here",

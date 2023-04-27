@@ -9,9 +9,6 @@ const { msalConfig, protectedResources } = require('./authConfig');
  */
 const tokenRequest = {
     scopes: [`${protectedResources.apiToDoList.scopes}/.default`],
-    extraQueryParameters: {
-        dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
-    },
 };
 
 const apiConfig = {

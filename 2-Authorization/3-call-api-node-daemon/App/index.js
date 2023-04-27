@@ -5,7 +5,6 @@
 require('dotenv').config();
 
 const yargs = require('yargs');
-
 const fetch = require('./fetch');
 const auth = require('./auth');
 
@@ -23,6 +22,7 @@ async function main() {
             try {
                 const authResponse = await auth.getToken(auth.tokenRequest);
                 const todos = await fetch.callApi(auth.apiConfig.uri, authResponse.accessToken);
+                
                 console.log(todos);
             } catch (error) {
                 console.log(error);
@@ -30,7 +30,7 @@ async function main() {
 
             break;
         default:
-            console.log('Select a Graph operation first');
+            console.log('Select an operation first');
             break;
     }
 };
