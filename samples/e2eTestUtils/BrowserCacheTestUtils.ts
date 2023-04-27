@@ -1,7 +1,7 @@
 import * as puppeteer from "puppeteer";
 
 import { LabConfig } from "./LabConfig";
-import { Configuration } from "../../lib/msal-browser";
+import { Configuration } from "../../lib/msal-browser/src/config/Configuration";
 import { ServerTelemetryEntity } from "../../lib/msal-common";
 
 export type tokenMap = {
