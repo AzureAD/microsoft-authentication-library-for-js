@@ -64,7 +64,7 @@
     "dependencies": {
         "jsonwebtoken": "^9.0.0",
         "uuid": "^8.3.0",
-        "@azure/msal-common": "file:../msal-common"
+        "@azure/msal-common": "@azure/msal-common"
     },
     "bundledDependencies": [
         "@azure/msal-common"
