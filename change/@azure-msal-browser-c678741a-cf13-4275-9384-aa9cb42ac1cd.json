@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Bundle local version of msal-common into msal-browser #5932",
+  "comment": "Bundle msal-common into msal-browser #5932",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
