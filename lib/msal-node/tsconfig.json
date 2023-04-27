@@ -1,43 +1,35 @@
 {
-  "include": ["src", "test"],
-  "exclude": ["node_modules"],
-  "compilerOptions": {
-    "target": "es2020",
-    "module": "esnext",
-    "declaration": true,
-    "declarationMap": true,
-    "lib": ["dom", "esnext"],
-    "importHelpers": true,
-    "sourceMap": true,
-    "rootDir": "./",
-    "outDir": "./dist",
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": false,
-    "noImplicitThis": true,
-    "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": false,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "resolveJsonModule": true,
-    "moduleResolution": "node",
-    "jsx": "react",
-    "esModuleInterop": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "experimentalDecorators": true,
-    "baseUrl": "./",
-    "paths": {
-      "@azure/msal-common": ["../msal-common/src"]
-    }
-  },
-  "compileOnSave": false,
-  "buildOnSave": false,
-  "references": [
-    {
-      "path": "../msal-common"
-    }
-  ]
+    "include": ["src", "test"],
+    "exclude": ["node_modules"],
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "esnext",
+        "declaration": true,
+        "declarationMap": true,
+        "lib": ["dom", "esnext"],
+        "importHelpers": true,
+        "sourceMap": true,
+        "rootDir": "./",
+        "outDir": "./dist",
+        "strict": true,
+        "noImplicitAny": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": false,
+        "noImplicitThis": true,
+        "alwaysStrict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": false,
+        "noImplicitReturns": true,
+        "noFallthroughCasesInSwitch": true,
+        "resolveJsonModule": true,
+        "moduleResolution": "node",
+        "jsx": "react",
+        "esModuleInterop": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "experimentalDecorators": true,
+        "baseUrl": "./"
+    },
+    "compileOnSave": false,
+    "buildOnSave": false
 }

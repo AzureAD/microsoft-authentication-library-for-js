@@ -1,7 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "rootDir": ".."
+        "rootDir": "./src"
     },
-    "include": ["src", "../msal-common/src"]
+    "include": ["src"]
 }
