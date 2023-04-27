@@ -23,9 +23,6 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { BrowserConfiguration } from "../config/Configuration";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { EventHandler } from "../event/EventHandler";
 import { PopupClient } from "../interaction_client/PopupClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 
@@ -107,25 +104,31 @@ export interface IController {
 
     isBrowserEnv(): boolean;
 
-    getBrowserStorage(): BrowserCacheManager;
-
-    getNativeInternalStorage(): BrowserCacheManager;
+    /*
+     *
+     *getBrowserStorage(): BrowserCacheManager;
+     *
+     *getNativeInternalStorage(): BrowserCacheManager;
+     *
+     */
 
     getBrowserCrypto(): ICrypto;
 
     getPerformanceClient(): IPerformanceClient;
 
-    getNativeExtensionProvider(): NativeMessageHandler | undefined;
+    /*
+     *getNativeExtensionProvider(): NativeMessageHandler | undefined;
+     *
+     *setNativeExtensionProvider(
+     *    provider: NativeMessageHandler | undefined
+     *): void;
+     *
+     *getNativeAccountId(
+     *    request: RedirectRequest | PopupRequest | SsoSilentRequest
+     *): string;
+     */
 
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined
-    ): void;
-
-    getNativeAccountId(
-        request: RedirectRequest | PopupRequest | SsoSilentRequest
-    ): string;
-
-    getEventHandler(): EventHandler;
+    // getEventHandler(): EventHandler;
 
     getNavigationClient(): INavigationClient;
 

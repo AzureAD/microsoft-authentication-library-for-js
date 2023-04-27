@@ -21,9 +21,7 @@ import {
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ControllerFactory } from "../controllers/ControllerFactory";
-import { StandardController } from "../controllers/StandardController";
 import { BrowserConfiguration, Configuration } from "../config/Configuration";
-import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -68,10 +66,9 @@ export class PublicClientApplication implements IPublicClientApplication {
         if (controller) {
             this.controller = controller;
         } else {
-            const standardOperatingContext = new StandardOperatingContext(
-                configuration
+            throw new Error(
+                "PublicClientApplication constructor called without a controller"
             );
-            this.controller = new StandardController(standardOperatingContext);
         }
     }
 

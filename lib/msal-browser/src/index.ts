@@ -13,8 +13,10 @@
  * Breaking changes to these APIs will be shipped under a minor version, instead of a major version.
  */
 
-import * as internals from "./internals";
-export { internals };
+/*
+ * import * as internals from "./internals";
+ * export { internals };
+ */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export {
