@@ -17,13 +17,8 @@ import {
 } from "@azure/msal-common";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
-import {
-    BrowserCacheManager,
-    NativeMessageHandler,
-    EventHandler,
-    PopupClient,
-    SilentIframeClient,
-} from "../internals";
+import { PopupClient } from "../interaction_client/PopupClient";
+import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
@@ -352,24 +347,10 @@ export class NestedAppAuthController implements IController {
     isBrowserEnv(): boolean {
         return this.operatingContext.isBrowserEnvironment();
     }
-    getBrowserStorage(): BrowserCacheManager {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    getNativeInternalStorage(): BrowserCacheManager {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
     getBrowserCrypto(): ICrypto {
         return this.browserCrypto;
     }
     getPerformanceClient(): IPerformanceClient {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    getNativeExtensionProvider(): NativeMessageHandler | undefined {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    setNativeExtensionProvider(
-        provider: NativeMessageHandler | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
-    ): void {
         throw NestedAppAuthError.createUnsupportedError();
     }
     getNativeAccountId(
@@ -387,9 +368,6 @@ export class NestedAppAuthController implements IController {
             | PopupRequest
             | RedirectRequest
     ): string {
-        throw NestedAppAuthError.createUnsupportedError();
-    }
-    getEventHandler(): EventHandler {
         throw NestedAppAuthError.createUnsupportedError();
     }
     getNavigationClient(): INavigationClient {

@@ -26,9 +26,9 @@
         "watch": "webpack --mode development --watch"
     },
     "dependencies": {
+        "@azure/msal-browser": "file:../../../lib/msal-browser",
         "core-js": "^3.9.1",
-        "regenerator-runtime": "^0.13.7",
-        "@azure/msal-browser": "file:../../../lib/msal-browser"
+        "regenerator-runtime": "^0.13.7"
     },
     "devDependencies": {
         "@babel/core": "^7.13.10",
@@ -55,6 +55,7 @@
         "ts-loader": "^9.4.1",
         "typescript": "^4.7.4",
         "webpack": "^5.76.3",
+        "webpack-bundle-analyzer": "^4.8.0",
         "webpack-cli": "^5.0.1",
         "webpack-dev-server": "4.13.1"
     },
@@ -63,4 +64,3 @@
         "ie 11"
     ]
 }
-
