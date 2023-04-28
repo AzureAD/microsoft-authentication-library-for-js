@@ -65,6 +65,9 @@ jobs:
       if: steps.lib-cache.outputs.cache-hit != 'true'
       run: npm ci --ignore-scripts
 
+    - name: Bootstrap msal-common
+      run: npx lerna --scope @azure/msal-common bootstrap
+
     - name: Bootstrap msal-node
       run: npx lerna --scope @azure/msal-node bootstrap
 
@@ -158,6 +161,9 @@ jobs:
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
       run: npm ci
+
+    - name: Bootstrap msal-common
+      run: npx lerna --scope @azure/msal-common bootstrap
 
     - name: Bootstrap msal-node
       run: npx lerna --scope @azure/msal-node bootstrap
