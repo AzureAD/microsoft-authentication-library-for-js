@@ -36,7 +36,7 @@
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "prepack": "npm run build:all",
-    "prepare": "npm install ../msal-common",
+    "prepare": "cd ../msal-common && npm install --production && cd ../msal-node && npm install ../msal-common",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
