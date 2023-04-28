@@ -80,16 +80,16 @@
           "builder": "@angular-devkit/build-angular:dev-server",
           "configurations": {
             "production": {
-              "browserTarget": "angular15-sample-app:build:production"
+              "browserTarget": "angular16-sample-app:build:production"
             },
             "e2e": {
-              "browserTarget": "angular15-sample-app:build:e2e"
+              "browserTarget": "angular16-sample-app:build:e2e"
             },
             "dev": {
-              "browserTarget": "angular15-sample-app:build:dev"
+              "browserTarget": "angular16-sample-app:build:dev"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "dev"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
