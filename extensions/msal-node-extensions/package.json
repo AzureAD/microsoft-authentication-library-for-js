@@ -33,7 +33,8 @@
     "test:coverage": "jest --coverage",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
-    "prepack": "npm run build:all"
+    "prepare": "npm install ../../lib/msal-common",
+    "prepack": "cd ../../lib/msal-common && npm install --production && cd ../../extensions/msal-node-extensions && npm run build:all"
   },
   "author": {
     "name": "Microsoft",
@@ -49,6 +50,7 @@
     ]
   },
   "dependencies": {
+    "@azure/msal-common": "file:../../lib/msal-common",
     "@azure/msal-node-runtime": "^0.13.6-alpha.0",
     "@types/jest": "^29.5.0",
     "keytar": "^7.8.0",

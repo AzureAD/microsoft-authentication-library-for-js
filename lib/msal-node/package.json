@@ -35,8 +35,8 @@
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node",
-    "prepack": "npm run build:all",
+    "prepare": "npm install ../msal-common",
+    "prepack": "cd ../msal-common && npm install --production && cd ../msal-node && npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
@@ -64,10 +64,13 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "^12.0.0",
+    "@azure/msal-common": "file:../msal-common",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },
+  "bundledDependencies": [
+    "@azure/msal-common"
+  ],
   "engines": {
     "node": "16 || 18"
   }
