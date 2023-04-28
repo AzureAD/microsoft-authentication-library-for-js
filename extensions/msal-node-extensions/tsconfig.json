@@ -15,10 +15,7 @@
     "importHelpers": true,
     "declaration": true,
     "sourceMap": true,
-    "rootDirs": [
-      "./",
-      "../../lib/msal-common"
-    ],
+    "rootDir": "./",
     "outDir": "./dist",
     "noUnusedLocals": true,
     "baseUrl": "./",
@@ -27,8 +24,7 @@
         "src/*",
         "node_modules/*",
         "build/"
-      ],
-      "@azure/msal-common": ["../../lib/msal-common/src"]
+      ]
     },
     "jsx": "react",
     "esModuleInterop": true
