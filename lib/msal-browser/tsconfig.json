@@ -15,18 +15,12 @@
         "esModuleInterop": true,
         "resolveJsonModule": true,
         "strictPropertyInitialization": false,
-        "rootDirs": [
-            "./",
-            "../msal-common"
-        ],
+        "rootDir": "./",
         "baseUrl": "./",
         "paths": {
             "*": [
                 "src/*",
                 "node_modules/"
-            ],
-            "@azure/msal-common": [
-                "../msal-common/src"
             ]
         }
     },

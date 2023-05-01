@@ -1,18 +1,9 @@
 {
     "extends": "./tsconfig.json",
     "compilerOptions": {
-        "rootDirs": [
-            "./src",
-            "../msal-common/src"
-        ],
-        "paths": {
-            "@azure/msal-common": [
-                "../msal-common/src"
-            ]
-        }
+        "rootDir": "./src"
     },
     "include": [
-        "src",
-        "../msal-common/src"
+        "src"
     ]
 }

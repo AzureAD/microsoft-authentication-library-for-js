@@ -56,7 +56,8 @@
     "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
     "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
-    "prepack": "npm run build:all",
+    "prepare": "npm install ../msal-common",
+    "prepack": "cd ../msal-common && npm install --production && cd ../msal-node && npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
