@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-
-const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
-// const GRAPH_ENDPOINT = 'https://graph.microsoft-ppe.com/v1.0/me'; // PPE testing environment
+import { environment } from 'src/environments/environment';
 
 type ProfileType = {
   givenName?: string,
@@ -24,11 +22,11 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getProfile();
+    this.getProfile(environment.apiConfig.uri);
   }
 
-  getProfile() {
-    this.http.get(GRAPH_ENDPOINT)
+  getProfile(url: string) {
+    this.http.get(url)
       .subscribe(profile => {
         this.profile = profile;
       });

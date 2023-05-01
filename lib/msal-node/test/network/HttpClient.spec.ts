@@ -3,7 +3,7 @@ import {
     NetworkResponse,
     NetworkRequestOptions,
     UrlToHttpRequestOptions,
-} from "../../../msal-common";
+} from "@azure/msal-common";
 import { MockedMetadataResponse } from "../utils/TestConstants";
 
 import http from "http";

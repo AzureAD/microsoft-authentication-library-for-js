@@ -311,7 +311,6 @@ export class Authority {
     protected get defaultOpenIdConfigurationEndpoint(): string {
         if (
             this.authorityType === AuthorityType.Adfs ||
-            this.authorityType === AuthorityType.Dsts ||
             this.protocolMode === ProtocolMode.OIDC
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
