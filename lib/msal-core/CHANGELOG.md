@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
+This log was last generated on Mon, 01 May 2023 20:47:42 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.18
+
+Mon, 01 May 2023 20:47:42 GMT
+
+### Patches
+
+- Update polycheck version, rename Blacklist params (#5901) (sameera.gajjarapu@microsoft.com)
 
 ## 1.4.17
 
