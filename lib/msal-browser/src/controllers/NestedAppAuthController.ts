@@ -326,7 +326,14 @@ export class NestedAppAuthController implements IController {
         }
     }
     getAllAccounts(): AccountInfo[] {
-        throw new Error("Method not implemented.");
+        const currentAccount = this.operatingContext.getActiveAccount();
+        if (currentAccount !== undefined) {
+            return [
+                this.nestedAppAuthAdapter.fromNaaAccountInfo(currentAccount),
+            ];
+        } else {
+            return [];
+        }
     }
     handleRedirectPromise(
         hash?: string | undefined // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -378,16 +385,29 @@ export class NestedAppAuthController implements IController {
     getTokenCache(): ITokenCache {
         throw NestedAppAuthError.createUnsupportedError();
     }
-    getLogger(): Logger {
-        throw NestedAppAuthError.createUnsupportedError();
+
+    /**
+     * Returns the logger instance
+     */
+    public getLogger(): Logger {
+        return this.logger;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+    /**
+     * Replaces the default logger set in configurations with new Logger with new configurations
+     * @param logger Logger instance
+     */
     setLogger(logger: Logger): void {
-        throw NestedAppAuthError.createUnsupportedError();
+        this.logger = logger;
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     setActiveAccount(account: AccountInfo | null): void {
-        throw NestedAppAuthError.createUnsupportedError();
+        /*
+         * StandardController uses this to allow the developer to set the active account
+         * in the nested app auth scenario the active account is controlled by the app hosting the nested app
+         */
+        return;
     }
     getActiveAccount(): AccountInfo | null {
         const currentAccount = this.operatingContext.getActiveAccount();
@@ -399,7 +419,10 @@ export class NestedAppAuthController implements IController {
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
-        // Do nothing for this for now
+        /*
+         * Standard controller uses this to set the sku and version of the wrapper library in the storage
+         * we do nothing here
+         */
         return;
     }
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
