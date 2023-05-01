@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Update token expiry",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

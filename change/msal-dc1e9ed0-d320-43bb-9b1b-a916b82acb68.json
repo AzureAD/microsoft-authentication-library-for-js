@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update polycheck version, rename Blacklist params (#5901)",
-  "packageName": "msal",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}

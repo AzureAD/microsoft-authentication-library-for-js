@@ -2,6 +2,35 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 01 May 2023 20:47:44 GMT",
+      "tag": "@azure/msal-browser_v2.36.0",
+      "version": "2.36.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "f25c33932ea9a4d86fd39285e8d1afa26f72fb87",
+            "comment": "Fix missing idToken in response after refresh #5870"
+          }
+        ],
+        "minor": [
+          {
+            "author": "nicolas.zawada@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "4f8de2948a094dbb5b022b764f54d67ff1c00f1c",
+            "comment": "Add temporaryCacheLocation to Cache Options #5725"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v13.0.0",
+            "commit": "38c29bdb23f75989f9b1efcdd038e28586370fb0"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Apr 2023 21:29:32 GMT",
       "tag": "@azure/msal-browser_v2.35.0",
       "version": "2.35.0",
