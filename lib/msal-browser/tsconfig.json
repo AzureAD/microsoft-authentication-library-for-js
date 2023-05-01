@@ -13,26 +13,14 @@
         "allowUnusedLabels": false,
         "noImplicitReturns": true,
         "esModuleInterop": true,
-        "resolveJsonModule": true,
-        "strictPropertyInitialization": false,
-        "rootDir": "./",
-        "baseUrl": "./",
-        "paths": {
-            "*": [
-                "src/*",
-                "node_modules/"
-            ]
-        }
+        "resolveJsonModule": true
     },
     "references": [
         {
             "path": "../msal-common"
         }
     ],
-    "include": [
-        "src",
-        "test"
-    ],
+    "include": ["src", "test"],
     "exclude": [
         "node_modules"
     ],
