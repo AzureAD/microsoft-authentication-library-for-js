@@ -35,6 +35,9 @@ import { version, name } from "../packageMetadata";
 import { CryptoOps } from "../crypto/CryptoOps";
 import { NestedAppAuthAdapter } from "../naa/mapping/NestedAppAuthAdapter";
 import { NestedAppAuthError } from "../error/NestedAppAuthError";
+import { EventHandler } from "../event/EventHandler";
+import { EventType } from "../event/EventType";
+import { EventCallbackFunction, EventError } from "../event/EventMessage";
 
 export class NestedAppAuthController implements IController {
     // OperatingContext
@@ -54,6 +57,9 @@ export class NestedAppAuthController implements IController {
 
     // Performance telemetry client
     protected readonly performanceClient: IPerformanceClient;
+
+    // EventHandler
+    protected readonly eventHandler: EventHandler;
 
     // NestedAppAuthAdapter
     protected readonly nestedAppAuthAdapter: NestedAppAuthAdapter;
@@ -101,6 +107,8 @@ export class NestedAppAuthController implements IController {
               )
             : DEFAULT_CRYPTO_IMPLEMENTATION;
 
+        this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
+
         this.nestedAppAuthAdapter = new NestedAppAuthAdapter(
             this.config.auth.clientId,
             this.config.auth.clientCapabilities,
@@ -124,26 +132,74 @@ export class NestedAppAuthController implements IController {
     private async acquireTokenInteractive(
         request: PopupRequest | RedirectRequest
     ): Promise<AuthenticationResult> {
-        const naaRequest = this.nestedAppAuthAdapter.toNaaTokenRequest(request);
-        const response = await this.bridgeProxy.getTokenInteractive(naaRequest);
-
-        return this.nestedAppAuthAdapter.fromNaaTokenResponse(
-            naaRequest,
-            response
+        this.eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_START,
+            InteractionType.Popup,
+            request
         );
+
+        try {
+            const naaRequest =
+                this.nestedAppAuthAdapter.toNaaTokenRequest(request);
+            const response = await this.bridgeProxy.getTokenInteractive(
+                naaRequest
+            );
+            const result: AuthenticationResult =
+                this.nestedAppAuthAdapter.fromNaaTokenResponse(
+                    naaRequest,
+                    response
+                );
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_SUCCESS,
+                InteractionType.Popup,
+                result
+            );
+            return result;
+        } catch (e) {
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_FAILURE,
+                InteractionType.Popup,
+                null,
+                e as EventError
+            );
+            throw e;
+        }
     }
 
     private async acquireTokenSilentInternal(
         request: SilentRequest
     ): Promise<AuthenticationResult> {
-        const naaRequest =
-            this.nestedAppAuthAdapter.toNaaSilentTokenRequest(request);
-        const response = await this.bridgeProxy.getTokenSilent(naaRequest);
-
-        return this.nestedAppAuthAdapter.fromNaaTokenResponse(
-            naaRequest,
-            response
+        this.eventHandler.emitEvent(
+            EventType.ACQUIRE_TOKEN_START,
+            InteractionType.Silent,
+            request
         );
+
+        try {
+            const naaRequest =
+                this.nestedAppAuthAdapter.toNaaSilentTokenRequest(request);
+            const response = await this.bridgeProxy.getTokenSilent(naaRequest);
+
+            const result: AuthenticationResult =
+                this.nestedAppAuthAdapter.fromNaaTokenResponse(
+                    naaRequest,
+                    response
+                );
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_SUCCESS,
+                InteractionType.Silent,
+                result
+            );
+            return result;
+        } catch (e) {
+            this.eventHandler.emitEvent(
+                EventType.ACQUIRE_TOKEN_FAILURE,
+                InteractionType.Silent,
+                null,
+                e as EventError
+            );
+            throw e;
+        }
     }
 
     async acquireTokenPopup(
@@ -193,14 +249,23 @@ export class NestedAppAuthController implements IController {
     ): Promise<AuthenticationResult> {
         throw NestedAppAuthError.createUnsupportedError();
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    addEventCallback(callback: Function): string | null {
-        throw NestedAppAuthError.createUnsupportedError();
+
+    /**
+     * Adds event callbacks to array
+     * @param callback
+     */
+    addEventCallback(callback: EventCallbackFunction): string | null {
+        return this.eventHandler.addEventCallback(callback);
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+
+    /**
+     * Removes callback with provided id from callback array
+     * @param callbackId
+     */
     removeEventCallback(callbackId: string): void {
-        throw NestedAppAuthError.createUnsupportedError();
+        this.eventHandler.removeEventCallback(callbackId);
     }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     addPerformanceCallback(callback: PerformanceCallbackFunction): string {
         throw NestedAppAuthError.createUnsupportedError();
