@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix package-lock.json #5788",
-  "packageName": "@azure/msal-angular",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

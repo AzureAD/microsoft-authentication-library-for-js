@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805",
-  "packageName": "@azure/msal-common",
-  "email": "rginsburg@microsoft.com",
-  "dependentChangeType": "patch"
-}

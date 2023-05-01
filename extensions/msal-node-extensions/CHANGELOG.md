@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
+This log was last generated on Mon, 01 May 2023 17:25:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.33
+
+Mon, 01 May 2023 17:25:21 GMT
+
+### Changes
+
+- Drop TSDX in favor of using rollup & jest directly #5893 (thomas.norling@microsoft.com)
+- Bump typescript version to 4.9.5 #5750 (kshabelko@microsoft.com)
+- Fix response expiresOn property (thomas.norling@microsoft.com)
+- Bump @azure/msal-common to v13.0.0
 
 ## 1.0.0-alpha.32
 

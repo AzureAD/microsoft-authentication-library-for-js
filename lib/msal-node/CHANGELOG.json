@@ -2,6 +2,81 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 01 May 2023 17:25:21 GMT",
+      "tag": "@azure/msal-node_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "39baaeb91c3373df955079e6fc1f94d5d4e14881",
+            "comment": "Export Serializer and Deserializer from msal-node #5931"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "14aeb0a7a4e90650de4b09adb95e32c7084a6424",
+            "comment": "Bundle msal-common into msal-node #5942"
+          }
+        ],
+        "major": [
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Migrate from tsdx to use rollup and jest directly for msal-node #5818"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Move node clients from msal-common to msal-node #5788"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v13.0.0",
+            "commit": "82e0f2d954b1dfb686b94d5d918e399b18da98ba"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "41cc416a3457cd13806eb36aabe5b319fd21529e",
+            "comment": "Unit tests for broker flow #5910"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Allow major change types for v3 updates #5746"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "758159f98704b64c3b365972ac13eef96e08d0a9",
+            "comment": "Remove `null` from `acquireTokenSilent` return type #5912"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Apr 2023 21:29:31 GMT",
       "tag": "@azure/msal-node_v1.17.0",
       "version": "1.17.0",

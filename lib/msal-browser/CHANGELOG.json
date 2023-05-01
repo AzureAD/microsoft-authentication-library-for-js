@@ -2,6 +2,81 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 01 May 2023 17:25:22 GMT",
+      "tag": "@azure/msal-browser_v3.0.0",
+      "version": "3.0.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5af79c8561d09ce63669937752ea9a6d3ba51f69",
+            "comment": "Improve iframe error detection #5891"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1a04e92c8416da2f654446a729fccc4addf9d716",
+            "comment": "Fix missing idToken in response after refresh #5871"
+          }
+        ],
+        "major": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9f5c1288cbe52fa2176f41269032c7bb7920de14",
+            "comment": "Fix telemetry typos #5868"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "`allowNativeBroker` configuration defaults to `true` #5616"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v13.0.0",
+            "commit": "82e0f2d954b1dfb686b94d5d918e399b18da98ba"
+          }
+        ],
+        "minor": [
+          {
+            "author": "nicolas.zawada@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2536c48f4437035c8d15a83bf1d076cf2ecc7c0",
+            "comment": "Add temporaryCacheLocation to Cache Options #5725"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "42d55e7106afc0f9c574155d3e9ff63cffd9f3b5",
+            "comment": "Randomize native extension response identifiers to facilitate concurrency #5903"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a24e4953e5e733166364cb820a0621403d70d19f",
+            "comment": "Package-lock updates"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Remove dropped version checks from v3 workflows #5729"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Apr 2023 21:29:32 GMT",
       "tag": "@azure/msal-browser_v2.35.0",
       "version": "2.35.0",

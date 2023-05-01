@@ -1,8 +1,20 @@
 # Change Log - msal
 
-This log was last generated on Mon, 01 Aug 2022 22:22:36 GMT and should not be manually modified.
+This log was last generated on Mon, 01 May 2023 17:25:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.5.0
+
+Mon, 01 May 2023 17:25:22 GMT
+
+### Minor changes
+
+- Bump typescript to 4.9.5 and build target to es2020 #5750 (kshabelko@microsoft.com)
+
+### Patches
+
+- Rename BlacklistedEQParams to DisallowedEQParams (thomas.norling@microsoft.com)
 
 ## 1.4.17
 

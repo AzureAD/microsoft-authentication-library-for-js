@@ -1,8 +1,28 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
+This log was last generated on Mon, 01 May 2023 17:25:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.0
+
+Mon, 01 May 2023 17:25:22 GMT
+
+### Major changes
+
+- Fix telemetry typos #5868 (kshabelko@microsoft.com)
+- `allowNativeBroker` configuration defaults to `true` #5616 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v13.0.0
+
+### Minor changes
+
+- Add temporaryCacheLocation to Cache Options #5725 (nicolas.zawada@gmail.com)
+- Randomize native extension response identifiers to facilitate concurrency #5903 (kshabelko@microsoft.com)
+
+### Patches
+
+- Improve iframe error detection #5891 (thomas.norling@microsoft.com)
+- Fix missing idToken in response after refresh #5871 (thomas.norling@microsoft.com)
 
 ## 2.35.0
 
