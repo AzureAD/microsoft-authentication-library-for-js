@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
+This log was last generated on Mon, 01 May 2023 20:47:44 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.36.0
+
+Mon, 01 May 2023 20:47:44 GMT
+
+### Minor changes
+
+- Add temporaryCacheLocation to Cache Options #5725 (nicolas.zawada@gmail.com)
+- Bump @azure/msal-common to v13.0.0
+
+### Patches
+
+- Fix missing idToken in response after refresh #5870 (thomas.norling@microsoft.com)
 
 ## 2.35.0
 

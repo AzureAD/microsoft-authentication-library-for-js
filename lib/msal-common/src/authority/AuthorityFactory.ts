@@ -36,10 +36,12 @@ export class AuthorityFactory {
         correlationId?: string
     ): Promise<Authority> {
         performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityFactoryCreateDiscoveredInstance, correlationId);
+        
+        const authorityUriFinal = Authority.transformCIAMAuthority(authorityUri);
 
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(
-            authorityUri,
+            authorityUriFinal,
             networkClient,
             cacheManager,
             authorityOptions,

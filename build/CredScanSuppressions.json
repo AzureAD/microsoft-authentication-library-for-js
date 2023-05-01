@@ -1,0 +1,17 @@
+{
+    "tool": "Credential Scanner",
+    "suppressions": [
+      {
+        "placeholder": ["Bearer Token123", "Bearer Token456", "Bearer Token3434", "Bearer RenewToken123", "Bearer RenewToken456", "Bearer RenewToken3434", "verySecret=", "secret-001", "12345678901234567890123456789012"],
+        "_justification": "This is the secret placeholder used by my team"
+      },
+      {
+        "file": "\\maintenance\\passport-azure-ad\\README.md",
+        "_justification": "Source-controlled documentation with non-functional credential for illustration purpose only"
+      },
+      {
+        "file": ["\\maintenance\\passport-azure-ad\\test\\resource\\private.pem", "\\maintenance\\passport-azure-ad\\test\\End_to_end_test\\oidc_jwe_test.js", "\\maintenance\\passport-azure-ad\\test\\Chai-passport_test\\oidc_hybrid_and_code_flow_test.js", "\\maintenance\\adal-node\\test\\util\\util.ts"],
+        "_justification": "Hard-coded non-functional credential for testing purposes only"
+      }
+    ]
+}

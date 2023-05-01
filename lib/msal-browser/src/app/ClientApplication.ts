@@ -150,6 +150,7 @@ export abstract class ClientApplication {
         // initialize in memory storage for native flows
         const nativeCacheOptions: Required<CacheOptions> = {
             cacheLocation: BrowserCacheLocation.MemoryStorage,
+            temporaryCacheLocation: BrowserCacheLocation.MemoryStorage,
             storeAuthStateInCookie: false,
             secureCookies: false,
             cacheMigrationEnabled: false

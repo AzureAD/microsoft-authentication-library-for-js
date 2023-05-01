@@ -60,6 +60,7 @@ import { NativeAuthError } from "../../src/error/NativeAuthError";
 import { BrowserPerformanceMeasurement } from "../../src/telemetry/BrowserPerformanceMeasurement";
 
 const cacheConfig = {
+    temporaryCacheLocation: BrowserCacheLocation.SessionStorage,
     cacheLocation: BrowserCacheLocation.SessionStorage,
     storeAuthStateInCookie: false,
     secureCookies: false,

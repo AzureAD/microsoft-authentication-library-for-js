@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Mon, 01 May 2023 20:47:42 GMT",
+      "tag": "msal_v1.4.18",
+      "version": "1.4.18",
+      "comments": {
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "msal",
+            "commit": "9fc8ec7d5318f6da827f755b7f7132bbddbf4a28",
+            "comment": "Update polycheck version, rename Blacklist params (#5901)"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 09 Jan 2023 22:44:58 GMT",
       "tag": "msal_v1.4.17",
       "version": "1.4.17",

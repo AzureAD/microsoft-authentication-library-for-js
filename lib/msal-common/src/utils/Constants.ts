@@ -17,6 +17,9 @@ export const Constants = {
     DSTS: "dstsv2",
     // Default AAD Instance Discovery Endpoint
     AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
+    // CIAM URL
+    CIAM_AUTH_URL: ".ciamlogin.com",
+    AAD_TENANT_DOMAIN_SUFFIX: ".onmicrosoft.com",
     // Resource delimiter - used for certain cache entries
     RESOURCE_DELIM: "|",
     // Placeholder for non-existent account ids/objects
@@ -191,14 +194,6 @@ export enum SSOTypes {
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
 }
-
-/**
- * Disallowed extra query parameters.
- */
-export const BlacklistedEQParams = [
-    SSOTypes.SID,
-    SSOTypes.LOGIN_HINT
-];
 
 /**
  * allowed values for codeVerifier
