@@ -20,7 +20,6 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: 'Enter_the_Application_Id_Here', // This is the ONLY mandatory field that you need to supply.
     authority: 'https://Enter_the_Tenant_Name_Here.ciamlogin.com/', // Replace "Enter_the_Tenant_Name_Here" with your tenant name
-    knownAuthorities: ["Enter_the_Tenant_Name_Here.ciamlogin.com"], // Replace "Enter_the_Tenant_Name_Here" with your tenant name
     redirectUri: '/', // Points to window.location.origin by default. You must register this URI on Azure portal/App Registration.
     postLogoutRedirectUri: '/', // Points to window.location.origin by default.
   },
