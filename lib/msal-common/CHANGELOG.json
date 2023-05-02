@@ -2,6 +2,69 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 02 May 2023 22:02:36 GMT",
+      "tag": "@azure/msal-common_v13.0.0",
+      "version": "13.0.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "629883fbfe597b56260483e4567bacd9ae9ba81d",
+            "comment": "Remove unused enum"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f26fba90f10fc62cc7a8774d1f079996e120d76",
+            "comment": "`removeAccount` does not throw if account does not exist in cache #5911"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805"
+          },
+          {
+            "author": "kapjain@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
+            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+          }
+        ],
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Allow major change types for v3 updates #5746"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d8b8ddf1f6eeccce45821f2cd6214f306c386e83",
+            "comment": "Add CIAM support for v3(#5915)"
+          }
+        ],
+        "major": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9f5c1288cbe52fa2176f41269032c7bb7920de14",
+            "comment": "Fix telemetry typos #5868"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Apr 2023 21:29:31 GMT",
       "tag": "@azure/msal-common_v12.0.0",
       "version": "12.0.0",

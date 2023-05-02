@@ -2,6 +2,71 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 02 May 2023 22:02:36 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.33",
+      "version": "1.0.0-alpha.33",
+      "comments": {
+        "none": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
+            "comment": "Fix prepack hook #5967"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "e17eb91a3fd848b44b76bc65bacf20239a0dc62a",
+            "comment": "Bundle local version of msal-common into msal-node-extensions #5923"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "db4f4fa56e8dcec65a9d1a0653af4b128ac3b725",
+            "comment": "Update `msal-common` bundling config for `msal-node-extensions` #5943"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Rebase dev onto v3 #5843"
+          }
+        ],
+        "prerelease": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "b4bbf7c584b0943b9edbdbb30e568b30bf6a203a",
+            "comment": "Drop TSDX in favor of using rollup & jest directly #5893"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Bump typescript version to 4.9.5 #5750"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node-extensions",
+            "commit": "33fb5c38aa2e089080d11d4bb5a941a2b97b5f0a",
+            "comment": "Fix response expiresOn property"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node-extensions",
+            "comment": "Bump @azure/msal-common to v13.0.0",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 03 Apr 2023 21:29:32 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.32",
       "version": "1.0.0-alpha.32",

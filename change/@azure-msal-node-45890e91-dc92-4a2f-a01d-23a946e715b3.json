@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix prepack hook #5967",
-  "packageName": "@azure/msal-node",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}

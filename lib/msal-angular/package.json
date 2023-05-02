@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.5.5",
+  "version": "3.0.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -49,7 +49,7 @@
     "@angular/platform-browser": "^15.1.4",
     "@angular/platform-browser-dynamic": "^15.1.4",
     "@angular/router": "^15.1.4",
-    "@azure/msal-browser": "^2.32.2",
+    "@azure/msal-browser": "^3.0.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -69,7 +69,7 @@
     "zone.js": "~0.11.8"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.35.0",
+    "@azure/msal-browser": "^3.0.0",
     "rxjs": "^7.0.0"
   }
 }

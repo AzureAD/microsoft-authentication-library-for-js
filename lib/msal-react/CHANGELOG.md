@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 03 Apr 2023 21:29:32 GMT and should not be manually modified.
+This log was last generated on Tue, 02 May 2023 22:02:37 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0
+
+Tue, 02 May 2023 22:02:37 GMT
+
+### Major changes
+
+- Drop TSDX in favor of using rollup & jest directly #5895 (thomas.norling@microsoft.com)
+- Rebase dev onto v3 #5843 (kshabelko@microsoft.com)
+- Bump @azure/msal-browser to v3.0.0
 
 ## 1.5.5
 

@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 03 Apr 2023 21:29:31 GMT and should not be manually modified.
+This log was last generated on Tue, 02 May 2023 22:02:36 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 13.0.0
+
+Tue, 02 May 2023 22:02:36 GMT
+
+### Major changes
+
+- Fix telemetry typos #5868 (kshabelko@microsoft.com)
+
+### Minor changes
+
+- Add CIAM support for v3(#5915) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Remove unused enum (thomas.norling@microsoft.com)
+- `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
+- Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
+- Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
 
 ## 12.0.0
 
