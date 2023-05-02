@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix prepack hook #5967",
+  "packageName": "@azure/msal-browser",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
