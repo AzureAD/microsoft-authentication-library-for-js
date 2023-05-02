@@ -7,7 +7,7 @@ const process = require("process");
 const extensions = require("../../dist/index");
 const fs = require("fs");
 const path = require("path");
-const msalCommon = require("../../dist/lib/msal-common/src/index");
+const msalCommon = require("@azure/msal-common");
 
 // Expect: node_path, path_to_file, filename, retryNumber, retryDelay
 if (process.argv.length < 5) {

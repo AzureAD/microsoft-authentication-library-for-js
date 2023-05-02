@@ -32,6 +32,11 @@ const config = {
 };
 ```
 
+On the Authenticaion Page of your app, add the following:
+
+- In the **Redirect URI** section, select **Public client/native (mobile & desktop)** in the combo-box and enter the following redirect URI: `ms-appx-web://Microsoft.AAD.BrokerPlugin/<your-client-id>`, replacing `<your-client-id>` with the **Application (client) ID** from your app's registration screen.
+- In the **Advanced Settings** section, set the **Allow public client flows** to **Yes**.
+
 ## Run the app
 
 In the same folder, type:
