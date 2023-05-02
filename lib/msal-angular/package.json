@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.5.5",
+  "version": "2.5.7",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -69,7 +69,7 @@
     "zone.js": "~0.11.8"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.35.0",
+    "@azure/msal-browser": "^2.37.0",
     "rxjs": "^7.0.0"
   }
 }
