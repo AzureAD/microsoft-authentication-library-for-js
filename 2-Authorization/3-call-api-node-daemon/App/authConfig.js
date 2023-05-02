@@ -15,7 +15,7 @@ const fs = require('fs');
 const msalConfig = {
     auth: {
         clientId: process.env.CLIENT_ID || 'Enter_the_Application_Id_Here', // 'Application (client) ID' of app registration in Azure portal - this value is a GUID
-        authority: 'https://login.microsoftonline.com/' + (process.env.TENANT_ID || 'Enter_the_Tenant_Id_Here'), // Full directory URL, in the form of https://login.microsoftonline.com/<tenant>
+        authority: process.env.AUTHORITY || 'https://Enter_the_Tenant_Name_Here.ciamlogin.com/', // Replace "Enter_the_Tenant_Name_Here" with your tenant name
         clientSecret: process.env.CLIENT_SECRET || 'Enter_the_Client_Secret_Here', // Client secret generated from the app registration in Azure portal
         // clientCertificate: {
         //     thumbprint:  process.env.CERT_THUMBPRINT || 'YOUR_CERT_THUMBPRINT', // replace with thumbprint obtained during step 2 above
@@ -34,7 +34,7 @@ const msalConfig = {
 };
 
 const protectedResources = {
-    apiTodoList: {
+    apiToDoList: {
         endpoint: process.env.API_ENDPOINT || 'https://localhost:44351/api/todolist',
         scopes: [process.env.SCOPES || 'api://Enter_the_Web_Api_Application_Id_Here'],
     },

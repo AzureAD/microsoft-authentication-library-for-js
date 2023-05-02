@@ -19,18 +19,18 @@
             "Kind": "WebApi",
             "Audience": "AzureADMyOrg",
             "SDK": "MicrosoftIdentityWeb",
-            "SampleSubPath": "2-Authorization\\3-call-api-node-daemon\\API\\TodoListAPI",
-            "Scopes": ["TodoList.Read", "TodoList.ReadWrite"],
+            "SampleSubPath": "2-Authorization\\3-call-api-node-daemon\\API\\ToDoListAPI",
+            "Scopes": ["ToDoList.Read", "ToDoList.ReadWrite"],
             "AppRoles": [
                 {
                     "AllowedMemberTypes": ["Application"],
-                    "Name": "TodoList.Read.All",
-                    "Description": "Allow this application to read every users TodoList items"
+                    "Name": "ToDoList.Read.All",
+                    "Description": "Allow this application to read every users ToDoList items"
                 },
                 {
                     "AllowedMemberTypes": ["Application"],
-                    "Name": "TodoList.ReadWrite.All",
-                    "Description": "Allow this application to read and write every users TodoList items"
+                    "Name": "ToDoList.ReadWrite.All",
+                    "Description": "Allow this application to read and write every users ToDoList items"
                 }
             ],
             "OptionalClaims": {
@@ -47,7 +47,7 @@
             "RequiredResourcesAccess": [
                 {
                     "Resource": "service",
-                    "ApplicationPermissions": ["TodoList.Read.All", "TodoList.ReadWrite.All"]
+                    "ApplicationPermissions": ["ToDoList.Read.All", "ToDoList.ReadWrite.All"]
                 }
             ],
             "ManualSteps": [
@@ -61,30 +61,34 @@
         {
             "App": "service",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\API\\TodoListAPI\\appsettings.json",
+            "SettingFile": "\\..\\API\\ToDoListAPI\\appsettings.json",
             "Mappings": [
                 {
-                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "key": "Enter_the_Application_Id_Here",
                     "value": ".AppId"
                 },
                 {
-                    "key": "Enter the tenant ID",
+                    "key": "Enter_the_Tenant_Id_Here",
                     "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Name_Here",
+                    "value": "$tenantName"
                 }
             ]
         },
         {
             "App": "client",
             "SettingKind": "Replace",
-            "SettingFile": "\\..\\APP\\authConfig.js",
+            "SettingFile": "\\..\\App\\authConfig.js",
             "Mappings": [
                 {
                     "key": "Enter_the_Application_Id_Here",
                     "Value": ".AppId"
                 },
                 {
-                    "key": "Enter_the_Tenant_Id_Here",
-                    "value": "$tenantId"
+                    "key": "Enter_the_Tenant_Name_Here",
+                    "value": "$tenantName"
                 },
                 {
                     "key": "Enter_the_Client_Secret_Here",
