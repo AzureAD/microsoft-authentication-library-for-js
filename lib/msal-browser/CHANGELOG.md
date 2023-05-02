@@ -1,8 +1,35 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 01 May 2023 20:47:44 GMT and should not be manually modified.
+This log was last generated on Tue, 02 May 2023 23:14:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.0
+
+Tue, 02 May 2023 23:14:26 GMT
+
+### Major changes
+
+- `allowNativeBroker` configuration defaults to `true` #5616 (hemoral@microsoft.com)
+- Fix telemetry typos #5868 (kshabelko@microsoft.com)
+- Bump @azure/msal-common to v14.0.0
+
+### Minor changes
+
+- Add CIAM support for v3(#5915) (sameera.gajjarapu@microsoft.com)
+- Add temporaryCacheLocation to Cache Options #5725 (nicolas.zawada@gmail.com)
+- Randomize native extension response identifiers to facilitate concurrency #5903 (kshabelko@microsoft.com)
+
+### Patches
+
+- Fix prepack hook #5967 (kshabelko@microsoft.com)
+- Bundle local version of msal-common into msal-browser #5953 (kshabelko@microsoft.com)
+- Fix missing idToken in response after refresh #5871 (thomas.norling@microsoft.com)
+- Improve iframe error detection #5891 (thomas.norling@microsoft.com)
+- Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+- Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
+- `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
+- Remove unused enum (thomas.norling@microsoft.com)
 
 ## 2.37.0
 

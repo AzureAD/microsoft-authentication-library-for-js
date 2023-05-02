@@ -68,5 +68,8 @@
   },
   "bundledDependencies": [
     "@azure/msal-common"
+  ],
+  "bundleDependencies": [
+    "@azure/msal-common"
   ]
 }

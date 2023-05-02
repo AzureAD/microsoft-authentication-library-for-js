@@ -1,8 +1,36 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 01 May 2023 20:47:44 GMT and should not be manually modified.
+This log was last generated on Tue, 02 May 2023 23:14:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0
+
+Tue, 02 May 2023 23:14:26 GMT
+
+### Major changes
+
+- Move node clients from msal-common to msal-node #5788 (kshabelko@microsoft.com)
+- Migrate from tsdx to use rollup and jest directly for msal-node #5818 (hemoral@microsoft.com)
+- Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
+- Bump @azure/msal-common to v14.0.0
+
+### Minor changes
+
+- Bundle msal-common into msal-node #5942 (kshabelko@microsoft.com)
+- Export Serializer and Deserializer from msal-node #5931 (kshabelko@microsoft.com)
+- Add CIAM support for v3(#5915) (sameera.gajjarapu@microsoft.com)
+- Fix telemetry typos #5868 (kshabelko@microsoft.com)
+
+### Patches
+
+- Update MSAL Node compatible versions to include Node v20 and drop v16 #5905 (hemoral@microsoft.com)
+- Remove `null` from `acquireTokenSilent` return type #5912 (thomas.norling@microsoft.com)
+- Fix prepack hook #5967 (kshabelko@microsoft.com)
+- Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+- Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
+- `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
+- Remove unused enum (thomas.norling@microsoft.com)
 
 ## 1.17.2
 

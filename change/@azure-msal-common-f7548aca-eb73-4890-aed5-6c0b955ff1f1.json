@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint",
-  "packageName": "@azure/msal-common",
-  "email": "kapjain@microsoft.com",
-  "dependentChangeType": "patch"
-}

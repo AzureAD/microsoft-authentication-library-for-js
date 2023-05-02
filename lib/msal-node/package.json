@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.17.2",
+  "version": "2.0.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -73,5 +73,8 @@
   ],
   "engines": {
     "node": "18 || 20"
-  }
+  },
+  "bundleDependencies": [
+    "@azure/msal-common"
+  ]
 }

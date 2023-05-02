@@ -2,6 +2,53 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 02 May 2023 23:14:26 GMT",
+      "tag": "@azure/msal-react_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd",
+            "comment": " Merge LTS changelogs"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Allow major change types for v3 updates #5746"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          }
+        ],
+        "major": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Rebase dev onto v3 #5843"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "1456301c24ce5fa0d0bba0af78573b368c5ab61d",
+            "comment": "Drop TSDX in favor of using rollup & jest directly #5895"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.0.0",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:44 GMT",
       "tag": "@azure/msal-react_v1.5.7",
       "version": "1.5.7",

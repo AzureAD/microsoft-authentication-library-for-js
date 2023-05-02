@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove unused enum",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
