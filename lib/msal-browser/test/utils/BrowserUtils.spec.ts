@@ -4,12 +4,10 @@
  */
 
 import sinon from "sinon";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
-import { BrowserAuthErrorMessage, InteractionType } from "../../src";
-import { BrowserAuthError } from "../../lib";
+import { BrowserUtils, BrowserAuthError, BrowserAuthErrorMessage, InteractionType } from "../../src";
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow: Window & typeof globalThis = window;

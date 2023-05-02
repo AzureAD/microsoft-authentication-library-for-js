@@ -3112,7 +3112,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it.skip("includes the requestId in the result when received in server response", async () => {
+        it("includes the requestId in the result when received in server response", async () => {
             sinon
                 .stub(
                     Authority.prototype,
@@ -3179,7 +3179,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it.skip("does not include the requestId in the result when none in server response", async () => {
+        it("does not include the requestId in the result when none in server response", async () => {
             sinon
                 .stub(
                     Authority.prototype,
@@ -3243,7 +3243,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(authenticationResult.requestId).toEqual("");
         });
 
-        it.skip("includes the http version in Authorization code client measurement(AT) when received in server response", async () => {
+        it("includes the http version in Authorization code client measurement(AT) when received in server response", async () => {
             sinon
                 .stub(
                     Authority.prototype,
@@ -3320,7 +3320,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it.skip("does not add http version to the measurement when not received in server response", async () => {
+        it("does not add http version to the measurement when not received in server response", async () => {
             sinon
                 .stub(
                     Authority.prototype,

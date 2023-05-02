@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     ServerTelemetryManager,
     Authority,
@@ -5,6 +10,7 @@ import {
 } from "@azure/msal-common";
 
 import * as msalCommon from "@azure/msal-common";
+import { TEST_CONSTANTS } from "../utils/TestConstants";
 
 // @ts-ignore
 const mockServerTelemetryManager: ServerTelemetryManager = {
@@ -53,11 +59,14 @@ export const fakeAuthority: Authority = {
     discoveryComplete: () => {
         return true;
     },
+    getPreferredCache: () => {
+        return TEST_CONSTANTS.PREFERRED_CACHE;
+    }
 } as unknown as Authority;
 
 export const setupAuthorityFactory_createDiscoveredInstance_mock = (
     authority = fakeAuthority
-) => {
+): jest.SpyInstance => {
     return jest
         .spyOn(AuthorityFactory, "createDiscoveredInstance")
         .mockReturnValue(Promise.resolve(authority));

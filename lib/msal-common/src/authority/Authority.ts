@@ -104,6 +104,12 @@ export class Authority {
     // See above for AuthorityType
     public get authorityType(): AuthorityType {
         const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
+
+        // CIAM auth url pattern is being standardized as: <tenant>.ciamlogin.com
+        if (this.canonicalAuthorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
+            return AuthorityType.Ciam;
+        }
+
         if (pathSegments.length) {
             switch (pathSegments[0].toLowerCase()) {
                 case Constants.ADFS:
@@ -305,7 +311,6 @@ export class Authority {
     protected get defaultOpenIdConfigurationEndpoint(): string {
         if (
             this.authorityType === AuthorityType.Adfs ||
-            this.authorityType === AuthorityType.Dsts ||
             this.protocolMode === ProtocolMode.OIDC
         ) {
             return `${this.canonicalAuthority}.well-known/openid-configuration`;
@@ -400,7 +405,6 @@ export class Authority {
             return AuthorityMetadataSource.CACHE;
         }
 
-        let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         this.performanceClient?.setPreQueueTime(
             PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork,
             this.correlationId
@@ -422,6 +426,7 @@ export class Authority {
             return AuthorityMetadataSource.NETWORK;
         }
 
+        let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         if (
             harcodedMetadata &&
             !this.authorityOptions.skipAuthorityMetadataCache
@@ -585,8 +590,8 @@ export class Authority {
     /**
      * Updates the AuthorityMetadataEntity with new aliases, preferred_network and preferred_cache
      * and returns where the information was retrieved from
-     * @param cachedMetadata
-     * @param newMetadata
+     * @param metadataEntity 
+     * @returns AuthorityMetadataSource
      */
     private async updateCloudDiscoveryMetadata(
         metadataEntity: AuthorityMetadataEntity
@@ -684,6 +689,13 @@ export class Authority {
      * Parse cloudDiscoveryMetadata config or check knownAuthorities
      */
     private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
+
+        // CIAM does not support cloud discovery metadata
+        if (this.authorityType === AuthorityType.Ciam) {
+            this.logger.verbose("CIAM authorities do not support cloud discovery metadata, generate the aliases from authority host.");
+            return Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
+        }
+
         // Check if network response was provided in config
         if (this.authorityOptions.cloudDiscoveryMetadata) {
             this.logger.verbose(
@@ -1023,5 +1035,29 @@ export class Authority {
         }
 
         return metadata;
+    }
+
+    /**
+     * Transform CIAM_AUTHORIY as per the below rules:
+     * If no path segments found and it is a CIAM authority (hostname ends with .ciamlogin.com), then transform it
+     * 
+     * NOTE: The transformation path should go away once STS supports CIAM with the format: `tenantIdorDomain.ciamlogin.com`
+     * `ciamlogin.com` can also change in the future and we should accommodate the same
+     * 
+     * @param authority 
+     */
+    static transformCIAMAuthority(authority: string): string {
+        
+        let ciamAuthority = authority.endsWith(Constants.FORWARD_SLASH) ? authority : `${authority}${Constants.FORWARD_SLASH}`;
+        const authorityUrl = new UrlString(authority);
+        const authorityUrlComponents = authorityUrl.getUrlComponents();
+
+        // check if transformation is needed
+        if (authorityUrlComponents.PathSegments.length === 0 && (authorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL))){
+            const tenantIdOrDomain = authorityUrlComponents.HostNameAndPort.split(".")[0];
+            ciamAuthority = `${ciamAuthority}${tenantIdOrDomain}${Constants.AAD_TENANT_DOMAIN_SUFFIX}`;
+        }
+
+        return ciamAuthority;
     }
 }

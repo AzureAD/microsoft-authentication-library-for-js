@@ -39,10 +39,12 @@ export class AuthorityFactory {
             correlationId
         );
 
+        const authorityUriFinal = Authority.transformCIAMAuthority(authorityUri);
+
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority =
             AuthorityFactory.createInstance(
-                authorityUri,
+                authorityUriFinal,
                 networkClient,
                 cacheManager,
                 authorityOptions,

@@ -10,4 +10,5 @@ export enum AuthorityType {
     Default,
     Adfs,
     Dsts,
+    Ciam
 }
