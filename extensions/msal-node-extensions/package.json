@@ -34,7 +34,7 @@
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
     "prepare": "npm install ../../lib/msal-common",
-    "prepack": "cd ../../lib/msal-common && npm install --production && cd ../../extensions/msal-node-extensions && npm run build:all"
+    "prepack": "npm run build:all && cd ../../lib/msal-common && npm install --production && cd ../../extensions/msal-node-extensions"
   },
   "author": {
     "name": "Microsoft",
