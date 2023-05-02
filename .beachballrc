@@ -3,5 +3,5 @@
     "access": "public",
     "changehint": "Need to run the following command before merging this PR: npm run beachball:change",
     "scope": ["lib/*", "extensions/*"],
-    "ignorePatterns": ["lib/**/**.md", "extensions/**/**.md"]
+    "ignorePatterns": ["**.md", "**.png", "**/docs/**"]
 }
