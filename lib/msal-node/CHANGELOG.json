@@ -3,8 +3,8 @@
   "entries": [
     {
       "date": "Tue, 02 May 2023 23:14:26 GMT",
-      "tag": "@azure/msal-node_v2.0.0",
-      "version": "2.0.0",
+      "tag": "@azure/msal-node_v2.0.0-alpha.0",
+      "version": "2.0.0-alpha.0",
       "comments": {
         "none": [
           {
