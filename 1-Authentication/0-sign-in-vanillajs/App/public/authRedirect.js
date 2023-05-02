@@ -30,6 +30,7 @@ function selectAccount() {
         // Add your account choosing logic here
         console.warn("Multiple accounts detected.");
     } else if (currentAccounts.length === 1) {
+        username = currentAccounts[0].username
         welcomeUser(currentAccounts[0].username);
         updateTable(currentAccounts[0]);
     }
@@ -43,7 +44,8 @@ function handleResponse(response) {
      */
 
     if (response !== null) {
-        welcomeUser(response.account.username);
+        username = response.account.username
+        welcomeUser(username);
         updateTable(response.account);
     } else {
         selectAccount();
