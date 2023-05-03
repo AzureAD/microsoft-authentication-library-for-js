@@ -85,6 +85,7 @@ Any major MSAL Node release:
 | MSAL Node version | MSAL support status     | Supported Node versions |
 |-------------------|-------------------------|-------------------------|
 | 1.x.x             | Active development      | 10, 12, 14, 16, 18      |
+| 2.x.x             | Pre-release             | 18, 20                  |
 
 
 ##  Usage

@@ -36,7 +36,7 @@
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
     "prepare": "npm install ../msal-common",
-    "prepack": "cd ../msal-common && npm install --production && cd ../msal-node && npm run build:all",
+    "prepack": "npm run build:all && cd ../msal-common && npm install --production && cd ../msal-node",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
@@ -72,6 +72,6 @@
     "@azure/msal-common"
   ],
   "engines": {
-    "node": "16 || 18"
+    "node": "18 || 20"
   }
 }
