@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "`removeAccount` does not throw if account does not exist in cache #5911",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Export Serializer and Deserializer from msal-node #5931",
-  "packageName": "@azure/msal-node",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "patch"
-}
