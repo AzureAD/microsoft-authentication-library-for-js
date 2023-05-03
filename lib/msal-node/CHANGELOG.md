@@ -13,7 +13,6 @@ Tue, 02 May 2023 23:14:26 GMT
 - Move node clients from msal-common to msal-node #5788 (kshabelko@microsoft.com)
 - Migrate from tsdx to use rollup and jest directly for msal-node #5818 (hemoral@microsoft.com)
 - Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
-- Bump @azure/msal-common to v14.0.0
 
 ### Minor changes
 
