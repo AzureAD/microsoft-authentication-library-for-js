@@ -12,7 +12,6 @@ Tue, 02 May 2023 23:14:26 GMT
 
 - `allowNativeBroker` configuration defaults to `true` #5616 (hemoral@microsoft.com)
 - Fix telemetry typos #5868 (kshabelko@microsoft.com)
-- Bump @azure/msal-common to v14.0.0
 
 ### Minor changes
 
