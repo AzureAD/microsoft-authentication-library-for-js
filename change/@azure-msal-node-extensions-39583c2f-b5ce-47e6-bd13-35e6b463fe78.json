@@ -1,5 +1,5 @@
 {
-  "type": "prerelease",
+  "type": "none",
   "comment": "Merge LTS changelogs",
   "packageName": "@azure/msal-node-extensions",
   "email": "hemoral@microsoft.com",
