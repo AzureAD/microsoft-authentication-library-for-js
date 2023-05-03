@@ -93,7 +93,7 @@
   "dependencies": {
     "@azure/msal-common": "file:../msal-common"
   },
-  "bundledDependencies": [
+  "bundleDependencies": [
     "@azure/msal-common"
   ]
 }
