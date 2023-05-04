@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.17.0",
+  "version": "2.0.0-alpha.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -68,10 +68,10 @@
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },
-  "bundledDependencies": [
-    "@azure/msal-common"
-  ],
   "engines": {
     "node": "18 || 20"
-  }
+  },
+  "bundleDependencies": [
+    "@azure/msal-common"
+  ]
 }

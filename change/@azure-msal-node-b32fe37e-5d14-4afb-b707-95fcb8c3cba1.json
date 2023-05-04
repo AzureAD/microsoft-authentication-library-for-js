@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Allow major change types for v3 updates #5746",
-  "packageName": "@azure/msal-node",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}
