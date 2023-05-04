@@ -125,7 +125,7 @@ describe("Browser tests", function () {
         setupScreenshotDir();
         setupCredentials();
         browser = await puppeteer.launch({
-            headless: true,
+            headless: 'new',
             ignoreDefaultArgs: ['--no-sandbox', '–disable-setuid-sandbox']
         });
     });

@@ -11,7 +11,7 @@ class PuppeteerEnvironment extends NodeEnvironment {
 
 		// connect to puppeteer
 		this.global.__BROWSER__ = await puppeteer.launch({
-			headless: true,
+			headless: 'new',
 			ignoreDefaultArgs: ["--no-sandbox", "–disable-setuid-sandbox"]
 		});
 	}
