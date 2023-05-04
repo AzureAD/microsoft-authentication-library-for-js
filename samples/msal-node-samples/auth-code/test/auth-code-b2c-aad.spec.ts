@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import puppeteer, { Page, Browser, BrowserContext } from "puppeteer";
 import {
     Screenshot,
     createFolder,
@@ -38,9 +38,9 @@ const config = require("../config/B2C-AAD.json");
 describe("Auth Code B2C Tests (aad account)", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
-    let browser: puppeteer.Browser;
-    let context: puppeteer.BrowserContext;
-    let page: puppeteer.Page;
+    let browser: Browser;
+    let context: BrowserContext;
+    let page: Page;
     let port: number;
     let homeRoute: string;
 

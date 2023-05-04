@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
@@ -34,9 +34,9 @@ const config = require("../config/AAD.json");
 describe('Device Code AAD Prod Tests', () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
-    let browser: puppeteer.Browser;
-    let context: puppeteer.BrowserContext;
-    let page: puppeteer.Page;
+    let browser: Browser;
+    let context: BrowserContext;
+    let page: Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
 

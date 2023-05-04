@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
 import {Screenshot, createFolder, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
@@ -43,9 +43,9 @@ config.resourceApi = {
 describe("Silent Flow AAD AGC Confidential Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
-    let browser: puppeteer.Browser;
-    let context: puppeteer.BrowserContext;
-    let page: puppeteer.Page;
+    let browser: Browser;
+    let context: BrowserContext;
+    let page: Page;
     let port: number;
     let homeRoute: string;
 

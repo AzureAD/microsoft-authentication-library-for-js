@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer from "puppeteer";
+import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
@@ -41,9 +41,9 @@ const HOME_ROUTE = `http://localhost:${webAppConfig.serverPort}`;
 describe("OBO AAD Tests", () => {
     jest.retryTimes(1);
     jest.setTimeout(45000);
-    let browser: puppeteer.Browser;
-    let context: puppeteer.BrowserContext;
-    let page: puppeteer.Page;
+    let browser: Browser;
+    let context: BrowserContext;
+    let page: Page;
 
     let username: string;
     let accountPwd: string;
