@@ -500,6 +500,7 @@ export class Authority {
             this.correlationId
         );
 
+        const perfEvent = this.performanceClient?.startMeasurement(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
         const options: ImdsOptions = {};
 
         /*
@@ -518,12 +519,15 @@ export class Authority {
                 );
             const isValidResponse = isOpenIdConfigResponse(response.body);
             if (isValidResponse) {
+                perfEvent?.endMeasurement({ success: true });
                 return response.body;
             } else {
+                perfEvent?.endMeasurement({ success: false, errorCode: "invalid_response" });
                 this.logger.verbose(`Authority.getEndpointMetadataFromNetwork: could not parse response as OpenID configuration`);
                 return null;
             }
         } catch (e) {
+            perfEvent?.endMeasurement({ success: false, errorCode: "request_failure" });
             this.logger.verbose(`Authority.getEndpointMetadataFromNetwork: ${e}`);
             return null;
         }
