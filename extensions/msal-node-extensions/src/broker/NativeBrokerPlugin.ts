@@ -80,7 +80,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             }
         };
         try {
-            msalNodeRuntime.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled);
+            msalNodeRuntime.RegisterLogger(logCallback, loggerOptions.piiLoggingEnabled || false);
         } catch (e) {
             const wrappedError = this.wrapError(e);
             if (wrappedError) {
@@ -109,7 +109,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     }
                 }
 
-                const accountInfoResult = [];
+                const accountInfoResult: AccountInfo[] = [];
                 result.accounts.forEach((account: Account) => {
                     accountInfoResult.push(this.generateAccountInfo(account));
                 });
@@ -312,8 +312,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
             }
             
             if (request.extraParameters) {
-                Object.keys(request.extraParameters).forEach((key) => {
-                    authParams.SetAdditionalParameter(key, request.extraParameters[key]);
+                Object.entries(request.extraParameters).forEach(([key, value]) => {
+                    authParams.SetAdditionalParameter(key, value);
                 });
             }
         } catch (e) {
@@ -387,7 +387,7 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                result.hasOwnProperty("errorTag");
     }
 
-    private wrapError(error: Object): NativeAuthError | Object | null {
+    private wrapError(error: any): NativeAuthError | Object | null {
         if (this.isMsalRuntimeError(error)) {
             const { errorCode, errorStatus, errorContext, errorTag } = error as MsalRuntimeError;
             switch (errorStatus) {

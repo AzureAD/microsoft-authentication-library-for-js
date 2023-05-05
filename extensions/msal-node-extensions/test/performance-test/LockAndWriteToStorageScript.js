@@ -14,7 +14,7 @@ if (process.argv.length < 5) {
     process.exit(1)
 }
 
-let fileData;
+let fileData = "";
 const serializableCache = {
     serialize: () => {
         return fileData;
