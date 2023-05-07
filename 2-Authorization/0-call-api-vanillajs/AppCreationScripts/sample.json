@@ -69,12 +69,16 @@
             "SettingFile": "\\..\\API\\ToDoListAPI\\appsettings.json",
             "Mappings": [
                 {
-                    "key": "Enter the Client ID (aka 'Application ID')",
-                    "value": ".AppId"
+                    "key": "Enter_the_Application_Id_Here",
+                    "value": "service.AppId"
                 },
                 {
-                    "key": "Enter the tenant ID",
+                    "key": "Enter_the_Tenant_Id_Here",
                     "value": "$tenantId"
+                },
+                {
+                    "key": "Enter_the_Tenant_Subdomain_Here",
+                    "value": "$tenantName"
                 }
             ]
         },
@@ -88,8 +92,8 @@
                     "value": ".AppId"
                 },
                 {
-                    "key": "Enter_the_Tenant_Id_Here",
-                    "value": "$tenantId"
+                    "key": "Enter_the_Tenant_Subdomain_Here",
+                    "value": "$tenantName"
                 },
                 {
                     "key": "Enter_the_Web_Api_Application_Id_Here",

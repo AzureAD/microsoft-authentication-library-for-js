@@ -45,8 +45,8 @@
             "SettingFile": "\\..\\App\\authConfig.js",
             "Mappings": [
                 {
-                    "key": "Enter_the_Tenant_Info_Here",
-                    "value": "$tenantId"
+                    "key": "Enter_the_Tenant_Subdomain_Here",
+                    "value": "$tenantName"
                 },
                 {
                     "key": "Enter_the_Application_Id_Here",

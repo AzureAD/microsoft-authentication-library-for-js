@@ -6,7 +6,7 @@
 const msalConfig = {
     auth: {
         clientId: 'Enter_the_Application_Id_Here', // This is the ONLY mandatory field that you need to supply.
-        authority: 'https://login.microsoftonline.com/Enter_the_Tenant_Id_Here', // Defaults to "https://login.microsoftonline.com/common"
+        authority: 'https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/', // replace "Enter_the_Tenant_Subdomain_Here" with your tenant name
         redirectUri: '/', // You must register this URI on Azure Portal/App Registration. Defaults to window.location.href e.g. http://localhost:3000/,
         postLogoutRedirectUri: '/', // Indicates the page to navigate after logout.
     },

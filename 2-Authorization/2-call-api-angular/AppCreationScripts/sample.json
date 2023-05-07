@@ -95,15 +95,15 @@
             "SettingFile": "\\..\\API\\ToDoListAPI\\appsettings.json",
             "Mappings": [
                 {
-                    "key": "Enter the domain of your Azure AD tenant, e.g. 'contoso.onmicrosoft.com'",
+                    "key": "Enter_the_Tenant_Subdomain_Here",
                     "value": "$tenantName"
                 },
                 {
-                    "key": "Enter the Client ID (aka 'Application ID')",
+                    "key": "Enter_the_Tenant_Id_Here",
                     "value": ".AppId"
                 },
                 {
-                    "key": "Enter the tenant ID",
+                    "key": "Enter_the_Application_Id_Here",
                     "value": "$tenantId"
                 }
             ]
@@ -118,8 +118,8 @@
                     "value": ".AppId"
                 },
                 {
-                    "key": "Enter_the_Tenant_Info_Here",
-                    "value": "$tenantId"
+                    "key": "Enter_the_Tenant_Subdomain_Here",
+                    "value": "$tenantName"
                 },
                 {
                     "key": "Enter_the_Web_Api_Application_Id_Here",

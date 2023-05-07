@@ -5,7 +5,7 @@
 
 require('dotenv').config();
 
-const TENANT_NAME = process.env.TENANT_NAME || 'Enter_the_Tenant_Name_Here';
+const TENANT_SUBDOMAIN = process.env.TENANT_SUBDOMAIN || 'Enter_the_Tenant_Subdomain_Here';
 const REDIRECT_URI = process.env.REDIRECT_URI || 'http://localhost:3000/auth/redirect';
 const POST_LOGOUT_REDIRECT_URI = process.env.POST_LOGOUT_REDIRECT_URI || 'http://localhost:3000';
 
@@ -17,7 +17,7 @@ const POST_LOGOUT_REDIRECT_URI = process.env.POST_LOGOUT_REDIRECT_URI || 'http:/
 const msalConfig = {
     auth: {
         clientId: process.env.CLIENT_ID || 'Enter_the_Application_Id_Here', // 'Application (client) ID' of app registration in Azure portal - this value is a GUID
-        authority: process.env.AUTHORITY || `https://${TENANT_NAME}.ciamlogin.com/`, // replace "Enter_the_Tenant_Name_Here" with your tenant name
+        authority: process.env.AUTHORITY || `https://${TENANT_SUBDOMAIN}.ciamlogin.com/`, // replace "Enter_the_Tenant_Subdomain_Here" with your tenant name
         clientSecret: process.env.CLIENT_SECRET || 'Enter_the_Client_Secret_Here', // Client secret generated from the app registration in Azure portal
     },
     system: {
@@ -35,5 +35,5 @@ module.exports = {
     msalConfig,
     REDIRECT_URI,
     POST_LOGOUT_REDIRECT_URI,
-    TENANT_NAME
+    TENANT_SUBDOMAIN,
 };

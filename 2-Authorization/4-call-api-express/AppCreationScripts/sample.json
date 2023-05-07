@@ -79,7 +79,7 @@
                     "value": "$tenantId"
                 },
                 {
-                    "key": "Enter_the_Tenant_Name_Here",
+                    "key": "Enter_the_Tenant_Subdomain_Here",
                     "value": "$tenantName"
                 }
             ]
@@ -94,7 +94,7 @@
                     "value": ".AppId"
                 },
                 {
-                    "key": "Enter_the_Tenant_Name_Here",
+                    "key": "Enter_the_Tenant_Subdomain_Here",
                     "value": "$tenantName"
                 },
                 {

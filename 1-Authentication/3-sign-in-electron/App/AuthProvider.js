@@ -5,7 +5,7 @@
 
 const { PublicClientApplication, InteractionRequiredAuthError } = require('@azure/msal-node');
 const { shell } = require('electron');
-const { TENANT_NAME } = require('./authConfig');
+const { TENANT_SUBDOMAIN } = require('./authConfig');
 
 class AuthProvider {
     msalConfig;
@@ -64,7 +64,7 @@ class AuthProvider {
                 await shell.openExternal(
                     `${
                         this.msalConfig.auth.authority
-                    }${TENANT_NAME}.onmicrosoft.com/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(
+                    }${TENANT_SUBDOMAIN}.onmicrosoft.com/oauth2/v2.0/logout?logout_hint=${encodeURIComponent(
                         this.account.idTokenClaims.login_hint
                     )}`
                 );
