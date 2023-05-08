@@ -2,6 +2,59 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 02 May 2023 23:14:26 GMT",
+      "tag": "@azure/msal-common_v14.0.0",
+      "version": "14.0.0",
+      "comments": {
+        "major": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4ba37f441c75bb5e0638dbc2c4df04adbda2eb02",
+            "comment": "Add CIAM Authority Support(#5865)"
+          }
+        ],
+        "patch": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "38c29bdb23f75989f9b1efcdd038e28586370fb0",
+            "comment": "Fix bugs in CIAM Authority Support (#5917)"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "9fc8ec7d5318f6da827f755b7f7132bbddbf4a28",
+            "comment": "Update polycheck version (#5901)"
+          },
+          {
+            "author": "kapjain@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
+            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f26fba90f10fc62cc7a8774d1f079996e120d76",
+            "comment": "`removeAccount` does not throw if account does not exist in cache #5911"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "629883fbfe597b56260483e4567bacd9ae9ba81d",
+            "comment": "Remove unused enum"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:41 GMT",
       "tag": "@azure/msal-common_v13.0.0",
       "version": "13.0.0",
