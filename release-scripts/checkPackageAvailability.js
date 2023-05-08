@@ -22,7 +22,6 @@ const intervalId = setInterval(() => {
         throw new Error(`Timed out waiting for ${packageName} version ${currentVersion}`);
     }
     const publishedVersion = getPublishedVersion(packageName);
-    console.log(publishedVersion);
     if (currentVersion === publishedVersion) {
         console.log(`${packageName} successfully published version ${currentVersion}`);
         clearInterval(intervalId);
