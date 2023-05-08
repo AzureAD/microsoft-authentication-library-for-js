@@ -13,24 +13,25 @@ publishFlagNames["msal-react"]=publishMsalReact;
 
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
-    libPath="../lib/${i}/package.json"
+    libPath="./lib/${i}"
     # Git diff --name-only prints the file name in the input path given that
     # that file has changed between the two commits referenced and
     # --exit-code sets the successful or failed result into $?
     # so if there are changes to a library's package.json, $? will have a 1 (success),
     # no changes means $? is 0, therefore library won't be release unless it's dependent
     # packages have been updated (dependent logic is out of scope for this script)
-    git diff --exit-code --name-only HEAD HEAD~1 -- $libPath 
+    # git diff --exit-code --name-only HEAD HEAD~1 -- $libPath 
+    node comparePackageVersion.js $libPath
 
     if [ $? -eq 1 ]
     then
         echo "${i} publish flag set to TRUE";
         varName=${publishFlagNames[$i]};
-        echo "##vso[task.setvariable variable=${varName};isoutput=true]true"
+        # echo "##vso[task.setvariable variable=${varName};isoutput=true]true"
     else
      echo "${i} publish flag set to FALSE";
         varName=${publishFlagNames[$i]};
-        echo "##vso[task.setvariable variable=${varName};isoutput=true]false"
+        # echo "##vso[task.setvariable variable=${varName};isoutput=true]false"
     fi
 done
 
