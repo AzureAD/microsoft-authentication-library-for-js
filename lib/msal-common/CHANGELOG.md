@@ -1,10 +1,18 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 02 May 2023 23:14:26 GMT and should not be manually modified.
+This log was last generated on Mon, 08 May 2023 20:12:00 GMT and should not be manually modified.
 
 <!-- Start content -->
 
-## 14.0.0
+## 14.0.0-alpha.1
+
+Mon, 08 May 2023 20:12:00 GMT
+
+### Changes
+
+- Add logging to Authority.getEndpointMetadataFromNetwork() #5973 (kshabelko@microsoft.com)
+
+## 14.0.0-alpha.0
 
 Tue, 02 May 2023 23:14:26 GMT
 

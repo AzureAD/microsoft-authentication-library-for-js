@@ -2,9 +2,24 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 08 May 2023 20:12:00 GMT",
+      "tag": "@azure/msal-common_v14.0.0-alpha.0",
+      "version": "14.0.0-alpha.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "57af8ce311868de599ec67f0515af12895f03eb8",
+            "comment": "Add logging to Authority.getEndpointMetadataFromNetwork() #5973"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 May 2023 23:14:26 GMT",
-      "tag": "@azure/msal-common_v14.0.0",
-      "version": "14.0.0",
+      "tag": "@azure/msal-common_v14.0.0-alpha.0",
+      "version": "14.0.0-alpha.0",
       "comments": {
         "major": [
           {

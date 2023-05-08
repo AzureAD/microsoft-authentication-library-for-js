@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add logging to Authority.getEndpointMetadataFromNetwork() #5973",
-  "packageName": "@azure/msal-common",
-  "email": "kshabelko@microsoft.com",
-  "dependentChangeType": "prerelease"
-}
