@@ -8,7 +8,7 @@ const { LogLevel } = require('@azure/msal-node');
 const msalConfig = {
     auth: {
         clientId: 'Enter_the_Application_Id_Here',
-        authority: 'https://Enter_the_Tenant_Name_Here.ciamlogin.com/',
+        authority: 'https://Enter_the_Tenant_Subdomain_Here.ciamlogin.com/',
     },
     system: {
         loggerOptions: {

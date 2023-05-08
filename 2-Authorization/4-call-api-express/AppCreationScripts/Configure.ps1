@@ -440,7 +440,7 @@ Function ConfigureApplications
     # $configFile = $pwd.Path + "\..\API\ToDoListAPI\appsettings.json"
     $configFile = $(Resolve-Path ($pwd.Path + "\..\API\ToDoListAPI\appsettings.json"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $serviceAadApplication.AppId;"Enter_the_Tenant_Id_Here" = $tenantId;"Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0] };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $serviceAadApplication.AppId; "Enter_the_Tenant_Id_Here" = $tenantId; "Enter_the_Tenant_Subdomain_Here" = $tenantName.Split(".onmicrosoft.com")[0] };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
@@ -452,7 +452,7 @@ Function ConfigureApplications
     # $configFile = $pwd.Path + "\..\APP\authConfig.js"
     $configFile = $(Resolve-Path ($pwd.Path + "\..\APP\authConfig.js"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId;"Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0];"Enter_the_Client_Secret_Here" = $clientAppKey;"Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $clientAadApplication.AppId; "Enter_the_Tenant_Subdomain_Here" = $tenantName.Split(".onmicrosoft.com")[0]; "Enter_the_Client_Secret_Here" = $clientAppKey; "Enter_the_Web_Api_Application_Id_Here" = $serviceAadApplication.AppId };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary

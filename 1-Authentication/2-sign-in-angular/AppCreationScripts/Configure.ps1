@@ -251,7 +251,7 @@ Function ConfigureApplications
     # $configFile = $pwd.Path + "\..\SPA\src\app\auth-config.ts"
     $configFile = $(Resolve-Path ($pwd.Path + "\..\SPA\src\app\auth-config.ts"))
     
-    $dictionary = @{ "Enter_the_Application_Id_Here" = $spaAadApplication.AppId;"Enter_the_Tenant_Name_Here" = $tenantName.Split(".onmicrosoft.com")[0] };
+    $dictionary = @{ "Enter_the_Application_Id_Here" = $spaAadApplication.AppId; "Enter_the_Tenant_Subdomain_Here" = $tenantName.Split(".onmicrosoft.com")[0] };
 
     Write-Host "Updating the sample config '$configFile' with the following config values:" -ForegroundColor Yellow 
     $dictionary
