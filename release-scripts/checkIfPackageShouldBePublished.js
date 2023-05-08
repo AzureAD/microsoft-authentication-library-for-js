@@ -6,8 +6,7 @@
 const execSync = require("child_process").execSync;
 
 function checkVersion(packageName, version) {
-	console.log(`npm view ${packageName}@${version}`);
-	return execSync(`npm view ${packageName}@${version} --silent`).toString().trim();
+	return execSync(`npm view ${packageName}@${version}`).toString().trim();
 }
 
 const path = require("path");
@@ -19,7 +18,6 @@ const currentVersion = require(`${libPath}/package.json`).version;
 const versionIsPublished = checkVersion(packageName, currentVersion);
 
 if (versionIsPublished) {
-	console.log(`${packageName}${currentVersion}`);
 	process.exit(0);
 } else {
 	process.exit(1);
