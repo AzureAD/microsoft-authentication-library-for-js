@@ -3,5 +3,5 @@
   "comment": "Revert to common as a regular dependency #5985",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "prerelease"
 }
