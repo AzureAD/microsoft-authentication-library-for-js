@@ -14,7 +14,7 @@ publishFlagNames["msal-react"]=publishMsalReact;
 # Iterate each library directory name
 for i in "${libNames[@]}"; do
     libPath="./lib/${i}"
-    node comparePackageVersion.js $libPath
+    node checkIfPackageShouldBePublished.js $libPath
 
     if [ $? -eq 1 ]
     then
@@ -33,7 +33,7 @@ done
 libPath="../extensions/msal-node-extensions/package.json"
 varName=publishMsalNodeExtensions;
 
-node comparePackageVersion.js $libPath
+node checkIfPackageShouldBePublished.js $libPath
 
 if [ $? -eq 1 ]
 then
