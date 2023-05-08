@@ -12,8 +12,7 @@ function checkVersion(packageName, version) {
 const path = require("path");
 const libPath = path.join(__dirname, '..', process.argv[2]);
 
-const packageName = require(`${libPath}/package.json`).name;
-const currentVersion = require(`${libPath}/package.json`).version;
+const {name, version} = require(`${libPath}/package.json`);
 
 const versionIsPublished = checkVersion(packageName, currentVersion);
 
