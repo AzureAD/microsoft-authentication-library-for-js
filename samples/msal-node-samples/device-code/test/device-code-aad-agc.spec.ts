@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import {
@@ -39,9 +39,9 @@ config.resourceApi = {
 describe('Device Code AAD AGC Tests', () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
-    let browser: Browser;
-    let context: BrowserContext;
-    let page: Page;
+    let browser: puppeteer.Browser;
+    let context: puppeteer.BrowserContext;
+    let page: puppeteer.Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
 

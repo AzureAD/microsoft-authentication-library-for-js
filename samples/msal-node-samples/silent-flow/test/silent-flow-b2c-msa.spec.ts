@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {
     Screenshot,
     createFolder,
@@ -41,9 +41,9 @@ const config = require("../config/B2C-MSA.json");
 describe("Silent Flow B2C Tests (msa account)", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
-    let browser: Browser;
-    let context: BrowserContext;
-    let page: Page;
+    let browser: puppeteer.Browser;
+    let context: puppeteer.BrowserContext;
+    let page: puppeteer.Page;
     let port: number;
     let homeRoute: string;
 

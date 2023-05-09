@@ -1,4 +1,4 @@
-import puppeteer, { Page, Browser, BrowserContext } from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
@@ -26,9 +26,9 @@ let accountPwd: string;
 describe('Auth Code ADFS 2019 Tests', () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(45000);
-    let browser: Browser;
-    let context: BrowserContext;
-    let page: Page;
+    let browser: puppeteer.Browser;
+    let context: puppeteer.BrowserContext;
+    let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
     const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/auth-code/adfs`;

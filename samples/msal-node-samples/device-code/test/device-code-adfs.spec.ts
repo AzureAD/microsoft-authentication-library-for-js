@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
@@ -33,9 +33,9 @@ const config = require("../config/ADFS.json");
 describe('Device Code ADFS 2019 Tests', () => {
     jest.setTimeout(45000);
     jest.retryTimes(RETRY_TIMES);
-    let browser: Browser;
-    let context: BrowserContext;
-    let page: Page;
+    let browser: puppeteer.Browser;
+    let context: puppeteer.BrowserContext;
+    let page: puppeteer.Page;
     let publicClientApplication: PublicClientApplication;
     let clientConfig: Configuration;
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import puppeteer, {Page, Browser, BrowserContext} from "puppeteer";
+import * as puppeteer from "puppeteer";
 import {Screenshot, createFolder, setupCredentials, ONE_SECOND_IN_MS, RETRY_TIMES} from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../NodeCacheTestUtils";
 import { LabClient } from "../../../e2eTestUtils/LabClient";
@@ -36,9 +36,9 @@ const config = require("../config/AAD.json");
 describe("Silent Flow AAD Prod Tests", () => {
     jest.retryTimes(RETRY_TIMES);
     jest.setTimeout(ONE_SECOND_IN_MS*45);
-    let browser: Browser;
-    let context: BrowserContext;
-    let page: Page;
+    let browser: puppeteer.Browser;
+    let context: puppeteer.BrowserContext;
+    let page: puppeteer.Page;
     let port: number;
     let homeRoute: string;
 
