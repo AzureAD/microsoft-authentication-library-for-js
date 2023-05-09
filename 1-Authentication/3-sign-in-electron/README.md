@@ -8,14 +8,20 @@ products:
  - azure-active-directory
  - msal-js
  - msal-node
-urlFragment: ms-identity-ciam-javascript-tutorial.git
+urlFragment: ms-identity-ciam-javascript-tutorial-3-sign-in-electron
 extensions:
-- services: ms-identity
-- platform: javascript
-- endpoint: AAD v2.0
-- level: 100
-- client: Electron desktop app
-- service: Microsoft Graph
+    services: 
+    - ms-identity
+    platform: 
+    - javascript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - Electron desktop app
+    service: 
+    - Microsoft Graph
 ---
 
 # An Electron desktop application secured by MSAL Node on Microsoft identity platform
