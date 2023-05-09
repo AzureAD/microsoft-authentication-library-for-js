@@ -582,6 +582,9 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Create an error when the authority/environment provided in account does not match authority
+     * Create an error when the environment provided in account does not match authority provided in request or MSAL.js configuration.
      */
+    static createEnvironmentMismatchError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.environmentMismatch.code, ClientAuthErrorMessage.environmentMismatch.desc);
+    }
 }
