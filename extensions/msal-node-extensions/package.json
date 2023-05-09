@@ -49,15 +49,15 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "14.0.0",
+    "@azure/msal-common": "14.0.0-alpha.1",
     "@azure/msal-node-runtime": "^0.13.6-alpha.0",
-    "@types/jest": "^29.5.0",
     "keytar": "^7.8.0",
     "node-addon-api": "^6.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@rollup/plugin-typescript": "^11.1.0",
+    "@types/jest": "^29.5.1",
     "@types/node": "^18.8.3",
     "jest": "^29.5.0",
     "rollup": "^3.20.2",

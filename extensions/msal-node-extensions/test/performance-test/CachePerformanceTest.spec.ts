@@ -32,7 +32,7 @@ describe('Test cache lock performance', () => {
     });
 });
 
-async function runMultipleProcesses(numProcesses, cacheLocation, retryNumber, retryDelay): Promise<void> {
+async function runMultipleProcesses(numProcesses: number, cacheLocation: string , retryNumber: number, retryDelay: number): Promise<void> {
 
     const options = [cacheLocation, retryNumber.toString(), retryDelay.toString()];
     let count = 0;

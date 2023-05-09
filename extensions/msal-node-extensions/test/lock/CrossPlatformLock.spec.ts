@@ -4,7 +4,7 @@
  */
 
 import { CrossPlatformLock } from "../../src/lock/CrossPlatformLock";
-import { Logger } from "@azure/msal-common";
+import { AuthError, Logger } from "@azure/msal-common";
 import { promises as fs } from "fs";
 import { Constants } from "../../src/utils/Constants";
 import { FileSystemUtils } from "../util/FileSystemUtils";
@@ -40,7 +40,7 @@ describe('Test cross platform lock', () => {
         try {
             await fs.access(lockFilePath);
         } catch (error) {
-            expect(error.code).toEqual(Constants.ENOENT_ERROR.toString());
+            expect((error as NodeJS.ErrnoException).code).toEqual(Constants.ENOENT_ERROR.toString());
             return;
         }
         // If error was not caught, lockfile was not deleted, and therefore we should throw
@@ -59,7 +59,7 @@ describe('Test cross platform lock', () => {
         try {
             await lock.lock();
         } catch (error) {
-            expect(error.errorCode).toEqual("CrossPlatformLockError");
+            expect((error as AuthError).errorCode).toEqual("CrossPlatformLockError");
             return;
         } finally {
             await fd.close();
