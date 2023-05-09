@@ -500,6 +500,7 @@ export class Authority {
             this.correlationId
         );
 
+        const perfEvent = this.performanceClient?.startMeasurement(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
         const options: ImdsOptions = {};
 
         /*
@@ -507,14 +508,27 @@ export class Authority {
          * hardcoded list of metadata
          */
 
+        const openIdConfigurationEndpoint = this.defaultOpenIdConfigurationEndpoint;
+        this.logger.verbose(`Authority.getEndpointMetadataFromNetwork: attempting to retrieve OAuth endpoints from ${openIdConfigurationEndpoint}`);
+
         try {
             const response =
                 await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(
-                    this.defaultOpenIdConfigurationEndpoint,
+                    openIdConfigurationEndpoint,
                     options
                 );
-            return isOpenIdConfigResponse(response.body) ? response.body : null;
+            const isValidResponse = isOpenIdConfigResponse(response.body);
+            if (isValidResponse) {
+                perfEvent?.endMeasurement({ success: true });
+                return response.body;
+            } else {
+                perfEvent?.endMeasurement({ success: false, errorCode: "invalid_response" });
+                this.logger.verbose(`Authority.getEndpointMetadataFromNetwork: could not parse response as OpenID configuration`);
+                return null;
+            }
         } catch (e) {
+            perfEvent?.endMeasurement({ success: false, errorCode: "request_failure" });
+            this.logger.verbose(`Authority.getEndpointMetadataFromNetwork: ${e}`);
             return null;
         }
     }
@@ -590,7 +604,7 @@ export class Authority {
     /**
      * Updates the AuthorityMetadataEntity with new aliases, preferred_network and preferred_cache
      * and returns where the information was retrieved from
-     * @param metadataEntity 
+     * @param metadataEntity
      * @returns AuthorityMetadataSource
      */
     private async updateCloudDiscoveryMetadata(
@@ -1040,14 +1054,14 @@ export class Authority {
     /**
      * Transform CIAM_AUTHORIY as per the below rules:
      * If no path segments found and it is a CIAM authority (hostname ends with .ciamlogin.com), then transform it
-     * 
+     *
      * NOTE: The transformation path should go away once STS supports CIAM with the format: `tenantIdorDomain.ciamlogin.com`
      * `ciamlogin.com` can also change in the future and we should accommodate the same
-     * 
-     * @param authority 
+     *
+     * @param authority
      */
     static transformCIAMAuthority(authority: string): string {
-        
+
         let ciamAuthority = authority.endsWith(Constants.FORWARD_SLASH) ? authority : `${authority}${Constants.FORWARD_SLASH}`;
         const authorityUrl = new UrlString(authority);
         const authorityUrlComponents = authorityUrl.getUrlComponents();
