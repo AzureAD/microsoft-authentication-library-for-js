@@ -22,7 +22,7 @@
     "oauth"
   ],
   "sideEffects": false,
-  "main": "./lib/index.js",
+  "main": "./lib/msal-browser.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "engines": {
