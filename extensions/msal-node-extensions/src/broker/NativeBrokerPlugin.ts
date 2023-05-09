@@ -387,8 +387,8 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                result.hasOwnProperty("errorTag");
     }
 
-    private wrapError(error: any): NativeAuthError | Object | null {
-        if (this.isMsalRuntimeError(error)) {
+    private wrapError(error: unknown): NativeAuthError | Object | null {
+        if (error && typeof error === "object" && this.isMsalRuntimeError(error)) {
             const { errorCode, errorStatus, errorContext, errorTag } = error as MsalRuntimeError;
             switch (errorStatus) {
                 case ErrorStatus.InteractionRequired:
@@ -412,7 +412,6 @@ export class NativeBrokerPlugin implements INativeBrokerPlugin {
                     return new NativeAuthError(ErrorStatus[errorStatus], errorContext, errorCode, errorTag);
             }
         }
-
-        return error;
+        throw error;
     }
 }
