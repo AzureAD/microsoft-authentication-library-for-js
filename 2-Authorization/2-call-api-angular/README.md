@@ -12,14 +12,20 @@ products:
  - msal-js
  - msal-angular
  - microsoft-identity-web
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-2-call-api-angular
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 200
-- client: Angular SPA
-- service: ASP.NET Core web API
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 200
+    client: 
+    - Angular SPA
+    service: 
+    - ASP.NET Core web API
 ---
 
 # Angular single-page application using MSAL Angular to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API
