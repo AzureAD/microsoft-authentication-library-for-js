@@ -211,6 +211,10 @@ export const ClientAuthErrorMessage = {
     userCanceledError: {
         code: "user_canceled",
         desc: "User canceled the flow."
+    },
+    environmentMismatch: {
+        code: "environment_mismatch",
+        desc: "Environment mismatch error. Environment provided in account should match with authority provided in login request or MSAL.js configuration options."
     }
 };
 
@@ -576,4 +580,8 @@ export class ClientAuthError extends AuthError {
     static createUserCanceledError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.userCanceledError.code, ClientAuthErrorMessage.userCanceledError.desc);
     }
+
+    /**
+     * Create an error when the authority/environment provided in account does not match authority
+     */
 }
