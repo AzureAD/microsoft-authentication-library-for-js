@@ -26,6 +26,6 @@ ms.date: 04/19/2023
 >    cd SPA && npm install && npm start
 >    ```
 >
-> 1. Visit `http://locahost:4200` in your browser.
+> 1. Visit `http://localhost:4200` in your browser.
 > 1. Select **Sign-in** on the navigation bar, then follow the prompts.
 >
