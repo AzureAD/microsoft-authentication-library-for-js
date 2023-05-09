@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Update bundled files to be included in published package #5997",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
