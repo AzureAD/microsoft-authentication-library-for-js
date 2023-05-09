@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
