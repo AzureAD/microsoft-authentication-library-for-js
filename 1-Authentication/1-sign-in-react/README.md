@@ -10,11 +10,16 @@ products:
  - msal-react
 urlFragment: ms-identity-ciam-javascript-tutorial
 extensions:
-- services: ms-identity
-- platform: javascript
-- endpoint: AAD v2.0
-- level: 100
-- client: React SPA 
+    services: 
+    - ms-identity
+    platform: 
+    - javascript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - React SPA 
 ---
 
 # React single-page application using MSAL React to authenticate users against Azure AD CIAM
