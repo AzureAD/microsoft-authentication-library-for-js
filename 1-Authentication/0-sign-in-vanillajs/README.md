@@ -10,11 +10,16 @@ products:
  - msal-browser
 urlFragment: ms-identity-ciam-javascript-tutorial
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 100
-- client: Vanilla JavaScript SPA
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - Vanilla JavaScript SPA
 ---
 
 # Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD CIAM
