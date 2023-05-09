@@ -8,7 +8,7 @@ products:
  - azure-active-directory
  - msal-js
  - msal-react
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-1-sign-in-react
 extensions:
     services: 
     - ms-identity
