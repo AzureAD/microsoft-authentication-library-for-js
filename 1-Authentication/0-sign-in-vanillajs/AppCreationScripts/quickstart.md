@@ -26,6 +26,6 @@ ms.date: 04/19/2023
 >    cd App && npm install && npm start
 >    ```
 >
-> 1. Visit `http://locahost:3000` in your browser.
+> 1. Visit `http://localhost:3000` in your browser.
 > 1. Select **Sign-in** on the navigation bar, then follow the prompts.
 >
