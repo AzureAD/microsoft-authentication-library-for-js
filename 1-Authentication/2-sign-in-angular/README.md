@@ -8,7 +8,7 @@ languages:
 products:
  - azure-active-directory
  - msal-angular
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-2-sign-in-angular
 extensions:
     services: 
     - ms-identity
