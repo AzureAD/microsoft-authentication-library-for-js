@@ -2,6 +2,27 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 08 May 2023 20:12:00 GMT",
+      "tag": "@azure/msal-browser_v3.0.0-alpha.1",
+      "version": "3.0.0-alpha.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0-alpha.1",
+            "commit": "6a8ac1e0a383b237c3fd6a3c8444376d197bea85"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 May 2023 23:14:26 GMT",
       "tag": "@azure/msal-browser_v3.0.0-alpha.0",
       "version": "3.0.0-alpha.0",

@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "2.0.0-alpha.0",
+  "version": "2.0.0-alpha.1",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -35,8 +35,8 @@
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "prepare": "npm install ../msal-common",
-    "prepack": "npm run build:all && cd ../msal-common && npm install --production && cd ../msal-node",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node",
+    "prepack": "npm run build:all",
     "format:check": "npx prettier --ignore-path .gitignore --check src test",
     "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
@@ -64,14 +64,11 @@
     "yargs": "^17.3.1"
   },
   "dependencies": {
-    "@azure/msal-common": "file:../msal-common",
+    "@azure/msal-common": "14.0.0-alpha.1",
     "jsonwebtoken": "^9.0.0",
     "uuid": "^8.3.0"
   },
   "engines": {
     "node": "18 || 20"
-  },
-  "bundleDependencies": [
-    "@azure/msal-common"
-  ]
+  }
 }
