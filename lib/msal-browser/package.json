@@ -38,6 +38,8 @@
     "dist",
     "lib/msal-browser.js",
     "lib/msal-browser.js.map",
+    "lib/msal-browser.cjs.js",
+    "lib/msal-browser.cjs.js.map",
     "lib/msal-browser.min.js"
   ],
   "scripts": {
