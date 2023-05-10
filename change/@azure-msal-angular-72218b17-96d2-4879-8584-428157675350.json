@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Update rxjs dev dependency #6004",
+  "packageName": "@azure/msal-angular",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
