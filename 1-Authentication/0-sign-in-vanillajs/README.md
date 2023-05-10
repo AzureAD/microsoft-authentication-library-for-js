@@ -7,7 +7,6 @@ languages:
 products:
  - azure-active-directory
  - msal-js
- - msal-browser
 urlFragment: ms-identity-ciam-javascript-tutorial-0-sign-in-vanillajs
 extensions:
     services: 
