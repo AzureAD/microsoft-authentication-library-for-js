@@ -88,7 +88,7 @@ Setting the interaction type determines how the `MsalGuard` will interactively p
 
 The optional `authRequest` is an advanced featured that is not required. However, we recommend setting `authRequest` on the `MsalGuardConfiguration` with `scopes` so that consent may be obtained for the scopes upfront. If consent for `scopes` are not consented to upfront, scopes can be obtained incrementally. This may result in a consent dialogue being presented to your app user multiple times.
 
-Consenting to scopes upfront is demonstrated in the code samples above, and in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples).
+Consenting to scopes upfront is demonstrated in the code samples above, and in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v3-samples).
 
 All possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
 
@@ -96,13 +96,13 @@ All possible parameters for the request object can be found here: [`PopupRequest
 
 The `loginFailedRoute` string can be set on `MsalGuardConfiguration`. The `MsalGuard` will redirect to this route if login is required and fails.
 
-See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L48) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts#L40). 
+See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.module.ts#L48) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app-routing.module.ts#L40). 
 
 Note that redirecting on failure is not available for Angular 9 applications that use the `CanLoad` interface due to base type differences.
 
 ### Interfaces
 
-In addition to `canActivate`, `MsalGuard` also implements `canActivateChild` and `canLoad`, and these can be added to your route definitions in *app-routing.module.ts*. You can see these used in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts), as well as below. For more information on interfaces, see the [Angular docs](https://angular.io/api/router).
+In addition to `canActivate`, `MsalGuard` also implements `canActivateChild` and `canLoad`, and these can be added to your route definitions in *app-routing.module.ts*. You can see these used in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts), as well as below. For more information on interfaces, see the [Angular docs](https://angular.io/api/router).
 
 ```js
 const routes: Routes = [
@@ -199,7 +199,7 @@ To log users in upon reaching your app, when using the `HashLocationStrategy`, w
 - Making sure the `MsalRedirectComponent` is bootstrapped
 - Optionally: adding `MsalGuard` to all the rest of your routes if you want all your routes protected
 
-See our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts) uses the `HashLocationStrategy` and demonstrates how to protect routes with `MsalGuard`.
+See our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts) uses the `HashLocationStrategy` and demonstrates how to protect routes with `MsalGuard`.
 
 ## Changes from msal-angular v1 to v2
 

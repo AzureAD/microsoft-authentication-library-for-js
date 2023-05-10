@@ -38,4 +38,4 @@ To support IE11, your Angular application should make the following changes:
 2. Install the `core-js` package, and import it in `src/polyfills.ts`.
 3. In `.browserslistrc`, add/uncomment a line for `IE 11`.
 
-You can see [these changes](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/2688/files) in our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app).
+You can see [these changes](https://github.com/AzureAD/microsoft-authentication-library-for-js/pull/2688/files) in our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app).
