@@ -96,7 +96,7 @@ All possible parameters for the request object can be found here: [`PopupRequest
 
 The `loginFailedRoute` string can be set on `MsalGuardConfiguration`. The `MsalGuard` will redirect to this route if login is required and fails.
 
-See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.module.ts#L48) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app-routing.module.ts#L40). 
+See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.module.ts#L66) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app-routing.module.ts#L20). 
 
 Note that redirecting on failure is not available for Angular 9 applications that use the `CanLoad` interface due to base type differences.
 
