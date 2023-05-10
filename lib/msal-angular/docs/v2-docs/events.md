@@ -56,7 +56,7 @@ ngOnInit(): void {
 }
 ```
 
-For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/d46c4455243bd51767f669a13fbb717d786c6716/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L17).
+For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/home/home.component.ts).
 
 ## Table of events
 
@@ -101,7 +101,7 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 ```
 
-An example of error handling can also be found on our [MSAL Angular v2 B2C Sample App](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4d79b8ebacd7e4d9acf80fd69d602346dee6bf3c/samples/msal-angular-v2-samples/angular11-b2c-sample/src/app/app.component.ts#L68).
+An example of error handling can also be found on our [MSAL Angular v2 B2C Sample App](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-lts/samples/msal-angular-v2-samples/angular11-b2c-sample/src/app/app.component.ts#L68).
 
 ## Syncing logged in state across tabs and windows
 
@@ -145,7 +145,7 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 ```
 
-A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular12-sample-app/src/app/app.component.ts).
+A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/app.component.ts).
 
 ## The inProgress$ Observable
 
@@ -153,7 +153,7 @@ The `inProgress$` observable is also handled by the `MsalBroadcastService`, and 
 
 Note that the last / most recent `InteractionStatus` will also be available when subscribing to the `inProgress$` observable.
 
-See the example below for its use. A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23). A full list of interaction statuses can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/utils/BrowserConstants.ts#L87).
+See the example below for its use. A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v3-samples/angular15-sample-app/src/app/home/home.component.ts#L29). A full list of interaction statuses can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/utils/BrowserConstants.ts#L87).
 
 ```js
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';

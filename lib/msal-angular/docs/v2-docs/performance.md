@@ -16,7 +16,7 @@ If your application is doing all of the things above you can override the method
 
 ### Example Implementation
 
-The example below will show how to implement this when using the Angular `Router`. More information on the Angular Router can be found [here](https://angular.io/guide/router), and you can find a full sample app that implements this for [Angular here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app).
+The example below will show how to implement this when using the Angular `Router`. More information on the Angular Router can be found [here](https://angular.io/guide/router), and you can find a full sample app that implements this for [Angular here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular10-sample-app).
 
 ```javascript
 import { Component, OnInit, Inject } from '@angular/core';

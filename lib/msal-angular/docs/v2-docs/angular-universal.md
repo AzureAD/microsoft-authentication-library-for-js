@@ -6,7 +6,7 @@ Please see instructions from the [Angular docs](https://angular.io/guide/univers
 
 To use `@azure/msal-angular` with Angular Universal, make the following adjustments:
 
-1. Remove references to browser-only objects. Our [Angular 11 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app) has comments next to relevant lines that should be removed to render server-side. Removing these lines will not affect the sample app if using Angular Universal.
+1. Remove references to browser-only objects. Our [Angular 11 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app) has comments next to relevant lines that should be removed to render server-side. Removing these lines will not affect the sample app if using Angular Universal.
 
     ```ts 
     this.isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
@@ -20,7 +20,7 @@ To use `@azure/msal-angular` with Angular Universal, make the following adjustme
     }
     ```
 
-1. The same check should be added to any HTTP calls made by your app, as the `MsalInterceptor` currently uses browser-only objects. This will be addressed in a future fix. See the example below in the *profile.component.ts* from our [Angular 11 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app):
+1. The same check should be added to any HTTP calls made by your app, as the `MsalInterceptor` currently uses browser-only objects. This will be addressed in a future fix. See the example below in the *profile.component.ts* from our [Angular 11 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app):
 
     ```ts
     export class ProfileComponent implements OnInit {
@@ -46,7 +46,7 @@ To use `@azure/msal-angular` with Angular Universal, make the following adjustme
     }
     ```
 
-1. Ensure that your app is not using hash routing. The default routing strategy for the [Angular 11 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app) is hash routing, so ensure `useHash` is set to `false` in the *app-routing.module.ts*:
+1. Ensure that your app is not using hash routing. The default routing strategy for the [Angular 11 sample app](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-lts/samples/msal-angular-v2-samples/angular11-sample-app) is hash routing, so ensure `useHash` is set to `false` in the *app-routing.module.ts*:
 
     ```ts
     @NgModule({
