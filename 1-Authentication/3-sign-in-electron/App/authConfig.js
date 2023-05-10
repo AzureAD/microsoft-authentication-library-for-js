@@ -15,7 +15,7 @@ const TENANT_SUBDOMAIN = 'Enter_the_Tenant_Subdomain_Here';
 const msalConfig = {
     auth: {
         clientId: 'Enter_the_Application_Id_Here',
-        authority: `https://${TENANT_SUBDOMAIN}.ciamlogin.com/`, // replace "Enter_the_Tenant_Subdomain_Here" with your tenant subdomain,
+        authority: `https://${TENANT_SUBDOMAIN}.ciamlogin.com/`, // Replace the placeholder with your tenant subdomain,
     },
     system: {
         loggerOptions: {
