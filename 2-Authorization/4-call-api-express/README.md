@@ -10,14 +10,20 @@ products:
  - aspnet-core
  - msal-node
  - microsoft-identity-web
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-4-call-api-express
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 200
-- client: Node.js & Express web app
-- service: ASP.NET Core web API
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 200
+    client: 
+    - Node.js & Express web app
+    service: 
+    - ASP.NET Core web API
 ---
 
 # A Node.js & Express web app authenticating users against Azure AD CIAM and calling a protected ASP.NET Core web API

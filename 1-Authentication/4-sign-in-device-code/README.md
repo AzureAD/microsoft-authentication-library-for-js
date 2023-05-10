@@ -8,13 +8,18 @@ products:
  - azure-active-directory
  - msal-js
  - msal-node
-urlFragment: ms-identity-ciam-javascript-tutorial.git
+urlFragment: ms-identity-ciam-javascript-tutorial-4-sign-in-device-code
 extensions:
-- services: ms-identity
-- platform: javascript
-- endpoint: AAD v2.0
-- level: 100
-- client: Node headless application
+    services: 
+    - ms-identity
+    platform: 
+    - javascript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - Node headless application
 ---
 
 # A Node headless application using MSAL Node to authentication users with the device code flow against Customer Identity Access Management (CIAM)

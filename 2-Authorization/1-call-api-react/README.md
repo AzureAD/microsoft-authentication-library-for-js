@@ -11,14 +11,20 @@ products:
  - msal-js
  - msal-react
  - microsoft-identity-web
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-1-call-api-react
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 200
-- client: React SPA
-- service: ASP.NET Core web API
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 200
+    client: 
+    - React SPA
+    service: 
+    - ASP.NET Core web API
 ---
 
 # React single-page application using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API

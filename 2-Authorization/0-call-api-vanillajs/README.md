@@ -10,14 +10,20 @@ products:
  - aspnet-core
  - msal-js
  - microsoft-identity-web
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-0-call-api-vanillajs
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 200
-- client: Vanilla JavaScript SPA
-- service: ASP.NET Core web API
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 200
+    client: 
+    - Vanilla JavaScript SPA
+    service: 
+    - ASP.NET Core web API
 ---
 
 # Vanilla JavaScript single-page application using MSAL.js to authentication users against Customer Identity Access Management (CIAM) and call a protected ASP.NET Core web API

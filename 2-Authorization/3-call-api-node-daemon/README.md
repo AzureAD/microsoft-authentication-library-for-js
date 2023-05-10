@@ -10,14 +10,20 @@ products:
  - aspnet-core
  - msal-js
  - microsoft-identity-web
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-3-call-api-node-daemon
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 200
-- client: Node.js daemon app
-- service: ASP.NET Core web API
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 200
+    client: 
+    - Node.js daemon app
+    service: 
+    - ASP.NET Core web API
 ---
 
 # A Node.js daemon application secured by MSAL Node on Microsoft identity platform

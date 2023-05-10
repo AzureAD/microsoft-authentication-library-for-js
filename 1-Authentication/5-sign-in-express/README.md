@@ -7,14 +7,19 @@ languages:
 products:
  - azure-active-directory
  - msal-node
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-5-sign-in-express
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 100
-- client: Node.js & Express web app
-- service: 
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - Node.js & Express web app
+    service: 
 ---
 
 # A Node.js & Express web app authenticating users against Azure AD CIAM with MSAL Node

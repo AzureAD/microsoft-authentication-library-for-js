@@ -8,13 +8,18 @@ products:
  - azure-active-directory
  - msal-js
  - msal-node
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-6-sign-in-node-cli-app
 extensions:
-- services: ms-identity
-- platform: javascript
-- endpoint: AAD v2.0
-- level: 100
-- client: Node CLI
+    services: 
+    - ms-identity
+    platform: 
+    - javascript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - Node CLI
 ---
 
 # A Node Command Line Interface (CLI) application using MSAL Node to authentication users against Customer Identity Access Management (CIAM)

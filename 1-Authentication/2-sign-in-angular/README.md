@@ -8,13 +8,18 @@ languages:
 products:
  - azure-active-directory
  - msal-angular
-urlFragment: ms-identity-ciam-javascript-tutorial
+urlFragment: ms-identity-ciam-javascript-tutorial-2-sign-in-angular
 extensions:
-- services: ms-identity
-- platform: JavaScript
-- endpoint: AAD v2.0
-- level: 100
-- client: Angular SPA
+    services: 
+    - ms-identity
+    platform: 
+    - JavaScript
+    endpoint: 
+    - AAD v2.0
+    level: 
+    - 100
+    client: 
+    - Angular SPA
 ---
 
 # Angular single-page application using MSAL Angular to sign-in users against Azure AD CIAM
