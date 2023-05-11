@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: React single-page application using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API
-description: This sample demonstrates An React SPA using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API
+name: React single-page application using MSAL React to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API
+description: This sample demonstrates An React SPA using MSAL React to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API
 languages:
  - javascript
  - csharp
@@ -26,7 +26,7 @@ extensions:
     - ASP.NET Core web API
 ---
 
-# React single-page application using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API
+# React single-page application using MSAL React to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -50,8 +50,8 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 
 ## Scenario
 
-1. The client React SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD CIAM**.
-1. The **access token** is used as a *bearer* token to authorize the user to call the ASP.NET Core web API protected by **Azure AD CIAM**.
+1. The client React SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) and an [Access Token](https://aka.ms/access-tokens) from **Azure AD for Customers**.
+1. The **access token** is used as a *bearer* token to authorize the user to call the ASP.NET Core web API protected by **Azure AD for Customers**.
 1. The service uses the [Microsoft.Identity.Web](https://aka.ms/microsoft-identity-web) to protect the Web api, check permissions and validate tokens.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
@@ -69,8 +69,8 @@ Here you'll learn about [access tokens](https://docs.microsoft.com/azure/active-
 ## Prerequisites
 
 * Either [Visual Studio](https://visualstudio.microsoft.com/downloads/) or [Visual Studio Code](https://code.visualstudio.com/download) and [.NET Core SDK](https://www.microsoft.com/net/learn/get-started)
-* An **Azure AD CIAM** tenant. For more information, see: [How to get an Azure AD CIAM tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
-* A user account in your **Azure AD CIAM** tenant.
+* An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for Customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
+* A user account in your **Azure AD for Customers** tenant.
 
 ## Setup the sample
 
@@ -120,12 +120,12 @@ There are two projects in this sample. Each needs to be separately registered in
 
 </details>
 
-#### Choose the Azure AD CIAM tenant where you want to create your applications
+#### Choose the Azure AD for Customers tenant where you want to create your applications
 
 To manually register the apps, as a first step you'll need to:
 
 1. Sign in to the [Azure portal](https://portal.azure.com).
-1. If your account is present in more than one Azure AD CIAM tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD CIAM tenant.
+1. If your account is present in more than one Azure AD for Customers tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD for Customers tenant.
 
 #### Create User Flows
 
@@ -142,7 +142,7 @@ Please refer to:
 
 #### Register the service app (ciam-msal-dotnet-api)
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
+1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD for Customers** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
     1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-dotnet-api`.
@@ -204,7 +204,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 #### Register the client app (ciam-msal-react-spa)
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
+1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD for Customers** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
     1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-react-spa`.

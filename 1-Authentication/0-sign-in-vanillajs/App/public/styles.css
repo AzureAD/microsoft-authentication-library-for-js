@@ -3,7 +3,7 @@
 }
 
 .table-responsive-ms {
-    max-height: 39rem !important;
-    padding-left: 10%;
-    padding-right: 10%;
+    max-height: 800px !important;
+    padding-left: 50px;
+    padding-right: 50px;
 }

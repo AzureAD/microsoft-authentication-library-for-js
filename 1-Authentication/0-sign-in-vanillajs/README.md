@@ -1,7 +1,7 @@
 ---
 page_type: sample
-name: Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD CIAM
-description: This sample demonstrates a Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure Active Directory Customer Identity Access Management (Azure AD CIAM)
+name: Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD for Customers
+description: This sample demonstrates a Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure Active Directory Customer Identity Access Management (Azure AD for Customers)
 languages:
  - javascript
 products:
@@ -21,7 +21,7 @@ extensions:
     - Vanilla JavaScript SPA
 ---
 
-# Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD CIAM
+# Vanilla JavaScript single-page application using MSAL.js to authenticate users against Azure AD for Customers
 
 * [Overview](#overview)
 * [Scenario](#scenario)
@@ -36,13 +36,13 @@ extensions:
 
 ## Overview
 
-This sample demonstrates a vanilla JavaScript single-page application (SPA) that lets users authenticate to [Azure Active Directory CIAM](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md) (Azure AD CIAM) using the [Microsoft Authentication Library for JavaScript](https://github.com/AzureAD/microsoft-authentication-library-for-js) (MSAL.js). 
+This sample demonstrates a vanilla JavaScript single-page application (SPA) that lets users authenticate to [Azure Active Directory CIAM](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md) (Azure AD for Customers) using the [Microsoft Authentication Library for JavaScript](https://github.com/AzureAD/microsoft-authentication-library-for-js) (MSAL.js). 
 Here you'll learn about [ID Tokens](https://docs.microsoft.com/azure/active-directory/develop/id-tokens), [OIDC scopes](https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes), [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso), **silent requests** and more.
 
 ## Scenario
 
-1. The client JavaScript SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD CIAM**.
-1. The **ID Token** proves that the user has successfully authenticated against **Azure AD CIAM**.
+1. The client JavaScript SPA uses the  to sign-in a user and obtain a JWT [ID Token](https://aka.ms/id-tokens) from **Azure AD for Customers**.
+1. The **ID Token** proves that the user has successfully authenticated against **Azure AD for Customers**.
 
 ![Scenario Image](./ReadmeFiles/topology.png)
 
@@ -63,8 +63,8 @@ Here you'll learn about [ID Tokens](https://docs.microsoft.com/azure/active-dire
 * [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
 * [VS Code Azure Tools](https://marketplace.visualstudio.com/items?itemName=ms-vscode.vscode-node-azure-pack) extension is recommended for interacting with Azure through VS Code Interface.
 * A modern web browser.
-* An **Azure AD CIAM** tenant. For more information, see: [How to get an Azure AD CIAM tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
-* A user account with permissions to create applications in your **Azure AD CIAM** tenant.
+* An **Azure AD for Customers** tenant. For more information, see: [How to get an Azure AD for Customers tenant](https://github.com/microsoft/entra-previews/blob/PP2/docs/1-Create-a-CIAM-tenant.md)
+* A user account with permissions to create applications in your **Azure AD for Customers** tenant.
 
 ## Setup the sample
 
@@ -115,12 +115,12 @@ There is one project in this sample. To register it, you can:
 
 </details>
 
-#### Choose the Azure AD CIAM tenant where you want to create your applications
+#### Choose the Azure AD for Customers tenant where you want to create your applications
 
 To manually register the apps, as a first step you'll need to:
 
 1. Sign in to the [Azure portal](https://portal.azure.com).
-1. If your account is present in more than one Azure AD CIAM tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD CIAM tenant.
+1. If your account is present in more than one Azure AD for Customers tenant, select your profile at the top right corner in the menu on top of the page, and then **switch directory** to change your portal session to the desired Azure AD for Customers tenant.
 
 #### Create User Flows
 
@@ -137,7 +137,7 @@ Please refer to:
 
 #### Register the client app (ciam-msal-javascript-spa)
 
-1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD CIAM** service.
+1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD for Customers** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
     1. In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ciam-msal-javascript-spa`.

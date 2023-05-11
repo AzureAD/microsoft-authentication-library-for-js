@@ -21,20 +21,14 @@ const MainContent = () => {
     const { instance } = useMsal();
     const activeAccount = instance.getActiveAccount();
 
-    const handleLoginPopup = () => {
-        /**
-         * When using popup and silent APIs, we recommend setting the redirectUri to a blank page or a page
-         * that does not implement MSAL. Keep in mind that all redirect routes must be registered with the application
-         * For more information, please follow this link: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#redirecturi-considerations
-         */
+    const handleRedirect = () => {
         instance
-            .loginPopup({
+            .loginRedirect({
                 ...loginRequest,
-                redirectUri: '/redirect',
-                prompt: "create"
+                prompt: 'create',
             })
             .catch((error) => console.log(error));
-    }
+    };
     return (
         <div className="App">
             <AuthenticatedTemplate>
@@ -45,7 +39,7 @@ const MainContent = () => {
                 ) : null}
             </AuthenticatedTemplate>
             <UnauthenticatedTemplate>
-                <Button className='signInButton' onClick={handleLoginPopup} variant="primary">
+                <Button className="signInButton" onClick={handleRedirect} variant="primary">
                     Sign up
                 </Button>
             </UnauthenticatedTemplate>

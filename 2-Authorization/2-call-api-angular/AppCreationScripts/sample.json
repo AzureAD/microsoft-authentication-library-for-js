@@ -1,6 +1,6 @@
 {
     "Sample": {
-        "Title": "Angular single-page application using MSAL Angular to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API",
+        "Title": "Angular single-page application using MSAL Angular to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API",
         "Level": 200,
         "Client": "Angular SPA",
         "Service": "ASP.NET Core web API",
@@ -20,7 +20,7 @@
         "Platform": "JavaScript",
         "Endpoint": "AAD v2.0",
         "Provider": "CIAM",
-        "description": "This sample demonstrates An Angular SPA using MSAL Angular to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+        "description": "This sample demonstrates An Angular SPA using MSAL Angular to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API"
     },
     "AADApps": [
         {

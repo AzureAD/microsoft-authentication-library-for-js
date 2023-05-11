@@ -10,7 +10,7 @@
         "Platform": "JavaScript",
         "Endpoint": "AAD v2.0",
         "Provider": "CIAM",
-        "description": "This sample demonstrates a Node daemon app using MSAL Node to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+        "description": "This sample demonstrates a Node daemon app using MSAL Node to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API"
     },
     "AADApps": [
         {

@@ -1,6 +1,6 @@
 {
     "Sample": {
-        "Title": "A React single-page application using MSAL React to authenticate users against Azure AD CIAM",
+        "Title": "A React single-page application using MSAL React to authenticate users against Azure AD for Customers",
         "Client": "SinglePageApplication",
         "Level": 100
     },

@@ -8,6 +8,6 @@
     },
     "license": "ISC",
     "dependencies": {
-        "@azure/msal-node": "^1.17.1"
+        "@azure/msal-node": "^1.17.2"
     }
 }
