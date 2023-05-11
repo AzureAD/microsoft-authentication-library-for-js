@@ -55,9 +55,7 @@ export class Authority {
     protected performanceClient: IPerformanceClient | undefined;
     // Correlation Id
     protected correlationId: string | undefined;
-    // Reserved tenant domain names that will not be replaced with tenant id  
-    private static reservedTenantDomains: Set<string> = new Set([Constants.DEFAULT_COMMON_TENANT, "{tenant}", "{tenantid}"]);
-    
+
     constructor(
         authority: string,
         networkInterface: INetworkModule,
@@ -244,22 +242,21 @@ export class Authority {
         currentAuthorityParts.forEach((currentPart, index) => {
             let cachedPart = cachedAuthorityParts[index];
             /**
-             * Check if canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com", by 
-             * comparing its first path segment to the corresponding authorization endpoint path segment, which is
-             * always resolved with tenant id by OIDC call.
+             * Check if canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com".
+             * Replace with the first path segment of authorization endpoint that is always resolved with tenant id
+             * by OIDC call.
              */
-            if (index === 0 && !Authority.reservedTenantDomains.has(cachedPart)) {
+            if (cachedPart?.includes("onmicrosoft.com")) {
                 const tenantId = (new UrlString(this.metadata.authorization_endpoint)).getUrlComponents().PathSegments[0];
-                if (cachedPart !== tenantId) {
-                    this.logger.verbose(`Replacing tenant domain name ${cachedPart} with id ${tenantId}`);
-                    cachedPart = tenantId;
-                }
+                this.logger.verbose(`Replacing tenant domain name ${cachedPart} with id ${tenantId}`);
+                cachedPart = tenantId;
             }
+
             if (currentPart !== cachedPart) {
                 endpoint = endpoint.replace(`/${cachedPart}/`, `/${currentPart}/`);
             }
         });
-        
+
         return this.replaceTenant(endpoint);
     }
 

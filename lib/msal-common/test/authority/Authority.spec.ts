@@ -240,7 +240,7 @@ describe("Authority.ts Class Unit Tests", () => {
             it("Returns correct endpoint when cached canonical endpoint contains tenant name", async () => {
                 jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(response);
 
-                const tenantDomain = "tenant.domain.name.com";
+                const tenantDomain = "test.tenant.domain.name.onmicrosoft.com";
                 const customAuthority = new Authority(`https://login.microsoftonline.com/${tenantDomain}/`, networkInterface, mockStorage, authorityOptions, logger);
                 await customAuthority.resolveEndpointsAsync();
 
