@@ -158,10 +158,18 @@ export class ClientCredentialClient extends BaseClient {
                 appTokenPropviderParameters
             );
 
+            let refershIn = appTokenProviderResult.refreshInSeconds;
+            if (!refershIn && appTokenProviderResult.expiresInSeconds > 7200) {
+            
+
+                refershIn = Math.round(appTokenProviderResult.expiresInSeconds /2);
+                this.logger.info("Setting refresh in to " + refershIn + " seconds.");
+            }
+
             serverTokenResponse = {
                 access_token: appTokenProviderResult.accessToken,
                 expires_in: appTokenProviderResult.expiresInSeconds,
-                refresh_in: appTokenProviderResult.refreshInSeconds,
+                refresh_in: refershIn,
                 token_type: AuthenticationScheme.BEARER,
             };
         } else {

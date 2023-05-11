@@ -20,7 +20,7 @@ import {
     ThrottlingConstants,
     TimeUtils,
 } from "@azure/msal-common";
-import { ClientCredentialClient, UsernamePasswordClient } from "../../src";
+import { AppTokenProviderParameters, ClientCredentialClient, UsernamePasswordClient } from "../../src";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
@@ -1099,71 +1099,101 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Uses the extensibility AppTokenProvider callback to get a token", async () => {
-        sinon
-            .stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork")
-            .resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-        // no need to stub out the token response, MSAL will use the AppTokenProvider instead
+        await runAppTokenProviderTestAsync(3600, 500, 500); // refresh in is read from the AppTokenProvider
+    });
 
+    it("AppTokenProvider sets a refresh in to half of expires in", async () => {
+        await runAppTokenProviderTestAsync(7200, undefined, 3600); // refresh in is inferred as 1/2 expires in
+
+
+    });
+    it("AppTokenProvider does not set refresh in if expires in < 7200", async () => {
+        await runAppTokenProviderTestAsync(7000, undefined, undefined); // refresh in not inferred because expires in < 7200
+    });
+
+    function validateAppTokenProvider(config: ClientConfiguration, authResult: AuthenticationResult, expectedExpiresIn: number, expectedRefreshIn: number | undefined) {
+
+        expect(authResult.scopes).toEqual([TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]]);
+        expect(authResult.accessToken).toEqual("some_token");
+        expect(authResult.state).toHaveLength(0);
+    
+        const actualExpiresIn = (authResult.expiresOn!.valueOf() - Date.now().valueOf()) / 1000;
+        validateDuration(actualExpiresIn, expectedExpiresIn!);
+ 
+    
+        const accessTokenKey = config.storageInterface.getKeys();
+
+      //  const accessTokenKey = config.storageInterface?.getKeys().find(value => value.indexOf("accesstoken") >= 0);
+        const accessTokenCacheItem = accessTokenKey ? config.storageInterface?.getAccessTokenCredential(accessTokenKey) : null;
+        expect(accessTokenCacheItem).not.toBeNull();
+        expect(accessTokenCacheItem?.refreshOn).not.toBeNull();
+    
+        if (expectedRefreshIn == undefined) {
+            expect(accessTokenCacheItem?.refreshOn).toBeUndefined();
+        } else {
+            const refreshOnUnixTimestamp = Number(accessTokenCacheItem?.refreshOn) * 1000;
+            const refreshOnDate = new Date(refreshOnUnixTimestamp);
+            const refreshOnDiff = (refreshOnDate.valueOf() - Date.now().valueOf()) / 1000;
+            validateDuration(refreshOnDiff, expectedRefreshIn!);
+        }
+    }
+    
+    function validateDuration(actualDuration: number, expectedDuration: number) {
+        // small buffer for test runtime differences
+        expect(actualDuration).toBeLessThanOrEqual(expectedDuration + 10);
+        expect(actualDuration).toBeGreaterThan(expectedDuration - 10);
+    }
+
+    async function runAppTokenProviderTestAsync(actualExpiresIn: number, actualRefreshIn: number | undefined, expectedRefreshIn: number | undefined) {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        // no need to stub out the token response, MSAL will use the AppTokenProvider instead
+        const config = await ClientTestUtils.createTestClientConfiguration();
         const accessToken = "some_token";
         const appTokenProviderResult: AppTokenProviderResult = {
             accessToken: accessToken,
-            expiresInSeconds: 1800,
-            refreshInSeconds: 900,
+            expiresInSeconds: actualExpiresIn,
+            refreshInSeconds: actualRefreshIn,
         };
-
+    
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
-
+    
         let callbackedCalledCount = 0;
-
-        const appTokenProvider: IAppTokenProvider = (
-            appTokenProviderParameters
-        ) => {
+    
+        const appTokenProvider: IAppTokenProvider = (appTokenProviderParameters: AppTokenProviderParameters) => {
+    
             callbackedCalledCount++;
-
+    
             expect(appTokenProviderParameters.scopes).toEqual(expectedScopes);
             expect(appTokenProviderParameters.tenantId).toEqual("common");
-            expect(appTokenProviderParameters.correlationId).toEqual(
-                TEST_CONFIG.CORRELATION_ID
-            );
+            expect(appTokenProviderParameters.correlationId).toEqual(TEST_CONFIG.CORRELATION_ID);
             expect(appTokenProviderParameters.claims).toBeUndefined();
-
-            return new Promise<AppTokenProviderResult>((resolve) =>
-                resolve(appTokenProviderResult)
-            );
+    
+            return new Promise<AppTokenProviderResult>(
+                (resolve) => resolve(appTokenProviderResult));
         };
-
+    
         // client credentials not needed
         config.clientCredentials = undefined;
-
+    
         const client = new ClientCredentialClient(config, appTokenProvider);
         const clientCredentialRequest: CommonClientCredentialRequest = {
             authority: TEST_CONFIG.validAuthority,
             correlationId: TEST_CONFIG.CORRELATION_ID,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
-
-        const authResult = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-
+    
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+    
         expect(callbackedCalledCount).toEqual(1);
-
-        expect(authResult.scopes).toEqual(expectedScopes);
-        expect(authResult.accessToken).toEqual(accessToken);
-        expect(authResult.state).toHaveLength(0);
-        const dateDiff =
-            (authResult.expiresOn!.valueOf() - Date.now().valueOf()) / 1000;
-        expect(dateDiff).toBeLessThanOrEqual(1900);
-        expect(dateDiff).toBeGreaterThan(1700);
-
-        const authResult2 = (await client.acquireToken(
-            clientCredentialRequest
-        )) as AuthenticationResult;
-
+    
+        validateAppTokenProvider(config, authResult, actualExpiresIn, expectedRefreshIn);
+    
+        const authResult2 = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
+    
         // expect the callback to not be called again, because token comes from the cache
         expect(callbackedCalledCount).toEqual(1);
-
+    
         expect(authResult2.scopes).toEqual(expectedScopes);
         expect(authResult2.accessToken).toEqual(accessToken);
-    });
+    }        
 });
