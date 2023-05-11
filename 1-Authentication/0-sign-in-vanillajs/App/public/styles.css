@@ -2,8 +2,8 @@
     padding: .5rem 1rem !important;
 }
 
-.table-responsive-ms {
-    max-height: 800px !important;
+.table-responsive {
+    max-height:  38rem !important;
     padding-left: 50px;
     padding-right: 50px;
 }
