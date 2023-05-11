@@ -9,7 +9,7 @@
         "Products": ["azure-active-directory", "aspnet-core", "msal-js", "microsoft-identity-web"],
         "Platform": "JavaScript",
         "Provider": "CIAM",
-        "description": "This sample demonstrates a Vanilla JavaScript using MSAL.js to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+        "description": "This sample demonstrates a Vanilla JavaScript using MSAL.js to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API"
     },
     "AADApps": [
         {

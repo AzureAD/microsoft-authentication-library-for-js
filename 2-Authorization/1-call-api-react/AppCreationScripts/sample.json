@@ -1,6 +1,6 @@
 {
     "Sample": {
-        "Title": "React single-page application using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API",
+        "Title": "React single-page application using MSAL React to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API",
         "Level": 200,
         "Client": "React SPA",
         "Service": "ASP.NET Core web API",
@@ -10,7 +10,7 @@
         "Platform": "JavaScript",
         "Endpoint": "AAD v2.0",
         "Provider": "CIAM",
-        "description": "This sample demonstrates An React SPA using MSAL React to authenticate users with Azure AD CIAM and call a protected ASP.NET Core web API"
+        "description": "This sample demonstrates An React SPA using MSAL React to authenticate users with Azure AD for Customers and call a protected ASP.NET Core web API"
     },
     "AADApps": [
         {
