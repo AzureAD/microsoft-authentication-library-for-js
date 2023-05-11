@@ -16,7 +16,7 @@ import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../src/authority/ProtocolMode";
 import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 import { OpenIdConfigResponse } from "../../src/authority/OpenIdConfigResponse";
-import { Logger, LogLevel } from "../../src";
+import { Logger, LogLevel, UrlString } from "../../src";
 
 let mockStorage: MockStorageClass;
 
@@ -206,6 +206,58 @@ describe("Authority.ts Class Unit Tests", () => {
                 );
             });
         });
+
+        describe("Swap tenants", () => {
+            const tenant = "51db77ae-2865-4010-bc5d-8f99097f494b";
+            const newTenant = "1d56e21e-b696-410b-83a0-bc2d775d0b39";
+            const response = {...DEFAULT_OPENID_CONFIG_RESPONSE.body};
+            for (const [key, value] of Object.entries(response)) {
+                if (typeof response[key] === "string") {
+                    // @ts-ignore
+                    response[key] = value.replace('{tenant}', tenant);
+                }
+            }
+
+            it("Returns correct endpoint", async () => {
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(response);
+
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions, logger);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.authorizationEndpoint).toBe(response.authorization_endpoint);
+
+                const newAuthorityEndpoint = response.authorization_endpoint.replace(tenant, newTenant);
+                const urlComponents = new UrlString(newAuthorityEndpoint).getUrlComponents();
+
+                // Mimic tenant switching
+                // @ts-ignore
+                authority.metadata.authorization_endpoint = newAuthorityEndpoint;
+                jest.spyOn(Authority.prototype, <any>"canonicalAuthorityUrlComponents", "get").mockReturnValue(urlComponents);
+
+                expect(authority.authorizationEndpoint).toBe(response.authorization_endpoint.replace(tenant, newTenant));
+            });
+
+            it("Returns correct endpoint when cached canonical endpoint contains tenant name", async () => {
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(response);
+
+                const tenantDomain = "tenant.domain.name.com";
+                const customAuthority = new Authority(`https://login.microsoftonline.com/${tenantDomain}/`, networkInterface, mockStorage, authorityOptions, logger);
+                await customAuthority.resolveEndpointsAsync();
+
+                expect(customAuthority.authorizationEndpoint).toBe(response.authorization_endpoint.replace(tenant, tenantDomain));
+
+                const newAuthorityEndpoint = response.authorization_endpoint.replace(tenant, newTenant);
+                const urlComponents = new UrlString(newAuthorityEndpoint).getUrlComponents();
+
+                // Mimic tenant switching
+                // @ts-ignore
+                customAuthority.metadata.authorization_endpoint = newAuthorityEndpoint;
+                jest.spyOn(Authority.prototype, <any>"canonicalAuthorityUrlComponents", "get").mockReturnValue(urlComponents);
+
+                expect(customAuthority.authorizationEndpoint).toBe(response.authorization_endpoint.replace(tenant, newTenant));
+            });
+        })
+
     });
 
     describe("Regional authorities", () => {
