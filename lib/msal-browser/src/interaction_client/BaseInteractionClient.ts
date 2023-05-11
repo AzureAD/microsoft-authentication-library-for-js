@@ -77,10 +77,23 @@ export abstract class BaseInteractionClient {
      * Initializer function for all request APIs
      * @param request
      */
-    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
+    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>, account?: AccountInfo): Promise<BaseAuthRequest> {
         this.performanceClient.addQueueMeasurement(PerformanceEvents.InitializeBaseRequest, request.correlationId);
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
+
+        /*
+         * If authority provided in the request does not match environment/authority specified 
+         * in the account or MSAL config, we throw an error.
+         */
+        if (account) {
+            const discoveredAuthority = await this.getDiscoveredAuthority(authority);
+            const allowedEnvironment = discoveredAuthority.isAlias(account.environment) || discoveredAuthority.isAlias(this.config.auth.authority);
+            
+            if(!allowedEnvironment) {
+                throw ClientConfigurationError.createAuthorityMismatchError();
+            }
+        }
 
         const scopes = [...((request && request.scopes) || [])];
 
