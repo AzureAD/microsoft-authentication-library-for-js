@@ -47,7 +47,7 @@
             ],
             "codeConfigurations": [
                 {
-                    "settingFile": "/App/authConfig.js",
+                    "settingFile": "App/authConfig.js",
                     "replaceTokens": {
                         "appId": "Enter_the_Application_Id_Here",
                         "tenantName": "Enter_the_Tenant_Subdomain_Here",
