@@ -311,7 +311,7 @@ export class ClientConfigurationError extends ClientAuthError {
     /**
      * Create an error when the authority provided in request does not match authority provided in account or MSAL.js configuration.
      */
-    static createAuthorityMismatchError(): ClientAuthError {
-        return new ClientAuthError(ClientConfigurationErrorMessage.authorityMismatch.code, ClientConfigurationErrorMessage.authorityMismatch.desc);
+    static createAuthorityMismatchError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.authorityMismatch.code, ClientConfigurationErrorMessage.authorityMismatch.desc);
     }
 }
