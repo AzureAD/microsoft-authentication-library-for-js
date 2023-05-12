@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update maintained node versions to fix tsdx optional chaining #6014",
+  "packageName": "@azure/msal-node",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
