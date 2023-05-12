@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "added authority check for native flow",
+  "comment": "Added authority check for native and silent flows #6002",
   "packageName": "@azure/msal-browser",
   "email": "lalimasharda@microsoft.com",
   "dependentChangeType": "patch"
