@@ -103,7 +103,7 @@ export const ClientConfigurationErrorMessage = {
     },
     authorityMismatch: {
         code: "authority_mismatch",
-        desc: "Authority mismatch error. Authority provided in login request should match with environment/authority provided in account or MSAL.js configuration options."
+        desc: "Authority mismatch error. Authority provided in login request does not match with environment/authority provided in account or MSAL.js configuration options. Please make an interactive request to login."
     }
 };
 
