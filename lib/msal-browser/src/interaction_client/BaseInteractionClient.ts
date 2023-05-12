@@ -138,9 +138,8 @@ export abstract class BaseInteractionClient {
      */
     async validateRequestAuthority(authority: string, account: AccountInfo): Promise<void> {
         const discoveredAuthority = await this.getDiscoveredAuthority(authority);
-        const validAuthority = discoveredAuthority.isAlias(account.environment) || discoveredAuthority.isAlias(this.config.auth.authority);
         
-        if(!validAuthority) {
+        if(!discoveredAuthority.isAlias(account.environment)) {
             throw ClientConfigurationError.createAuthorityMismatchError();
         }
     }
