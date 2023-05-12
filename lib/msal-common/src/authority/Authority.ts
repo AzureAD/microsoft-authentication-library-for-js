@@ -15,9 +15,12 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
-import { AuthorityOptions , AzureCloudInstance } from "./AuthorityOptions";
+import { AuthorityOptions, AzureCloudInstance } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
-import { CloudInstanceDiscoveryErrorResponse, isCloudInstanceDiscoveryErrorResponse } from "./CloudInstanceDiscoveryErrorResponse";
+import {
+    CloudInstanceDiscoveryErrorResponse,
+    isCloudInstanceDiscoveryErrorResponse
+} from "./CloudInstanceDiscoveryErrorResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
@@ -55,6 +58,8 @@ export class Authority {
     protected performanceClient: IPerformanceClient | undefined;
     // Correlation Id
     protected correlationId: string | undefined;
+    // Reserved tenant domain names that will not be replaced with tenant id
+    private static reservedTenantDomains: Set<string> = new Set([Constants.DEFAULT_COMMON_TENANT, "{tenant}", "{tenantid}"]);
 
     constructor(
         authority: string,
@@ -236,22 +241,28 @@ export class Authority {
     private replacePath(urlString: string): string {
         let endpoint = urlString;
         const cachedAuthorityUrl = new UrlString(this.metadata.canonical_authority);
-        const cachedAuthorityParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
+        const cachedAuthorityUrlComponents = cachedAuthorityUrl.getUrlComponents();
+        const cachedAuthorityParts = cachedAuthorityUrlComponents.PathSegments;
         const currentAuthorityParts = this.canonicalAuthorityUrlComponents.PathSegments;
 
         currentAuthorityParts.forEach((currentPart, index) => {
             let cachedPart = cachedAuthorityParts[index];
             /**
-             * Check if canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com".
-             * Replace with the first path segment of authorization endpoint that is always resolved with tenant id
-             * by OIDC call.
+             * Check if AAD canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com",
+             * by comparing its first path segment to the corresponding authorization endpoint path segment, which is
+             * always resolved with tenant id by OIDC.
              */
-            if (cachedPart?.includes("onmicrosoft.com")) {
+            if (index === 0
+                && !Authority.reservedTenantDomains.has(cachedPart)
+                // Ignore B2C
+                && !cachedAuthorityUrlComponents.HostNameAndPort.includes("b2clogin.com"))
+            {
                 const tenantId = (new UrlString(this.metadata.authorization_endpoint)).getUrlComponents().PathSegments[0];
-                this.logger.verbose(`Replacing tenant domain name ${cachedPart} with id ${tenantId}`);
-                cachedPart = tenantId;
+                if (cachedPart !== tenantId) {
+                    this.logger.verbose(`Replacing tenant domain name ${cachedPart} with id ${tenantId}`);
+                    cachedPart = tenantId;
+                }
             }
-
             if (currentPart !== cachedPart) {
                 endpoint = endpoint.replace(`/${cachedPart}/`, `/${currentPart}/`);
             }
@@ -298,7 +309,7 @@ export class Authority {
         this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateCloudDiscoveryMetadata, this.correlationId);
         const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity);
         this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadataEntity.preferred_network);
-        
+
         this.performanceClient?.setPreQueueTime(PerformanceEvents.AuthorityUpdateEndpointMetadata, this.correlationId);
         const endpointSource = await this.updateEndpointMetadata(metadataEntity);
 
@@ -342,7 +353,7 @@ export class Authority {
 
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
-        }    
+        }
 
         let harcodedMetadata = this.getEndpointMetadataFromHardcodedValues();
         if (harcodedMetadata && !this.authorityOptions.skipAuthorityMetadataCache) {
@@ -364,8 +375,8 @@ export class Authority {
     }
 
     /**
-     * Compares the number of url components after the domain to determine if the cached 
-     * authority metadata can be used for the requested authority. Protects against same domain different 
+     * Compares the number of url components after the domain to determine if the cached
+     * authority metadata can be used for the requested authority. Protects against same domain different
      * authority such as login.microsoftonline.com/tenant and login.microsoftonline.com/tfp/tenant/policy
      * @param metadataEntity
      */
@@ -393,16 +404,16 @@ export class Authority {
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
-     * 
+     *
      * @param hasHardcodedMetadata boolean
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
         this.performanceClient?.addQueueMeasurement(PerformanceEvents.AuthorityGetEndpointMetadataFromNetwork, this.correlationId);
 
         const options: ImdsOptions = {};
-        
+
         /*
-         * TODO: Add a timeout if the authority exists in our library's 
+         * TODO: Add a timeout if the authority exists in our library's
          * hardcoded list of metadata
          */
 
@@ -438,7 +449,7 @@ export class Authority {
             this.regionDiscoveryMetadata
         );
 
-        const azureRegion = 
+        const azureRegion =
             this.authorityOptions.azureRegionConfiguration?.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
                 ? autodetectedRegionName
                 : this.authorityOptions.azureRegionConfiguration?.azureRegion;
@@ -508,7 +519,7 @@ export class Authority {
             metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         }
-        
+
         this.logger.verbose("Did not find cloud discovery metadata from the network... Attempting to get cloud discovery metadata from hardcoded values.");
         const harcodedMetadata = this.getCloudDiscoveryMetadataFromHarcodedValues();
         if (harcodedMetadata && !this.options.skipAuthorityMetadataCache) {
@@ -516,7 +527,7 @@ export class Authority {
             metadataEntity.updateCloudDiscoveryMetadata(harcodedMetadata, false);
             return AuthorityMetadataSource.HARDCODED_VALUES;
         }
-        
+
         // Metadata could not be obtained from the config, cache, network or hardcoded values
         this.logger.error("Did not find cloud discovery metadata from hardcoded values... Metadata could not be obtained from config, cache, network or hardcoded values. Throwing Untrusted Authority Error.");
         throw ClientConfigurationError.createUntrustedAuthorityError();
@@ -567,7 +578,7 @@ export class Authority {
 
     /**
      * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
-     * 
+     *
      * @param hasHardcodedMetadata boolean
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
@@ -588,7 +599,7 @@ export class Authority {
                     instanceDiscoveryEndpoint,
                     options
                 );
-            
+
             let typedResponseBody: CloudInstanceDiscoveryResponse | CloudInstanceDiscoveryErrorResponse;
             let metadata: Array<CloudDiscoveryMetadata>;
             if (isCloudInstanceDiscoveryResponse(response.body)) {
@@ -607,7 +618,7 @@ export class Authority {
 
                 this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error is ${typedResponseBody.error}`);
                 this.logger.warning(`The CloudInstanceDiscoveryErrorResponse error description is ${typedResponseBody.error_description}`);
-                
+
                 this.logger.warning("Setting the value of the CloudInstanceDiscoveryMetadata (returned from the network) to []");
                 metadata = [];
             } else {
@@ -627,7 +638,7 @@ export class Authority {
                 const typedError = error as Error;
                 this.logger.error(`A non-MSALJS error was thrown while attempting to get the cloud instance discovery metadata.\nError: ${typedError.name}\nError Description: ${typedError.message}`);
             }
-            
+
             return null;
         }
 
@@ -644,7 +655,7 @@ export class Authority {
     }
 
     /**
-     * Get cloud discovery metadata for common authorities 
+     * Get cloud discovery metadata for common authorities
      */
     private getCloudDiscoveryMetadataFromHarcodedValues(): CloudDiscoveryMetadata | null {
         if (this.canonicalAuthority in InstanceDiscoveryMetadata) {
@@ -795,11 +806,11 @@ export class Authority {
     /**
      * Transform CIAM_AUTHORIY as per the below rules:
      * If no path segments found and it is a CIAM authority (hostname ends with .ciamlogin.com), then transform it
-     * 
+     *
      * NOTE: The transformation path should go away once STS supports CIAM with the format: `tenantIdorDomain.ciamlogin.com`
      * `ciamlogin.com` can also change in the future and we should accommodate the same
-     * 
-     * @param authority 
+     *
+     * @param authority
      */
     static transformCIAMAuthority(authority: string): string {
         let ciamAuthority = authority.endsWith(Constants.FORWARD_SLASH) ? authority : `${authority}${Constants.FORWARD_SLASH}`;
