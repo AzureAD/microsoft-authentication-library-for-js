@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "added authority check for native flow",
+  "packageName": "@azure/msal-browser",
+  "email": "lalimasharda@microsoft.com",
+  "dependentChangeType": "patch"
+}
