@@ -132,10 +132,8 @@ describe("B2C User Flow Tests", () => {
             await page.click("#editProfile");
             await page.waitForSelector("#attributeVerification");
 
-            await Promise.all([
-                page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
-                page.type("#displayName", `${displayName}`),
-            ]);
+            await page.$eval('#displayName', (el: any) => el.value = ''), // clear the text field
+            await page.type("#displayName", `${displayName}`),
 
             await page.click("#continue");
             await page.waitForFunction(`window.location.href.startsWith("${SAMPLE_HOME_URL}")`);
