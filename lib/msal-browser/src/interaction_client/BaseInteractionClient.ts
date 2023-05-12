@@ -82,17 +82,8 @@ export abstract class BaseInteractionClient {
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
-        /*
-         * If authority provided in the request does not match environment/authority specified 
-         * in the account or MSAL config, we throw an error.
-         */
         if (account) {
-            const discoveredAuthority = await this.getDiscoveredAuthority(authority);
-            const allowedEnvironment = discoveredAuthority.isAlias(account.environment) || discoveredAuthority.isAlias(this.config.auth.authority);
-            
-            if(!allowedEnvironment) {
-                throw ClientConfigurationError.createAuthorityMismatchError();
-            }
+            await this.validateRequestAuthority(authority, account);
         }
 
         const scopes = [...((request && request.scopes) || [])];
@@ -139,6 +130,19 @@ export abstract class BaseInteractionClient {
         this.logger.verbose("getRedirectUri called");
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
+    }
+
+    /*
+     * If authority provided in the request does not match environment/authority specified 
+     * in the account or MSAL config, we throw an error.
+     */
+    async validateRequestAuthority(authority: string, account: AccountInfo): Promise<void> {
+        const discoveredAuthority = await this.getDiscoveredAuthority(authority);
+        const validAuthority = discoveredAuthority.isAlias(account.environment) || discoveredAuthority.isAlias(this.config.auth.authority);
+        
+        if(!validAuthority) {
+            throw ClientConfigurationError.createAuthorityMismatchError();
+        }
     }
 
     /**

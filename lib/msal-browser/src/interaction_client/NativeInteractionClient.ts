@@ -536,6 +536,11 @@ export class NativeInteractionClient extends BaseInteractionClient {
         this.logger.trace("NativeInteractionClient - initializeNativeRequest called");
 
         const authority = request.authority || this.config.auth.authority;
+
+        if (request.account) {
+            await this.validateRequestAuthority(authority, request.account);
+        }
+
         const canonicalAuthority = new UrlString(authority);
         canonicalAuthority.validateAsUri();
 
