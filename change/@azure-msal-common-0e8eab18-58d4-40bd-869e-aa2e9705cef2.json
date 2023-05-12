@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": " added new ClientAuthError type for environment mismatch in account #6002",
+  "comment": "Added new ClientConfigurationError type for authority mismatch in login request #6002",
   "packageName": "@azure/msal-common",
   "email": "lalimasharda@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "minor"
 }
