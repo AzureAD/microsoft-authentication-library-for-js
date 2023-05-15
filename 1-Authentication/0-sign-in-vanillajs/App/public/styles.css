@@ -2,12 +2,6 @@
     padding: .5rem 1rem !important;
 }
 
-.table-responsive {
-    max-height:  38rem !important;
-    padding-left: 50px;
-    padding-right: 50px;
-}
-
 td {
     word-break: break-word;
     max-width: 20rem;
