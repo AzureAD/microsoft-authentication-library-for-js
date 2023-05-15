@@ -62,6 +62,11 @@ footer {
     word-break: break-all;
 }
 
+td {
+    word-break: break-word;
+    max-width: 34rem;
+}
+
 .table-responsive {
     max-height: 37rem !important;
 }
