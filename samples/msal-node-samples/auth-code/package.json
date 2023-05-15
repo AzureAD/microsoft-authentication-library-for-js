@@ -15,7 +15,7 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.1",
+    "@azure/msal-node": "file:../../../lib/msal-node",
     "express": "^4.17.1",
     "express-session": "^1.17.2"
   },

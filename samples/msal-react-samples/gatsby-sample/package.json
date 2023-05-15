@@ -15,8 +15,8 @@
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^18 react-dom@^18"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.14.2",
-    "@azure/msal-react": "^1.0.0",
+    "@azure/msal-browser": "file:../../../lib/msal-browser",
+    "@azure/msal-react": "file:../../../lib/msal-react",
     "@emotion/react": "^11.10.5",
     "@emotion/styled": "^11.10.5",
     "@mui/icons-material": "^5.11.0",

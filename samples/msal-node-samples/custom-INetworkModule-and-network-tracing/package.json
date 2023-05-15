@@ -15,8 +15,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@azure/msal-common": "^10.0.0",
-    "@azure/msal-node": "^1.15.0",
+    "@azure/msal-common": "file:../../../lib/msal-common",
+    "@azure/msal-node": "file:../../../lib/msal-node",
     "express": "^4.18.2",
     "url": "^0.11.0"
   },

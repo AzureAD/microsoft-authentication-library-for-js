@@ -13,7 +13,7 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "^1.0.1",
+    "@azure/msal-node": "file:../../../lib/msal-node",
     "axios": "^0.25.0",
     "express": "^4.17.1",
     "express-handlebars": "^5.3.5",

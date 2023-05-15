@@ -8,8 +8,8 @@
     "generate:certs": "openssl.exe req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 7 -nodes -subj /CN=localhost"
   },
   "dependencies": {
-    "@azure/msal-browser": "^2.16.1",
-    "@azure/msal-node": "^1.3.0",
+    "@azure/msal-browser": "file:../../../lib/msal-browser",
+    "@azure/msal-node": "file:../../../lib/msal-node",
     "body-parser": "^1.19.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
