@@ -39,9 +39,6 @@ class AuthProvider {
              * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
              */
             scopes: [],
-            extraQueryParameters: {
-                dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
-            },
         };
 
         const authCodeRequestParams = {

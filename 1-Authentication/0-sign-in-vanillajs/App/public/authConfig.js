@@ -47,9 +47,6 @@ const msalConfig = {
  */
 const loginRequest = {
     scopes: [],
-    extraQueryParameters: {
-        dc: "ESTS-PUB-EUS-AZ1-FD000-TEST1"
-    }
 };
 
 /**

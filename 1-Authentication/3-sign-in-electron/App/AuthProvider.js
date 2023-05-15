@@ -30,9 +30,6 @@ class AuthProvider {
             // by default, MSAL will add the OIDC scopes to every token request, so we omit those here
             scopes: [],
             prompt: 'create',
-            extraQueryParameters: {
-                dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
-            },
         });
 
         return this.handleResponse(authResponse);
@@ -43,9 +40,6 @@ class AuthProvider {
             // If there are scopes that you would like users to consent up front, add them below
             // by default, MSAL will add the OIDC scopes to every token request, so we omit those here
             scopes: [],
-            extraQueryParameters: {
-                dc: 'ESTS-PUB-EUS-AZ1-FD000-TEST1', // STS CIAM test slice
-            },
         });
 
         return this.handleResponse(authResponse);
