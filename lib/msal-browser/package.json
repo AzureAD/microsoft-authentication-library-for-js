@@ -22,7 +22,7 @@
     "oauth"
   ],
   "sideEffects": false,
-  "main": "./lib/index.js",
+  "main": "./lib/msal-browser.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "engines": {
@@ -38,6 +38,8 @@
     "dist",
     "lib/msal-browser.js",
     "lib/msal-browser.js.map",
+    "lib/msal-browser.cjs.js",
+    "lib/msal-browser.cjs.js.map",
     "lib/msal-browser.min.js"
   ],
   "scripts": {
