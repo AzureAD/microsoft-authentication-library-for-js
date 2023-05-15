@@ -67,7 +67,6 @@ export class Authority {
         AADAuthorityConstants.ORGANIZATIONS
     ]));
 
-
     constructor(
         authority: string,
         networkInterface: INetworkModule,
