@@ -82,15 +82,18 @@ export class Authority {
         this.regionDiscovery = new RegionDiscovery(networkInterface, this.performanceClient, this.correlationId);
     }
 
-    // See above for AuthorityType
-    public get authorityType(): AuthorityType {
-
+    /**
+     * Get {@link AuthorityType}
+     * @param authorityUri {@link IUri}
+     * @private
+     */
+    private getAuthorityType(authorityUri: IUri): AuthorityType {
         // CIAM auth url pattern is being standardized as: <tenant>.ciamlogin.com
-        if (this.canonicalAuthorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
+        if (authorityUri.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
             return AuthorityType.Ciam;
         }
 
-        const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
+        const pathSegments = authorityUri.PathSegments;
         if (pathSegments.length) {
             switch(pathSegments[0].toLowerCase()) {
                 case Constants.ADFS:
@@ -102,6 +105,11 @@ export class Authority {
             }
         }
         return AuthorityType.Default;
+    }
+
+    // See above for AuthorityType
+    public get authorityType(): AuthorityType {
+        return this.getAuthorityType(this.canonicalAuthorityUrlComponents);
     }
 
     /**
@@ -227,6 +235,18 @@ export class Authority {
     }
 
     /**
+     * Returns a flag indicating that authority {@link IUri} type is AAD
+     * @param authorityUri {@link IUri}
+     * @private
+     */
+    private isAADAuthority(authorityUri: IUri): boolean {
+        return authorityUri.PathSegments.length === 1
+            && !Authority.reservedTenantDomains.has(authorityUri.PathSegments[0])
+            && this.getAuthorityType(authorityUri) === AuthorityType.Default
+            && this.protocolMode === ProtocolMode.AAD;
+    }
+
+    /**
      * Replaces tenant in url path with current tenant. Defaults to common.
      * @param urlString
      */
@@ -247,17 +267,14 @@ export class Authority {
 
         currentAuthorityParts.forEach((currentPart, index) => {
             let cachedPart = cachedAuthorityParts[index];
-            /**
-             * Check if AAD canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com",
-             * by comparing its first path segment to the corresponding authorization endpoint path segment, which is
-             * always resolved with tenant id by OIDC.
-             */
-            if (index === 0
-                && !Authority.reservedTenantDomains.has(cachedPart)
-                // Ignore B2C
-                && !cachedAuthorityUrlComponents.HostNameAndPort.includes("b2clogin.com"))
+            if (index === 0 && this.isAADAuthority(cachedAuthorityUrlComponents))
             {
                 const tenantId = (new UrlString(this.metadata.authorization_endpoint)).getUrlComponents().PathSegments[0];
+                /**
+                 * Check if AAD canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com",
+                 * by comparing its first path segment to the corresponding authorization endpoint path segment, which is
+                 * always resolved with tenant id by OIDC.
+                 */
                 if (cachedPart !== tenantId) {
                     this.logger.verbose(`Replacing tenant domain name ${cachedPart} with id ${tenantId}`);
                     cachedPart = tenantId;
