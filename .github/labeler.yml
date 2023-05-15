@@ -9,7 +9,7 @@ msal-angular:
 angularjs:
   - maintenance/msal-angularjs/**/*
 msal@1.x:
-  - lib/msal-core/**/*
+  - maintenance/msal-core/**/*
 msal-common:
   - lib/msal-common/**/*
 msal-browser:

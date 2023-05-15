@@ -263,8 +263,8 @@ coverage/
 typings/
 lib-commonjs/
 lib-es6/
-lib/msal-core/lib-commonjs
-lib/msal-core/lib-es6
+maintenance/msal-core/lib-commonjs
+maintenance/msal-core/lib-es6
 *.tgz
 *.zip
 samples/**/screenshots

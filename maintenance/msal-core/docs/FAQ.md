@@ -56,7 +56,7 @@
 1. [How to avoid page reloads when acquiring and renewing tokens silently?](#how-to-avoid-page-reloads-when-acquiring-and-renewing-tokens-silently)
 1. [Why is my application stuck in an infinite redirect loop?](#why-is-my-application-stuck-in-an-infinite-redirect-loop)
 1. [I'm using one of your samples on Internet Explorer and I get the error SignIn() is not defined](#im-using-one-of-your-samples-on-internet-explorer-and-i-get-the-error-signin-is-not-defined)
-1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-core/docs/errors.md)
+1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/maintenance/msal-core/docs/errors.md)
 
 ***
 
@@ -281,7 +281,7 @@ The tokens returned by Azure AD have a default lifetime of 1 hour. However, as l
 
 ## How can I acquire tokens faster?
 
-Please refer to our performance guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/performance.md)
+Please refer to our performance guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/maintenance/msal-core/docs/performance.md)
 
 ## How long do tokens last? How long are they valid for?
 
@@ -291,7 +291,7 @@ Token lifetimes are 1 hour and the session lifetime is 24 hours. This means that
 
 If you are requesting scopes `clientId`, `openid` and/or `profile`, these are **ID token** scopes. Previously, in versions <1.4.0, MSAL.js would get an **ID token** and put it into the `accessToken` and `idToken` fields (both with the same value). In version 1.4.0 this behavior was changed to be in-line with what the AAD/B2C server is sending back. Now MSAL.js gets the same **ID token** but puts it under `idToken` field and leaves the `accessToken` field empty. If you need an access token you should request a scope other than `clientId`, `openid` or `profile`
 
-See the [documentation on scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/scopes.md) for more information.
+See the [documentation on scopes](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/maintenance/msal-core/docs/scopes.md) for more information.
 
 # Scopes & Resources
 

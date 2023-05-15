@@ -15,8 +15,7 @@
 /lib/msal-common/ @sameerag @tnorling @hectormmg @jo-arroyo @peterzenz @robbie-microsoft @konstantin-msft
 
 # MSAL Core
-/lib/msal-core/ @sameerag @tnorling @peterzenz
-/samples/msal-core-samples/ @derisen @sameerag @tnorling @peterzenz
+/maintenance/-msal-core/ @sameerag @tnorling @peterzenz
 
 # MSAL Node
 /lib/msal-node/ @sameerag @tnorling @hectormmg @peterzenz @jennyf19 @jmprieur @bgavrilMS @robbie-microsoft
