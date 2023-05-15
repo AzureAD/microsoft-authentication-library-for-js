@@ -1,16 +1,10 @@
 import { AuthenticatedTemplate, UnauthenticatedTemplate, useMsal } from '@azure/msal-react';
-import { Navbar, Button, Dropdown, DropdownButton } from 'react-bootstrap';
+import { Navbar, Button } from 'react-bootstrap';
 import { loginRequest } from '../authConfig';
 
 export const NavigationBar = () => {
     const { instance } = useMsal();
-
-    let activeAccount;
-
-    if (instance) {
-        activeAccount = instance.getActiveAccount();
-    }
-
+    
     const handleLoginRedirect = () => {
         instance.loginRedirect(loginRequest).catch((error) => console.log(error));
     };
@@ -32,22 +26,14 @@ export const NavigationBar = () => {
                 </a>
                 <AuthenticatedTemplate>
                     <div className="collapse navbar-collapse justify-content-end">
-                        <DropdownButton
-                            variant="warning"
-                            drop="start"
-                            title={activeAccount ? activeAccount.name : 'Unknown'}
-                        >
-                            <Dropdown.Item as="button" onClick={handleLogoutRedirect}>
-                                Sign out
-                            </Dropdown.Item>
-                        </DropdownButton>
+                        <Button variant="warning" onClick={handleLogoutRedirect}>
+                            Sign out
+                        </Button>
                     </div>
                 </AuthenticatedTemplate>
                 <UnauthenticatedTemplate>
                     <div className="collapse navbar-collapse justify-content-end">
-                        <Button onClick={handleLoginRedirect}>
-                            Sign in
-                        </Button>
+                        <Button onClick={handleLoginRedirect}>Sign in</Button>
                     </div>
                 </UnauthenticatedTemplate>
             </Navbar>
