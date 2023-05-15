@@ -7,3 +7,8 @@
     padding-left: 50px;
     padding-right: 50px;
 }
+
+td {
+    word-break: break-word;
+    max-width: 20rem;
+}
