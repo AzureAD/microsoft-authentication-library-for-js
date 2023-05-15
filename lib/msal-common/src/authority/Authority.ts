@@ -9,7 +9,7 @@ import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
-import { AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
+import { AADAuthorityConstants, AuthorityMetadataSource, Constants, RegionDiscoveryOutcomes } from "../utils/Constants";
 import { EndpointMetadata, InstanceDiscoveryMetadata } from "./AuthorityMetadata";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
@@ -59,13 +59,14 @@ export class Authority {
     // Correlation Id
     protected correlationId: string | undefined;
     // Reserved tenant domain names that will not be replaced with tenant id
-    private static reservedTenantDomains: Set<string> = new Set([
-        Constants.DEFAULT_COMMON_TENANT,
+    private static reservedTenantDomains: Set<string> = (new Set([
         "{tenant}",
         "{tenantid}",
-        "consumers",
-        "organizations"
-    ]);
+        AADAuthorityConstants.COMMON,
+        AADAuthorityConstants.CONSUMERS,
+        AADAuthorityConstants.ORGANIZATIONS
+    ]));
+
 
     constructor(
         authority: string,
