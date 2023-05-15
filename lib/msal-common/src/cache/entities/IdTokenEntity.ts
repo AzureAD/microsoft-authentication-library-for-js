@@ -38,7 +38,7 @@ export class IdTokenEntity extends CredentialEntity {
         environment: string,
         idToken: string,
         clientId: string,
-        tenantId: string,
+        tenantId: string
     ): IdTokenEntity {
         const idTokenEntity = new IdTokenEntity();
 
@@ -57,7 +57,6 @@ export class IdTokenEntity extends CredentialEntity {
      * @param entity
      */
     static isIdTokenEntity(entity: object): boolean {
-
         if (!entity) {
             return false;
         }

@@ -15,7 +15,12 @@ In this document:
 
 ## Initializing the PublicClientApplication object
 
-In order to use MSAL.js, you need to instantiate a `PublicClientApplication` object. You must provide the `client id` (`appId`) of your application. 
+In order to use MSAL.js, you need to instantiate a `PublicClientApplication` object. You must provide the `client id` (`appId`) of your application.
+
+### Option 1
+
+Instantiate a `PublicClientApplication` object and initialize it afterwards. The `initialize` function is asynchronous and must resolve before invoking other MSAL.js APIs.
+
 ```javascript
 import * as msal from "@azure/msal-browser";
 
@@ -26,6 +31,23 @@ const msalConfig = {
 };
 
 const msalInstance = new msal.PublicClientApplication(msalConfig);
+await msalInstance.initialize();
+```
+
+### Option 2
+
+Invoke the `createPublicClientApplication` static method which returns an initialized `PublicClientApplication` object. Note that this function is asynchronous.
+
+```javascript
+import * as msal from "@azure/msal-browser";
+
+const msalConfig = {
+    auth: {
+        clientId: 'your_client_id'
+    }
+};
+
+const msalInstance = await msal.PublicClientApplication.createPublicClientApplication(msalConfig);
 ```
 
 ## (Optional) Configure Authority
@@ -89,9 +111,15 @@ Any redirect URI used must be configured in the portal registration. You can als
 
 MSAL has additional configuration options which you can review [here](./configuration.md).
 
+## Handling App Launch with 0 or More Available Accounts
+
+The following flow diagram can help you avoid unnecessary authentication prompts when an account (or multiple accounts) is available for SSO.
+
+![MSAL.js boot flow diagram](images/msaljs-boot-flow.png )
+
 ## Choosing an Interaction Type
 
-In the browser, there are two ways you can present the login screen to your users from your application: 
+In the browser, there are two ways you can present the login screen to your users from your application:
 - [presenting a popup window from the current page](#popup-apis)
 - [redirecting the browser window to the login server](#redirect-apis)
 
@@ -124,7 +152,7 @@ The redirect APIs are asynchronous (i.e. return a promise) `void` functions whic
 ```javascript
 msalInstance.handleRedirectPromise().then((tokenResponse) => {
     // Check if the tokenResponse is null
-    // If the tokenResponse !== null, then you are coming back from a successful authentication redirect. 
+    // If the tokenResponse !== null, then you are coming back from a successful authentication redirect.
     // If the tokenResponse === null, you are not coming back from an auth redirect.
 }).catch((error) => {
     // handle error, either in the library or coming back from the server

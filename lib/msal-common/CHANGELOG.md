@@ -1,8 +1,33 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 May 2023 20:47:41 GMT and should not be manually modified.
+This log was last generated on Mon, 08 May 2023 20:12:00 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 14.0.0-alpha.1
+
+Mon, 08 May 2023 20:12:00 GMT
+
+### Changes
+
+- Add logging to Authority.getEndpointMetadataFromNetwork() #5973 (kshabelko@microsoft.com)
+
+## 14.0.0-alpha.0
+
+Tue, 02 May 2023 23:14:26 GMT
+
+### Major changes
+
+- Add CIAM Authority Support(#5865) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Fix bugs in CIAM Authority Support (#5917) (sameera.gajjarapu@microsoft.com)
+- Update polycheck version (#5901) (sameera.gajjarapu@microsoft.com)
+- Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint (kapjain@microsoft.com)
+- Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805 (rginsburg@microsoft.com)
+- `removeAccount` does not throw if account does not exist in cache #5911 (thomas.norling@microsoft.com)
+- Remove unused enum (thomas.norling@microsoft.com)
 
 ## 13.0.0
 

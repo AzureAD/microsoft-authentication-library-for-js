@@ -21,7 +21,7 @@ export type ServerAuthorizationCodeResponse = {
     cloud_graph_host_name?: string;
     msgraph_host?: string;
     // Error case
-    error?: string,
+    error?: string;
     error_description?: string;
     suberror?: string;
     timestamp?: string;

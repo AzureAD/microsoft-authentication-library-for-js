@@ -3,7 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, ClientConfiguration } from "@azure/msal-common";
+import {
+    AuthorizationCodeClient,
+    ClientConfiguration,
+} from "@azure/msal-common";
 
 export class HybridSpaAuthorizationCodeClient extends AuthorizationCodeClient {
     constructor(config: ClientConfiguration) {

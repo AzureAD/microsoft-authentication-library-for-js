@@ -8,15 +8,23 @@
  * @module @azure/msal-common
  */
 
-export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
-export { DeviceCodeClient } from "./client/DeviceCodeClient";
+export { AuthorizationCodeClient } from "./client/AuthorizationCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
-export { ClientCredentialClient } from "./client/ClientCredentialClient";
-export { OnBehalfOfClient } from "./client/OnBehalfOfClient";
 export { SilentFlowClient } from "./client/SilentFlowClient";
-export { UsernamePasswordClient } from "./client/UsernamePasswordClient";
-export { AuthOptions, SystemOptions, LoggerOptions, DEFAULT_SYSTEM_OPTIONS, AzureCloudOptions, ApplicationTelemetry } from "./config/ClientConfiguration";
-export { IAppTokenProvider, AppTokenProviderParameters, AppTokenProviderResult } from "./config/AppTokenProvider";
+export { BaseClient } from "./client/BaseClient";
+export {
+    AuthOptions,
+    SystemOptions,
+    LoggerOptions,
+    DEFAULT_SYSTEM_OPTIONS,
+    AzureCloudOptions,
+    ApplicationTelemetry,
+} from "./config/ClientConfiguration";
+export {
+    IAppTokenProvider,
+    AppTokenProviderParameters,
+    AppTokenProviderResult,
+} from "./config/AppTokenProvider";
 export { ClientConfiguration } from "./config/ClientConfiguration";
 // Account
 export { AccountInfo, ActiveAccountFilters } from "./account/AccountInfo";
@@ -25,10 +33,17 @@ export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
-export { ClientInfo, buildClientInfo, buildClientInfoFromHomeAccountId } from "./account/ClientInfo";
+export {
+    ClientInfo,
+    buildClientInfo,
+    buildClientInfoFromHomeAccountId,
+} from "./account/ClientInfo";
 // Authority
 export { Authority } from "./authority/Authority";
-export { AuthorityOptions, AzureCloudInstance } from "./authority/AuthorityOptions";
+export {
+    AuthorityOptions,
+    AzureCloudInstance,
+} from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
@@ -36,7 +51,17 @@ export { ProtocolMode } from "./authority/ProtocolMode";
 export { INativeBrokerPlugin } from "./broker/nativeBroker/INativeBrokerPlugin";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
-export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType, TokenKeys } from "./cache/utils/CacheTypes";
+export {
+    AccountCache,
+    AccessTokenCache,
+    IdTokenCache,
+    RefreshTokenCache,
+    AppMetadataCache,
+    CredentialFilter,
+    ValidCacheType,
+    ValidCredentialType,
+    TokenKeys,
+} from "./cache/utils/CacheTypes";
 export { CacheRecord } from "./cache/entities/CacheRecord";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
@@ -51,14 +76,27 @@ export { ICachePlugin } from "./cache/interface/ICachePlugin";
 export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";
 export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache";
 // Network Interface
-export { INetworkModule, NetworkRequestOptions, StubbedNetworkModule } from "./network/INetworkModule";
-export { NetworkManager, NetworkResponse, UrlToHttpRequestOptions } from "./network/NetworkManager";
+export {
+    INetworkModule,
+    NetworkRequestOptions,
+    StubbedNetworkModule,
+} from "./network/INetworkModule";
+export {
+    NetworkManager,
+    NetworkResponse,
+    UrlToHttpRequestOptions,
+} from "./network/NetworkManager";
 export { ThrottlingUtils } from "./network/ThrottlingUtils";
 export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
-export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
+export {
+    ICrypto,
+    PkceCodes,
+    DEFAULT_CRYPTO_IMPLEMENTATION,
+    SignedHttpRequestParameters,
+} from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 export { IGuidGenerator } from "./crypto/IGuidGenerator";
 export { JoseHeader } from "./crypto/JoseHeader";
@@ -75,6 +113,7 @@ export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
 export { NativeRequest } from "./request/NativeRequest";
 export { NativeSignOutRequest } from "./request/NativeSignOutRequest";
+export { RequestParameterBuilder } from "./request/RequestParameterBuilder";
 // Response
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
@@ -83,32 +122,88 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
 export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
-export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
+export {
+    DeviceCodeResponse,
+    ServerDeviceCodeResponse,
+} from "./response/DeviceCodeResponse";
+export { ResponseHandler } from "./response/ResponseHandler";
 export { ScopeSet } from "./request/ScopeSet";
 export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
-export { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "./error/InteractionRequiredAuthError";
+export {
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+} from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
-export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
-export { ClientConfigurationError, ClientConfigurationErrorMessage } from "./error/ClientConfigurationError";
+export {
+    ClientAuthError,
+    ClientAuthErrorMessage,
+} from "./error/ClientAuthError";
+export {
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+} from "./error/ClientConfigurationError";
 // Constants and Utils
-export { Constants, OIDC_DEFAULT_SCOPES, PromptValue, PersistentCacheKeys, ResponseMode, CredentialType, CacheType, CacheAccountType, AuthenticationScheme, CodeChallengeMethodValues, SSOTypes, PasswordGrantConstants, ThrottlingConstants, ClaimsRequestKeys, HeaderNames, AADServerParamKeys, Errors, THE_FAMILY_ID, ONE_DAY_IN_MS } from "./utils/Constants";
+export {
+    Constants,
+    OIDC_DEFAULT_SCOPES,
+    PromptValue,
+    PersistentCacheKeys,
+    ResponseMode,
+    CacheOutcome,
+    CredentialType,
+    CacheType,
+    CacheAccountType,
+    AuthenticationScheme,
+    CodeChallengeMethodValues,
+    SSOTypes,
+    PasswordGrantConstants,
+    ThrottlingConstants,
+    ClaimsRequestKeys,
+    HeaderNames,
+    AADServerParamKeys,
+    Errors,
+    THE_FAMILY_ID,
+    ONE_DAY_IN_MS,
+    GrantType,
+    AADAuthorityConstants,
+} from "./utils/Constants";
 export { StringUtils } from "./utils/StringUtils";
 export { StringDict } from "./utils/MsalTypes";
-export { ProtocolUtils, RequestStateObject, LibraryStateObject } from "./utils/ProtocolUtils";
+export {
+    ProtocolUtils,
+    RequestStateObject,
+    LibraryStateObject,
+} from "./utils/ProtocolUtils";
 export { TimeUtils } from "./utils/TimeUtils";
 // Server Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
 
 // Performance Telemetry
-export { IPerformanceClient, PerformanceCallbackFunction, InProgressPerformanceEvent, QueueMeasurement } from "./telemetry/performance/IPerformanceClient";
-export { Counters, IntFields, PerformanceEvent, PerformanceEvents, PerformanceEventStatus, StaticFields, SubMeasurement } from "./telemetry/performance/PerformanceEvent";
+export {
+    IPerformanceClient,
+    PerformanceCallbackFunction,
+    InProgressPerformanceEvent,
+    QueueMeasurement,
+} from "./telemetry/performance/IPerformanceClient";
+export {
+    Counters,
+    IntFields,
+    PerformanceEvent,
+    PerformanceEvents,
+    PerformanceEventStatus,
+    StaticFields,
+    SubMeasurement,
+} from "./telemetry/performance/PerformanceEvent";
 export { IPerformanceMeasurement } from "./telemetry/performance/IPerformanceMeasurement";
-export { PerformanceClient, PreQueueEvent } from "./telemetry/performance/PerformanceClient";
+export {
+    PerformanceClient,
+    PreQueueEvent,
+} from "./telemetry/performance/PerformanceClient";
 export { StubPerformanceClient } from "./telemetry/performance/StubPerformanceClient";
 
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";

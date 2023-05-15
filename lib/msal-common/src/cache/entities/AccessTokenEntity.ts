@@ -71,7 +71,7 @@ export class AccessTokenEntity extends CredentialEntity {
         cryptoUtils: ICrypto,
         refreshOn?: number,
         tokenType?: AuthenticationScheme,
-        userAssertionHash?:string,
+        userAssertionHash?: string,
         keyId?: string,
         requestedClaims?: string,
         requestedClaimsHash?: string
@@ -101,7 +101,9 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.target = scopes;
         atEntity.userAssertionHash = userAssertionHash;
 
-        atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
+        atEntity.tokenType = StringUtils.isEmpty(tokenType)
+            ? AuthenticationScheme.BEARER
+            : tokenType;
 
         if (requestedClaims) {
             atEntity.requestedClaims = requestedClaims;
@@ -112,12 +114,17 @@ export class AccessTokenEntity extends CredentialEntity {
          * Create Access Token With Auth Scheme instead of regular access token
          * Cast to lower to handle "bearer" from ADFS
          */
-        if (atEntity.tokenType?.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) {
-            atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+        if (
+            atEntity.tokenType?.toLowerCase() !==
+            AuthenticationScheme.BEARER.toLowerCase()
+        ) {
+            atEntity.credentialType =
+                CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
             switch (atEntity.tokenType) {
                 case AuthenticationScheme.POP:
                     // Make sure keyId is present and add it to credential
-                    const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
+                    const tokenClaims: TokenClaims | null =
+                        AuthToken.extractTokenClaims(accessToken, cryptoUtils);
                     if (!tokenClaims?.cnf?.kid) {
                         throw ClientAuthError.createTokenClaimsRequiredError();
                     }
@@ -136,7 +143,6 @@ export class AccessTokenEntity extends CredentialEntity {
      * @param entity
      */
     static isAccessTokenEntity(entity: object): boolean {
-
         if (!entity) {
             return false;
         }
@@ -149,7 +155,9 @@ export class AccessTokenEntity extends CredentialEntity {
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("secret") &&
             entity.hasOwnProperty("target") &&
-            (entity["credentialType"] === CredentialType.ACCESS_TOKEN || entity["credentialType"] === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
+            (entity["credentialType"] === CredentialType.ACCESS_TOKEN ||
+                entity["credentialType"] ===
+                    CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
         );
     }
 }

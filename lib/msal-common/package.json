@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "13.0.0",
+  "version": "14.0.0-alpha.1",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -42,12 +42,14 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
-    "build:modules": "rollup -c",
-    "build:modules:watch": "rollup -cw",
+    "build:modules": "rollup -c --strictDeprecations --bundleConfigAsCjs",
+    "build:modules:watch": "rollup -cw --bundleConfigAsCjs",
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build",
     "prepack": "npm run build",
-    "metadata:check": "npx ts-node scripts/metadata.ts"
+    "metadata:check": "npx ts-node scripts/metadata.ts",
+    "format:check": "npx prettier --ignore-path .gitignore --check src test",
+    "format:fix": "npx prettier --ignore-path .gitignore --write src test"
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
@@ -55,6 +57,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.6.2",
     "@babel/preset-env": "^7.7.1",
     "@babel/preset-typescript": "^7.7.2",
+    "@rollup/plugin-typescript": "^11.0.0",
     "@types/debug": "^4.1.5",
     "@types/jest": "^27.0.0",
     "@types/lodash": "^4.14.182",
@@ -62,15 +65,15 @@
     "husky": "^3.0.9",
     "jest": "^27.0.4",
     "lodash": "^4.17.21",
+    "prettier": "2.8.7",
     "rimraf": "^3.0.2",
-    "rollup": "^2.46.0",
-    "rollup-plugin-typescript2": "^0.29.0",
+    "rollup": "^3.14.0",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
     "ts-jest": "^27.1.5",
     "tslib": "^1.10.0",
     "tslint": "^5.20.0",
-    "typescript": "^3.7.5",
+    "typescript": "^4.9.5",
     "yargs": "^17.5.1"
   }
 }

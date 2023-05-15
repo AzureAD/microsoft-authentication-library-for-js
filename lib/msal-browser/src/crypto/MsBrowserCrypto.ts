@@ -13,12 +13,27 @@ export class MsBrowserCrypto implements ISubtleCrypto {
         return window["msCrypto"].getRandomValues(dataBuffer);
     }
 
-    async generateKey(algorithm: RsaHashedKeyGenParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair> {
+    async generateKey(
+        algorithm: RsaHashedKeyGenParams,
+        extractable: boolean,
+        keyUsages: KeyUsage[]
+    ): Promise<CryptoKeyPair> {
         return new Promise((resolve: Function, reject: Function) => {
-            const msGenerateKey = window["msCrypto"].subtle.generateKey(algorithm, extractable, keyUsages);
-            msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
-                resolve(e.target.result);
-            });
+            const msGenerateKey = window["msCrypto"].subtle.generateKey(
+                algorithm,
+                extractable,
+                keyUsages
+            );
+            msGenerateKey.addEventListener(
+                "complete",
+                (e: {
+                    target: {
+                        result: CryptoKeyPair | PromiseLike<CryptoKeyPair>;
+                    };
+                }) => {
+                    resolve(e.target.result);
+                }
+            );
 
             msGenerateKey.addEventListener("error", (error: string) => {
                 reject(error);
@@ -28,23 +43,32 @@ export class MsBrowserCrypto implements ISubtleCrypto {
 
     async exportKey(key: CryptoKey): Promise<JsonWebKey> {
         return new Promise((resolve: Function, reject: Function) => {
-            const msExportKey = window["msCrypto"].subtle.exportKey(KEY_FORMAT_JWK, key);
-            msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
-                const resultBuffer: ArrayBuffer = e.target.result;
+            const msExportKey = window["msCrypto"].subtle.exportKey(
+                KEY_FORMAT_JWK,
+                key
+            );
+            msExportKey.addEventListener(
+                "complete",
+                (e: { target: { result: ArrayBuffer } }) => {
+                    const resultBuffer: ArrayBuffer = e.target.result;
 
-                const resultString = BrowserStringUtils.utf8ArrToString(new Uint8Array(resultBuffer))
-                    .replace(/\r/g, Constants.EMPTY_STRING)
-                    .replace(/\n/g, Constants.EMPTY_STRING)
-                    .replace(/\t/g, Constants.EMPTY_STRING)
-                    .split(" ").join(Constants.EMPTY_STRING)
-                    .replace("\u0000", Constants.EMPTY_STRING);
+                    const resultString = BrowserStringUtils.utf8ArrToString(
+                        new Uint8Array(resultBuffer)
+                    )
+                        .replace(/\r/g, Constants.EMPTY_STRING)
+                        .replace(/\n/g, Constants.EMPTY_STRING)
+                        .replace(/\t/g, Constants.EMPTY_STRING)
+                        .split(" ")
+                        .join(Constants.EMPTY_STRING)
+                        .replace("\u0000", Constants.EMPTY_STRING);
 
-                try {
-                    resolve(JSON.parse(resultString));
-                } catch (e) {
-                    reject(e);
+                    try {
+                        resolve(JSON.parse(resultString));
+                    } catch (e) {
+                        reject(e);
+                    }
                 }
-            });
+            );
 
             msExportKey.addEventListener("error", (error: string) => {
                 reject(error);
@@ -52,15 +76,31 @@ export class MsBrowserCrypto implements ISubtleCrypto {
         });
     }
 
-    async importKey(keyData: JsonWebKey, algorithm: RsaHashedImportParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey> {
+    async importKey(
+        keyData: JsonWebKey,
+        algorithm: RsaHashedImportParams,
+        extractable: boolean,
+        keyUsages: KeyUsage[]
+    ): Promise<CryptoKey> {
         const keyString = BrowserStringUtils.getSortedObjectString(keyData);
         const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
 
         return new Promise((resolve: Function, reject: Function) => {
-            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, algorithm, extractable, keyUsages);
-            msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
-                resolve(e.target.result);
-            });
+            const msImportKey = window["msCrypto"].subtle.importKey(
+                KEY_FORMAT_JWK,
+                keyBuffer,
+                algorithm,
+                extractable,
+                keyUsages
+            );
+            msImportKey.addEventListener(
+                "complete",
+                (e: {
+                    target: { result: CryptoKey | PromiseLike<CryptoKey> };
+                }) => {
+                    resolve(e.target.result);
+                }
+            );
 
             msImportKey.addEventListener("error", (error: string) => {
                 reject(error);
@@ -68,25 +108,45 @@ export class MsBrowserCrypto implements ISubtleCrypto {
         });
     }
 
-    async sign(algorithm: AlgorithmIdentifier, key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+    async sign(
+        algorithm: AlgorithmIdentifier,
+        key: CryptoKey,
+        data: ArrayBuffer
+    ): Promise<ArrayBuffer> {
         return new Promise((resolve: Function, reject: Function) => {
             const msSign = window["msCrypto"].subtle.sign(algorithm, key, data);
-            msSign.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
-                resolve(e.target.result);
-            });
+            msSign.addEventListener(
+                "complete",
+                (e: {
+                    target: { result: ArrayBuffer | PromiseLike<ArrayBuffer> };
+                }) => {
+                    resolve(e.target.result);
+                }
+            );
 
             msSign.addEventListener("error", (error: string) => {
                 reject(error);
             });
         });
     }
-    
-    async digest(algorithm: AlgorithmIdentifier, data: Uint8Array): Promise<ArrayBuffer> {
+
+    async digest(
+        algorithm: AlgorithmIdentifier,
+        data: Uint8Array
+    ): Promise<ArrayBuffer> {
         return new Promise((resolve, reject) => {
-            const digestOperation = window["msCrypto"].subtle.digest(algorithm, data.buffer);
-            digestOperation.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
-                resolve(e.target.result);
-            });
+            const digestOperation = window["msCrypto"].subtle.digest(
+                algorithm,
+                data.buffer
+            );
+            digestOperation.addEventListener(
+                "complete",
+                (e: {
+                    target: { result: ArrayBuffer | PromiseLike<ArrayBuffer> };
+                }) => {
+                    resolve(e.target.result);
+                }
+            );
             digestOperation.addEventListener("error", (error: string) => {
                 reject(error);
             });

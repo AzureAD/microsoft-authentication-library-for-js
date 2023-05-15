@@ -5,8 +5,22 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl } from "../utils/StringConstants";
-import { AccountInfo, TokenClaims,  AuthenticationResult,  AuthorizationCodeClient,  AuthenticationScheme } from "@azure/msal-common";
+import {
+    TEST_CONFIG,
+    TEST_URIS,
+    TEST_TOKENS,
+    TEST_DATA_CLIENT_INFO,
+    TEST_TOKEN_LIFETIMES,
+    RANDOM_TEST_GUID,
+    testNavUrl,
+} from "../utils/StringConstants";
+import {
+    AccountInfo,
+    TokenClaims,
+    AuthenticationResult,
+    AuthorizationCodeClient,
+    AuthenticationScheme,
+} from "@azure/msal-common";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -17,13 +31,33 @@ describe("SilentAuthCodeClient", () => {
     let silentAuthCodeClient: SilentAuthCodeClient;
 
     beforeEach(() => {
-        const pca = new PublicClientApplication({
+        let pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
-            }
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
         });
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
         // @ts-ignore
-        silentAuthCodeClient = new SilentAuthCodeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, ApiId.acquireTokenSilent_authCode, pca.performanceClient);
+        silentAuthCodeClient = new SilentAuthCodeClient(
+            //@ts-ignore
+            pca.config,
+            //@ts-ignore
+            pca.browserStorage,
+            //@ts-ignore
+            pca.browserCrypto,
+            //@ts-ignore
+            pca.logger,
+            //@ts-ignore
+            pca.eventHandler,
+            //@ts-ignore
+            pca.navigationClient,
+            ApiId.acquireTokenSilent_authCode,
+            //@ts-ignore
+            pca.performanceClient
+        );
     });
 
     afterEach(() => {
@@ -35,11 +69,15 @@ describe("SilentAuthCodeClient", () => {
 
     describe("acquireToken", () => {
         it("throws error if code is empty", async () => {
-            await expect(silentAuthCodeClient.acquireToken({
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
-                code: ""
-            })).rejects.toMatchObject(BrowserAuthError.createAuthCodeRequiredError());
+            await expect(
+                silentAuthCodeClient.acquireToken({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: [TEST_CONFIG.MSAL_CLIENT_ID],
+                    code: "",
+                })
+            ).rejects.toMatchObject(
+                BrowserAuthError.createAuthCodeRequiredError()
+            );
         });
 
         it("successfully returns a token response (code)", async () => {
@@ -50,24 +88,24 @@ describe("SilentAuthCodeClient", () => {
                 ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
+                id_token: TEST_TOKENS.IDTOKEN_V2,
             };
             const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || ""
+                username: testIdTokenClaims.preferred_username || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -79,34 +117,46 @@ describe("SilentAuthCodeClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                expiresOn: new Date(
+                    Date.now() + testServerTokenResponse.expires_in * 1000
+                ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER
+                tokenType: AuthenticationScheme.BEARER,
             };
-            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
-            const handleCodeSpy = sinon.stub(SilentHandler.prototype, "handleCodeResponseFromServer").resolves(testTokenResponse);
- 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon
+                .stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl")
+                .resolves(testNavUrl);
+            const handleCodeSpy = sinon
+                .stub(SilentHandler.prototype, "handleCodeResponseFromServer")
+                .resolves(testTokenResponse);
+
+            sinon
+                .stub(CryptoOps.prototype, "createNewGuid")
+                .returns(RANDOM_TEST_GUID);
 
             const request: AuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                code: "test-code"
+                code: "test-code",
             };
             const tokenResp = await silentAuthCodeClient.acquireToken(request);
 
-            expect(handleCodeSpy.calledWith({
-                code: "test-code", 
-                msgraph_host: request.msGraphHost,
-                cloud_graph_host_name: request.cloudGraphHostName,
-                cloud_instance_host_name: request.cloudInstanceHostName
-            })).toBe(true);
+            expect(
+                handleCodeSpy.calledWith({
+                    code: "test-code",
+                    msgraph_host: request.msGraphHost,
+                    cloud_graph_host_name: request.cloudGraphHostName,
+                    cloud_instance_host_name: request.cloudInstanceHostName,
+                })
+            ).toBe(true);
             expect(tokenResp).toEqual(testTokenResponse);
         });
     });
 
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
-            await expect(silentAuthCodeClient.logout).rejects.toMatchObject(BrowserAuthError.createSilentLogoutUnsupportedError());
+            await expect(silentAuthCodeClient.logout).rejects.toMatchObject(
+                BrowserAuthError.createSilentLogoutUnsupportedError()
+            );
         });
     });
 });

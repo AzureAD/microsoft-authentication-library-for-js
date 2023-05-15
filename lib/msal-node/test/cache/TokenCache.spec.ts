@@ -1,15 +1,24 @@
-import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from '@azure/msal-common';
-import { NodeStorage } from '../../src/cache/NodeStorage';
-import { TokenCache } from '../../src/cache/TokenCache';
-import { promises as fs } from 'fs';
-import { version, name } from '../../package.json';
-import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
-import * as msalCommon from '@azure/msal-common';
-import { Deserializer } from '../../src/cache/serializer/Deserializer';
-import { JsonCache } from '../../src';
+import {
+    LogLevel,
+    Logger,
+    TokenCacheContext,
+    ICachePlugin,
+} from "@azure/msal-common";
+import { NodeStorage } from "../../src/cache/NodeStorage";
+import { TokenCache } from "../../src/cache/TokenCache";
+import { promises as fs } from "fs";
+import { version, name } from "../../package.json";
+import {
+    DEFAULT_CRYPTO_IMPLEMENTATION,
+    TEST_CONSTANTS,
+} from "../utils/TestConstants";
+import { Deserializer } from "../../src/cache/serializer/Deserializer";
+import { JsonCache } from "../../src";
+import { MSALCommonModule } from "../utils/MockUtils";
+
+const msalCommon: MSALCommonModule = jest.requireActual("@azure/msal-common");
 
 describe("TokenCache tests", () => {
-
     let logger: Logger;
 
     beforeEach(() => {
@@ -25,7 +34,11 @@ describe("TokenCache tests", () => {
     });
 
     it("Constructor tests builds default token cache", async () => {
-        let storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        let storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
         expect(tokenCache).toBeInstanceOf(TokenCache);
         expect(tokenCache.hasChanged()).toEqual(false);
@@ -33,8 +46,12 @@ describe("TokenCache tests", () => {
     });
 
     it("TokenCache serialize/deserialize", () => {
-        const cache = require('./cache-test-files/default-cache.json');
-        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const cache = require("./cache-test-files/default-cache.json");
+        const storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -47,7 +64,11 @@ describe("TokenCache tests", () => {
 
     it("TokenCache should not fail when attempting to deserialize an empty string", () => {
         const cache = "";
-        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(cache);
@@ -55,8 +76,12 @@ describe("TokenCache tests", () => {
     });
 
     it("TokenCache serialize/deserialize, does not remove unrecognized entities", () => {
-        const cache = require('./cache-test-files/cache-unrecognized-entities.json');
-        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const cache = require("./cache-test-files/cache-unrecognized-entities.json");
+        const storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -70,8 +95,12 @@ describe("TokenCache tests", () => {
     it("TokenCache.mergeRemovals removes entities from the cache, but does not remove other entities", async () => {
         // TokenCache should not remove unrecognized entities from JSON file, even if they
         // are deeply nested, and should write them back out
-        const cache = require('./cache-test-files/cache-unrecognized-entities.json');
-        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const cache = require("./cache-test-files/cache-unrecognized-entities.json");
+        const storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -85,62 +114,86 @@ describe("TokenCache tests", () => {
         expect(tokenCacheAfterSerialization.RefreshToken).toEqual({});
         expect(tokenCacheAfterSerialization.AccessToken).toEqual({});
         expect(tokenCacheAfterSerialization.IdToken).toEqual({});
-        expect(tokenCacheAfterSerialization.Unrecognized_Entity).toEqual(cache.Unrecognized_Entity);
+        expect(tokenCacheAfterSerialization.Unrecognized_Entity).toEqual(
+            cache.Unrecognized_Entity
+        );
     });
 
     it("TokenCache beforeCacheAccess and afterCacheAccess", async () => {
-
         const beforeCacheAccess = async (context: TokenCacheContext) => {
-            context.tokenCache.deserialize(await fs.readFile("./test/cache/cache-test-files/cache-unrecognized-entities.json", "utf-8"));
+            context.tokenCache.deserialize(
+                await fs.readFile(
+                    "./test/cache/cache-test-files/cache-unrecognized-entities.json",
+                    "utf-8"
+                )
+            );
         };
         const cachePath = "./test/cache/cache-test-files/temp-cache.json";
         const afterCacheAccess = async (context: TokenCacheContext) => {
             await fs.writeFile(cachePath, context.tokenCache.serialize());
-        }
+        };
 
         const cachePlugin: ICachePlugin = {
             beforeCacheAccess,
-            afterCacheAccess
+            afterCacheAccess,
         };
 
-        const storage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const storage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger, cachePlugin);
 
         const mockTokenCacheContextInstance = {
             hasChanged: false,
             cache: tokenCache,
             cacheHasChanged: false,
-            tokenCache
-        }
+            tokenCache,
+        };
 
-        jest.spyOn(msalCommon, 'TokenCacheContext')
-            .mockImplementation(() => mockTokenCacheContextInstance as unknown as TokenCacheContext)
+        jest.spyOn(msalCommon, "TokenCacheContext").mockImplementation(
+            () => mockTokenCacheContextInstance as unknown as TokenCacheContext
+        );
 
         const accounts = await tokenCache.getAllAccounts();
         expect(msalCommon.TokenCacheContext).toHaveBeenCalled();
         expect(accounts.length).toBe(1);
-        expect(require('./cache-test-files/temp-cache.json')).toEqual(require('./cache-test-files/cache-unrecognized-entities.json'));
+        expect(require("./cache-test-files/temp-cache.json")).toEqual(
+            require("./cache-test-files/cache-unrecognized-entities.json")
+        );
 
         // try and clean up
         try {
             await fs.unlink(cachePath);
         } catch (err) {
-            if (err.code == "ENOENT") {
-                console.log("Tried to delete temp cache file but it does not exist");
+            const errnoException = err as NodeJS.ErrnoException;
+            if (errnoException.code == "ENOENT") {
+                console.log(
+                    "Tried to delete temp cache file but it does not exist"
+                );
             }
         }
     });
 
-    it('should return an empty KV store if TokenCache is empty', () => {
-        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+    it("should return an empty KV store if TokenCache is empty", () => {
+        const storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
 
         expect(tokenCache.getKVStore()).toEqual({});
-    })
+    });
 
-    it('should return stored entities in KV store', () => {
-        const cache: JsonCache = require('./cache-test-files/default-cache.json');
-        const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+    it("should return stored entities in KV store", () => {
+        const cache: JsonCache = require("./cache-test-files/default-cache.json");
+        const storage: NodeStorage = new NodeStorage(
+            logger,
+            TEST_CONSTANTS.CLIENT_ID,
+            DEFAULT_CRYPTO_IMPLEMENTATION
+        );
         const tokenCache = new TokenCache(storage, logger);
 
         tokenCache.deserialize(JSON.stringify(cache));
@@ -149,11 +202,14 @@ describe("TokenCache tests", () => {
 
         const kvStore = tokenCache.getKVStore();
 
-        Object.values(expectedCachedEntities).forEach(expectedCacheSection => {
-            Object.keys(expectedCacheSection).forEach(cacheKey => {
-                expect(kvStore[cacheKey]).toEqual(expectedCacheSection[cacheKey]);
-            })
-        })
-    })
-
+        Object.values(expectedCachedEntities).forEach(
+            (expectedCacheSection) => {
+                Object.keys(expectedCacheSection).forEach((cacheKey) => {
+                    expect(kvStore[cacheKey]).toEqual(
+                        expectedCacheSection[cacheKey]
+                    );
+                });
+            }
+        );
+    });
 });

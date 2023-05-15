@@ -15,7 +15,16 @@ import { CommonClientCredentialRequest } from "@azure/msal-common";
  * - tokenQueryParameters    - String to string map of custom query parameters added to the /token call
  * @public
  */
-export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash"|"clientAssertion">> & {
+export type ClientCredentialRequest = Partial<
+    Omit<
+        CommonClientCredentialRequest,
+        | "scopes"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+        | "requestedClaimsHash"
+        | "clientAssertion"
+    >
+> & {
     scopes: Array<string>;
     clientAssertion?: string;
 };

@@ -3,29 +3,44 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, Constants, RequestThumbprint, AuthError, PerformanceEvents, ServerError, InteractionRequiredAuthError, InProgressPerformanceEvent } from "@azure/msal-common";
-import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType, ApiId, CacheLookupPolicy, BrowserConstants } from "../utils/BrowserConstants";
-import { IPublicClientApplication } from "./IPublicClientApplication";
-import { RedirectRequest } from "../request/RedirectRequest";
+import { ITokenCache } from "../cache/ITokenCache";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { PopupRequest } from "../request/PopupRequest";
-import { ClientApplication } from "./ClientApplication";
+import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
-import { EventType } from "../event/EventType";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import { NativeAuthError } from "../error/NativeAuthError";
-import { NativeMessageHandler } from "../broker/nativeBroker/NativeMessageHandler";
-import { BrowserUtils } from "../utils/BrowserUtils";
+import { WrapperSKU } from "../utils/BrowserConstants";
+import { IPublicClientApplication } from "./IPublicClientApplication";
+import { IController } from "../controllers/IController";
+import {
+    AuthenticationResult,
+    PerformanceCallbackFunction,
+    AccountInfo,
+    Logger,
+} from "@azure/msal-common";
+import { EndSessionRequest } from "../request/EndSessionRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { ControllerFactory } from "../controllers/ControllerFactory";
+import { StandardController } from "../controllers/StandardController";
+import { BrowserConfiguration, Configuration } from "../config/Configuration";
+import { StandardOperatingContext } from "../operatingcontext/StandardOperatingContext";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
-export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
+export class PublicClientApplication implements IPublicClientApplication {
+    protected controller: IController;
 
-    // Active requests
-    private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
-    private astsAsyncMeasurement?: InProgressPerformanceEvent = undefined;
+    public static async createPublicClientApplication(
+        configuration: Configuration
+    ): Promise<IPublicClientApplication> {
+        const factory = new ControllerFactory(configuration);
+        const controller = await factory.createController();
+        const pca = new PublicClientApplication(configuration, controller);
+
+        return pca;
+    }
 
     /**
      * @constructor
@@ -46,14 +61,199 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
      * Full B2C functionality will be available in this library in future versions.
      *
-     * @param configuration object for the MSAL PublicClientApplication instance
+     * @param configuration Object for the MSAL PublicClientApplication instance
+     * @param IController Optional parameter to explictly set the controller. (Will be removed when we remove public constructor)
      */
-    constructor(configuration: Configuration) {
-        super(configuration);
+    public constructor(configuration: Configuration, controller?: IController) {
+        if (controller) {
+            this.controller = controller;
+        } else {
+            const standardOperatingContext = new StandardOperatingContext(
+                configuration
+            );
+            this.controller = new StandardController(standardOperatingContext);
+        }
+    }
 
-        this.activeSilentTokenRequests = new Map();
-        // Register listener functions
-        this.trackPageVisibility = this.trackPageVisibility.bind(this);
+    /**
+     * Initializer function to perform async startup tasks such as connecting to WAM extension
+     */
+    async initialize(): Promise<void> {
+        return this.controller.initialize();
+    }
+
+    /**
+     * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
+     *
+     * @param request
+     *
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+    async acquireTokenPopup(
+        request: PopupRequest
+    ): Promise<AuthenticationResult> {
+        return this.controller.acquireTokenPopup(request);
+    }
+
+    /**
+     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
+     * the page, so any code that follows this function will not execute.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * @param request
+     */
+    acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        return this.controller.acquireTokenRedirect(request);
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
+     *
+     * @param {@link (SilentRequest:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    acquireTokenSilent(
+        silentRequest: SilentRequest
+    ): Promise<AuthenticationResult> {
+        return this.controller.acquireTokenSilent(silentRequest);
+    }
+
+    /**
+     * This function redeems an authorization code (passed as code) from the eSTS token endpoint.
+     * This authorization code should be acquired server-side using a confidential client to acquire a spa_code.
+     * This API is not indended for normal authorization code acquisition and redemption.
+     *
+     * Redemption of this authorization code will not require PKCE, as it was acquired by a confidential client.
+     *
+     * @param request {@link AuthorizationCodeRequest}
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+    acquireTokenByCode(
+        request: AuthorizationCodeRequest
+    ): Promise<AuthenticationResult> {
+        return this.controller.acquireTokenByCode(request);
+    }
+
+    /**
+     * Adds event callbacks to array
+     * @param callback
+     */
+    addEventCallback(callback: Function): string | null {
+        return this.controller.addEventCallback(callback);
+    }
+
+    /**
+     * Removes callback with provided id from callback array
+     * @param callbackId
+     */
+    removeEventCallback(callbackId: string): void {
+        return this.controller.removeEventCallback(callbackId);
+    }
+
+    /**
+     * Registers a callback to receive performance events.
+     *
+     * @param {PerformanceCallbackFunction} callback
+     * @returns {string}
+     */
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string {
+        return this.controller.addPerformanceCallback(callback);
+    }
+
+    /**
+     * Removes a callback registered with addPerformanceCallback.
+     *
+     * @param {string} callbackId
+     * @returns {boolean}
+     */
+    removePerformanceCallback(callbackId: string): boolean {
+        return this.controller.removePerformanceCallback(callbackId);
+    }
+
+    /**
+     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    enableAccountStorageEvents(): void {
+        this.controller.enableAccountStorageEvents();
+    }
+
+    /**
+     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    disableAccountStorageEvents(): void {
+        this.controller.disableAccountStorageEvents();
+    }
+
+    /**
+     * Returns the signed in account matching homeAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @param homeAccountId
+     * @returns The account object stored in MSAL
+     */
+    getAccountByHomeId(homeAccountId: string): AccountInfo | null {
+        return this.controller.getAccountByHomeId(homeAccountId);
+    }
+
+    /**
+     * Returns the signed in account matching localAccountId.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found
+     * @param localAccountId
+     * @returns The account object stored in MSAL
+     */
+    getAccountByLocalId(localId: string): AccountInfo | null {
+        return this.controller.getAccountByLocalId(localId);
+    }
+
+    /**
+     * Returns the signed in account matching username.
+     * (the account object is created at the time of successful login)
+     * or null when no matching account is found.
+     * This API is provided for convenience but getAccountById should be used for best reliability
+     * @param userName
+     * @returns The account object stored in MSAL
+     */
+    getAccountByUsername(userName: string): AccountInfo | null {
+        return this.controller.getAccountByUsername(userName);
+    }
+
+    /**
+     * Returns all accounts that MSAL currently has data for.
+     * (the account object is created at the time of successful login)
+     * or empty array when no accounts are found
+     * @returns Array of account objects in cache
+     */
+    getAllAccounts(): AccountInfo[] {
+        return this.controller.getAllAccounts();
+    }
+
+    /**
+     * Event handler function which allows users to fire events after the PublicClientApplication object
+     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
+     * auth flows.
+     * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @returns Token response or null. If the return value is null, then no auth redirect was detected.
+     */
+    handleRedirectPromise(
+        hash?: string | undefined
+    ): Promise<AuthenticationResult | null> {
+        return this.controller.handleRedirectPromise(hash);
+    }
+
+    /**
+     * Use when initiating the login process via opening a popup window in the user's browser
+     *
+     * @param request
+     *
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+    loginPopup(
+        request?: PopupRequest | undefined
+    ): Promise<AuthenticationResult> {
+        return this.controller.loginPopup(request);
     }
 
     /**
@@ -65,219 +265,113 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      *
      * @param request
      */
-    async loginRedirect(request?: RedirectRequest): Promise<void> {
-        const correlationId: string = this.getRequestCorrelationId(request);
-        this.logger.verbose("loginRedirect called", correlationId);
-        return this.acquireTokenRedirect({
-            correlationId,
-            ...(request || DEFAULT_REQUEST)
-        });
+    loginRedirect(request?: RedirectRequest | undefined): Promise<void> {
+        return this.controller.loginRedirect(request);
     }
 
     /**
-     * Use when initiating the login process via opening a popup window in the user's browser
+     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
+     * @param logoutRequest
+     * @deprecated
+     */
+    logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        return this.controller.logout(logoutRequest);
+    }
+
+    /**
+     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
+     * Default behaviour is to redirect the user to `window.location.href`.
+     * @param logoutRequest
+     */
+    logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
+        return this.controller.logoutRedirect(logoutRequest);
+    }
+
+    /**
+     * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
+     * @param logoutRequest
+     */
+    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void> {
+        return this.controller.logoutPopup(logoutRequest);
+    }
+
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
+     * - Any browser using a form of Intelligent Tracking Prevention
+     * - If there is not an established session with the service
      *
-     * @param request
+     * In these cases, the request must be done inside a popup or full frame redirect.
+     *
+     * For the cases where interaction is required, you cannot send a request with prompt=none.
+     *
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
+     * you session on the server still exists.
+     * @param request {@link SsoSilentRequest}
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        const correlationId: string = this.getRequestCorrelationId(request);
-        this.logger.verbose("loginPopup called", correlationId);
-        return this.acquireTokenPopup({
-            correlationId,
-            ...(request || DEFAULT_REQUEST)
-        });
+    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        return this.controller.ssoSilent(request);
     }
 
     /**
-     * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
-     *
-     * @param {@link (SilentRequest:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * Gets the token cache for the application.
      */
-    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        const correlationId = this.getRequestCorrelationId(request);
-        const atsMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilent, correlationId);
-        atsMeasurement.addStaticFields({
-            cacheLookupPolicy: request.cacheLookupPolicy
-        });
-
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("acquireTokenSilent called", correlationId);
-
-        const account = request.account || this.getActiveAccount();
-        if (!account) {
-            throw BrowserAuthError.createNoAccountError();
-        }
-
-        const thumbprint: RequestThumbprint = {
-            clientId: this.config.auth.clientId,
-            authority: request.authority || Constants.EMPTY_STRING,
-            scopes: request.scopes,
-            homeAccountIdentifier: account.homeAccountId,
-            claims: request.claims,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims,
-            sshKid: request.sshKid
-        };
-        const silentRequestKey = JSON.stringify(thumbprint);
-
-        const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
-        if (typeof cachedResponse === "undefined") {
-            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", correlationId);
-
-            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenSilentAsync, correlationId);
-            const response = this.acquireTokenSilentAsync({
-                ...request,
-                correlationId
-            }, account)
-                .then((result) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.addStaticFields({
-                        accessTokenSize: result.accessToken.length,
-                        idTokenSize: result.idToken.length
-                    });
-                    atsMeasurement.endMeasurement({
-                        success: true,
-                        fromCache: result.fromCache,
-                        isNativeBroker: result.fromNativeBroker,
-                        cacheLookupPolicy: request.cacheLookupPolicy,
-                        requestId: result.requestId,
-                    });
-                    return result;
-                })
-                .catch((error: AuthError) => {
-                    this.activeSilentTokenRequests.delete(silentRequestKey);
-                    atsMeasurement.endMeasurement({
-                        errorCode: error.errorCode,
-                        subErrorCode: error.subError,
-                        success: false
-                    });
-                    throw error;
-                });
-            this.activeSilentTokenRequests.set(silentRequestKey, response);
-            return response;
-        } else {
-            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", correlationId);
-            // Discard measurements for memoized calls, as they are usually only a couple of ms and will artificially deflate metrics
-            atsMeasurement.discardMeasurement();
-            return cachedResponse;
-        }
-    }
-
-    private trackPageVisibility():void {
-        if (!this.astsAsyncMeasurement) {
-            return;
-        }
-        this.logger.info("Perf: Visibility change detected");
-        this.astsAsyncMeasurement.increment({
-            visibilityChangeCount: 1,
-        });
+    getTokenCache(): ITokenCache {
+        return this.controller.getTokenCache();
     }
 
     /**
-     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
-     * @param {@link (SilentRequest:type)}
-     * @param {@link (AccountInfo:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse}
+     * Returns the logger instance
      */
-    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        this.performanceClient.addQueueMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
+    getLogger(): Logger {
+        return this.controller.getLogger();
+    }
 
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        this.astsAsyncMeasurement = this.performanceClient.startMeasurement(PerformanceEvents.AcquireTokenSilentAsync, request.correlationId);
-        this.astsAsyncMeasurement?.increment({
-            visibilityChangeCount: 0
-        });
-        document.addEventListener("visibilitychange",this.trackPageVisibility);
-        let result: Promise<AuthenticationResult>;
-        if (NativeMessageHandler.isNativeAvailable(this.config, this.logger, this.nativeExtensionProvider, request.authenticationScheme) && account.nativeAccountId) {
-            this.logger.verbose("acquireTokenSilent - attempting to acquire token from native platform");
-            const silentRequest: SilentRequest = {
-                ...request,
-                account
-            };
-            result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(async (e: AuthError) => {
-                // If native token acquisition fails for availability reasons fallback to web flow
-                if (e instanceof NativeAuthError && e.isFatal()) {
-                    this.logger.verbose("acquireTokenSilent - native platform unavailable, falling back to web flow");
-                    this.nativeExtensionProvider = undefined; // Prevent future requests from continuing to attempt
+    /**
+     * Replaces the default logger set in configurations with new Logger with new configurations
+     * @param logger Logger instance
+     */
+    setLogger(logger: Logger): void {
+        this.controller.setLogger(logger);
+    }
 
-                    // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
-                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
-                    return silentIframeClient.acquireToken(request);
-                }
-                throw e;
-            });
-        } else {
-            this.logger.verbose("acquireTokenSilent - attempting to acquire token from web flow");
+    /**
+     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     * @param account
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        this.controller.setActiveAccount(account);
+    }
 
-            const silentCacheClient = this.createSilentCacheClient(request.correlationId);
+    /**
+     * Gets the currently active account
+     */
+    getActiveAccount(): AccountInfo | null {
+        return this.controller.getActiveAccount();
+    }
 
-            this.performanceClient.setPreQueueTime(PerformanceEvents.InitializeSilentRequest, request.correlationId);
-            const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
+    /**
+     * Called by wrapper libraries (Angular & React) to set SKU and Version passed down to telemetry, logger, etc.
+     * @param sku
+     * @param version
+     */
+    initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
+        return this.controller.initializeWrapperLibrary(sku, version);
+    }
 
-            const requestWithCLP = {
-                ...request,
-                // set the request's CacheLookupPolicy to Default if it was not optionally passed in
-                cacheLookupPolicy: request.cacheLookupPolicy || CacheLookupPolicy.Default
-            };
+    /**
+     * Sets navigation client
+     * @param navigationClient
+     */
+    setNavigationClient(navigationClient: INavigationClient): void {
+        this.controller.setNavigationClient(navigationClient);
+    }
 
-            this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenFromCache, silentRequest.correlationId);
-            result = this.acquireTokenFromCache(silentCacheClient, silentRequest, requestWithCLP).catch((cacheError: AuthError) => {
-                if (requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessToken) {
-                    throw cacheError;
-                }
-
-                // block the reload if it occurred inside a hidden iframe
-                BrowserUtils.blockReloadInHiddenIframes();
-                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, silentRequest);
-
-                this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenByRefreshToken, silentRequest.correlationId);
-                return this.acquireTokenByRefreshToken(silentRequest, requestWithCLP).catch((refreshTokenError: AuthError) => {
-                    const isServerError = refreshTokenError instanceof ServerError;
-                    const isInteractionRequiredError = refreshTokenError instanceof InteractionRequiredAuthError;
-                    const isInvalidGrantError = (refreshTokenError.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-
-                    if ((!isServerError ||
-                            !isInvalidGrantError ||
-                            isInteractionRequiredError ||
-                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.AccessTokenAndRefreshToken ||
-                            requestWithCLP.cacheLookupPolicy === CacheLookupPolicy.RefreshToken)
-                        && (requestWithCLP.cacheLookupPolicy !== CacheLookupPolicy.Skip)
-                    ) {
-                        throw refreshTokenError;
-                    }
-
-                    this.logger.verbose("Refresh token expired/invalid or CacheLookupPolicy is set to Skip, attempting acquire token by iframe.", request.correlationId);
-                    this.performanceClient.setPreQueueTime(PerformanceEvents.AcquireTokenBySilentIframe, silentRequest.correlationId);
-                    return this.acquireTokenBySilentIframe(silentRequest);
-                });
-            });
-        }
-
-        return result.then((response) => {
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
-            this.astsAsyncMeasurement?.endMeasurement({
-                success: true,
-                fromCache: response.fromCache,
-                isNativeBroker: response.fromNativeBroker,
-                requestId: response.requestId
-            });
-            return response;
-        }).catch((tokenRenewalError: AuthError) => {
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            this.astsAsyncMeasurement?.endMeasurement({
-                errorCode: tokenRenewalError.errorCode,
-                subErrorCode: tokenRenewalError.subError,
-                success: false
-            });
-            throw tokenRenewalError;
-        }).finally(() => {
-            document.removeEventListener("visibilitychange",this.trackPageVisibility);
-        });
+    /**
+     * Returns the configuration object
+     */
+    getConfiguration(): BrowserConfiguration {
+        return this.controller.getConfiguration();
     }
 }

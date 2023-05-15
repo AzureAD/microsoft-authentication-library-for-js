@@ -16,7 +16,8 @@ export const Constants = {
     ADFS: "adfs",
     DSTS: "dstsv2",
     // Default AAD Instance Discovery Endpoint
-    AAD_INSTANCE_DISCOVERY_ENDPT: "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
+    AAD_INSTANCE_DISCOVERY_ENDPT:
+        "https://login.microsoftonline.com/common/discovery/instance?api-version=1.1&authorization_endpoint=",
     // CIAM URL
     CIAM_AUTH_URL: ".ciamlogin.com",
     AAD_TENANT_DOMAIN_SUFFIX: ".onmicrosoft.com",
@@ -51,7 +52,12 @@ export const Constants = {
     AZURE_REGION_AUTO_DISCOVER_FLAG: "TryAutoDetect",
     REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
     REGIONAL_AUTH_NON_MSI_QUERY_STRING: "allowestsrnonmsi=true",
-    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"],
+    KNOWN_PUBLIC_CLOUDS: [
+        "login.microsoftonline.com",
+        "login.windows.net",
+        "login.microsoft.com",
+        "sts.windows.net",
+    ],
     TOKEN_RESPONSE_TYPE: "token",
     ID_TOKEN_RESPONSE_TYPE: "id_token",
     SHR_NONCE_VALIDITY: 240,
@@ -61,13 +67,10 @@ export const Constants = {
 export const OIDC_DEFAULT_SCOPES = [
     Constants.OPENID_SCOPE,
     Constants.PROFILE_SCOPE,
-    Constants.OFFLINE_ACCESS_SCOPE
+    Constants.OFFLINE_ACCESS_SCOPE,
 ];
 
-export const OIDC_SCOPES = [
-    ...OIDC_DEFAULT_SCOPES,
-    Constants.EMAIL_SCOPE
-];
+export const OIDC_SCOPES = [...OIDC_DEFAULT_SCOPES, Constants.EMAIL_SCOPE];
 
 /**
  * Request header names
@@ -79,7 +82,7 @@ export enum HeaderNames {
     WWWAuthenticate = "WWW-Authenticate",
     AuthenticationInfo = "Authentication-Info",
     X_MS_REQUEST_ID = "x-ms-request-id",
-    X_MS_HTTP_VERSION= "x-ms-httpver"
+    X_MS_HTTP_VERSION = "x-ms-httpver",
 }
 
 /**
@@ -92,7 +95,7 @@ export enum PersistentCacheKeys {
     ERROR = "error",
     ERROR_DESC = "error.description",
     ACTIVE_ACCOUNT = "active-account", // Legacy active-account cache key, use new key instead
-    ACTIVE_ACCOUNT_FILTERS = "active-account-filters" // new cache entry for active_account for a more robust version for browser
+    ACTIVE_ACCOUNT_FILTERS = "active-account-filters", // new cache entry for active_account for a more robust version for browser
 }
 
 /**
@@ -101,7 +104,7 @@ export enum PersistentCacheKeys {
 export enum AADAuthorityConstants {
     COMMON = "common",
     ORGANIZATIONS = "organizations",
-    CONSUMERS = "consumers"
+    CONSUMERS = "consumers",
 }
 
 /**
@@ -155,7 +158,7 @@ export enum AADServerParamKeys {
     CCS_HEADER = "X-AnchorMailbox",
     RETURN_SPA_CODE = "return_spa_code",
     NATIVE_BROKER = "nativebroker",
-    LOGOUT_HINT = "logout_hint"
+    LOGOUT_HINT = "logout_hint",
 }
 
 /**
@@ -163,7 +166,7 @@ export enum AADServerParamKeys {
  */
 export enum ClaimsRequestKeys {
     ACCESS_TOKEN = "access_token",
-    XMS_CC = "xms_cc"
+    XMS_CC = "xms_cc",
 }
 
 /**
@@ -177,7 +180,7 @@ export const PromptValue = {
     CONSENT: "consent",
     NONE: "none",
     CREATE: "create",
-    NO_SESSION: "no_session"
+    NO_SESSION: "no_session",
 };
 
 /**
@@ -192,7 +195,7 @@ export enum SSOTypes {
     ORGANIZATIONS = "organizations",
     CONSUMERS = "consumers",
     ACCOUNT_ID = "accountIdentifier",
-    HOMEACCOUNT_ID = "homeAccountIdentifier"
+    HOMEACCOUNT_ID = "homeAccountIdentifier",
 }
 
 /**
@@ -200,7 +203,7 @@ export enum SSOTypes {
  */
 export const CodeChallengeMethodValues = {
     PLAIN: "plain",
-    S256: "S256"
+    S256: "S256",
 };
 
 /**
@@ -210,7 +213,7 @@ export const CodeChallengeMethodValues = {
  */
 export const CodeChallengeMethodValuesArray: string[] = [
     CodeChallengeMethodValues.PLAIN,
-    CodeChallengeMethodValues.S256
+    CodeChallengeMethodValues.S256,
 ];
 
 /**
@@ -219,7 +222,7 @@ export const CodeChallengeMethodValuesArray: string[] = [
 export enum ResponseMode {
     QUERY = "query",
     FRAGMENT = "fragment",
-    FORM_POST = "form_post"
+    FORM_POST = "form_post",
 }
 
 /**
@@ -232,7 +235,7 @@ export enum GrantType {
     RESOURCE_OWNER_PASSWORD_GRANT = "password",
     REFRESH_TOKEN_GRANT = "refresh_token",
     DEVICE_CODE_GRANT = "device_code",
-    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer"
+    JWT_BEARER = "urn:ietf:params:oauth:grant-type:jwt-bearer",
 }
 
 /**
@@ -242,7 +245,7 @@ export enum CacheAccountType {
     MSSTS_ACCOUNT_TYPE = "MSSTS",
     ADFS_ACCOUNT_TYPE = "ADFS",
     MSAV1_ACCOUNT_TYPE = "MSA",
-    GENERIC_ACCOUNT_TYPE = "Generic" // NTLM, Kerberos, FBA, Basic etc
+    GENERIC_ACCOUNT_TYPE = "Generic", // NTLM, Kerberos, FBA, Basic etc
 }
 
 /**
@@ -250,7 +253,7 @@ export enum CacheAccountType {
  */
 export enum Separators {
     CACHE_KEY_SEPARATOR = "-",
-    CLIENT_INFO_SEPARATOR = "."
+    CLIENT_INFO_SEPARATOR = ".",
 }
 
 /**
@@ -275,7 +278,7 @@ export enum CacheType {
     REFRESH_TOKEN = 2002,
     ID_TOKEN = 2003,
     APP_METADATA = 3001,
-    UNDEFINED = 9999
+    UNDEFINED = 9999,
 }
 
 /**
@@ -287,14 +290,14 @@ export const THE_FAMILY_ID = "1";
 
 export const AUTHORITY_METADATA_CONSTANTS = {
     CACHE_KEY: "authority-metadata",
-    REFRESH_TIME_SECONDS: 3600 * 24 // 24 Hours
+    REFRESH_TIME_SECONDS: 3600 * 24, // 24 Hours
 };
 
 export enum AuthorityMetadataSource {
     CONFIG = "config",
     CACHE = "cache",
     NETWORK = "network",
-    HARDCODED_VALUES= "hardcoded_values",
+    HARDCODED_VALUES = "hardcoded_values",
 }
 
 export const SERVER_TELEM_CONSTANTS = {
@@ -307,7 +310,7 @@ export const SERVER_TELEM_CONSTANTS = {
     VALUE_SEPARATOR: ",",
     OVERFLOW_TRUE: "1",
     OVERFLOW_FALSE: "0",
-    UNKNOWN_ERROR: "unknown_error"
+    UNKNOWN_ERROR: "unknown_error",
 };
 
 /**
@@ -316,7 +319,7 @@ export const SERVER_TELEM_CONSTANTS = {
 export enum AuthenticationScheme {
     BEARER = "Bearer",
     POP = "pop",
-    SSH = "ssh-cert"
+    SSH = "ssh-cert",
 }
 
 /**
@@ -330,7 +333,7 @@ export const ThrottlingConstants = {
     // Prefix for storing throttling entries
     THROTTLING_PREFIX: "throttling",
     // Value assigned to the x-ms-lib-capability header to indicate to the server the library supports throttling
-    X_MS_LIB_CAPABILITY_VALUE: "retry-after, h429"
+    X_MS_LIB_CAPABILITY_VALUE: "retry-after, h429",
 };
 
 export const Errors = {
@@ -343,15 +346,15 @@ export const Errors = {
  */
 export enum PasswordGrantConstants {
     username = "username",
-    password = "password"
+    password = "password",
 }
 
 /**
  * Response codes
  */
-export enum  ResponseCodes {
+export enum ResponseCodes {
     httpSuccess = 200,
-    httpBadRequest = 400
+    httpBadRequest = 400,
 }
 
 /**
@@ -372,7 +375,7 @@ export enum RegionDiscoveryOutcomes {
     CONFIGURED_NO_AUTO_DETECTION = "2",
     CONFIGURED_NOT_DETECTED = "3",
     AUTO_DETECTION_REQUESTED_SUCCESSFUL = "4",
-    AUTO_DETECTION_REQUESTED_FAILED = "5"
+    AUTO_DETECTION_REQUESTED_FAILED = "5",
 }
 
 export enum CacheOutcome {
@@ -380,13 +383,13 @@ export enum CacheOutcome {
     FORCE_REFRESH = "1",
     NO_CACHED_ACCESS_TOKEN = "2",
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
-    REFRESH_CACHED_ACCESS_TOKEN = "4"
+    REFRESH_CACHED_ACCESS_TOKEN = "4",
 }
 
 export enum JsonTypes {
     Jwt = "JWT",
     Jwk = "JWK",
-    Pop = "pop"
+    Pop = "pop",
 }
 
 export const ONE_DAY_IN_MS = 86400000;

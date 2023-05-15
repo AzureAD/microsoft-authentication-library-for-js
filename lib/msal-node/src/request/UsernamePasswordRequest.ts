@@ -18,8 +18,18 @@ import { CommonUsernamePasswordRequest } from "@azure/msal-common";
  * - tokenQueryParameters   - String to string map of custom query parameters added to the /token call
  * @public
  */
-export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"username"|"password"|"requestedClaimsHash">> & {
-    scopes: Array<string>
-    username: string,
-    password: string
+export type UsernamePasswordRequest = Partial<
+    Omit<
+        CommonUsernamePasswordRequest,
+        | "scopes"
+        | "resourceRequestMethod"
+        | "resourceRequestUri"
+        | "username"
+        | "password"
+        | "requestedClaimsHash"
+    >
+> & {
+    scopes: Array<string>;
+    username: string;
+    password: string;
 };

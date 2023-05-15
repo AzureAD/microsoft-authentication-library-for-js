@@ -35,33 +35,33 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - clientCredentials          - Credentials options for confidential clients
  */
 export type ClientConfiguration = {
-    authOptions: AuthOptions,
-    systemOptions?: SystemOptions,
-    loggerOptions?: LoggerOptions,
-    storageInterface?: CacheManager,
-    networkInterface?: INetworkModule,
-    cryptoInterface?: ICrypto,
-    clientCredentials?: ClientCredentials,
-    libraryInfo?: LibraryInfo
-    telemetry?: TelemetryOptions,
-    serverTelemetryManager?: ServerTelemetryManager | null,
-    persistencePlugin?: ICachePlugin | null,
-    serializableCache?: ISerializableTokenCache | null,   
+    authOptions: AuthOptions;
+    systemOptions?: SystemOptions;
+    loggerOptions?: LoggerOptions;
+    storageInterface?: CacheManager;
+    networkInterface?: INetworkModule;
+    cryptoInterface?: ICrypto;
+    clientCredentials?: ClientCredentials;
+    libraryInfo?: LibraryInfo;
+    telemetry?: TelemetryOptions;
+    serverTelemetryManager?: ServerTelemetryManager | null;
+    persistencePlugin?: ICachePlugin | null;
+    serializableCache?: ISerializableTokenCache | null;
 };
 
 export type CommonClientConfiguration = {
-    authOptions: Required<AuthOptions>,
-    systemOptions: Required<SystemOptions>,
-    loggerOptions : Required<LoggerOptions>,
-    storageInterface: CacheManager,
-    networkInterface : INetworkModule,
-    cryptoInterface : Required<ICrypto>,
-    libraryInfo : LibraryInfo,
-    telemetry: Required<TelemetryOptions>,
-    serverTelemetryManager: ServerTelemetryManager | null,
-    clientCredentials: ClientCredentials,
-    persistencePlugin: ICachePlugin | null,
-    serializableCache: ISerializableTokenCache | null,    
+    authOptions: Required<AuthOptions>;
+    systemOptions: Required<SystemOptions>;
+    loggerOptions: Required<LoggerOptions>;
+    storageInterface: CacheManager;
+    networkInterface: INetworkModule;
+    cryptoInterface: Required<ICrypto>;
+    libraryInfo: LibraryInfo;
+    telemetry: Required<TelemetryOptions>;
+    serverTelemetryManager: ServerTelemetryManager | null;
+    clientCredentials: ClientCredentials;
+    persistencePlugin: ICachePlugin | null;
+    serializableCache: ISerializableTokenCache | null;
 };
 
 /**
@@ -102,20 +102,20 @@ export type SystemOptions = {
  * - correlationId                 - Sets the correlationId printed by the logger
  */
 export type LoggerOptions = {
-    loggerCallback?: ILoggerCallback,
-    piiLoggingEnabled?: boolean,
-    logLevel?: LogLevel,
-    correlationId?: string
+    loggerCallback?: ILoggerCallback;
+    piiLoggingEnabled?: boolean;
+    logLevel?: LogLevel;
+    correlationId?: string;
 };
 
 /**
  * Library-specific options
  */
 export type LibraryInfo = {
-    sku: string,
-    version: string,
-    cpu: string,
-    os: string
+    sku: string;
+    version: string;
+    cpu: string;
+    os: string;
 };
 
 /**
@@ -126,7 +126,7 @@ export type LibraryInfo = {
  */
 export type AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance;
-    tenant?: string,
+    tenant?: string;
 };
 
 export type TelemetryOptions = {
@@ -145,7 +145,7 @@ export type ApplicationTelemetry = {
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false
+    preventCorsPreflight: false,
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -154,42 +154,44 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: Constants.EMPTY_STRING
+    correlationId: Constants.EMPTY_STRING,
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {
     async sendGetRequestAsync<T>(): Promise<T> {
-        const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented";
+        const notImplErr =
+            "Network interface - sendGetRequestAsync() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async sendPostRequestAsync<T>(): Promise<T> {
-        const notImplErr = "Network interface - sendPostRequestAsync() has not been implemented";
+        const notImplErr =
+            "Network interface - sendPostRequestAsync() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
-    }
+    },
 };
 
 const DEFAULT_LIBRARY_INFO: LibraryInfo = {
     sku: Constants.SKU,
     version: version,
     cpu: Constants.EMPTY_STRING,
-    os: Constants.EMPTY_STRING
+    os: Constants.EMPTY_STRING,
 };
 
 const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
     clientSecret: Constants.EMPTY_STRING,
-    clientAssertion: undefined
+    clientAssertion: undefined,
 };
 
 const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance.None,
-    tenant: `${Constants.DEFAULT_COMMON_TENANT}`
+    tenant: `${Constants.DEFAULT_COMMON_TENANT}`,
 };
 
 const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
     application: {
         appName: "",
-        appVersion: ""
-    }
+        appVersion: "",
+    },
 };
 
 /**
@@ -199,37 +201,45 @@ const DEFAULT_TELEMETRY_OPTIONS: Required<TelemetryOptions> = {
  *
  * @returns Configuration
  */
-export function buildClientConfiguration(
-    {
-        authOptions: userAuthOptions,
-        systemOptions: userSystemOptions,
-        loggerOptions: userLoggerOption,
-        storageInterface: storageImplementation,
-        networkInterface: networkImplementation,
-        cryptoInterface: cryptoImplementation,
-        clientCredentials: clientCredentials,
-        libraryInfo: libraryInfo,
-        telemetry: telemetry,
-        serverTelemetryManager: serverTelemetryManager,
-        persistencePlugin: persistencePlugin,
-        serializableCache: serializableCache,             
-    }: ClientConfiguration): CommonClientConfiguration {
-
-    const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
+export function buildClientConfiguration({
+    authOptions: userAuthOptions,
+    systemOptions: userSystemOptions,
+    loggerOptions: userLoggerOption,
+    storageInterface: storageImplementation,
+    networkInterface: networkImplementation,
+    cryptoInterface: cryptoImplementation,
+    clientCredentials: clientCredentials,
+    libraryInfo: libraryInfo,
+    telemetry: telemetry,
+    serverTelemetryManager: serverTelemetryManager,
+    persistencePlugin: persistencePlugin,
+    serializableCache: serializableCache,
+}: ClientConfiguration): CommonClientConfiguration {
+    const loggerOptions = {
+        ...DEFAULT_LOGGER_IMPLEMENTATION,
+        ...userLoggerOption,
+    };
 
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: loggerOptions,
-        storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION, new Logger(loggerOptions)),
-        networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
+        storageInterface:
+            storageImplementation ||
+            new DefaultStorageClass(
+                userAuthOptions.clientId,
+                DEFAULT_CRYPTO_IMPLEMENTATION,
+                new Logger(loggerOptions)
+            ),
+        networkInterface:
+            networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         telemetry: { ...DEFAULT_TELEMETRY_OPTIONS, ...telemetry },
         serverTelemetryManager: serverTelemetryManager || null,
         persistencePlugin: persistencePlugin || null,
-        serializableCache: serializableCache || null,             
+        serializableCache: serializableCache || null,
     };
 }
 
@@ -242,6 +252,6 @@ function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
         clientCapabilities: [],
         azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         skipAuthorityMetadataCache: false,
-        ...authOptions
+        ...authOptions,
     };
 }

@@ -4,11 +4,16 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { Logger, LoggerOptions, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
+import {
+    Logger,
+    LoggerOptions,
+    PopTokenGenerator,
+    SignedHttpRequestParameters,
+} from "@azure/msal-common";
 import { version, name } from "../packageMetadata";
 
 export type SignedHttpRequestOptions = {
-    loggerOptions: LoggerOptions
+    loggerOptions: LoggerOptions;
 };
 
 export class SignedHttpRequest {
@@ -17,7 +22,10 @@ export class SignedHttpRequest {
     private shrParameters: SignedHttpRequestParameters;
     private logger: Logger;
 
-    constructor(shrParameters: SignedHttpRequestParameters, shrOptions?: SignedHttpRequestOptions) {
+    constructor(
+        shrParameters: SignedHttpRequestParameters,
+        shrOptions?: SignedHttpRequestOptions
+    ) {
         const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
         this.logger = new Logger(loggerOptions, name, version);
         this.cryptoOps = new CryptoOps(this.logger);
@@ -30,7 +38,9 @@ export class SignedHttpRequest {
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKeyThumbprint(): Promise<string> {
-        const { kid } = await this.popTokenGenerator.generateKid(this.shrParameters);
+        const { kid } = await this.popTokenGenerator.generateKid(
+            this.shrParameters
+        );
 
         return kid;
     }
@@ -39,14 +49,18 @@ export class SignedHttpRequest {
      * Generates a signed http request for the given payload with the given key.
      * @param payload Payload to sign (e.g. access token)
      * @param publicKeyThumbprint Public key digest (from generatePublicKeyThumbprint API)
-     * @param claims Additional claims to include/override in the signed JWT 
+     * @param claims Additional claims to include/override in the signed JWT
      * @returns Pop token signed with the corresponding private key
      */
-    async signRequest(payload: string, publicKeyThumbprint: string, claims?: object): Promise<string> {
+    async signRequest(
+        payload: string,
+        publicKeyThumbprint: string,
+        claims?: object
+    ): Promise<string> {
         return this.popTokenGenerator.signPayload(
-            payload, 
+            payload,
             publicKeyThumbprint,
-            this.shrParameters, 
+            this.shrParameters,
             claims
         );
     }

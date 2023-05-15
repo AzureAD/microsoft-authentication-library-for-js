@@ -30,6 +30,7 @@
 1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
 1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
 1. [How can I switch between multiple logged in users?](#how-can-i-switch-between-multiple-logged-in-users)
+1. [How can I avoid prompting users if SSO for one or more accounts is available?](#how-can-i-avoid-prompting-users-if-SSO-for-one-or-more-accounts-is-available) 
 
 **[Configuration](#Configuration)**
 
@@ -82,12 +83,6 @@ MSAL.js has been tested and supports the last 2 stable and supported versions of
 - Safari
 - Opera
 
-MSAL.js has also been tested and supports the following browsers with Promise polyfills (not included):
-
-- IE 11
-- Edge (Legacy)
-
-Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with IE or Edge Legacy. Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
 
 MSAL.js also supports the following environments:
 
@@ -101,7 +96,6 @@ MSAL.js also supports the following environments:
 There are certain known issues and mitigations documented for the following browsers:
 
 - [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
-- [IE 11 and Edge Legacy](./docs/internet-explorer.md)
 
 ## Does MSAL support mobile browsers?
 
@@ -234,6 +228,12 @@ Deciding which account to use to acquire tokens is app dependent, however, `@azu
 
 You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md).
 You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
+
+# How can I avoid prompting users if SSO for one or more accounts is available?
+
+The following flow diagram can help you avoid unnecessary authentication prompts when an account (or multiple accounts) is available for SSO.
+
+![MSAL.js boot flow diagram](docs/images/msaljs-boot-flow.png )
 
 # Configuration
 

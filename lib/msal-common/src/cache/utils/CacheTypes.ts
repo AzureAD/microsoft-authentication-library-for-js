@@ -23,12 +23,24 @@ export type AppMetadataCache = Record<string, AppMetadataEntity>;
 /**
  * Object type of all accepted cache types
  */
-export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | AuthorityMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
+export type ValidCacheType =
+    | AccountEntity
+    | IdTokenEntity
+    | AccessTokenEntity
+    | RefreshTokenEntity
+    | AppMetadataEntity
+    | AuthorityMetadataEntity
+    | ServerTelemetryEntity
+    | ThrottlingEntity
+    | string;
 
 /**
  * Object type of all credential types
  */
-export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
+export type ValidCredentialType =
+    | IdTokenEntity
+    | AccessTokenEntity
+    | RefreshTokenEntity;
 
 /**
  * Account:	<home_account_id>-<environment>-<realm*>
@@ -68,7 +80,7 @@ export type AppMetadataFilter = {
 };
 
 export type TokenKeys = {
-    idToken: string[],
-    accessToken: string[],
-    refreshToken: string[]
+    idToken: string[];
+    accessToken: string[];
+    refreshToken: string[];
 };

@@ -3,9 +3,21 @@ import { mockAccountEntity, mockIdTokenEntity } from "./cacheConstants";
 import { AuthToken } from "../../../src/account/AuthToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
-import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
+import {
+    NetworkRequestOptions,
+    INetworkModule,
+} from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
-import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS, TEST_CRYPTO_VALUES } from "../../test_kit/StringConstants";
+import {
+    RANDOM_TEST_GUID,
+    TEST_DATA_CLIENT_INFO,
+    TEST_CONFIG,
+    TEST_TOKENS,
+    TEST_URIS,
+    TEST_POP_VALUES,
+    PREFERRED_CACHE_ALIAS,
+    TEST_CRYPTO_VALUES,
+} from "../../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
 import { AccountInfo } from "../../../src/account/AccountInfo";
@@ -13,7 +25,10 @@ import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
 import { ProtocolMode } from "../../../src/authority/ProtocolMode";
 import { LogLevel, Logger } from "../../../src/logger/Logger";
 import { Authority } from "../../../src/authority/Authority";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
+import {
+    ClientAuthError,
+    ClientAuthErrorMessage,
+} from "../../../src/error/ClientAuthError";
 import { AuthorityType } from "../../../src/authority/AuthorityType";
 
 const cryptoInterface: ICrypto = {
@@ -27,7 +42,7 @@ const cryptoInterface: ICrypto = {
             case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
             case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS
+                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS;
             default:
                 return input;
         }
@@ -64,41 +79,39 @@ const cryptoInterface: ICrypto = {
     },
     async hashString(): Promise<string> {
         return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
-    }
+    },
 };
 
 const networkInterface: INetworkModule = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
         return {} as T;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
         return {} as T;
-    }
+    },
 };
 
 const authorityOptions: AuthorityOptions = {
     protocolMode: ProtocolMode.AAD,
     knownAuthorities: [Constants.DEFAULT_AUTHORITY],
     cloudDiscoveryMetadata: "",
-    authorityMetadata: ""
-}
+    authorityMetadata: "",
+};
 
 const loggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+    loggerCallback: (
+        level: LogLevel,
+        message: string,
+        containsPii: boolean
+    ): void => {
         console.log(`Log level: ${level} Message: ${message}`);
     },
     piiLoggingEnabled: true,
-    logLevel: LogLevel.Verbose
+    logLevel: LogLevel.Verbose,
 };
 const logger = new Logger(loggerOptions);
 
-const authority =  AuthorityFactory.createInstance(
+const authority = AuthorityFactory.createInstance(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
     new MockStorageClass("client-id", mockCrypto, logger),
@@ -108,7 +121,9 @@ const authority =  AuthorityFactory.createInstance(
 
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
-        sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
+        sinon
+            .stub(Authority.prototype, "getPreferredCache")
+            .returns("login.windows.net");
     });
 
     afterEach(() => {
@@ -123,13 +138,17 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("generate an AccountEntityKey", () => {
         const ac = new AccountEntity();
         Object.assign(ac, mockAccountEntity);
-        expect(ac.generateAccountKey()).toEqual("uid.utid-login.microsoftonline.com-microsoft");
+        expect(ac.generateAccountKey()).toEqual(
+            "uid.utid-login.microsoftonline.com-microsoft"
+        );
     });
 
     it("throws error if account entity is not assigned a type", () => {
         const ac = new AccountEntity();
         expect(() => ac.generateType()).toThrowError(ClientAuthError);
-        expect(() => ac.generateType()).toThrowError(ClientAuthErrorMessage.unexpectedAccountType.desc);
+        expect(() => ac.generateType()).toThrowError(
+            ClientAuthErrorMessage.unexpectedAccountType.desc
+        );
     });
 
     it("generate type of the cache", () => {
@@ -141,15 +160,15 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("create an Account", () => {
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "preferred_username": "AbeLi@microsoft.com",
-            "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            preferred_username: "AbeLi@microsoft.com",
+            oid: "00000000-0000-0000-66f3-3332eca7ea81",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
@@ -159,7 +178,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken
+        );
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
@@ -168,7 +188,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
         expect(acc.realm).toBe(idTokenClaims.tid);
@@ -180,14 +202,14 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("create an Account with sub instead of oid as localAccountId", () => {
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "preferred_username": "AbeLi@microsoft.com",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            preferred_username: "AbeLi@microsoft.com",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
@@ -197,7 +219,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken
+        );
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
@@ -206,7 +229,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
         expect(acc.realm).toBe(idTokenClaims.tid);
@@ -218,25 +243,26 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("create an Account with emails claim instead of preferred_username claim", () => {
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "emails": ["AbeLi@microsoft.com"],
-            "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            emails: ["AbeLi@microsoft.com"],
+            oid: "00000000-0000-0000-66f3-3332eca7ea81",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken
+        );
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
@@ -244,7 +270,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             idToken,
             authority
         );
-        expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
         expect(acc.realm).toBe(idTokenClaims.tid);
@@ -254,34 +282,35 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("create an Account no preferred_username or emails claim", () => {
-        const authority =  AuthorityFactory.createInstance(
+        const authority = AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
             logger
-		);
+        );
 
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            oid: "00000000-0000-0000-66f3-3332eca7ea81",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = AccountEntity.generateHomeAccountId(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             AuthorityType.Default,
             logger,
             cryptoInterface,
-            idToken);
+            idToken
+        );
 
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
@@ -290,7 +319,9 @@ describe("AccountEntity.ts Unit Tests", () => {
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${homeAccountId}-login.windows.net-${idTokenClaims.tid}`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
         expect(acc.realm).toBe(idTokenClaims.tid);
@@ -300,7 +331,7 @@ describe("AccountEntity.ts Unit Tests", () => {
     });
 
     it("creates a generic account", () => {
-        const authority =  AuthorityFactory.createInstance(
+        const authority = AuthorityFactory.createInstance(
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             new MockStorageClass("client-id", mockCrypto, logger),
@@ -308,34 +339,37 @@ describe("AccountEntity.ts Unit Tests", () => {
                 protocolMode: ProtocolMode.OIDC,
                 knownAuthorities: [Constants.DEFAULT_AUTHORITY],
                 cloudDiscoveryMetadata: "",
-                authorityMetadata: ""
+                authorityMetadata: "",
             },
             logger
-		);
+        );
 
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
-            "upn": "testupn"
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            oid: "00000000-0000-0000-66f3-3332eca7ea81",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
+            upn: "testupn",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
+        const homeAccountId =
+            "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             homeAccountId,
             idToken,
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-login.windows.net-`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${idTokenClaims.sub.toLowerCase()}-login.windows.net-`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe(PREFERRED_CACHE_ALIAS);
         expect(acc.realm).toBe(""); // Realm empty for generic accounts
@@ -359,27 +393,30 @@ describe("AccountEntity.ts Unit Tests", () => {
         beforeEach(() => {
             // Set up stubs
             const idTokenClaims = {
-                "ver": "2.0",
-                "iat": 1536361411,
-                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "exp": 1536361411,
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
+                ver: "2.0",
+                iat: 1536361411,
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
-
+            const idToken = new AuthToken(
+                TEST_TOKENS.IDTOKEN_V2,
+                cryptoInterface
+            );
 
             const homeAccountId = AccountEntity.generateHomeAccountId(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 AuthorityType.Default,
                 logger,
                 cryptoInterface,
-                idToken);
+                idToken
+            );
 
             acc = AccountEntity.createAccount(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
@@ -387,13 +424,17 @@ describe("AccountEntity.ts Unit Tests", () => {
                 idToken,
                 authority
             );
-        })
+        });
 
         it("returns true if two account info objects have the same values", () => {
             const acc1: AccountInfo = acc.getAccountInfo();
-            const acc2: AccountInfo = {...acc1};
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(true);            
+            const acc2: AccountInfo = { ...acc1 };
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
+                true
+            );
         });
 
         it("returns false if two account info objects represent the same user but have different iat claims", () => {
@@ -407,7 +448,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: 100,
-                }
+                },
             };
             const acc3: AccountInfo = {
                 username: acc1.username,
@@ -418,16 +459,24 @@ describe("AccountEntity.ts Unit Tests", () => {
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     iat: undefined,
-                }
+                },
             };
 
             // iat claims are different
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);    
-            
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
+                false
+            );
+
             // iat claim is missing on 1 account
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false); 
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(
+                false
+            );
         });
 
         it("returns false if two account info objects represent the same user but have different nonce claims", () => {
@@ -441,7 +490,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: "56789",
-                }
+                },
             };
             const acc3: AccountInfo = {
                 username: acc1.username,
@@ -452,48 +501,84 @@ describe("AccountEntity.ts Unit Tests", () => {
                 idTokenClaims: {
                     ...acc1.idTokenClaims,
                     nonce: undefined,
-                }
+                },
             };
 
             // nonce claims are different
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);    
-            
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
+                false
+            );
+
             // nonce claim is missing on 1 account
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(true);  
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false); 
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(
+                false
+            );
         });
-    
+
         it("returns false if required AccountInfo parameters are not equal", () => {
             const acc1: AccountInfo = acc.getAccountInfo();
-            const acc2: AccountInfo = {...acc1};
-            const acc3: AccountInfo = {...acc1};
-            const acc4: AccountInfo = {...acc1};
-            const acc5: AccountInfo = {...acc1};
-            const acc6: AccountInfo = {...acc1};
-            const acc7: AccountInfo = {...acc1};
-            const acc8: AccountInfo = {...acc1};
+            const acc2: AccountInfo = { ...acc1 };
+            const acc3: AccountInfo = { ...acc1 };
+            const acc4: AccountInfo = { ...acc1 };
+            const acc5: AccountInfo = { ...acc1 };
+            const acc6: AccountInfo = { ...acc1 };
+            const acc7: AccountInfo = { ...acc1 };
+            const acc8: AccountInfo = { ...acc1 };
             acc2.homeAccountId = "mockHomeAccountId2";
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(false);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(false);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, false)).toBe(
+                false
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2, true)).toBe(
+                false
+            );
             acc3.localAccountId = "mockLocalAccountId2";
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(false);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(false);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, false)).toBe(
+                false
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3, true)).toBe(
+                false
+            );
             acc4.environment = "mockEnv2";
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc4, false)).toBe(false);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc4, true)).toBe(false);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc4, false)).toBe(
+                false
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc4, true)).toBe(
+                false
+            );
             acc5.tenantId = "mockTenant2";
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc5, false)).toBe(false);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc5, true)).toBe(false);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc5, false)).toBe(
+                false
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc5, true)).toBe(
+                false
+            );
             acc6.username = "mockUsername2";
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc6, false)).toBe(false);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc6, true)).toBe(false);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc6, false)).toBe(
+                false
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc6, true)).toBe(
+                false
+            );
             acc7.name = "mockName2";
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc7, false)).toBe(true);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc7, true)).toBe(true);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc7, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc7, true)).toBe(
+                true
+            );
             acc8.idTokenClaims = {};
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc8, false)).toBe(true);
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc8, true)).toBe(false);
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc8, false)).toBe(
+                true
+            );
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc8, true)).toBe(
+                false
+            );
         });
 
         it("returns false if an account info object is invalid", () => {
@@ -503,18 +588,20 @@ describe("AccountEntity.ts Unit Tests", () => {
 
             const acc3: AccountInfo = acc.getAccountInfo();
             const acc4 = null;
-            expect(AccountEntity.accountInfoIsEqual(acc3, acc4)).toBe(false); 
-            
+            expect(AccountEntity.accountInfoIsEqual(acc3, acc4)).toBe(false);
+
             const acc5 = null;
             const acc6 = null;
-            expect(AccountEntity.accountInfoIsEqual(acc5, acc6)).toBe(false); 
+            expect(AccountEntity.accountInfoIsEqual(acc5, acc6)).toBe(false);
         });
     });
 });
 
 describe("AccountEntity.ts Unit Tests for ADFS", () => {
     beforeEach(() => {
-        sinon.stub(Authority.prototype, "getPreferredCache").returns("myadfs.com");
+        sinon
+            .stub(Authority.prototype, "getPreferredCache")
+            .returns("myadfs.com");
     });
 
     afterEach(() => {
@@ -526,39 +613,42 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             protocolMode: ProtocolMode.OIDC,
             knownAuthorities: ["myadfs.com"],
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
-        }
+            authorityMetadata: "",
+        };
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger), 
+            new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
             logger
         );
 
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
-            "upn": "testupn"
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            oid: "00000000-0000-0000-66f3-3332eca7ea81",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
+            upn: "testupn",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
+        const homeAccountId =
+            "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             homeAccountId,
             idToken,
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe("myadfs.com");
         expect(acc.realm).toBe("");
@@ -574,38 +664,41 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             protocolMode: ProtocolMode.OIDC,
             knownAuthorities: ["myadfs.com"],
             cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
-        }
+            authorityMetadata: "",
+        };
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            new MockStorageClass("client-id", mockCrypto, logger), 
+            new MockStorageClass("client-id", mockCrypto, logger),
             authorityOptions,
             logger
         );
 
         // Set up stubs
         const idTokenClaims = {
-            "ver": "2.0",
-            "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-            "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-            "exp": 1536361411,
-            "name": "Abe Lincoln",
-            "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-            "nonce": "123523",
-            "upn": "testupn"
+            ver: "2.0",
+            iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+            sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+            exp: 1536361411,
+            name: "Abe Lincoln",
+            tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+            nonce: "123523",
+            upn: "testupn",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
         const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
-        const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
+        const homeAccountId =
+            "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
             homeAccountId,
             idToken,
             authority
         );
 
-        expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
+        expect(acc.generateAccountKey()).toEqual(
+            `${idTokenClaims.sub.toLowerCase()}-myadfs.com-`
+        );
         expect(acc.homeAccountId).toBe(homeAccountId);
         expect(acc.environment).toBe("myadfs.com");
         expect(acc.realm).toBe("");

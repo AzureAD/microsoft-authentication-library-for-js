@@ -51,6 +51,6 @@ export type MATS = {
     silent_bi_sub_code?: number;
     silent_message?: string;
     silent_status?: number;
-    http_status?: number
+    http_status?: number;
     http_event_count?: number;
 };

@@ -11,7 +11,7 @@ on:
       - 'lib/msal-angular/**/*'
       - 'lib/msal-browser/**/*'
       - 'lib/msal-common/**/*'
-      - 'samples/msal-angular-v2-samples/**/*'
+      - 'samples/msal-angular-v3-samples/**/*'
       - 'samples/e2eTestUtils/**/*'
       - 'samples/package-lock.json'
       - '!**.md'
@@ -35,15 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         sample:
-          - 'angular9-v2-sample-app'
-          - 'angular10-sample-app'
-          - 'angular11-sample-app'
-          - 'angular12-sample-app'
-          - 'angular13-rxjs6-sample-app'
-          - 'angular13-rxjs7-sample-app'
-          - 'angular14-rxjs6-sample-app'
-          - 'angular14-rxjs7-sample-app'
-          - 'angular-b2c-sample-app'
+        - 'angular15-sample-app'
 
     name: ${{ matrix.sample }}
 
@@ -69,17 +61,17 @@ jobs:
       run: npm ci
 
     - name: Install ${{ matrix.sample }}
-      working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
+      working-directory: samples/msal-angular-v3-samples/${{ matrix.sample }}
       run: |
         npm run install:local
         npm install
 
     - name: Build ${{ matrix.sample }}
-      working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
+      working-directory: samples/msal-angular-v3-samples/${{ matrix.sample }}
       run: npm run build
 
     - name: E2E Tests
-      working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
+      working-directory: samples/msal-angular-v3-samples/${{ matrix.sample }}
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}

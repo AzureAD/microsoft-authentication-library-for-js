@@ -7,7 +7,6 @@
  * Utility class for math specific functions in browser.
  */
 export class MathUtils {
-
     /**
      * Decimal to Hex
      *

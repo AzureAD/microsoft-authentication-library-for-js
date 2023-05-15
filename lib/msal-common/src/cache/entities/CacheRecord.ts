@@ -16,7 +16,13 @@ export class CacheRecord {
     refreshToken: RefreshTokenEntity | null;
     appMetadata: AppMetadataEntity | null;
 
-    constructor(accountEntity?: AccountEntity | null, idTokenEntity?: IdTokenEntity | null, accessTokenEntity?: AccessTokenEntity | null, refreshTokenEntity?: RefreshTokenEntity | null, appMetadataEntity?: AppMetadataEntity | null) {
+    constructor(
+        accountEntity?: AccountEntity | null,
+        idTokenEntity?: IdTokenEntity | null,
+        accessTokenEntity?: AccessTokenEntity | null,
+        refreshTokenEntity?: RefreshTokenEntity | null,
+        appMetadataEntity?: AppMetadataEntity | null
+    ) {
         this.account = accountEntity || null;
         this.idToken = idTokenEntity || null;
         this.accessToken = accessTokenEntity || null;

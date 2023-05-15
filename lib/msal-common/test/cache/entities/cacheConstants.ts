@@ -34,7 +34,7 @@ export const mockAccessTokenEntity_2 = {
     target: "scope4 scope5",
     cachedAt: "1000",
     expiresOn: "4600",
-    extendedExpiresOn: "4600"
+    extendedExpiresOn: "4600",
 };
 
 export const mockAccessTokenWithAuthSchemeEntity = {
@@ -49,7 +49,7 @@ export const mockAccessTokenWithAuthSchemeEntity = {
     expiresOn: "4600",
     extendedExpiresOn: "4600",
     tokenType: "pop",
-    keyId: "someKeyId123"
+    keyId: "someKeyId123",
 };
 
 export const mockIdTokenEntity = {
@@ -58,7 +58,7 @@ export const mockIdTokenEntity = {
     credentialType: "IdToken",
     clientId: "mock_client_id",
     secret: "header.eyJvaWQiOiAib2JqZWN0MTIzNCIsICJwcmVmZXJyZWRfdXNlcm5hbWUiOiAiSm9obiBEb2UiLCAic3ViIjogInN1YiJ9.signature",
-    realm: "microsoft"
+    realm: "microsoft",
 };
 
 export const mockRefreshTokenEntity = {
@@ -66,7 +66,7 @@ export const mockRefreshTokenEntity = {
     environment: "login.microsoftonline.com",
     credentialType: "RefreshToken",
     clientId: "mock_client_id",
-    secret: "a refresh token"
+    secret: "a refresh token",
 };
 
 export const mockRefreshTokenEntityWithFamilyId = {
@@ -75,12 +75,12 @@ export const mockRefreshTokenEntityWithFamilyId = {
     credentialType: "RefreshToken",
     clientId: "mock_client_id",
     secret: "a refresh token",
-    familyId: "1"
+    familyId: "1",
 };
 
 export const mockAccountEntity = {
     homeAccountId: "uid.utid",
-    environment:  "login.microsoftonline.com",
+    environment: "login.microsoftonline.com",
     realm: "microsoft",
     localAccountId: "object1234",
     username: "John Doe",
@@ -91,12 +91,11 @@ export const mockAccountEntity = {
 export const mockAppMetaDataEntity = {
     clientId: "mock_client_id",
     environment: "login.microsoftonline.com",
-    familyId: "1"
+    familyId: "1",
 };
 
 // generate mockCache
 export class mockCache {
-
     static createMockATOne(): AccessTokenEntity {
         const at = new AccessTokenEntity();
         Object.assign(at, mockAccessTokenEntity_1);
@@ -179,5 +178,5 @@ export const MockCache = {
     acc: mockCache.createMockAcc(),
     accKey: mockCache.createMockAcc().generateAccountKey(),
     amdt: mockCache.createMockAmdt(),
-    amdtKey: mockCache.createMockAmdt().generateAppMetadataKey()
+    amdtKey: mockCache.createMockAmdt().generateAppMetadataKey(),
 };

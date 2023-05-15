@@ -5,8 +5,22 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID } from "../utils/StringConstants";
-import { Constants, AccountInfo, TokenClaims, AuthenticationResult, AuthenticationScheme, RefreshTokenClient, CommonSilentFlowRequest } from "@azure/msal-common";
+import {
+    TEST_CONFIG,
+    TEST_TOKENS,
+    TEST_DATA_CLIENT_INFO,
+    TEST_TOKEN_LIFETIMES,
+    RANDOM_TEST_GUID,
+} from "../utils/StringConstants";
+import {
+    Constants,
+    AccountInfo,
+    TokenClaims,
+    AuthenticationResult,
+    AuthenticationScheme,
+    RefreshTokenClient,
+    CommonSilentFlowRequest,
+} from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
@@ -15,14 +29,35 @@ describe("SilentRefreshClient", () => {
     let silentRefreshClient: SilentRefreshClient;
 
     beforeEach(() => {
-        const pca = new PublicClientApplication({
+        let pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
-            }
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
         });
-        sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+
+        //Implementation of PCA was moved to controller.
+        pca = (pca as any).controller;
+
+        sinon
+            .stub(CryptoOps.prototype, "createNewGuid")
+            .returns(RANDOM_TEST_GUID);
         // @ts-ignore
-        silentRefreshClient = new SilentRefreshClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient, pca.performanceClient);
+        silentRefreshClient = new SilentRefreshClient(
+            //@ts-ignore
+            pca.config,
+            //@ts-ignore
+            pca.browserStorage,
+            //@ts-ignore
+            pca.browserCrypto,
+            //@ts-ignore
+            pca.logger,
+            //@ts-ignore
+            pca.eventHandler,
+            //@ts-ignore
+            pca.navigationClient,
+            //@ts-ignore
+            pca.performanceClient
+        );
     });
 
     afterEach(() => {
@@ -41,24 +76,24 @@ describe("SilentRefreshClient", () => {
                 ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
                 access_token: TEST_TOKENS.ACCESS_TOKEN,
                 refresh_token: TEST_TOKENS.REFRESH_TOKEN,
-                id_token: TEST_TOKENS.IDTOKEN_V2
+                id_token: TEST_TOKENS.IDTOKEN_V2,
             };
             const testIdTokenClaims: TokenClaims = {
-                "ver": "2.0",
-                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523",
+                ver: "2.0",
+                iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
             };
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
                 environment: "login.windows.net",
                 tenantId: testIdTokenClaims.tid || "",
-                username: testIdTokenClaims.preferred_username || ""
+                username: testIdTokenClaims.preferred_username || "",
             };
             const testTokenResponse: AuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
@@ -70,27 +105,36 @@ describe("SilentRefreshClient", () => {
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
                 correlationId: RANDOM_TEST_GUID,
-                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                expiresOn: new Date(
+                    Date.now() + testServerTokenResponse.expires_in * 1000
+                ),
                 account: testAccount,
-                tokenType: AuthenticationScheme.BEARER
+                tokenType: AuthenticationScheme.BEARER,
             };
-            const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").resolves(testTokenResponse);
+            const silentATStub = sinon
+                .stub(
+                    RefreshTokenClient.prototype,
+                    <any>"acquireTokenByRefreshToken"
+                )
+                .resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
-                forceRefresh: false
+                forceRefresh: false,
             };
             const expectedTokenRequest: CommonSilentFlowRequest = {
                 ...tokenRequest,
                 scopes: ["scope1"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
-                forceRefresh: false
+                forceRefresh: false,
             };
-            const tokenResp = await silentRefreshClient.acquireToken(tokenRequest);
+            const tokenResp = await silentRefreshClient.acquireToken(
+                tokenRequest
+            );
             expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
         });
@@ -98,7 +142,9 @@ describe("SilentRefreshClient", () => {
 
     describe("logout", () => {
         it("logout throws unsupported error", async () => {
-            await expect(silentRefreshClient.logout).rejects.toMatchObject(BrowserAuthError.createSilentLogoutUnsupportedError());
+            await expect(silentRefreshClient.logout).rejects.toMatchObject(
+                BrowserAuthError.createSilentLogoutUnsupportedError()
+            );
         });
     });
 });

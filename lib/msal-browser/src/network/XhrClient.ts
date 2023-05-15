@@ -3,7 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
+import {
+    INetworkModule,
+    NetworkRequestOptions,
+    NetworkResponse,
+} from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
@@ -11,34 +15,43 @@ import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
  * This client implements the XMLHttpRequest class to send GET and POST requests.
  */
 export class XhrClient implements INetworkModule {
-
     /**
      * XhrClient for REST endpoints - Get request
-     * @param url 
-     * @param headers 
-     * @param body 
+     * @param url
+     * @param headers
+     * @param body
      */
-    async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    async sendGetRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
     }
 
     /**
      * XhrClient for REST endpoints - Post request
-     * @param url 
-     * @param headers 
-     * @param body 
+     * @param url
+     * @param headers
+     * @param body
      */
-    async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    async sendPostRequestAsync<T>(
+        url: string,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.POST, options);
     }
 
     /**
      * Helper for XhrClient requests.
-     * @param url 
-     * @param method 
-     * @param options 
+     * @param url
+     * @param method
+     * @param options
      */
-    private sendRequestAsync<T>(url: string, method: HTTP_REQUEST_TYPE, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    private sendRequestAsync<T>(
+        url: string,
+        method: HTTP_REQUEST_TYPE,
+        options?: NetworkRequestOptions
+    ): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
@@ -46,9 +59,19 @@ export class XhrClient implements INetworkModule {
             xhr.onload = (): void => {
                 if (xhr.status < 200 || xhr.status >= 300) {
                     if (method === HTTP_REQUEST_TYPE.POST) {
-                        reject(BrowserAuthError.createPostRequestFailedError(`Failed with status ${xhr.status}`, url));
+                        reject(
+                            BrowserAuthError.createPostRequestFailedError(
+                                `Failed with status ${xhr.status}`,
+                                url
+                            )
+                        );
                     } else {
-                        reject(BrowserAuthError.createGetRequestFailedError(`Failed with status ${xhr.status}`, url));
+                        reject(
+                            BrowserAuthError.createGetRequestFailedError(
+                                `Failed with status ${xhr.status}`,
+                                url
+                            )
+                        );
                     }
                 }
                 try {
@@ -56,20 +79,34 @@ export class XhrClient implements INetworkModule {
                     const networkResponse: NetworkResponse<T> = {
                         headers: this.getHeaderDict(xhr),
                         body: jsonResponse,
-                        status: xhr.status
+                        status: xhr.status,
                     };
                     resolve(networkResponse);
                 } catch (e) {
-                    reject(BrowserAuthError.createFailedToParseNetworkResponseError(url));
+                    reject(
+                        BrowserAuthError.createFailedToParseNetworkResponseError(
+                            url
+                        )
+                    );
                 }
             };
 
             xhr.onerror = (): void => {
                 if (window.navigator.onLine) {
                     if (method === HTTP_REQUEST_TYPE.POST) {
-                        reject(BrowserAuthError.createPostRequestFailedError(`Failed with status ${xhr.status}`, url));
+                        reject(
+                            BrowserAuthError.createPostRequestFailedError(
+                                `Failed with status ${xhr.status}`,
+                                url
+                            )
+                        );
                     } else {
-                        reject(BrowserAuthError.createGetRequestFailedError(`Failed with status ${xhr.status}`, url));
+                        reject(
+                            BrowserAuthError.createGetRequestFailedError(
+                                `Failed with status ${xhr.status}`,
+                                url
+                            )
+                        );
                     }
                 } else {
                     reject(BrowserAuthError.createNoNetworkConnectivityError());
@@ -81,17 +118,22 @@ export class XhrClient implements INetworkModule {
             } else if (method === HTTP_REQUEST_TYPE.GET) {
                 xhr.send();
             } else {
-                throw BrowserAuthError.createHttpMethodNotImplementedError(method);
+                throw BrowserAuthError.createHttpMethodNotImplementedError(
+                    method
+                );
             }
         });
     }
 
     /**
      * Helper to set XHR headers for request.
-     * @param xhr 
-     * @param options 
+     * @param xhr
+     * @param options
      */
-    private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {
+    private setXhrHeaders(
+        xhr: XMLHttpRequest,
+        options?: NetworkRequestOptions
+    ): void {
         if (options && options.headers) {
             const headers = options.headers;
             Object.keys(headers).forEach((key: string) => {
@@ -102,9 +144,9 @@ export class XhrClient implements INetworkModule {
 
     /**
      * Gets a string map of the headers received in the response.
-     * 
+     *
      * Algorithm comes from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
-     * @param xhr 
+     * @param xhr
      */
     private getHeaderDict(xhr: XMLHttpRequest): Record<string, string> {
         const headerString = xhr.getAllResponseHeaders();

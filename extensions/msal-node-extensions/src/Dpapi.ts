@@ -4,9 +4,8 @@
  */
 
 export interface DpapiBindings{
-    protectData(dataToEncrypt: Uint8Array, optionalEntropy: Uint8Array, scope: string): Uint8Array
-    unprotectData(encryptData: Uint8Array, optionalEntropy: Uint8Array, scope: string): Uint8Array
+    protectData(dataToEncrypt: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array
+    unprotectData(encryptData: Uint8Array, optionalEntropy: Uint8Array|null, scope: string): Uint8Array
 }
-/* eslint-disable-next-line @typescript-eslint/no-var-requires, no-var, import/no-commonjs */
-export var Dpapi: DpapiBindings = require("../build/Release/dpapi.node");
-export default Dpapi;
+/* eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-commonjs */
+export const Dpapi: DpapiBindings = require("../build/Release/dpapi.node");

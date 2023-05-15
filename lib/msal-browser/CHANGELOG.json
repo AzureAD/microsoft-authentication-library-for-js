@@ -2,9 +2,153 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 08 May 2023 20:12:00 GMT",
+      "tag": "@azure/msal-browser_v3.0.0-alpha.1",
+      "version": "3.0.0-alpha.1",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "8788b7d52841f088d330aa881d1196a33e9e6f7a",
+            "comment": "Revert to common as a regular dependency #5985"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0-alpha.1",
+            "commit": "6a8ac1e0a383b237c3fd6a3c8444376d197bea85"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 May 2023 23:14:26 GMT",
+      "tag": "@azure/msal-browser_v3.0.0-alpha.0",
+      "version": "3.0.0-alpha.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd",
+            "comment": " Merge LTS changelogs"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Remove dropped version checks from v3 workflows #5729"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Msal v3 final rebase #5859"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a24e4953e5e733166364cb820a0621403d70d19f",
+            "comment": "Package-lock updates"
+          }
+        ],
+        "patch": [
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "85bbdefbd59785a8dd3fc46368409d95472bd2a1",
+            "comment": "Fix prepack hook #5967"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "ac6dd99473b600a2601fc756ad6680078d017497",
+            "comment": "Bundle local version of msal-common into msal-browser #5953"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "1a04e92c8416da2f654446a729fccc4addf9d716",
+            "comment": "Fix missing idToken in response after refresh #5871"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5af79c8561d09ce63669937752ea9a6d3ba51f69",
+            "comment": "Improve iframe error detection #5891"
+          },
+          {
+            "author": "kapjain@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "84a31a3476375782c63a1b558ea1fd1ec52efb40",
+            "comment": "Fix: dSTS Token dummy aud claim value for requests with scope input by using v2.0 endpoint"
+          },
+          {
+            "author": "rginsburg@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "Exception is thrown in acquireTokenByClientCredential if tenantId is missing #5805"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4f26fba90f10fc62cc7a8774d1f079996e120d76",
+            "comment": "`removeAccount` does not throw if account does not exist in cache #5911"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "629883fbfe597b56260483e4567bacd9ae9ba81d",
+            "comment": "Remove unused enum"
+          }
+        ],
+        "major": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "c0c956a1d31ca5fd4218e04616911a96eac37ba6",
+            "comment": "`allowNativeBroker` configuration defaults to `true` #5616"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9f5c1288cbe52fa2176f41269032c7bb7920de14",
+            "comment": "Fix telemetry typos #5868"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v14.0.0",
+            "commit": "534a2463b8582f8fa745e9d03097c3395c4431dd"
+          }
+        ],
+        "minor": [
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "d8b8ddf1f6eeccce45821f2cd6214f306c386e83",
+            "comment": "Add CIAM support for v3(#5915)"
+          },
+          {
+            "author": "nicolas.zawada@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "b2536c48f4437035c8d15a83bf1d076cf2ecc7c0",
+            "comment": "Add temporaryCacheLocation to Cache Options #5725"
+          },
+          {
+            "author": "kshabelko@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "42d55e7106afc0f9c574155d3e9ff63cffd9f3b5",
+            "comment": "Randomize native extension response identifiers to facilitate concurrency #5903"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 May 2023 20:47:44 GMT",
-      "tag": "@azure/msal-browser_v2.36.0",
-      "version": "2.36.0",
+      "tag": "@azure/msal-browser_v2.37.0",
+      "version": "2.37.0",
       "comments": {
         "patch": [
           {

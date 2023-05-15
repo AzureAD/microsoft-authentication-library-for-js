@@ -32,13 +32,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ 14, 16, 18 ]
+        node: [ 18, 20 ]
         sample:
           - 'auth-code'
           - 'client-credentials'
           - 'device-code'
           - 'silent-flow'
           - 'b2c-user-flows'
+          - 'on-behalf-of'
 
     name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
@@ -93,6 +94,10 @@ jobs:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
         key: ${{ runner.os }}-node-e2e-${{ matrix.sample }}-${{ matrix.node }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 
+    - name: Install msal-node-samples packages
+      working-directory: samples/msal-node-samples
+      run: npm i
+
     - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'
       working-directory: samples/msal-node-samples/${{ matrix.sample }}
@@ -107,6 +112,12 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+        OBO_WEB_APP_CLIENT_ID: ${{ secrets.OBO_WEB_APP_CLIENT_ID }}
+        OBO_WEB_APP_CLIENT_SECRET: ${{ secrets.OBO_WEB_APP_CLIENT_SECRET }}
+        OBO_WEB_API_CLIENT_ID: ${{ secrets.OBO_WEB_API_CLIENT_ID }}
+        OBO_WEB_API_CLIENT_SECRET: ${{ secrets.OBO_WEB_API_CLIENT_SECRET }}
+        OBO_WEB_API_SCOPE: ${{ secrets.OBO_WEB_API_SCOPE }}
+        OBO_WEB_API_TENANT_ID: ${{ secrets.OBO_WEB_API_TENANT_ID }}
       run: npm test
 
     - name: Upload E2E Test Screenshots
@@ -115,92 +126,6 @@ jobs:
       with:
         name: e2e-test-screenshots
         path: samples/**/screenshots
-
-  # Some tooling no longer supports old versions of node - this job will downgrade certain dependencies for testing
-  # run-e2e-node-old:
-  #   if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group'))
-  #   runs-on: ubuntu-latest
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       node: [ 10, 12 ]
-  #       sample:
-  #         - 'auth-code'
-  #         - 'device-code'
-  #         - 'silent-flow'
-  #         - 'b2c-user-flows'
-
-  #   name: ${{ matrix.sample }} - Node v${{ matrix.node }}
-
-  #   steps:
-  #   - uses: actions/checkout@v3
-
-  #   - name: Use Node.js
-  #     uses: actions/setup-node@v3
-  #     with:
-  #       node-version: ${{ matrix.node }}
-
-  #   - name: Restore node_modules for libs
-  #     uses: actions/cache@v3
-  #     id: lib-cache
-  #     with:
-  #       path: |
-  #         node_modules
-  #         lib/msal-common/node_modules
-  #         lib/msal-node/node_modules
-  #       key: ${{ runner.os }}-node-e2e-${{matrix.node}}-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'lib/msal-node/package-lock.json') }}
-
-  #   - name: Clean Install
-  #     if: steps.lib-cache.outputs.cache-hit != 'true'
-  #     run: npm ci --ignore-scripts
-
-  #   # Lerna v5 dropped support for Node 10 and 12
-  #   - name: Link local packages
-  #     run: npx lerna@4 --scope @azure/msal-node --scope @azure/msal-common bootstrap
-
-  #   - name: Build Package
-  #     working-directory: samples/msal-node-samples
-  #     run: npm run build:package
-
-  #   # Puppeteer v19 drops support for Node 10 and 12
-  #   - name: Downgrade puppeteer for Node 10 and 12
-  #     working-directory: samples
-  #     run: npm install puppeteer@18.0.5
-
-  #   - name: Install Test Tools
-  #     if: steps.test-tools-cache.outputs.cache-hit != 'true'
-  #     working-directory: samples
-  #     run: npm ci
-
-  #   - name: Restore node_modules for sample
-  #     uses: actions/cache@v3
-  #     id: sample-cache
-  #     with:
-  #       path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
-  #       key: ${{ runner.os }}-node-e2e-${{ matrix.sample }}-${{ matrix.node }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
-
-  #   - name: Install Sample
-  #     if: steps.sample-cache.outputs.cache-hit != 'true'
-  #     working-directory: samples/msal-node-samples/${{ matrix.sample }}
-  #     run: |
-  #       npm run install:local
-  #       npm install
-
-  #   - name: E2E Tests
-  #     working-directory: samples/msal-node-samples/${{ matrix.sample }}
-  #     timeout-minutes: 10
-  #     env:
-  #       AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  #       AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-  #       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-  #     run: npm test
-
-  #   - name: Upload E2E Test Screenshots
-  #     uses: actions/upload-artifact@v3
-  #     if: failure()
-  #     with:
-  #       name: e2e-test-screenshots
-  #       path: samples/**/screenshots
 
   run-electron-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'merge_group')) && !github.event.pull_request.draft
@@ -259,6 +184,10 @@ jobs:
       with:
         path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
         key: ${{ runner.os }}-electron-e2e-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
+
+    - name: Install msal-node-samples packages
+      working-directory: samples/msal-node-samples
+      run: npm i
 
     - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'

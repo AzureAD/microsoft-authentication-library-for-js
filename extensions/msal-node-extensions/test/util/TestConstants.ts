@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { AccountInfo, AuthenticationResult } from "@azure/msal-common";
 import { Account, ErrorStatus, MsalRuntimeError } from "@azure/msal-node-runtime";
 

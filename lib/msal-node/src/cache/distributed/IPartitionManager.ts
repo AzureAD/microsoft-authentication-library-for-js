@@ -17,7 +17,7 @@ export interface IPartitionManager {
      *
      * @returns Promise<string>
      */
-    getKey(): Promise<string>
+    getKey(): Promise<string>;
 
     /**
      * This function should return the correct key being used to save each
@@ -31,5 +31,5 @@ export interface IPartitionManager {
      * @param accountEntity: AccountEntity
      * @returns Promise<string>
      */
-    extractKey(accountEntity: AccountEntity): Promise<string>
+    extractKey(accountEntity: AccountEntity): Promise<string>;
 }
