@@ -14,7 +14,7 @@ const libPath = path.join(__dirname, '..', process.argv[2]);
 
 const {name, version} = require(`${libPath}/package.json`);
 
-const versionIsPublished = checkVersion(packageName, currentVersion);
+const versionIsPublished = checkVersion(name, version);
 
 if (versionIsPublished) {
 	process.exit(0);
