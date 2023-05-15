@@ -167,7 +167,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -212,7 +212,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -303,7 +303,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         throw msalRuntimeExampleError;
                     },
@@ -341,7 +341,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -386,7 +386,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -433,7 +433,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -470,7 +470,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -505,7 +505,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -540,7 +540,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -575,7 +575,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {},
@@ -611,7 +611,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => { throw msalRuntimeExampleError; },
                     telemetryData: ""
                 };
@@ -655,7 +655,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => { throw msalRuntimeExampleError; },
                     telemetryData: ""
                 };
@@ -689,7 +689,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => { throw msalRuntimeExampleError; },
                     telemetryData: ""
                 };
@@ -732,7 +732,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => { throw msalRuntimeExampleError; },
                     telemetryData: ""
                 };
@@ -766,7 +766,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => { throw msalRuntimeExampleError; },
                     telemetryData: ""
                 };
@@ -838,7 +838,7 @@ describe("NativeBrokerPlugin", () => {
             const request: NativeSignOutRequest = {
                 clientId: TEST_CLIENT_ID,
                 correlationId: testCorrelationId,
-                accountId: testAccountInfo.nativeAccountId
+                accountId: testAccountInfo.nativeAccountId!
             }
             await nativeBrokerPlugin.signOut(request);
         });
@@ -848,6 +848,7 @@ describe("NativeBrokerPlugin", () => {
 
             jest.spyOn(msalNodeRuntime, "ReadAccountByIdAsync").mockImplementation((accountId: string, correlationId: string, callback: (result: ReadAccountResult) => void) => {
                 const result: ReadAccountResult = {
+                    // @ts-ignore
                     account: null,
                     CheckError: () => {},
                     telemetryData: ""
@@ -861,7 +862,7 @@ describe("NativeBrokerPlugin", () => {
             const request: NativeSignOutRequest = {
                 clientId: TEST_CLIENT_ID,
                 correlationId: testCorrelationId,
-                accountId: testAccountInfo.nativeAccountId
+                accountId: testAccountInfo.nativeAccountId!
             }
 
             await expect(nativeBrokerPlugin.signOut(request)).rejects.toThrowError(ClientAuthError.createNoAccountFoundError());
@@ -895,7 +896,7 @@ describe("NativeBrokerPlugin", () => {
             const request: NativeSignOutRequest = {
                 clientId: TEST_CLIENT_ID,
                 correlationId: testCorrelationId,
-                accountId: testAccountInfo.nativeAccountId
+                accountId: testAccountInfo.nativeAccountId!
             }
             await expect(nativeBrokerPlugin.signOut(request)).rejects.toThrowError(testNativeAuthError);
         });
@@ -922,7 +923,7 @@ describe("NativeBrokerPlugin", () => {
             const request: NativeSignOutRequest = {
                 clientId: TEST_CLIENT_ID,
                 correlationId: testCorrelationId,
-                accountId: testAccountInfo.nativeAccountId
+                accountId: testAccountInfo.nativeAccountId!
             }
             await expect(nativeBrokerPlugin.signOut(request)).rejects.toThrowError(testNativeAuthError);
         });
@@ -940,7 +941,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -983,7 +984,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -1026,7 +1027,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -1069,7 +1070,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -1112,7 +1113,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -1155,7 +1156,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -1198,7 +1199,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,
@@ -1240,7 +1241,7 @@ describe("NativeBrokerPlugin", () => {
                     accessToken: testAuthenticationResult.accessToken,
                     rawIdToken: testAuthenticationResult.idToken,
                     grantedScopes: testAuthenticationResult.scopes.join(" "),
-                    expiresOn: testAuthenticationResult.expiresOn.getTime(),
+                    expiresOn: testAuthenticationResult.expiresOn!.getTime(),
                     isPopAuthorization: false,
                     account: testMsalRuntimeAccount,
                     CheckError: () => {
@@ -1285,7 +1286,7 @@ describe("NativeBrokerPlugin", () => {
                     grantedScopes: "",
                     expiresOn: 0,
                     isPopAuthorization: false,
-                    account: null,
+                    account: testMsalRuntimeAccount,
                     CheckError: () => {
                         const testError: MsalRuntimeError = {
                             errorCode: 0,

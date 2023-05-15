@@ -37,7 +37,9 @@ export default [
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
             }),
-            nodeResolve()
+            nodeResolve({
+                preferBuiltins: true
+            })
         ]
     },
     {
@@ -65,7 +67,9 @@ export default [
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
             }),
-            nodeResolve()
+            nodeResolve({
+                preferBuiltins: true
+            })
         ]
     }
 ];

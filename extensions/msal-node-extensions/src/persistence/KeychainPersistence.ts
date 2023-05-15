@@ -10,6 +10,7 @@ import { PersistenceError } from "../error/PersistenceError";
 import { Logger, LoggerOptions } from "@azure/msal-common";
 import { dirname } from "path";
 import { BasePersistence } from "./BasePersistence";
+import { isNodeError } from "../utils/TypeGuards";
 
 /**
  * Uses reads and writes passwords to macOS keychain
@@ -23,8 +24,9 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
     protected readonly accountName;
     private filePersistence: FilePersistence;
 
-    private constructor(serviceName: string, accountName: string) {
+    private constructor(filePersistence: FilePersistence, serviceName: string, accountName: string) {
         super();
+        this.filePersistence = filePersistence;
         this.serviceName = serviceName;
         this.accountName = accountName;
     }
@@ -35,8 +37,8 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
         accountName: string,
         loggerOptions?: LoggerOptions): Promise<KeychainPersistence> {
 
-        const persistence = new KeychainPersistence(serviceName, accountName);
-        persistence.filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
+        const filePersistence = await FilePersistence.create(fileLocation, loggerOptions);
+        const persistence = new KeychainPersistence(filePersistence, serviceName, accountName);
         return persistence;
     }
 
@@ -44,7 +46,11 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
         try {
             await setPassword(this.serviceName, this.accountName, contents);
         } catch (err) {
-            throw PersistenceError.createKeychainPersistenceError(err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createKeychainPersistenceError(err.message);
+            } else {
+                throw err;
+            }
         }
         // Write dummy data to update file mtime
         await this.filePersistence.save("{}");
@@ -54,7 +60,11 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
         try{
             return await getPassword(this.serviceName, this.accountName);
         } catch(err){
-            throw PersistenceError.createKeychainPersistenceError(err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createKeychainPersistenceError(err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -63,7 +73,11 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
             await this.filePersistence.delete();
             return await deletePassword(this.serviceName, this.accountName);
         } catch (err) {
-            throw PersistenceError.createKeychainPersistenceError(err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createKeychainPersistenceError(err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
