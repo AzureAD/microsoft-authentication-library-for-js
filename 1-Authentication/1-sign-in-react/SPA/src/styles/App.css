@@ -58,12 +58,9 @@ footer {
     float: right;
 }
 
-.tableColumn {
-    word-break: break-all;
-}
-
-.table-responsive {
-    max-height: 37rem !important;
+td {
+    word-break: break-word;
+    max-width: 34rem;
 }
 
 .warningMessage {
