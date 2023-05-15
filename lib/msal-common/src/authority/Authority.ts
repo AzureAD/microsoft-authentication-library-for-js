@@ -59,7 +59,13 @@ export class Authority {
     // Correlation Id
     protected correlationId: string | undefined;
     // Reserved tenant domain names that will not be replaced with tenant id
-    private static reservedTenantDomains: Set<string> = new Set([Constants.DEFAULT_COMMON_TENANT, "{tenant}", "{tenantid}"]);
+    private static reservedTenantDomains: Set<string> = new Set([
+        Constants.DEFAULT_COMMON_TENANT,
+        "{tenant}",
+        "{tenantid}",
+        "consumers",
+        "organizations"
+    ]);
 
     constructor(
         authority: string,
@@ -235,11 +241,11 @@ export class Authority {
     }
 
     /**
-     * Returns a flag indicating that authority {@link IUri} type is AAD
+     * Returns a flag indicating that tenant name can be replaced in authority {@link IUri}
      * @param authorityUri {@link IUri}
      * @private
      */
-    private isAADAuthority(authorityUri: IUri): boolean {
+    private canReplaceTenant(authorityUri: IUri): boolean {
         return authorityUri.PathSegments.length === 1
             && !Authority.reservedTenantDomains.has(authorityUri.PathSegments[0])
             && this.getAuthorityType(authorityUri) === AuthorityType.Default
@@ -267,7 +273,7 @@ export class Authority {
 
         currentAuthorityParts.forEach((currentPart, index) => {
             let cachedPart = cachedAuthorityParts[index];
-            if (index === 0 && this.isAADAuthority(cachedAuthorityUrlComponents))
+            if (index === 0 && this.canReplaceTenant(cachedAuthorityUrlComponents))
             {
                 const tenantId = (new UrlString(this.metadata.authorization_endpoint)).getUrlComponents().PathSegments[0];
                 /**
