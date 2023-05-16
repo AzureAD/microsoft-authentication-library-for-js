@@ -1,8 +1,10 @@
 {
-  "extends": "../../tsconfig.json",
   "include": [
     "src",
     "test"
+  ],
+  "exclude": [
+    "node_modules"
   ],
   "compilerOptions": {
     "module": "esnext",
@@ -19,15 +21,13 @@
     "outDir": "./dist",
     "noUnusedLocals": true,
     "baseUrl": "./",
-    "paths": {
-      "*": [
-        "src/*",
-        "node_modules/*",
-        "build/"
-      ]
-    },
     "jsx": "react",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "strict": true,
+    "types": [
+      "node",
+      "jest"
+    ]
   },
   "references": [
     {

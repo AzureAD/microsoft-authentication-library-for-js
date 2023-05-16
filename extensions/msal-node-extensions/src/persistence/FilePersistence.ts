@@ -6,10 +6,11 @@
 import { promises as fs } from "fs";
 import { dirname } from "path";
 import { IPersistence } from "./IPersistence";
-import { Constants } from "../utils/Constants";
+import { Constants, ErrorCodes } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
 import { Logger, LoggerOptions, LogLevel } from "@azure/msal-common";
 import { BasePersistence } from "./BasePersistence";
+import { isNodeError } from "../utils/TypeGuards";
 
 /**
  * Reads and writes data to file specified by file location. File contents are not
@@ -23,10 +24,14 @@ export class FilePersistence extends BasePersistence implements IPersistence {
     private filePath: string;
     private logger: Logger;
 
+    private constructor(fileLocation: string, loggerOptions?: LoggerOptions) {
+        super();
+        this.logger = new Logger(loggerOptions || FilePersistence.createDefaultLoggerOptions());
+        this.filePath = fileLocation;
+    }
+
     public static async create(fileLocation: string, loggerOptions?: LoggerOptions): Promise<FilePersistence> {
-        const filePersistence = new FilePersistence();
-        filePersistence.filePath = fileLocation;
-        filePersistence.logger = new Logger(loggerOptions || FilePersistence.createDefaultLoggerOptions());
+        const filePersistence = new FilePersistence(fileLocation, loggerOptions);
         await filePersistence.createCacheFile();
         return filePersistence;
     }
@@ -35,7 +40,11 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             await fs.writeFile(this.getFilePath(), contents, "utf-8");
         } catch (err) {
-            throw PersistenceError.createFileSystemError(err.code, err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -43,7 +52,11 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             await fs.writeFile(this.getFilePath(), contents);
         } catch (err) {
-            throw PersistenceError.createFileSystemError(err.code, err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -51,7 +64,11 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             return await fs.readFile(this.getFilePath(), "utf-8");
         } catch (err) {
-            throw PersistenceError.createFileSystemError(err.code, err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -59,7 +76,11 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             return await fs.readFile(this.getFilePath());
         } catch (err) {
-            throw PersistenceError.createFileSystemError(err.code, err.message);
+            if (isNodeError(err)) {
+                throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+            } else {
+                throw err;
+            }
         }
     }
 
@@ -68,12 +89,16 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             await fs.unlink(this.getFilePath());
             return true;
         } catch (err) {
-            if (err.code === Constants.ENOENT_ERROR) {
-                // file does not exist, so it was not deleted
-                this.logger.warning("Cache file does not exist, so it could not be deleted");
-                return false;
+            if (isNodeError(err)) {
+                if (err.code === Constants.ENOENT_ERROR) {
+                    // file does not exist, so it was not deleted
+                    this.logger.warning("Cache file does not exist, so it could not be deleted");
+                    return false;
+                }
+                throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+            } else {
+                throw err;
             }
-            throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     }
 
@@ -109,12 +134,16 @@ export class FilePersistence extends BasePersistence implements IPersistence {
             const stats = await fs.stat(this.filePath);
             return stats.mtime.getTime();
         } catch (err) {
-            if (err.code === Constants.ENOENT_ERROR) {
-                // file does not exist, so it's never been modified
-                this.logger.verbose("Cache file does not exist");
-                return 0;
+            if (isNodeError(err)) {
+                if (err.code === Constants.ENOENT_ERROR) {
+                    // file does not exist, so it's never been modified
+                    this.logger.verbose("Cache file does not exist");
+                    return 0;
+                }
+                throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+            } else {
+                throw err;
             }
-            throw PersistenceError.createFileSystemError(err.code, err.message);
         }
     }
 
@@ -130,10 +159,14 @@ export class FilePersistence extends BasePersistence implements IPersistence {
         try {
             await fs.mkdir(dirname(this.filePath), {recursive: true});
         } catch (err) {
-            if (err.code === Constants.EEXIST_ERROR) {
-                this.logger.info(`Directory ${dirname(this.filePath)}  already exists`);
+            if (isNodeError(err)) {
+                if (err.code === Constants.EEXIST_ERROR) {
+                    this.logger.info(`Directory ${dirname(this.filePath)}  already exists`);
+                } else {
+                    throw PersistenceError.createFileSystemError(err.code || ErrorCodes.UNKNOWN, err.message);
+                }
             } else {
-                throw PersistenceError.createFileSystemError(err.code, err.message);
+                throw err;
             }
         }
     }

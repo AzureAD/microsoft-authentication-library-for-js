@@ -26,7 +26,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
 
     public persistence: IPersistence;
     public lastSync: number;
-    public currentCache: string;
+    public currentCache: string | null;
     public lockFilePath: string;
 
     private crossPlatformLock: CrossPlatformLock;
@@ -72,7 +72,11 @@ export class PersistenceCachePlugin implements ICachePlugin {
 
             this.currentCache = await this.persistence.load();
             this.lastSync = new Date().getTime();
-            cacheContext.tokenCache.deserialize(this.currentCache);
+            if (this.currentCache) {
+                cacheContext.tokenCache.deserialize(this.currentCache);
+            } else {
+                this.logger.info("Cache empty.");
+            }
 
             this.logger.info(`Last sync time updated to: ${this.lastSync}`);
         } finally {
