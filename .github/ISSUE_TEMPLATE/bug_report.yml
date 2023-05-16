@@ -24,8 +24,7 @@ body:
   attributes:
     label: Core Library
     options:
-      - "MSAL.js v3-alpha (@azure/msal-browser@alpha)" 
-      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js (@azure/msal-browser)"
       - "MSAL.js v1 (@azure/msal or msal)"
       - "MSAL Node (@azure/msal-node)"
       - "Passport Azure AD (passport-azure-ad)"
