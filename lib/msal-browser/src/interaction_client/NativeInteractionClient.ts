@@ -858,11 +858,12 @@ export class NativeInteractionClient extends BaseInteractionClient {
                 shrParameters
             );
 
-            // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
-            validatedRequest.reqCnf = reqCnfData.reqCnfHash;
+            // to reduce the URL length, it is recommended to send the short form of the req_cnf
+            validatedRequest.reqCnf = reqCnfData.reqCnfString;
             validatedRequest.keyId = reqCnfData.kid;
         }
 
         return validatedRequest;
     }
 }
+

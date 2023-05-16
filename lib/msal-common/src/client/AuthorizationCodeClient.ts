@@ -658,7 +658,7 @@ export class AuthorizationCodeClient extends BaseClient {
                 );
                 // to reduce the URL length, it is recommended to send the hash of the req_cnf instead of the whole string
                 const reqCnfData = await popTokenGenerator.generateCnf(request);
-                parameterBuilder.addPopToken(reqCnfData.reqCnfHash);
+                parameterBuilder.addPopToken(reqCnfData.reqCnfString);
             }
         }
 
@@ -717,3 +717,4 @@ export class AuthorizationCodeClient extends BaseClient {
         return account.idTokenClaims?.login_hint || null;
     }
 }
+
