@@ -60,7 +60,6 @@ jobs:
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'run link:localDeps --if-present'
 
-  # Publish to CDN
       # KeyVault connection
       - task: AzureKeyVault@2
         inputs:
@@ -69,15 +68,22 @@ jobs:
           SecretsFilter: 'MSALJSNPMTOKEN, MSALJSGITHUB'
           RunAsPreJob: true
 
+      # Write NPM authToken
+      - script: echo $NPM_TOKEN > .npmrc
+        displayName: Write npm authToken
+        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
+        env:
+          NPM_TOKEN: $(MSALJSNPMTOKEN)
+
       # Publish to npm
       - task: Npm@1
         displayName: Publish to npm
         condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), not(${{ parameters.testMode }}))
         continueOnError: true
         inputs:
+          command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          command: 'publish'
-          publishEndpoint: MSALJSNPM
+          customCommand: 'publish --tag alpha' # Remove --tag alpha when ready to GA
       - task: Npm@1
         displayName: Publish to npm - Test Mode
         condition: and(not(eq('${{ parameters.libName }}', 'msal-angular')), ${{ parameters.testMode }})
@@ -86,14 +92,6 @@ jobs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
           customCommand: 'pack'
-      
-      # Write NPM authToken
-      - script: echo $NPM_TOKEN > .npmrc
-        displayName: Write npm authToken
-        workingDirectory: '${{ parameters.path }}/${{ parameters.libName }}'
-        condition: eq('${{ parameters.libName }}', 'msal-angular')
-        env:
-          NPM_TOKEN: $(MSALJSNPMTOKEN)
 
       # Deploy to npm (Angular only)
       - task: Npm@1
@@ -102,7 +100,7 @@ jobs:
         inputs:
           command: 'custom'
           workingDir: '${{ parameters.path }}/${{ parameters.libName }}'
-          customCommand: 'run deploy'
+          customCommand: 'run deploy:alpha' # Remove :alpha when ready to GA"
       - task: Npm@1
         displayName: Deploy to npm (Angular only) - Test Mode
         condition: and(eq('${{ parameters.libName }}', 'msal-angular'), ${{ parameters.testMode }})
@@ -114,7 +112,6 @@ jobs:
       # Remove .npmrc file
       - script: rm ${{ parameters.path }}/${{ parameters.libName }}/.npmrc
         displayName: Remove .npmrc file
-        condition: eq('${{ parameters.libName }}', 'msal-angular')
 
       # Install Release Scripts dependencies
       - task: Npm@1

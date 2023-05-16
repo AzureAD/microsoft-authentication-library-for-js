@@ -13,6 +13,7 @@ import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
 import {
+    AADAuthorityConstants,
     AuthorityMetadataSource,
     Constants,
     RegionDiscoveryOutcomes,
@@ -71,6 +72,14 @@ export class Authority {
     protected performanceClient: IPerformanceClient | undefined;
     // Correlation Id
     protected correlationId: string | undefined;
+    // Reserved tenant domain names that will not be replaced with tenant id
+    private static reservedTenantDomains: Set<string> = (new Set([
+        "{tenant}",
+        "{tenantid}",
+        AADAuthorityConstants.COMMON,
+        AADAuthorityConstants.CONSUMERS,
+        AADAuthorityConstants.ORGANIZATIONS
+    ]));
 
     constructor(
         authority: string,
@@ -101,23 +110,20 @@ export class Authority {
         );
     }
 
-    // See above for AuthorityType
-    public get authorityType(): AuthorityType {
-
+    /**
+     * Get {@link AuthorityType}
+     * @param authorityUri {@link IUri}
+     * @private
+     */
+    private getAuthorityType(authorityUri: IUri): AuthorityType {
         // CIAM auth url pattern is being standardized as: <tenant>.ciamlogin.com
-        if (this.canonicalAuthorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
+        if (authorityUri.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
             return AuthorityType.Ciam;
         }
 
-        const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
-
-        // CIAM auth url pattern is being standardized as: <tenant>.ciamlogin.com
-        if (this.canonicalAuthorityUrlComponents.HostNameAndPort.endsWith(Constants.CIAM_AUTH_URL)) {
-            return AuthorityType.Ciam;
-        }
-
+        const pathSegments = authorityUri.PathSegments;
         if (pathSegments.length) {
-            switch (pathSegments[0].toLowerCase()) {
+            switch(pathSegments[0].toLowerCase()) {
                 case Constants.ADFS:
                     return AuthorityType.Adfs;
                 case Constants.DSTS:
@@ -127,6 +133,11 @@ export class Authority {
             }
         }
         return AuthorityType.Default;
+    }
+
+    // See above for AuthorityType
+    public get authorityType(): AuthorityType {
+        return this.getAuthorityType(this.canonicalAuthorityUrlComponents);
     }
 
     /**
@@ -190,10 +201,7 @@ export class Authority {
      */
     public get authorizationEndpoint(): string {
         if (this.discoveryComplete()) {
-            const endpoint = this.replacePath(
-                this.metadata.authorization_endpoint
-            );
-            return this.replaceTenant(endpoint);
+            return this.replacePath(this.metadata.authorization_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(
                 "Discovery incomplete."
@@ -206,8 +214,7 @@ export class Authority {
      */
     public get tokenEndpoint(): string {
         if (this.discoveryComplete()) {
-            const endpoint = this.replacePath(this.metadata.token_endpoint);
-            return this.replaceTenant(endpoint);
+            return this.replacePath(this.metadata.token_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(
                 "Discovery incomplete."
@@ -217,10 +224,7 @@ export class Authority {
 
     public get deviceCodeEndpoint(): string {
         if (this.discoveryComplete()) {
-            const endpoint = this.replacePath(
-                this.metadata.token_endpoint.replace("/token", "/devicecode")
-            );
-            return this.replaceTenant(endpoint);
+            return this.replacePath(this.metadata.token_endpoint.replace("/token", "/devicecode"));
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(
                 "Discovery incomplete."
@@ -237,10 +241,7 @@ export class Authority {
             if (!this.metadata.end_session_endpoint) {
                 throw ClientAuthError.createLogoutNotSupportedError();
             }
-            const endpoint = this.replacePath(
-                this.metadata.end_session_endpoint
-            );
-            return this.replaceTenant(endpoint);
+            return this.replacePath(this.metadata.end_session_endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(
                 "Discovery incomplete."
@@ -253,8 +254,7 @@ export class Authority {
      */
     public get selfSignedJwtAudience(): string {
         if (this.discoveryComplete()) {
-            const endpoint = this.replacePath(this.metadata.issuer);
-            return this.replaceTenant(endpoint);
+            return this.replacePath(this.metadata.issuer);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(
                 "Discovery incomplete."
@@ -267,13 +267,24 @@ export class Authority {
      */
     public get jwksUri(): string {
         if (this.discoveryComplete()) {
-            const endpoint = this.replacePath(this.metadata.jwks_uri);
-            return this.replaceTenant(endpoint);
+            return this.replacePath(this.metadata.jwks_uri);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(
                 "Discovery incomplete."
             );
         }
+    }
+
+    /**
+     * Returns a flag indicating that tenant name can be replaced in authority {@link IUri}
+     * @param authorityUri {@link IUri}
+     * @private
+     */
+    private canReplaceTenant(authorityUri: IUri): boolean {
+        return authorityUri.PathSegments.length === 1
+            && !Authority.reservedTenantDomains.has(authorityUri.PathSegments[0])
+            && this.getAuthorityType(authorityUri) === AuthorityType.Default
+            && this.protocolMode === ProtocolMode.AAD;
     }
 
     /**
@@ -290,25 +301,32 @@ export class Authority {
      */
     private replacePath(urlString: string): string {
         let endpoint = urlString;
-        const cachedAuthorityUrl = new UrlString(
-            this.metadata.canonical_authority
-        );
-        const cachedAuthorityParts =
-            cachedAuthorityUrl.getUrlComponents().PathSegments;
-        const currentAuthorityParts =
-            this.canonicalAuthorityUrlComponents.PathSegments;
+        const cachedAuthorityUrl = new UrlString(this.metadata.canonical_authority);
+        const cachedAuthorityUrlComponents = cachedAuthorityUrl.getUrlComponents();
+        const cachedAuthorityParts = cachedAuthorityUrlComponents.PathSegments;
+        const currentAuthorityParts = this.canonicalAuthorityUrlComponents.PathSegments;
 
         currentAuthorityParts.forEach((currentPart, index) => {
-            const cachedPart = cachedAuthorityParts[index];
+            let cachedPart = cachedAuthorityParts[index];
+            if (index === 0 && this.canReplaceTenant(cachedAuthorityUrlComponents))
+            {
+                const tenantId = (new UrlString(this.metadata.authorization_endpoint)).getUrlComponents().PathSegments[0];
+                /**
+                 * Check if AAD canonical authority contains tenant domain name, for example "testdomain.onmicrosoft.com",
+                 * by comparing its first path segment to the corresponding authorization endpoint path segment, which is
+                 * always resolved with tenant id by OIDC.
+                 */
+                if (cachedPart !== tenantId) {
+                    this.logger.verbose(`Replacing tenant domain name ${cachedPart} with id ${tenantId}`);
+                    cachedPart = tenantId;
+                }
+            }
             if (currentPart !== cachedPart) {
-                endpoint = endpoint.replace(
-                    `/${cachedPart}/`,
-                    `/${currentPart}/`
-                );
+                endpoint = endpoint.replace(`/${cachedPart}/`, `/${currentPart}/`);
             }
         });
 
-        return endpoint;
+        return this.replaceTenant(endpoint);
     }
 
     /**
