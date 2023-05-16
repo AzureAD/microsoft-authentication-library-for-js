@@ -1,10 +1,9 @@
 #!/usr/bin/bash
 
-libNames=("msal-core" "msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react");
+libNames=("msal-common" "msal-browser" "msal-node" "msal-angular" "msal-react");
 
 declare -A publishFlagNames;
 
-publishFlagNames["msal-core"]=publishMsalCore;
 publishFlagNames["msal-common"]=publishMsalCommon;
 publishFlagNames["msal-browser"]=publishMsalBrowser;
 publishFlagNames["msal-node"]=publishMsalNode;
@@ -30,7 +29,7 @@ done
 
 # Same for extensions
 
-libPath="../extensions/msal-node-extensions/package.json"
+libPath="./extensions/msal-node-extensions"
 varName=publishMsalNodeExtensions;
 
 node checkIfPackageShouldBePublished.js $libPath
