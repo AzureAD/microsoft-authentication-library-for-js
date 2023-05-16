@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 const { Octokit } = require("@octokit/rest");
 const yargs = require("yargs/yargs");
 const { hideBin } = require("yargs/helpers");
@@ -14,7 +19,7 @@ octokit.request("POST /repos/AzureAD/microsoft-authentication-library-for-js/pul
   owner: "AzureAD",
   repo: "microsoft-authentication-library-for-js",
   title: `${titleDate} Post Release`,
-  body: "This PR contains package lock updates & cdn README updates for msal-browser and msal-core.",
+  body: "This PR contains package lock updates for all published packages.",
   head: branch,
   base: "dev"
 }).then((response) => {
