@@ -8,7 +8,6 @@ parameters:
   - name: dependsOn
     type: string
     default: 'none'
-    default: false
   - name: publishFlagName
     type: string
   - name: publishOverride
