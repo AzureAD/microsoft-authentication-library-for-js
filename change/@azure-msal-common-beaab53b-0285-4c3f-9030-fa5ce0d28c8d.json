@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Support tenant switching for tenant domain names #6022",
+  "packageName": "@azure/msal-common",
+  "email": "kshabelko@microsoft.com",
+  "dependentChangeType": "patch"
+}
