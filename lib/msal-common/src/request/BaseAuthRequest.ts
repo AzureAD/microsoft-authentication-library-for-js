@@ -40,4 +40,5 @@ export type BaseAuthRequest = {
     requestedClaimsHash?: string;
     maxAge?: number;
     tokenQueryParameters?: StringDict;
+    addOidcScopes?:boolean;
 };

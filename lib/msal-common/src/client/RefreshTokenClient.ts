@@ -340,7 +340,7 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopes(request.scopes, request.addOidcScopes);
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
