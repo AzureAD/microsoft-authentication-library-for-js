@@ -3,18 +3,13 @@
  * Licensed under the MIT License.
  */
 
-const execSync = require("child_process").execSync;
-
-function checkVersion(packageName, version) {
-	return execSync(`npm view ${packageName}@${version}`).toString().trim();
-}
-
+const checkPackageAndVersion = require("./checkPackageAndVersion.js");
 const path = require("path");
 const libPath = path.join(__dirname, '..', process.argv[2]);
 
-const {name, version} = require(`${libPath}/package.json`);
+const { name, version } = require(`${libPath}/package.json`);
 
-const versionIsPublished = checkVersion(name, version);
+const versionIsPublished = checkPackageAndVersion(name, version);
 
 if (versionIsPublished) {
 	process.exit(0);
