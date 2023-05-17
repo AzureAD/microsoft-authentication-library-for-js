@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 08 May 2023 20:12:00 GMT and should not be manually modified.
+This log was last generated on Tue, 16 May 2023 22:51:19 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.0.0-alpha.2
+
+Tue, 16 May 2023 22:51:19 GMT
+
+### Changes
+
+- Update bundled files to be included in published package #5997 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v14.0.0-alpha.2
 
 ## 3.0.0-alpha.1
 

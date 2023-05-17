@@ -2,6 +2,21 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 16 May 2023 22:51:25 GMT",
+      "tag": "@azure/msal-react_v2.0.0-alpha.2",
+      "version": "2.0.0-alpha.2",
+      "comments": {
+        "prerelease": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v3.0.0-alpha.2",
+            "commit": "c7103ba801167b089d6504cdc385eecb7019fc78"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 08 May 2023 20:12:01 GMT",
       "tag": "@azure/msal-react_v2.0.0-alpha.1",
       "version": "2.0.0-alpha.1",
