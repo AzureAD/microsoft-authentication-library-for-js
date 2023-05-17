@@ -3,11 +3,6 @@
 # Build a general Node.js project with npm.
 # Add steps that analyze code, save build artifacts, deploy, and more:
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
-resources:
-  pipelines:
-    - pipeline: releasePipeline
-      source: msal-javascript-internal-Buddy
-      trigger: true
 pool:
   vmImage: ubuntu-latest
 stages:
